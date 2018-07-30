@@ -41,6 +41,7 @@
 #include <srdfdom/model.h>        // use their struct datastructures
 #include <srdfdom/srdf_writer.h>  // for writing srdf data
 #include <urdf/model.h>           // to share throughout app
+#include <yaml-cpp/yaml.h>        // outputing yaml config files
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h>              // for figuring out if robot is in collision
@@ -74,6 +75,7 @@ struct GroupMetaData
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
   int kinematics_solver_attempts_;              // solver attempts
+  std::string default_planner_;                 // Name of the default planner to use
 };
 
 /**
@@ -84,6 +86,16 @@ struct OmplPlanningParameter
   std::string name;     // name of parameter
   std::string value;    // value parameter will receive (but as a string)
   std::string comment;  // comment briefly describing what this parameter does
+};
+
+/**
+ * ROS Controllers settings which may be set in the config files
+ */
+struct ROSControlConfig
+{
+  std::string name_;                 // controller name
+  std::string type_;                 // controller type
+  std::vector<std::string> joints_;  // joints controller by this controller
 };
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the
@@ -224,6 +236,9 @@ public:
   // Public Functions
   // ******************************************************************************************
 
+  /// Load a robot model
+  void setRobotModel(robot_model::RobotModelPtr robot_model);
+
   /// Provide a shared kinematic model loader
   robot_model::RobotModelConstPtr getRobotModel();
 
@@ -241,17 +256,29 @@ public:
    */
   srdf::Model::Group* findGroupByName(const std::string& name);
 
+  /**
+   * Find the associated ros controller by name
+   *
+   * @param name - name of data to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
+
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
 
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
+  std::vector<OMPLPlannerDescription> getOMPLPlanners();
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
+  bool outputCHOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
+  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter);
+  bool outputROSControllersYAML(const std::string& file_path);
 
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
@@ -268,11 +295,30 @@ public:
   std::string decideProjectionJoints(std::string planning_group);
 
   /**
+   * Input ompl_planning.yaml file for editing its values
+   * @param file_path path to ompl_planning.yaml in the input package
+   * @return bool if the file was read correctly
+   */
+  bool inputOMPLYAML(const std::string& file_path);
+
+  /**
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package
    * @return bool if the file was read correctly
    */
   bool inputKinematicsYAML(const std::string& file_path);
+
+  /**
+   * Input ros_controllers.yaml file for editing its values
+   * @param file_path path to ros_controllers.yaml in the input package
+   * @return bool if the file was read correctly
+   */
+  bool inputROSControllersYAML(const std::string& file_path);
+
+  /**
+   * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
+   */
+  void addDefaultControllers();
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
@@ -313,6 +359,19 @@ public:
   std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
+   * \brief Adds a ros controller to ros_controllers_config_ vector
+   * \param new_controller a new ROS Controller to add
+   * \return true if inserted correctly
+   */
+  bool addROSController(const ROSControlConfig& new_controller);
+
+  /**
+   * \brief Gets ros_controllers_config_ vector
+   * \return std::vector of ROSControlConfig
+   */
+  std::vector<ROSControlConfig> getROSControllers();
+
+  /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
    * \param jm1 - a pointer to the first joint model to compare
    * \param jm2 - a pointer to the second joint model to compare
@@ -334,6 +393,9 @@ private:
   // Shared kinematic model
   robot_model::RobotModelPtr robot_model_;
   robot_model::RobotModelConstPtr robot_model_const_;
+
+  /// ROS Controllers config data
+  std::vector<ROSControlConfig> ros_controllers_config_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;

@@ -44,10 +44,12 @@
 #include <map>
 #include <set>
 #include <Eigen/Core>
-#include <console_bridge/console.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace collision_detection
 {
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
 {
@@ -216,6 +218,168 @@ struct CollisionRequest
 
   /** \brief Flag indicating whether information about detected collisions should be reported */
   bool verbose;
+};
+
+namespace DistanceRequestTypes
+{
+enum DistanceRequestType
+{
+  GLOBAL,   /// Find the global minimum
+  SINGLE,   /// Find the global minimum for each pair
+  LIMITED,  /// Find a limited(max_contacts_per_body) set of contacts for a given pair
+  ALL       /// Find all the contacts for a given pair
+};
+}
+typedef DistanceRequestTypes::DistanceRequestType DistanceRequestType;
+
+struct DistanceRequest
+{
+  DistanceRequest()
+    : enable_nearest_points(false)
+    , enable_signed_distance(false)
+    , type(DistanceRequestType::GLOBAL)
+    , max_contacts_per_body(1)
+    , active_components_only(nullptr)
+    , acm(nullptr)
+    , distance_threshold(std::numeric_limits<double>::max())
+    , verbose(false)
+    , compute_gradient(false)
+  {
+  }
+
+  /// Compute \e active_components_only_ based on \e req_
+  void enableGroup(const robot_model::RobotModelConstPtr& kmodel)
+  {
+    if (kmodel->hasJointModelGroup(group_name))
+      active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsSet();
+    else
+      active_components_only = nullptr;
+  }
+
+  /// Indicate if nearest point information should be calculated
+  bool enable_nearest_points;
+
+  /// Indicate if a signed distance should be calculated in a collision.
+  bool enable_signed_distance;
+
+  /// Indicate the type of distance request. If using type=ALL, it is
+  /// recommended to set max_contacts_per_body to the expected number
+  /// of contacts per pair becaused it is uesed to reserving space.
+  DistanceRequestType type;
+
+  /// Maximum number of contacts to store for bodies (multiple bodies may be within distance threshold)
+  std::size_t max_contacts_per_body;
+
+  /// The group name
+  std::string group_name;
+
+  /// The set of active components to check
+  const std::set<const robot_model::LinkModel*>* active_components_only;
+
+  /// The allowed collision matrix used to filter checks
+  const AllowedCollisionMatrix* acm;
+
+  /// Only calculate distances for objects within this threshold to each other.
+  /// If set this can significantly to reduce number of queries.
+  double distance_threshold;
+
+  /// Log debug information
+  bool verbose;
+
+  /// Indicate if gradient should be calculated between each object.
+  /// This is the normalized vector connecting the closest points on the two objects.
+  bool compute_gradient;
+};
+
+struct DistanceResultsData
+{
+  DistanceResultsData()
+  {
+    clear();
+  }
+
+  /// The distance between two objects. If two objects are in collision, distance <= 0.
+  double distance;
+
+  /// The nearest points
+  Eigen::Vector3d nearest_points[2];
+
+  /// The object link names
+  std::string link_names[2];
+
+  /// The object body type
+  BodyType body_types[2];
+
+  /** Normalized vector connecting closest points (from link_names[0] to link_names[1])
+
+      Usually, when checking convex to convex, the normal is connecting closest points.
+      However, FCL in case of non-convex to non-convex or convex to non-convex returns
+      the contact normal for one of the two triangles that are in contact. */
+  Eigen::Vector3d normal;
+
+  /// Clear structure data
+  void clear()
+  {
+    distance = std::numeric_limits<double>::max();
+    nearest_points[0].setZero();
+    nearest_points[1].setZero();
+    body_types[0] = BodyType::WORLD_OBJECT;
+    body_types[1] = BodyType::WORLD_OBJECT;
+    link_names[0] = "";
+    link_names[1] = "";
+    normal.setZero();
+  }
+
+  /// Update structure data given DistanceResultsData object
+  void operator=(const DistanceResultsData& other)
+  {
+    distance = other.distance;
+    nearest_points[0] = other.nearest_points[0];
+    nearest_points[1] = other.nearest_points[1];
+    link_names[0] = other.link_names[0];
+    link_names[1] = other.link_names[1];
+    body_types[0] = other.body_types[0];
+    body_types[1] = other.body_types[1];
+    normal = other.normal;
+  }
+
+  /// Compare if the distance is less than another
+  bool operator<(const DistanceResultsData& other)
+  {
+    return (distance < other.distance);
+  }
+
+  /// Compare if the distance is greater than another
+  bool operator>(const DistanceResultsData& other)
+  {
+    return (distance > other.distance);
+  }
+};
+
+typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData> > DistanceMap;
+
+struct DistanceResult
+{
+  DistanceResult() : collision(false)
+  {
+  }
+
+  /// Indicates if two objects were in collision
+  bool collision;
+
+  /// ResultsData for the two objects with the minimum distance
+  DistanceResultsData minimum_distance;
+
+  /// A map of distance data for each link in the req.active_components_only
+  DistanceMap distances;
+
+  /// Clear structure data
+  void clear()
+  {
+    collision = false;
+    minimum_distance.clear();
+    distances.clear();
+  }
 };
 }
 

@@ -314,8 +314,13 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   return true;
 }
 
-moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(const ExecutableMotionPlan& plan)
+moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(ExecutableMotionPlan& plan)
 {
+  if (!plan.planning_scene_monitor_)
+    plan.planning_scene_monitor_ = planning_scene_monitor_;
+  if (!plan.planning_scene_)
+    plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
+
   moveit_msgs::MoveItErrorCodes result;
 
   // try to execute the trajectory
@@ -340,9 +345,6 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   int prev = -1;
   for (std::size_t i = 0; i < plan.plan_components_.size(); ++i)
   {
-    if (!plan.plan_components_[i].trajectory_ || plan.plan_components_[i].trajectory_->empty())
-      continue;
-
     // \todo should this be in trajectory_execution ? Maybe. Then that will have to use kinematic_trajectory too;
     // spliting trajectories for controllers becomes interesting: tied to groups instead of joints. this could cause
     // some problems
@@ -372,7 +374,8 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
         plan.plan_components_[i].trajectory_->unwind(plan.plan_components_[prev].trajectory_->getLastWayPoint());
     }
 
-    prev = i;
+    if (plan.plan_components_[i].trajectory_ && !plan.plan_components_[i].trajectory_->empty())
+      prev = i;
 
     // convert to message, pass along
     moveit_msgs::RobotTrajectory msg;
@@ -499,12 +502,11 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
     }
 
   // if there is a next trajectory, check it for validity, before we start execution
-  std::size_t test_index = index;
-  while (++test_index < plan->plan_components_.size())
-    if (plan->plan_components_[test_index].trajectory_ && !plan->plan_components_[test_index].trajectory_->empty())
-    {
-      if (!isRemainingPathValid(*plan, std::make_pair<int>(test_index, 0)))
-        path_became_invalid_ = true;
-      break;
-    }
+  ++index;
+  if (index < plan->plan_components_.size() && plan->plan_components_[index].trajectory_ &&
+      !plan->plan_components_[index].trajectory_->empty())
+  {
+    if (!isRemainingPathValid(*plan, std::make_pair<int>(index, 0)))
+      path_became_invalid_ = true;
+  }
 }

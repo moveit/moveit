@@ -2,6 +2,13 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* forward OMPL logging to rosconsole (`#916 <https://github.com/ros-planning/moveit/issues/916>`_)
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* Make trajectory interpolation in MoveIt consistent to OMPL (`#869 <https://github.com/ros-planning/moveit/issues/869>`_)
+* Contributors: Bryce Willey, Ian McMahon, Mikael Arguedas, Robert Haschke, Xiaojian Ma, Zachary Kingston
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -28,7 +35,7 @@ Changelog for package moveit_planners_ompl
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * Contributors: Dave Coleman
 
 0.9.4 (2017-02-06)
@@ -62,7 +69,7 @@ Changelog for package moveit_planners_ompl
 ------------------
 * Changed OMPL SimpleSetup member variable to shared pointer, passed MotionPlanningRequest to child function
 * Simplified number of solve() entry points in moveit_planners_ompl
-* Fixed uninitialized ptc_ pointer causing a crash.
+* Fixed uninitialized ``ptc_`` pointer causing a crash.
 * renamed newGoal to new_goal for keeping with formatting
 * setting GroupStateValidityCallbackFn member for constraint_sampler member and implementing callbacks for state validity checking
 * added functions to check validit of state, and also to act as callback for constraint sampler

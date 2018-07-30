@@ -36,7 +36,7 @@
 
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <visualization_msgs/Marker.h>
-#include <console_bridge/console.h>
+#include <ros/console.h>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
@@ -60,6 +60,7 @@ PropagationDistanceField::PropagationDistanceField(const octomap::OcTree& octree
                   octree.getResolution(), bbx_min.x(), bbx_min.y(), bbx_min.z())
   , propagate_negative_(propagate_negative_distances)
   , max_distance_(max_distance)
+  , max_distance_sq_(0)  // avoid gcc warning about uninitialized value
 {
   initialize();
   addOcTreeToField(&octree);
@@ -101,26 +102,26 @@ int PropagationDistanceField::eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i 
 
 void PropagationDistanceField::print(const VoxelSet& set)
 {
-  CONSOLE_BRIDGE_logDebug("[");
+  ROS_DEBUG_NAMED("distance_field", "[");
   VoxelSet::const_iterator it;
   for (it = set.begin(); it != set.end(); ++it)
   {
     Eigen::Vector3i loc1 = *it;
-    CONSOLE_BRIDGE_logDebug("%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
+    ROS_DEBUG_NAMED("distance_field", "%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
   }
-  CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)set.size());
+  ROS_DEBUG_NAMED("distance_field", "] size=%u\n", (unsigned int)set.size());
 }
 
 void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 {
-  CONSOLE_BRIDGE_logDebug("[");
+  ROS_DEBUG_NAMED("distance_field", "[");
   EigenSTL::vector_Vector3d::const_iterator it;
   for (it = points.begin(); it != points.end(); ++it)
   {
     Eigen::Vector3d loc1 = *it;
-    CONSOLE_BRIDGE_logDebug("%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
+    ROS_DEBUG_NAMED("distance_field", "%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
   }
-  CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)points.size());
+  ROS_DEBUG_NAMED("distance_field", "] size=%u\n", (unsigned int)points.size());
 }
 
 void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
@@ -166,19 +167,19 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
     {
       new_not_in_current.push_back(new_not_old[i]);
     }
-    // CONSOLE_BRIDGE_logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
+    // ROS_INFO_NAMED("distance_field", "Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
 
   removeObstacleVoxels(old_not_new);
   addNewObstacleVoxels(new_not_in_current);
 
-  // CONSOLE_BRIDGE_logDebug( "new=" );
+  // ROS_DEBUG_NAMED("distance_field",  "new=" );
   // print(points_added);
-  // CONSOLE_BRIDGE_logDebug( "removed=" );
+  // ROS_DEBUG_NAMED("distance_field",  "removed=" );
   // print(points_removed);
-  // CONSOLE_BRIDGE_logDebug( "obstacle_voxel_locations_=" );
+  // ROS_DEBUG_NAMED("distance_field",  "obstacle_voxel_locations_=" );
   // print(object_voxel_locations_);
-  // CONSOLE_BRIDGE_logDebug("");
+  // ROS_DEBUG_NAMED("distance_field", "");
 }
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
@@ -415,7 +416,8 @@ void PropagationDistanceField::propagatePositive()
       // This will never happen.  update_direction_ is always set before voxel is added to bucket queue.
       if (vptr->update_direction_ < 0 || vptr->update_direction_ > 26)
       {
-        CONSOLE_BRIDGE_logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
+        ROS_ERROR_NAMED("distance_field", "PROGRAMMING ERROR: Invalid update direction detected: %d",
+                        vptr->update_direction_);
         continue;
       }
 
@@ -473,7 +475,8 @@ void PropagationDistanceField::propagateNegative()
       // negative_bucket_queue_.
       if (vptr->negative_update_direction_ < 0 || vptr->negative_update_direction_ > 26)
       {
-        CONSOLE_BRIDGE_logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
+        ROS_ERROR_NAMED("distance_field", "PROGRAMMING ERROR: Invalid update direction detected: %d",
+                        vptr->update_direction_);
         continue;
       }
 

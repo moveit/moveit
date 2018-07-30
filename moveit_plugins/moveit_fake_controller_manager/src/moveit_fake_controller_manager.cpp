@@ -39,7 +39,8 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <sensor_msgs/JointState.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
+#include <ros/console.h>
 #include <map>
 #include <iterator>
 
@@ -55,7 +56,7 @@ public:
   {
     if (!node_handle_.hasParam("controller_list"))
     {
-      ROS_ERROR_STREAM("MoveItFakeControllerManager: No controller_list specified.");
+      ROS_ERROR_STREAM_NAMED("MoveItFakeControllerManager", "No controller_list specified.");
       return;
     }
 
@@ -63,7 +64,7 @@ public:
     node_handle_.getParam("controller_list", controller_list);
     if (controller_list.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
-      ROS_ERROR("MoveItFakeControllerManager: controller_list should be specified as an array");
+      ROS_ERROR_NAMED("MoveItFakeControllerManager", "controller_list should be specified as an array");
       return;
     }
 
@@ -83,7 +84,7 @@ public:
     {
       if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
       {
-        ROS_ERROR("MoveItFakeControllerManager: Name and joints must be specifed for each controller");
+        ROS_ERROR_NAMED("MoveItFakeControllerManager", "Name and joints must be specified for each controller");
         continue;
       }
 
@@ -93,8 +94,8 @@ public:
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
-          ROS_ERROR_STREAM("MoveItFakeControllerManager: The list of joints for controller "
-                           << name << " is not specified as an array");
+          ROS_ERROR_STREAM_NAMED("MoveItFakeControllerManager", "The list of joints for controller "
+                                                                    << name << " is not specified as an array");
           continue;
         }
         std::vector<std::string> joints;
@@ -114,7 +115,7 @@ public:
       }
       catch (...)
       {
-        ROS_ERROR("MoveItFakeControllerManager: Caught unknown exception while parsing controller information");
+        ROS_ERROR_NAMED("MoveItFakeControllerManager", "Caught unknown exception while parsing controller information");
       }
     }
   }

@@ -53,29 +53,29 @@ public:
   int getMaxIterationsAfterCollisionFree() const;
   double getSmoothnessCostWeight() const;
   double getObstacleCostWeight() const;
-  bool getAnimatePath() const;
+
   double getLearningRate() const;
   double getSmoothnessCostVelocity() const;
   double getSmoothnessCostAcceleration() const;
   double getSmoothnessCostJerk() const;
-  bool getAddRandomness() const;
-  bool getUseHamiltonianMonteCarlo() const;
-  double getHmcDiscretization() const;
-  double getHmcStochasticity() const;
-  double getHmcAnnealingFactor() const;
+  // bool getAddRandomness() const;
+  // bool getUseHamiltonianMonteCarlo() const;
+  // double getHmcDiscretization() const;
+  // double getHmcStochasticity() const;
+  // double getHmcAnnealingFactor() const;
   double getRidgeFactor() const;
   bool getUsePseudoInverse() const;
   double getPseudoInverseRidgeFactor() const;
-  bool getAnimateEndeffector() const;
-  std::string getAnimateEndeffectorSegment() const;
+
   double getJointUpdateLimit() const;
   double getMinClearence() const;
   double getCollisionThreshold() const;
   bool getFilterMode() const;
   void setFilterMode(bool mode);
-  double getRandomJumpAmount() const;
-  void setRandomJumpAmount(double amount);
+  // double getRandomJumpAmount() const;
+  // void setRandomJumpAmount(double amount);
   bool getUseStochasticDescent() const;
+  std::string getTrajectoryInitializationMethod() const;
 
 public:
   double planning_time_limit_;
@@ -84,30 +84,32 @@ public:
   double smoothness_cost_weight_;
   double obstacle_cost_weight_;
   double learning_rate_;
-  bool animate_path_;
+
   double smoothness_cost_velocity_;
   double smoothness_cost_acceleration_;
   double smoothness_cost_jerk_;
-  bool add_randomness_;
-  bool use_hamiltonian_monte_carlo_;
+  // bool add_randomness_;
+  // bool use_hamiltonian_monte_carlo_;
   bool use_stochastic_descent_;
-  double hmc_stochasticity_;
-  double hmc_discretization_;
-  double hmc_annealing_factor_;
+
+  // double hmc_stochasticity_;
+  // double hmc_discretization_;
+  // double hmc_annealing_factor_;
   double ridge_factor_;
   bool use_pseudo_inverse_;
   double pseudo_inverse_ridge_factor_;
-  bool animate_endeffector_;
-  std::string animate_endeffector_segment_;
+
   double joint_update_limit_;
   double min_clearence_;
   double collision_threshold_;
   bool filter_mode_;
-  double random_jump_amount_;
+  // double random_jump_amount_;
+  std::string trajectory_initialization_method_;
 };
 
 /////////////////////// inline functions follow ////////////////////////
 
+/*
 inline double ChompParameters::getRandomJumpAmount() const
 {
   return random_jump_amount_;
@@ -117,6 +119,7 @@ inline void ChompParameters::setRandomJumpAmount(double amount)
 {
   random_jump_amount_ = amount;
 }
+*/
 
 inline double ChompParameters::getCollisionThreshold() const
 {
@@ -178,15 +181,12 @@ inline double ChompParameters::getLearningRate() const
   return learning_rate_;
 }
 
-inline bool ChompParameters::getAnimatePath() const
-{
-  return animate_path_;
-}
-
+/*
 inline bool ChompParameters::getAddRandomness() const
 {
   return add_randomness_;
 }
+*/
 
 inline double ChompParameters::getSmoothnessCostVelocity() const
 {
@@ -203,6 +203,7 @@ inline double ChompParameters::getSmoothnessCostJerk() const
   return smoothness_cost_jerk_;
 }
 
+/*
 inline double ChompParameters::getHmcDiscretization() const
 {
   return hmc_discretization_;
@@ -222,6 +223,7 @@ inline bool ChompParameters::getUseHamiltonianMonteCarlo() const
 {
   return use_hamiltonian_monte_carlo_;
 }
+*/
 
 inline double ChompParameters::getRidgeFactor() const
 {
@@ -238,19 +240,14 @@ inline double ChompParameters::getPseudoInverseRidgeFactor() const
   return pseudo_inverse_ridge_factor_;
 }
 
-inline bool ChompParameters::getAnimateEndeffector() const
-{
-  return animate_endeffector_;
-}
-
 inline bool ChompParameters::getUseStochasticDescent() const
 {
   return use_stochastic_descent_;
 }
 
-inline std::string ChompParameters::getAnimateEndeffectorSegment() const
+inline std::string ChompParameters::getTrajectoryInitializationMethod() const
 {
-  return animate_endeffector_segment_;
+  return trajectory_initialization_method_;
 }
 
 }  // namespace chomp

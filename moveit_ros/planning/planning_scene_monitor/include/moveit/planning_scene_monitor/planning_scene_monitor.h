@@ -447,7 +447,6 @@ protected:
   boost::shared_mutex scene_update_mutex_;         /// mutex for stored scene
   ros::Time last_update_time_;                     /// Last time the state was updated
   ros::Time last_robot_motion_time_;               /// Last time the robot has moved
-  bool enforce_next_state_update_;                 /// flag to enforce immediate state update in onStateUpdate()
 
   ros::NodeHandle nh_;
   ros::NodeHandle root_nh_;

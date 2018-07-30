@@ -74,6 +74,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ros::WallTime start_time = ros::WallTime::now();
   ChompTrajectory trajectory(planning_scene->getRobotModel(), 3.0, .03, req.group_name);
+
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
                     trajectory.getTrajectoryPoint(0));
 
@@ -86,7 +87,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   if (req.goal_constraints[0].joint_constraints.empty())
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner", "Only joint-space goals are supported");
+    ROS_ERROR_STREAM("Only joint-space goals are supported");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
@@ -98,8 +99,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   {
     js.name.push_back(req.goal_constraints[0].joint_constraints[i].joint_name);
     js.position.push_back(req.goal_constraints[0].joint_constraints[i].position);
-    ROS_INFO_STREAM("Setting joint " << req.goal_constraints[0].joint_constraints[i].joint_name << " to position "
-                                     << req.goal_constraints[0].joint_constraints[i].position);
+    ROS_INFO_STREAM_NAMED("chomp_planner", "Setting joint " << req.goal_constraints[0].joint_constraints[i].joint_name
+                                                            << " to position "
+                                                            << req.goal_constraints[0].joint_constraints[i].position);
   }
   jointStateToArray(planning_scene->getRobotModel(), js, req.group_name, trajectory.getTrajectoryPoint(goal_index));
 
@@ -124,17 +126,28 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     }
   }
 
+  const std::vector<std::string>& active_joint_names = model_group->getActiveJointModelNames();
   const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
+  moveit::core::RobotState goal_robot_state = planning_scene->getCurrentState();
+  goal_robot_state.setVariablePositions(
+      active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
 
-  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(goal_state.data()))
+  if (not goal_robot_state.satisfiesBounds())
   {
     ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
 
-  // fill in an initial quintic spline trajectory
-  trajectory.fillInMinJerk();
+  // fill in an initial trajectory based on user choice from the chomp_config.yaml file
+  if (params.trajectory_initialization_method_.compare("quintic-spline") == 0)
+    trajectory.fillInMinJerk();
+  else if (params.trajectory_initialization_method_.compare("linear") == 0)
+    trajectory.fillInLinearInterpolation();
+  else if (params.trajectory_initialization_method_.compare("cubic") == 0)
+    trajectory.fillInCubicInterpolation();
+  else
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
 
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());
@@ -142,6 +155,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   start_state.update();
 
   ros::WallTime create_time = ros::WallTime::now();
+
   ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
   if (!optimizer.isInitialized())
   {
@@ -150,6 +164,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     return false;
   }
   ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+
   optimizer.optimize();
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",
                   (ros::WallTime::now() - create_time).toSec());
@@ -160,10 +175,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   res.trajectory.resize(1);
 
-  for (size_t i = 0; i < model_group->getActiveJointModels().size(); i++)
-  {
-    res.trajectory[0].joint_trajectory.joint_names.push_back(model_group->getActiveJointModels()[i]->getName());
-  }
+  res.trajectory[0].joint_trajectory.joint_names = active_joint_names;
 
   res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;  // @TODO this is probably a hack
 

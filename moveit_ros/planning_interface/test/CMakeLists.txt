@@ -6,8 +6,9 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(test_cleanup moveit_move_group_interface)
 
   add_rostest(python_move_group.test)
+  add_rostest(python_move_group_ns.test)
   add_rostest(robot_state_update.test)
 endif()
 
-install(PROGRAMS python_move_group.py DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)
-install(FILES python_move_group.test DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)
+install(PROGRAMS python_move_group.py python_move_group_ns.py DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)
+install(FILES python_move_group.test python_move_group_ns.test DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)

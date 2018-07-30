@@ -86,7 +86,7 @@ int initRepeatedPointTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    CONSOLE_BRIDGE_logError("Need to set the group");
+    ROS_ERROR_NAMED("trajectory_processing", "Need to set the group");
     return -1;
   }
   // leave initial velocity/acceleration unset
@@ -116,7 +116,7 @@ int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory, double
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    CONSOLE_BRIDGE_logError("Need to set the group");
+    ROS_ERROR_NAMED("trajectory_processing", "Need to set the group");
     return -1;
   }
   // leave initial velocity/acceleration unset

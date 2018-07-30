@@ -55,7 +55,8 @@ class PlanningSceneInterfaceWrapper : protected py_bindings_tools::ROScppInitial
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  PlanningSceneInterfaceWrapper() : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface()
+  PlanningSceneInterfaceWrapper(const std::string& ns = "")
+    : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface(ns)
   {
   }
 
@@ -102,11 +103,19 @@ public:
 
     return py_bindings_tools::dictFromType(ser_aobjs);
   }
+
+  bool applyPlanningScenePython(const std::string& ps_str)
+  {
+    moveit_msgs::PlanningScene ps_msg;
+    py_bindings_tools::deserializeMsg(ps_str, ps_msg);
+    return applyPlanningScene(ps_msg);
+  }
 };
 
 static void wrap_planning_scene_interface()
 {
-  bp::class_<PlanningSceneInterfaceWrapper> PlanningSceneClass("PlanningSceneInterface");
+  bp::class_<PlanningSceneInterfaceWrapper> PlanningSceneClass("PlanningSceneInterface",
+                                                               bp::init<bp::optional<std::string>>());
 
   PlanningSceneClass.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);
   PlanningSceneClass.def("get_known_object_names_in_roi",
@@ -114,6 +123,7 @@ static void wrap_planning_scene_interface()
   PlanningSceneClass.def("get_object_poses", &PlanningSceneInterfaceWrapper::getObjectPosesPython);
   PlanningSceneClass.def("get_objects", &PlanningSceneInterfaceWrapper::getObjectsPython);
   PlanningSceneClass.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
+  PlanningSceneClass.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
 }
 }
 }

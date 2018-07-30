@@ -149,6 +149,25 @@ struct CollisionData
   bool done_;
 };
 
+struct DistanceData
+{
+  DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
+  {
+  }
+  ~DistanceData()
+  {
+  }
+
+  /// Distance query request information
+  const DistanceRequest* req;
+
+  /// Distance query results information
+  DistanceResult* res;
+
+  /// Indicates if distance query is finished.
+  bool done;
+};
+
 MOVEIT_CLASS_FORWARD(FCLGeometry);
 
 struct FCLGeometry

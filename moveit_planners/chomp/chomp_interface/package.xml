@@ -2,7 +2,7 @@
   <name>moveit_planners_chomp</name>
   <description>The interface for using CHOMP within MoveIt!</description>
 
-  <version>0.9.11</version>
+  <version>0.9.12</version>
   <author email="gjones@willowgarage.com">Gil Jones</author>
 
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
@@ -12,15 +12,15 @@
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cmake_modules</build_depend>
 
   <depend>roscpp</depend>
   <depend>moveit_core</depend>
-  <depend>pluginlib</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
 
   <build_depend>chomp_motion_planner</build_depend>
   <build_depend>moveit_experimental</build_depend>
 
-  <test_depend>moveit_ros_manipulation</test_depend>
   <test_depend>moveit_ros_planning_interface</test_depend>
   <test_depend>rostest</test_depend>
 

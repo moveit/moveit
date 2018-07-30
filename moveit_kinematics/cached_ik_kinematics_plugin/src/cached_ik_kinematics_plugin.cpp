@@ -40,7 +40,7 @@
 //#include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
 #include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 // register CachedIKKinematicsPlugin<KDLKinematicsPlugin> as a KinematicsBase implementation
 PLUGINLIB_EXPORT_CLASS(
     cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<kdl_kinematics_plugin::KDLKinematicsPlugin>,

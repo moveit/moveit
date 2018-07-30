@@ -14,7 +14,7 @@ add_library(${MOVEIT_LIB_NAME}
   )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_profiler moveit_exceptions moveit_kinematics_base ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_profiler moveit_exceptions moveit_kinematics_base ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 if(CATKIN_ENABLE_TESTING)
@@ -22,7 +22,7 @@ if(CATKIN_ENABLE_TESTING)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
   catkin_add_gtest(test_robot_model test/test.cpp)
-  target_link_libraries(test_robot_model ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_robot_model ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME}

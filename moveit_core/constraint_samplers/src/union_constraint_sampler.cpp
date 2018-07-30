@@ -80,9 +80,10 @@ struct OrderSamplers
         }
     if (b_depends_on_a && a_depends_on_b)
     {
-      CONSOLE_BRIDGE_logWarn("Circular frame dependency! Sampling will likely produce invalid results "
-                             "(sampling for groups '%s' and '%s')",
-                             a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
+      ROS_WARN_NAMED("constraint_samplers",
+                     "Circular frame dependency! "
+                     "Sampling will likely produce invalid results (sampling for groups '%s' and '%s')",
+                     a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
       return true;
     }
     if (b_depends_on_a && !a_depends_on_b)
@@ -93,20 +94,19 @@ struct OrderSamplers
     // prefer sampling JointConstraints first
     JointConstraintSampler* ja = dynamic_cast<JointConstraintSampler*>(a.get());
     JointConstraintSampler* jb = dynamic_cast<JointConstraintSampler*>(b.get());
-    if (ja && jb == NULL)
+    if (ja && jb == nullptr)
       return true;
-    if (jb && ja == NULL)
+    if (jb && ja == nullptr)
       return false;
 
     // neither depends on either, so break ties based on group name
     return (a->getJointModelGroup()->getName() < b->getJointModelGroup()->getName());
   }
 };
-}
 
-constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
-                                                                    const std::string& group_name,
-                                                                    const std::vector<ConstraintSamplerPtr>& samplers)
+UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                               const std::string& group_name,
+                                               const std::vector<ConstraintSamplerPtr>& samplers)
   : ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents
@@ -118,19 +118,18 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
     for (std::size_t j = 0; j < fd.size(); ++j)
       frame_depends_.push_back(fd[j]);
 
-    CONSOLE_BRIDGE_logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
-                            samplers_[i]->getJointModelGroup()->getName().c_str());
+    ROS_DEBUG_NAMED("constraint_samplers", "Union sampler for group '%s' includes sampler for group '%s'",
+                    jmg_->getName().c_str(), samplers_[i]->getJointModelGroup()->getName().c_str());
   }
 }
 
-bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState& state,
-                                                         const robot_state::RobotState& reference_state,
-                                                         unsigned int max_attempts)
+bool UnionConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+                                    unsigned int max_attempts)
 {
   state = reference_state;
   state.setToRandomPositions(jmg_);
 
-  if (samplers_.size() >= 1)
+  if (!samplers_.empty())
   {
     if (!samplers_[0]->sample(state, reference_state, max_attempts))
       return false;
@@ -148,7 +147,7 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
   return true;
 }
 
-bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+bool UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
 {
   for (std::size_t i = 0; i < samplers_.size(); ++i)
   {
@@ -161,3 +160,5 @@ bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotStat
   }
   return true;
 }
+
+}  // end of namespace constraint_samplers

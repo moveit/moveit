@@ -54,9 +54,7 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, con
     global_collision_body_transforms_[i].setIdentity();
 }
 
-moveit::core::AttachedBody::~AttachedBody()
-{
-}
+moveit::core::AttachedBody::~AttachedBody() = default;
 
 void moveit::core::AttachedBody::setScale(double scale)
 {

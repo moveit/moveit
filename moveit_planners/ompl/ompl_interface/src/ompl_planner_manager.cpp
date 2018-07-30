@@ -39,7 +39,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/profiler/profiler.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 #include <dynamic_reconfigure/server.h>
 #include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
@@ -47,17 +47,58 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
+#include <ompl/util/Console.h>
+
 #include <memory>
 
 namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
 
+#define OMPL_ROS_LOG(ros_log_level)                                                                                    \
+  {                                                                                                                    \
+    ROSCONSOLE_DEFINE_LOCATION(true, ros_log_level, ROSCONSOLE_NAME_PREFIX ".ompl");                                   \
+    if (ROS_UNLIKELY(__rosconsole_define_location__enabled))                                                           \
+      ::ros::console::print(0, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_,    \
+                            filename, line, __ROSCONSOLE_FUNCTION__, "%s", text.c_str());                              \
+  }
+
 class OMPLPlannerManager : public planning_interface::PlannerManager
 {
 public:
   OMPLPlannerManager() : planning_interface::PlannerManager(), nh_("~"), display_random_valid_states_(false)
   {
+    class OutputHandler : public ompl::msg::OutputHandler
+    {
+    public:
+      void log(const std::string& text, ompl::msg::LogLevel level, const char* filename, int line) override
+      {
+        switch (level)
+        {
+          case ompl::msg::LOG_DEV2:
+          case ompl::msg::LOG_DEV1:
+          case ompl::msg::LOG_DEBUG:
+            OMPL_ROS_LOG(::ros::console::levels::Debug);
+            break;
+          case ompl::msg::LOG_INFO:
+            OMPL_ROS_LOG(::ros::console::levels::Info);
+            break;
+          case ompl::msg::LOG_WARN:
+            OMPL_ROS_LOG(::ros::console::levels::Warn);
+            break;
+          case ompl::msg::LOG_ERROR:
+            OMPL_ROS_LOG(::ros::console::levels::Error);
+            break;
+          case ompl::msg::LOG_NONE:
+          default:
+            /* ignore */
+            break;
+        }
+      }
+    };
+
+    output_handler_.reset(new OutputHandler());
+    ompl::msg::useOutputHandler(output_handler_.get());
   }
 
   virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
@@ -265,6 +306,7 @@ private:
   ros::Publisher pub_valid_states_;
   ros::Publisher pub_valid_traj_;
   std::string planner_data_link_name_;
+  std::shared_ptr<ompl::msg::OutputHandler> output_handler_;
 };
 
 }  // ompl_interface

@@ -263,6 +263,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // chomp_planning.yaml  --------------------------------------------------------------------------------------
+  file.file_name_ = "chomp_planning.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputCHOMPPlanningYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
+  gen_files_.push_back(file);
+
   // kinematics.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "kinematics.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
@@ -290,6 +298,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly "
                       "useful for testing.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
+  // ros_controllers.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "ros_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates configurations for ros_controllers.";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
@@ -345,6 +361,18 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
   template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
   file.description_ = "Intended to be included in other launch files that require the OMPL planning plugin. Defines "
+                      "the proper plugin name on the parameter server and a default selection of planning request "
+                      "adapters.";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  // chomp_planning_pipeline.launch
+  // --------------------------------------------------------------------------------------
+  file.file_name_ = "chomp_planning_pipeline.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Intended to be included in other launch files that require the CHOMP planning plugin. Defines "
                       "the proper plugin name on the parameter server and a default selection of planning request "
                       "adapters.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
@@ -470,6 +498,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
                       "configuration package.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
+  // ros_controllers.launch ------------------------------------------------------------------
+  file.file_name_ = "ros_controllers.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, "ros_controllers.launch");
+  file.description_ = "ros_controllers launch file";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
   // moveit.rviz ------------------------------------------------------------------
@@ -1038,6 +1075,22 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     deps << "<build_depend>" << config_data_->urdf_pkg_name_ << "</build_depend>\n";
     deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
+  }
+
+  // Pair 9 - Add ROS Controllers to ros_controllers.launch file
+  if (config_data_->getROSControllers().empty())
+  {
+    addTemplateString("[ROS_CONTROLLERS]", "");
+  }
+  else
+  {
+    std::stringstream controllers;
+    for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
+         controller_it != config_data_->getROSControllers().end(); ++controller_it)
+    {
+      controllers << controller_it->name_ << " ";
+    }
+    addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
 
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);

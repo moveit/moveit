@@ -3,6 +3,11 @@ project(moveit_core)
 
 add_compile_options(-std=c++11)
 
+# Warnings
+add_definitions(-Wall -Wextra
+  -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
+  -Wno-unused-parameter -Wno-unused-function -Wno-maybe-uninitialized)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -11,8 +16,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
-
-find_package(console_bridge REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
@@ -44,6 +47,7 @@ COMPONENTS
   random_numbers
   roslib
   rostime
+  rosconsole
   sensor_msgs
   shape_msgs
   srdfdom
@@ -130,7 +134,6 @@ catkin_package(
     EIGEN3
     LIBFCL
     OCTOMAP
-    console_bridge
     urdfdom
     urdfdom_headers
     )
@@ -143,7 +146,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH}
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${console_bridge_INCLUDE_DIRS}
                     ${urdfdom_INCLUDE_DIRS}
                     ${urdfdom_headers_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}
