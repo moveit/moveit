@@ -139,7 +139,7 @@ int main(int argc, char** argv)
   node.param<int>("warehouse_port", port, 33829);
   node.param<float>("warehouse_db_connection_timeout", connection_timeout, 5.0);
   node.param<int>("warehouse_db_connection_retries", connection_retries, 5);
-  
+
   warehouse_ros::DatabaseConnection::Ptr conn;
 
   try
