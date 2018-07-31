@@ -44,6 +44,9 @@
 #include <map>
 #include <iterator>
 
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+
 namespace moveit_fake_controller_manager
 {
 static const std::string DEFAULT_TYPE = "interpolate";
@@ -52,7 +55,7 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 class MoveItFakeControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
 public:
-  MoveItFakeControllerManager() : node_handle_("~"), root_node_handle_("")
+  MoveItFakeControllerManager() : node_handle_("~"), root_node_handle_(""), pub_js_rate_(10)
   {
     if (!node_handle_.hasParam("controller_list"))
     {
@@ -68,7 +71,8 @@ public:
       return;
     }
 
-    pub_ = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+    pub_js_thread_running_ = true;
+    pub_js_thread_ = boost::thread(boost::bind(&MoveItFakeControllerManager::publishJointState, this));
 
     /* publish initial pose */
     XmlRpc::XmlRpcValue initial;
@@ -76,7 +80,7 @@ public:
     {
       sensor_msgs::JointState js = loadInitialJointValues(initial);
       js.header.stamp = ros::Time::now();
-      pub_.publish(js);
+      updateJointState(js);
     }
 
     /* actually create each controller */
@@ -105,11 +109,14 @@ public:
         const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
         if (type == "last point")
-          controllers_[name].reset(new LastPointController(root_node_handle_, name, joints, pub_));
+          controllers_[name].reset(new LastPointController(
+              root_node_handle_, name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else if (type == "via points")
-          controllers_[name].reset(new ViaPointController(root_node_handle_, name, joints, pub_));
+          controllers_[name].reset(new ViaPointController(
+              root_node_handle_, name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else if (type == "interpolate")
-          controllers_[name].reset(new InterpolatingController(root_node_handle_, name, joints, pub_));
+          controllers_[name].reset(new InterpolatingController(
+              root_node_handle_, name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else
           ROS_ERROR_STREAM("Unknown fake controller type: " << type);
       }
@@ -196,6 +203,65 @@ public:
 
   virtual ~MoveItFakeControllerManager()
   {
+    pub_js_thread_running_ = false;
+    pub_js_thread_.join();
+  }
+
+  /*
+   * Update by joint name
+   */
+  void updateJointState(const sensor_msgs::JointState js)
+  {
+    // pub_js_ = js;
+    int i = 0;
+    for (std::vector<std::string>::const_iterator name = js.name.begin(); name != js.name.end(); ++name, i++)
+    {
+      std::vector<std::string>::iterator it = std::find(pub_js_.name.begin(), pub_js_.name.end(), *name);
+      if (it != pub_js_.name.end())
+      {
+        size_t j = std::distance(pub_js_.name.begin(), it);
+        if (i < js.position.size() && j < pub_js_.position.size())
+          pub_js_.position[j] = js.position[i];
+        if (i < js.velocity.size() && j < pub_js_.velocity.size())
+          pub_js_.velocity[j] = js.velocity[i];
+        if (i < js.effort.size() && j < pub_js_.effort.size())
+          pub_js_.effort[j] = js.effort[i];
+      }
+      else
+      {
+        pub_js_.name.push_back(js.name[i]);
+        if (i < js.position.size())
+          pub_js_.position.push_back(js.position[i]);
+        if (i < js.velocity.size())
+          pub_js_.velocity.push_back(js.velocity[i]);
+        if (i < js.effort.size())
+          pub_js_.effort.push_back(js.effort[i]);
+      }
+    }
+  }
+
+  void publishJointState()
+  {
+    boost::random::mt19937 gen;
+    boost::random::uniform_real_distribution<> dist(0.0, 0.0001);
+
+    ros::Publisher pub = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+    double r;
+    if (ros::param::get("~fake_interpolating_joint_state_rate", r))
+      pub_js_rate_ = ros::WallRate(r);
+
+    while (pub_js_thread_running() && ros::ok())
+    {
+      pub_js_.header.stamp = ros::Time::now();
+      // add virtual noise for waitForCurrentState, which consider 'Didn't received robot state (joint angles) with
+      // recent timestamp within 1 sec'
+      for (size_t i = 0; i < pub_js_.position.size(); i++)
+      {
+        pub_js_.position[i] += dist(gen);
+      }
+      pub.publish(pub_js_);
+      pub_js_rate_.sleep();
+    }
   }
 
   /*
@@ -276,10 +342,19 @@ public:
   }
 
 protected:
+  bool pub_js_thread_running()
+  {
+    return pub_js_thread_running_;
+  }
+
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
-  ros::Publisher pub_;
   std::map<std::string, BaseFakeControllerPtr> controllers_;
+
+  sensor_msgs::JointState pub_js_;
+  boost::thread pub_js_thread_;
+  ros::WallRate pub_js_rate_;
+  bool pub_js_thread_running_;
 };
 
 }  // end namespace moveit_fake_controller_manager
