@@ -79,16 +79,6 @@ struct GroupMetaData
 };
 
 /**
- * Planning parameters which may be set in the config files
- */
-struct OmplPlanningParameter
-{
-  std::string name;     // name of parameter
-  std::string value;    // value parameter will receive (but as a string)
-  std::string comment;  // comment briefly describing what this parameter does
-};
-
-/**
  * ROS Controllers settings which may be set in the config files
  */
 struct ROSControlConfig
@@ -96,6 +86,16 @@ struct ROSControlConfig
   std::string name_;                 // controller name
   std::string type_;                 // controller type
   std::vector<std::string> joints_;  // joints controller by this controller
+};
+
+/**
+ * Planning parameters which may be set in the config files
+ */
+struct OmplPlanningParameter
+{
+  std::string name;     // name of parameter
+  std::string value;    // value parameter will receive (but as a string)
+  std::string comment;  // comment briefly describing what this parameter does
 };
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the
@@ -135,6 +135,48 @@ public:
   std::string type_;  // type of planner (geometric)
 };
 
+/**
+ * Reusable parameter class which may be used in reading and writing configuration files
+ */
+class GenericParameter
+{
+public:
+  GenericParameter()
+  {
+    comment_ = "";
+  };
+
+  void setName(std::string name)
+  {
+    name_ = name;
+  };
+  void setValue(std::string value)
+  {
+    value_ = value;
+  };
+  void setComment(std::string comment)
+  {
+    comment_ = comment;
+  };
+  std::string getName()
+  {
+    return name_;
+  };
+  std::string getValue()
+  {
+    return value_;
+  };
+  std::string getComment()
+  {
+    return comment_;
+  };
+
+private:
+  std::string name_;     // name of parameter
+  std::string value_;    // value parameter will receive (but as a string)
+  std::string comment_;  // comment briefly describing what this parameter does
+};
+
 MOVEIT_CLASS_FORWARD(MoveItConfigData);
 
 /** \brief This class is shared with all widgets and contains the common configuration data
@@ -161,6 +203,7 @@ public:
     END_EFFECTORS = 1 << 7,
     PASSIVE_JOINTS = 1 << 8,
     AUTHOR_INFO = 1 << 9,
+    SENSORS_CONFIG = 1 << 10,
     SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
@@ -279,6 +322,7 @@ public:
   bool outputFakeControllersYAML(const std::string& file_path);
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter);
   bool outputROSControllersYAML(const std::string& file_path);
+  bool output3DSensorPluginYAML(const std::string& file_path);
 
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
@@ -349,6 +393,15 @@ public:
   bool inputSetupAssistantYAML(const std::string& file_path);
 
   /**
+   * Input sensors_3d file - contains 3d sensors config data
+   *
+   * @param default_file_path path to sensors_3d yaml file which contains default parameter values
+   * @param file_path path to sensors_3d yaml file in the config package
+   * @return bool if the file was read correctly
+   */
+  bool input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path = "");
+
+  /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
    * in a cross-platform way
    *
@@ -372,6 +425,22 @@ public:
   std::vector<ROSControlConfig> getROSControllers();
 
   /**
+   * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list
+   */
+  void addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value = "",
+                                               const std::string& comment = "");
+
+  /**
+   * \brief Clear the sensor plugin configuration parameter list
+   */
+  void clearSensorPluginConfig();
+
+  /**
+   * \brief Used for adding a sensor plugin configuation parameter to the sensor plugin configuration parameter list
+   */
+  std::vector<std::map<std::string, GenericParameter> > getSensorPluginConfig();
+
+  /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
    * \param jm1 - a pointer to the first joint model to compare
    * \param jm2 - a pointer to the second joint model to compare
@@ -390,14 +459,16 @@ private:
   // Private Vars
   // ******************************************************************************************
 
-  // Shared kinematic model
+  /// Sensor plugin configuration parameter list, each sensor plugin type is a map
+  std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
+
+  /// Shared kinematic model
   robot_model::RobotModelPtr robot_model_;
-  robot_model::RobotModelConstPtr robot_model_const_;
 
   /// ROS Controllers config data
   std::vector<ROSControlConfig> ros_controllers_config_;
 
-  // Shared planning scene
+  /// Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
 };
 

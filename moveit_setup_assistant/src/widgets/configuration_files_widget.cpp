@@ -309,6 +309,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // sensors_3d.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "sensors_3d.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates configurations 3d sensors.";
+  file.gen_func_ = boost::bind(&MoveItConfigData::output3DSensorPluginYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::SENSORS_CONFIG;
+  gen_files_.push_back(file);
+
   // -------------------------------------------------------------------------------------------------------------------
   // LAUNCH FILES ------------------------------------------------------------------------------------------------------
   // -------------------------------------------------------------------------------------------------------------------

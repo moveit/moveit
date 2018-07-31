@@ -126,6 +126,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
+  nav_name_list_ << "Perception";
   nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
 
@@ -288,6 +289,16 @@ void SetupAssistantWidget::progressPastStartScreen()
           SLOT(highlightLink(const std::string&, const QColor&)));
   connect(pjw_, SIGNAL(highlightGroup(const std::string&)), this, SLOT(highlightGroup(const std::string&)));
   connect(pjw_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+
+  // Perception
+  perception_widget_ = new PerceptionWidget(this, config_data_);
+  main_content_->addWidget(perception_widget_);
+  connect(perception_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+  connect(perception_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+          SLOT(highlightLink(const std::string&, const QColor&)));
+  connect(perception_widget_, SIGNAL(highlightGroup(const std::string&)), this,
+          SLOT(highlightGroup(const std::string&)));
+  connect(perception_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
   // Author Information
   aiw_ = new AuthorInformationWidget(this, config_data_);
