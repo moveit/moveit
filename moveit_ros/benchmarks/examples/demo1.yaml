@@ -3,7 +3,7 @@
 # query using the Start1 initial state (all pre-stored in the local warehouse)
 
 # Three different planners from OMPL are run a total of 50 times each, with a
-# maximum of 10 seconds per run.  Output is stored in the /home/benchmarks directory.
+# maximum of 10 seconds per run.  Output is stored in the /tmp/moveit_benchmarks directory.
 
 benchmark_config:
     warehouse:
