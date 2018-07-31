@@ -40,6 +40,8 @@
 #include <ros/publisher.h>
 #include <ros/rate.h>
 #include <boost/thread/thread.hpp>
+#include <boost/function.hpp>
+#include <sensor_msgs/JointState.h>
 
 #ifndef MOVEIT_FAKE_CONTROLLERS
 #define MOVEIT_FAKE_CONTROLLERS
@@ -52,20 +54,20 @@ MOVEIT_CLASS_FORWARD(BaseFakeController);
 class BaseFakeController : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  BaseFakeController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  BaseFakeController(const std::string& name, const std::vector<std::string>& joints, boost::function<void (const sensor_msgs::JointState)> update_js);
 
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus();
   void getJoints(std::vector<std::string>& joints) const;
 
 protected:
   std::vector<std::string> joints_;
-  const ros::Publisher& pub_;
+  boost::function<void (const sensor_msgs::JointState)> update_js_;
 };
 
 class LastPointController : public BaseFakeController
 {
 public:
-  LastPointController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  LastPointController(const std::string& name, const std::vector<std::string>& joints, boost::function<void (const sensor_msgs::JointState)> update_js);
   ~LastPointController();
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
@@ -76,7 +78,7 @@ public:
 class ThreadedController : public BaseFakeController
 {
 public:
-  ThreadedController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  ThreadedController(const std::string& name, const std::vector<std::string>& joints, boost::function<void (const sensor_msgs::JointState)> update_js);
   ~ThreadedController();
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
@@ -103,7 +105,7 @@ private:
 class ViaPointController : public ThreadedController
 {
 public:
-  ViaPointController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  ViaPointController(const std::string& name, const std::vector<std::string>& joints, boost::function<void (const sensor_msgs::JointState)> update_js);
   ~ViaPointController();
 
 protected:
@@ -113,7 +115,7 @@ protected:
 class InterpolatingController : public ThreadedController
 {
 public:
-  InterpolatingController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  InterpolatingController(const std::string& name, const std::vector<std::string>& joints, boost::function<void (const sensor_msgs::JointState)> update_js);
   ~InterpolatingController();
 
 protected:
