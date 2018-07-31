@@ -302,14 +302,6 @@ public:
    */
   srdf::Model::Group* findGroupByName(const std::string& name);
 
-  /**
-   * Find the associated ros controller by name
-   *
-   * @param name - name of data to find in datastructure
-   * @return pointer to data in datastructure
-   */
-  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
-
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
 
@@ -323,7 +315,16 @@ public:
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
-  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter);
+
+  /**
+   * Helper function for writing follow joint trajectory to ros_controllers.yaml
+   * @param YAML Emitter - yaml emitter used to write the config to the ros controllers yaml file
+   * @param vector<ROSControlConfig>* - a copy of ros controllers config which will be modified in the function
+   * @return void
+   */
+  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
+                                       std::vector<ROSControlConfig>* ros_controllers_config_copy);
+
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 
@@ -361,6 +362,13 @@ public:
    * @return bool if the file was read correctly
    */
   bool inputKinematicsYAML(const std::string& file_path);
+
+  /**
+   * Helper function for parsing ros_controllers.yaml file
+   * @param YAML::Node - controllers to be parsed
+   * @return bool if the file was read correctly
+   */
+  bool parseROSControllers(const YAML::Node& controllers);
 
   /**
    * Input ros_controllers.yaml file for editing its values
@@ -430,9 +438,25 @@ public:
 
   /**
    * \brief Gets ros_controllers_config_ vector
-   * \return std::vector of ROSControlConfig
+   * \return pointer to ros_controllers_config_
    */
-  std::vector<ROSControlConfig> getROSControllers();
+  std::vector<ROSControlConfig>* getROSControllers();
+
+  /**
+   * Find the associated ros controller by name
+   *
+   * @param controller_name - name of ros controller to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
+
+  /**
+   * Delete ROS controller by name
+   *
+   * @param controller_name - name of ros controller to delete
+   * @return true if deleted, false if not found
+   */
+  bool deleteROSController(const std::string& controller_name);
 
   /**
    * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list

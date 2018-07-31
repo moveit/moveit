@@ -62,6 +62,7 @@
 #include "simulation_widget.h"
 #include "configuration_files_widget.h"
 #include "perception_widget.h"
+#include "ros_controllers_widget.h"
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
@@ -226,6 +227,7 @@ private:
   ConfigurationFilesWidget* configuration_files_widget_;
   SimulationWidget* simulation_widget_;
   PerceptionWidget* perception_widget_;
+  ROSControllersWidget* controllers_widget_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
