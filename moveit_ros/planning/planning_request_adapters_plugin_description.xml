@@ -34,5 +34,10 @@
     <description>
     </description>
   </class>
+  
+  <class name="default_planner_request_adapters/CHOMPOptimizerAdapter" type="default_planner_request_adapters::CHOMPOptimizerAdapter" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
 
 </library>

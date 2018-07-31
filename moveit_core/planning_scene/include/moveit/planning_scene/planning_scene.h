@@ -245,6 +245,7 @@ public:
    *
    * */
   void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
+  const void addCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const;
 
   /** \brief Set the type of collision detector to use.
    * Calls addCollisionDetector() to add it if it has not already been added.
@@ -257,6 +258,8 @@ public:
    */
   void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
                                   bool exclusive = false);
+  const void setActiveCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
+                                    bool exclusive = false) const;
 
   /** \brief Set the type of collision detector to use.
    * This type must have already been added with addCollisionDetector().
@@ -265,6 +268,7 @@ public:
    * name of a collision detector that has been previously added with
    * addCollisionDetector(). */
   bool setActiveCollisionDetector(const std::string& collision_detector_name);
+  const bool setActiveCollisionDetector_ConstVersion(const std::string& collision_detector_name) const;
 
   const std::string& getActiveCollisionDetectorName() const
   {
@@ -949,10 +953,11 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr& scene);
 
-private:
+public:
   /* Private constructor used by the diff() methods. */
   PlanningScene(const PlanningSceneConstPtr& parent);
 
+private:
   /* Initialize the scene.  This should only be called by the constructors.
    * Requires a valid robot_model_ */
   void initialize();
@@ -1008,14 +1013,17 @@ private:
 
   robot_state::TransformsPtr ftf_;  // if NULL use parent's
 
-  collision_detection::WorldPtr world_;             // never NULL, never shared with parent/child
+public:
+  collision_detection::WorldPtr world_;  // never NULL, never shared with parent/child
+public:
   collision_detection::WorldConstPtr world_const_;  // copy of world_
   collision_detection::WorldDiffPtr world_diff_;    // NULL unless this is a diff scene
   collision_detection::World::ObserverCallbackFn current_world_object_update_callback_;
   collision_detection::World::ObserverHandle current_world_object_update_observer_handle_;
 
-  std::map<std::string, CollisionDetectorPtr> collision_;  // never empty
-  CollisionDetectorPtr active_collision_;                  // copy of one of the entries in collision_.  Never NULL.
+  mutable std::map<std::string, CollisionDetectorPtr> collision_;  // never empty
+  mutable CollisionDetectorPtr active_collision_;  // copy of one of the entries in collision_.  Never NULL.
+  // const bool setActiveCollisionDetector(); const
 
   collision_detection::AllowedCollisionMatrixPtr acm_;  // if NULL use parent's
 
