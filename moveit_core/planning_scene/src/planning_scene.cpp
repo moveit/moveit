@@ -358,7 +358,8 @@ bool PlanningScene::setActiveCollisionDetector(const std::string& collision_dete
   }
 }
 
-const void PlanningScene::addCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const
+const void PlanningScene::addCollisionDetector_ConstVersion(
+    const collision_detection::CollisionDetectorAllocatorPtr& allocator) const
 {
   const std::string& name = allocator->getName();
   CollisionDetectorPtr& detector = collision_[name];
@@ -397,8 +398,8 @@ const void PlanningScene::addCollisionDetector_ConstVersion(const collision_dete
   }
 }
 
-const void PlanningScene::setActiveCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
-                                       bool exclusive) const
+const void PlanningScene::setActiveCollisionDetector_ConstVersion(
+    const collision_detection::CollisionDetectorAllocatorPtr& allocator, bool exclusive) const
 {
   if (exclusive)
   {
@@ -435,12 +436,11 @@ const bool PlanningScene::setActiveCollisionDetector_ConstVersion(const std::str
   {
     ROS_ERROR_NAMED("planning_scene",
                     "Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
-                            "Keeping existing active collision detector '%s'",
+                    "Keeping existing active collision detector '%s'",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return false;
   }
 }
-
 
 void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {

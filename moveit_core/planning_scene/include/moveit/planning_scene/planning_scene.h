@@ -245,7 +245,14 @@ public:
    *
    * */
   void addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator);
-  const void addCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const;
+
+  /** \brief Add a new collision detector type.
+   *
+   * this is the constant version of the function addCollisionDetector(), it is added here for changing the collision
+   * checker for a constant planning scene whenever required, e.g., for some planners like CHOMP
+   */
+  const void
+  addCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const;
 
   /** \brief Set the type of collision detector to use.
    * Calls addCollisionDetector() to add it if it has not already been added.
@@ -258,8 +265,16 @@ public:
    */
   void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
                                   bool exclusive = false);
-  const void setActiveCollisionDetector_ConstVersion(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
-                                    bool exclusive = false) const;
+
+  /** \brief Set the type of collision detector to use.
+  * Calls addCollisionDetector_ConstVersion() to add it if it
+  * has not already been added.
+  *
+  * this is the constant version of the function setActiveCollisionDetector(), it is added here for setting the
+  * collision checker for a constant planning scene whenever required, e.g., for some planners like CHOMP
+  */
+  const void setActiveCollisionDetector_ConstVersion(
+      const collision_detection::CollisionDetectorAllocatorPtr& allocator, bool exclusive = false) const;
 
   /** \brief Set the type of collision detector to use.
    * This type must have already been added with addCollisionDetector().
@@ -268,6 +283,17 @@ public:
    * name of a collision detector that has been previously added with
    * addCollisionDetector(). */
   bool setActiveCollisionDetector(const std::string& collision_detector_name);
+
+  /** \brief Set the type of collision detector to use.
+   * This type must have already been added with addCollisionDetector_ConstVersion().
+   *
+   * this is the constant version of the function setActiveCollisionDetector() and is added here to change the collision
+   * checkers for a constant planning scene whenever required, e.g., for some planners like CHOMP
+   *
+   * Returns true on success, false if \e collision_detector_name is not the
+   * name of a collision detector that has been previously added with
+   * addCollisionDetector_ConstVersion().
+   */
   const bool setActiveCollisionDetector_ConstVersion(const std::string& collision_detector_name) const;
 
   const std::string& getActiveCollisionDetectorName() const
@@ -1013,17 +1039,18 @@ private:
 
   robot_state::TransformsPtr ftf_;  // if NULL use parent's
 
-public:
-  collision_detection::WorldPtr world_;  // never NULL, never shared with parent/child
-public:
+  collision_detection::WorldPtr world_;             // never NULL, never shared with parent/child
   collision_detection::WorldConstPtr world_const_;  // copy of world_
   collision_detection::WorldDiffPtr world_diff_;    // NULL unless this is a diff scene
   collision_detection::World::ObserverCallbackFn current_world_object_update_callback_;
   collision_detection::World::ObserverHandle current_world_object_update_observer_handle_;
 
-  mutable std::map<std::string, CollisionDetectorPtr> collision_;  // never empty
-  mutable CollisionDetectorPtr active_collision_;  // copy of one of the entries in collision_.  Never NULL.
-  // const bool setActiveCollisionDetector(); const
+  mutable std::map<std::string, CollisionDetectorPtr> collision_;  // never empty, marked as mutable as for some
+                                                                   // planners like CHOMP, this needs to be changed for
+                                                                   // a constant PlanningScene
+  mutable CollisionDetectorPtr active_collision_;  // copy of one of the entries in collision_.  Never NULL. marked as
+                                                   // mutable as for some planners like CHOMP, this needs to be changed
+                                                   // for a constant PlanningScene
 
   collision_detection::AllowedCollisionMatrixPtr acm_;  // if NULL use parent's
 
