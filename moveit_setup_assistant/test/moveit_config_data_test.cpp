@@ -119,6 +119,32 @@ TEST_F(MoveItConfigData, ReadingControllers)
   boost::filesystem::remove((res_path / "ros_controller.yaml").string());
 }
 
+// This tests parsing of sensors_rgbd.yaml
+TEST_F(MoveItConfigData, ReadingSensorsConfig)
+{
+  // Contains all the config data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
+
+  boost::filesystem::path setup_assistant_path(config_data_->setup_assistant_path_);
+
+  // Before parsing, no config available
+  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0);
+
+  // Read the file containing the default config parameters
+  config_data_->input3DSensorsYAML((setup_assistant_path / "resources/default_config/sensors_3d.yaml").string());
+
+  // Default config for the two available sensor plugins
+  // Make sure both are parsed correctly
+  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 2);
+
+  EXPECT_EQ(config_data_->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
+            std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));
+
+  EXPECT_EQ(config_data_->getSensorPluginConfig()[1]["sensor_plugin"].getValue(),
+            std::string("occupancy_map_monitor/DepthImageOctomapUpdater"));
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
