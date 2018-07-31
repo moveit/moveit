@@ -171,6 +171,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     }
     else
     {  // Do what was done before
+      ROS_INFO_STREAM("Adding default duration of " << PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
+                                                    << " seconds to the grasp closure time. Assign time_from_start to "
+                                                    << "your trajectory to avoid this.");
       ee_closed_traj->addPrefixWayPoint(ee_closed_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     }
 
