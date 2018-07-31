@@ -53,8 +53,8 @@ MOVEIT_CLASS_FORWARD(BaseFakeController);
 class BaseFakeController : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  BaseFakeController(const ros::NodeHandle node_handle,
-                     const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  BaseFakeController(const ros::NodeHandle node_handle, const std::string& name, const std::vector<std::string>& joints,
+                     const ros::Publisher& pub);
 
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus();
   void getJoints(std::vector<std::string>& joints) const;
@@ -70,8 +70,8 @@ protected:
 class LastPointController : public BaseFakeController
 {
 public:
-  LastPointController(const ros::NodeHandle node_handle,
-                      const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  LastPointController(const ros::NodeHandle node_handle, const std::string& name,
+                      const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~LastPointController();
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
@@ -82,8 +82,8 @@ public:
 class ThreadedController : public BaseFakeController
 {
 public:
-  ThreadedController(const ros::NodeHandle node_handle,
-                     const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  ThreadedController(const ros::NodeHandle node_handle, const std::string& name, const std::vector<std::string>& joints,
+                     const ros::Publisher& pub);
   ~ThreadedController();
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
@@ -110,8 +110,8 @@ private:
 class ViaPointController : public ThreadedController
 {
 public:
-  ViaPointController(const ros::NodeHandle node_handle,
-                     const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  ViaPointController(const ros::NodeHandle node_handle, const std::string& name, const std::vector<std::string>& joints,
+                     const ros::Publisher& pub);
   ~ViaPointController();
 
 protected:
@@ -121,8 +121,8 @@ protected:
 class InterpolatingController : public ThreadedController
 {
 public:
-  InterpolatingController(const ros::NodeHandle node_handle,
-                          const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
+  InterpolatingController(const ros::NodeHandle node_handle, const std::string& name,
+                          const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~InterpolatingController();
 
 protected:

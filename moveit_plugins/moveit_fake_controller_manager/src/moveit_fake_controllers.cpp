@@ -43,10 +43,8 @@
 
 namespace moveit_fake_controller_manager
 {
-
-BaseFakeController::BaseFakeController(const ros::NodeHandle node_handle,
-                                       const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
+BaseFakeController::BaseFakeController(const ros::NodeHandle node_handle, const std::string& name,
+                                       const std::vector<std::string>& joints, const ros::Publisher& pub)
   : moveit_controller_manager::MoveItControllerHandle(name), joints_(joints), pub_(pub)
 {
   std::stringstream ss;
@@ -56,8 +54,10 @@ BaseFakeController::BaseFakeController(const ros::NodeHandle node_handle,
   ROS_INFO_STREAM(ss.str());
 
   server_handle.reset(new FollowJointTrajectoryServerHandle(node_handle, name, joints));
-  server_handle->follow_joint_trajectory_server.registerGoalCallback(boost::bind(&BaseFakeController::onFollowJointTrajectoryActionGoal, this));
-  server_handle->follow_joint_trajectory_server.registerPreemptCallback(boost::bind(&BaseFakeController::onFollowJointTrajectoryActionPreempt, this));
+  server_handle->follow_joint_trajectory_server.registerGoalCallback(
+      boost::bind(&BaseFakeController::onFollowJointTrajectoryActionGoal, this));
+  server_handle->follow_joint_trajectory_server.registerPreemptCallback(
+      boost::bind(&BaseFakeController::onFollowJointTrajectoryActionPreempt, this));
 }
 
 void BaseFakeController::onFollowJointTrajectoryActionGoal()
@@ -73,7 +73,6 @@ void BaseFakeController::onFollowJointTrajectoryActionPreempt()
   control_msgs::FollowJointTrajectoryGoalConstPtr goal = server_handle->follow_joint_trajectory_server.acceptNewGoal();
 }
 
-
 void BaseFakeController::getJoints(std::vector<std::string>& joints) const
 {
   joints = joints_;
@@ -84,9 +83,8 @@ moveit_controller_manager::ExecutionStatus BaseFakeController::getLastExecutionS
   return moveit_controller_manager::ExecutionStatus::SUCCEEDED;
 }
 
-LastPointController::LastPointController(const ros::NodeHandle node_handle,
-                                         const std::string& name, const std::vector<std::string>& joints,
-                                         const ros::Publisher& pub)
+LastPointController::LastPointController(const ros::NodeHandle node_handle, const std::string& name,
+                                         const std::vector<std::string>& joints, const ros::Publisher& pub)
   : BaseFakeController(node_handle, name, joints, pub)
 {
 }
@@ -125,9 +123,8 @@ bool LastPointController::waitForExecution(const ros::Duration&)
   return true;
 }
 
-ThreadedController::ThreadedController(const ros::NodeHandle node_handle,
-                                       const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
+ThreadedController::ThreadedController(const ros::NodeHandle node_handle, const std::string& name,
+                                       const std::vector<std::string>& joints, const ros::Publisher& pub)
   : BaseFakeController(node_handle, name, joints, pub)
 {
 }
@@ -172,9 +169,8 @@ moveit_controller_manager::ExecutionStatus ThreadedController::getLastExecutionS
   return status_;
 }
 
-ViaPointController::ViaPointController(const ros::NodeHandle node_handle,
-                                       const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
+ViaPointController::ViaPointController(const ros::NodeHandle node_handle, const std::string& name,
+                                       const std::vector<std::string>& joints, const ros::Publisher& pub)
   : ThreadedController(node_handle, name, joints, pub)
 {
 }
@@ -213,9 +209,8 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
   ROS_DEBUG("Fake execution of trajectory: done");
 }
 
-InterpolatingController::InterpolatingController(const ros::NodeHandle node_handle,
-                                                 const std::string& name, const std::vector<std::string>& joints,
-                                                 const ros::Publisher& pub)
+InterpolatingController::InterpolatingController(const ros::NodeHandle node_handle, const std::string& name,
+                                                 const std::vector<std::string>& joints, const ros::Publisher& pub)
   : ThreadedController(node_handle, name, joints, pub), rate_(10)
 {
   double r;
