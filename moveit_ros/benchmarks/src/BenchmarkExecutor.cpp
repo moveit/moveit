@@ -536,7 +536,7 @@ bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, s
     // planning group otherwise an error occurs, because for OMPL a specific planning algorithm needs to be defined for
     // a planning group, whereas with STOMP and CHOMP this is not necessary
     if (pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
-      return true;
+      continue;
 
     for (std::size_t i = 0; i < it->second.size(); ++i)
     {
