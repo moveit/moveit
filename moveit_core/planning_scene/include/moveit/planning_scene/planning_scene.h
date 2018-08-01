@@ -979,11 +979,10 @@ public:
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr& scene);
 
-public:
+private:
   /* Private constructor used by the diff() methods. */
   PlanningScene(const PlanningSceneConstPtr& parent);
 
-private:
   /* Initialize the scene.  This should only be called by the constructors.
    * Requires a valid robot_model_ */
   void initialize();
