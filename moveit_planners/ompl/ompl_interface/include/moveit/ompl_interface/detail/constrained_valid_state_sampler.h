@@ -53,9 +53,8 @@ MOVEIT_CLASS_FORWARD(ValidStateSampler);
 class ValidConstrainedSampler : public ompl::base::ValidStateSampler
 {
 public:
-  ValidConstrainedSampler(
-      const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
-      const constraint_samplers::ConstraintSamplerPtr& cs = constraint_samplers::ConstraintSamplerPtr());
+  ValidConstrainedSampler(const ModelBasedPlanningContext* pc, kinematic_constraints::KinematicConstraintSetPtr ks,
+                          constraint_samplers::ConstraintSamplerPtr cs = constraint_samplers::ConstraintSamplerPtr());
 
   virtual bool sample(ompl::base::State* state);
   virtual bool project(ompl::base::State* state);

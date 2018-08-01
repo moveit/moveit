@@ -522,7 +522,7 @@ inline const OMPLDynamicReconfigureConfigStatics* OMPLDynamicReconfigureConfig::
   if (statics)  // Common case
     return statics;
 
-  boost::mutex::scoped_lock lock(dynamic_reconfigure::__init_mutex__);
+  std::unique_lock<std::mutex> lock(dynamic_reconfigure::__init_mutex__);
 
   if (statics)  // In case we lost a race.
     return statics;

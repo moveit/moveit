@@ -51,8 +51,7 @@ namespace ompl_interface
 class PlanningContextManager
 {
 public:
-  PlanningContextManager(const robot_model::RobotModelConstPtr& kmodel,
-                         const constraint_samplers::ConstraintSamplerManagerPtr& csm);
+  PlanningContextManager(robot_model::RobotModelConstPtr kmodel, constraint_samplers::ConstraintSamplerManagerPtr csm);
   ~PlanningContextManager();
 
   /** @brief Specify configurations for the planners.
@@ -173,7 +172,7 @@ public:
   ConfiguredPlannerSelector getPlannerSelector() const;
 
 protected:
-  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
+  typedef std::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
 
   ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
 

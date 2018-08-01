@@ -39,14 +39,18 @@
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
-    const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
-    const constraint_samplers::ConstraintSamplerPtr& cs)
+#include <utility>
+
+ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
+                                                               kinematic_constraints::KinematicConstraintSetPtr ks,
+                                                               constraint_samplers::ConstraintSamplerPtr cs)
   : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
-                        boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
+                        std::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, std::placeholders::_1,
+                                  std::placeholders::_2),
+                        false)
   , planning_context_(pc)
-  , kinematic_constraint_set_(ks)
-  , constraint_sampler_(cs)
+  , kinematic_constraint_set_(std::move(ks))
+  , constraint_sampler_(std::move(cs))
   , work_state_(pc->getCompleteInitialRobotState())
   , invalid_sampled_constraints_(0)
   , warned_invalid_samples_(false)
@@ -113,11 +117,11 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     {
       // makes the constraint sampler also perform a validity callback
       robot_state::GroupStateValidityCallbackFn gsvcf =
-          boost::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback, this, new_goal,
-                      _1,  // pointer to state
-                      _2,  // const* joint model group
-                      _3,  // double* of joint positions
-                      verbose);
+          std::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback, this, new_goal,
+                    std::placeholders::_1,  // pointer to state
+                    std::placeholders::_2,  // const* joint model group
+                    std::placeholders::_3,  // double* of joint positions
+                    verbose);
       constraint_sampler_->setGroupStateValidityCallback(gsvcf);
 
       if (constraint_sampler_->project(work_state_, planning_context_->getMaximumStateSamplingAttempts()))

@@ -38,13 +38,15 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(
-    const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
-    const constraint_samplers::ConstraintSamplerPtr& cs)
+#include <utility>
+
+ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext* pc,
+                                                                 kinematic_constraints::KinematicConstraintSetPtr ks,
+                                                                 constraint_samplers::ConstraintSamplerPtr cs)
   : ob::ValidStateSampler(pc->getOMPLSimpleSetup()->getSpaceInformation().get())
   , planning_context_(pc)
-  , kinematic_constraint_set_(ks)
-  , constraint_sampler_(cs)
+  , kinematic_constraint_set_(std::move(ks))
+  , constraint_sampler_(std::move(cs))
   , work_state_(pc->getCompleteInitialRobotState())
 {
   if (!constraint_sampler_)

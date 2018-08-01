@@ -66,7 +66,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , ompl_simple_setup_(spec.ompl_simple_setup_)
   , ompl_benchmark_(*ompl_simple_setup_)
   , ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition())
-  , ptc_(NULL)
+  , ptc_(nullptr)
   , last_plan_time_(0.0)
   , last_simplify_time_(0.0)
   , max_goal_samples_(0)
@@ -81,7 +81,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
-      boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
+      std::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, std::placeholders::_1));
 }
 
 void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string& peval)
@@ -236,7 +236,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   std::map<std::string, std::string> cfg = config;
 
   // set the distance between waypoints when interpolating and collision checking.
-  std::map<std::string, std::string>::iterator it = cfg.find("longest_valid_segment_fraction");
+  auto it = cfg.find("longest_valid_segment_fraction");
   // If one of the two variables is set.
   if (it != cfg.end() || max_solution_segment_length_ != 0.0)
   {
@@ -255,7 +255,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
       );
     }
     // clang-format on
-    cfg["longest_valid_segment_fraction"] = boost::lexical_cast<std::string>(longest_valid_segment_fraction_final);
+    cfg["longest_valid_segment_fraction"] = std::to_string(longest_valid_segment_fraction_final);
   }
 
   // set the projection evaluator
@@ -324,7 +324,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     std::string type = it->second;
     cfg.erase(it);
     ompl_simple_setup_->setPlannerAllocator(
-        boost::bind(spec_.planner_selector_(type), _1, name_ != getGroupName() ? name_ : "", spec_));
+        std::bind(spec_.planner_selector_(type), std::placeholders::_1, name_ != getGroupName() ? name_ : "", spec_));
     ROS_INFO_NAMED("model_based_planning_context",
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",
@@ -420,15 +420,15 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   // ******************* set up the goal representation, based on goal constraints
 
   std::vector<ob::GoalPtr> goals;
-  for (std::size_t i = 0; i < goal_constraints_.size(); ++i)
+  for (kinematic_constraints::KinematicConstraintSetPtr& goal_constraint : goal_constraints_)
   {
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
       cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(),
-                                                            goal_constraints_[i]->getAllConstraints());
+                                                            goal_constraint->getAllConstraints());
     if (cs)
     {
-      ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
+      ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraint, cs));
       goals.push_back(g);
     }
   }
@@ -476,9 +476,9 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 {
   // ******************* check if the input is correct
   goal_constraints_.clear();
-  for (std::size_t i = 0; i < goal_constraints.size(); ++i)
+  for (const moveit_msgs::Constraints& goal_constraint : goal_constraints)
   {
-    moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraints[i], path_constraints);
+    moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraint, path_constraints);
     kinematic_constraints::KinematicConstraintSetPtr kset(
         new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
     kset->add(constr, getPlanningScene()->getTransforms());
@@ -497,10 +497,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_->setGoal(goal);
-  if (goal)
-    return true;
-  else
-    return false;
+  return static_cast<bool>(goal);
 }
 
 bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsigned int count,
@@ -601,7 +598,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     // add info about planned solution
     double ptime = getLastPlanTime();
     res.processing_time_.push_back(ptime);
-    res.description_.push_back("plan");
+    res.description_.emplace_back("plan");
     res.trajectory_.resize(res.trajectory_.size() + 1);
     res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
     getSolutionPath(*res.trajectory_.back());
@@ -611,7 +608,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     {
       simplifySolution(request_.allowed_planning_time - ptime);
       res.processing_time_.push_back(getLastSimplifyTime());
-      res.description_.push_back("simplify");
+      res.description_.emplace_back("simplify");
       res.trajectory_.resize(res.trajectory_.size() + 1);
       res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
       getSolutionPath(*res.trajectory_.back());
@@ -620,7 +617,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     ompl::time::point start_interpolate = ompl::time::now();
     interpolateSolution();
     res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
-    res.description_.push_back("interpolate");
+    res.description_.emplace_back("interpolate");
     res.trajectory_.resize(res.trajectory_.size() + 1);
     res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
     getSolutionPath(*res.trajectory_.back());
@@ -684,7 +681,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
       result = true;
-      for (int i = 0; i < n && ptc() == false; ++i)
+      for (int i = 0; i < n && !ptc(); ++i)
       {
         ompl_parallel_plan_.clearPlanners();
         if (ompl_simple_setup_->getPlannerAllocator())
@@ -697,7 +694,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         result = result && r;
       }
       n = count % max_planning_threads_;
-      if (n && ptc() == false)
+      if (n && !ptc())
       {
         ompl_parallel_plan_.clearPlanners();
         if (ompl_simple_setup_->getPlannerAllocator())
@@ -721,19 +718,19 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 
 void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition& ptc)
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
+  std::unique_lock<std::mutex> slock(ptc_lock_);
   ptc_ = &ptc;
 }
 
 void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
-  ptc_ = NULL;
+  std::unique_lock<std::mutex> slock(ptc_lock_);
+  ptc_ = nullptr;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::terminate()
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
+  std::unique_lock<std::mutex> slock(ptc_lock_);
   if (ptc_)
     ptc_->terminate();
   return true;
