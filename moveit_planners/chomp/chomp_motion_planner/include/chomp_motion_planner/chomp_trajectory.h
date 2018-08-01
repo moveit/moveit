@@ -41,6 +41,9 @@
 #include <moveit/robot_model/robot_model.h>
 #include <chomp_motion_planner/chomp_utils.h>
 
+#include <moveit_msgs/MotionPlanDetailedResponse.h>
+#include <moveit_msgs/MotionPlanRequest.h>
+
 #include <vector>
 #include <eigen3/Eigen/Core>
 
@@ -129,7 +132,11 @@ public:
    */
   void fillInCubicInterpolation();
 
-  void fillInFromOMPL();
+  /**
+   * \brief receives the path obtained from OMPL and puts it into the appropriate trajectory format required for CHOMP
+   * @param res
+   */
+  void fillInFromOMPL(moveit_msgs::MotionPlanDetailedResponse& res);
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
    *

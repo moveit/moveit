@@ -252,8 +252,78 @@ void ChompTrajectory::fillInMinJerk()
   }
 }
 
-void ChompTrajectory::fillInFromOMPL()
+void ChompTrajectory::fillInFromOMPL(moveit_msgs::MotionPlanDetailedResponse& res)
 {
+  // create a RobotTrajectory msg to obtain the trajectory from the MotionPlanDetailedResponse object
+  moveit_msgs::RobotTrajectory trajectory_msgs = res.trajectory[0];  // = new moveit_msgs::MotionPlanResponse();
+  // std::cout << "got it e$@#$@#@%$@%GFSgfds#$@" << std::endl;
+  // std::cout << trajectory_msgs.joint_trajectory.points[3].positions.size() << " Points size #$@#@ " << std::endl;
+  // change the getNumPoints to points in the response trajectory
+
+  // std::cout << "Robot trajectory num points:: " << trajectory_msgs.joint_trajectory.points.size() << std::endl;
+
+  // get the default number of points in the CHOMP trajectory
+  int num_chomp_trajectory_points = (*this).getNumPoints();
+  // get the number of points in the response trajectory obtained from OMPL
+  int num_response_points = trajectory_msgs.joint_trajectory.points.size();
+  // get the number of joints for each robot state
+  int num_joints_trajectory = trajectory_msgs.joint_trajectory.points[0].positions.size();
+
+  // following comment is for debuging purposes only, needs to be removed later
+  /*
+  for (int i = 0; i < num_response_points; i++)
+    for (size_t j = 0; j < num_joints_trajectory; j++)
+      //std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " rr ";
+      (*this)(i, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+    //std::cout << std::endl;
+  */
+
+  // variables for populating the CHOMP trajectory with correct number of trajectory points
+  int repeated_factor = num_chomp_trajectory_points / num_response_points;
+  int repeated_balance_factor = num_chomp_trajectory_points % num_response_points;
+
+  // std::cout << repeated_factor << " repeated factor= REPEATITION OF EACH ROW " << std::endl;
+  // std::cout << repeated_balance_factor << " repeated goal_state= REPEATITION OF EACH ROW " << std::endl;
+
+  // int count_new_traj_points = 0;
+  int trajectory_row_index = 0;
+  for (int i = 0; i < num_response_points; i++)
+  {
+    for (int k = 0; k < repeated_factor; k++)
+    {
+      for (size_t j = 0; j < num_joints_trajectory; j++)
+      {
+        // std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " t ";
+        (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+      }
+
+      // std::cout << std::endl << trajectory_row_index << "   ,   row: " << i << "  , i*repeat+k" << i *
+      // repeated_factor + k << std::endl;
+      // count_new_traj_points++;
+      trajectory_row_index++;
+    }
+
+    if (i < repeated_balance_factor)
+    {
+      for (size_t j = 0; j < num_joints_trajectory; j++)
+      {
+        // std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " t ";
+        (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+      }
+      // std::cout << std::endl;
+      // std::cout << std::endl << trajectory_row_index << "   ,   row: " << i << std::endl;
+
+      // count_new_traj_points++;
+      trajectory_row_index++;
+    }
+    // std::cout << std::endl;
+  }
+
+  // std::cout << " New trajectory points " << count_new_traj_points << std::endl;
+
+  // std::cout << (*this).getTrajectory()
+  //          << " 2. ^&(*^$(*&#^$(&^##*(#@ complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" << std::endl;
+  // std::cout << (*this).getTrajectory().size() << " 2. size_trajectory" << std::endl;
 }
 
 }  // namespace chomp
