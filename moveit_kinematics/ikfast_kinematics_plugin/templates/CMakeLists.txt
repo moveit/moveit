@@ -8,20 +8,14 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   tf2_kdl
+  tf2_eigen
+  eigen_conversions
+  moveit_ros_planning
 )
 
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS} include)
 
-catkin_package(
-  LIBRARIES
-  CATKIN_DEPENDS
-    moveit_core
-    pluginlib
-    roscpp
-    tf2_kdl
-)
-
-include_directories(include)
+catkin_package()
 
 set(IKFAST_LIBRARY_NAME _LIBRARY_NAME_)
 
