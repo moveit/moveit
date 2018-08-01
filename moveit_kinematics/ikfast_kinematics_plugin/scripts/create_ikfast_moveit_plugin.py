@@ -62,20 +62,22 @@ if __name__ == '__main__':
       robot_name = sys.argv[1]
       planning_group_name = sys.argv[2]
       moveit_plugin_pkg = sys.argv[3]
-      if len(sys.argv) == 6:
-         ikfast_output_file = sys.argv[5]
-         search_mode = sys.argv[4]
+      base_link_name = sys.argv[4]
+      eef_link_name = sys.argv[5]
+      if len(sys.argv) == 8:
+         ikfast_output_file = sys.argv[7]
+         search_mode = sys.argv[6]
          if search_mode not in search_modes:
             print 'Invalid search mode. Allowed values: ', search_modes
             raise Exception()
-      elif len(sys.argv) == 5:
+      elif len(sys.argv) == 7:
          search_mode = search_modes[0];
          print "Warning: The default search has changed from OPTIMIZE_FREE_JOINT to now %s!" % (search_mode)
-         ikfast_output_file = sys.argv[4]
+         ikfast_output_file = sys.argv[6]
       else:
          raise Exception()
    except:
-      print("\nUsage: create_ikfast_plugin.py <yourrobot_name> <planning_group_name> <moveit_plugin_pkg> [<search_mode>] <ikfast_output_path>\n")
+      print("\nUsage: create_ikfast_plugin.py <yourrobot_name> <planning_group_name> <moveit_plugin_pkg> <base_link_name> <eef_link_name> [<search_mode>] <ikfast_output_path>\n")
       sys.exit(-1)
    print '\nIKFast Plugin Generator'
 
@@ -86,7 +88,13 @@ if __name__ == '__main__':
       print 'Loading robot from \''+plan_pkg+'\' package ... '
    except:
       print '\nERROR: can\'t find package '+plan_pkg+'\n'
-      sys.exit(-1)
+      try:
+         plan_pkg = robot_name + '_moveit'
+         plan_pkg_dir = roslib.packages.get_pkg_dir(plan_pkg)
+         print 'Loading robot from \''+plan_pkg+'\' package ... '
+      except:
+         print '\nERROR: can\'t find package '+plan_pkg+'\n'
+         sys.exit(-1)
    try:
       plugin_pkg = moveit_plugin_pkg
       plugin_pkg_dir = roslib.packages.get_pkg_dir(plugin_pkg)
@@ -222,6 +230,8 @@ if __name__ == '__main__':
    template_text = re.sub('_ROBOT_NAME_', robot_name, template_text)
    template_text = re.sub('_GROUP_NAME_', planning_group_name, template_text)
    template_text = re.sub('_SEARCH_MODE_', search_mode, template_text)
+   template_text = re.sub('_EEF_LINK_', eef_link_name, template_text)
+   template_text = re.sub('_BASE_LINK_', base_link_name, template_text)
    plugin_file_base = robot_name + '_' + planning_group_name + '_ikfast_moveit_plugin.cpp'
 
    plugin_file_name = plugin_pkg_dir + '/src/' + plugin_file_base
@@ -278,8 +288,8 @@ if __name__ == '__main__':
    package_xml = etree.parse(package_file_name, parser)
 
    # Make sure at least all required dependencies are in the depends lists
-   build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions"]
-   run_deps   = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions"]
+   build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions", "moveit_ros_planning"]
+   run_deps   = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions", "moveit_ros_planning"]
 
    def update_deps(reqd_deps, req_type, e_parent):
       curr_deps = [e.text for e in e_parent.findall(req_type)]
@@ -328,6 +338,8 @@ if __name__ == '__main__':
               + " " + robot_name
               + " " + planning_group_name
               + " " + plugin_pkg
+              + " " + base_link_name
+              + " " + eef_link_name
               + " " + solver_file_name )
 
    print '\nCreated update plugin script at '+easy_script_file_path
