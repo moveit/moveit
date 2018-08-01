@@ -532,6 +532,12 @@ bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, s
     planning_interface::PlannerManagerPtr pm = planner_interfaces_[it->first];
     const planning_interface::PlannerConfigurationMap& config_map = pm->getPlannerConfigurations();
 
+    // if the planner is chomp or stomp skip this function and return true for checking planner configurations for the
+    // planning group otherwise an error occurs, because for OMPL a specific planning algorithm needs to be defined for
+    // a planning group, whereas with STOMP and CHOMP this is not necessary
+    if (pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
+      continue;
+
     for (std::size_t i = 0; i < it->second.size(); ++i)
     {
       bool planner_exists = false;
