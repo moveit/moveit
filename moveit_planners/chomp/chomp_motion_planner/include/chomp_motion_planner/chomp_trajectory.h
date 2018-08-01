@@ -129,6 +129,7 @@ public:
    */
   void fillInCubicInterpolation();
 
+  void fillInFromOMPL();
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
    *

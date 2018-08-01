@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
         cmake_modules
         roscpp
         moveit_core
+        moveit_msgs
         pluginlib
         chomp_motion_planner
         moveit_experimental

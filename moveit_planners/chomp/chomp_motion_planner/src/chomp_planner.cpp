@@ -73,6 +73,10 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   ros::WallTime start_time = ros::WallTime::now();
+
+  // add a new trajectory initialization with a new constructor for getting path from OMPL, also have a new CHOMP
+  // parameter indicating its usage
+
   ChompTrajectory trajectory(planning_scene->getRobotModel(), 3.0, .03, req.group_name);
 
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
@@ -125,6 +129,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       }
     }
   }
+  std::cout << trajectory.getTrajectory() << " 1. complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" << std::endl;
+  std::cout << trajectory.getTrajectory().size() << " 1. size_trajectory" << std::endl;
 
   const std::vector<std::string>& active_joint_names = model_group->getActiveJointModelNames();
   const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
@@ -146,8 +152,94 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     trajectory.fillInLinearInterpolation();
   else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
+  else if (params.trajectory_initialization_method_.compare("OMPL") == 0)
+  {
+    //////
+
+    moveit_msgs::RobotTrajectory trajectory_msgs = res.trajectory[0];  // = new moveit_msgs::MotionPlanResponse();
+    std::cout << "got it e$@#$@#@%$@%GFSgfds#$@" << std::endl;
+    // res.trajectory->getRobotTrajectoryMsg(trajectory_msgs); //.joint_trajectory.points.size();
+    std::cout << trajectory_msgs.joint_trajectory.points[3].positions.size() << " Points size #$@#@ " << std::endl;
+    // change the getNumPoints to points in the response trajectory
+
+    std::cout << "Robot trajectory num points:: " << trajectory_msgs.joint_trajectory.points.size() << std::endl;
+
+    int num_chomp_trajectory_points = trajectory.getNumPoints();  // getTrajectory().size();
+    int num_response_points = trajectory_msgs.joint_trajectory.points.size();
+    int num_joints_trajectory = trajectory_msgs.joint_trajectory.points[0].positions.size();
+
+    for (int i = 0; i < num_response_points; i++)
+    {
+      for (size_t j = 0; j < num_joints_trajectory; j++)
+      {
+        std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " rr ";
+        (trajectory)(i, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+      }
+      std::cout << std::endl;
+    }
+
+    int repeated_factor = num_chomp_trajectory_points / num_response_points;
+    int repeated_goal_state = num_chomp_trajectory_points % num_response_points;
+
+    std::cout << repeated_factor << " repeated factor= REPEATITION OF EACH ROW " << std::endl;
+    std::cout << repeated_goal_state << " repeated goal_state= REPEATITION OF EACH ROW " << std::endl;
+
+    int count_new_traj_points = 0;
+    int trajectory_row_index = 0;
+    for (int i = 0; i < num_response_points; i++)
+    {
+      for (int k = 0; k < repeated_factor; k++)
+      {
+        for (size_t j = 0; j < num_joints_trajectory; j++)
+        {
+          std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " t ";
+          //(trajectory)(i*repeated_factor+k, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+          (trajectory)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+        }
+
+        std::cout << std::endl
+                  << trajectory_row_index << "   ,   row: " << i << "  , i*repeat+k" << i * repeated_factor + k
+                  << std::endl;
+        count_new_traj_points++;
+        trajectory_row_index++;
+      }
+
+      // if (i == num_response_points - 1)
+      if (i < repeated_goal_state)
+      {
+        // for (int l = 0; l < repeated_goal_state; l++)
+        //{
+        for (size_t j = 0; j < num_joints_trajectory; j++)
+        {
+          std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " t ";
+          //(trajectory)(i*repeated_factor+l, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+          (trajectory)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+        }
+        std::cout << std::endl;
+        std::cout << std::endl << trajectory_row_index << "   ,   row: " << i << std::endl;
+
+        count_new_traj_points++;
+        trajectory_row_index++;
+        //}
+      }
+      std::cout << std::endl;
+      // break; //for()
+    }
+
+    std::cout << " New trajectory points " << count_new_traj_points << std::endl;
+
+    std::cout << trajectory.getTrajectory()
+              << " 2. ^&(*^$(*&#^$(&^##*(#@ complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" << std::endl;
+    std::cout << trajectory.getTrajectory().size() << " 2. size_trajectory" << std::endl;
+
+    /////
+  }
   else
     ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
+
+  // std::cout << trajectory.getTrajectory() << " 3. complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" <<
+  // std::endl;
+  // std::cout << trajectory.getTrajectory().size() << " 3. size_trajectory" << std::endl;
 
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());

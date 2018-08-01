@@ -41,6 +41,7 @@
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <class_loader/class_loader.hpp>
 #include <ros/ros.h>
 
@@ -54,7 +55,9 @@
 #include <tf/transform_listener.h>
 
 #include <moveit/robot_state/conversions.h>
-#include <yaml-cpp/yaml.h>
+
+#include <vector>
+#include <eigen3/Eigen/Core>
 
 using namespace chomp;
 
@@ -173,6 +176,32 @@ public:
     // variable which is then used by CHOMP for optimization of the computed trajectory
     bool solved = planner(planning_scene, req, res);
 
+    int num_WayPoints = res.trajectory_->getWayPointCount();
+    // int num_joints = res.trajectory_->getJoints();
+    std::cout << num_WayPoints << " joint trajectory" << std::endl;
+
+    res.trajectory_->getWayPoint(2).printStateInfo();
+
+    // convert the response trajectory into  EigenXd format suitable for chomp trajectory initialization and pass it
+    // into the solve method for initialization of the CHOMP trajectory
+    // Eigen::MatrxXd response_trajectory = Eigen::MatrixXd(num_WayPoints, num_joints);
+
+    moveit_msgs::RobotTrajectory trajectory_msgs;             // = new moveit_msgs::MotionPlanResponse();
+    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs);  //.joint_trajectory.points.size();
+
+    for (int i = 0; i < num_WayPoints; i++)
+    {
+      // res.trajectory[0].joint_trajectory.points[i].positions.resize(trajectory.getNumJoints());
+      for (size_t j = 0; j < trajectory_msgs.joint_trajectory.points[i].positions.size(); j++)
+      {
+        std::cout << trajectory_msgs.joint_trajectory.points[i].positions[j] << " ";
+      }
+      std::cout << std::endl;
+      // Setting invalid timestamps.
+      // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
+      // res.trajectory[0].joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+    }
+
     // create a hybrid collision detector to set the collision checker as hybrid
     collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
         collision_detection::CollisionDetectorAllocatorHybrid::create());
@@ -185,6 +214,11 @@ public:
     moveit_msgs::MotionPlanDetailedResponse res2;
     moveit_msgs::MotionPlanRequest req_moveit_msgs;
 
+    moveit_msgs::RobotTrajectory trajectory_msgs2;
+    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs2);
+    res2.trajectory.resize(1);
+    res2.trajectory[0] = trajectory_msgs2;
+    ;
     bool planning_success;
 
     bool temp = chompPlanner.solve(planning_scene, req, params_, res2);
