@@ -129,6 +129,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   nav_name_list_ << "Perception";
   nav_name_list_ << "Simulation";
   nav_name_list_ << "ROS Controllers";
+  nav_name_list_ << "ROS Control";
   nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
 

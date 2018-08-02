@@ -317,13 +317,22 @@ public:
   bool outputFakeControllersYAML(const std::string& file_path);
 
   /**
-   * Helper function for writing follow joint trajectory to ros_controllers.yaml
-   * @param YAML Emitter - yaml emitter used to write the config to the ros controllers yaml file
-   * @param vector<ROSControlConfig>* - a copy of ros controllers config which will be modified in the function
+   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
+   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
+   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
    * @return void
    */
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
-                                       std::vector<ROSControlConfig>* ros_controllers_config_copy);
+                                       std::vector<ROSControlConfig>& ros_controllers_config_output);
+
+  /**
+   * Helper function for writting Joint State ROS controllers to ros_controller.yaml
+   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
+   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
+   * @return void
+   */
+  void outputJointStateControlYAML(YAML::Emitter& emitter,
+                                   std::vector<ROSControlConfig>& ros_controllers_config_output);
 
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
@@ -368,7 +377,14 @@ public:
    * @param YAML::Node - controllers to be parsed
    * @return bool if the file was read correctly
    */
-  bool parseROSControllers(const YAML::Node& controllers);
+  bool parseROSController(const YAML::Node& controller);
+
+  /**
+   * Helper function for parsing ros_controllers.yaml file
+   * @param YAML::Node - controllers to be parsed
+   * @return bool if the file was read correctly
+   */
+  bool processROSControllers(const YAML::Node& controllers);
 
   /**
    * Input ros_controllers.yaml file for editing its values
@@ -379,8 +395,15 @@ public:
 
   /**
    * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
+   * \return bool if controllers were added to the ros_controllers_config_ data structure
    */
-  void addDefaultControllers();
+  bool addDefaultControllers();
+
+  /**
+   * \brief Add a Joint State Controller for each Planning Group
+   * \return bool if controllers were added to the ros_controllers_config_ data structure
+   */
+  bool addJointStateControllers();
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
@@ -430,7 +453,7 @@ public:
   std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
-   * \brief Adds a ros controller to ros_controllers_config_ vector
+   * \brief Adds a ROS controller to ros_controllers_config_ vector
    * \param new_controller a new ROS Controller to add
    * \return true if inserted correctly
    */
@@ -440,12 +463,12 @@ public:
    * \brief Gets ros_controllers_config_ vector
    * \return pointer to ros_controllers_config_
    */
-  std::vector<ROSControlConfig>* getROSControllers();
+  std::vector<ROSControlConfig>& getROSControllers();
 
   /**
-   * Find the associated ros controller by name
+   * Find the associated ROS controller by name
    *
-   * @param controller_name - name of ros controller to find in datastructure
+   * @param controller_name - name of ROS controller to find in datastructure
    * @return pointer to data in datastructure
    */
   ROSControlConfig* findROSControllerByName(const std::string& controller_name);
@@ -453,7 +476,7 @@ public:
   /**
    * Delete ROS controller by name
    *
-   * @param controller_name - name of ros controller to delete
+   * @param controller_name - name of ROS controller to delete
    * @return true if deleted, false if not found
    */
   bool deleteROSController(const std::string& controller_name);

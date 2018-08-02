@@ -43,6 +43,7 @@
 #include <QTreeWidgetItem>
 #include <QApplication>
 
+#include <regex>
 #include <moveit/robot_state/conversions.h>
 
 namespace moveit_setup_assistant
@@ -58,11 +59,14 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assista
 
   layout->setAlignment(Qt::AlignTop);
 
+  // Title
+  this->setWindowTitle("ROS Control Controllers");  // title of window
+
   // Top Header Area ------------------------------------------------
-  HeaderWidget* header =
-      new HeaderWidget("Controllers settings", "Configuring MoveIt! with the controllers on your robotConfigure MoveIt!"
-                                               "to use ros_control and integrate with Gazebo. ",
-                       this);
+  HeaderWidget* header = new HeaderWidget("Controllers settings",
+                                          "Configuring MoveIt! with the controllers on your robot. Configure MoveIt! "
+                                          "to use ros_control. ",
+                                          this);
   layout->addWidget(header);
 
   // Tree Box ----------------------------------------------------------------------
@@ -123,19 +127,33 @@ QWidget* ROSControllersWidget::createContentsWidget()
 
   // Add default controller
   QPushButton* btn_add_default =
-      new QPushButton("&Auto Add FollowJointsTrajectory Controllers \n For Each Planning Group", this);
+      new QPushButton("&Auto Add FollowJointsTrajectory \n Controllers For Each Planning Group", this);
   btn_add_default->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add_default->setMaximumWidth(600);
   connect(btn_add_default, SIGNAL(clicked()), this, SLOT(addDefaultControllers()));
   upper_controls_layout->addWidget(btn_add_default);
   upper_controls_layout->setAlignment(btn_add_default, Qt::AlignRight);
 
+  // Add joint state controllers
+  QPushButton* btn_add_joint_state_control =
+      new QPushButton("&Auto Add JointState \n Controllers For Each Planning Group", this);
+  btn_add_joint_state_control->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  btn_add_joint_state_control->setMaximumWidth(600);
+  connect(btn_add_joint_state_control, SIGNAL(clicked()), this, SLOT(addJointStateControllers()));
+  upper_controls_layout->addWidget(btn_add_joint_state_control);
+  upper_controls_layout->setAlignment(btn_add_joint_state_control, Qt::AlignLeft);
+
   // Add Controls to layout
   layout->addLayout(upper_controls_layout);
 
   // Tree Box ----------------------------------------------------------------------
   controllers_tree_ = new QTreeWidget(this);
-  controllers_tree_->setHeaderLabel("Current Controllers");
+  controllers_tree_->setColumnCount(2);
+  QStringList labels;
+  labels << "Controller"
+         << "Controller Type";
+  controllers_tree_->setHeaderLabels(labels);
+  controllers_tree_->setColumnWidth(0, 250);
   connect(controllers_tree_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(editSelected()));
   connect(controllers_tree_, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this,
           SLOT(previewSelected(QTreeWidgetItem*, int)));
@@ -199,8 +217,8 @@ void ROSControllersWidget::loadControllersTree()
   controllers_tree_->clear();                   // reset the tree
 
   // Display all controllers by looping through them
-  for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers()->begin();
-       controller_it != config_data_->getROSControllers()->end(); ++controller_it)
+  for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
+       controller_it != config_data_->getROSControllers().end(); ++controller_it)
   {
     loadToControllersTree(*controller_it);
   }
@@ -224,9 +242,16 @@ void ROSControllersWidget::loadToControllersTree(const ROSControlConfig& control
   QTreeWidgetItem* controller;
 
   controller = new QTreeWidgetItem();
+
+  // First column
   controller->setText(0, controller_it.name_.c_str());
   controller->setFont(0, top_level_font);
   controller->setData(0, Qt::UserRole, QVariant::fromValue(0));
+
+  // Second column
+  controller->setText(1, controller_it.type_.c_str());
+  controller->setFont(1, type_font);
+  controller->setData(1, Qt::UserRole, QVariant::fromValue(4));
   controllers_tree_->addTopLevelItem(controller);
 
   if (!controller_it.joints_.empty())
@@ -345,20 +370,21 @@ void ROSControllersWidget::deleteController()
   }
 
   // Confirm user wants to delete controller
-  if (QMessageBox::question(this, "Confirm Controller Deletion",
-                            QString("Are you sure you want to delete the controller '").append(controller_name.c_str()),
-                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+  if (QMessageBox::question(
+          this, "Confirm Controller Deletion",
+          QString("Are you sure you want to delete the controller '").append(controller_name.c_str()).append(" ?"),
+          QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
   {
     return;
   }
   // Delete actual controller
   if (config_data_->deleteROSController(controller_name))
   {
-    ROS_INFO_STREAM_NAMED("Setup Assistnat", "Controller " << controller_name << " deleted succefully");
+    ROS_INFO_STREAM_NAMED("Setup Assistant", "Controller " << controller_name << " deleted succefully");
   }
   else
   {
-    ROS_WARN_STREAM_NAMED("Setup Assistnat", "Couldn't delete Controller " << controller_name);
+    ROS_WARN_STREAM_NAMED("Setup Assistant", "Couldn't delete Controller " << controller_name);
   }
 
   current_edit_controller_.clear();
@@ -388,7 +414,18 @@ void ROSControllersWidget::addController()
 // ******************************************************************************************
 void ROSControllersWidget::addDefaultControllers()
 {
-  config_data_->addDefaultControllers();
+  if (!config_data_->addDefaultControllers())
+    QMessageBox::warning(this, "Error adding contollers", "No Planning Groups configured!");
+  loadControllersTree();
+}
+
+// ******************************************************************************************
+// Add a Joint State Controllers for each Planning Group
+// ******************************************************************************************
+void ROSControllersWidget::addJointStateControllers()
+{
+  if (!config_data_->addJointStateControllers())
+    QMessageBox::warning(this, "Error adding contollers", "No Planning Groups configured!");
   loadControllersTree();
 }
 
@@ -628,16 +665,19 @@ void ROSControllersWidget::saveControllerScreenEdit()
 bool ROSControllersWidget::saveControllerScreen()
 {
   // Get a reference to the supplied strings
-  const std::string& controller_name_ = controller_edit_widget_->controller_name_field_->text().trimmed().toStdString();
-  const std::string& controller_type_ = controller_edit_widget_->controller_type_field_->currentText().toStdString();
+  const std::string& controller_name = controller_edit_widget_->controller_name_field_->text().trimmed().toStdString();
+  const std::string& controller_type = controller_edit_widget_->controller_type_field_->currentText().toStdString();
 
   // Used for editing existing controllers
   ROSControlConfig* searched_controller = NULL;
 
+  std::smatch invalid_name_match;
+  std::regex invalid_reg_ex("[^a-z|^1-9|^_]");
+
   // Check that a valid controller name has been given
-  if (controller_name_.empty())
+  if (controller_name.empty() || std::regex_search(controller_name, invalid_name_match, invalid_reg_ex))
   {
-    QMessageBox::warning(this, "Error Saving", "A name must be given for the controller!");
+    QMessageBox::warning(this, "Error Saving", "Invalid ROS controller name");
     return false;
   }
 
@@ -649,10 +689,10 @@ bool ROSControllersWidget::saveControllerScreen()
   }
 
   // Check that the controller name is unique
-  for (std::vector<ROSControlConfig>::const_iterator controller_it = config_data_->getROSControllers()->begin();
-       controller_it != config_data_->getROSControllers()->end(); ++controller_it)
+  for (std::vector<ROSControlConfig>::const_iterator controller_it = config_data_->getROSControllers().begin();
+       controller_it != config_data_->getROSControllers().end(); ++controller_it)
   {
-    if (controller_it->name_.compare(controller_name_) == 0)  // the names are the same
+    if (controller_it->name_.compare(controller_name) == 0)  // the names are the same
     {
       // is this our existing controller? check if controller pointers are same
       if (&(*controller_it) != searched_controller)
@@ -669,8 +709,8 @@ bool ROSControllersWidget::saveControllerScreen()
   if (searched_controller == NULL)  // create new
   {
     ROSControlConfig new_controller;
-    new_controller.name_ = controller_name_;
-    new_controller.type_ = controller_type_;
+    new_controller.name_ = controller_name;
+    new_controller.type_ = controller_type;
     config_data_->addROSController(new_controller);
 
     adding_new_controller_ = true;  // remember this controller is new
@@ -681,15 +721,15 @@ bool ROSControllersWidget::saveControllerScreen()
     const std::string old_controller_name = searched_controller->name_;
 
     // Change controller name
-    searched_controller->name_ = controller_name_;
-    searched_controller->type_ = controller_type_;
+    searched_controller->name_ = controller_name;
+    searched_controller->type_ = controller_type;
   }
 
   // Reload main screen table
   loadControllersTree();
 
   // Update the current edit controller so that we can proceed to the next screen, if user desires
-  current_edit_controller_ = controller_name_;
+  current_edit_controller_ = controller_name;
 
   return true;
 }

@@ -1086,15 +1086,15 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   }
 
   // Pair 9 - Add ROS Controllers to ros_controllers.launch file
-  if (config_data_->getROSControllers()->empty())
+  if (config_data_->getROSControllers().empty())
   {
     addTemplateString("[ROS_CONTROLLERS]", "");
   }
   else
   {
     std::stringstream controllers;
-    for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers()->begin();
-         controller_it != config_data_->getROSControllers()->end(); ++controller_it)
+    for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
+         controller_it != config_data_->getROSControllers().end(); ++controller_it)
     {
       controllers << controller_it->name_ << " ";
     }

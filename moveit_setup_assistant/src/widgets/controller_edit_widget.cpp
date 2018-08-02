@@ -195,16 +195,13 @@ void ControllerEditWidget::loadControllersTypesComboBox()
     return;
   has_loaded = true;
 
-  const std::array<std::string, 10> default_types = { "effort_controllers/JointTrajectoryController",
-                                                      "effort_controllers/JointPositionController",
-                                                      "effort_controllers/JointVelocityController",
-                                                      "effort_controllers/JointEffortController",
-                                                      "FollowJointTrajectory",
-                                                      "joint_state_controller/JointStateController",
-                                                      "position_controllers/JointPositionController",
-                                                      "position_controllers/JointTrajectoryController",
-                                                      "velocity_controllers/JointTrajectoryController",
-                                                      "velocity_controllers/JointvelocityController" };
+  const std::array<std::string, 9> default_types = {
+    "effort_controllers/JointTrajectoryController",   "effort_controllers/JointPositionController",
+    "effort_controllers/JointVelocityController",     "effort_controllers/JointEffortController",
+    "joint_state_controller/JointStateController",    "position_controllers/JointPositionController",
+    "position_controllers/JointTrajectoryController", "velocity_controllers/JointTrajectoryController",
+    "velocity_controllers/JointvelocityController"
+  };
 
   // Remove all old items
   controller_type_field_->clear();
