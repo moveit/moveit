@@ -56,7 +56,7 @@
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 #include "controller_edit_widget.h"
 
-namespace moveit_setup_assistant
+namespace moveit_ros_control
 {
 class ROSControllersWidget : public SetupScreenWidget
 {
@@ -143,8 +143,8 @@ private:
   QPushButton* btn_add_;
   QPushButton* btn_edit_;
   QHBoxLayout* controls_layout_;
-  DoubleListWidget* joints_widget_;
-  DoubleListWidget* joint_groups_widget_;
+  moveit_setup_assistant::DoubleListWidget* joints_widget_;
+  moveit_setup_assistant::DoubleListWidget* joint_groups_widget_;
 
   /// Remember what controller we are editing when an edit screen is being shown
   std::string current_edit_controller_;
@@ -159,11 +159,11 @@ private:
   QWidget* createContentsWidget();
 
   void loadControllersTree();
-  void loadToControllersTree(const ROSControlConfig& controller_it);
+  void loadToControllersTree(const moveit_setup_assistant::ROSControlConfig& controller_it);
   void showMainScreen();
-  void loadJointsScreen(ROSControlConfig* this_controller);
-  void loadGroupsScreen(ROSControlConfig* this_controller);
-  void loadControllerScreen(ROSControlConfig* this_controller);
+  void loadJointsScreen(moveit_setup_assistant::ROSControlConfig* this_controller);
+  void loadGroupsScreen(moveit_setup_assistant::ROSControlConfig* this_controller);
+  void loadControllerScreen(moveit_setup_assistant::ROSControlConfig* this_controller);
 };
 
 }  // namespace moveit_setup_assistant

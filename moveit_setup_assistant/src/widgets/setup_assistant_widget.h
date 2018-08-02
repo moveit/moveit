@@ -227,7 +227,7 @@ private:
   ConfigurationFilesWidget* configuration_files_widget_;
   SimulationWidget* simulation_widget_;
   PerceptionWidget* perception_widget_;
-  ROSControllersWidget* controllers_widget_;
+  moveit_ros_control::ROSControllersWidget* controllers_widget_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;

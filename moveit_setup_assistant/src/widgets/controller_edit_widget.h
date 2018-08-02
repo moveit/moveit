@@ -46,7 +46,7 @@
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-namespace moveit_setup_assistant
+namespace moveit_ros_control
 {
 class ControllerEditWidget : public QWidget
 {

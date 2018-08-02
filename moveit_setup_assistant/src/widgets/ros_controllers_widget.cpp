@@ -46,7 +46,7 @@
 #include <regex>
 #include <moveit/robot_state/conversions.h>
 
-namespace moveit_setup_assistant
+namespace moveit_ros_control
 {
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
@@ -63,24 +63,25 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assista
   this->setWindowTitle("ROS Control Controllers");  // title of window
 
   // Top Header Area ------------------------------------------------
-  HeaderWidget* header = new HeaderWidget("Controllers settings",
-                                          "Configuring MoveIt! with the controllers on your robot. Configure MoveIt! "
-                                          "to use ros_control. ",
-                                          this);
+  moveit_setup_assistant::HeaderWidget* header = new moveit_setup_assistant::HeaderWidget(
+      "Controllers settings", "Configuring MoveIt! with the controllers on your robot. Configure MoveIt! "
+                              "to use ros_control. ",
+      this);
   layout->addWidget(header);
 
   // Tree Box ----------------------------------------------------------------------
   controllers_tree_widget_ = createContentsWidget();
 
   // Joints edit widget
-  joints_widget_ = new DoubleListWidget(this, config_data_, "Joint Collection", "Joint");
+  joints_widget_ = new moveit_setup_assistant::DoubleListWidget(this, config_data_, "Joint Collection", "Joint");
   connect(joints_widget_, SIGNAL(cancelEditing()), this, SLOT(cancelEditing()));
   connect(joints_widget_, SIGNAL(doneEditing()), this, SLOT(saveJointsScreen()));
   connect(joints_widget_, SIGNAL(previewSelected(std::vector<std::string>)), this,
           SLOT(previewSelectedJoints(std::vector<std::string>)));
 
   // Joints Groups Widget
-  joint_groups_widget_ = new DoubleListWidget(this, config_data_, "Group Joints Collection", "Group");
+  joint_groups_widget_ =
+      new moveit_setup_assistant::DoubleListWidget(this, config_data_, "Group Joints Collection", "Group");
   connect(joint_groups_widget_, SIGNAL(cancelEditing()), this, SLOT(cancelEditing()));
   connect(joint_groups_widget_, SIGNAL(doneEditing()), this, SLOT(saveJointsGroupsScreen()));
   connect(joint_groups_widget_, SIGNAL(previewSelected(std::vector<std::string>)), this,
@@ -217,7 +218,8 @@ void ROSControllersWidget::loadControllersTree()
   controllers_tree_->clear();                   // reset the tree
 
   // Display all controllers by looping through them
-  for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
+  for (std::vector<moveit_setup_assistant::ROSControlConfig>::iterator controller_it =
+           config_data_->getROSControllers().begin();
        controller_it != config_data_->getROSControllers().end(); ++controller_it)
   {
     loadToControllersTree(*controller_it);
@@ -233,7 +235,7 @@ void ROSControllersWidget::loadControllersTree()
 // ******************************************************************************************
 //  Displays data in the controller_config_ data structure into a QtTableWidget
 // ******************************************************************************************
-void ROSControllersWidget::loadToControllersTree(const ROSControlConfig& controller_it)
+void ROSControllersWidget::loadToControllersTree(const moveit_setup_assistant::ROSControlConfig& controller_it)
 {
   // Fonts for tree
   const QFont top_level_font(QFont().defaultFamily(), 11, QFont::Bold);
@@ -291,7 +293,7 @@ void ROSControllersWidget::focusGiven()
 // ******************************************************************************************
 // Load the popup screen with correct data for joints
 // ******************************************************************************************
-void ROSControllersWidget::loadJointsScreen(ROSControlConfig* this_controller)
+void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ROSControlConfig* this_controller)
 {
   // Retrieve pointer to the shared kinematic model
   const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
@@ -322,7 +324,7 @@ void ROSControllersWidget::loadJointsScreen(ROSControlConfig* this_controller)
 // ******************************************************************************************
 // Load the popup screen with correct data for gcroups
 // ******************************************************************************************
-void ROSControllersWidget::loadGroupsScreen(ROSControlConfig* this_controller)
+void ROSControllersWidget::loadGroupsScreen(moveit_setup_assistant::ROSControlConfig* this_controller)
 {
   // Load all groups into the subgroup screen
   std::vector<std::string> groups;
@@ -432,7 +434,7 @@ void ROSControllersWidget::addJointStateControllers()
 // ******************************************************************************************
 // Load the popup screen with correct data for controllers
 // ******************************************************************************************
-void ROSControllersWidget::loadControllerScreen(ROSControlConfig* this_controller)
+void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::ROSControlConfig* this_controller)
 {
   // Load the avail controllers. This function only runs once
   controller_edit_widget_->loadControllersTypesComboBox();
@@ -466,7 +468,7 @@ void ROSControllersWidget::cancelEditing()
 {
   if (!current_edit_controller_.empty() && adding_new_controller_)
   {
-    ROSControlConfig* editing = config_data_->findROSControllerByName(current_edit_controller_);
+    moveit_setup_assistant::ROSControlConfig* editing = config_data_->findROSControllerByName(current_edit_controller_);
     if (editing && editing->joints_.empty())
     {
       config_data_->deleteROSController(current_edit_controller_);
@@ -561,7 +563,8 @@ void ROSControllersWidget::saveControllerScreenJoints()
     return;
 
   // Find the controller we are editing based on the controller name string
-  ROSControlConfig* editing_controller = config_data_->findROSControllerByName(current_edit_controller_);
+  moveit_setup_assistant::ROSControlConfig* editing_controller =
+      config_data_->findROSControllerByName(current_edit_controller_);
 
   loadJointsScreen(editing_controller);
 
@@ -579,7 +582,8 @@ void ROSControllersWidget::saveControllerScreenGroups()
     return;
 
   // Find the controller we are editing based on the controller name string
-  ROSControlConfig* editing_controller = config_data_->findROSControllerByName(current_edit_controller_);
+  moveit_setup_assistant::ROSControlConfig* editing_controller =
+      config_data_->findROSControllerByName(current_edit_controller_);
 
   loadGroupsScreen(editing_controller);
 
@@ -593,7 +597,8 @@ void ROSControllersWidget::saveControllerScreenGroups()
 void ROSControllersWidget::saveJointsScreen()
 {
   // Find the controller we are editing based on the controller name string
-  ROSControlConfig* searched_controller = config_data_->findROSControllerByName(current_edit_controller_);
+  moveit_setup_assistant::ROSControlConfig* searched_controller =
+      config_data_->findROSControllerByName(current_edit_controller_);
 
   // Clear the old data
   searched_controller->joints_.clear();
@@ -617,7 +622,8 @@ void ROSControllersWidget::saveJointsScreen()
 void ROSControllersWidget::saveJointsGroupsScreen()
 {
   // Find the controller we are editing based on the controller name string
-  ROSControlConfig* searched_controller = config_data_->findROSControllerByName(current_edit_controller_);
+  moveit_setup_assistant::ROSControlConfig* searched_controller =
+      config_data_->findROSControllerByName(current_edit_controller_);
 
   // Clear the old data
   searched_controller->joints_.clear();
@@ -669,7 +675,7 @@ bool ROSControllersWidget::saveControllerScreen()
   const std::string& controller_type = controller_edit_widget_->controller_type_field_->currentText().toStdString();
 
   // Used for editing existing controllers
-  ROSControlConfig* searched_controller = NULL;
+  moveit_setup_assistant::ROSControlConfig* searched_controller = NULL;
 
   std::smatch invalid_name_match;
   std::regex invalid_reg_ex("[^a-z|^1-9|^_]");
@@ -689,7 +695,8 @@ bool ROSControllersWidget::saveControllerScreen()
   }
 
   // Check that the controller name is unique
-  for (std::vector<ROSControlConfig>::const_iterator controller_it = config_data_->getROSControllers().begin();
+  for (std::vector<moveit_setup_assistant::ROSControlConfig>::const_iterator controller_it =
+           config_data_->getROSControllers().begin();
        controller_it != config_data_->getROSControllers().end(); ++controller_it)
   {
     if (controller_it->name_.compare(controller_name) == 0)  // the names are the same
@@ -708,7 +715,7 @@ bool ROSControllersWidget::saveControllerScreen()
   // Save the new controller name or create the new controller
   if (searched_controller == NULL)  // create new
   {
-    ROSControlConfig new_controller;
+    moveit_setup_assistant::ROSControlConfig new_controller;
     new_controller.name_ = controller_name;
     new_controller.type_ = controller_type;
     config_data_->addROSController(new_controller);
@@ -756,7 +763,8 @@ void ROSControllersWidget::editSelected()
     // The controller this joint belong to
     controller_item = item->parent()->parent();
     current_edit_controller_ = controller_item->text(0).toUtf8().constData();
-    ROSControlConfig* this_controller = config_data_->findROSControllerByName(current_edit_controller_);
+    moveit_setup_assistant::ROSControlConfig* this_controller =
+        config_data_->findROSControllerByName(current_edit_controller_);
 
     // Load the data
     loadJointsScreen(this_controller);
@@ -768,7 +776,8 @@ void ROSControllersWidget::editSelected()
   {
     controller_item = item->parent();
     current_edit_controller_ = controller_item->text(0).toUtf8().constData();
-    ROSControlConfig* this_controller = config_data_->findROSControllerByName(current_edit_controller_);
+    moveit_setup_assistant::ROSControlConfig* this_controller =
+        config_data_->findROSControllerByName(current_edit_controller_);
 
     // Load the data
     loadJointsScreen(this_controller);
@@ -780,7 +789,8 @@ void ROSControllersWidget::editSelected()
   {
     // Load the data
     current_edit_controller_ = item->text(0).toUtf8().constData();
-    ROSControlConfig* this_controller = config_data_->findROSControllerByName(current_edit_controller_);
+    moveit_setup_assistant::ROSControlConfig* this_controller =
+        config_data_->findROSControllerByName(current_edit_controller_);
     loadControllerScreen(this_controller);
 
     // Switch to screen
