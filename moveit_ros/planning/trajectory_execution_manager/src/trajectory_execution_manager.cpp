@@ -944,7 +944,8 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& context) const
 {
-  if (allowed_start_tolerance_ == 0) { // skip validation on this magic number
+  if (allowed_start_tolerance_ == 0)
+  {  // skip validation on this magic number
     return true;
   }
 
@@ -1536,7 +1537,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
   // skip validation
-  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_) {
+  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_)
+  {
     ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
     return true;
   }
