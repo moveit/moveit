@@ -160,7 +160,7 @@ public:
       ROS_INFO_STREAM(
           "Param use_stochastic_descent was not set. Using default value: " << params_.use_stochastic_descent_);
     }
-    if (!nh_.getParam("interpolation_method", params_.use_stochastic_descent_))
+    if (!nh_.getParam("trajectory_initialization_method", params_.use_stochastic_descent_))
     {
       params_.trajectory_initialization_method_ = std::string("OMPL");
       ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using New value as: "
