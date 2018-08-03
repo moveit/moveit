@@ -371,14 +371,21 @@ private:
   */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
+
   /**
-  * @brief  transforms the input pose to the correct frame for the solver. This assumes that the group includes the
+  * @brief  Transforms the input pose to the correct frame for the solver. This assumes that the group includes the
+  * entire solver chain and that any joints outside of the solver chain within the group are are fixed.
+  * @param  ik_pose             The pose to be transformed which should be in the correct frame for the group.
+  */
+  void transformToChainFrame(Eigen::Affine3d& ik_pose) const;
+
+  /**
+  * @brief  Transforms the input pose to the correct frame for the solver. This assumes that the group includes the
   * entire solver chain and that any joints outside of the solver chain within the group are are fixed.
   * @param  ik_pose             The pose to be transformed which should be in the correct frame for the group.
   * @param  ik_pose_chain       The ik_pose to be populated with the apropriate pose for the solver
-  * @return True if successful
   */
-  bool transformToChainFrame(const Eigen::Affine3d& ik_pose, Eigen::Affine3d& ik_pose_chain) const;
+  void transformToChainFrame(const geometry_msgs::Pose& ik_pose, KDL::Frame& ik_pose_chain) const;
 
 };  // end class
 
@@ -715,11 +722,11 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   std::vector<IkReal> vsolfree(sol.GetFree().size());
   sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
 
-  for (std::size_t i = 0; i < num_joints_; ++i)
+  for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
-    if (joint_has_limits_vector_[i])
+    if (joint_has_limits_vector_[joint_id])
     {
-      solution[i] = respectLimits(solution[i], joint_min_vector_[i], joint_max_vector_[i]);
+      solution[joint_id] = respectLimits(solution[joint_id], joint_min_vector_[joint_id], joint_max_vector_[joint_id]);
     }
   }
 
@@ -764,17 +771,17 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   }
 }
 
-double IKFastKinematicsPlugin::respectLimits(double val, double min, double max) const
+double IKFastKinematicsPlugin::respectLimits(double joint_val, double min, double max) const
 {
-  while (val > max && val - 2 * M_PI > min)
+  while (joint_val > max && joint_val - 2 * M_PI > min)
   {
-    val -= 2 * M_PI;
+    joint_val -= 2 * M_PI;
   }
-  while (val < min && val + 2 * M_PI < max)
+  while (joint_val < min && joint_val + 2 * M_PI < max)
   {
-    val += 2 * M_PI;
+    joint_val += 2 * M_PI;
   }
-  return val;
+  return joint_val;
 }
 
 double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
@@ -995,7 +1002,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
                                               moveit_msgs::MoveItErrorCodes& error_code,
                                               const kinematics::KinematicsQueryOptions& options) const
 {
-  ROS_DEBUG_STREAM_NAMED(name_, "searchPositionIK");
+  // ROS_DEBUG_STREAM_NAMED(name_, "searchPositionIK");
 
   /// search_mode is currently fixed during code generation
   SEARCH_MODE search_mode = _SEARCH_MODE_;
@@ -1086,17 +1093,8 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
   KDL::Frame frame;
   if (transform_tip_ || transform_base_)
   {
-    geometry_msgs::Pose ik_pose_chain;
-    Eigen::Affine3d ik_eigen_pose_chain;
-    Eigen::Affine3d ik_eigen_pose;
-    tf::poseMsgToEigen(ik_pose, ik_eigen_pose);
-    if (!transformToChainFrame(ik_eigen_pose, ik_eigen_pose_chain))
-    {
-      ROS_ERROR_NAMED("ikfast", "failed to transform input pose to ik chain frame");
-      return false;
-    }
-    tf::poseEigenToMsg(ik_eigen_pose_chain, ik_pose_chain);
-    tf::poseMsgToKDL(ik_pose_chain, frame);
+    // Transforms the input pose from the group frame to the kinematic solver's frame.
+    transformToChainFrame(ik_pose, frame);
   }
   else
   {
@@ -1266,10 +1264,10 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     if (joint_has_limits_vector_[i] && ((ik_seed_state[i] < (joint_min_vector_[i] - LIMIT_TOLERANCE)) ||
                                         (ik_seed_state[i] > (joint_max_vector_[i] + LIMIT_TOLERANCE))))
     {
-      ROS_DEBUG_STREAM_NAMED("ikfast", "IKseed not in limits! " << (int)i << " value " << ik_seed_state[i]
-                                                                << " has limit: " << joint_has_limits_vector_[i]
-                                                                << "  being  " << joint_min_vector_[i] << " to "
-                                                                << joint_max_vector_[i]);
+      ROS_DEBUG_STREAM_NAMED("ikfast", "IK seed not in limits! " << (int)i << " value " << ik_seed_state[i]
+                                                                 << " has limit: " << joint_has_limits_vector_[i]
+                                                                 << "  being  " << joint_min_vector_[i] << " to "
+                                                                 << joint_max_vector_[i]);
       return false;
     }
   }
@@ -1285,17 +1283,8 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::Frame frame;
   if (transform_tip_ || transform_base_)
   {
-    geometry_msgs::Pose ik_pose_chain;
-    Eigen::Affine3d ik_eigen_pose_chain;
-    Eigen::Affine3d ik_eigen_pose;
-    tf::poseMsgToEigen(ik_pose, ik_eigen_pose);
-    if (!transformToChainFrame(ik_eigen_pose, ik_eigen_pose_chain))
-    {
-      ROS_ERROR_NAMED("ikfast", "failed to transform input pose to ik chain frame");
-      return false;
-    }
-    tf::poseEigenToMsg(ik_eigen_pose_chain, ik_pose_chain);
-    tf::poseMsgToKDL(ik_pose_chain, frame);
+    // Transforms the input pose from the group frame to the kinematic solver's frame.
+    transformToChainFrame(ik_pose, frame);
   }
   else
   {
@@ -1404,17 +1393,8 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   KDL::Frame frame;
   if (transform_tip_ || transform_base_)
   {
-    geometry_msgs::Pose ik_pose_chain;
-    Eigen::Affine3d ik_eigen_pose_chain;
-    Eigen::Affine3d ik_eigen_pose;
-    tf::poseMsgToEigen(ik_poses[0], ik_eigen_pose);
-    if (!transformToChainFrame(ik_eigen_pose, ik_eigen_pose_chain))
-    {
-      ROS_ERROR_NAMED("ikfast", "failed to transform input pose to ik chain frame");
-      return false;
-    }
-    tf::poseEigenToMsg(ik_eigen_pose_chain, ik_pose_chain);
-    tf::poseMsgToKDL(ik_pose_chain, frame);
+    // Transforms the input pose from the group frame to the kinematic solver's frame.
+    transformToChainFrame(ik_poses[0], frame);
   }
   else
   {
@@ -1574,16 +1554,25 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
   return true;
 }
 
-bool IKFastKinematicsPlugin::transformToChainFrame(const Eigen::Affine3d& ik_pose, Eigen::Affine3d& ik_pose_chain) const
+void IKFastKinematicsPlugin::transformToChainFrame(Eigen::Affine3d& ik_pose) const
 {
-  ik_pose_chain = ik_pose;
   if (transform_tip_)
-    ik_pose_chain = ik_pose_chain * group_tip_to_chain_tip_;
+    ik_pose = ik_pose * group_tip_to_chain_tip_;
 
   if (transform_base_)
-    ik_pose_chain = chain_base_to_group_base_ * ik_pose_chain;
+    ik_pose = chain_base_to_group_base_ * ik_pose;
+}
 
-  return true;
+void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik_pose, KDL::Frame& ik_pose_chain) const
+{
+  Eigen::Affine3d ik_eigen_pose;
+  tf::poseMsgToEigen(ik_pose, ik_eigen_pose);
+
+  transformToChainFrame(ik_eigen_pose);
+
+  geometry_msgs::Pose ik_msg_pose;
+  tf::poseEigenToMsg(ik_eigen_pose, ik_msg_pose);
+  tf::poseMsgToKDL(ik_msg_pose, ik_pose_chain);
 }
 
 }  // end namespace
