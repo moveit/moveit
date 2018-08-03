@@ -371,7 +371,6 @@ private:
   */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
-
   /**
   * @brief  Transforms the input pose to the correct frame for the solver. This assumes that the group includes the
   * entire solver chain and that any joints outside of the solver chain within the group are are fixed.
