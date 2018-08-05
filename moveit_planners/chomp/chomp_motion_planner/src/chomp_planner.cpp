@@ -147,7 +147,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
   else if (params.trajectory_initialization_method_.compare("OMPL") == 0)
-    trajectory.fillInFromOMPL(res);
+    trajectory.fillInFromTrajectory(res);
   else
     ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
 

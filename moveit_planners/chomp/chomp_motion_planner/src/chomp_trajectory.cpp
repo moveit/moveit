@@ -252,7 +252,7 @@ void ChompTrajectory::fillInMinJerk()
   }
 }
 
-void ChompTrajectory::fillInFromOMPL(moveit_msgs::MotionPlanDetailedResponse& res)
+void ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedResponse& res)
 {
   // create a RobotTrajectory msg to obtain the trajectory from the MotionPlanDetailedResponse object
   moveit_msgs::RobotTrajectory trajectory_msgs = res.trajectory[0];  // = new moveit_msgs::MotionPlanResponse();
@@ -269,27 +269,46 @@ void ChompTrajectory::fillInFromOMPL(moveit_msgs::MotionPlanDetailedResponse& re
   int repeated_balance_factor = num_chomp_trajectory_points % num_response_points;
 
   int trajectory_row_index = 0;
-  for (int i = 0; i < num_response_points; i++)
+  if (num_chomp_trajectory_points >= num_response_points)
   {
-    // following for loop repeats each OMPL trajectory pose/row 'repeated_factor' times; alternatively, there could also
-    // be a linear interpolation between these points later if required
-    for (int k = 0; k < repeated_factor; k++)
+    for (int i = 0; i < num_response_points; i++)
     {
-      for (size_t j = 0; j < num_joints_trajectory; j++)
-        (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+      // following for loop repeats each OMPL trajectory pose/row 'repeated_factor' times; alternatively, there could
+      // also
+      // be a linear interpolation between these points later if required
+      for (int k = 0; k < repeated_factor; k++)
+      {
+        for (size_t j = 0; j < num_joints_trajectory; j++)
+          (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
 
-      trajectory_row_index++;
+        trajectory_row_index++;
+      }
+
+      // this populates the CHOMP trajectory row  for the remainder number of rows.
+      if (i < repeated_balance_factor)
+      {
+        for (size_t j = 0; j < num_joints_trajectory; j++)
+          (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
+
+        trajectory_row_index++;
+      }  // end of if
+    }    // end of for loop for loading in the trajectory poses/rows
+  }
+  else
+  {
+    // perform a decimation sampling in this block if the number of trajectory points in the MotionPlanDetailedResponse
+    // res object is more than the number of points in the CHOMP trajectory
+    double decimation_sampling_factor = ((double)num_response_points) / ((double)num_chomp_trajectory_points);
+
+    for (int i = 0; i < num_chomp_trajectory_points; i++)
+    {
+      int sampled_point = floor(i * decimation_sampling_factor);
+
+      // following loop iterates over all joints for a single robot pose
+      for (size_t j = 0; j < num_joints_trajectory; j++)
+        (*this)(i, j) = trajectory_msgs.joint_trajectory.points[sampled_point].positions[j];
     }
-
-    // this populates the CHOMP trajectory row  for the remainder number of rows.
-    if (i < repeated_balance_factor)
-    {
-      for (size_t j = 0; j < num_joints_trajectory; j++)
-        (*this)(trajectory_row_index, j) = trajectory_msgs.joint_trajectory.points[i].positions[j];
-
-      trajectory_row_index++;
-    }  // end of if
-  }    // end of for loop for loading in the trajectory poses/rows
+  }  // end of else
 }
 
 }  // namespace chomp
