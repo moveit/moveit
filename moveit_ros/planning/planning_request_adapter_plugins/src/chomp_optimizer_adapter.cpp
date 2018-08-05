@@ -1,7 +1,3 @@
-//
-// Created by deepthought on 24/07/18.
-//
-
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -36,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Raghavender Sahdev */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/robot_state/conversions.h>
