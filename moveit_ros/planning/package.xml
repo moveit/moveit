@@ -34,6 +34,7 @@
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>angles</run_depend>
   <run_depend>eigen_conversions</run_depend>
+  <run_depend>stomp_core</run_depend>
 
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
