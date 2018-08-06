@@ -214,15 +214,15 @@ private:
   moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
 
   // Screen Widgets
-  StartScreenWidget* ssw_;
-  DefaultCollisionsWidget* dcw_;
-  PlanningGroupsWidget* pgw_;
-  RobotPosesWidget* rpw_;
-  EndEffectorsWidget* efw_;
-  VirtualJointsWidget* vjw_;
-  PassiveJointsWidget* pjw_;
-  AuthorInformationWidget* aiw_;
-  ConfigurationFilesWidget* cfw_;
+  StartScreenWidget* start_screen_widget_;
+  DefaultCollisionsWidget* default_collisions_widget_;
+  PlanningGroupsWidget* planning_groups_widget;
+  RobotPosesWidget* robot_poses_widget_;
+  EndEffectorsWidget* end_effectors_widget_;
+  VirtualJointsWidget* virtual_joints_widget_;
+  PassiveJointsWidget* passive_joints_widget_;
+  AuthorInformationWidget* author_information_widget_;
+  ConfigurationFilesWidget* configuration_files_widget_;
   PerceptionWidget* perception_widget_;
 
   /// Contains all the configuration data for the setup assistant
