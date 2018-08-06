@@ -65,7 +65,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
 
   // Kinematic form -------------------------------------------
   QFormLayout* form_layout = new QFormLayout();
-  form_layout->setContentsMargins(0, 15, 0, 15);
+  form_layout->setContentsMargins(0, 12, 0, 12);
 
   // Name input
   group_name_field_ = new QLineEdit(this);
@@ -98,7 +98,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   // OMPL Planner form --------------------------------------------
 
   QFormLayout* form_layout2 = new QFormLayout();
-  form_layout2->setContentsMargins(0, 15, 0, 15);
+  form_layout2->setContentsMargins(0, 12, 0, 12);
 
   // Kinematic default planner
   default_planner_field_ = new QComboBox(this);
@@ -114,49 +114,61 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   layout->setAlignment(Qt::AlignTop);
 
   // New Group Options  ---------------------------------------------------------
+  QWidget* labels_widget = new QWidget();
   new_buttons_widget_ = new QWidget();
-  QVBoxLayout* new_buttons_layout = new QVBoxLayout();
+
+  QVBoxLayout* new_buttons_layout_container = new QVBoxLayout();
+  QHBoxLayout* label_layout = new QHBoxLayout();
+  QHBoxLayout* recommended_options = new QHBoxLayout();
+  QHBoxLayout* advanced_options = new QHBoxLayout();
 
   QLabel* save_and_add = new QLabel("Next, Add Components To Group:", this);
   QFont save_and_add_font(QFont().defaultFamily(), 12, QFont::Bold);
   save_and_add->setFont(save_and_add_font);
-  new_buttons_layout->addWidget(save_and_add);
+  label_layout->addWidget(save_and_add);
 
+  // Recommended options
   QLabel* add_subtitle = new QLabel("Recommended: ", this);
   QFont add_subtitle_font(QFont().defaultFamily(), 10, QFont::Bold);
   add_subtitle->setFont(add_subtitle_font);
-  new_buttons_layout->addWidget(add_subtitle);
+  recommended_options->addWidget(add_subtitle, 0, Qt::AlignLeft);
 
   // Save and add joints
   QPushButton* btn_save_joints = new QPushButton("Add Joints", this);
   btn_save_joints->setMaximumWidth(200);
   connect(btn_save_joints, SIGNAL(clicked()), this, SIGNAL(saveJoints()));
-  new_buttons_layout->addWidget(btn_save_joints);
+  recommended_options->addWidget(btn_save_joints);
 
+  // Advanced options
   QLabel* add_subtitle2 = new QLabel("Advanced Options:", this);
   add_subtitle2->setFont(add_subtitle_font);
-  new_buttons_layout->addWidget(add_subtitle2);
+  advanced_options->addWidget(add_subtitle2, 0, Qt::AlignLeft);
 
   // Save and add links
   QPushButton* btn_save_links = new QPushButton("Add Links", this);
   btn_save_links->setMaximumWidth(200);
   connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
-  new_buttons_layout->addWidget(btn_save_links);
+  advanced_options->addWidget(btn_save_links);
 
   // Save and add chain
   QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
   btn_save_chain->setMaximumWidth(200);
   connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
-  new_buttons_layout->addWidget(btn_save_chain);
+  advanced_options->addWidget(btn_save_chain);
 
   // Save and add subgroups
   QPushButton* btn_save_subgroups = new QPushButton("Add Subgroups", this);
   btn_save_subgroups->setMaximumWidth(200);
   connect(btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL(saveSubgroups()));
-  new_buttons_layout->addWidget(btn_save_subgroups);
+  advanced_options->addWidget(btn_save_subgroups);
+
+  // Add layouts
+  new_buttons_layout_container->addLayout(label_layout);
+  new_buttons_layout_container->addLayout(recommended_options);
+  new_buttons_layout_container->addLayout(advanced_options);
 
   // Create widget and add to main layout
-  new_buttons_widget_->setLayout(new_buttons_layout);
+  new_buttons_widget_->setLayout(new_buttons_layout_container);
   layout->addWidget(new_buttons_widget_);
 
   // Verticle Spacer -----------------------------------------------------
