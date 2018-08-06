@@ -191,10 +191,9 @@ void ControllerEditWidget::setSelected(const std::string& controller_name)
 void ControllerEditWidget::loadControllersTypesComboBox()
 {
   // Only load this combo box once
-  static bool has_loaded = false;
-  if (has_loaded)
+  if (has_loaded_)
     return;
-  has_loaded = true;
+  has_loaded_ = true;
 
   const std::array<std::string, 9> default_types = {
     "effort_controllers/JointTrajectoryController",   "effort_controllers/JointPositionController",
@@ -213,6 +212,51 @@ void ControllerEditWidget::loadControllersTypesComboBox()
   // Loop through all controller default_types and add to combo box
   for (const std::string& type : default_types)
     controller_type_field_->addItem(type.c_str());
+}
+
+void ControllerEditWidget::hideDelete()
+{
+  btn_delete_->hide();
+}
+
+void ControllerEditWidget::hideSave()
+{
+  btn_save_->hide();
+}
+
+void ControllerEditWidget::hideNewButtonsWidget()
+{
+  new_buttons_widget_->hide();
+}
+
+void ControllerEditWidget::showDelete()
+{
+  btn_delete_->show();
+}
+
+void ControllerEditWidget::showSave()
+{
+  btn_save_->show();
+}
+
+void ControllerEditWidget::showNewButtonsWidget()
+{
+  new_buttons_widget_->show();
+}
+
+void ControllerEditWidget::setTitle(const QString& title)
+{
+  title_->setText(title);
+}
+
+std::string ControllerEditWidget::getControllerName()
+{
+  return controller_name_field_->text().trimmed().toStdString();
+}
+
+std::string ControllerEditWidget::getControllerType()
+{
+  return controller_type_field_->currentText().toStdString();
 }
 
 }  // namespace

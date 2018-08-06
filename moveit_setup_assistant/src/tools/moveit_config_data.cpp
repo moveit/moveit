@@ -1280,7 +1280,7 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
-// Helper function for parsing ros_controllers.yaml file
+// Helper function for parsing an individual ROSController from ros_controllers yaml file
 // ******************************************************************************************
 bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 {
@@ -1326,7 +1326,7 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 }
 
 // ******************************************************************************************
-// Helper function for parsing ros_controllers.yaml file
+// Helper function for parsing ROSControllers from ros_controllers yaml file
 // ******************************************************************************************
 bool MoveItConfigData::processROSControllers(const YAML::Node& controllers)
 {

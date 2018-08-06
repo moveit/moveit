@@ -33,8 +33,8 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_H
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_H
 
 #include <QWidget>
 #include <QLabel>
@@ -66,16 +66,32 @@ public:
   /// Populate the combo dropdown box with controllers types
   void loadControllersTypesComboBox();
 
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
+  /// Hide delete controller button
+  void hideDelete();
 
-  QLabel* title_;  // specify the title from the parent widget
-  QLineEdit* controller_name_field_;
-  QComboBox* controller_type_field_;
-  QPushButton* btn_delete_;      // this button is hidden for new controllers
-  QPushButton* btn_save_;        // this button is hidden for new controllers
-  QWidget* new_buttons_widget_;  // for showing/hiding the new controllers buttons
+  /// Hide save controller button
+  void hideSave();
+
+  /// Hide new buttons widget
+  void hideNewButtonsWidget();
+
+  /// Show delete controller button
+  void showDelete();
+
+  /// Show save controller button
+  void showSave();
+
+  /// Show new buttons widget
+  void showNewButtonsWidget();
+
+  /// Set widget title
+  void setTitle(const QString& title);
+
+  /// Get controller name
+  std::string getControllerName();
+
+  /// Get controller type
+  std::string getControllerType();
 
 private Q_SLOTS:
 
@@ -106,9 +122,22 @@ Q_SIGNALS:
 
 private:
   // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+
+  QLabel* title_;  // specify the title from the parent widget
+  QLineEdit* controller_name_field_;
+  QComboBox* controller_type_field_;
+  QPushButton* btn_delete_;      // this button is hidden for new controllers
+  QPushButton* btn_save_;        // this button is hidden for new controllers
+  QWidget* new_buttons_widget_;  // for showing/hiding the new controllers buttons
+
+  // ******************************************************************************************
   // Variables
   // ******************************************************************************************
 
+  // For loading default types combo box just once
+  bool has_loaded_ = false;
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 };

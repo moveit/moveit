@@ -33,8 +33,8 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_H
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_H
 
 // Qt
 #include <QVBoxLayout>
@@ -73,18 +73,6 @@ public:
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-  /// Main table for holding controllers
-  QTreeWidget* controllers_tree_;
-  QWidget* controllers_tree_widget_;
-
-  /// For changing between table and different add/edit views
-  QStackedLayout* stacked_layout_;
-  ControllerEditWidget* controller_edit_widget_;
 
 private Q_SLOTS:
 
@@ -138,6 +126,14 @@ private:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
+
+  /// Main table for holding controllers
+  QTreeWidget* controllers_tree_;
+  QWidget* controllers_tree_widget_;
+
+  /// For changing between table and different add/edit views
+  QStackedLayout* stacked_layout_;
+  ControllerEditWidget* controller_edit_widget_;
 
   QPushButton* btn_delete_;
   QPushButton* btn_add_;

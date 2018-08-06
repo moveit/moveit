@@ -320,7 +320,6 @@ public:
    * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
    * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
    * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
-   * @return void
    */
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
                                        std::vector<ROSControlConfig>& ros_controllers_config_output);
@@ -329,7 +328,6 @@ public:
    * Helper function for writting Joint State ROS controllers to ros_controller.yaml
    * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
    * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
-   * @return void
    */
   void outputJointStateControlYAML(YAML::Emitter& emitter,
                                    std::vector<ROSControlConfig>& ros_controllers_config_output);
@@ -361,61 +359,61 @@ public:
   /**
    * Input ompl_planning.yaml file for editing its values
    * @param file_path path to ompl_planning.yaml in the input package
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputOMPLYAML(const std::string& file_path);
 
   /**
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputKinematicsYAML(const std::string& file_path);
 
   /**
    * Helper function for parsing ros_controllers.yaml file
-   * @param YAML::Node - controllers to be parsed
-   * @return bool if the file was read correctly
+   * @param YAML::Node - individual controller to be parsed
+   * @return true if the file was read correctly
    */
   bool parseROSController(const YAML::Node& controller);
 
   /**
    * Helper function for parsing ros_controllers.yaml file
    * @param YAML::Node - controllers to be parsed
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool processROSControllers(const YAML::Node& controllers);
 
   /**
    * Input ros_controllers.yaml file for editing its values
    * @param file_path path to ros_controllers.yaml in the input package
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputROSControllersYAML(const std::string& file_path);
 
   /**
    * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
-   * \return bool if controllers were added to the ros_controllers_config_ data structure
+   * \return true if controllers were added to the ros_controllers_config_ data structure
    */
   bool addDefaultControllers();
 
   /**
    * \brief Add a Joint State Controller for each Planning Group
-   * \return bool if controllers were added to the ros_controllers_config_ data structure
+   * \return true if controllers were added to the ros_controllers_config_ data structure
    */
   bool addJointStateControllers();
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
    * @param pkg_path path to package or package name
-   * @return bool if the path was set
+   * @return true if the path was set
    */
   bool setPackagePath(const std::string& pkg_path);
 
   /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
-   * @return bool if the path could be resolved
+   * @return true if the path could be resolved
    */
   bool getSetupAssistantYAMLPath(std::string& path);
 
@@ -429,7 +427,7 @@ public:
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
    *
    * @param file_path path to .setup_assistant file
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputSetupAssistantYAML(const std::string& file_path);
 
@@ -438,7 +436,7 @@ public:
    *
    * @param default_file_path path to sensors_3d yaml file which contains default parameter values
    * @param file_path path to sensors_3d yaml file in the config package
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path = "");
 

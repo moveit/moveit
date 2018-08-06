@@ -64,8 +64,7 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assista
 
   // Top Header Area ------------------------------------------------
   moveit_setup_assistant::HeaderWidget* header = new moveit_setup_assistant::HeaderWidget(
-      "Controllers settings", "Configuring MoveIt! with the controllers on your robot. Configure MoveIt! "
-                              "to use ros_control. ",
+      "Controllers settings", "Configure MoveIt! to work with ROS Control to control the robot's physical hardware",
       this);
   layout->addWidget(header);
 
@@ -128,7 +127,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
 
   // Add default controller
   QPushButton* btn_add_default =
-      new QPushButton("&Auto Add FollowJointsTrajectory \n Controllers For Each Planning Group", this);
+      new QPushButton("Auto Add &FollowJointsTrajectory \n Controllers For Each Planning Group", this);
   btn_add_default->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add_default->setMaximumWidth(600);
   connect(btn_add_default, SIGNAL(clicked()), this, SLOT(addDefaultControllers()));
@@ -137,7 +136,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
 
   // Add joint state controllers
   QPushButton* btn_add_joint_state_control =
-      new QPushButton("&Auto Add JointState \n Controllers For Each Planning Group", this);
+      new QPushButton("Auto Add &JointState \n Controllers For Each Planning Group", this);
   btn_add_joint_state_control->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add_joint_state_control->setMaximumWidth(600);
   connect(btn_add_joint_state_control, SIGNAL(clicked()), this, SLOT(addJointStateControllers()));
@@ -442,19 +441,19 @@ void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::ROSContr
   if (this_controller == NULL)  // this is a new screen
   {
     current_edit_controller_.clear();  // provide a blank controller name
-    controller_edit_widget_->title_->setText("Create New Controller");
-    controller_edit_widget_->btn_delete_->hide();
-    controller_edit_widget_->new_buttons_widget_->show();  // helps user choose next step
-    controller_edit_widget_->btn_save_->hide();            // this is only for edit mode
+    controller_edit_widget_->setTitle("Create New Controller");
+    controller_edit_widget_->hideDelete();
+    controller_edit_widget_->showNewButtonsWidget();  // helps user choose next step
+    controller_edit_widget_->showSave();              // this is only for edit mode
   }
   else  // load the controller name into the widget
   {
     current_edit_controller_ = this_controller->name_;
-    controller_edit_widget_->title_->setText(
+    controller_edit_widget_->setTitle(
         QString("Edit Controller '").append(current_edit_controller_.c_str()).append("'"));
-    controller_edit_widget_->btn_delete_->show();
-    controller_edit_widget_->new_buttons_widget_->hide();  // not necessary for existing controllers
-    controller_edit_widget_->btn_save_->show();            // this is only for edit mode
+    controller_edit_widget_->showDelete();
+    controller_edit_widget_->hideNewButtonsWidget();  // not necessary for existing controllers
+    controller_edit_widget_->showSave();              // this is only for edit mode
   }
 
   // Set the data in the edit box
@@ -671,8 +670,8 @@ void ROSControllersWidget::saveControllerScreenEdit()
 bool ROSControllersWidget::saveControllerScreen()
 {
   // Get a reference to the supplied strings
-  const std::string& controller_name = controller_edit_widget_->controller_name_field_->text().trimmed().toStdString();
-  const std::string& controller_type = controller_edit_widget_->controller_type_field_->currentText().toStdString();
+  const std::string& controller_name = controller_edit_widget_->getControllerName();
+  const std::string& controller_type = controller_edit_widget_->getControllerType();
 
   // Used for editing existing controllers
   moveit_setup_assistant::ROSControlConfig* searched_controller = NULL;
