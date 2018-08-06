@@ -721,57 +721,6 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
 }
 
 // ******************************************************************************************
-// Helper function to write the Joint State Controllers to ros_controller.yaml.
-// ******************************************************************************************
-void MoveItConfigData::outputJointStateControlYAML(YAML::Emitter& emitter,
-                                                   std::vector<ROSControlConfig>& ros_controllers_config_output)
-{
-  for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_config_output.begin();
-       controller_it != ros_controllers_config_output.end();)
-  {
-    // Depending on the controller type, fill the required data
-    if (controller_it->type_ == "joint_state_controller/JointStateController")
-    {
-      emitter << YAML::Key << controller_it->name_;
-      emitter << YAML::Value << YAML::BeginMap;
-      emitter << YAML::Key << "type";
-      emitter << YAML::Value << "joint_state_controller/JointStateController";
-      emitter << YAML::Key << "publish_rate";
-      emitter << YAML::Value << "50";
-
-      // Write joints
-      emitter << YAML::Key << "joints";
-      {
-        if (controller_it->joints_.size() != 1)
-        {
-          emitter << YAML::Value << YAML::BeginSeq;
-
-          // Iterate through the joints
-          for (std::vector<std::string>::iterator joint_it = controller_it->joints_.begin();
-               joint_it != controller_it->joints_.end(); ++joint_it)
-          {
-            emitter << *joint_it;
-          }
-          emitter << YAML::EndSeq;
-        }
-        else
-        {
-          emitter << YAML::Value << YAML::BeginMap;
-          emitter << controller_it->joints_[0];
-          emitter << YAML::EndMap;
-        }
-      }
-      ros_controllers_config_output.erase(controller_it);
-      emitter << YAML::EndMap;
-    }
-    else
-    {
-      controller_it++;
-    }
-  }
-}
-
-// ******************************************************************************************
 // Output controllers config files
 // ******************************************************************************************
 bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
@@ -885,9 +834,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 
     // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
     outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
-
-    // Writes Joint State ROS controllers to ros_controller.yaml
-    outputJointStateControlYAML(emitter, ros_controllers_config_output);
 
     {
       for (std::vector<ROSControlConfig>::const_iterator controller_it = ros_controllers_config_output.begin();
@@ -1440,39 +1386,6 @@ bool MoveItConfigData::addDefaultControllers()
     {
       group_controller.name_ = group_it->name_ + "_controller";
       group_controller.type_ = "FollowJointTrajectory";
-      addROSController(group_controller);
-    }
-  }
-  return true;
-}
-
-// ******************************************************************************************
-// Add a Joint State Controller for each Planning Group
-// ******************************************************************************************
-bool MoveItConfigData::addJointStateControllers()
-{
-  if (srdf_->srdf_model_->getGroups().size() == 0)
-    return false;
-  // Loop through groups
-  for (std::vector<srdf::Model::Group>::const_iterator group_it = srdf_->srdf_model_->getGroups().begin();
-       group_it != srdf_->srdf_model_->getGroups().end(); ++group_it)
-  {
-    ROSControlConfig group_controller;
-    // Get list of associated joints
-    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
-    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
-
-    // Iterate through the joints
-    for (const robot_model::JointModel* joint : joint_models)
-    {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
-        continue;
-      group_controller.joints_.push_back(joint->getName());
-    }
-    if (!group_controller.joints_.empty())
-    {
-      group_controller.name_ = group_it->name_ + "_controller";
-      group_controller.type_ = "joint_state_controller/JointStateController";
       addROSController(group_controller);
     }
   }

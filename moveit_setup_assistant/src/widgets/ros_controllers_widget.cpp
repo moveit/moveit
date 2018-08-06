@@ -132,16 +132,7 @@ QWidget* ROSControllersWidget::createContentsWidget()
   btn_add_default->setMaximumWidth(600);
   connect(btn_add_default, SIGNAL(clicked()), this, SLOT(addDefaultControllers()));
   upper_controls_layout->addWidget(btn_add_default);
-  upper_controls_layout->setAlignment(btn_add_default, Qt::AlignRight);
-
-  // Add joint state controllers
-  QPushButton* btn_add_joint_state_control =
-      new QPushButton("Auto Add &JointState \n Controllers For Each Planning Group", this);
-  btn_add_joint_state_control->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  btn_add_joint_state_control->setMaximumWidth(600);
-  connect(btn_add_joint_state_control, SIGNAL(clicked()), this, SLOT(addJointStateControllers()));
-  upper_controls_layout->addWidget(btn_add_joint_state_control);
-  upper_controls_layout->setAlignment(btn_add_joint_state_control, Qt::AlignLeft);
+  upper_controls_layout->setAlignment(btn_add_default, Qt::AlignLeft);
 
   // Add Controls to layout
   layout->addLayout(upper_controls_layout);
@@ -416,16 +407,6 @@ void ROSControllersWidget::addController()
 void ROSControllersWidget::addDefaultControllers()
 {
   if (!config_data_->addDefaultControllers())
-    QMessageBox::warning(this, "Error adding contollers", "No Planning Groups configured!");
-  loadControllersTree();
-}
-
-// ******************************************************************************************
-// Add a Joint State Controllers for each Planning Group
-// ******************************************************************************************
-void ROSControllersWidget::addJointStateControllers()
-{
-  if (!config_data_->addJointStateControllers())
     QMessageBox::warning(this, "Error adding contollers", "No Planning Groups configured!");
   loadControllersTree();
 }

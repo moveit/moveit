@@ -324,14 +324,6 @@ public:
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
                                        std::vector<ROSControlConfig>& ros_controllers_config_output);
 
-  /**
-   * Helper function for writting Joint State ROS controllers to ros_controller.yaml
-   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
-   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
-   */
-  void outputJointStateControlYAML(YAML::Emitter& emitter,
-                                   std::vector<ROSControlConfig>& ros_controllers_config_output);
-
   bool outputROSControllersYAML(const std::string& file_path);
   bool output3DSensorPluginYAML(const std::string& file_path);
 
@@ -396,12 +388,6 @@ public:
    * \return true if controllers were added to the ros_controllers_config_ data structure
    */
   bool addDefaultControllers();
-
-  /**
-   * \brief Add a Joint State Controller for each Planning Group
-   * \return true if controllers were added to the ros_controllers_config_ data structure
-   */
-  bool addJointStateControllers();
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist

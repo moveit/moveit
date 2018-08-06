@@ -95,9 +95,6 @@ private Q_SLOTS:
   // Add a Follow Joint Trajectory action Controller for each Planning Group
   void addDefaultControllers();
 
-  // Add a Joint State Controllers for each Planning Group
-  void addJointStateControllers();
-
   /// Call when screen is done being edited
   void saveControllerScreenJoints();
   void saveJointsScreen();
