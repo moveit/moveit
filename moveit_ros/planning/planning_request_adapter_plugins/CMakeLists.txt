@@ -17,19 +17,15 @@ find_package(catkin REQUIRED COMPONENTS
         moveit_msgs
         pluginlib
         chomp_motion_planner
-        moveit_experimental
         )
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 
-
-include_directories(../../../moveit_planners
-        ../../../moveit_planners/chomp/chomp_motion_planner/include/chomp_motion_planner
+include_directories(
         ../../../moveit_planners/chomp/chomp_motion_planner/include/
-        ../../../moveit_planners/chomp/chomp_motion_planner/
-        ../../../moveit_experimental/collision_distance_field/include/moveit/collision_distance_field
-        ../../../moveit_experimental/collision_distance_field/include/
-        ../../../moveit_experimental/collision_distance_field/)
+        ../../../moveit_experimental/collision_distance_field/include/)
+
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})

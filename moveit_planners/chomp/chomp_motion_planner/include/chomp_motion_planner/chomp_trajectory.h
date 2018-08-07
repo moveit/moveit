@@ -133,11 +133,11 @@ public:
   void fillInCubicInterpolation();
 
   /**
-   * \brief receives the path obtained from a given MotionPlanDetailedResponse res object's trajectory (e.g., trajectory
+   * \brief Receives the path obtained from a given MotionPlanDetailedResponse res object's trajectory (e.g., trajectory
    * produced by OMPL) and puts it into the appropriate trajectory format required for CHOMP
    * @param res
    */
-  void fillInFromTrajectory(moveit_msgs::MotionPlanDetailedResponse& res);
+  bool fillInFromTrajectory(moveit_msgs::MotionPlanDetailedResponse& res);
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
    *

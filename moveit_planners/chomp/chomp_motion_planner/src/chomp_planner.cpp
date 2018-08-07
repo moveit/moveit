@@ -147,11 +147,18 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
   else if (params.trajectory_initialization_method_.compare("OMPL") == 0)
-    trajectory.fillInFromTrajectory(res);
+  {
+    if (!(trajectory.fillInFromTrajectory(res)))
+    {
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, trajectory must contain "
+                                              "atleast start and goal state");
+      return false;
+    }
+  }
   else
     ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
 
-  ROS_INFO("CHOMP trajectory initialized using method: %s ", (params.trajectory_initialization_method_).c_str());
+  ROS_INFO_NAMED("CHOMP trajectory initialized using method: %s ", (params.trajectory_initialization_method_).c_str());
 
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());

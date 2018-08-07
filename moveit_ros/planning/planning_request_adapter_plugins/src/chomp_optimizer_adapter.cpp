@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2018, Raghavender Sahdev.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Raghavender Sahdev nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -62,11 +62,6 @@ namespace default_planner_request_adapters
 class CHOMPOptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  ChompPlanner chomp_interface_;
-  moveit::core::RobotModelConstPtr robot_model_;
-
-  chomp::ChompParameters params_;
-  boost::shared_ptr<tf::TransformListener> tf_;
   CHOMPOptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam("planning_time_limit", params_.planning_time_limit_))
@@ -166,7 +161,7 @@ public:
 
   virtual std::string getDescription() const
   {
-    return "CHOMP Optimizer !!!!";
+    return "CHOMP Optimizer";
   }
 
   virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -183,47 +178,42 @@ public:
         collision_detection::CollisionDetectorAllocatorHybrid::create());
 
     ROS_INFO_STREAM("Configuring Planning Scene for CHOMP ....");
-    planning_scene->setActiveCollisionDetector_ConstVersion(hybrid_cd, true);
+    planning_scene->setActiveCollisionDetectorConst(hybrid_cd, true);
 
     chomp::ChompPlanner chompPlanner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
-    moveit_msgs::MotionPlanDetailedResponse res2;
+    moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
     moveit_msgs::MotionPlanRequest req_moveit_msgs;
 
     // populate the trajectory to pass to CHOMPPlanner::solve() method. Obtain trajectory from OMPL's
     // planning_interface::MotionPlanResponse object and put / populate it in the
     // moveit_msgs::MotionPlanDetailedResponse object
-    moveit_msgs::RobotTrajectory trajectory_msgs2;
-    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs2);
-    res2.trajectory.resize(1);
-    res2.trajectory[0] = trajectory_msgs2;
+    moveit_msgs::RobotTrajectory trajectory_msgs_from_response;
+    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs_from_response);
+    res_detailed_moveit_msgs.trajectory.resize(1);
+    res_detailed_moveit_msgs.trajectory[0] = trajectory_msgs_from_response;
 
-    bool planning_success;
+    bool planning_success = chompPlanner.solve(planning_scene, req, params_, res_detailed_moveit_msgs);
 
-    bool temp = chompPlanner.solve(planning_scene, req, params_, res2);
-
-    if (temp)
+    if (planning_success)
     {
       res_detailed.trajectory_.resize(1);
       res_detailed.trajectory_[0] = robot_trajectory::RobotTrajectoryPtr(
           new robot_trajectory::RobotTrajectory(planning_scene->getRobotModel(), "panda_arm"));
 
       moveit::core::RobotState start_state(planning_scene->getRobotModel());
-      robot_state::robotStateMsgToRobotState(res2.trajectory_start, start_state);
-      res_detailed.trajectory_[0]->setRobotTrajectoryMsg(start_state, res2.trajectory[0]);
+      robot_state::robotStateMsgToRobotState(res_detailed_moveit_msgs.trajectory_start, start_state);
+      res_detailed.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_detailed_moveit_msgs.trajectory[0]);
       res_detailed.description_.push_back("plan");
-      res_detailed.processing_time_ = res2.processing_time;
-      res_detailed.error_code_ = res2.error_code;
-      planning_success = true;
+      res_detailed.processing_time_ = res_detailed_moveit_msgs.processing_time;
+      res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
     }
     else
-    {
-      res_detailed.error_code_ = res2.error_code;
-      planning_success = false;
-    }
+      res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
 
     res.error_code_ = res_detailed.error_code_;
 
+    // populate the original response object 'res' with the CHOMP's optimized trajectory
     if (planning_success)
     {
       res.trajectory_ = res_detailed.trajectory_[0];
@@ -235,6 +225,7 @@ public:
 
 private:
   ros::NodeHandle nh_;
+  chomp::ChompParameters params_;
 };
 }
 
