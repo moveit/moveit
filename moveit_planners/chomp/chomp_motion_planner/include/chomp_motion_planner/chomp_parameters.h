@@ -48,11 +48,12 @@ public:
   virtual ~ChompParameters();
 
   /**
-   * function which returns the non constant version of the ChompParameters
    * @param params equates the returned chomp parameters to this argument
-   * @return returns the non constant version of ChompParameters
+   * @return the non constant version of ChompParameters
    */
-  ChompParameters getNonConstantParams(ChompParameters params);
+  ChompParameters getNonConstParams(ChompParameters params);
+
+  void setCriticalParams(double learning_rate, double ridge_factor, int planning_time_limit, int max_iterations);
 
 public:
   double planning_time_limit_;  /// maximum time the optimizer can take to find a solution before terminating
