@@ -248,7 +248,7 @@ public:
 
   /** \brief Add a new collision detector type.
    *
-   * this is the constant version of the function addCollisionDetector(), it is added here for changing the collision
+   * This is the constant version of the function addCollisionDetector(), it is added here for changing the collision
    * checker for a constant planning scene whenever required, e.g., for some planners like CHOMP
    */
   const void addCollisionDetectorConst(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const;
