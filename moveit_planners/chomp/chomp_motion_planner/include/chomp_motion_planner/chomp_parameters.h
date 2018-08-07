@@ -53,6 +53,14 @@ public:
    */
   ChompParameters getNonConstParams(ChompParameters params);
 
+  /**
+   * sets the recovery parameters which can be changed in case CHOMP is not able to find a solution with the parameters
+   * set from the chomp_planning.yaml file
+   * @param learning_rate
+   * @param ridge_factor
+   * @param planning_time_limit
+   * @param max_iterations
+   */
   void setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit, int max_iterations);
 
 public:
