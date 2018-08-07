@@ -53,7 +53,7 @@ public:
    */
   ChompParameters getNonConstParams(ChompParameters params);
 
-  void setCriticalParams(double learning_rate, double ridge_factor, int planning_time_limit, int max_iterations);
+  void setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit, int max_iterations);
 
 public:
   double planning_time_limit_;  /// maximum time the optimizer can take to find a solution before terminating

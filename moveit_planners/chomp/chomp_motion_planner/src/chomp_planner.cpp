@@ -179,10 +179,12 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     {
       // increase learning rate in hope to find a successful path; increase ridge factor to avoid obstacles; add 5
       // additional secs in hope to find a solution; increase maximum iterations
-      params_nonconst.setCriticalParams(params_nonconst.learning_rate_ + 0.02, params_nonconst.ridge_factor_ + 0.002,
+      params_nonconst.setRecoveryParams(params_nonconst.learning_rate_ + 0.02, params_nonconst.ridge_factor_ + 0.002,
                                         params_nonconst.planning_time_limit_ + 5, params_nonconst.max_iterations_ + 50);
     }
 
+    // initialize a ChompOptimizer object to load up the optimizer with default parameters or with updated parameters in
+    // case of a recovery behaviour
     optimizer = new ChompOptimizer(&trajectory, planning_scene, req.group_name, &params_nonconst, start_state);
     if (!optimizer->isInitialized())
     {
@@ -210,6 +212,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       {
         replan_count++;
         replan_flag = true;
+        // delete ChompOptimizer object 'optimizer' to prevent a possible memory leak
+        delete optimizer;
       }
       else
       {
@@ -221,7 +225,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   // resetting the CHOMP Parameters to the original values after a successful plan
-  params_nonconst.setCriticalParams(org_learning_rate, org_ridge_factor, org_planning_time_limit, org_max_iterations);
+  params_nonconst.setRecoveryParams(org_learning_rate, org_ridge_factor, org_planning_time_limit, org_max_iterations);
 
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",
                   (ros::WallTime::now() - create_time).toSec());

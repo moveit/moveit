@@ -80,7 +80,7 @@ ChompParameters ChompParameters::getNonConstParams(ChompParameters params)
   non_const = params;
   return non_const;
 }
-void ChompParameters::setCriticalParams(double learning_rate, double ridge_factor, int planning_time_limit,
+void ChompParameters::setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit,
                                         int max_iterations)
 {
   this->learning_rate_ = learning_rate;
