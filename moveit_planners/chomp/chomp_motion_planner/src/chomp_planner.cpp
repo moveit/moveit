@@ -222,7 +222,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     }
     else
       break;
-  }
+  }  // end of while loop
 
   // resetting the CHOMP Parameters to the original values after a successful plan
   params_nonconst.setRecoveryParams(org_learning_rate, org_ridge_factor, org_planning_time_limit, org_max_iterations);
