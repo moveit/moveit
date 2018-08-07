@@ -405,7 +405,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
 
   if (!urdf_model || !srdf)
   {
-    ROS_ERROR_NAMED("kdl", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
+    ROS_ERROR_NAMED(name_, "URDF and SRDF must be loaded for KDL kinematics solver to work.");
     return false;
   }
 
@@ -419,20 +419,22 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   // TODO: Check for non-fixed joints between the ikfast tip and base frames and the group tip
   //       and base frames. If any are found, we should throw an error and return.
   if (tip_frame_ != ikfast_tip_frame_)
-    ROS_DEBUG_NAMED("ikfast", "This IKFastKinematicsPlugin was generated with a tip frame of %s, but is being "
-                              "initialized with tip frame %s",
-                    ikfast_tip_frame_.c_str(), tip_frame_.c_str());
+    ROS_INFO_NAMED(name_, "This IKFastKinematicsPlugin was generated with a tip frame of %s, but is being "
+                          "initialized with tip frame %s. There must not be any active joints between these "
+                          "links",
+                   ikfast_tip_frame_.c_str(), tip_frame_.c_str());
 
   if (base_frame_ != ikfast_base_frame_)
-    ROS_DEBUG_NAMED("ikfast", "This IKFastKinematicsPlugin was generated with a base frame of %s, but is being "
-                              "initialized with base frame %s",
-                    ikfast_base_frame_.c_str(), base_name.c_str());
+    ROS_INFO_NAMED(name_, "This IKFastKinematicsPlugin was generated with a base frame of %s, but is being "
+                          "initialized with base frame %s. There must not be any active joints between these "
+                          "links",
+                   ikfast_base_frame_.c_str(), base_name.c_str());
 
   if (transform_base_)
   {
     if (!robot_state_->knowsFrameTransform(base_frame_) || !robot_state_->knowsFrameTransform(ikfast_base_frame_))
     {
-      ROS_ERROR_NAMED("ikfast", "could not find base frame");
+      ROS_ERROR_NAMED(name_, "could not find base frame");
       return false;
     }
     else
@@ -446,7 +448,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   {
     if (!robot_state_->knowsFrameTransform(tip_frame_) || !robot_state_->knowsFrameTransform(ikfast_tip_frame_))
     {
-      ROS_ERROR_NAMED("ikfast", "could not find tip frame");
+      ROS_ERROR_NAMED(name_, "could not find tip frame");
       return false;
     }
     else
