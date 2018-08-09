@@ -146,7 +146,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     trajectory.fillInLinearInterpolation();
   else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
-  else if (params.trajectory_initialization_method_.compare("OMPL") == 0)
+  else if (params.trajectory_initialization_method_.compare("fillTrajectory") == 0)
   {
     if (!(trajectory.fillInFromTrajectory(res)))
     {

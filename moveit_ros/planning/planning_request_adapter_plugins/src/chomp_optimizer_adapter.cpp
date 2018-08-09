@@ -153,7 +153,7 @@ public:
     }
     if (!nh_.getParam("trajectory_initialization_method", params_.use_stochastic_descent_))
     {
-      params_.trajectory_initialization_method_ = std::string("OMPL");
+      params_.trajectory_initialization_method_ = std::string("fillTrajectory");
       ROS_INFO_STREAM("Param trajectory_initialization_method was not set. Using New value as: "
                       << params_.trajectory_initialization_method_);
     }
