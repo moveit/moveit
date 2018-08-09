@@ -59,6 +59,7 @@
 #include "virtual_joints_widget.h"
 #include "passive_joints_widget.h"
 #include "author_information_widget.h"
+#include "simulation_widget.h"
 #include "configuration_files_widget.h"
 #include "perception_widget.h"
 
@@ -223,6 +224,7 @@ private:
   PassiveJointsWidget* passive_joints_widget_;
   AuthorInformationWidget* author_information_widget_;
   ConfigurationFilesWidget* configuration_files_widget_;
+  SimulationWidget* simulation_widget_;
   PerceptionWidget* perception_widget_;
 
   /// Contains all the configuration data for the setup assistant

@@ -567,22 +567,21 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
 {
   const std::vector<std::string> xacro_args_ = { xacro_args };
 
-  std::string urdf_string;
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(urdf_string, urdf_file_path, xacro_args_))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, xacro_args_))
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
     return false;
   }
 
-  if (urdf_string.empty() && rdf_loader::RDFLoader::isXacroFile(urdf_file_path))
+  if (config_data_->urdf_string_.empty() && rdf_loader::RDFLoader::isXacroFile(urdf_file_path))
   {
     QMessageBox::warning(this, "Error Loading Files", "Running xacro failed.\nPlease check console for errors.");
     return false;
   }
 
   // Verify that file is in correct format / not an XACRO by loading into robot model
-  if (!config_data_->urdf_model_->initString(urdf_string))
+  if (!config_data_->urdf_model_->initString(config_data_->urdf_string_))
   {
     QMessageBox::warning(this, "Error Loading Files", "URDF/COLLADA file is not a valid robot model.");
     return false;
@@ -604,7 +603,7 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
 
   ROS_INFO("Setting Param Server with Robot Description");
   // ROS_WARN("Ignore the following error message 'Failed to contact master'. This is a known issue.");
-  nh.setParam("/robot_description", urdf_string);
+  nh.setParam("/robot_description", config_data_->urdf_string_);
 
   return true;
 }
