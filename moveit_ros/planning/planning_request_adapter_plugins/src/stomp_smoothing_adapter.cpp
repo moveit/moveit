@@ -44,7 +44,9 @@
 #include <ros/node_handle.h>
 #include <stomp_moveit/stomp_planner.h>
 #include <stomp_core/stomp.h>
-//#include <stomp_core/utils.h>
+
+#include <XmlRpc.h>
+// #include <stomp_core/utils.h>
 
 using namespace stomp_moveit;
 
@@ -53,12 +55,12 @@ namespace default_planner_request_adapters
 class StompSmoothingAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 private:
-    ros::NodeHandle nh_;
+  ros::NodeHandle nh_;
 
 public:
   std::map<std::string, planning_interface::PlanningContextPtr> planners_; /**< The planners for each planning group */
   planning_interface::PlannerConfigurationMap pcs;
-   moveit_msgs::MoveItErrorCodes error_code;
+  moveit_msgs::MoveItErrorCodes error_code;
 
   StompSmoothingAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
@@ -74,56 +76,108 @@ public:
                             planning_interface::MotionPlanResponse& res,
                             std::vector<std::size_t>& added_path_index) const
   {
-    //const moveit::core::RobotModelPtr robot_model_ = planning_scene->getRobotModel();
-    //std::shared_ptr<StompPlanner> planner2 = std::static_pointer_cast<StompPlanner>(planners_.at(req.group_name));
+    // const moveit::core::RobotModelPtr robot_model_ = planning_scene->getRobotModel();
+    // std::shared_ptr<StompPlanner> planner2 = std::static_pointer_cast<StompPlanner>(planners_.at(req.group_name));
 
-    stomp_core::StompConfiguration stomp_config;
+    moveit::core::RobotModelConstPtr model = planning_scene->getRobotModel();
+
+    //////// 2232  Currently this section is not getting used
+    stomp_core::StompConfiguration stomp_config2;
 
     using namespace XmlRpc;
     // Set default values for optional config parameters
-    stomp_config.control_cost_weight = 0.0;
-    stomp_config.initialization_method = 1;  // LINEAR_INTERPOLATION
-    stomp_config.num_timesteps = 40;
-    stomp_config.delta_t = 1.0;
-    stomp_config.num_iterations = 50;
-    stomp_config.num_iterations_after_valid = 0;
-    stomp_config.max_rollouts = 100;
-    stomp_config.num_rollouts = 10;
-    stomp_config.exponentiated_cost_sensitivity = 10.0;
+    stomp_config2.control_cost_weight = 0.0;
+    stomp_config2.initialization_method = 1;  // LINEAR_INTERPOLATION
+    stomp_config2.num_timesteps = 40;
+    stomp_config2.delta_t = 1.0;
+    stomp_config2.num_iterations = 50;
+    stomp_config2.num_iterations_after_valid = 0;
+    stomp_config2.max_rollouts = 100;
+    stomp_config2.num_rollouts = 10;
+    stomp_config2.exponentiated_cost_sensitivity = 10.0;
 
-    moveit::core::RobotModelConstPtr model = planning_scene->getRobotModel();
     std::string group = "panda_arm";
-    //XmlRpc::XmlRpcValue config; // most likely just for Xml parsing to store in stomp_config not actually used
-
-
+    // XmlRpc::XmlRpcValue config; // most likely just for Xml parsing to store in stomp_config not actually used
 
     // each element under 'stomp' should be a group name
-   // std::map<std::string, XmlRpc::XmlRpcValue> group_config;
+    // std::map<std::string, XmlRpc::XmlRpcValue> group_config;
 
-    /*if (!StompPlanner::getConfigData(nh_, group_config))
+    /*
+    if (!StompPlanner::getConfigData(nh_, group_config, "stomp"))
     {
       std::cout << " STOMP getConfigData()" << std::endl;
       //return false;
     }*/
 
+    //////// end of 2232
 
+    /////// getConfigData() 1234567
 
+    std::map<std::string, XmlRpc::XmlRpcValue> config;
+
+    std::string param = "stomp";
+    // Create a stomp planner for each group
+    XmlRpc::XmlRpcValue stomp_config;
+    std::cout << " I AM JUST BEFORE NH.GETPARAM() " << std::endl;
+    std::cout << nh_.getParam(param, stomp_config) << "decision " << std::endl;
+    if (!nh_.getParam(param, stomp_config))
+    {
+      ROS_ERROR("The 'stomp' configuration parameter was not found");
+      // return false;
+    }
+
+    std::cout << "JUST AFTER GETPARAM() " << std::endl;
+
+    // each element under 'stomp' should be a group name
+    std::string group_name;
+    try
+    {
+      // std::cout << stomp_config.begin()->first << " stomp_config begin" << std::endl;
+      // std::cout << stomp_config.begin()->second << " stomp_config begin sec" << std::endl;
+
+      for (XmlRpc::XmlRpcValue::iterator v = stomp_config.begin(); v != stomp_config.end(); v++)
+      {
+        std::cout << v->first << " stomp_config begin" << std::endl;
+        std::cout << v->second << " stomp_config begin sec" << std::endl;
+
+        group_name = static_cast<std::string>(v->second["group_name"]);
+        config.insert(std::make_pair(group_name, v->second));
+        std::cout << v->second << " #$@$#@ " << std::endl;
+      }
+      // return true;
+    }
+    catch (XmlRpc::XmlRpcException& e)
+    {
+      ROS_ERROR("Unable to parse ROS parameter:\n ");
+      // ROS_ERROR("Unable to parse ROS parameter:\n %s", stomp_config.toXml().c_str());
+      // return false;
+    }
+
+    /// end of 1234567
+
+    /// TODO initialize StompPlanner and call the solve method to compute the trajectory inside the
+    /// MotionPlanDetailedResponse
+    stomp_moveit::StompPlanner planner1(group, stomp_config, model);
+
+    /*
       ros::NodeHandle nh2_ = nh_;
       std::map<std::string, XmlRpc::XmlRpcValue> group_config;
 
+    std::cout << "I am in STOMP PLanning adapter" << std::endl;
       if (!StompPlanner::getConfigData(nh2_, group_config))
       {
           return false;
       }
 
-      //std::map<std::string, planning_interface::PlanningContextPtr> planners_; /**< The planners for each planning group */
+      //std::map<std::string, planning_interface::PlanningContextPtr> planners_; < The planners for each planning group
 
 
-
-      for (std::map<std::string, XmlRpc::XmlRpcValue>::iterator v = group_config.begin(); v != group_config.end(); v++) {
+      for (std::map<std::string, XmlRpc::XmlRpcValue>::iterator v = group_config.begin(); v != group_config.end(); v++)
+    {
           if (!model->hasJointModelGroup(v->first)) {
               ROS_WARN(
-                      "The robot model does not support the planning group '%s' in the STOMP configuration, skipping STOMP "
+                      "The robot model does not support the planning group '%s' in the STOMP configuration, skipping
+    STOMP "
                               "setup for this group",
                       v->first.c_str());
               continue;
@@ -135,17 +189,10 @@ public:
           //std::shared_ptr <StompPlanner> planner2(new StompPlanner(v->first, v->second, model));
           //planners_.insert(std::make_pair(v->first, planner2));
       }
-
-      //std::cout << group
+*/
+    // std::cout << group
     /// TODO call correct group_config XmlRpc
-   //stomp_moveit::StompPlanner planner1("panda_arm", group_config, model);
-
-
-
-
-
-
-
+    // stomp_moveit::StompPlanner planner1("panda_arm", group_config, model);
 
     // TODO LATER THIS WEEK
 
@@ -159,12 +206,11 @@ public:
 
     planning_interface::MotionPlanDetailedResponse detailed_res;
 
-
     using namespace stomp_core;
 
-    //planning_interface::MotionPlanDetailedResponse res2;
-    //robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
-    //std::string ns = "/move_group";
+    // planning_interface::MotionPlanDetailedResponse res2;
+    // robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
+    // std::string ns = "/move_group";
 
     /* StompPlannerManager manager;
      manager.initialize(robot_model, ns);
@@ -186,8 +232,6 @@ public:
  */
     return planner(planning_scene, req, res);
   }
-
-
 };
 }
 

@@ -119,6 +119,7 @@ void StompPlanner::setup()
     setPlanningScene(planning_scene::PlanningSceneConstPtr(new planning_scene::PlanningScene(robot_model_)));
   }
 
+  std::cout << " Loading STOMP Parameters....!!!" << std::endl;
   // loading parameters
   try
   {
@@ -708,11 +709,14 @@ bool StompPlanner::getConfigData(ros::NodeHandle& nh, std::map<std::string, XmlR
 {
   // Create a stomp planner for each group
   XmlRpc::XmlRpcValue stomp_config;
+  std::cout << " I AM JUST BEFORE NH.GETPARAM() " << std::endl;
   if (!nh.getParam(param, stomp_config))
   {
     ROS_ERROR("The 'stomp' configuration parameter was not found");
     return false;
   }
+
+  std::cout << "JUST AFTER GETPARAM() " << std::endl;
 
   // each element under 'stomp' should be a group name
   std::string group_name;
@@ -720,6 +724,9 @@ bool StompPlanner::getConfigData(ros::NodeHandle& nh, std::map<std::string, XmlR
   {
     for (XmlRpc::XmlRpcValue::iterator v = stomp_config.begin(); v != stomp_config.end(); v++)
     {
+      std::cout << v->first << " stomp_config begin" << std::endl;
+      std::cout << v->second << " stomp_config begin sec" << std::endl;
+
       group_name = static_cast<std::string>(v->second["group_name"]);
       config.insert(std::make_pair(group_name, v->second));
     }
