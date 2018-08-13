@@ -33,15 +33,13 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PERCEPTION_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PERCEPTION_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
 
 // Qt
-#include <QWidget>
-#include <QComboBox>
-#include <QGroupBox>
+#include <QScrollArea>
+#include <QTextEdit>
 #include <QString>
-#include <QLineEdit>
 
 // SA
 #ifndef Q_MOC_RUN
@@ -54,9 +52,11 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// User Interface for setting up 3D sensor config
 // ******************************************************************************************
-class PerceptionWidget : public SetupScreenWidget
+// Class for showing changes needed to help user bring his robot into gazebo simulation
+// ******************************************************************************************
+// ******************************************************************************************
+class SimulationWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
@@ -65,46 +65,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  PerceptionWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
-
-  /// Recieved when this widget is chosen from the navigation menu
-  virtual void focusGiven();
-
-  /// Recieved when another widget is chosen from the navigation menu
-  virtual bool focusLost();
-
-  /// Populate the combo dropdown box with sensor plugins
-  void loadSensorPluginsComboBox();
-
-  // ******************************************************************************************
-  // Qt Components
-  // ******************************************************************************************
-
-  QComboBox* sensor_plugin_field_;
-
-  // Group form for each plugin option
-  QGroupBox* point_cloud_group_;
-  QGroupBox* depth_map_group_;
-
-  // Point Cloud plugin feilds
-  QLineEdit* point_cloud_topic_field_;
-  QLineEdit* max_range_field_;
-  QLineEdit* point_subsample_field_;
-  QLineEdit* padding_offset_field_;
-  QLineEdit* padding_scale_field_;
-  QLineEdit* max_update_rate_field_;
-  QLineEdit* filtered_cloud_topic_field_;
-
-  // Depth Map plugin feilds
-  QLineEdit* image_topic_field_;
-  QLineEdit* queue_size_field_;
-  QLineEdit* near_clipping_field_;
-  QLineEdit* far_clipping_field_;
-  QLineEdit* shadow_threshold_field_;
-  QLineEdit* depth_padding_scale_field_;
-  QLineEdit* depth_padding_offset_field_;
-  QLineEdit* depth_filtered_cloud_topic_field_;
-  QLineEdit* depth_max_update_rate_field_;
+  SimulationWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
 private Q_SLOTS:
 
@@ -112,13 +73,20 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
-  /// Called when the selected item in the sensor_plugin_field_ combobox is changed
-  void sensorPluginChanged(int index);
+  // Called the copy to clipboard button is clicked
+  void copyURDF(const QString& link);
+
+  /// Generate URDF button clicked
+  void generateURDFClick();
 
 private:
   // ******************************************************************************************
-  // Variables
+  // Qt Components
   // ******************************************************************************************
+
+  QTextEdit* simulation_text_;
+  QLabel* no_changes_label_;
+  QLabel* copy_urdf_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
