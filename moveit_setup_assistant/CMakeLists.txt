@@ -74,6 +74,7 @@ set(HEADERS
   src/widgets/perception_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
+  src/widgets/simulation_widget.h
   src/widgets/author_information_widget.h
 )
 
@@ -111,6 +112,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
+  src/widgets/simulation_widget.cpp
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )

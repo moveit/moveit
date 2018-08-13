@@ -372,6 +372,63 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
+// ******************************************************************************************
+// Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
+// ******************************************************************************************
+std::string MoveItConfigData::getGazeboCompatibleURDF()
+{
+  bool new_urdf_needed = false;
+  TiXmlDocument urdf_document;
+
+  // Used to convert XmlDocument to std string
+  TiXmlPrinter printer;
+  urdf_document.Parse((const char*)urdf_string_.c_str(), 0, TIXML_ENCODING_UTF8);
+  try
+  {
+    for (TiXmlElement* link_element = urdf_document.RootElement()->FirstChildElement(); link_element != NULL;
+         link_element = link_element->NextSiblingElement())
+    {
+      if (((std::string)link_element->Value()).find("link") == std::string::npos)
+        continue;
+      // Before adding inertial elements, make sure there is none and the link has collision element
+      if (link_element->FirstChildElement("inertial") == NULL && link_element->FirstChildElement("collision") != NULL)
+      {
+        new_urdf_needed = true;
+        TiXmlElement inertia_link("inertial");
+        TiXmlElement mass("mass");
+        TiXmlElement inertia_joint("inertia");
+
+        mass.SetAttribute("value", "0.1");
+
+        inertia_joint.SetAttribute("ixx", "0.03");
+        inertia_joint.SetAttribute("iyy", "0.03");
+        inertia_joint.SetAttribute("izz", "0.03");
+        inertia_joint.SetAttribute("ixy", "0.0");
+        inertia_joint.SetAttribute("ixz", "0.0");
+        inertia_joint.SetAttribute("iyz", "0.0");
+
+        inertia_link.InsertEndChild(mass);
+        inertia_link.InsertEndChild(inertia_joint);
+
+        link_element->InsertEndChild(inertia_link);
+      }
+    }
+  }
+  catch (YAML::ParserException& e)  // Catch errors
+  {
+    ROS_ERROR_STREAM_NAMED("moveit_config_data", e.what());
+    return std::string("");
+  }
+
+  if (new_urdf_needed)
+  {
+    urdf_document.Accept(&printer);
+    return std::string(printer.CStr());
+  }
+
+  return std::string("");
+}
+
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;

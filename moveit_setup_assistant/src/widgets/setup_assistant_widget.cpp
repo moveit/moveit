@@ -127,6 +127,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
   nav_name_list_ << "Perception";
+  nav_name_list_ << "Simulation";
   nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
 
@@ -305,6 +306,16 @@ void SetupAssistantWidget::progressPastStartScreen()
   connect(perception_widget_, SIGNAL(highlightGroup(const std::string&)), this,
           SLOT(highlightGroup(const std::string&)));
   connect(perception_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+
+  // Simulation Screen
+  simulation_widget_ = new SimulationWidget(this, config_data_);
+  main_content_->addWidget(simulation_widget_);
+  connect(simulation_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+  connect(simulation_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+          SLOT(highlightLink(const std::string&, const QColor&)));
+  connect(simulation_widget_, SIGNAL(highlightGroup(const std::string&)), this,
+          SLOT(highlightGroup(const std::string&)));
+  connect(simulation_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
   // Author Information
   author_information_widget_ = new AuthorInformationWidget(this, config_data_);
