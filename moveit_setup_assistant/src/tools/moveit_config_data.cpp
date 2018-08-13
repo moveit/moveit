@@ -662,7 +662,9 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 }
 
 // ******************************************************************************************
-// Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml.
+// Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
+// and erases the controller that have been written, to avoid mixing between FollowJointTrajectory
+// which are published under the namespace of 'controller_list' and other types of controllers.
 // ******************************************************************************************
 void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
                                                        std::vector<ROSControlConfig>& ros_controllers_config_output)
@@ -835,59 +837,57 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
     outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
 
+    for (std::vector<ROSControlConfig>::const_iterator controller_it = ros_controllers_config_output.begin();
+         controller_it != ros_controllers_config_output.end(); ++controller_it)
     {
-      for (std::vector<ROSControlConfig>::const_iterator controller_it = ros_controllers_config_output.begin();
-           controller_it != ros_controllers_config_output.end(); ++controller_it)
+      emitter << YAML::Key << controller_it->name_;
+      emitter << YAML::Value << YAML::BeginMap;
+      emitter << YAML::Key << "type";
+      emitter << YAML::Value << controller_it->type_;
+
+      // Write joints
+      emitter << YAML::Key << "joints";
       {
-        emitter << YAML::Key << controller_it->name_;
-        emitter << YAML::Value << YAML::BeginMap;
-        emitter << YAML::Key << "type";
-        emitter << YAML::Value << controller_it->type_;
-
-        // Write joints
-        emitter << YAML::Key << "joints";
+        if (controller_it->joints_.size() != 1)
         {
-          if (controller_it->joints_.size() != 1)
-          {
-            emitter << YAML::Value << YAML::BeginSeq;
+          emitter << YAML::Value << YAML::BeginSeq;
 
-            // Iterate through the joints
-            for (std::vector<std::string>::const_iterator joint_it = controller_it->joints_.begin();
-                 joint_it != controller_it->joints_.end(); ++joint_it)
-            {
-              emitter << *joint_it;
-            }
-            emitter << YAML::EndSeq;
-          }
-          else
-          {
-            emitter << YAML::Value << YAML::BeginMap;
-            emitter << controller_it->joints_[0];
-            emitter << YAML::EndMap;
-          }
-        }
-        // Write gains as they are required for vel and effort controllers
-        emitter << YAML::Key << "gains";
-        emitter << YAML::Value << YAML::BeginMap;
-        {
           // Iterate through the joints
           for (std::vector<std::string>::const_iterator joint_it = controller_it->joints_.begin();
                joint_it != controller_it->joints_.end(); ++joint_it)
           {
-            emitter << YAML::Key << *joint_it << YAML::Value << YAML::BeginMap;
-            emitter << YAML::Key << "p";
-            emitter << YAML::Value << "100";
-            emitter << YAML::Key << "d";
-            emitter << YAML::Value << "1";
-            emitter << YAML::Key << "i";
-            emitter << YAML::Value << "1";
-            emitter << YAML::Key << "i_clamp";
-            emitter << YAML::Value << "1" << YAML::EndMap;
+            emitter << *joint_it;
           }
+          emitter << YAML::EndSeq;
+        }
+        else
+        {
+          emitter << YAML::Value << YAML::BeginMap;
+          emitter << controller_it->joints_[0];
           emitter << YAML::EndMap;
+        }
+      }
+      // Write gains as they are required for vel and effort controllers
+      emitter << YAML::Key << "gains";
+      emitter << YAML::Value << YAML::BeginMap;
+      {
+        // Iterate through the joints
+        for (std::vector<std::string>::const_iterator joint_it = controller_it->joints_.begin();
+             joint_it != controller_it->joints_.end(); ++joint_it)
+        {
+          emitter << YAML::Key << *joint_it << YAML::Value << YAML::BeginMap;
+          emitter << YAML::Key << "p";
+          emitter << YAML::Value << "100";
+          emitter << YAML::Key << "d";
+          emitter << YAML::Value << "1";
+          emitter << YAML::Key << "i";
+          emitter << YAML::Value << "1";
+          emitter << YAML::Key << "i_clamp";
+          emitter << YAML::Value << "1" << YAML::EndMap;
         }
         emitter << YAML::EndMap;
       }
+      emitter << YAML::EndMap;
     }
   }
   emitter << YAML::EndMap;
