@@ -287,6 +287,8 @@ void StartScreenWidget::loadFilesClick()
   if (create_new_package_)
   {
     result = loadNewFiles();
+    // Load 3d_sensors config file
+    load3DSensorsFile();
   }
   else
   {
@@ -421,23 +423,6 @@ bool StartScreenWidget::loadExistingFiles()
   fs::path kinematics_yaml_path = config_data_->config_pkg_path_;
   kinematics_yaml_path /= "config/kinematics.yaml";
 
-  // Load sensors_3d yaml file if available --------------------------------------------------
-  fs::path sensors_3d_yaml_path = config_data_->config_pkg_path_;
-  sensors_3d_yaml_path /= "config/sensors_3d.yaml";
-
-  // If config was not available, load default configuration
-  if (!fs::is_regular_file(sensors_3d_yaml_path))
-  {
-    sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
-    config_data_->input3DSensorsYAML(sensors_3d_yaml_path.make_preferred().native().c_str());
-  }
-  else
-  {
-    fs::path default_sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
-    config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().native().c_str(),
-                                     sensors_3d_yaml_path.make_preferred().native().c_str());
-  }
-
   if (!config_data_->inputKinematicsYAML(kinematics_yaml_path.make_preferred().native().c_str()))
   {
     QMessageBox::warning(this, "No Kinematic YAML File",
@@ -447,6 +432,9 @@ bool StartScreenWidget::loadExistingFiles()
                                  "at location ")
                              .append(kinematics_yaml_path.make_preferred().native().c_str()));
   }
+
+  // Load 3d_sensors config file
+  load3DSensorsFile();
 
   // Load ros controllers yaml file if available-----------------------------------------------
   fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
@@ -800,6 +788,29 @@ bool StartScreenWidget::createFullSRDFPath(const std::string& package_path)
   }
 
   return true;  // success
+}
+
+// ******************************************************************************************
+// Loads sensors_3d yaml file
+// ******************************************************************************************
+bool StartScreenWidget::load3DSensorsFile()
+{
+  // Loads sensors_3d yaml file if available --------------------------------------------------
+  fs::path sensors_3d_yaml_path = config_data_->config_pkg_path_;
+  sensors_3d_yaml_path /= "config/sensors_3d.yaml";
+
+  // If config was not available, load default configuration
+  if (!fs::is_regular_file(sensors_3d_yaml_path))
+  {
+    sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
+    return config_data_->input3DSensorsYAML(sensors_3d_yaml_path.make_preferred().native().c_str());
+  }
+  else
+  {
+    fs::path default_sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
+    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().native().c_str(),
+                                            sensors_3d_yaml_path.make_preferred().native().c_str());
+  }
 }
 
 // ******************************************************************************************

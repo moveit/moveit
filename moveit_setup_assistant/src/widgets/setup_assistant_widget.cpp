@@ -126,7 +126,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
-  nav_name_list_ << "Perception";
+  nav_name_list_ << "3D Perception";
   nav_name_list_ << "Simulation";
   nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
