@@ -920,7 +920,7 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
 
   // Make sure sensors_plugin_config_parameter_list_ is not empty
-  if (sensors_plugin_config_parameter_list_.size() == 1)
+  if (!sensors_plugin_config_parameter_list_.empty())
   {
     for (auto& parameter : sensors_plugin_config_parameter_list_[0])
     {
@@ -1540,7 +1540,7 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
   std::ifstream default_input_stream(default_file_path.c_str());
   if (!default_input_stream.good())
   {
-    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for writing " << file_path);
+    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << default_file_path);
     return false;
   }
 
@@ -1592,7 +1592,7 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
   std::ifstream input_stream(file_path.c_str());
   if (!input_stream.good())
   {
-    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for writing " << file_path);
+    ROS_ERROR_STREAM_NAMED("sensors_3d.yaml", "Unable to open file for reading " << file_path);
     return false;
   }
 
@@ -1602,29 +1602,32 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
     const YAML::Node& doc = YAML::Load(input_stream);
 
     // Get sensors node
-    if (const YAML::Node& sensors_node = doc["sensors"])
+    const YAML::Node& sensors_node = doc["sensors"];
+
+    // Make sure that the sensors are written as a sequence
+    if (sensors_node && sensors_node.IsSequence())
     {
-      // Make sue that the sensors are written as a sequence
-      if (sensors_node.IsSequence())
+      GenericParameter sensor_param;
+      std::map<std::string, GenericParameter> sensor_map;
+      bool empty_node = true;
+
+      // Loop over the sensors available in the file
+      for (std::size_t i = 0; i < sensors_node.size(); ++i)
       {
-        GenericParameter sensor_param;
-        std::map<std::string, GenericParameter> sensor_map;
-
-        // Loop over the sensors available in the file
-        for (std::size_t i = 0; i < sensors_node.size(); ++i)
+        if (const YAML::Node& sensor_node = sensors_node[i])
         {
-          if (const YAML::Node& sensor_node = sensors_node[i])
+          for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
           {
-            for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
-            {
-              sensor_param.setName(sensor_it->first.as<std::string>());
-              sensor_param.setValue(sensor_it->second.as<std::string>());
+            empty_node = false;
+            sensor_param.setName(sensor_it->first.as<std::string>());
+            sensor_param.setValue(sensor_it->second.as<std::string>());
 
-              // Set the key as the parameter name to make accessing it easier
-              sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
-            }
-            sensors_plugin_config_parameter_list_.push_back(sensor_map);
+            // Set the key as the parameter name to make accessing it easier
+            sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
           }
+          // Don't push empty nodes
+          if (!empty_node)
+            sensors_plugin_config_parameter_list_.push_back(sensor_map);
         }
       }
     }
@@ -1762,7 +1765,10 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensor
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
-  sensors_plugin_config_parameter_list_.clear();
+  for (size_t param_id = 0; param_id < sensors_plugin_config_parameter_list_.size(); ++param_id)
+  {
+    sensors_plugin_config_parameter_list_[param_id].clear();
+  }
 }
 
 }  // namespace
