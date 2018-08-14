@@ -164,6 +164,9 @@ private:
 
   /// Make the full SRDF path using the loaded .setup_assistant data
   bool createFullSRDFPath(const std::string& package_path);
+
+  /// Loads sensors_3d yaml file
+  bool load3DSensorsFile();
 };
 
 // ******************************************************************************************

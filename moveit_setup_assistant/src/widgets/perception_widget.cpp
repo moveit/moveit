@@ -55,24 +55,18 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, moveit_setup_assistant::Move
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header =
-      new HeaderWidget("3D Perception Sensor Configuration", "Configure your 3D sensors to work with Moveit! ", this);
+  HeaderWidget* header = new HeaderWidget("3D Perception Sensor Configuration",
+                                          "Configure your 3D sensors to work with Moveit! "
+                                          "Please see <a "
+                                          "href='http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/"
+                                          "perception_configuration/"
+                                          "perception_configuration_tutorial.html'>Perception Documentation</a> "
+                                          "for more details.",
+                                          this);
   layout->addWidget(header);
 
-  // Perception documentation page
-  QLabel* perception_documentation_hyperlink = new QLabel(this);
-  perception_documentation_hyperlink->setText("Look at <a "
-                                              "href='http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/"
-                                              "perception_configuration/"
-                                              "perception_configuration_tutorial.html'>Perception Documentation</a> "
-                                              "for more details");
-  perception_documentation_hyperlink->setTextFormat(Qt::RichText);
-  perception_documentation_hyperlink->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  perception_documentation_hyperlink->setOpenExternalLinks(true);
-  layout->addWidget(perception_documentation_hyperlink);
-
   // Add spacing
-  QSpacerItem* blank_space = new QSpacerItem(1, 6);
+  QSpacerItem* blank_space = new QSpacerItem(1, 8);
   layout->addSpacerItem(blank_space);
 
   // Plugin type combo box
