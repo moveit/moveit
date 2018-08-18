@@ -1,7 +1,7 @@
 <package>
   <name>moveit_ros_perception</name>
   <version>0.9.12</version>
-  <description>Components of MoveIt connecting to perception</description>
+  <description>Components of MoveIt! connecting to perception</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="jon.binney@gmail.com">Jon Binney</author>

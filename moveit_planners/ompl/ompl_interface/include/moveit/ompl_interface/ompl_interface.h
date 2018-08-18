@@ -48,7 +48,7 @@
 #include <map>
 #include <ros/ros.h>
 
-/** \brief The MoveIt interface to OMPL */
+/** \brief The MoveIt! interface to OMPL */
 namespace ompl_interface
 {
 /** @class OMPLInterface

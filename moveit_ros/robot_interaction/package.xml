@@ -1,7 +1,7 @@
 <package>
   <name>moveit_ros_robot_interaction</name>
   <version>0.9.12</version>
-  <description>Components of MoveIt that offer interaction via interactive markers</description>
+  <description>Components of MoveIt! that offer interaction via interactive markers</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
 

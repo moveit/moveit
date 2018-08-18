@@ -42,7 +42,7 @@
 
 namespace moveit
 {
-/** \brief Tools for creating python bindings for MoveIt */
+/** \brief Tools for creating python bindings for MoveIt! */
 namespace py_bindings_tools
 {
 /** \brief The constructor of this class ensures that ros::init() has

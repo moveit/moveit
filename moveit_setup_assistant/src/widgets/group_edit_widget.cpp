@@ -265,7 +265,7 @@ void GroupEditWidget::setSelected(const std::string& group_name)
                          QString("Unable to find the kinematic solver '")
                              .append(kin_solver.c_str())
                              .append("'. Trying running rosmake for this package. Until fixed, this setting will be "
-                                     "lost the next time the MoveIt configuration files are generated"));
+                                     "lost the next time the MoveIt! configuration files are generated"));
     return;
   }
   else

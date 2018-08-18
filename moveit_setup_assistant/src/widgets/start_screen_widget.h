@@ -58,7 +58,7 @@ class SelectModeWidget;
 class LoadPathArgsWidget;
 
 /**
- * \brief Start screen user interface for MoveIt Configuration Assistant
+ * \brief Start screen user interface for MoveIt! Configuration Assistant
  */
 class StartScreenWidget : public SetupScreenWidget
 {
@@ -70,7 +70,7 @@ public:
   // ******************************************************************************************
 
   /**
-   * \brief Start screen user interface for MoveIt Configuration Assistant
+   * \brief Start screen user interface for MoveIt! Configuration Assistant
    */
   StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
