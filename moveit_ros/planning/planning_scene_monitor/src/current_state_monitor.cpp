@@ -306,7 +306,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wa
 }
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
-  waitForCompleteState(wait_time);
+  return waitForCompleteState(wait_time);
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
