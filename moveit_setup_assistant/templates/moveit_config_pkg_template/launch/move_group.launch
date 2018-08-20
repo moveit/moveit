@@ -20,9 +20,14 @@
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
 
+  <!-- planning_pipeline settings -->
+  <arg name="pipeline" value="ompl"/>
+  <arg name="pipeline_pkg" value="[GENERATED_PACKAGE_NAME]"/>
+
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="ompl" />
+    <arg name="pipeline" value="$(arg pipeline)" />
+    <arg name="pipeline_pkg" value="$(arg pipeline_pkg)" />
   </include>
 
   <!-- Trajectory Execution Functionality -->
