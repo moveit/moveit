@@ -74,6 +74,11 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   if (args.count("debug"))
     config_data_->debug_ = true;
 
+  // Setting the window icon
+  std::string moveit_ros_visualization_package_path = ros::package::getPath("moveit_ros_visualization");
+  moveit_ros_visualization_package_path += "/icons/classes/MotionPlanning.png";
+  this->setWindowIcon(QIcon(moveit_ros_visualization_package_path.c_str()));
+
   // Basic widget container -----------------------------------------
   QHBoxLayout* layout = new QHBoxLayout();
   layout->setAlignment(Qt::AlignTop);
