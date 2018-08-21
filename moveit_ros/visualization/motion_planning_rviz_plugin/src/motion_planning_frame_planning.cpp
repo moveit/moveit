@@ -143,6 +143,8 @@ void MotionPlanningFrame::computeCartecianPlanButtonClicked()
   moveit_msgs::RobotTrajectory trajectory;
   double fraction =
       move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
+  Q_EMIT planningFinished();
+
   if (fraction > 0)
   {
     // Success
@@ -180,7 +182,6 @@ void MotionPlanningFrame::computeCartecianPlanButtonClicked()
     ui_->result_label->setText("Failed");
     ROS_WARN("Failed to compute CartesianPath");
   }
-  Q_EMIT planningFinished();
 }
 
 void MotionPlanningFrame::computeJointSpacePlanButtonClicked()
