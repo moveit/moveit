@@ -43,7 +43,6 @@
 #include <sensor_msgs/JointState.h>
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
-#include <moveit/macros/deprecation.h>
 #include <boost/thread/condition_variable.hpp>
 
 namespace planning_scene_monitor
@@ -148,14 +147,10 @@ public:
   /** @brief Wait for at most \e wait_time seconds until the complete robot state is known.
       @return true if the full state is known */
   bool waitForCompleteState(double wait_time) const;
-  /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
-  MOVEIT_DEPRECATED bool waitForCurrentState(double wait_time) const;
 
   /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true
    * if values for all joints in \e group are known */
   bool waitForCompleteState(const std::string& group, double wait_time) const;
-  /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
-  MOVEIT_DEPRECATED bool waitForCurrentState(const std::string& group, double wait_time) const;
 
   /** @brief Get the time point when the monitor was started */
   const ros::Time& getMonitorStartTime() const

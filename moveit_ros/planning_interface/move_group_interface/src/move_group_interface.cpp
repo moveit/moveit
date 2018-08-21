@@ -160,9 +160,7 @@ public:
 
     execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>(
         node_handle_, move_group::EXECUTE_ACTION_NAME, false));
-    // TODO: after deprecation period, i.e. for L-turtle, switch back to standard waitForAction function
-    // waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
-    waitForExecuteAction(timeout_for_servers);
+    waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
 
     query_service_ =
         node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
@@ -233,59 +231,6 @@ public:
     else
     {
       ROS_DEBUG_NAMED("move_group_interface", "Connected to '%s'", name.c_str());
-    }
-  }
-
-  void waitForExecuteAction(ros::WallTime timeout)
-  {
-    ROS_DEBUG("Waiting for move_group action server (%s)...", move_group::EXECUTE_ACTION_NAME.c_str());
-
-    // wait for action
-    if (timeout == ros::WallTime())  // wait forever
-    {
-      while (!execute_action_client_->isServerConnected())
-      {
-        ros::WallDuration(0.001).sleep();
-        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
-        if (queue)
-        {
-          queue->callAvailable();
-        }
-        else  // in case of nodelets and specific callback queue implementations
-        {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
-                                                      "handling.");
-        }
-      }
-    }
-    else  // wait with timeout
-    {
-      while (!execute_action_client_->isServerConnected() && timeout > ros::WallTime::now())
-      {
-        ros::WallDuration(0.001).sleep();
-        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
-        if (queue)
-        {
-          queue->callAvailable();
-        }
-        else  // in case of nodelets and specific callback queue implementations
-        {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
-                                                      "handling.");
-        }
-      }
-    }
-
-    // issue warning
-    if (!execute_action_client_->isServerConnected())
-    {
-      ROS_ERROR_STREAM_NAMED("move_group_interface",
-                             "Unable to find execution action on topic: " << node_handle_.getNamespace() +
-                                                                                 move_group::EXECUTE_ACTION_NAME);
-      throw std::runtime_error("No Trajectory execution capability available.");
-      execute_action_client_.reset();
     }
   }
 
