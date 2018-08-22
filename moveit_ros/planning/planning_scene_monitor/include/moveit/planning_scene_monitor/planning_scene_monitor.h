@@ -38,6 +38,7 @@
 #define MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
@@ -450,6 +451,8 @@ protected:
 
   ros::NodeHandle nh_;
   ros::NodeHandle root_nh_;
+  ros::CallbackQueue queue_;
+  ros::AsyncSpinner spinner_;
   boost::shared_ptr<tf::Transformer> tf_;
   std::string robot_description_;
 

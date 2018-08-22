@@ -139,8 +139,11 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
     const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
     const boost::shared_ptr<tf::Transformer>& tf, const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
+  : monitor_name_(name), nh_("~"), spinner_(1, &queue_), tf_(tf), rm_loader_(rm_loader)
 {
+  root_nh_.setCallbackQueue(&queue_);
+  nh_.setCallbackQueue(&queue_);
+  spinner_.start();
   initialize(scene);
 }
 
@@ -163,6 +166,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   parent_scene_.reset();
   robot_model_.reset();
   rm_loader_.reset();
+  spinner_.stop();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& scene)
