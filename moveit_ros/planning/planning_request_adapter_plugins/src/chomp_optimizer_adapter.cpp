@@ -213,7 +213,7 @@ public:
 
     res.error_code_ = res_detailed.error_code_;
 
-    // populate the original response object 'res' with the CHOMP's optimized trajectory
+    // populate the original response object 'res' with the CHOMP's optimized trajectory.
     if (planning_success)
     {
       res.trajectory_ = res_detailed.trajectory_[0];
