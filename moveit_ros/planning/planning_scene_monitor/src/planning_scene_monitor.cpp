@@ -117,28 +117,23 @@ const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNI
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string& robot_description,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
                                                                    const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf)
+  : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), robot_description, tf, name)
 {
-  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
-  initialize(planning_scene::PlanningScenePtr());
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
                                                                    const std::string& robot_description,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
                                                                    const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf)
+  : PlanningSceneMonitor(scene, std::make_shared<robot_model_loader::RobotModelLoader>(robot_description), tf, name)
 {
-  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
-  initialize(scene);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
     const robot_model_loader::RobotModelLoaderPtr& rm_loader, const boost::shared_ptr<tf::Transformer>& tf,
     const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
+  : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), rm_loader, tf, name)
 {
-  initialize(planning_scene::PlanningScenePtr());
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
