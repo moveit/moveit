@@ -303,6 +303,8 @@ bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
   emitter << YAML::Key << "collision_clearence" << YAML::Value << "0.2";
   emitter << YAML::Key << "collision_threshold" << YAML::Value << "0.07";
   emitter << YAML::Key << "use_stochastic_descent" << YAML::Value << "true";
+  emitter << YAML::Key << "enable_failure_recovery" << YAML::Value << "true";
+  emitter << YAML::Key << "max_recovery_attempts" << YAML::Value << "5";
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
