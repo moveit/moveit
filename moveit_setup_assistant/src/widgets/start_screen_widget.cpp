@@ -67,7 +67,7 @@ namespace moveit_setup_assistant
 namespace fs = boost::filesystem;
 
 // ******************************************************************************************
-// Start screen user interface for MoveIt Configuration Assistant
+// Start screen user interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -122,13 +122,14 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
 
   // Top Label Area ---------------------------------------------------
-  HeaderWidget* header = new HeaderWidget(
-      "MoveIt Setup Assistant", "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a "
-                                "MoveIt configuration package that is required to run MoveIt. This includes generating "
-                                "a Semantic Robot Description Format (SRDF) file, kinematics configuration file and "
-                                "OMPL planning configuration file. It also involves creating launch files for move "
-                                "groups, OMPL planner, planning contexts and the planning warehouse.",
-      this);
+  HeaderWidget* header =
+      new HeaderWidget("MoveIt! Setup Assistant",
+                       "Welcome to the MoveIt! Setup Assistant! These tools will assist you in creating a "
+                       "MoveIt! configuration package that is required to run MoveIt. This includes generating "
+                       "a Semantic Robot Description Format (SRDF) file, kinematics configuration file and "
+                       "OMPL planning configuration file. It also involves creating launch files for move "
+                       "groups, OMPL planner, planning contexts and the planning warehouse.",
+                       this);
   layout->addWidget(header);
 
   // Select Mode Area -------------------------------------------------
@@ -141,8 +142,8 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
 
   // Stack Path Dialog
   stack_path_ =
-      new LoadPathArgsWidget("Load MoveIt Configuration Package Path",
-                             "Specify the package name or path of an existing MoveIt configuration package to be "
+      new LoadPathArgsWidget("Load MoveIt! Configuration Package Path",
+                             "Specify the package name or path of an existing MoveIt! configuration package to be "
                              "edited for your robot. Example package name: <i>pr2_moveit_config</i>",
                              "xacro arguments", this, true);  // directory
   stack_path_->hide();                                        // user needs to select option before this is shown
@@ -355,7 +356,7 @@ bool StartScreenWidget::loadPackageSettings(bool show_warnings)
     if (show_warnings)
       QMessageBox::warning(
           this, "Incorrect Directory/Package",
-          QString("The chosen package location exists but was not created using MoveIt Setup Assistant. "
+          QString("The chosen package location exists but was not created using MoveIt! Setup Assistant. "
                   "If this is a mistake, provide the missing file: ")
               .append(setup_assistant_path.c_str()));
     return false;
@@ -846,9 +847,9 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
 
   // Widget Instructions
   QTextEdit* widget_instructions = new QTextEdit(this);
-  widget_instructions->setText("All settings for MoveIt are stored in a Moveit configuration package. Here you have "
+  widget_instructions->setText("All settings for MoveIt! are stored in a MoveIt! configuration package. Here you have "
                                "the option to create a new configuration package, or load an existing one. Note: any "
-                               "changes to a MoveIt configuration package outside this setup assistant will likely be "
+                               "changes to a MoveIt! configuration package outside this setup assistant will likely be "
                                "overwritten by this tool.");
   widget_instructions->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
   // widget_instructions->setMinimumWidth(1);

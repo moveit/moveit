@@ -103,7 +103,7 @@ TEST_F(MoveItConfigData, ReadingControllers)
   // ros_controller.yaml written correctly
   EXPECT_EQ(config_data_->outputROSControllersYAML((res_path / "ros_controller.yaml").string()), true);
 
-  // Reset moveit config MoveItConfigData
+  // Reset MoveIt! config MoveItConfigData
   config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
 
   // Initially no controllers

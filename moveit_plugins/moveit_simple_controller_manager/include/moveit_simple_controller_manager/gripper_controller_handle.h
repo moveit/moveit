@@ -102,7 +102,7 @@ public:
 
     if (gripper_joint_indexes.empty())
     {
-      ROS_WARN_NAMED("GripperController", "No command_joint was specified for the MoveIt controller gripper handle. \
+      ROS_WARN_NAMED("GripperController", "No command_joint was specified for the MoveIt! controller gripper handle. \
                       Please see GripperControllerHandle::addCommandJoint() and \
                       GripperControllerHandle::setCommandJoint(). Assuming index 0.");
       gripper_joint_indexes.push_back(0);

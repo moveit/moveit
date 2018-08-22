@@ -47,7 +47,7 @@ Transforms::Transforms(const std::string& target_frame) : target_frame_(target_f
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
-    ROS_ERROR_NAMED("transforms", "The target frame for MoveIt Transforms cannot be empty.");
+    ROS_ERROR_NAMED("transforms", "The target frame for MoveIt! Transforms cannot be empty.");
   else
   {
     transforms_[target_frame_] = Eigen::Affine3d::Identity();

@@ -179,7 +179,7 @@ private:
 MOVEIT_CLASS_FORWARD(MoveItConfigData);
 
 /** \brief This class is shared with all widgets and contains the common configuration data
-    needed for generating each robot's MoveIt configuration package.
+    needed for generating each robot's MoveIt! configuration package.
 
     All SRDF data is contained in a subclass of this class -
     srdf_writer.cpp. This class also contains the functions for writing
@@ -207,7 +207,7 @@ public:
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
 
-  // All of the data needed for creating a MoveIt Configuration Files
+  // All of the data needed for creating a MoveIt! Configuration Files
 
   // ******************************************************************************************
   // URDF Data
@@ -409,7 +409,7 @@ public:
   bool createFullSRDFPath(const std::string& package_path);
 
   /**
-   * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
+   * Input .setup_assistant file - contains data used for the MoveIt! Setup Assistant
    *
    * @param file_path path to .setup_assistant file
    * @return true if the file was read correctly

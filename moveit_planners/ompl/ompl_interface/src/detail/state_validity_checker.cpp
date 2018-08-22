@@ -119,7 +119,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     return false;
   }
 
-  // convert ompl state to moveit robot state
+  // convert ompl state to MoveIt! robot state
   robot_state::RobotState* kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 

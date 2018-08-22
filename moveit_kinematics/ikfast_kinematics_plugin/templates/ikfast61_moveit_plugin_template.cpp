@@ -41,7 +41,7 @@
  *
  * Creates a kinematics plugin using the output of IKFast from OpenRAVE.
  * This plugin and the move_group node can be used as a general
- * kinematics service, from within the moveit planning environment, or in
+ * kinematics service, from within the MoveIt! planning environment, or in
  * your own ROS node.
  *
  */
@@ -972,7 +972,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   if (!consistency_limits.empty())
   {
-    // moveit replaced consistency_limit (scalar) w/ consistency_limits (vector)
+    // MoveIt! replaced consistency_limit (scalar) w/ consistency_limits (vector)
     // Assume [0]th free_params element for now.  Probably wrong.
     double max_limit = fmin(joint_max_vector_[free_params_[0]], initial_guess + consistency_limits[free_params_[0]]);
     double min_limit = fmax(joint_min_vector_[free_params_[0]], initial_guess - consistency_limits[free_params_[0]]);
