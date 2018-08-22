@@ -57,7 +57,7 @@ namespace moveit_setup_assistant
 namespace fs = boost::filesystem;
 
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 AuthorInformationWidget::AuthorInformationWidget(QWidget* parent,
                                                  moveit_setup_assistant::MoveItConfigDataPtr config_data)

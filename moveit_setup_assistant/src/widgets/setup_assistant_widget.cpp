@@ -59,7 +59,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_options::variables_map args)
   : QWidget(parent)
@@ -160,7 +160,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   this->setLayout(layout);
 
   // Title
-  this->setWindowTitle("MoveIt Setup Assistant");  // title of window
+  this->setWindowTitle("MoveIt! Setup Assistant");  // title of window
 
   // Show screen before message
   QApplication::processEvents();
@@ -387,7 +387,7 @@ void SetupAssistantWidget::loadRviz()
   // Set the fixed and target frame
   rviz_manager_->setFixedFrame(QString::fromStdString(config_data_->getRobotModel()->getModelFrame()));
 
-  // Create the MoveIt Rviz Plugin and attach to display
+  // Create the MoveIt! Rviz Plugin and attach to display
   robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
   robot_state_display_->setName("Robot State");
 
@@ -480,7 +480,7 @@ void SetupAssistantWidget::closeEvent(QCloseEvent* event)
   if (!config_data_->debug_)
   {
     if (QMessageBox::question(this, "Exit Setup Assistant",
-                              QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
+                              QString("Are you sure you want to exit the MoveIt! Setup Assistant?"),
                               QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
     {
       event->ignore();
