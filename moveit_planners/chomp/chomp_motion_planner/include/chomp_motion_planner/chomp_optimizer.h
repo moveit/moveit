@@ -61,7 +61,11 @@ public:
 
   virtual ~ChompOptimizer();
 
-  void optimize();
+  /**
+   * Optimizes the CHOMP cost function and tries to find an optimal path
+   * @return true if an optimal collision free path is found else returns false
+   */
+  bool optimize();
 
   inline void destroy()
   {

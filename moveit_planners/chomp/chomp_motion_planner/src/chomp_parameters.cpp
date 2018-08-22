@@ -66,10 +66,26 @@ ChompParameters::ChompParameters()
   use_stochastic_descent_ = true;
   filter_mode_ = false;
   trajectory_initialization_method_ = std::string("quintic-spline");
+  enable_failure_recovery_ = false;
+  max_recovery_attempts_ = 5;
 }
 
 ChompParameters::~ChompParameters()
 {
 }
 
+ChompParameters ChompParameters::getNonConstParams(ChompParameters params)
+{
+  ChompParameters non_const;
+  non_const = params;
+  return non_const;
+}
+void ChompParameters::setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit,
+                                        int max_iterations)
+{
+  this->learning_rate_ = learning_rate;
+  this->ridge_factor_ = ridge_factor;
+  this->planning_time_limit_ = planning_time_limit;
+  this->max_iterations_ = max_iterations;
+}
 }  // namespace chomp
