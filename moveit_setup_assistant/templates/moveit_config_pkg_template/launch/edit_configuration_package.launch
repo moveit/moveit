@@ -1,4 +1,4 @@
-<!-- Re-launch the MoveIt Setup Assistant with this configuration package already loaded -->
+<!-- Re-launch the MoveIt! Setup Assistant with this configuration package already loaded -->
 <launch>
 
   <!-- Debug Info -->
