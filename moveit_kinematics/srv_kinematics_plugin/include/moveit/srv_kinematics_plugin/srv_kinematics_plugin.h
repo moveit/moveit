@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Dave Coleman, Masaki Murooka
-   Desc:   Connects MoveIt to any inverse kinematics solver via a ROS service call
+   Desc:   Connects MoveIt! to any inverse kinematics solver via a ROS service call
            Supports planning groups with multiple tip frames
            \todo: better support for mimic joints
            \todo: better support for redundant joints

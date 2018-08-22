@@ -2,7 +2,7 @@
 <package>
   <name>moveit_ros_planning</name>
   <version>0.9.12</version>
-  <description>Planning components of MoveIt that use ROS</description>
+  <description>Planning components of MoveIt! that use ROS</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 

@@ -49,7 +49,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -93,7 +93,7 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::Move
   pub_robot_state_ = nh.advertise<moveit_msgs::DisplayRobotState>(MOVEIT_ROBOT_STATE, 1);
 
   // Set the planning scene
-  config_data_->getPlanningScene()->setName("MoveIt Planning Scene");
+  config_data_->getPlanningScene()->setName("MoveIt! Planning Scene");
 
   // Collision Detection initializtion -------------------------------
 

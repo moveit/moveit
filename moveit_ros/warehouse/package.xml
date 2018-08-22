@@ -1,7 +1,7 @@
 <package>
   <name>moveit_ros_warehouse</name>
   <version>0.9.12</version>
-  <description>Components of MoveIt connecting to MongoDB</description>
+  <description>Components of MoveIt! connecting to MongoDB</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
 

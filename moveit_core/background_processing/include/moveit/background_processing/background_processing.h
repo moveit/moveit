@@ -47,7 +47,7 @@
 namespace moveit
 {
 /** \brief This namespace includes classes and functions that are
-    helpful in the implementation of other MoveIt components. This is
+    helpful in the implementation of other MoveIt! components. This is
     not code specific to the functionality provided by MoveIt. */
 namespace tools
 {
