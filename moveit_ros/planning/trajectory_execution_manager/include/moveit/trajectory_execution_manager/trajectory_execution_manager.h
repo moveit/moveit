@@ -240,7 +240,7 @@ public:
   /// Set joint-value tolerance for validating trajectory's start point against current robot state
   void setAllowedStartTolerance(double tolerance);
 
-  /// Enable or disable the validating of a trajectory
+  /// Enable or disable waiting for trajectory completion
   void setWaitForTrajectoryCompletion(bool flag);
 
 private:
