@@ -71,6 +71,7 @@ private:
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
+    owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -212,6 +213,11 @@ void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 {
   allowed_start_tolerance_ = tolerance;
+}
+
+void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
+{
+  wait_for_trajectory_completion_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -1529,8 +1535,12 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
-  if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
+  // skip waiting for convergence?
+  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_)
+  {
+    ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
     return true;
+  }
 
   ros::WallTime start = ros::WallTime::now();
   double time_remaining = wait_time;
