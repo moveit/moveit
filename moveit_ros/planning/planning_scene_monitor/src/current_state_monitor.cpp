@@ -462,11 +462,12 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       Eigen::Affine3d eigen_transf;
       tf::transformTFToEigen(transf, eigen_transf);
 
-      const Eigen::Affine3d& joint_origin = joint->getChildLinkModel()->getJointOriginTransform();
-      const Eigen::Affine3d joint_transform = joint_origin.inverse(Eigen::Isometry) * eigen_transf;
-
       double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(joint_transform, new_values);
+      const robot_model::LinkModel* link = joint->getChildLinkModel();
+      if (link->jointOriginTransformIsIdentity())
+          joint->computeVariablePositions(eigen_transf, new_values);
+      else
+          joint->computeVariablePositions(link->getJointOriginTransform().inverse(Eigen::Isometry) * eigen_transf, new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {
