@@ -1291,8 +1291,9 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
     }
   }
 
-  // only report that execution finished when the robot stopped moving
-  waitForRobotToStop(*trajectories_[i - 1]);
+  // only report that execution finished successfully when the robot actually stopped moving
+  if (last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+    waitForRobotToStop(*trajectories_[i - 1]);
 
   ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
 
