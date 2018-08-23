@@ -444,9 +444,6 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
         continue;
       joint_time_[joint] = latest_common_time;
 
-      const Eigen::Affine3d& joint_origin = joint->getChildLinkModel()->getJointOriginTransform();
-      const Eigen::Affine3d joint_transform = joint_origin.inverse(Eigen::Isometry) * eigen_transf;
-
       double new_values[joint->getStateSpaceDimension()];
       const robot_model::LinkModel* link = joint->getChildLinkModel();
       if (link->jointOriginTransformIsIdentity())
