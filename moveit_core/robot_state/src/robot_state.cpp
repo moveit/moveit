@@ -590,7 +590,8 @@ void RobotState::updateLinkTransforms()
 
 void RobotState::updateLinkTransformsInternal(const JointModel* start)
 {
-  for(const LinkModel* link : start->getDescendantLinkModels()) {
+  for (const LinkModel* link : start->getDescendantLinkModels())
+  {
     const LinkModel* parent = link->getParentLinkModel();
     if (parent)
     {
@@ -605,8 +606,8 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
               getJointTransform(link->getParentJointModel()).matrix();
         else
           global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
-              global_link_transforms_[parent->getLinkIndex()].matrix() *
-              link->getJointOriginTransform().matrix() * getJointTransform(link->getParentJointModel()).matrix();
+              global_link_transforms_[parent->getLinkIndex()].matrix() * link->getJointOriginTransform().matrix() *
+              getJointTransform(link->getParentJointModel()).matrix();
       }
     }
     else
