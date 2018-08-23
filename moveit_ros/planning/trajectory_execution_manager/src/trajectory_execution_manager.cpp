@@ -103,9 +103,6 @@ TrajectoryExecutionManager::~TrajectoryExecutionManager()
   delete reconfigure_impl_;
 }
 
-static const char* DEPRECATION_WARNING =
-    "\nDeprecation warning: parameter '%s' moved into namespace 'trajectory_execution'."
-    "\nPlease, adjust file trajectory_execution.launch.xml!";
 void TrajectoryExecutionManager::initialize()
 {
   reconfigure_impl_ = NULL;
@@ -119,16 +116,8 @@ void TrajectoryExecutionManager::initialize()
   execution_velocity_scaling_ = 1.0;
   allowed_start_tolerance_ = 0.01;
 
-  // TODO: Reading from old param location should be removed in L-turtle. Handled by DynamicReconfigure.
-  if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
-    ROS_WARN_NAMED(name_, DEPRECATION_WARNING, "allowed_execution_duration_scaling");
-  else
-    allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
-
-  if (node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
-    ROS_WARN_NAMED(name_, DEPRECATION_WARNING, "allowed_goal_duration_margin");
-  else
-    allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+  allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
+  allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
 
   // load controller-specific values for allowed_execution_duration_scaling and allowed_goal_duration_margin
   loadControllerParams();
