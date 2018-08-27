@@ -399,7 +399,6 @@ bool SrvKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
     ROS_ERROR_NAMED("srv", "kinematics not active");

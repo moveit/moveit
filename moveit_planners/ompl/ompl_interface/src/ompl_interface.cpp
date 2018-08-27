@@ -245,7 +245,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         int value_i;
-        if (nh_.getParam(group_name + "/" + k, value_d))
+        if (nh_.getParam(group_name + "/" + k, value_i))
         {
           specific_group_params[k] = std::to_string(value_i);
           continue;

@@ -1010,7 +1010,6 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Create the empty graph
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
   Graph g(group_nodes.size());
 
   // Traverse the group list again, this time inserting subgroups into graph

@@ -185,7 +185,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
   // Using the svd decomposition this becomes(jac_pinv=V*S_pinv*Ut):
   // qdot_out = V*S_pinv*Ut*v_in
 
-  unsigned int columns, rows;
+  unsigned int rows;
   if (!position_ik)
     rows = jac_locked.rows();
   else
@@ -287,7 +287,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   // Using the svd decomposition this becomes(jac_pinv=V*S_pinv*Ut):
   // qdot_out = V*S_pinv*Ut*v_in
 
-  unsigned int columns, rows;
+  unsigned int rows;
   if (!position_ik)
     rows = jac_reduced.rows();
   else
