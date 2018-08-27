@@ -67,10 +67,10 @@ public:
 
   PerceptionWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
-  /// Recieved when this widget is chosen from the navigation menu
+  /// Received when this widget is chosen from the navigation menu
   virtual void focusGiven();
 
-  /// Recieved when another widget is chosen from the navigation menu
+  /// Received when another widget is chosen from the navigation menu
   virtual bool focusLost();
 
   /// Populate the combo dropdown box with sensor plugins

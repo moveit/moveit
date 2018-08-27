@@ -59,11 +59,11 @@
 namespace moveit_rviz_plugin
 {
 TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::Display* display)
-  : display_(display)
-  , widget_(widget)
-  , animating_path_(false)
+  : animating_path_(false)
   , drop_displaying_trajectory_(false)
   , current_state_(-1)
+  , display_(display)
+  , widget_(widget)
   , trajectory_slider_panel_(NULL)
   , trajectory_slider_dock_panel_(NULL)
 {
@@ -384,7 +384,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       }
       else if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible())
       {
-        if (trajectory_slider_panel_->getSliderPosition() >= displaying_trajectory_message_->getWayPointCount() - 1)
+        if (static_cast<unsigned int>(trajectory_slider_panel_->getSliderPosition()) >=
+            displaying_trajectory_message_->getWayPointCount() - 1)
           return;  // nothing more to do
         else
           animating_path_ = true;

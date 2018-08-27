@@ -398,7 +398,7 @@ void SetupAssistantWidget::loadRviz()
 
   rviz_manager_->addDisplay(robot_state_display_, true);
 
-  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
+  // Set the topic on which the moveit_msgs::PlanningScene messages are received
   robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
 
   // Set robot description

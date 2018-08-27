@@ -154,7 +154,7 @@ bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
     ROS_ERROR_NAMED("srv", "This group cannot have redundant joints");
     return false;
   }
-  if (redundant_joints.size() > num_possible_redundant_joints_)
+  if (int(redundant_joints.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("srv", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
@@ -327,13 +327,12 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
     error_code.val = ik_srv.response.error_code.val;
     if (error_code.val != error_code.SUCCESS)
     {
-      ROS_DEBUG_NAMED("srv", "An IK that satisifes the constraints and is collision free could not be found.");
+      ROS_DEBUG_STREAM_NAMED("srv", "An IK that satisifes the constraints and is collision free could not be found."
+                                        << "\nRequest was: \n"
+                                        << ik_srv.request.ik_request << "\nResponse was: \n"
+                                        << ik_srv.response.solution);
       switch (error_code.val)
       {
-        // Debug mode for failure:
-        ROS_DEBUG_STREAM("Request was: \n" << ik_srv.request.ik_request);
-        ROS_DEBUG_STREAM("Response was: \n" << ik_srv.response.solution);
-
         case moveit_msgs::MoveItErrorCodes::FAILURE:
           ROS_ERROR_STREAM_NAMED("srv", "Service failed with with error code: FAILURE");
           break;
@@ -356,7 +355,7 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
   // Convert the robot state message to our robot_state representation
   if (!moveit::core::robotStateMsgToRobotState(ik_srv.response.solution, *robot_state_))
   {
-    ROS_ERROR_STREAM_NAMED("srv", "An error occured converting recieved robot state message into internal robot "
+    ROS_ERROR_STREAM_NAMED("srv", "An error occured converting received robot state message into internal robot "
                                   "state.");
     error_code.val = error_code.FAILURE;
     return false;
@@ -399,7 +398,6 @@ bool SrvKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
     ROS_ERROR_NAMED("srv", "kinematics not active");

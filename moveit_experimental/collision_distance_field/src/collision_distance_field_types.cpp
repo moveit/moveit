@@ -289,7 +289,6 @@ void collision_detection::BodyDecomposition::init(const std::vector<shapes::Shap
   relative_collision_points_.clear();
   std::vector<CollisionSphere> body_spheres;
   EigenSTL::vector_Vector3d body_collision_points;
-  double radius = RESOLUTION_SCALE * resolution;
   for (unsigned int i = 0; i < bodies_.getCount(); i++)
   {
     body_spheres.clear();

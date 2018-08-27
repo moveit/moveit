@@ -1010,7 +1010,6 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Create the empty graph
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
   Graph g(group_nodes.size());
 
   // Traverse the group list again, this time inserting subgroups into graph
@@ -1438,7 +1437,7 @@ void PlanningGroupsWidget::previewSelectedLink(std::vector<std::string> links)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < links.size(); ++i)
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     if (links[i].empty())
     {
@@ -1458,7 +1457,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < joints.size(); ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
@@ -1489,7 +1488,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < groups.size(); ++i)
+  for (std::size_t i = 0; i < groups.size(); ++i)
   {
     // Highlight group
     Q_EMIT highlightGroup(groups[i]);

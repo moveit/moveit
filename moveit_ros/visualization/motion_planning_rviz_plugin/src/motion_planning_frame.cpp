@@ -205,7 +205,7 @@ void MotionPlanningFrame::approximateIKChanged(int state)
 void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
 {
   QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (std::size_t i = 0; i < found_items.size(); ++i)
+  for (int i = 0; i < found_items.size(); ++i)
     found_items[i]->setSelected(selection);
 }
 

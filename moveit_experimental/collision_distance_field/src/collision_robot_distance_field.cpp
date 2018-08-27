@@ -330,9 +330,6 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(GroupStateRepresenta
 {
   bool in_collision = false;
 
-  // creating distance field for each link at the current position
-  ros::Time start_time = ros::Time::now();
-
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
   {
     const std::string& link_name = gsr->dfce_->link_names_[i];
@@ -703,7 +700,6 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
     const std::string& group_name, const moveit::core::RobotState& state,
     const collision_detection::AllowedCollisionMatrix* acm, bool generate_distance_field) const
 {
-  ros::WallTime n = ros::WallTime::now();
   DistanceFieldCacheEntryPtr dfce(new DistanceFieldCacheEntry());
 
   if (robot_model_->getJointModelGroup(group_name) == NULL)
@@ -1004,7 +1000,6 @@ void CollisionRobotDistanceField::createCollisionModelMarker(const moveit::core:
   sphere_marker.lifetime = ros::Duration(0);
 
   unsigned int id = 0;
-  const std::vector<const moveit::core::LinkModel*>& link_models = robot_model_->getLinkModelsWithCollisionGeometry();
   const moveit::core::JointModelGroup* joint_group = state.getJointModelGroup(distance_field_cache_entry_->group_name_);
   const std::vector<std::string>& group_link_names = joint_group->getUpdatedLinkModelNames();
 
@@ -1116,7 +1111,6 @@ void CollisionRobotDistanceField::updateGroupStateRepresentationState(const move
 
   for (unsigned int i = 0; i < gsr->dfce_->attached_body_names_.size(); i++)
   {
-    int link_index = gsr->dfce_->attached_body_link_state_indices_[i];
     const moveit::core::AttachedBody* att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
     if (!att)
     {
@@ -1158,7 +1152,6 @@ void CollisionRobotDistanceField::getGroupStateRepresentation(const DistanceFiel
     ROS_DEBUG_STREAM("Creating GroupStateRepresentation");
 
     // unsigned int count = 0;
-    ros::WallTime b = ros::WallTime::now();
     gsr.reset(new GroupStateRepresentation());
     gsr->dfce_ = dfce;
     gsr->gradients_.resize(dfce->link_names_.size() + dfce->attached_body_names_.size());

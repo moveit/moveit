@@ -220,7 +220,6 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
       kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik ? 3 : 6);
 
   // Check for mimic joints
-  bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;
   std::vector<unsigned int> redundant_joints_map_index;
 
   std::vector<JointMimic> mimic_joints;
@@ -293,7 +292,7 @@ bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
     ROS_ERROR_NAMED("lma", "This group cannot have redundant joints");
     return false;
   }
-  if (redundant_joints.size() > num_possible_redundant_joints_)
+  if (int(redundant_joints.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("lma", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
@@ -569,7 +568,6 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
     ROS_ERROR_NAMED("lma", "kinematics not active");

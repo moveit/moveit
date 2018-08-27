@@ -114,7 +114,6 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   layout->setAlignment(Qt::AlignTop);
 
   // New Group Options  ---------------------------------------------------------
-  QWidget* labels_widget = new QWidget();
   new_buttons_widget_ = new QWidget();
 
   QVBoxLayout* new_buttons_layout_container = new QVBoxLayout();
@@ -346,7 +345,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
-  for (int i = 0; i < planners.size(); ++i)
+  for (std::size_t i = 0; i < planners.size(); ++i)
   {
     std::string planner_name = planners[i].name_;
     default_planner_field_->addItem(planner_name.c_str());

@@ -69,7 +69,7 @@ class ActionBasedControllerHandle : public ActionBasedControllerHandleBase
 {
 public:
   ActionBasedControllerHandle(const std::string& name, const std::string& ns)
-    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true), nh_("~")
+    : ActionBasedControllerHandleBase(name), nh_("~"), done_(true), namespace_(ns)
   {
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
