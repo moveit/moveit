@@ -50,7 +50,6 @@ static const std::string ROBOT_DESCRIPTION =
 
 namespace move_group
 {
-
 // These capabilities are loaded unless listed in disable_capabilities
 // clang-format off
 static const char* DEFAULT_CAPABILITIES[] = {

@@ -328,8 +328,9 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
     if (error_code.val != error_code.SUCCESS)
     {
       ROS_DEBUG_STREAM_NAMED("srv", "An IK that satisifes the constraints and is collision free could not be found."
-                             << "\nRequest was: \n" << ik_srv.request.ik_request
-                             << "\nResponse was: \n" << ik_srv.response.solution);
+                                        << "\nRequest was: \n"
+                                        << ik_srv.request.ik_request << "\nResponse was: \n"
+                                        << ik_srv.response.solution);
       switch (error_code.val)
       {
         case moveit_msgs::MoveItErrorCodes::FAILURE:

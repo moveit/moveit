@@ -290,7 +290,8 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
 
   bool found_group = false;
   // the name of a planner is either "GROUP[planner_id]" or "planner_id"
-  if (!group.empty()) {
+  if (!group.empty())
+  {
     for (std::size_t i = 0; i < desc.planner_ids.size(); ++i)
       if (desc.planner_ids[i] == group)
         found_group = true;
