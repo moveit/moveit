@@ -59,11 +59,11 @@
 namespace moveit_rviz_plugin
 {
 TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::Display* display)
-  : display_(display)
-  , widget_(widget)
-  , animating_path_(false)
+  : animating_path_(false)
   , drop_displaying_trajectory_(false)
   , current_state_(-1)
+  , display_(display)
+  , widget_(widget)
   , trajectory_slider_panel_(NULL)
   , trajectory_slider_dock_panel_(NULL)
 {
