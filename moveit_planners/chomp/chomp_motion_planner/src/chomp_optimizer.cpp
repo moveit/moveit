@@ -68,7 +68,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
   planning_scene->getCollisionDetectorNames(cd_names);
 
   ROS_INFO_STREAM("The following collision detectors are active in the planning scene.");
-  for (int i = 0; i < cd_names.size(); i++)
+  for (std::size_t i = 0; i < cd_names.size(); i++)
   {
     ROS_INFO_STREAM(cd_names[i]);
   }
@@ -319,11 +319,11 @@ bool ChompOptimizer::optimize()
 {
   bool optimization_result = 0;
   ros::WallTime start_time = ros::WallTime::now();
-  double averageCostVelocity = 0.0;
-  int currentCostIter = 0;
+  // double averageCostVelocity = 0.0;
+  // int currentCostIter = 0;
   int costWindow = 10;
   std::vector<double> costs(costWindow, 0.0);
-  double minimaThreshold = 0.05;
+  // double minimaThreshold = 0.05;
   bool should_break_out = false;
 
   // iterate
@@ -373,9 +373,7 @@ bool ChompOptimizer::optimize()
       }
     }
     calculateSmoothnessIncrements();
-    ros::WallTime coll_time = ros::WallTime::now();
     calculateCollisionIncrements();
-    // ROS_INFO_STREAM("Collision increments took " << (ros::WallTime::now()-coll_time));
     calculateTotalIncrements();
 
     /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC

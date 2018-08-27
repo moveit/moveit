@@ -130,7 +130,7 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < joints.size(); ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 

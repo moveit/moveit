@@ -86,7 +86,7 @@ public:
 
   void changeScreen(int index);
 
-  /// Recieved when this widget is chosen from the navigation menu
+  /// Received when this widget is chosen from the navigation menu
   virtual void focusGiven();
 
 private Q_SLOTS:

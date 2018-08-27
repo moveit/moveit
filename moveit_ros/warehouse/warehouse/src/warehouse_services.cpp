@@ -48,14 +48,13 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 bool storeState(moveit_msgs::SaveRobotStateToWarehouse::Request& request,
                 moveit_msgs::SaveRobotStateToWarehouse::Response& response, moveit_warehouse::RobotStateStorage* rs)
 {
-  const moveit_msgs::RobotState& state = request.state;
   if (request.name.empty())
   {
     ROS_ERROR("You must specify a name to store a state");
-    return response.success = false;
+    return (response.success = false);
   }
   rs->addRobotState(request.state, request.name, request.robot);
-  return response.success = true;
+  return (response.success = true);
 }
 
 bool listStates(moveit_msgs::ListRobotStatesInWarehouse::Request& request,

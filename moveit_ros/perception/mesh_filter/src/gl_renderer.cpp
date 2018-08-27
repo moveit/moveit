@@ -385,7 +385,6 @@ void mesh_filter::GLRenderer::createGLContext()
   if (contextIt == context_.end())
   {
     context_[threadID] = std::pair<unsigned, GLuint>(1, 0);
-    map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
 
     glutInitWindowPosition(glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
     glutInitWindowSize(1, 1);

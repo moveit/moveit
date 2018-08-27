@@ -119,8 +119,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
       planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
 
-      const planning_interface::PlannerConfigurationMap& config_map = p->getPlannerConfigurations();
-
+      p->getPlannerConfigurations();
       planner_interfaces_[plugin_classes[i]] = p;
     }
     catch (pluginlib::PluginlibException& ex)
@@ -316,8 +315,6 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   std::vector<PathConstraints> goal_constraints;
   std::vector<TrajectoryConstraints> traj_constraints;
   std::vector<BenchmarkRequest> queries;
-
-  const std::string& group_name = opts.getGroupName();
 
   bool ok = loadPlanningScene(opts.getSceneName(), scene_msg) && loadStates(opts.getStartStateRegex(), start_states) &&
             loadPathConstraints(opts.getGoalConstraintRegex(), goal_constraints) &&

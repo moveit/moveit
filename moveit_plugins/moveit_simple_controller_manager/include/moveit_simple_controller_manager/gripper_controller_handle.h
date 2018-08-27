@@ -89,7 +89,7 @@ public:
       return false;
     }
 
-    std::vector<int> gripper_joint_indexes;
+    std::vector<std::size_t> gripper_joint_indexes;
     for (std::size_t i = 0; i < trajectory.joint_trajectory.joint_names.size(); ++i)
     {
       if (command_joints_.find(trajectory.joint_trajectory.joint_names[i]) != command_joints_.end())
@@ -120,7 +120,7 @@ public:
     // fill in goal from last point
     for (std::size_t i = 0; i < gripper_joint_indexes.size(); ++i)
     {
-      int idx = gripper_joint_indexes[i];
+      std::size_t idx = gripper_joint_indexes[i];
 
       if (trajectory.joint_trajectory.points[tpoint].positions.size() <= idx)
       {
