@@ -255,6 +255,7 @@ bool PerceptionWidget::focusLost()
     config_data_->clearSensorPluginConfig();
     config_data_->changes ^= MoveItConfigData::SENSORS_CONFIG;
   }
+  return true;
 }
 
 void PerceptionWidget::sensorPluginChanged(int index)

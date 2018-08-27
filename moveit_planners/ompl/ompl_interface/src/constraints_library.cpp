@@ -605,4 +605,5 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
     return sstor;
   }
+#warning "else case not yet handled: missing return value!"
 }

@@ -51,10 +51,10 @@ bool storeState(moveit_msgs::SaveRobotStateToWarehouse::Request& request,
   if (request.name.empty())
   {
     ROS_ERROR("You must specify a name to store a state");
-    return response.success = false;
+    return (response.success = false);
   }
   rs->addRobotState(request.state, request.name, request.robot);
-  return response.success = true;
+  return (response.success = true);
 }
 
 bool listStates(moveit_msgs::ListRobotStatesInWarehouse::Request& request,
