@@ -593,7 +593,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string& filen
 
       if (strings.size() != 6)
       {
-        ROS_WARN_STREAM("Invalid number of workspace parameters. Expected 6, recieved " << strings.size());
+        ROS_WARN_STREAM("Invalid number of workspace parameters. Expected 6, received " << strings.size());
       }
       else if (declared_options["scene.workspace_frame"].empty())
       {
@@ -719,7 +719,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string& filen
         if (strings.size() != 3)
         {
           ROS_WARN_STREAM("Invalid sweep parameter for key "
-                          << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved "
+                          << sweep_var << ". Expected 3 values (start, iterator, end) but only received "
                           << strings.size());
           continue;
         }

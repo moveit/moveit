@@ -188,7 +188,7 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, moveit_setup_assistant::Move
 }
 
 // ******************************************************************************************
-// Recieved when this widget is chosen from the navigation menu
+// Received when this widget is chosen from the navigation menu
 // ******************************************************************************************
 void PerceptionWidget::focusGiven()
 {
@@ -196,7 +196,7 @@ void PerceptionWidget::focusGiven()
 }
 
 // ******************************************************************************************
-// Recieved when another widget is chosen from the navigation menu
+// Received when another widget is chosen from the navigation menu
 // ******************************************************************************************
 bool PerceptionWidget::focusLost()
 {
