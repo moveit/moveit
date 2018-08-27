@@ -1164,7 +1164,7 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
       {
         std::string planner;
         parse(group_it->second, "default_planner_config", planner);
-        int pos = planner.find_last_not_of("kConfigDefault");
+        std::size_t pos = planner.find_last_not_of("kConfigDefault");
         if (pos != std::string::npos)
         {
           planner = planner.substr(0, pos + 1);

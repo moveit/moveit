@@ -384,7 +384,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       }
       else if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible())
       {
-        if (trajectory_slider_panel_->getSliderPosition() >= displaying_trajectory_message_->getWayPointCount() - 1)
+        if (static_cast<unsigned int>(trajectory_slider_panel_->getSliderPosition()) >= displaying_trajectory_message_->getWayPointCount() - 1)
           return;  // nothing more to do
         else
           animating_path_ = true;

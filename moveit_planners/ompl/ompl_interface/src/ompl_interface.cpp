@@ -291,7 +291,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         continue;
       }
 
-      for (std::size_t j = 0; j < config_names.size(); ++j)
+      for (int j = 0; j < config_names.size(); ++j)
       {
         if (config_names[j].getType() != XmlRpc::XmlRpcValue::TypeString)
         {

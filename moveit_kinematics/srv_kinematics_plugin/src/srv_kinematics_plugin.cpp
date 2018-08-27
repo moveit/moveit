@@ -154,7 +154,7 @@ bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
     ROS_ERROR_NAMED("srv", "This group cannot have redundant joints");
     return false;
   }
-  if (redundant_joints.size() > num_possible_redundant_joints_)
+  if (int(redundant_joints.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("srv", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;

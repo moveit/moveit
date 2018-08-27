@@ -1437,7 +1437,7 @@ void PlanningGroupsWidget::previewSelectedLink(std::vector<std::string> links)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < links.size(); ++i)
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     if (links[i].empty())
     {
@@ -1457,7 +1457,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < joints.size(); ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
@@ -1488,7 +1488,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < groups.size(); ++i)
+  for (std::size_t i = 0; i < groups.size(); ++i)
   {
     // Highlight group
     Q_EMIT highlightGroup(groups[i]);

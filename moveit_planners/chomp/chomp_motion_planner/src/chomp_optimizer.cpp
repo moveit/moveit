@@ -68,7 +68,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
   planning_scene->getCollisionDetectorNames(cd_names);
 
   ROS_INFO_STREAM("The following collision detectors are active in the planning scene.");
-  for (int i = 0; i < cd_names.size(); i++)
+  for (std::size_t i = 0; i < cd_names.size(); i++)
   {
     ROS_INFO_STREAM(cd_names[i]);
   }

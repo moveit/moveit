@@ -741,7 +741,7 @@ bool ConfigurationFilesWidget::checkGenFiles()
 
   // Check all old file's modification time
   bool found_modified = false;
-  for (int i = 0; i < gen_files_.size(); ++i)
+  for (std::size_t i = 0; i < gen_files_.size(); ++i)
   {
     GenerateFile* file = &gen_files_[i];
 
@@ -932,7 +932,7 @@ bool ConfigurationFilesWidget::generatePackage()
   // Begin to create files and folders ----------------------------------------------------------------------
   std::string absolute_path;
 
-  for (int i = 0; i < gen_files_.size(); ++i)
+  for (std::size_t i = 0; i < gen_files_.size(); ++i)
   {
     GenerateFile* file = &gen_files_[i];
 
@@ -1151,7 +1151,7 @@ bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, co
   template_stream.close();
 
   // Replace keywords in string ------------------------------------------------------------
-  for (int i = 0; i < template_strings_.size(); ++i)
+  for (std::size_t i = 0; i < template_strings_.size(); ++i)
   {
     boost::replace_all(template_string, template_strings_[i].first, template_strings_[i].second);
   }
