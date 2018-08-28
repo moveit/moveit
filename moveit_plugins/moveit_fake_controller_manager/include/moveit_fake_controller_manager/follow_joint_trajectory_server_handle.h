@@ -49,13 +49,12 @@ namespace moveit_fake_controller_manager
  */
 class FollowJointTrajectoryServerHandle
 {
-
 public:
   actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> follow_joint_trajectory_server;
 
-  FollowJointTrajectoryServerHandle(const ros::NodeHandle node_handle,
-                                    const std::string& name, const std::vector<std::string>& joints) :
-    follow_joint_trajectory_server(node_handle, name, false)
+  FollowJointTrajectoryServerHandle(const ros::NodeHandle node_handle, const std::string& name,
+                                    const std::vector<std::string>& joints)
+    : follow_joint_trajectory_server(node_handle, name, false)
   {
     follow_joint_trajectory_server.start();
   }
@@ -64,8 +63,8 @@ public:
   {
     follow_joint_trajectory_server.shutdown();
   }
-  
-  //virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory);
+
+// virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory);
 #if 0  
   {
     ROS_ERROR("sendTrajectory on FollowJointTrajectoryServerHandle");
@@ -143,7 +142,7 @@ protected:
   void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
   {
   }
-#endif  
+#endif
 };
 
 MOVEIT_CLASS_FORWARD(FollowJointTrajectoryServerHandle);

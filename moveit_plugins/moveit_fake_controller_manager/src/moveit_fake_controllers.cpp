@@ -44,7 +44,7 @@
 namespace moveit_fake_controller_manager
 {
 BaseFakeController::BaseFakeController(const std::string& name, const std::vector<std::string>& joints,
-                                       boost::function<void (const sensor_msgs::JointState)> update_js)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
   : moveit_controller_manager::MoveItControllerHandle(name), joints_(joints), update_js_(update_js)
 {
   std::stringstream ss;
@@ -65,7 +65,7 @@ moveit_controller_manager::ExecutionStatus BaseFakeController::getLastExecutionS
 }
 
 LastPointController::LastPointController(const std::string& name, const std::vector<std::string>& joints,
-                                         boost::function<void (const sensor_msgs::JointState)> update_js)
+                                         boost::function<void(const sensor_msgs::JointState)> update_js)
   : BaseFakeController(name, joints, update_js)
 {
 }
@@ -105,7 +105,7 @@ bool LastPointController::waitForExecution(const ros::Duration&)
 }
 
 ThreadedController::ThreadedController(const std::string& name, const std::vector<std::string>& joints,
-                                       boost::function<void (const sensor_msgs::JointState)> update_js)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
   : BaseFakeController(name, joints, update_js)
 {
 }
@@ -151,7 +151,7 @@ moveit_controller_manager::ExecutionStatus ThreadedController::getLastExecutionS
 }
 
 ViaPointController::ViaPointController(const std::string& name, const std::vector<std::string>& joints,
-                                       boost::function<void (const sensor_msgs::JointState)> update_js)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
   : ThreadedController(name, joints, update_js)
 {
 }
@@ -191,7 +191,7 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 }
 
 InterpolatingController::InterpolatingController(const std::string& name, const std::vector<std::string>& joints,
-                                                 boost::function<void (const sensor_msgs::JointState)> update_js)
+                                                 boost::function<void(const sensor_msgs::JointState)> update_js)
   : ThreadedController(name, joints, update_js), rate_(10)
 {
   double r;

@@ -109,11 +109,14 @@ public:
         const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
         if (type == "last point")
-          controllers_[name].reset(new LastPointController(name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
+          controllers_[name].reset(new LastPointController(
+              name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else if (type == "via points")
-          controllers_[name].reset(new ViaPointController(name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
+          controllers_[name].reset(new ViaPointController(
+              name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else if (type == "interpolate")
-          controllers_[name].reset(new InterpolatingController(name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
+          controllers_[name].reset(new InterpolatingController(
+              name, joints, boost::bind(&MoveItFakeControllerManager::updateJointState, this, _1)));
         else
           ROS_ERROR_STREAM("Unknown fake controller type: " << type);
       }
@@ -209,30 +212,29 @@ public:
    */
   void updateJointState(const sensor_msgs::JointState js)
   {
-    //pub_js_ = js;
+    // pub_js_ = js;
     int i = 0;
-    for (std::vector<std::string>::const_iterator name = js.name.begin(); name != js.name.end();
-         ++name, i++)
+    for (std::vector<std::string>::const_iterator name = js.name.begin(); name != js.name.end(); ++name, i++)
     {
       std::vector<std::string>::iterator it = std::find(pub_js_.name.begin(), pub_js_.name.end(), *name);
       if (it != pub_js_.name.end())
       {
         size_t j = std::distance(pub_js_.name.begin(), it);
-        if ( i < js.position.size() && j < pub_js_.position.size() )
+        if (i < js.position.size() && j < pub_js_.position.size())
           pub_js_.position[j] = js.position[i];
-        if ( i < js.velocity.size() && j < pub_js_.velocity.size() )
+        if (i < js.velocity.size() && j < pub_js_.velocity.size())
           pub_js_.velocity[j] = js.velocity[i];
-        if ( i < js.effort.size() && j < pub_js_.effort.size() )
+        if (i < js.effort.size() && j < pub_js_.effort.size())
           pub_js_.effort[j] = js.effort[i];
       }
       else
       {
         pub_js_.name.push_back(js.name[i]);
-        if ( i < js.position.size())
+        if (i < js.position.size())
           pub_js_.position.push_back(js.position[i]);
-        if ( i < js.velocity.size())
+        if (i < js.velocity.size())
           pub_js_.velocity.push_back(js.velocity[i]);
-        if ( i < js.effort.size())
+        if (i < js.effort.size())
           pub_js_.effort.push_back(js.effort[i]);
       }
     }
@@ -248,11 +250,13 @@ public:
     if (ros::param::get("~fake_interpolating_joint_state_rate", r))
       pub_js_rate_ = ros::WallRate(r);
 
-    while ( pub_js_thread_running() && ros::ok() )
+    while (pub_js_thread_running() && ros::ok())
     {
       pub_js_.header.stamp = ros::Time::now();
-      // add virtual noise for waitForCurrentState, which consider 'Didn't received robot state (joint angles) with recent timestamp within 1 sec'
-      for (size_t i = 0; i < pub_js_.position.size(); i++) {
+      // add virtual noise for waitForCurrentState, which consider 'Didn't received robot state (joint angles) with
+      // recent timestamp within 1 sec'
+      for (size_t i = 0; i < pub_js_.position.size(); i++)
+      {
         pub_js_.position[i] += dist(gen);
       }
       pub.publish(pub_js_);
