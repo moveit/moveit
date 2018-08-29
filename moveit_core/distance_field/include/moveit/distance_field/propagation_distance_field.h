@@ -551,16 +551,16 @@ private:
   VoxelGrid<PropDistanceFieldVoxel>::Ptr voxel_grid_; /**< \brief Actual container for distance data */
 
   /// \brief Structure used to hold propagation frontier
-  std::vector<std::vector<Eigen::Vector3i> > bucket_queue_; /**< \brief Data member that holds points from which to
-                                                               propagate, where each vector holds points that are a
-                                                               particular integer distance from the closest obstacle
-                                                               points*/
+  std::vector<std::vector<Eigen::Vector3i>> bucket_queue_; /**< \brief Data member that holds points from which to
+                                                              propagate, where each vector holds points that are a
+                                                              particular integer distance from the closest obstacle
+                                                              points*/
 
-  std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_; /**< \brief Data member that holds points from
-                                                                        which to propagate in the negative, where each
-                                                                        vector holds points that are a particular
-                                                                        integer distance from the closest unoccupied
-                                                                        points*/
+  std::vector<std::vector<Eigen::Vector3i>> negative_bucket_queue_; /**< \brief Data member that holds points from
+                                                                       which to propagate in the negative, where each
+                                                                       vector holds points that are a particular
+                                                                       integer distance from the closest unoccupied
+                                                                       points*/
 
   double max_distance_; /**< \brief Holds maximum distance  */
   int max_distance_sq_; /**< \brief Holds maximum distance squared in cells */
@@ -579,10 +579,10 @@ private:
    *
    */
 
-  std::vector<std::vector<std::vector<Eigen::Vector3i> > > neighborhoods_;
+  std::vector<std::vector<std::vector<Eigen::Vector3i>>> neighborhoods_;
 
- std::vector<Eigen::Vector3i> direction_number_to_direction_; /**< \brief Holds conversion from direction number to
-                                                                  integer changes */
+  std::vector<Eigen::Vector3i> direction_number_to_direction_; /**< \brief Holds conversion from direction number to
+                                                                   integer changes */
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
