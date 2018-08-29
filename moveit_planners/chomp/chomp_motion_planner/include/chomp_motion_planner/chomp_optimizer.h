@@ -81,6 +81,7 @@ public:
   {
     return is_collision_free_;
   }
+  typedef std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> StlVectorEigenVector3d;
 
 private:
   inline double getPotential(double field_distance, double radius, double clearence)
@@ -144,14 +145,14 @@ private:
   bool initialized_;
 
   std::vector<std::vector<std::string> > collision_point_joint_names_;
-  std::vector<std::vector<Eigen::Vector3d> > collision_point_pos_eigen_;
-  std::vector<std::vector<Eigen::Vector3d> > collision_point_vel_eigen_;
-  std::vector<std::vector<Eigen::Vector3d> > collision_point_acc_eigen_;
+  std::vector<StlVectorEigenVector3d> collision_point_pos_eigen_;
+  std::vector<StlVectorEigenVector3d> collision_point_vel_eigen_;
+  std::vector<StlVectorEigenVector3d> collision_point_acc_eigen_;
   std::vector<std::vector<double> > collision_point_potential_;
   std::vector<std::vector<double> > collision_point_vel_mag_;
-  std::vector<std::vector<Eigen::Vector3d> > collision_point_potential_gradient_;
-  std::vector<std::vector<Eigen::Vector3d> > joint_axes_;
-  std::vector<std::vector<Eigen::Vector3d> > joint_positions_;
+  std::vector<StlVectorEigenVector3d> collision_point_potential_gradient_;
+  std::vector<StlVectorEigenVector3d> joint_axes_;
+  std::vector<StlVectorEigenVector3d> joint_positions_;
   Eigen::MatrixXd group_trajectory_backup_;
   Eigen::MatrixXd best_group_trajectory_;
   double best_group_trajectory_cost_;
