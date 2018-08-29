@@ -152,15 +152,15 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   }
   compareEigen_Vector3i comp;
 
-  std::vector<Eigen::Vector3i> old_not_new;
+  StlVectorEigenVector3i old_not_new;
   std::set_difference(old_point_set.begin(), old_point_set.end(), new_point_set.begin(), new_point_set.end(),
                       std::inserter(old_not_new, old_not_new.end()), comp);
 
-  std::vector<Eigen::Vector3i> new_not_old;
+  StlVectorEigenVector3i new_not_old;
   std::set_difference(new_point_set.begin(), new_point_set.end(), old_point_set.begin(), old_point_set.end(),
                       std::inserter(new_not_old, new_not_old.end()), comp);
 
-  std::vector<Eigen::Vector3i> new_not_in_current;
+  StlVectorEigenVector3i new_not_in_current;
   for (unsigned int i = 0; i < new_not_old.size(); i++)
   {
     if (voxel_grid_->getCell(new_not_old[i].x(), new_not_old[i].y(), new_not_old[i].z()).distance_square_ != 0)
@@ -184,7 +184,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
 {
-  std::vector<Eigen::Vector3i> voxel_points;
+  StlVectorEigenVector3i voxel_points;
 
   for (unsigned int i = 0; i < points.size(); i++)
   {
@@ -205,7 +205,7 @@ void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d&
 
 void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vector3d& points)
 {
-  std::vector<Eigen::Vector3i> voxel_points;
+  StlVectorEigenVector3i voxel_points;
   // VoxelSet voxel_locs;
 
   for (unsigned int i = 0; i < points.size(); i++)
@@ -226,11 +226,11 @@ void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vect
   removeObstacleVoxels(voxel_points);
 }
 
-void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
+void PropagationDistanceField::addNewObstacleVoxels(const StlVectorEigenVector3i& voxel_points)
 {
   int initial_update_direction = getDirectionNumber(0, 0, 0);
   bucket_queue_[0].reserve(voxel_points.size());
-  std::vector<Eigen::Vector3i> negative_stack;
+  StlVectorEigenVector3i negative_stack;
   if (propagate_negative_)
   {
     negative_stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
@@ -308,11 +308,11 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
   }
 }
 
-void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vector3i>& voxel_points)
+void PropagationDistanceField::removeObstacleVoxels(const StlVectorEigenVector3i& voxel_points)
 // const VoxelSet& locations )
 {
-  std::vector<Eigen::Vector3i> stack;
-  std::vector<Eigen::Vector3i> negative_stack;
+  StlVectorEigenVector3i stack;
+  StlVectorEigenVector3i negative_stack;
   int initial_update_direction = getDirectionNumber(0, 0, 0);
 
   stack.reserve(getXNumCells() * getYNumCells() * getZNumCells());
@@ -400,15 +400,15 @@ void PropagationDistanceField::propagatePositive()
   // now process the queue:
   for (unsigned int i = 0; i < bucket_queue_.size(); ++i)
   {
-    std::vector<Eigen::Vector3i>::iterator list_it = bucket_queue_[i].begin();
-    std::vector<Eigen::Vector3i>::iterator list_end = bucket_queue_[i].end();
+    StlVectorEigenVector3i::iterator list_it = bucket_queue_[i].begin();
+    StlVectorEigenVector3i::iterator list_end = bucket_queue_[i].end();
     for (; list_it != list_end; ++list_it)
     {
       const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
-      std::vector<Eigen::Vector3i>* neighborhood;
+      StlVectorEigenVector3i* neighborhood;
       int D = i;
       if (D > 1)
         D = 1;
@@ -458,15 +458,15 @@ void PropagationDistanceField::propagateNegative()
   // now process the queue:
   for (unsigned int i = 0; i < negative_bucket_queue_.size(); ++i)
   {
-    std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
-    std::vector<Eigen::Vector3i>::iterator list_end = negative_bucket_queue_[i].end();
+    StlVectorEigenVector3i::iterator list_it = negative_bucket_queue_[i].begin();
+    StlVectorEigenVector3i::iterator list_end = negative_bucket_queue_[i].end();
     for (; list_it != list_end; ++list_it)
     {
       const Eigen::Vector3i& loc = *list_it;
       PropDistanceFieldVoxel* vptr = &voxel_grid_->getCell(loc.x(), loc.y(), loc.z());
 
       // select the neighborhood list based on the update direction:
-      std::vector<Eigen::Vector3i>* neighborhood;
+      StlVectorEigenVector3i* neighborhood;
       int D = i;
       if (D > 1)
         D = 1;
@@ -741,7 +741,7 @@ bool PropagationDistanceField::readFromStream(std::istream& is)
 
   // std::cout << "Nums " << getXNumCells() << " " << getYNumCells() << " " << getZNumCells() << std::endl;
 
-  std::vector<Eigen::Vector3i> obs_points;
+  StlVectorEigenVector3i obs_points;
   for (unsigned int x = 0; x < static_cast<unsigned int>(getXNumCells()); x++)
   {
     for (unsigned int y = 0; y < static_cast<unsigned int>(getYNumCells()); y++)
