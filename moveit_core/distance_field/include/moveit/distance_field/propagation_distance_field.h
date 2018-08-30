@@ -44,6 +44,12 @@
 #include <Eigen/Core>
 #include <set>
 #include <octomap/octomap.h>
+
+namespace EigenSTL
+{
+typedef std::vector<Eigen::Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> vector_Vector3i;
+}
+
 namespace distance_field
 {
 /**
@@ -440,17 +446,16 @@ public:
   {
     return max_distance_sq_;
   }
-  typedef std::vector<Eigen::Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> StlVectorEigenVector3i;
 
 private:
-  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>>
-      VoxelSet; /**< \brief Typedef for set of integer indices */
-                /**
-                 * \brief Initializes the field, resetting the voxel grid and
-                 * building a sqrt lookup table for efficiency based on
-                 * max_distance_.
-                 *
-                 */
+  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
+  /**< \brief Typedef for set of integer indices */
+  /**
+   * \brief Initializes the field, resetting the voxel grid and
+   * building a sqrt lookup table for efficiency based on
+   * max_distance_.
+   *
+   */
   void initialize();
 
   /**
@@ -458,14 +463,14 @@ private:
    *
    * @param voxel_points Valid set of voxel points for addition
    */
-  void addNewObstacleVoxels(const StlVectorEigenVector3i& voxel_points);
+  void addNewObstacleVoxels(const EigenSTL::vector_Vector3i& voxel_points);
 
   /**
    * \brief Removes a valid set of integer points from the voxel grid
    *
    * @param voxel_points Valid set of voxel points for removal
    */
-  void removeObstacleVoxels(const StlVectorEigenVector3i& voxel_points);
+  void removeObstacleVoxels(const EigenSTL::vector_Vector3i& voxel_points);
 
   /**
    * \brief Propagates outward to the maximum distance given the
@@ -550,12 +555,12 @@ private:
   VoxelGrid<PropDistanceFieldVoxel>::Ptr voxel_grid_; /**< \brief Actual container for distance data */
 
   /// \brief Structure used to hold propagation frontier
-  std::vector<StlVectorEigenVector3i> bucket_queue_; /**< \brief Data member that holds points from which to
+  std::vector<EigenSTL::vector_Vector3i> bucket_queue_; /**< \brief Data member that holds points from which to
                                                               propagate, where each vector holds points that are a
                                                               particular integer distance from the closest obstacle
                                                               points*/
 
-  std::vector<StlVectorEigenVector3i> negative_bucket_queue_; /**< \brief Data member that holds points from
+  std::vector<EigenSTL::vector_Vector3i> negative_bucket_queue_; /**< \brief Data member that holds points from
                                                                        which to propagate in the negative, where each
                                                                        vector holds points that are a particular
                                                                        integer distance from the closest unoccupied
@@ -578,9 +583,9 @@ private:
    *
    */
 
-  std::vector<std::vector<StlVectorEigenVector3i>> neighborhoods_;
+  std::vector<std::vector<EigenSTL::vector_Vector3i>> neighborhoods_;
 
-  StlVectorEigenVector3i direction_number_to_direction_; /**< \brief Holds conversion from direction number to
+  EigenSTL::vector_Vector3i direction_number_to_direction_; /**< \brief Holds conversion from direction number to
                                                                   integer changes */
 };
 
