@@ -243,11 +243,11 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
     emitter << YAML::Key << "default_planner_config" << YAML::Value
-            << group_meta_data_[group_it->name_].default_planner_ + "kConfigDefault";
+            << group_meta_data_[group_it->name_].default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (std::size_t i = 0; i < pconfigs.size(); ++i)
-      emitter << pconfigs[i] + "kConfigDefault";
+      emitter << pconfigs[i];
     emitter << YAML::EndSeq;
 
     // Output projection_evaluator
@@ -1164,10 +1164,10 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
       {
         std::string planner;
         parse(group_it->second, "default_planner_config", planner);
-        std::size_t pos = planner.find_last_not_of("kConfigDefault");
+        std::size_t pos = planner.find("kConfigDefault");
         if (pos != std::string::npos)
         {
-          planner = planner.substr(0, pos + 1);
+          planner = planner.substr(0, pos);
         }
         group_meta_data_[group_name].default_planner_ = planner;
       }
