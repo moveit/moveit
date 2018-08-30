@@ -448,8 +448,8 @@ public:
   }
 
 private:
+  /** Typedef for set of integer indices */
   typedef std::set<Eigen::Vector3i, compareEigen_Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
-  /**< \brief Typedef for set of integer indices */
   /**
    * \brief Initializes the field, resetting the voxel grid and
    * building a sqrt lookup table for efficiency based on
