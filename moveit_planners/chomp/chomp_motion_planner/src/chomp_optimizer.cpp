@@ -163,15 +163,15 @@ void ChompOptimizer::initialize()
   best_group_trajectory_ = group_trajectory_.getTrajectory();
 
   collision_point_joint_names_.resize(num_vars_all_, std::vector<std::string>(num_collision_points_));
-  collision_point_pos_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
-  collision_point_vel_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
-  collision_point_acc_eigen_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
-  joint_axes_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_joints_));
-  joint_positions_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_joints_));
+  collision_point_pos_eigen_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_collision_points_));
+  collision_point_vel_eigen_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_collision_points_));
+  collision_point_acc_eigen_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_collision_points_));
+  joint_axes_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_joints_));
+  joint_positions_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_joints_));
 
   collision_point_potential_.resize(num_vars_all_, std::vector<double>(num_collision_points_));
   collision_point_vel_mag_.resize(num_vars_all_, std::vector<double>(num_collision_points_));
-  collision_point_potential_gradient_.resize(num_vars_all_, std::vector<Eigen::Vector3d>(num_collision_points_));
+  collision_point_potential_gradient_.resize(num_vars_all_, EigenSTL::vector_Vector3d(num_collision_points_));
 
   collision_free_iteration_ = 0;
   is_collision_free_ = false;

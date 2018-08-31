@@ -291,7 +291,7 @@ unsigned int countLeafNodes(const octomap::OcTree& octree)
 void check_distance_field(const PropagationDistanceField& df, const EigenSTL::vector_Vector3d& points, int numX,
                           int numY, int numZ, bool do_negs)
 {
-  std::vector<Eigen::Vector3i> points_ind(points.size());
+  EigenSTL::vector_Vector3i points_ind(points.size());
   for (unsigned int i = 0; i < points.size(); i++)
   {
     Eigen::Vector3i loc;
