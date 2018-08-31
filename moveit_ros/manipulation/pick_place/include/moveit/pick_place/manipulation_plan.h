@@ -85,6 +85,8 @@ MOVEIT_CLASS_FORWARD(ManipulationPlan);
 
 struct ManipulationPlan
 {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   ManipulationPlan(const ManipulationPlanSharedDataConstPtr& shared_data)
     : shared_data_(shared_data), processing_stage_(0)
   {

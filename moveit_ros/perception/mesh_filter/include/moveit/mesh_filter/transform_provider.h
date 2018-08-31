@@ -133,6 +133,7 @@ private:
     {
       transformation_.matrix().setZero();
     }
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     std::string frame_id_;
     Eigen::Affine3d transformation_;
     boost::mutex mutex_;
