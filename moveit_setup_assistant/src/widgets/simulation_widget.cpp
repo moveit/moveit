@@ -94,6 +94,11 @@ SimulationWidget::SimulationWidget(QWidget* parent, moveit_setup_assistant::Move
   layout->setAlignment(btn_generate, Qt::AlignLeft);
   connect(btn_generate, SIGNAL(clicked()), this, SLOT(generateURDFClick()));
 
+  // Optional generation of gazebo launch file
+  gazebo_generate_option_ = new QCheckBox("&Generate Gazebo launch file", this);
+  layout->addWidget(gazebo_generate_option_);
+  layout->setAlignment(gazebo_generate_option_, Qt::AlignRight);
+
   // When there wa no change to be made
   no_changes_label_ = new QLabel(this);
   no_changes_label_->setText("No Changes To Be Made");
@@ -197,6 +202,18 @@ void SimulationWidget::copyURDF(const QString& link)
 {
   simulation_text_->selectAll();
   simulation_text_->copy();
+}
+
+// ******************************************************************************************
+// Received when another widget is chosen from the navigation menu
+// ******************************************************************************************
+bool SimulationWidget::focusLost()
+{
+  // If we the user chose to generate a gazebo launch file
+  if (gazebo_generate_option_->isChecked())
+    config_data_->generate_gazebo_launch_ = true;
+  else
+    config_data_->generate_gazebo_launch_ = false;
 }
 
 }  // namespace

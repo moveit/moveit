@@ -64,7 +64,7 @@ const std::string SETUP_ASSISTANT_FILE = ".setup_assistant";
 // ******************************************************************************************
 ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent,
                                                    moveit_setup_assistant::MoveItConfigDataPtr config_data)
-  : SetupScreenWidget(parent), config_data_(config_data), has_generated_pkg_(false), first_focusGiven_(true)
+  : SetupScreenWidget(parent), config_data_(config_data), has_generated_pkg_(false)
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -518,6 +518,17 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // gazebo.launch ------------------------------------------------------------------
+  file.file_name_ = "gazebo.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, "gazebo.launch");
+  file.description_ = "Gazebo launch file which also launches ros_controllers and sends robot urdf to param server, "
+                      "then using gazebo_ros pkg the robot is spawned to Gazebo";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.generate_ = config_data_->generate_gazebo_launch_;
+  file.write_on_changes = -1;
+  gen_files_.push_back(file);
+
   // moveit.rviz ------------------------------------------------------------------
   file.file_name_ = "moveit.rviz";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
@@ -684,14 +695,8 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 // ******************************************************************************************
 void ConfigurationFilesWidget::focusGiven()
 {
-  if (first_focusGiven_)
-  {
-    // only generate list once
-    first_focusGiven_ = false;
-
-    // Load this list of all files to be generated
-    loadGenFiles();
-  }
+  // Load this list of all files to be generated
+  loadGenFiles();
 
   // Which files have been modified outside the Setup Assistant?
   bool files_already_modified = checkGenFiles();

@@ -278,6 +278,9 @@ public:
   /// Email of the author of this config
   std::string author_email_;
 
+  /// Optional generation of gazebo launch file
+  bool generate_gazebo_launch_ = false;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
