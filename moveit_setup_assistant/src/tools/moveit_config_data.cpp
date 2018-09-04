@@ -387,34 +387,83 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
   urdf_document.Parse((const char*)urdf_string_.c_str(), 0, TIXML_ENCODING_UTF8);
   try
   {
-    for (TiXmlElement* link_element = urdf_document.RootElement()->FirstChildElement(); link_element != NULL;
-         link_element = link_element->NextSiblingElement())
+    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != NULL;
+         doc_element = doc_element->NextSiblingElement())
     {
-      if (((std::string)link_element->Value()).find("link") == std::string::npos)
-        continue;
-      // Before adding inertial elements, make sure there is none and the link has collision element
-      if (link_element->FirstChildElement("inertial") == NULL && link_element->FirstChildElement("collision") != NULL)
+      if (((std::string)doc_element->Value()).find("link") != std::string::npos)
       {
-        new_urdf_needed = true;
-        TiXmlElement inertia_link("inertial");
-        TiXmlElement mass("mass");
-        TiXmlElement inertia_joint("inertia");
+        // Before adding inertial elements, make sure there is none and the link has collision element
+        if (doc_element->FirstChildElement("inertial") == NULL && doc_element->FirstChildElement("collision") != NULL)
+        {
+          new_urdf_needed = true;
+          TiXmlElement inertia_link("inertial");
+          TiXmlElement mass("mass");
+          TiXmlElement inertia_joint("inertia");
 
-        mass.SetAttribute("value", "0.1");
+          mass.SetAttribute("value", "0.1");
 
-        inertia_joint.SetAttribute("ixx", "0.03");
-        inertia_joint.SetAttribute("iyy", "0.03");
-        inertia_joint.SetAttribute("izz", "0.03");
-        inertia_joint.SetAttribute("ixy", "0.0");
-        inertia_joint.SetAttribute("ixz", "0.0");
-        inertia_joint.SetAttribute("iyz", "0.0");
+          inertia_joint.SetAttribute("ixx", "0.03");
+          inertia_joint.SetAttribute("iyy", "0.03");
+          inertia_joint.SetAttribute("izz", "0.03");
+          inertia_joint.SetAttribute("ixy", "0.0");
+          inertia_joint.SetAttribute("ixz", "0.0");
+          inertia_joint.SetAttribute("iyz", "0.0");
 
-        inertia_link.InsertEndChild(mass);
-        inertia_link.InsertEndChild(inertia_joint);
+          inertia_link.InsertEndChild(mass);
+          inertia_link.InsertEndChild(inertia_joint);
 
-        link_element->InsertEndChild(inertia_link);
+          doc_element->InsertEndChild(inertia_link);
+        }
+        // Don't check the next if condition
+        continue;
+      }
+      if (((std::string)doc_element->Value()).find("joint") != std::string::npos)
+      {
+        // Before adding a transmission element, make sure there the joint is not fixed
+        if (doc_element->Attribute("type") != "fixed")
+        {
+          new_urdf_needed = true;
+          TiXmlElement transmission("transmission");
+          TiXmlElement type("type");
+          TiXmlElement joint("joint");
+          TiXmlElement hardwareInterface("hardwareInterface");
+          TiXmlElement actuator("actuator");
+          TiXmlElement mechanical_reduction("mechanicalReduction");
+
+          transmission.SetAttribute("name", std::string("trans_") + (std::string)doc_element->Attribute("name"));
+          joint.SetAttribute("name", (std::string)doc_element->Attribute("name"));
+          actuator.SetAttribute("name", (std::string)doc_element->Attribute("name") + std::string("_motor"));
+
+          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
+          transmission.InsertEndChild(type);
+
+          hardwareInterface.InsertEndChild(TiXmlText("EffortJointInterface"));
+          joint.InsertEndChild(hardwareInterface);
+          transmission.InsertEndChild(joint);
+
+          mechanical_reduction.InsertEndChild(TiXmlText("1"));
+          actuator.InsertEndChild(hardwareInterface);
+          actuator.InsertEndChild(mechanical_reduction);
+          transmission.InsertEndChild(actuator);
+
+          urdf_document.RootElement()->InsertEndChild(transmission);
+        }
       }
     }
+
+    // Add gazebo_ros_control plugin which reads the transmission tags
+    TiXmlElement gazebo("gazebo");
+    TiXmlElement plugin("plugin");
+    TiXmlElement robot_namespace("robotNamespace");
+
+    plugin.SetAttribute("name", std::string("gazebo_ros_control"));
+    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
+    robot_namespace.InsertEndChild(TiXmlText(std::string("/") + srdf_->srdf_model_->getName()));
+
+    plugin.InsertEndChild(robot_namespace);
+    gazebo.InsertEndChild(plugin);
+
+    urdf_document.RootElement()->InsertEndChild(gazebo);
   }
   catch (YAML::ParserException& e)  // Catch errors
   {
