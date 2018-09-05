@@ -31,4 +31,5 @@
   <run_depend>xacro</run_depend>
   <run_depend version_gt="0.3.1">srdfdom</run_depend>
 
+  <test_depend>moveit_resources</test_depend>
 </package>
