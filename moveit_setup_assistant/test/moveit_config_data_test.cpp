@@ -103,6 +103,9 @@ TEST_F(MoveItConfigData, ReadingControllers)
   // Temporary file used during the test and is deleted when the test is finished
   char test_file[] = "/tmp/msa_unittest_ros_controller.yaml";
 
+  // Temporary file used during the test and is deleted when the test is finished
+  char test_file[] = "/tmp/msa_unittest_ros_controller.yaml";
+
   // ros_controller.yaml written correctly
   EXPECT_EQ(config_data->outputROSControllersYAML(test_file), true);
 
