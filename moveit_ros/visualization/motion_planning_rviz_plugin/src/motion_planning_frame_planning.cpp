@@ -114,7 +114,7 @@ void MotionPlanningFrame::onClearOctomapClicked()
   clear_octomap_service_client_.call(srv);
 }
 
-void MotionPlanningFrame::computeCartesianPlanButtonClicked()
+void MotionPlanningFrame::computeCartesianPlan()
 {
   if (!move_group_)
     return;
@@ -184,7 +184,7 @@ void MotionPlanningFrame::computeCartesianPlanButtonClicked()
   }
 }
 
-void MotionPlanningFrame::computeJointSpacePlanButtonClicked()
+void MotionPlanningFrame::computeJointSpacePlan()
 {
   if (!move_group_)
     return;
@@ -214,9 +214,9 @@ void MotionPlanningFrame::computeJointSpacePlanButtonClicked()
 void MotionPlanningFrame::computePlanButtonClicked()
 {
   if (ui_->use_cartesian_path->checkState())
-    return computeCartesianPlanButtonClicked();
+    return computeCartesianPlan();
   else
-    return computeJointSpacePlanButtonClicked();
+    return computeJointSpacePlan();
 }
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
@@ -241,7 +241,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   bool success;
   if (ui_->use_cartesian_path->checkState())
   {
-    computeCartesianPlanButtonClicked();
+    computeCartesianPlan();
     computeExecuteButtonClicked();
   }
   else

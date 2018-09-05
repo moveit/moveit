@@ -150,8 +150,8 @@ private Q_SLOTS:
   void approximateIKChanged(int state);
 
   // Planning tab
-  void computeCartesianPlanButtonClicked();
-  void computeJointSpacePlanButtonClicked();
+  void computeCartesianPlan();
+  void computeJointSpacePlan();
   void planButtonClicked();
   void executeButtonClicked();
   void planAndExecuteButtonClicked();
