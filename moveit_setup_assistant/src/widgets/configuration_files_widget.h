@@ -136,9 +136,6 @@ private:
   /// Has the package been generated yet this program execution? Used for popping up exit warning
   bool has_generated_pkg_;
 
-  /// Populate the 'Files to be Generated' list just once
-  bool first_focusGiven_;
-
   /// Vector of all files to be generated
   std::vector<GenerateFile> gen_files_;
 

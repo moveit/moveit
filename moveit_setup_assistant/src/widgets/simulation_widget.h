@@ -39,6 +39,7 @@
 // Qt
 #include <QScrollArea>
 #include <QTextEdit>
+#include <QCheckBox>
 #include <QString>
 
 // SA
@@ -67,6 +68,9 @@ public:
 
   SimulationWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
+  /// Received when another widget is chosen from the navigation menu
+  virtual bool focusLost();
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -87,6 +91,7 @@ private:
   QTextEdit* simulation_text_;
   QLabel* no_changes_label_;
   QLabel* copy_urdf_;
+  QCheckBox* gazebo_generate_option_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
