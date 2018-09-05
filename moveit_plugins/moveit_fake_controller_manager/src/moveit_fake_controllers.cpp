@@ -44,8 +44,8 @@
 namespace moveit_fake_controller_manager
 {
 BaseFakeController::BaseFakeController(const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
-  : moveit_controller_manager::MoveItControllerHandle(name), joints_(joints), pub_(pub)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
+  : moveit_controller_manager::MoveItControllerHandle(name), joints_(joints), update_js_(update_js)
 {
   std::stringstream ss;
   ss << "Fake controller '" << name << "' with joints [ ";
@@ -65,8 +65,8 @@ moveit_controller_manager::ExecutionStatus BaseFakeController::getLastExecutionS
 }
 
 LastPointController::LastPointController(const std::string& name, const std::vector<std::string>& joints,
-                                         const ros::Publisher& pub)
-  : BaseFakeController(name, joints, pub)
+                                         boost::function<void(const sensor_msgs::JointState)> update_js)
+  : BaseFakeController(name, joints, update_js)
 {
 }
 
@@ -88,7 +88,7 @@ bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
   js.position = last.positions;
   js.velocity = last.velocities;
   js.effort = last.effort;
-  pub_.publish(js);
+  update_js_(js);
 
   return true;
 }
@@ -105,8 +105,8 @@ bool LastPointController::waitForExecution(const ros::Duration&)
 }
 
 ThreadedController::ThreadedController(const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
-  : BaseFakeController(name, joints, pub)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
+  : BaseFakeController(name, joints, update_js)
 {
 }
 
@@ -151,8 +151,8 @@ moveit_controller_manager::ExecutionStatus ThreadedController::getLastExecutionS
 }
 
 ViaPointController::ViaPointController(const std::string& name, const std::vector<std::string>& joints,
-                                       const ros::Publisher& pub)
-  : ThreadedController(name, joints, pub)
+                                       boost::function<void(const sensor_msgs::JointState)> update_js)
+  : ThreadedController(name, joints, update_js)
 {
 }
 
@@ -185,14 +185,14 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
       waitTime.sleep();
     }
     js.header.stamp = ros::Time::now();
-    pub_.publish(js);
+    update_js_(js);
   }
   ROS_DEBUG("Fake execution of trajectory: done");
 }
 
 InterpolatingController::InterpolatingController(const std::string& name, const std::vector<std::string>& joints,
-                                                 const ros::Publisher& pub)
-  : ThreadedController(name, joints, pub), rate_(10)
+                                                 boost::function<void(const sensor_msgs::JointState)> update_js)
+  : ThreadedController(name, joints, update_js), rate_(10)
 {
   double r;
   if (ros::param::get("~fake_interpolating_controller_rate", r))
@@ -256,7 +256,7 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
                                                                   1.0);
     interpolate(js, *prev, *next, elapsed);
     js.header.stamp = ros::Time::now();
-    pub_.publish(js);
+    update_js_(js);
     rate_.sleep();
   }
   if (cancelled())
@@ -269,7 +269,7 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
   // publish last point
   interpolate(js, *prev, *prev, prev->time_from_start);
   js.header.stamp = ros::Time::now();
-  pub_.publish(js);
+  update_js_(js);
 
   ROS_DEBUG("Fake execution of trajectory: done");
 }
