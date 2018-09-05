@@ -213,7 +213,7 @@ void MotionPlanningFrame::computeJointSpacePlanButtonClicked()
 
 void MotionPlanningFrame::computePlanButtonClicked()
 {
-  if (ui_->cartesian_path->checkState())
+  if (ui_->use_cartesian_path->checkState())
     return computeCartesianPlanButtonClicked();
   else
     return computeJointSpacePlanButtonClicked();
@@ -239,7 +239,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   move_group_->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
   bool success;
-  if (ui_->cartesian_path->checkState())
+  if (ui_->use_cartesian_path->checkState())
   {
     computeCartesianPlanButtonClicked();
     computeExecuteButtonClicked();

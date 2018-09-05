@@ -782,9 +782,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="cartesian_path">
+           <widget class="QCheckBox" name="use_cartesian_path">
             <property name="text">
-             <string>Cartesian Path</string>
+             <string>Use Cartesian Path</string>
             </property>
             <property name="checked">
              <bool>false</bool>
