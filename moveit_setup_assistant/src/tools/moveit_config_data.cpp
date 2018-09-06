@@ -375,6 +375,21 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Helper function to get the controller that is controlling the joint
+// ******************************************************************************************
+std::string MoveItConfigData::getJointController(std::string joint_name)
+{
+  for(size_t i = 0; i < ros_controllers_config_.size(); i++)
+  {
+    std::vector<std::string>::iterator joint_it = std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
+    // Found this joint in this controller and it want a FollowJointTrajectory because that means it belongs to the controllers_list namespace which is used by the controller manager
+    if (joint_it != ros_controllers_config_[i].joints_.end() && ros_controllers_config_[i].type_ != "FollowJointTrajectory")
+      return ros_controllers_config_[i].type_;
+  }
+  return std::string("position_controllers/JointTrajectoryController");
+}
+
+// ******************************************************************************************
 // Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
 // ******************************************************************************************
 std::string MoveItConfigData::getGazeboCompatibleURDF()
@@ -420,9 +435,10 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       if (((std::string)doc_element->Value()).find("joint") != std::string::npos)
       {
         // Before adding a transmission element, make sure there the joint is not fixed
-        if (doc_element->Attribute("type") != "fixed")
+        if ((std::string)doc_element->Attribute("type") != "fixed")
         {
           new_urdf_needed = true;
+          std::string joint_name = (std::string)doc_element->Attribute("name");
           TiXmlElement transmission("transmission");
           TiXmlElement type("type");
           TiXmlElement joint("joint");
@@ -430,14 +446,14 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           TiXmlElement actuator("actuator");
           TiXmlElement mechanical_reduction("mechanicalReduction");
 
-          transmission.SetAttribute("name", std::string("trans_") + (std::string)doc_element->Attribute("name"));
-          joint.SetAttribute("name", (std::string)doc_element->Attribute("name"));
-          actuator.SetAttribute("name", (std::string)doc_element->Attribute("name") + std::string("_motor"));
+          transmission.SetAttribute("name", std::string("trans_") + joint_name);
+          joint.SetAttribute("name", joint_name);
+          actuator.SetAttribute("name", joint_name + std::string("_motor"));
 
           type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
           transmission.InsertEndChild(type);
 
-          hardwareInterface.InsertEndChild(TiXmlText("EffortJointInterface"));
+          hardwareInterface.InsertEndChild(TiXmlText(getJointController(joint_name).c_str()));
           joint.InsertEndChild(hardwareInterface);
           transmission.InsertEndChild(joint);
 
@@ -458,7 +474,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
     plugin.SetAttribute("name", std::string("gazebo_ros_control"));
     plugin.SetAttribute("filename", "libgazebo_ros_control.so");
-    robot_namespace.InsertEndChild(TiXmlText(std::string("/") + srdf_->srdf_model_->getName()));
+    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
 
     plugin.InsertEndChild(robot_namespace);
     gazebo.InsertEndChild(plugin);
@@ -809,10 +825,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
 
-  // Start with the robot name  ---------------------------------------------------
-  emitter << YAML::Key << srdf_->srdf_model_->getName();
-  emitter << YAML::Value << YAML::BeginMap;
-
   {
     emitter << YAML::Comment("MoveIt-specific simulation settings");
     emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
@@ -941,7 +953,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::EndMap;
     }
   }
-  emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
   if (!output_stream.good())

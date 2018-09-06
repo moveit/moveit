@@ -328,6 +328,12 @@ public:
   bool output3DSensorPluginYAML(const std::string& file_path);
 
   /**
+   * \brief Helper function to get the controller that is controlling the joint
+   * \return controller type
+   */
+  std::string getJointController(std::string joint_name);
+
+  /**
    * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
    * added
    * \return gazebo compatible urdf or empty if error encountered

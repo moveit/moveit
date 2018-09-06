@@ -488,6 +488,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
+  // demo_gazebo.launch ------------------------------------------------------------------
+  file.file_name_ = "demo_gazebo.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Run a demo of MoveIt. with gazebo and rviz";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
   // joystick_control.launch ------------------------------------------------------------------
   file.file_name_ = "joystick_control.launch";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);

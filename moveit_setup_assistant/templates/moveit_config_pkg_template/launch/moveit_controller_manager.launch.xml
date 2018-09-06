@@ -1,3 +1,6 @@
 <launch>
-
+  <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
+  <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
+  <!-- load controller_list -->
+  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/ros_controllers.yaml"/>
 </launch>

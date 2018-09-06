@@ -6,12 +6,6 @@
 
   <!-- Load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" ns="[ROBOT_NAME]" args="[ROS_CONTROLLERS]"/>
-
-  <!-- Convert joint states to TF transforms for rviz, etc -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-    respawn="false" output="screen">
-    <remap from="/joint_states" to="[ROBOT_NAME]/joint_states" />
-  </node>
+    output="screen" args="[ROS_CONTROLLERS]"/>
 
 </launch>
