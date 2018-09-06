@@ -414,10 +414,11 @@ bool StartScreenWidget::loadExistingFiles()
   // Load 3d_sensors config file
   load3DSensorsFile();
 
+  // TODO: after removing the robot namespace from ros_controllers.yaml, inputROSControllersYAML needs to be refactored
   // Load ros controllers yaml file if available-----------------------------------------------
-  fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
-  ros_controllers_yaml_path /= "config/ros_controllers.yaml";
-  config_data_->inputROSControllersYAML(ros_controllers_yaml_path.make_preferred().native().c_str());
+  // fs::path ros_controllers_yaml_path = config_data_->config_pkg_path_;
+  // ros_controllers_yaml_path /= "config/ros_controllers.yaml";
+  // config_data_->inputROSControllersYAML(ros_controllers_yaml_path.make_preferred().native().c_str());
 
   fs::path ompl_yaml_path = config_data_->config_pkg_path_;
   ompl_yaml_path /= "config/ompl_planning.yaml";

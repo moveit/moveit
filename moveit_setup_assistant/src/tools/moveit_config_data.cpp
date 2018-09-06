@@ -377,16 +377,23 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 // ******************************************************************************************
 // Helper function to get the controller that is controlling the joint
 // ******************************************************************************************
-std::string MoveItConfigData::getJointController(std::string joint_name)
+std::string MoveItConfigData::getJointHardwareInterface(std::string joint_name)
 {
-  for(size_t i = 0; i < ros_controllers_config_.size(); i++)
+  for (size_t i = 0; i < ros_controllers_config_.size(); i++)
   {
-    std::vector<std::string>::iterator joint_it = std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
-    // Found this joint in this controller and it want a FollowJointTrajectory because that means it belongs to the controllers_list namespace which is used by the controller manager
-    if (joint_it != ros_controllers_config_[i].joints_.end() && ros_controllers_config_[i].type_ != "FollowJointTrajectory")
-      return ros_controllers_config_[i].type_;
+    std::vector<std::string>::iterator joint_it =
+        std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
+    if (joint_it != ros_controllers_config_[i].joints_.end())
+    {
+      if (ros_controllers_config_[i].type_.substr(0, 6) == "positi")
+        return "hardware_interface/PositionJointInterface";
+      else if (ros_controllers_config_[i].type_.substr(0, 6) == "veloci")
+        return "hardware_interface/VelocityJointInterface";
+      else
+        return "hardware_interface/EffortJointInterface";
+    }
   }
-  return std::string("position_controllers/JointTrajectoryController");
+  return "hardware_interface/EffortJointInterface";
 }
 
 // ******************************************************************************************
@@ -453,7 +460,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
           type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
           transmission.InsertEndChild(type);
 
-          hardwareInterface.InsertEndChild(TiXmlText(getJointController(joint_name).c_str()));
+          hardwareInterface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
           joint.InsertEndChild(hardwareInterface);
           transmission.InsertEndChild(joint);
 
@@ -1397,7 +1404,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
   std::ifstream input_stream(file_path.c_str());
   if (!input_stream.good())
   {
-    ROS_WARN_STREAM_NAMED("ros_controller.yaml", "Does not exist " << file_path);
+    ROS_WARN_STREAM_NAMED("ros_controllers.yaml", "Does not exist " << file_path);
     return false;
   }
 
@@ -1405,7 +1412,6 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
   try
   {
     YAML::Node doc = YAML::Load(input_stream);
-
     for (YAML::const_iterator doc_map_it = doc.begin(); doc_map_it != doc.end(); ++doc_map_it)
     {
       if (const YAML::Node& controllers = doc_map_it->second)
@@ -1418,7 +1424,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
     return false;
   }
 
-  return true;  // file created successfully
+  return true;  // file read successfully
 }
 
 // ******************************************************************************************
@@ -1662,7 +1668,6 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
   try
   {
     const YAML::Node& doc = YAML::Load(input_stream);
-
     // Get sensors node
     const YAML::Node& sensors_node = doc["sensors"];
 

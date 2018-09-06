@@ -18,19 +18,21 @@
   -->
   <arg name="use_gui" default="false" />
 
+  <arg name="gazebo_gui" default="true"/>
+
   <!-- By default, use the urdf location provided from the package -->
   <arg name="urdf_path" default="[URDF_LOCATION]"/>
 
   <!-- launch the gazebo simulator and spawn the robot -->
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/gazebo.launch" />
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/gazebo.launch" >
     <arg name="paused" value="false"/>
-    <arg name="gui" value="true"/>
-    <arg name="urdf_path" "$(arg urdf_path)"/>
+    <arg name="gazebo_gui" value="true"/>
+    <arg name="urdf_path" value="$(arg urdf_path)"/>
   </include>
 
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
-    <arg name="load_robot_description" value="true"/>
+    <arg name="load_robot_description" value="false"/>
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->
