@@ -605,5 +605,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
     return sstor;
   }
-#warning "else case not yet handled: missing return value!"
+
+  // TODO(davetcoleman): this function did not originally return a value, causing compiler warnings in ROS Melodic
+  // Update with more intelligent logic as needed
+  ROS_ERROR_NAMED("constraints_library", "No StateStoragePtr found - implement better solution here.");
+  return sstor;
 }
