@@ -16,10 +16,8 @@ RUN \
     mkdir src && \
     cd src && \
     #
-    # Download moveit source so that we can get necessary dependencies
-    wstool init . && \
-    wstool merge https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
-    wstool update && \
+    # Download moveit source, so that we can get necessary dependencies
+    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
     #
     # Update apt package list as previous containers clear the cache
     apt-get -qq update && \
