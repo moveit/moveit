@@ -725,6 +725,26 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
 }
 
 // ******************************************************************************************
+// Helper function to get the default start state group for moveit_sim_hw_interface
+// ******************************************************************************************
+std::string MoveItConfigData::getDefaultStartStateGroup()
+{
+  if (!srdf_->srdf_model_->getGroups().empty())
+    return srdf_->srdf_model_->getGroups()[0].name_;
+  return "todo_no_group_selected";
+}
+
+// ******************************************************************************************
+// Helper function to get the default start pose for moveit_sim_hw_interface
+// ******************************************************************************************
+std::string MoveItConfigData::getDefaultStartPose()
+{
+  if (!srdf_->group_states_.empty())
+    return srdf_->group_states_[0].name_;
+  return "todo_no_pose_selected";
+}
+
+// ******************************************************************************************
 // Output controllers config files
 // ******************************************************************************************
 bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
@@ -771,17 +791,11 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     {
       // Use the first planning group if initial joint_model_group was not set, else write a default value
       emitter << YAML::Key << "joint_model_group";
-      if (!srdf_->srdf_model_->getGroups().empty())
-        emitter << YAML::Value << srdf_->srdf_model_->getGroups()[0].name_;
-      else
-        emitter << YAML::Value << "todo_no_group_selected";
+      emitter << YAML::Value << getDefaultStartStateGroup();
 
       // Use the first robot pose if initial joint_model_group_pose was not set, else write a default value
       emitter << YAML::Key << "joint_model_group_pose";
-      if (!srdf_->group_states_.empty())
-        emitter << YAML::Value << srdf_->group_states_[0].name_;
-      else
-        emitter << YAML::Value << "todo_no_pose_selected";
+      emitter << YAML::Value << getDefaultStartPose();
 
       emitter << YAML::EndMap;
     }
