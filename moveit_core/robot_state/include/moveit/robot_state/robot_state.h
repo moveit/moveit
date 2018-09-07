@@ -152,6 +152,11 @@ public:
     return robot_model_->getVariableNames();
   }
 
+  bool hasLinkModel(const std::string& link) const
+  {
+    return robot_model_->hasLinkModel(link);
+  }
+
   /** \brief Get the model of a particular link */
   const LinkModel* getLinkModel(const std::string& link) const
   {
@@ -1595,7 +1600,9 @@ as the new values that correspond to the group */
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
-   *
+   * @param detach_posture The posture of the gripper when placing the object
+   * @param named_frames Transforms to points of interest on the object (can be used as end effector link)
+   * 
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
    * representations of the object elsewhere in the system.  So if the
@@ -1606,7 +1613,8 @@ as the new values that correspond to the group */
   void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                   const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
                   const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory());
+                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+                  const std::map<std::string, Eigen::Affine3d>& named_frames = std::map<std::string, Eigen::Affine3d>());
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1614,6 +1622,8 @@ as the new values that correspond to the group */
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
+   * @param detach_posture The posture of the gripper when placing the object
+   * @param named_frames Transforms to points of interest on the object (can be used as end effector link)
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1625,10 +1635,11 @@ as the new values that correspond to the group */
   void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                   const EigenSTL::vector_Affine3d& attach_trans, const std::vector<std::string>& touch_links,
                   const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory())
+                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+                  const std::map<std::string, Eigen::Affine3d>& named_frames = std::map<std::string, Eigen::Affine3d>())
   {
     std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
-    attachBody(id, shapes, attach_trans, touch_links_set, link_name, detach_posture);
+    attachBody(id, shapes, attach_trans, touch_links_set, link_name, detach_posture, named_frames);
   }
 
   /** \brief Get all bodies attached to the model corresponding to this state */

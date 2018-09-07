@@ -157,7 +157,8 @@ void RobotState::copyFrom(const RobotState& other)
   for (std::map<std::string, AttachedBody*>::const_iterator it = other.attached_body_map_.begin();
        it != other.attached_body_map_.end(); ++it)
     attachBody(it->second->getName(), it->second->getShapes(), it->second->getFixedTransforms(),
-               it->second->getTouchLinks(), it->second->getAttachedLinkName(), it->second->getDetachPosture());
+               it->second->getTouchLinks(), it->second->getAttachedLinkName(), it->second->getDetachPosture(),
+               it->second->getNamedTransforms());
 }
 
 bool RobotState::checkJointTransforms(const JointModel* joint) const
@@ -842,10 +843,11 @@ void RobotState::attachBody(AttachedBody* attached_body)
 
 void RobotState::attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                             const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-                            const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture)
+                            const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture,
+                            const std::map<std::string, Eigen::Affine3d>& named_frames)
 {
   const LinkModel* l = robot_model_->getLinkModel(link);
-  AttachedBody* ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
+  AttachedBody* ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture, named_frames);
   attached_body_map_[id] = ab;
   ab->computeTransform(getGlobalLinkTransform(l));
   if (attached_body_update_callback_)
@@ -963,18 +965,32 @@ const Eigen::Affine3d& RobotState::getFrameTransform(const std::string& id) cons
     const LinkModel* lm = robot_model_->getLinkModel(id);
     return global_link_transforms_[lm->getLinkIndex()];
   }
+
+  // Check named frames of the AttachedBody objects
+  for (auto ab : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
+  {
+    if (ab.second->hasNamedTransform(id))
+      return ab.second->getNamedTransform(id);
+  }
+    // TODO: Is this efficient? Probably not, should be a find() + iterator comparison instead of two loops.
+
+  // Check names of the AttachedBody objects themselves
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
     ROS_ERROR_NAMED("robot_state", "Transform from frame '%s' to frame '%s' is not known "
-                                   "('%s' should be a link name or an attached body id).",
+                                   "('%s' should be a link name, an attached body id, or the id of an attached body's named frame).",
                     id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
+  
   const EigenSTL::vector_Affine3d& tf = jt->second->getGlobalCollisionBodyTransforms();
+  const std::map<std::string, Eigen::Affine3d>& nf = jt->second->getNamedTransforms();
+  if (!nf.empty())
+      ROS_ERROR_NAMED("robot_state", "The AttachedBody has named frames. Use their names directly to access them.");
   if (tf.empty())
   {
-    ROS_ERROR_NAMED("robot_state", "Attached body '%s' has no geometry associated to it. No transform to return.",
+    ROS_ERROR_NAMED("robot_state", "'%s' is the name of an AttachedBody, but it has no geometry associated to it. No transform to return.",
                     id.c_str());
     return identity_transform;
   }
@@ -991,6 +1007,14 @@ bool RobotState::knowsFrameTransform(const std::string& id) const
     return knowsFrameTransform(id.substr(1));
   if (robot_model_->hasLinkModel(id))
     return true;
+  
+  for (auto ab : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
+  {
+    if (ab.second->hasNamedTransform(id))
+      return true;
+  }
+
+  // Check if an AttachedBody with name id exists
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
   return it != attached_body_map_.end() && !it->second->getGlobalCollisionBodyTransforms().empty();
 }

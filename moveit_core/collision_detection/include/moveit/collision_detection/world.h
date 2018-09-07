@@ -41,6 +41,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <memory>
 #include <boost/function.hpp>
@@ -105,6 +106,13 @@ public:
      *
      * @copydetails shapes_ */
     EigenSTL::vector_Affine3d shape_poses_;
+
+
+    /** \brief Transforms to named frames on the object. Transforms are applied to the link.
+     *  Use these to define points of interest on the object to plan with 
+     *  (e.g. screwdriver_tip, kettle_spout, mug_base).
+     * */
+    std::map<std::string, Eigen::Affine3d> named_frames_;
   };
 
   /** \brief Get the list of Object ids */
@@ -139,6 +147,15 @@ public:
   /** \brief Check if a particular object exists in the collision world*/
   bool hasObject(const std::string& id) const;
 
+  /** \brief Check if a frame or object with name id exists in the collision world*/
+  bool knowsTransform(const std::string& id) const;
+
+  /** \brief Get the transform to a frame or object with name id*/
+  Eigen::Affine3d getTransform(const std::string& id) const;
+
+  /** \brief Get the object id that owns the named frame with name id*/
+  std::string getParent(const std::string& id) const;
+
   /** \brief Add shapes to an object in the map.
    * This function makes repeated calls to addToObjectInternal() to add the
    * shapes one by one.
@@ -160,6 +177,13 @@ public:
   /** \brief Move all shapes in an object according to the given transform specified in world frame */
   bool moveObject(const std::string& id, const Eigen::Affine3d& transform);
 
+  /** \brief Replaces all shapes in an existing object.
+   * If the object already exists, this call will add the shape to the object
+   * at the specified pose. Otherwise, the object is created and the
+   * specified shape is added. This calls addToObjectInternal(). */
+  bool replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                   const EigenSTL::vector_Affine3d& poses);
+
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
    * object is renounced (i.e. object is deleted if no external references
@@ -173,6 +197,9 @@ public:
    * Object, the memory is freed.
    * Returns true on success and false if no such object was found. */
   bool removeObject(const std::string& id);
+
+  /** \brief Set named frames on an object. */
+  bool setNamedFramesOfObject(const std::string& id, const std::map<std::string, Eigen::Affine3d>& named_frames);
 
   /** \brief Clear all objects.
    * If there are no other pointers to corresponding instances of Objects,

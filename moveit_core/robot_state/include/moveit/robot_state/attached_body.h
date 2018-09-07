@@ -62,7 +62,8 @@ public:
      object is specified by \e touch_links. */
   AttachedBody(const LinkModel* link, const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-               const trajectory_msgs::JointTrajectory& attach_posture);
+               const trajectory_msgs::JointTrajectory& attach_posture,
+               const std::map<std::string, Eigen::Affine3d>& named_frames);
 
   ~AttachedBody();
 
@@ -110,6 +111,47 @@ public:
     return attach_trans_;
   }
 
+  /** \brief Get the fixed transform to a named frame on this body (not a transform to a visual or collision shape) */
+  const Eigen::Affine3d& getFixedTransform(const std::string& frame_name) const
+  {
+    return getNamedTransform(frame_name);
+  }
+
+  /** \brief Get the fixed transform to a named frame on this body (not a transform to a visual or collision shape) */
+  const Eigen::Affine3d& getNamedTransform(const std::string& frame_name) const
+  {
+    return named_frames_.find(frame_name)->second;
+  }
+
+  /** \brief Returns true if the named 
+   */
+  bool hasNamedTransform(const std::string& frame_name) const
+  {
+    return (named_frames_.count(frame_name) > 0);
+  }
+
+  /** \brief Get all named transforms (not the ones associated to visual or collision shapes)
+   * These are also technically "FixedTransforms", but changing the other function would be bad.
+   */
+  const std::map<std::string, Eigen::Affine3d>& getNamedTransforms() const
+  {
+    return named_frames_;
+  }
+
+  /** \brief Get all named transforms (not the ones associated to visual or collision shapes)
+   * These are also technically "FixedTransforms", but changing the other function would be bad.
+   */
+  void getNamedTransforms(std::map<std::string, Eigen::Affine3d>& named_frames) const
+  {
+    named_frames = named_frames_;
+  }
+
+  /** \brief Set the map of named frames. */
+  void setNamedTransforms(const std::map<std::string, Eigen::Affine3d>& named_frames)
+  {
+    named_frames_ = named_frames;
+  }
+
   /** \brief Get the global transforms for the collision bodies */
   const EigenSTL::vector_Affine3d& getGlobalCollisionBodyTransforms() const
   {
@@ -151,6 +193,12 @@ private:
 
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d global_collision_body_transforms_;
+
+  /** \brief Transforms to named frames on the object. Transforms are applied to the link.
+   *  Use these to define points of interest on the object to plan with 
+   *  (e.g. screwdriver_tip, kettle_spout, mug_base).
+   * */
+  std::map<std::string, Eigen::Affine3d> named_frames_;
 };
 }
 }

@@ -215,6 +215,15 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
       sv.addToObject(sm, p);
     }
   }
+  aco.object.frame_names.clear();
+  aco.object.named_frames.clear();
+  for (auto it : attached_body.getNamedTransforms())
+  {
+    aco.object.frame_names.push_back(it.first);
+    geometry_msgs::Pose p;
+    tf::poseEigenToMsg(it.second, p);
+    aco.object.named_frames.push_back(p);
+  }
 }
 
 static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::AttachedCollisionObject& aco, RobotState& state)
@@ -283,7 +292,16 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           }
         }
 
-        // transform poses to link frame
+        std::map<std::string, Eigen::Affine3d> named_frames;
+        for (std::size_t i = 0; i < aco.object.named_frames.size(); ++i)
+        {
+          Eigen::Affine3d p;
+          tf::poseMsgToEigen(aco.object.named_frames[i], p);
+          std::string name = aco.object.frame_names[i];
+          named_frames[name] = p;
+        }
+
+        // Transform shape poses and named frames to link frame        
         if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
         {
           Eigen::Affine3d t0;
@@ -301,6 +319,8 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
+          for (auto it = named_frames.begin(); it != named_frames.end(); it++ )
+            it->second = t * it->second;
         }
 
         if (shapes.empty())
@@ -312,7 +332,8 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
             ROS_DEBUG_NAMED("robot_state", "The robot state already had an object named '%s' attached to link '%s'. "
                                            "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
-          state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
+          state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture,
+                            named_frames);
           ROS_DEBUG_NAMED("robot_state", "Attached object '%s' to link '%s'", aco.object.id.c_str(),
                           aco.link_name.c_str());
         }

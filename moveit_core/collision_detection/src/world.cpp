@@ -136,6 +136,51 @@ bool World::hasObject(const std::string& id) const
   return objects_.find(id) != objects_.end();
 }
 
+bool World::knowsTransform(const std::string& id) const
+{
+  // Check object names first
+  if (objects_.find(id) != objects_.end())
+    return true;
+  else // Then objects' named frames
+  {
+    for (auto o : objects_)
+    {
+      if (o.second->named_frames_.count(id) > 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+Eigen::Affine3d World::getTransform(const std::string& id) const
+{
+  auto it = objects_.find(id);
+  if (it != objects_.end())
+    return it->second->shape_poses_[0];
+  else // Find within named frames
+  {
+    for (auto o : objects_)
+    {
+      if (o.second->named_frames_.count(id) > 0)
+        return o.second->named_frames_[id];
+    }
+  }
+}
+
+std::string World::getParent(const std::string& id) const
+{
+  for (auto o : objects_)
+  {
+    if (o.second->named_frames_.count(id) > 0)
+      return o.second->id_;
+  }
+  // If it is an object's name, return the object
+  auto it = objects_.find(id);
+  if (it != objects_.end())
+    return it->second->id_;
+  return "";
+}
+
 bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
 {
   auto it = objects_.find(id);
@@ -166,6 +211,18 @@ bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
     it->second->shape_poses_[i] = transform * it->second->shape_poses_[i];
   }
   notify(it->second, MOVE_SHAPE);
+  return true;
+}
+
+bool World::replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                   const EigenSTL::vector_Affine3d& poses)
+{
+  auto it = objects_.find(id);
+  if (it == objects_.end())
+    return false;
+  it->second->shapes_.clear();
+  it->second->shape_poses_.clear();
+  addToObject(id, shapes, poses);
   return true;
 }
 
@@ -213,6 +270,17 @@ void World::clearObjects()
 {
   notifyAll(DESTROY);
   objects_.clear();
+}
+
+bool World::setNamedFramesOfObject(const std::string& id, const std::map<std::string, Eigen::Affine3d>& named_frames)
+{
+  ObjectPtr& obj = objects_[id];
+  if (!obj)
+  {
+    return false;
+  }
+  obj->named_frames_ = named_frames;
+  return true;
 }
 
 World::ObserverHandle World::addObserver(const ObserverCallbackFn& callback)
