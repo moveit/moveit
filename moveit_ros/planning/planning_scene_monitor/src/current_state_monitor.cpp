@@ -444,10 +444,13 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
         continue;
       joint_time_[joint] = latest_common_time;
 
-      Eigen::Affine3d eigen_transf = tf2::transformToEigen(transf);
-
       double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(eigen_transf, new_values);
+      const robot_model::LinkModel* link = joint->getChildLinkModel();
+      if (link->jointOriginTransformIsIdentity())
+        joint->computeVariablePositions(tf2::transformToEigen(transf), new_values);
+      else
+        joint->computeVariablePositions(
+            link->getJointOriginTransform().inverse(Eigen::Isometry) * tf2::transformToEigen(transf), new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {
