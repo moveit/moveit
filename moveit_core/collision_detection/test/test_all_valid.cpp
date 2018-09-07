@@ -39,13 +39,12 @@
 #include <moveit/collision_detection/allvalid/collision_robot_allvalid.h>
 #include <moveit/collision_detection/allvalid/collision_world_allvalid.h>
 
-
 TEST(AllValid, Instantiate)
 {
   using namespace collision_detection;
   CollisionDetectorAllocatorAllValid allocator;
   CollisionWorldAllValid world;
-  
+
   urdf::ModelInterfaceSharedPtr urdf_model;
   urdf_model.reset(new urdf::ModelInterface());
   srdf::ModelConstSharedPtr srdf_model;
