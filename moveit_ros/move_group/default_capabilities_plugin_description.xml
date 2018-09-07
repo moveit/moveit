@@ -48,6 +48,12 @@
     </description>
   </class>
 
+  <class name="move_group/MoveGroupConstraintValidationService" type="move_group::MoveGroupConstraintValidationService" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Provide a ROS service that checks if a set of constraints is valid for the current RobotState and fixes them if possible
+    </description>
+  </class>
+
   <class name="move_group/MoveGroupGetPlanningSceneService" type="move_group::MoveGroupGetPlanningSceneService" base_class_type="move_group::MoveGroupCapability">
     <description>
       Provide a ROS service that allows for querying the planning scene

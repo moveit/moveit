@@ -60,6 +60,7 @@ static const char* DEFAULT_CAPABILITIES[] = {
    "move_group/MoveGroupPickPlaceAction",
    "move_group/MoveGroupPlanService",
    "move_group/MoveGroupQueryPlannersService",
+   "move_group/MoveGroupConstraintValidationService",
    "move_group/MoveGroupStateValidationService",
    "move_group/MoveGroupGetPlanningSceneService",
    "move_group/ApplyPlanningSceneService",

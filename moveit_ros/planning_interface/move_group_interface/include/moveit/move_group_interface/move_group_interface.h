@@ -913,6 +913,10 @@ public:
   void setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint);
   void clearTrajectoryConstraints();
 
+  /** \brief Make constraints valid for the current robot state if possible.
+      Returns false if the constraints do not refer to valid link_names or AttachedBody objects. */    
+  bool validateConstraints(moveit_msgs::Constraints& constraints);
+
   /**@}*/
 
 private:

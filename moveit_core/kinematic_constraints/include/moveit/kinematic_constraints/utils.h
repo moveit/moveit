@@ -183,6 +183,43 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
 moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
                                                   const geometry_msgs::PointStamped& goal_point,
                                                   double tolerance = 1e-3);
+
+/**
+ * \brief Attempts to make a constraint message valid which in its link_name field
+ * has the name of an AttachedBody object that exists in the RobotState. The link_name
+ * field if changed to the link the AttachedBody object is attached to. 
+ * This function is to be used when constructing goals.
+ *
+ * @param [in] state The pointer to the state from which to generate goal joint constraints
+ * @param [in] c The message to be validated (modified directly).
+ */
+bool validatePositionConstraints(const robot_state::RobotState& state,
+                                        moveit_msgs::Constraints& c);
+
+/**
+ * \brief Attempts to make a constraint message valid which in its link_name field
+ * has the name of an AttachedBody object that exists in the RobotState. The link_name
+ * field if changed to the link the AttachedBody object is attached to. 
+ * This function is to be used when constructing goals.
+ *
+ * @param [in] state The pointer to the state from which to generate goal joint constraints
+ * @param [in] c The message to be validated (modified directly).
+ */
+bool validateOrientationConstraints(const robot_state::RobotState& state,
+                                        moveit_msgs::Constraints& c);
+
+
+/**
+ * \brief Attempts to make a constraint message valid which in its link_name field
+ * has the name of an AttachedBody object that exists in the RobotState. The link_name
+ * field if changed to the link the AttachedBody object is attached to. 
+ * This function is to be used when constructing goals.
+ *
+ * @param [in] state The pointer to the state from which to generate goal joint constraints
+ * @param [in] c The message to be validated (modified directly).
+ */
+bool validatePositionOrientationConstraints(const robot_state::RobotState& state,
+                                        moveit_msgs::Constraints& c);
 }
 
 #endif
