@@ -593,7 +593,7 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
   for (const LinkModel* link : start->getDescendantLinkModels())
   {
     const LinkModel* parent = link->getParentLinkModel();
-    if (parent)
+    if (parent)  // root JointModel will not have a parent
     {
       if (link->parentJointIsFixed())
         global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
