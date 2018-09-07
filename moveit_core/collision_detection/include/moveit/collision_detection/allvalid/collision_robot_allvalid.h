@@ -75,11 +75,16 @@ public:
 
   virtual double distanceSelf(const robot_state::RobotState& state) const;
   virtual double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
+  virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                            const robot_state::RobotState& state) const override;
 
   virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                const robot_state::RobotState& other_state) const;
   virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const;
+  virtual void distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                             const CollisionRobot& other_robot,
+                             const robot_state::RobotState& other_state) const override;
 };
 }
 

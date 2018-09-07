@@ -119,6 +119,14 @@ double collision_detection::CollisionWorldAllValid::distanceRobot(const Collisio
   return 0.0;
 }
 
+void collision_detection::CollisionWorldAllValid::distanceRobot(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionRobot& robot,
+                                                                const moveit::core::RobotState& state) const
+{
+  res.collision = false;
+}
+
 double collision_detection::CollisionWorldAllValid::distanceWorld(const CollisionWorld& world) const
 {
   return 0.0;
@@ -128,6 +136,13 @@ double collision_detection::CollisionWorldAllValid::distanceWorld(const Collisio
                                                                   const AllowedCollisionMatrix& acm) const
 {
   return 0.0;
+}
+
+void collision_detection::CollisionWorldAllValid::distanceWorld(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionWorld& world) const
+{
+  res.collision = false;
 }
 
 #include <moveit/collision_detection/allvalid/collision_detector_allocator_allvalid.h>
