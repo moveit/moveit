@@ -1031,7 +1031,7 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
   out << "." << std::endl;
 }
 
-bool PlanningScene::loadGeometryFromStream(std::istream &in)
+bool PlanningScene::loadGeometryFromStream(std::istream& in)
 {
   return loadGeometryFromStream(in, Eigen::Affine3d::Identity());  // Use no offset
 }
@@ -1040,8 +1040,8 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine
 {
   if (!in.good() || in.eof())
   {
-      ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading scene geometry");
-      return false;
+    ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading scene geometry");
+    return false;
   }
   std::getline(in, name_);
   do
@@ -1050,8 +1050,8 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine
     in >> marker;
     if (!in.good() || in.eof())
     {
-        ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading marker in scene geometry");
-        return false;
+      ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading marker in scene geometry");
+      return false;
     }
     if (marker == "*")
     {
@@ -1059,8 +1059,8 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine
       std::getline(in, ns);
       if (!in.good() || in.eof())
       {
-          ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading ns in scene geometry");
-          return false;
+        ROS_ERROR_NAMED("planning_scene", "Bad input stream when loading ns in scene geometry");
+        return false;
       }
       boost::algorithm::trim(ns);
       unsigned int shape_count;
@@ -1068,27 +1068,27 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine
       for (std::size_t i = 0; i < shape_count && in.good() && !in.eof(); ++i)
       {
         shapes::Shape* s = shapes::constructShapeFromText(in);
-        if(!s)
+        if (!s)
         {
-            ROS_ERROR_NAMED("planning_scene", "Failed to load shape from scene file");
-            return false;
+          ROS_ERROR_NAMED("planning_scene", "Failed to load shape from scene file");
+          return false;
         }
         double x, y, z, rx, ry, rz, rw;
-        if(! (in >> x >> y >> z) )
+        if (!(in >> x >> y >> z))
         {
-            ROS_ERROR_NAMED("planning_scene", "Improperly formatted translation in scene geometry file");
-            return false;
+          ROS_ERROR_NAMED("planning_scene", "Improperly formatted translation in scene geometry file");
+          return false;
         }
-        if(! (in >> rx >> ry >> rz >> rw) )
+        if (!(in >> rx >> ry >> rz >> rw))
         {
-            ROS_ERROR_NAMED("planning_scene", "Improperly formatted rotation in scene geometry file");
-            return false;
+          ROS_ERROR_NAMED("planning_scene", "Improperly formatted rotation in scene geometry file");
+          return false;
         }
         float r, g, b, a;
-        if(! (in >> r >> g >> b >> a) )
+        if (!(in >> r >> g >> b >> a))
         {
-            ROS_ERROR_NAMED("planning_scene", "Improperly formatted color in scene geometry file");
-            return false;
+          ROS_ERROR_NAMED("planning_scene", "Improperly formatted color in scene geometry file");
+          return false;
         }
         if (s)
         {
@@ -1108,7 +1108,7 @@ bool PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine
         }
       }
     }
-    else if(marker == ".")
+    else if (marker == ".")
     {
       // Marks the end of the scene geometry;
       return true;
