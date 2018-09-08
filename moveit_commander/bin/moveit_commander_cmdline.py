@@ -12,6 +12,11 @@ import signal
 import argparse
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
 
+# compatibility with python3
+# python2's input function is dangerous anyway
+if hasattr(__builtin__, 'raw_input'):
+    input = raw_input
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -98,7 +103,7 @@ def run_interactive(group_name):
             ag = c.get_active_group()
             if ag != None:
                 name = ag.get_name()
-            cmd = raw_input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
+            cmd = input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
         except:
             break
         cmdorig = cmd.strip()
@@ -131,7 +136,7 @@ def stop_ros(reason):
 
 def sigint_handler(signal, frame):
     stop_ros("Ctrl+C pressed")
-    # this won't actually exit, but trigger an exception to terminate raw_input
+    # this won't actually exit, but trigger an exception to terminate input
     sys.exit(0)
 
 if __name__=='__main__':
