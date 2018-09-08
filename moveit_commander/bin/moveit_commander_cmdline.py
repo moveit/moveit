@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import roslib
 import rospy
 import readline
@@ -62,15 +64,15 @@ class SimpleCompleter(object):
 
 def print_message(level, msg):
     if level == MoveGroupInfoLevel.FAIL:
-        print bcolors.FAIL + msg + bcolors.ENDC
+        print(bcolors.FAIL + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.WARN:
-        print bcolors.WARNING + msg + bcolors.ENDC
+        print(bcolors.WARNING + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.SUCCESS:
-        print bcolors.OKGREEN + msg + bcolors.ENDC
+        print(bcolors.OKGREEN + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.DEBUG:
-        print bcolors.OKBLUE + msg + bcolors.ENDC
+        print(bcolors.OKBLUE + msg + bcolors.ENDC)
     else:
-        print msg
+        print(msg)
 
 def get_context_keywords(interpreter):
     kw = interpreter.get_keywords()
@@ -84,9 +86,9 @@ def run_interactive(group_name):
     completer = SimpleCompleter(get_context_keywords(c))
     readline.set_completer(completer.complete)
 
-    print
-    print bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC
-    print
+    print()
+    print(bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC)
+    print()
     readline.parse_and_bind('tab: complete')
 
     while not rospy.is_shutdown():
@@ -120,7 +122,7 @@ def run_service(group_name):
     if len(group_name) > 0:
         c.execute("use " + group_name)
     # add service stuff
-    print "Running ROS service"
+    print("Running ROS service")
     rospy.spin()
 
 def stop_ros(reason):
@@ -157,4 +159,4 @@ if __name__=='__main__':
 
     stop_ros("Done")
 
-    print "Bye bye!"
+    print("Bye bye!")
