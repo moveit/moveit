@@ -38,6 +38,7 @@
 #define MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include <tf2_ros/message_filter.h>
 #include <tf2_ros/buffer.h>
 #include <message_filters/subscriber.h>
@@ -140,6 +141,20 @@ public:
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
                        const robot_model_loader::RobotModelLoaderPtr& rml,
+                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
+                       const std::string& name = "");
+
+  /** @brief Constructor
+   *  @param scene The scene instance to maintain up to date with monitored information
+   *  @param rml A pointer to a kinematic model loader
+   *  @param nh external parent NodeHandle
+   *         The monitors will use this NodeHandle's CallbackQueue for updates.
+   *         Usually, this should be a different queue than the global queue, otherwise you might run into timeouts.
+   *  @param tf_buffer A pointer to a tf2_ros::Buffer
+   *  @param name A name identifying this planning scene monitor
+   */
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                       const robot_model_loader::RobotModelLoaderPtr& rml, const ros::NodeHandle& nh,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -450,6 +465,8 @@ protected:
 
   ros::NodeHandle nh_;
   ros::NodeHandle root_nh_;
+  ros::CallbackQueue queue_;
+  std::shared_ptr<ros::AsyncSpinner> spinner_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   std::string robot_description_;
