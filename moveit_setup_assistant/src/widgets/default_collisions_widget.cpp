@@ -65,11 +65,10 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   // Top Label Area ------------------------------------------------
   HeaderWidget* header = new HeaderWidget(
       "Optimize Self-Collision Checking",
-      "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be "
-      "disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled "
-      "when they are always in collision, never in collision, in collision in the robot's default position or when the "
-      "links are adjacent to each other on the kinematic chain. Sampling density specifies how many random robot "
-      "positions to check for self collision. Higher densities require more computation time.",
+      "This searches for pairs of robot links that can safely be disabled from collision checking, decreasing motion "
+      "planning time. These pairs are disabled when they are always in collision, never in collision, in collision in "
+      "the robot's default position, or when the links are adjacent to each other on the kinematic chain. Sampling "
+      "density specifies how many random robot positions to check for self collision.",
       this);
   layout_->addWidget(header);
 
