@@ -158,6 +158,20 @@ public:
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
+  /** @brief Constructor
+   *  @param scene The scene instance to maintain up to date with monitored information
+   *  @param rml A pointer to a kinematic model loader
+   *  @param nh external parent NodeHandle
+   *         The monitors will use this NodeHandle's CallbackQueue for updates.
+   *         Usually, this should be a different queue than the global queue, otherwise you might run into timeouts.
+   *  @param tf A pointer to a tf::Transformer
+   *  @param name A name identifying this planning scene monitor
+   */
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                       const robot_model_loader::RobotModelLoaderPtr& rml, const ros::NodeHandle& nh,
+                       const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>(),
+                       const std::string& name = "");
+
   ~PlanningSceneMonitor();
 
   /** \brief Get the name of this monitor */

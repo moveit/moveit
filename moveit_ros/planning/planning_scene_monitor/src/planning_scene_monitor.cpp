@@ -145,6 +145,16 @@ PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePt
   initialize(scene);
 }
 
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
+    const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+    const ros::NodeHandle& nh, const boost::shared_ptr<tf::Transformer>& tf, const std::string& name)
+  : monitor_name_(name), nh_("~"), root_nh_(nh), tf_(tf), rm_loader_(rm_loader)
+{
+  // use same callback queue as root_nh_
+  nh_.setCallbackQueue(root_nh_.getCallbackQueue());
+  initialize(scene);
+}
+
 PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
                                            const robot_model_loader::RobotModelLoaderPtr& rm_loader,
                                            const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
