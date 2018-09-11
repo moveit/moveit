@@ -140,14 +140,18 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   // fill in an initial trajectory based on user choice from the chomp_config.yaml file
-  if (params.trajectory_initialization_method_.compare("quintic-spline") == 0)
-    trajectory.fillInMinJerk();
-  else if (params.trajectory_initialization_method_.compare("linear") == 0)
-    trajectory.fillInLinearInterpolation();
-  else if (params.trajectory_initialization_method_.compare("cubic") == 0)
-    trajectory.fillInCubicInterpolation();
-  else
-    ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
+  // if a trajectory seed is given, use it
+  if (req.trajectory_constraints.constraints.empty()) {
+    if (params.trajectory_initialization_method_.compare("quintic-spline") == 0)
+      trajectory.fillInMinJerk();
+    else if (params.trajectory_initialization_method_.compare("linear") == 0)
+      trajectory.fillInLinearInterpolation();
+    else if (params.trajectory_initialization_method_.compare("cubic") == 0)
+      trajectory.fillInCubicInterpolation();
+    else
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
+  }
+  else {trajectory.fillInSeed(req);}
 
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());

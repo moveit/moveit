@@ -37,6 +37,7 @@
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <iostream>
+#include <moveit_msgs/MotionPlanRequest.h>
 
 namespace chomp
 {
@@ -248,6 +249,19 @@ void ChompTrajectory::fillInMinJerk()
       {
         (*this)(i, j) += t[k] * coeff[j][k];
       }
+    }
+  }
+}
+
+void ChompTrajectory::fillInSeed(const moveit_msgs::MotionPlanRequest& req)
+{
+  double start_index = start_index_ - 1;
+  double end_index = end_index_ + 1; 
+  for (int i = 0; i < num_joints_; i++)
+  {
+    for (int j = start_index + 1; j < end_index; j++)
+    {
+      (*this)(j, i) = req.trajectory_constraints.constraints[j].joint_constraints[i].position;
     }
   }
 }

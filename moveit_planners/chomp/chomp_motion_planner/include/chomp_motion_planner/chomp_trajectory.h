@@ -40,6 +40,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit/robot_model/robot_model.h>
 #include <chomp_motion_planner/chomp_utils.h>
+#include <moveit_msgs/MotionPlanRequest.h>
 
 #include <vector>
 #include <eigen3/Eigen/Core>
@@ -128,6 +129,13 @@ public:
    * Only modifies points from start_index_ to end_index_, inclusive
    */
   void fillInCubicInterpolation();
+
+   /**
+   * \brief Fill the trajectory from a trajectory seed
+   *
+   * Only modifies points from start_index_ to end_index_, inclusive
+   */
+  void fillInSeed(const moveit_msgs::MotionPlanRequest& req);
 
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
