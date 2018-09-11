@@ -24,6 +24,8 @@
   <build_depend>yaml-cpp</build_depend>
   <build_depend version_gt="0.3.1">srdfdom</build_depend>
 
+  <!-- Optional: Gazebo integration. This is a heavy dependency so is disabled by default -->
+  <!-- run_depend>gazebo_ros</run_depend -->
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>

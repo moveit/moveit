@@ -377,17 +377,17 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 // ******************************************************************************************
 // Helper function to get the controller that is controlling the joint
 // ******************************************************************************************
-std::string MoveItConfigData::getJointHardwareInterface(std::string joint_name)
+std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint_name)
 {
-  for (size_t i = 0; i < ros_controllers_config_.size(); i++)
+  for (size_t i = 0; i < ros_controllers_config_.size(); ++i)
   {
     std::vector<std::string>::iterator joint_it =
         std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
     if (joint_it != ros_controllers_config_[i].joints_.end())
     {
-      if (ros_controllers_config_[i].type_.substr(0, 6) == "positi")
+      if (ros_controllers_config_[i].type_.substr(0, 8) == "position")
         return "hardware_interface/PositionJointInterface";
-      else if (ros_controllers_config_[i].type_.substr(0, 6) == "veloci")
+      else if (ros_controllers_config_[i].type_.substr(0, 8) == "velocity")
         return "hardware_interface/VelocityJointInterface";
       else
         return "hardware_interface/EffortJointInterface";
@@ -412,7 +412,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != NULL;
          doc_element = doc_element->NextSiblingElement())
     {
-      if (((std::string)doc_element->Value()).find("link") != std::string::npos)
+      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
         if (doc_element->FirstChildElement("inertial") == NULL && doc_element->FirstChildElement("collision") != NULL)
@@ -436,16 +436,14 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
           doc_element->InsertEndChild(inertia_link);
         }
-        // Don't check the next if condition
-        continue;
       }
-      if (((std::string)doc_element->Value()).find("joint") != std::string::npos)
+      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
       {
         // Before adding a transmission element, make sure there the joint is not fixed
-        if ((std::string)doc_element->Attribute("type") != "fixed")
+        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
         {
           new_urdf_needed = true;
-          std::string joint_name = (std::string)doc_element->Attribute("name");
+          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
           TiXmlElement transmission("transmission");
           TiXmlElement type("type");
           TiXmlElement joint("joint");
@@ -479,7 +477,7 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
     TiXmlElement plugin("plugin");
     TiXmlElement robot_namespace("robotNamespace");
 
-    plugin.SetAttribute("name", std::string("gazebo_ros_control"));
+    plugin.SetAttribute("name", "gazebo_ros_control");
     plugin.SetAttribute("filename", "libgazebo_ros_control.so");
     robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
 
@@ -1343,12 +1341,13 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 // ******************************************************************************************
 // Helper function for parsing ROSControllers from ros_controllers yaml file
 // ******************************************************************************************
-bool MoveItConfigData::processROSControllers(const YAML::Node& controllers)
+bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
 {
   // Used in parsing ROS controllers
   ROSControlConfig control_setting;
+  YAML::Node controllers = YAML::Load(input_stream);
 
-  // Loop through all controllers
+  // // Loop through all controllers
   for (YAML::const_iterator controller_it = controllers.begin(); controller_it != controllers.end(); ++controller_it)
   {
     // Follow Joint Trajectory action controllers
@@ -1411,12 +1410,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
   // Begin parsing
   try
   {
-    YAML::Node doc = YAML::Load(input_stream);
-    for (YAML::const_iterator doc_map_it = doc.begin(); doc_map_it != doc.end(); ++doc_map_it)
-    {
-      if (const YAML::Node& controllers = doc_map_it->second)
-        processROSControllers(controllers);
-    }
+    processROSControllers(input_stream);
   }
   catch (YAML::ParserException& e)  // Catch errors
   {

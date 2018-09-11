@@ -331,7 +331,7 @@ public:
    * \brief Helper function to get the controller that is controlling the joint
    * \return controller type
    */
-  std::string getJointHardwareInterface(std::string joint_name);
+  std::string getJointHardwareInterface(const std::string& joint_name);
 
   /**
    * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
@@ -377,10 +377,10 @@ public:
 
   /**
    * Helper function for parsing ros_controllers.yaml file
-   * @param YAML::Node - controllers to be parsed
+   * @param std::ifstream of ros_controoller.yaml
    * @return true if the file was read correctly
    */
-  bool processROSControllers(const YAML::Node& controllers);
+  bool processROSControllers(std::ifstream& input_stream);
 
   /**
    * Input ros_controllers.yaml file for editing its values
