@@ -1,37 +1,37 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2013, Ioan A. Sucan
- *  Copyright (c) 2011-2013, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2013, Ioan A. Sucan
+*  Copyright (c) 2011-2013, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
 /* Author: Ioan Sucan, Dave Coleman */
 
@@ -99,9 +99,8 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       error = true;
 
     if (error)
-      ROS_WARN_NAMED("robot_state",
-                     "The transform for multi-dof joints was specified in frame '%s' "
-                     "but it was not possible to transform that to frame '%s'",
+      ROS_WARN_NAMED("robot_state", "The transform for multi-dof joints was specified in frame '%s' "
+                                    "but it was not possible to transform that to frame '%s'",
                      mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
 
@@ -302,7 +301,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           named_frames[name] = p;
         }
 
-        // Transform shape poses and named frames to link frame
+        // Transform shape poses and named frames to link frame        
         if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
         {
           Eigen::Affine3d t0;
@@ -313,15 +312,14 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           else
           {
             t0.setIdentity();
-            ROS_ERROR_NAMED("robot_state",
-                            "Cannot properly transform from frame '%s'. "
-                            "The pose of the attached body may be incorrect",
+            ROS_ERROR_NAMED("robot_state", "Cannot properly transform from frame '%s'. "
+                                           "The pose of the attached body may be incorrect",
                             aco.object.header.frame_id.c_str());
           }
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
-          for (auto it = named_frames.begin(); it != named_frames.end(); it++)
+          for (auto it = named_frames.begin(); it != named_frames.end(); it++ )
             it->second = t * it->second;
         }
 
@@ -331,12 +329,11 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
         else
         {
           if (state.clearAttachedBody(aco.object.id))
-            ROS_DEBUG_NAMED("robot_state",
-                            "The robot state already had an object named '%s' attached to link '%s'. "
-                            "The object was replaced.",
+            ROS_DEBUG_NAMED("robot_state", "The robot state already had an object named '%s' attached to link '%s'. "
+                                           "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture,
-                           named_frames);
+                            named_frames);
           ROS_DEBUG_NAMED("robot_state", "Attached object '%s' to link '%s'", aco.object.id.c_str(),
                           aco.link_name.c_str());
         }
@@ -381,7 +378,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
 
   return valid;
 }
-}  // namespace
+}
 
 // ********************************************
 

@@ -141,7 +141,7 @@ bool World::knowsTransform(const std::string& id) const
   // Check object names first
   if (objects_.find(id) != objects_.end())
     return true;
-  else  // Then objects' named frames
+  else // Then objects' named frames
   {
     for (auto o : objects_)
     {
@@ -157,7 +157,7 @@ const Eigen::Affine3d& World::getTransform(const std::string& id) const
   auto it = objects_.find(id);
   if (it != objects_.end())
     return it->second->shape_poses_[0];
-  else  // Find within named frames
+  else // Find within named frames
   {
     for (auto o : objects_)
     {
@@ -215,7 +215,7 @@ bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
 }
 
 bool World::replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                                  const EigenSTL::vector_Affine3d& poses)
+                   const EigenSTL::vector_Affine3d& poses)
 {
   auto it = objects_.find(id);
   if (it == objects_.end())

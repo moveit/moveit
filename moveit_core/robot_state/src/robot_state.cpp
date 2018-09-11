@@ -1,37 +1,37 @@
 /*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2013, Ioan A. Sucan
- *  Copyright (c) 2013, Willow Garage, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
+* Software License Agreement (BSD License)
+*
+*  Copyright (c) 2013, Ioan A. Sucan
+*  Copyright (c) 2013, Willow Garage, Inc.
+*  All rights reserved.
+*
+*  Redistribution and use in source and binary forms, with or without
+*  modification, are permitted provided that the following conditions
+*  are met:
+*
+*   * Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   * Redistributions in binary form must reproduce the above
+*     copyright notice, this list of conditions and the following
+*     disclaimer in the documentation and/or other materials provided
+*     with the distribution.
+*   * Neither the name of the Willow Garage nor the names of its
+*     contributors may be used to endorse or promote products derived
+*     from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*  POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
 
 /* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats, Dave Coleman */
 
@@ -128,10 +128,9 @@ void RobotState::copyFrom(const RobotState& other)
   if (dirty_link_transforms_ == robot_model_->getRootJoint())
   {
     // everything is dirty; no point in copying transforms; copy positions, potentially velocity & acceleration
-    memcpy(position_, other.position_,
-           robot_model_->getVariableCount() * sizeof(double) *
-               (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
-                ((has_acceleration_ || has_effort_) ? 1 : 0)));
+    memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) *
+                                           (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
+                                            ((has_acceleration_ || has_effort_) ? 1 : 0)));
 
     // mark all transforms as dirty
     const int nr_doubles_for_dirty_joint_transforms =
@@ -973,35 +972,31 @@ const Eigen::Affine3d& RobotState::getFrameTransform(const std::string& id) cons
     if (ab.second->hasNamedTransform(id))
       return ab.second->getNamedTransform(id);
   }
-  // TODO: Is this efficient? Probably not, should be a find() + iterator comparison instead of two loops.
+    // TODO: Is this efficient? Probably not, should be a find() + iterator comparison instead of two loops.
 
   // Check names of the AttachedBody objects themselves
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
-    ROS_ERROR_NAMED("robot_state",
-                    "Transform from frame '%s' to frame '%s' is not known "
-                    "('%s' should be a link name, an attached body id, or the id of an attached body's named frame).",
+    ROS_ERROR_NAMED("robot_state", "Transform from frame '%s' to frame '%s' is not known "
+                                   "('%s' should be a link name, an attached body id, or the id of an attached body's named frame).",
                     id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
-
+  
   const EigenSTL::vector_Affine3d& tf = jt->second->getGlobalCollisionBodyTransforms();
   const std::map<std::string, Eigen::Affine3d>& nf = jt->second->getNamedTransforms();
   if (!nf.empty())
-    ROS_ERROR_NAMED("robot_state", "The AttachedBody has named frames. Use their names directly to access them.");
+      ROS_ERROR_NAMED("robot_state", "The AttachedBody has named frames. Use their names directly to access them.");
   if (tf.empty())
   {
-    ROS_ERROR_NAMED("robot_state",
-                    "'%s' is the name of an AttachedBody, but it has no geometry associated to it. No transform to "
-                    "return.",
+    ROS_ERROR_NAMED("robot_state", "'%s' is the name of an AttachedBody, but it has no geometry associated to it. No transform to return.",
                     id.c_str());
     return identity_transform;
   }
   if (tf.size() > 1)
-    ROS_DEBUG_NAMED("robot_state",
-                    "There are multiple geometries associated to attached body '%s'. "
-                    "Returning the transform for the first one.",
+    ROS_DEBUG_NAMED("robot_state", "There are multiple geometries associated to attached body '%s'. "
+                                   "Returning the transform for the first one.",
                     id.c_str());
   return tf[0];
 }
@@ -1012,7 +1007,7 @@ bool RobotState::knowsFrameTransform(const std::string& id) const
     return knowsFrameTransform(id.substr(1));
   if (robot_model_->hasLinkModel(id))
     return true;
-
+  
   for (auto ab : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
   {
     if (ab.second->hasNamedTransform(id))
@@ -1362,7 +1357,7 @@ bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return true;
 }
-}  // namespace
+}
 
 bool RobotState::setToIKSolverFrame(Eigen::Affine3d& pose, const kinematics::KinematicsBaseConstPtr& solver)
 {
@@ -1462,9 +1457,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED("robot_state",
-                    "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
-                    "that is being solved by a single IK solver",
+    ROS_ERROR_NAMED("robot_state", "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
+                                   "that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
   }
@@ -1922,11 +1916,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
   if (max_step.translation <= 0.0 && max_step.rotation <= 0.0)
   {
-    ROS_ERROR_NAMED("robot_state", "Invalid MaxEEFStep passed into computeCartesianPath. Both the MaxEEFStep.rotation "
-                                   "and "
-                                   "MaxEEFStep.translation components must be non-negative and at least one component "
-                                   "must be "
-                                   "greater than zero");
+    ROS_ERROR_NAMED("robot_state",
+                    "Invalid MaxEEFStep passed into computeCartesianPath. Both the MaxEEFStep.rotation and "
+                    "MaxEEFStep.translation components must be non-negative and at least one component must be "
+                    "greater than zero");
     return 0.0;
   }
 
@@ -2031,9 +2024,8 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
 {
   if (traj.size() < MIN_STEPS_FOR_JUMP_THRESH)
   {
-    ROS_WARN_NAMED("robot_state",
-                   "The computed trajectory is too short to detect jumps in joint-space "
-                   "Need at least %zu steps, only got %zu. Try a lower max_step.",
+    ROS_WARN_NAMED("robot_state", "The computed trajectory is too short to detect jumps in joint-space "
+                                  "Need at least %zu steps, only got %zu. Try a lower max_step.",
                    MIN_STEPS_FOR_JUMP_THRESH, traj.size());
   }
 
@@ -2088,9 +2080,8 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
           type_index = 1;
           break;
         default:
-          ROS_WARN_NAMED("robot_state",
-                         "Joint %s has not supported type %s. \n"
-                         "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
+          ROS_WARN_NAMED("robot_state", "Joint %s has not supported type %s. \n"
+                                        "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
                          joint->getName().c_str(), joint->getTypeName().c_str());
           continue;
       }
@@ -2276,7 +2267,7 @@ void getPoseString(std::ostream& ss, const Eigen::Affine3d& pose, const std::str
     ss << std::endl;
   }
 }
-}  // namespace
+}
 
 void RobotState::getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0,
                                          bool last) const

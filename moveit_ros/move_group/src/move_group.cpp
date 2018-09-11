@@ -113,12 +113,8 @@ private:
   {
     try
     {
-      capability_plugin_loader_.reset(new pluginlib::ClassLoader<MoveGroupCapability>("moveit_ros_move_group", "move_"
-                                                                                                               "group::"
-                                                                                                               "MoveGro"
-                                                                                                               "upCapab"
-                                                                                                               "ilit"
-                                                                                                               "y"));
+      capability_plugin_loader_.reset(
+          new pluginlib::ClassLoader<MoveGroupCapability>("moveit_ros_move_group", "move_group::MoveGroupCapability"));
     }
     catch (pluginlib::PluginlibException& ex)
     {
@@ -186,7 +182,7 @@ private:
   std::shared_ptr<pluginlib::ClassLoader<MoveGroupCapability> > capability_plugin_loader_;
   std::vector<MoveGroupCapabilityPtr> capabilities_;
 };
-}  // namespace move_group
+}
 
 int main(int argc, char** argv)
 {

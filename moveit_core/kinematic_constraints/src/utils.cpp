@@ -275,24 +275,21 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
 }
 
 bool kinematic_constraints::validatePositionConstraints(const robot_state::RobotState& state,
-                                                        moveit_msgs::Constraints& c)
+                                          moveit_msgs::Constraints& c)
 {
   ROS_INFO("Validating position constraints.");
-
+  
   for (auto pos_con_it = c.position_constraints.begin(); pos_con_it != c.position_constraints.end(); ++pos_con_it)
   {
     ROS_INFO("Cycling through position constraint.");
-    ROS_INFO_STREAM("Current position constraint: link_name "
-                    << pos_con_it->link_name << ", offset " << pos_con_it->target_point_offset.x << " "
-                    << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z
-                    << ". header/frame_id: " << pos_con_it->header.frame_id);
+    ROS_INFO_STREAM("Current position constraint: link_name " << pos_con_it->link_name << ", offset " << pos_con_it->target_point_offset.x << 
+                                            " " << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z << 
+                                            ". header/frame_id: " << pos_con_it->header.frame_id);
     // If the link is not found in the robot model
     if (!state.hasLinkModel(pos_con_it->link_name))
     {
-      // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the
-      // link_frame of the robot,
-      //       and I can't think of a good name for a function that returns bool frame_exists, Eigen::Affine3d transform
-      //       and std::string link_name.
+      // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the link_frame of the robot,
+      //       and I can't think of a good name for a function that returns bool frame_exists, Eigen::Affine3d transform and std::string link_name.
       std::vector<const robot_state::AttachedBody*> bodies;
       state.getAttachedBodies(bodies);
       Eigen::Affine3d t;
@@ -318,9 +315,7 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
           {
             t = ab->getNamedTransform(pos_con_it->link_name);
             robot_link_name = ab->getAttachedLinkName();
-            ROS_INFO_STREAM("State has "
-                            << " named frame called " << pos_con_it->link_name << " on attached body "
-                            << ab->getName());
+            ROS_INFO_STREAM("State has " << " named frame called " << pos_con_it->link_name << " on attached body " << ab->getName());
             transform_found = true;
           }
         }
@@ -328,44 +323,35 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
 
       if (transform_found)
       {
-        Eigen::Vector3d pos_in_link_frame,
-            pos_in_original_frame(pos_con_it->target_point_offset.x, pos_con_it->target_point_offset.y,
-                                  pos_con_it->target_point_offset.z);
-
-        ROS_INFO_STREAM("Original position constraint in frame "
-                        << pos_con_it->link_name << " is " << pos_con_it->target_point_offset.x << " "
-                        << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z);
+        Eigen::Vector3d pos_in_link_frame, pos_in_original_frame(pos_con_it->target_point_offset.x, pos_con_it->target_point_offset.y, pos_con_it->target_point_offset.z);
+          
+        ROS_INFO_STREAM("Original position constraint in frame " << pos_con_it->link_name << " is " << pos_con_it->target_point_offset.x << " " << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z);
         pos_in_link_frame = t * pos_in_original_frame;
         pos_con_it->link_name = robot_link_name;
         pos_con_it->target_point_offset.x = pos_in_link_frame[0];
         pos_con_it->target_point_offset.y = pos_in_link_frame[1];
         pos_con_it->target_point_offset.z = pos_in_link_frame[2];
-        ROS_INFO_STREAM("New position constraint in frame "
-                        << pos_con_it->link_name << " is " << pos_con_it->target_point_offset.x << " "
-                        << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z);
+        ROS_INFO_STREAM("New position constraint in frame " << pos_con_it->link_name << " is " << pos_con_it->target_point_offset.x << " " << pos_con_it->target_point_offset.y << " " << pos_con_it->target_point_offset.z);
       }
-      else
-        return false;
+      else return false;
     }
   }
   return true;
 }
 
 bool kinematic_constraints::validateOrientationConstraints(const robot_state::RobotState& state,
-                                                           moveit_msgs::Constraints& c)
+                                          moveit_msgs::Constraints& c)
 {
   ROS_INFO("Validating orientation constraints.");
-
+  
   for (auto ori_con_it = c.orientation_constraints.begin(); ori_con_it != c.orientation_constraints.end(); ++ori_con_it)
   {
     ROS_INFO("Cycling through orientation constraints.");
     // If the link is not found in the robot model
     if (!state.hasLinkModel(ori_con_it->link_name))
     {
-      // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the
-      // link_frame of the robot,
-      //       and I can't think of a good name for a function that returns bool frame_exists, Eigen::Affine3d transform
-      //       and std::string link_name.
+      // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the link_frame of the robot,
+      //       and I can't think of a good name for a function that returns bool frame_exists, Eigen::Affine3d transform and std::string link_name.
       std::vector<const robot_state::AttachedBody*> bodies;
       state.getAttachedBodies(bodies);
       Eigen::Quaterniond q_i;
@@ -388,9 +374,7 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
           {
             q_i = ab->getNamedTransform(ori_con_it->link_name).inverse().rotation();
             robot_link_name = ab->getAttachedLinkName();
-            ROS_INFO_STREAM("State has "
-                            << " named frame called " << ori_con_it->link_name << " on attached body "
-                            << ab->getName());
+            ROS_INFO_STREAM("State has " << " named frame called " << ori_con_it->link_name << " on attached body " << ab->getName());
             transform_found = true;
           }
         }
@@ -398,31 +382,25 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
 
       if (transform_found)
       {
-        Eigen::Quaterniond q_target(ori_con_it->orientation.w, ori_con_it->orientation.x, ori_con_it->orientation.y,
-                                    ori_con_it->orientation.z);
+        Eigen::Quaterniond q_target(ori_con_it->orientation.w, ori_con_it->orientation.x, ori_con_it->orientation.y, ori_con_it->orientation.z);
         Eigen::Quaterniond q_in_link = q_i * q_target;
-
-        ROS_INFO_STREAM("Original orientation constraint in frame "
-                        << ori_con_it->link_name << " is (xyz) " << ori_con_it->orientation.x << " "
-                        << ori_con_it->orientation.y << " " << ori_con_it->orientation.z);
+        
+        ROS_INFO_STREAM("Original orientation constraint in frame " << ori_con_it->link_name << " is (xyz) " << ori_con_it->orientation.x << " " << ori_con_it->orientation.y << " " << ori_con_it->orientation.z);
         ori_con_it->link_name = robot_link_name;
         ori_con_it->orientation.x = q_in_link.x();
         ori_con_it->orientation.y = q_in_link.y();
         ori_con_it->orientation.z = q_in_link.z();
         ori_con_it->orientation.w = q_in_link.w();
-        ROS_INFO_STREAM("New orientation constraint in frame "
-                        << ori_con_it->link_name << " is (xyz)  " << ori_con_it->orientation.x << " "
-                        << ori_con_it->orientation.y << " " << ori_con_it->orientation.z);
+        ROS_INFO_STREAM("New orientation constraint in frame " << ori_con_it->link_name << " is (xyz)  " << ori_con_it->orientation.x << " " << ori_con_it->orientation.y << " " << ori_con_it->orientation.z);
       }
-      else
-        return false;
+      else return false;
     }
   }
   return true;
 }
 
 bool kinematic_constraints::validatePositionOrientationConstraints(const robot_state::RobotState& state,
-                                                                   moveit_msgs::Constraints& c)
+                                        moveit_msgs::Constraints& c)
 {
   return (validatePositionConstraints(state, c) && validateOrientationConstraints(state, c));
 }
