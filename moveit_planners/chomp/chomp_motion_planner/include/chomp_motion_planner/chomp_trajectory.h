@@ -130,11 +130,11 @@ public:
    */
   void fillInCubicInterpolation();
 
-   /**
-   * \brief Fill the trajectory from a trajectory seed
-   *
-   * Only modifies points from start_index_ to end_index_, inclusive
-   */
+  /**
+  * \brief Fill the trajectory from a trajectory seed
+  *
+  * Only modifies points from start_index_ to end_index_, inclusive
+  */
   void fillInSeed(const moveit_msgs::MotionPlanRequest& req);
 
   /**

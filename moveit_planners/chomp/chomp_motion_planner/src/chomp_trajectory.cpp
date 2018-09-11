@@ -256,7 +256,7 @@ void ChompTrajectory::fillInMinJerk()
 void ChompTrajectory::fillInSeed(const moveit_msgs::MotionPlanRequest& req)
 {
   double start_index = start_index_ - 1;
-  double end_index = end_index_ + 1; 
+  double end_index = end_index_ + 1;
   for (int i = 0; i < num_joints_; i++)
   {
     for (int j = start_index + 1; j < end_index; j++)
