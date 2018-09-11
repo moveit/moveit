@@ -151,7 +151,7 @@ public:
   bool knowsTransform(const std::string& id) const;
 
   /** \brief Get the transform to a frame or object with name id*/
-  Eigen::Affine3d getTransform(const std::string& id) const;
+  const Eigen::Affine3d& getTransform(const std::string& id) const;
 
   /** \brief Get the object id that owns the named frame with name id*/
   std::string getParent(const std::string& id) const;

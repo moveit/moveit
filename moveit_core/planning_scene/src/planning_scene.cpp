@@ -72,9 +72,9 @@ public:
     if (Transforms::isFixedFrame(frame))
       return true;
     if (frame[0] == '/')
-      return knowsObject(frame.substr(1));
+      return knowsFrame(frame.substr(1));
     else
-      return knowsObject(frame);
+      return knowsFrame(frame);
   }
 
   const Eigen::Affine3d& getTransform(const std::string& from_frame) const override
@@ -83,14 +83,9 @@ public:
   }
 
 private:
-  bool knowsObject(const std::string& id) const
+  bool knowsFrame(const std::string& id) const
   {
-    if (scene_->getWorld()->hasObject(id))
-    {
-      collision_detection::World::ObjectConstPtr obj = scene_->getWorld()->getObject(id);
-      return obj->shape_poses_.size() == 1;
-    }
-    return false;
+    return scene_->getWorld()->knowsTransform(id);
   }
 
   const PlanningScene* scene_;

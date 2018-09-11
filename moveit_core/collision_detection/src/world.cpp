@@ -152,7 +152,7 @@ bool World::knowsTransform(const std::string& id) const
   return false;
 }
 
-Eigen::Affine3d World::getTransform(const std::string& id) const
+const Eigen::Affine3d& World::getTransform(const std::string& id) const
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
