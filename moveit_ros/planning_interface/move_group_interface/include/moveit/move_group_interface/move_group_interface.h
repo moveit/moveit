@@ -914,7 +914,7 @@ public:
   void clearTrajectoryConstraints();
 
   /** \brief Make constraints valid for the current robot state if possible.
-      Returns false if the constraints do not refer to valid link_names or AttachedBody objects. */    
+      Returns false if the constraints do not refer to valid link_names or AttachedBody objects. */
   bool validateConstraints(moveit_msgs::Constraints& constraints);
 
   /**@}*/
@@ -924,7 +924,7 @@ private:
   class MoveGroupInterfaceImpl;
   MoveGroupInterfaceImpl* impl_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif

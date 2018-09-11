@@ -107,9 +107,8 @@ public:
      * @copydetails shapes_ */
     EigenSTL::vector_Affine3d shape_poses_;
 
-
     /** \brief Transforms to named frames on the object. Transforms are applied to the link.
-     *  Use these to define points of interest on the object to plan with 
+     *  Use these to define points of interest on the object to plan with
      *  (e.g. screwdriver_tip, kettle_spout, mug_base).
      * */
     std::map<std::string, Eigen::Affine3d> named_frames_;
@@ -182,7 +181,7 @@ public:
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
   bool replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                   const EigenSTL::vector_Affine3d& poses);
+                             const EigenSTL::vector_Affine3d& poses);
 
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
@@ -301,6 +300,6 @@ private:
   };
   std::vector<Observer*> observers_;
 };
-}
+}  // namespace collision_detection
 
 #endif

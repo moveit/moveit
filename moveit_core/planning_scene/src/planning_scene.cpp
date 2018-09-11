@@ -396,8 +396,9 @@ PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_n
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
-    ROS_ERROR_NAMED("planning_scene", "Could not get CollisionRobotUnpadded named '%s'. "
-                                      "Returning active CollisionRobotUnpadded '%s' instead",
+    ROS_ERROR_NAMED("planning_scene",
+                    "Could not get CollisionRobotUnpadded named '%s'. "
+                    "Returning active CollisionRobotUnpadded '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobotUnpadded();
   }
@@ -805,7 +806,7 @@ private:
   moveit_msgs::CollisionObject* obj_;
   const geometry_msgs::Pose* pose_;
 };
-}
+}  // namespace
 
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
@@ -841,7 +842,7 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
     tf::poseEigenToMsg(it.second, p);
     collision_obj.named_frames.push_back(p);
   }
-  
+
   return true;
 }
 
@@ -1117,8 +1118,9 @@ void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
-      ROS_ERROR_NAMED("planning_scene", "The specified RobotState is not marked as is_diff. "
-                                        "The request to modify the object '%s' is not supported. Object is ignored.",
+      ROS_ERROR_NAMED("planning_scene",
+                      "The specified RobotState is not marked as is_diff. "
+                      "The request to modify the object '%s' is not supported. Object is ignored.",
                       state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
@@ -1461,13 +1463,14 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
     if (object.object.frame_names.size() != object.object.named_frames.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of frame names does not match number of frames in collision object message");
+      ROS_ERROR_NAMED("planning_scene", "Number of frame names does not match number of frames in collision object "
+                                        "message");
       return false;
     }
 
     const robot_model::LinkModel* lm = getRobotModel()->getLinkModel(object.link_name);
     if (lm)
-    {      
+    {
       collision_detection::World::Object object_to_attach(object.object.id);
       // This is a copy because we need access to transform the poses inside
 
@@ -1492,13 +1495,14 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         }
         else
         {
-          ROS_ERROR_NAMED("planning_scene", "Attempting to attach object '%s' to link '%s' but no geometry specified "
-                                            "and such an object does not exist in the collision world",
+          ROS_ERROR_NAMED("planning_scene",
+                          "Attempting to attach object '%s' to link '%s' but no geometry specified "
+                          "and such an object does not exist in the collision world",
                           object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
       }
-      else // If first object is not in the world, fill it with the message contents
+      else  // If first object is not in the world, fill it with the message contents
       {
         for (std::size_t i = 0; i < object.object.primitives.size(); ++i)
         {
@@ -1538,7 +1542,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (object.object.header.frame_id != object.link_name)
         {
           const Eigen::Affine3d& t = kstate_->getGlobalLinkTransform(lm).inverse() *
-                                    getTransforms().getTransform(object.object.header.frame_id);
+                                     getTransforms().getTransform(object.object.header.frame_id);
           for (std::size_t i = 0; i < object_to_attach.shape_poses_.size(); ++i)
             object_to_attach.shape_poses_[i] = t * object_to_attach.shape_poses_[i];
         }
@@ -1554,15 +1558,16 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       if (!object.object.type.db.empty() || !object.object.type.key.empty())
         setObjectType(object.object.id, object.object.type);
 
-      if (object.object.operation == moveit_msgs::CollisionObject::ADD && object.object.named_frames.empty() && obj_in_world)
+      if (object.object.operation == moveit_msgs::CollisionObject::ADD && object.object.named_frames.empty() &&
+          obj_in_world)
       {
         object_to_attach.named_frames_ = obj_in_world->named_frames_;
         // Transform named frames to the link frame
         const Eigen::Affine3d& i_t = kstate_->getGlobalLinkTransform(lm).inverse();
-        for (auto it = object_to_attach.named_frames_.begin(); it != object_to_attach.named_frames_.end(); it++ )
+        for (auto it = object_to_attach.named_frames_.begin(); it != object_to_attach.named_frames_.end(); it++)
           it->second = i_t * it->second;
       }
-      else // Populate named frames from message
+      else  // Populate named frames from message
       {
         Eigen::Affine3d p;
         for (std::size_t i = 0; i < object.object.named_frames.size(); ++i)
@@ -1576,8 +1581,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (object.object.header.frame_id != object.link_name)
         {
           const Eigen::Affine3d& t = kstate_->getGlobalLinkTransform(lm).inverse() *
-                                    getTransforms().getTransform(object.object.header.frame_id);
-          for (auto it = object_to_attach.named_frames_.begin(); it != object_to_attach.named_frames_.end(); it++ )
+                                     getTransforms().getTransform(object.object.header.frame_id);
+          for (auto it = object_to_attach.named_frames_.begin(); it != object_to_attach.named_frames_.end(); it++)
             it->second = t * it->second;
         }
       }
@@ -1590,22 +1595,23 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
                           object.object.id.c_str());
         else
           ROS_WARN_NAMED("planning_scene",
-                          "You tried to append geometry to an attached object that is actually a world object ('%s'). "
-                          "World geometry is ignored.",
-                          object.object.id.c_str());
+                         "You tried to append geometry to an attached object that is actually a world object ('%s'). "
+                         "World geometry is ignored.",
+                         object.object.id.c_str());
       }
 
       // STEP 3: Attach the object to the robot
       if (object.object.operation == moveit_msgs::CollisionObject::ADD || !kstate_->hasAttachedBody(object.object.id))
       {
         if (kstate_->clearAttachedBody(object_to_attach.id_))
-          ROS_DEBUG_NAMED("planning_scene", "The robot state already had an object named '%s' attached to link '%s'. "
-                                            "The object was replaced.",
+          ROS_DEBUG_NAMED("planning_scene",
+                          "The robot state already had an object named '%s' attached to link '%s'. "
+                          "The object was replaced.",
                           object_to_attach.id_.c_str(), object.link_name.c_str());
-        
-        kstate_->attachBody(object_to_attach.id_, object_to_attach.shapes_, object_to_attach.shape_poses_, 
-                          object.touch_links, object.link_name, object.detach_posture, 
-                          object_to_attach.named_frames_);
+
+        kstate_->attachBody(object_to_attach.id_, object_to_attach.shapes_, object_to_attach.shape_poses_,
+                            object.touch_links, object.link_name, object.detach_posture,
+                            object_to_attach.named_frames_);
         ROS_DEBUG_NAMED("planning_scene", "Attached object '%s' to link '%s'", object_to_attach.id_.c_str(),
                         object.link_name.c_str());
       }
@@ -1614,30 +1620,34 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         const robot_state::AttachedBody* ab = kstate_->getAttachedBody(object_to_attach.id_);
         object_to_attach.shapes_.insert(object_to_attach.shapes_.end(), ab->getShapes().begin(), ab->getShapes().end());
-        object_to_attach.shape_poses_.insert(object_to_attach.shape_poses_.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
+        object_to_attach.shape_poses_.insert(object_to_attach.shape_poses_.end(), ab->getFixedTransforms().begin(),
+                                             ab->getFixedTransforms().end());
         trajectory_msgs::JointTrajectory detach_posture =
             object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
         std::set<std::string> touch_links;
-        if (object.touch_links.empty()) {touch_links = ab->getTouchLinks();}
-        else 
+        if (object.touch_links.empty())
         {
-          touch_links = std::set<std::string>(
-                  std::make_move_iterator(object.touch_links.begin()), std::make_move_iterator(object.touch_links.end())); 
+          touch_links = ab->getTouchLinks();
+        }
+        else
+        {
+          touch_links = std::set<std::string>(std::make_move_iterator(object.touch_links.begin()),
+                                              std::make_move_iterator(object.touch_links.end()));
         }
         object_to_attach.named_frames_.insert(ab->getNamedTransforms().begin(), ab->getNamedTransforms().end());
-        
+
         kstate_->clearAttachedBody(object_to_attach.id_);
-        kstate_->attachBody(object_to_attach.id_, object_to_attach.shapes_, object_to_attach.shape_poses_, 
-                            touch_links, object.link_name, detach_posture, object_to_attach.named_frames_);
-        ROS_DEBUG_NAMED("planning_scene", "Appended things to object '%s' attached to link '%s'", object_to_attach.id_.c_str(),
-                        object.link_name.c_str());
+        kstate_->attachBody(object_to_attach.id_, object_to_attach.shapes_, object_to_attach.shape_poses_, touch_links,
+                            object.link_name, detach_posture, object_to_attach.named_frames_);
+        ROS_DEBUG_NAMED("planning_scene", "Appended things to object '%s' attached to link '%s'",
+                        object_to_attach.id_.c_str(), object.link_name.c_str());
       }
       return true;
     }
     else
       ROS_ERROR_NAMED("planning_scene", "Robot state is not compatible with robot model. This could be fatal.");
   }
-  else if (object.object.operation == moveit_msgs::CollisionObject::REMOVE) // == DETACH
+  else if (object.object.operation == moveit_msgs::CollisionObject::REMOVE)  // == DETACH
   {
     // STEP 1: Get info about the object from the RobotState
     std::vector<const robot_state::AttachedBody*> attached_bodies;
@@ -1746,7 +1756,8 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
 
     if (object.frame_names.size() != object.named_frames.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of frame names does not match number of frames in collision object message");
+      ROS_ERROR_NAMED("planning_scene", "Number of frame names does not match number of frames in collision object "
+                                        "message");
       return false;
     }
 
@@ -1900,7 +1911,7 @@ const Eigen::Affine3d& PlanningScene::getFrameTransform(const robot_state::Robot
       if (obj->shape_poses_.size() > 1)
       {
         ROS_WARN_NAMED("planning_scene", "More than one shapes in object '%s'. Using first one to decide transform",
-                      id.c_str());
+                       id.c_str());
         return obj->shape_poses_[0];
       }
       else if (obj->shape_poses_.size() == 1)

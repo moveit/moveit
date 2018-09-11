@@ -104,16 +104,16 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     for (std::size_t j = 0; j < o->shapes_.size(); ++j)
       render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j],
                                   octree_voxel_rendering, octree_color_mode, color, alpha);
-    
+
     // Insert the named frames as red spheres of radius 2 mm
     // TODO: Integrate this properly (either by publishing to TF, or frames that can be toggled)
     auto s = shapes::Sphere(.002);
     rviz::Color red(1.0, 0.0, 0.0);
     for (auto nf_pair : o->named_frames_)
     {
-      render_shapes_->renderShape(planning_scene_geometry_node_, &s, nf_pair.second, 
-                                  octree_voxel_rendering, octree_color_mode, red, 1.0);
+      render_shapes_->renderShape(planning_scene_geometry_node_, &s, nf_pair.second, octree_voxel_rendering,
+                                  octree_color_mode, red, 1.0);
     }
   }
 }
-}
+}  // namespace moveit_rviz_plugin

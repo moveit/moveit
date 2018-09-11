@@ -138,8 +138,8 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
     auto s = shapes::Sphere(.002);
     rviz::Color red(1.0, 0.0, 0.0);
     Eigen::Affine3d t = kinematic_state->getGlobalLinkTransform(attached_bodies[i]->getAttachedLinkName());
-    for (std::map<std::string, Eigen::Affine3d>::const_iterator it = attached_bodies[i]->getNamedTransforms().begin(); 
-          it != attached_bodies[i]->getNamedTransforms().end(); it++ )
+    for (std::map<std::string, Eigen::Affine3d>::const_iterator it = attached_bodies[i]->getNamedTransforms().begin();
+         it != attached_bodies[i]->getNamedTransforms().end(); it++)
     {
       render_shapes_->renderShape(robot_.getVisualNode(), &s, t * it->second, octree_voxel_render_mode_,
                                   octree_voxel_color_mode_, red, 1.0);
@@ -172,4 +172,4 @@ void RobotStateVisualization::setAlpha(float alpha)
 {
   robot_.setAlpha(alpha);
 }
-}
+}  // namespace moveit_rviz_plugin
