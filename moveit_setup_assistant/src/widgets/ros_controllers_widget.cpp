@@ -64,7 +64,7 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assista
 
   // Top Header Area ------------------------------------------------
   moveit_setup_assistant::HeaderWidget* header = new moveit_setup_assistant::HeaderWidget(
-      "Controllers settings", "Configure MoveIt! to work with ROS Control to control the robot's physical hardware",
+      "Setup ROS Controllers", "Configure MoveIt! to work with ROS Control to control the robot's physical hardware",
       this);
   layout->addWidget(header);
 

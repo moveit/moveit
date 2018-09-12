@@ -55,10 +55,10 @@ EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, moveit_setup_assistant::
   // Top Header Area ------------------------------------------------
 
   HeaderWidget* header =
-      new HeaderWidget("End Effectors", "Setup your robot's end effectors. These are planning groups "
-                                        "corresponding to grippers or tools, attached to a parent "
-                                        "planning group (an arm).\n"
-                                        "The specified parent link is used as the reference frame for IK attempts.",
+      new HeaderWidget("Define End Effectors", "Setup your robot's end effectors. These are planning groups "
+                                               "corresponding to grippers or tools, attached to a parent "
+                                               "planning group (an arm). The specified parent link is used as the "
+                                               "reference frame for IK attempts.",
                        this);
   layout->addWidget(header);
 
