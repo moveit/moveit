@@ -834,6 +834,17 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
 
   layout->addWidget(widget_instructions_);
   layout->setAlignment(widget_instructions_, Qt::AlignTop);
+  p.setColor(QPalette::Inactive, QPalette::Base, this->palette().color(QWidget::backgroundRole()));
+  widget_instructions_->setPalette(p);
+
+  // Make TextEdit behave like QLabel
+  widget_instructions_->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+  widget_instructions_->setReadOnly(true);
+  widget_instructions_->setFrameShape(QFrame::NoFrame);
+  widget_instructions_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+  layout->addWidget(widget_instructions_);
+  layout->setAlignment(widget_instructions_, Qt::AlignTop);
 
   // New Button
   btn_new_ = new QPushButton(this);
