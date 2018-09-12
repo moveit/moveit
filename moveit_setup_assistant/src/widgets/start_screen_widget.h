@@ -42,6 +42,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QProgressBar>
+#include <QTextEdit>
 
 #ifndef Q_MOC_RUN
 #include <urdf/model.h>                                       // for testing a valid urdf is loaded
@@ -87,8 +88,6 @@ public:
   QProgressBar* progress_bar_;
   QImage* right_image_;
   QLabel* right_image_label_;
-  QImage* logo_image_;
-  QLabel* logo_image_label_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
@@ -188,6 +187,7 @@ public:
   // Load file button
   QPushButton* btn_new_;
   QPushButton* btn_exist_;
+  QTextEdit* widget_instructions_;
 };
 }
 
