@@ -36,7 +36,7 @@ from moveit_commander import MoveGroupCommander, MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
 from visualization_msgs.msg import MarkerArray
-import conversions
+import moveit_commander.conversions as conversions
 
 
 class RobotCommander(object):

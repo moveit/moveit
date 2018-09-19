@@ -39,8 +39,8 @@ from sensor_msgs.msg import JointState
 import rospy
 import tf
 from moveit_ros_planning_interface import _moveit_move_group_interface
-from exception import MoveItCommanderException
-import conversions
+from .exception import MoveItCommanderException
+import moveit_commander.conversions as conversions
 
 class MoveGroupCommander(object):
     """
