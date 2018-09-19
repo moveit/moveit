@@ -377,7 +377,7 @@ public:
 
   /**
    * Helper function for parsing ros_controllers.yaml file
-   * @param std::ifstream of ros_controoller.yaml
+   * @param std::ifstream of ros_controller.yaml
    * @return true if the file was read correctly
    */
   bool processROSControllers(std::ifstream& input_stream);

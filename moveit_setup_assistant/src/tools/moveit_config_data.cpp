@@ -379,7 +379,7 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 // ******************************************************************************************
 std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint_name)
 {
-  for (size_t i = 0; i < ros_controllers_config_.size(); ++i)
+  for (std::size_t i = 0; i < ros_controllers_config_.size(); ++i)
   {
     std::vector<std::string>::iterator joint_it =
         std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
@@ -389,10 +389,12 @@ std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint
         return "hardware_interface/PositionJointInterface";
       else if (ros_controllers_config_[i].type_.substr(0, 8) == "velocity")
         return "hardware_interface/VelocityJointInterface";
+      // As of writing this, available joint command interfaces are position, velocity and effort.
       else
         return "hardware_interface/EffortJointInterface";
     }
   }
+  // If the joint was not found in any controller return EffortJointInterface
   return "hardware_interface/EffortJointInterface";
 }
 
@@ -1347,7 +1349,7 @@ bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
   ROSControlConfig control_setting;
   YAML::Node controllers = YAML::Load(input_stream);
 
-  // // Loop through all controllers
+  // Loop through all controllers
   for (YAML::const_iterator controller_it = controllers.begin(); controller_it != controllers.end(); ++controller_it)
   {
     // Follow Joint Trajectory action controllers
@@ -1826,7 +1828,7 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensor
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
-  for (size_t param_id = 0; param_id < sensors_plugin_config_parameter_list_.size(); ++param_id)
+  for (std::size_t param_id = 0; param_id < sensors_plugin_config_parameter_list_.size(); ++param_id)
   {
     sensors_plugin_config_parameter_list_[param_id].clear();
   }
