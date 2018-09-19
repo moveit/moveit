@@ -7,15 +7,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS
-  date_time
-  filesystem
-  program_options
-  python
-  system
-  thread
-)
-find_package(PythonLibs 2.7 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
@@ -31,6 +22,25 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   rospy
   rosconsole
+)
+
+find_package(PythonInterp REQUIRED)
+find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
+
+find_package(Boost REQUIRED)
+if(Boost_VERSION LESS 106700)
+  set(BOOST_PYTHON_COMPONENT python)
+elseif()
+  set(BOOST_PYTHON_COMPONENT python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
+endif()
+
+find_package(Boost REQUIRED COMPONENTS
+  date_time
+  filesystem
+  program_options
+  ${BOOST_PYTHON_COMPONENT}
+  system
+  thread
 )
 find_package(Eigen3 REQUIRED)
 
