@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
         moveit_core
         pluginlib
         moveit_experimental
+        stomp_core
+        stomp_moveit
         )
 
 find_package(Eigen3 REQUIRED)

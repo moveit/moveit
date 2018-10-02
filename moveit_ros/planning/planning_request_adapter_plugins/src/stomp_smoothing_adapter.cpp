@@ -162,9 +162,10 @@ public:
 
       /// I keep getting a symbol lookup error here for some weird reason for either of the following 2 lines....
       planners = new StompPlanner(v->first, v->second, robot_model_);
-      // std::shared_ptr<StompPlanner> planner(new StompPlanner(v->first, v->second, robot_model_));
+      //std::shared_ptr<StompPlanner> planner(new StompPlanner(v->first, v->second, robot_model_));
 
-      // planners_.insert(std::make_pair(v->first, planner));
+      break;
+      //planners_.insert(std::make_pair(v->first, planner));
     }
 
     std::cout << "I am in STOMP PLanning adapter" << std::endl;
@@ -180,7 +181,12 @@ public:
     ros::WallTime start_time = ros::WallTime::now();
 
     planning_interface::MotionPlanDetailedResponse detailed_res;
+
+    std::cout << "BEFORE CALLING SOLVE method " << std::endl;
     bool success = planners->solve(detailed_res);
+
+    std::cout << " AFTER CALLING SOLVE METHOD" << std::endl;
+
     if (success)
     {
       res1.trajectory_ = detailed_res.trajectory_.back();
