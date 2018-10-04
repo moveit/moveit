@@ -177,26 +177,26 @@ TEST(PlanningScene, loadGoodSceneGeometry)
 
   std::istringstream good_scene_geometry;
   good_scene_geometry.str("foobar_scene\n"
-                         "* foo\n"
-                         "1\n"
-                         "box\n"
-                         "2.58 1.36 0.31\n"
-                         "1.49257 1.00222 0.170051\n"
-                         "0 0 4.16377e-05 1\n"
-                         "0 0 1 0.3\n"
-                         "* bar\n"
-                         "1\n"
-                         "cylinder\n"
-                         "0.02 0.0001\n"
-                         "0.453709 0.499136 0.355051\n"
-                         "0 0 4.16377e-05 1\n"
-                         "1 0 0 1\n"
-                         ".\n");
+                          "* foo\n"
+                          "1\n"
+                          "box\n"
+                          "2.58 1.36 0.31\n"
+                          "1.49257 1.00222 0.170051\n"
+                          "0 0 4.16377e-05 1\n"
+                          "0 0 1 0.3\n"
+                          "* bar\n"
+                          "1\n"
+                          "cylinder\n"
+                          "0.02 0.0001\n"
+                          "0.453709 0.499136 0.355051\n"
+                          "0 0 4.16377e-05 1\n"
+                          "1 0 0 1\n"
+                          ".\n");
   EXPECT_TRUE(ps->loadGeometryFromStream(good_scene_geometry));
   EXPECT_EQ(ps->getName(), "foobar_scene");
   EXPECT_TRUE(ps->getWorld()->hasObject("foo"));
   EXPECT_TRUE(ps->getWorld()->hasObject("bar"));
-  EXPECT_FALSE(ps->getWorld()->hasObject("baz")); // Sanity check.
+  EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
 }
 
 TEST(PlanningScene, loadBadSceneGeometry)
@@ -212,14 +212,14 @@ TEST(PlanningScene, loadBadSceneGeometry)
 
   std::istringstream malformed_scene_geometry;
   malformed_scene_geometry.str("malformed_scene_geometry\n"
-                          "* foo\n"
-                          "1\n"
-                          "box\n"
-                          "2.58 1.36\n" /* Only two tokens; should be 3 */
-                          "1.49257 1.00222 0.170051\n"
-                          "0 0 4.16377e-05 1\n"
-                          "0 0 1 0.3\n"
-                          ".\n");
+                               "* foo\n"
+                               "1\n"
+                               "box\n"
+                               "2.58 1.36\n" /* Only two tokens; should be 3 */
+                               "1.49257 1.00222 0.170051\n"
+                               "0 0 4.16377e-05 1\n"
+                               "0 0 1 0.3\n"
+                               ".\n");
   EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
 }
 
