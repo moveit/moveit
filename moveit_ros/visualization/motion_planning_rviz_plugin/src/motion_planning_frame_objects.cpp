@@ -933,16 +933,17 @@ void MotionPlanningFrame::computeImportFromText(const std::string& path)
   if (ps)
   {
     std::ifstream fin(path.c_str());
-    if (fin.good())
+    if (ps->loadGeometryFromStream(fin))
     {
-      ps->loadGeometryFromStream(fin);
-      fin.close();
       ROS_INFO("Loaded scene geometry from '%s'", path.c_str());
       planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
       planning_display_->queueRenderSceneGeometry();
     }
     else
-      ROS_WARN("Unable to load scene geometry from '%s'", path.c_str());
+    {
+      QMessageBox::warning(nullptr, "Loading scene geometry", "Failed to load scene geometry.\n"
+                                                              "See console output for more details.");
+    }
   }
 }
 

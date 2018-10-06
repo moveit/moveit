@@ -38,6 +38,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <moveit_resources/config.h>
@@ -165,6 +166,61 @@ TEST(PlanningScene, isStateValid)
   {
     EXPECT_FALSE(ps->isStateValid(current_state, "left_arm"));
   }
+}
+
+TEST(PlanningScene, loadGoodSceneGeometry)
+{
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  loadRobotModels(urdf_model, srdf_model);
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+
+  std::istringstream good_scene_geometry;
+  good_scene_geometry.str("foobar_scene\n"
+                          "* foo\n"
+                          "1\n"
+                          "box\n"
+                          "2.58 1.36 0.31\n"
+                          "1.49257 1.00222 0.170051\n"
+                          "0 0 4.16377e-05 1\n"
+                          "0 0 1 0.3\n"
+                          "* bar\n"
+                          "1\n"
+                          "cylinder\n"
+                          "0.02 0.0001\n"
+                          "0.453709 0.499136 0.355051\n"
+                          "0 0 4.16377e-05 1\n"
+                          "1 0 0 1\n"
+                          ".\n");
+  EXPECT_TRUE(ps->loadGeometryFromStream(good_scene_geometry));
+  EXPECT_EQ(ps->getName(), "foobar_scene");
+  EXPECT_TRUE(ps->getWorld()->hasObject("foo"));
+  EXPECT_TRUE(ps->getWorld()->hasObject("bar"));
+  EXPECT_FALSE(ps->getWorld()->hasObject("baz"));  // Sanity check.
+}
+
+TEST(PlanningScene, loadBadSceneGeometry)
+{
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  loadRobotModels(urdf_model, srdf_model);
+  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  std::istringstream empty_scene_geometry;
+
+  // This should fail since there is no planning scene name and no end of geometry marker.
+  EXPECT_FALSE(ps->loadGeometryFromStream(empty_scene_geometry));
+
+  std::istringstream malformed_scene_geometry;
+  malformed_scene_geometry.str("malformed_scene_geometry\n"
+                               "* foo\n"
+                               "1\n"
+                               "box\n"
+                               "2.58 1.36\n" /* Only two tokens; should be 3 */
+                               "1.49257 1.00222 0.170051\n"
+                               "0 0 4.16377e-05 1\n"
+                               "0 0 1 0.3\n"
+                               ".\n");
+  EXPECT_FALSE(ps->loadGeometryFromStream(malformed_scene_geometry));
 }
 
 int main(int argc, char** argv)
