@@ -73,7 +73,8 @@ int main(int argc, char** argv)
     planning_scene::PlanningScene ps(rml->getModel());
 
     std::ifstream f(argv[filename_index]);
-    if (ps.loadGeometryFromStream(f)) {
+    if (ps.loadGeometryFromStream(f))
+    {
       ROS_INFO("Publishing geometry from '%s' ...", argv[filename_index]);
       moveit_msgs::PlanningScene ps_msg;
       ps.getPlanningSceneMsg(ps_msg);

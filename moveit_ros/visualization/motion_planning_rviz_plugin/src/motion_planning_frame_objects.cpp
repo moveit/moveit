@@ -942,7 +942,7 @@ void MotionPlanningFrame::computeImportFromText(const std::string& path)
     else
     {
       QMessageBox::warning(nullptr, "Loading scene geometry", "Failed to load scene geometry.\n"
-                           "See console output for more details.");
+                                                              "See console output for more details.");
     }
   }
 }
