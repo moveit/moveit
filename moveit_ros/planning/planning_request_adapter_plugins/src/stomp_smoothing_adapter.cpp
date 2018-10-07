@@ -162,39 +162,75 @@ public:
 
       /// I keep getting a symbol lookup error here for some weird reason for either of the following 2 lines....
       planners = new StompPlanner(v->first, v->second, robot_model_);
-      //std::shared_ptr<StompPlanner> planner(new StompPlanner(v->first, v->second, robot_model_));
+      // std::shared_ptr<StompPlanner> planner(new StompPlanner(v->first, v->second, robot_model_));
 
       break;
-      //planners_.insert(std::make_pair(v->first, planner));
+      // planners_.insert(std::make_pair(v->first, planner));
     }
 
     std::cout << "I am in STOMP PLanning adapter" << std::endl;
 
     planning_scene::PlanningSceneConstPtr planning_scene1;
     planning_interface::MotionPlanRequest req1;
-    planning_interface::MotionPlanResponse res1;
+    planning_interface::MotionPlanResponse res1 = res;
+
+    planners->setMotionPlanRequest(req);
+    planners->solve(res1);
+
+    // basically setting the trajectory from the response of the current planner into the response object of the
+    // StompPlanningAdapter
+    moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
+    moveit_msgs::RobotTrajectory trajectory_msgs_from_response;
+    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs_from_response);
+    res_detailed_moveit_msgs.trajectory.resize(1);
+    res_detailed_moveit_msgs.trajectory[0] = trajectory_msgs_from_response;
 
     /// Need to send the MotionPlanRequest object, 'req' to the STOMP solver here, Also initialize the MotionPlanRequest
     /// in the STOMP constructor in the stomp_core package
     /// this part is not as intuitive as CHOMP
 
-    ros::WallTime start_time = ros::WallTime::now();
+    /* ros::WallTime start_time = ros::WallTime::now();
 
-    planning_interface::MotionPlanDetailedResponse detailed_res;
+     planning_interface::MotionPlanDetailedResponse res_detailed;
 
-    std::cout << "BEFORE CALLING SOLVE method " << std::endl;
-    bool success = planners->solve(detailed_res);
+     // copying happens here
+       res_detailed.trajectory_.resize(1);
+       res_detailed.trajectory_[0] = robot_trajectory::RobotTrajectoryPtr(
+               new robot_trajectory::RobotTrajectory(planning_scene->getRobotModel(), "panda_arm"));
 
-    std::cout << " AFTER CALLING SOLVE METHOD" << std::endl;
+       moveit::core::RobotState start_state(planning_scene->getRobotModel());
+       robot_state::robotStateMsgToRobotState(res_detailed_moveit_msgs.trajectory_start, start_state);
+       res_detailed.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_detailed_moveit_msgs.trajectory[0]);
+       res_detailed.description_.push_back("plan");
+       res_detailed.processing_time_ = res_detailed_moveit_msgs.processing_time;
+       res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
 
-    if (success)
-    {
-      res1.trajectory_ = detailed_res.trajectory_.back();
-    }
-    ros::WallDuration wd = ros::WallTime::now() - start_time;
-    res1.planning_time_ = ros::Duration(wd.sec, wd.nsec).toSec();
-    res1.error_code_ = detailed_res.error_code_;
+       //std::cout << res_detailed.trajectory_[0] << " hello " << res_detailed.trajectory_[0]->getWayPointCount() <<
+     std::endl;
+       //for(int i=0 ; i<res_detailed.trajectory_[0]->getWayPointCount() ; i++)
+       //{
+       //    std::cout << res_detailed.trajectory_[0]->getWayPoint(i) << std::endl;
 
+       //}
+
+
+       //copying finishes here
+
+     planners->setMotionPlanRequest(req);
+     std::cout << "BEFORE CALLING SOLVE method " << std::endl;
+     bool success = planners->solve(res_detailed);
+
+     std::cout << " AFTER CALLING SOLVE METHOD" << std::endl;
+
+     if (success)
+     {
+       res1.trajectory_ = res_detailed.trajectory_.back();
+     }
+     ros::WallDuration wd = ros::WallTime::now() - start_time;
+     res1.planning_time_ = ros::Duration(wd.sec, wd.nsec).toSec();
+     res1.error_code_ = res_detailed.error_code_;
+
+     */
     /// Once motion plan is found for STOMP copy it into the original MotionPlanResponse res object
 
     // return success; // stomp planner solver result status

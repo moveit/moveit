@@ -25,6 +25,9 @@
  */
 #include <ros/ros.h>
 #include <moveit/robot_state/conversions.h>
+
+#include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <stomp_moveit/stomp_planner.h>
 #include <class_loader/class_loader.h>
 #include <stomp_core/utils.h>
@@ -152,10 +155,56 @@ void StompPlanner::setup()
   }
 }
 
+Eigen::MatrixXd filledTrajectory;
 bool StompPlanner::solve(planning_interface::MotionPlanResponse& res)
 {
   ros::WallTime start_time = ros::WallTime::now();
   planning_interface::MotionPlanDetailedResponse detailed_res;
+
+
+    //converting planning_interface:: into moveit_msgs::
+
+    planning_interface::MotionPlanDetailedResponse res_detailed;
+    moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
+
+    moveit_msgs::RobotTrajectory trajectory_msgs_from_response;
+    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs_from_response);
+    res_detailed_moveit_msgs.trajectory.resize(1);
+    res_detailed_moveit_msgs.trajectory[0] = trajectory_msgs_from_response;
+
+    // reading the trajectory
+
+    // create a RobotTrajectory msg to obtain the trajectory from the MotionPlanDetailedResponse object
+    moveit_msgs::RobotTrajectory trajectory_msg = res_detailed_moveit_msgs.trajectory[0];
+    // get the number of points in the response trajectory obtained from OMPL
+    int num_response_points = trajectory_msg.joint_trajectory.points.size();
+    // get the number of joints for each robot state
+    int num_joints_trajectory = trajectory_msg.joint_trajectory.points[0].positions.size();
+
+
+    std::cout << num_response_points << " response points " << num_joints_trajectory << " num_joints_trjectory " << std::endl;
+
+    //filledTrajectory = new Eigen::MatrixXd(num_response_points, num_joints_trajectory);
+    Eigen::MatrixXd filledTrajectory2(num_response_points, num_joints_trajectory);
+
+    for(int i=0 ; i<num_response_points-1 ; i++)
+    {
+        for(int j=0 ; j<num_joints_trajectory ; j++)
+        {
+            std::cout << trajectory_msg.joint_trajectory.points[i].positions[j] << " " << i <<" " << j ;
+            filledTrajectory2(i,j) = trajectory_msg.joint_trajectory.points[i].positions[j];
+            std::cout << filledTrajectory2(i,j) << " " << i ;
+        }
+        std::cout << std::endl;
+    }
+
+    //filledTrajectory = filledTrajectory2;
+
+
+    // end of the conversion
+
+
+  // have the initial trajectory in the response object somehow and then send it to detailed response object
   bool success = solve(detailed_res);
   if (success)
   {
@@ -171,6 +220,16 @@ bool StompPlanner::solve(planning_interface::MotionPlanResponse& res)
 bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
   using namespace stomp_core;
+
+  // INITIAL TRAJECTORY POPULATION STEP
+  // create a EigenMatrixXd here and populate initial trajectory obtained from the response object
+  // into the initial stomp trajectory.. basically initialize using a prior trajectory
+  // stomp_trajectory response being used as a place holder here  being used as a 
+    Eigen::MatrixXd temp_original_trajectory;//=filledTrajectory;
+    //moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory_[0]->getRobotTrajectoryMsg();
+
+
+
 
   // initializing response
   res.description_.resize(1, "");
@@ -209,6 +268,9 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
                                               },
                                               false);
 
+// WHERE ever solve(start, goal, parameters is called , check if the initialization method is
+// fillTrajectory, then populate an EigenXd parameter with the trajectory loaded into the response
+// object and re-populate into the EigenXd later to be used as the initialization of the trajectory method)
   if (use_seed)
   {
     ROS_INFO("%s Seeding trajectory from MotionPlanRequest", getName().c_str());
@@ -245,7 +307,12 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
     }
 
     stomp_->setConfig(config_copy);
-    planning_success = stomp_->solve(start, goal, parameters);
+
+    // CHANGE THIS HERE THE temp_original_trajectory
+    // ......dsfioga&(*^@*&^(*@#^*(#@
+
+    //Eigen::MatrixXd temp_original_trajectory;
+    planning_success = stomp_->solve(start, goal, parameters, temp_original_trajectory);
   }
 
   // stopping timer
