@@ -187,25 +187,28 @@ bool StompPlanner::solve(planning_interface::MotionPlanResponse& res)
     //filledTrajectory = new Eigen::MatrixXd(num_response_points, num_joints_trajectory);
     Eigen::MatrixXd filledTrajectory2(num_response_points, num_joints_trajectory);
 
-    for(int i=0 ; i<num_response_points-1 ; i++)
+    for(int i=0 ; i<num_response_points ; i++)
     {
         for(int j=0 ; j<num_joints_trajectory ; j++)
         {
             std::cout << trajectory_msg.joint_trajectory.points[i].positions[j] << " " << i <<" " << j ;
             filledTrajectory2(i,j) = trajectory_msg.joint_trajectory.points[i].positions[j];
-            std::cout << filledTrajectory2(i,j) << " " << i ;
+            //std::cout << filledTrajectory2(i,j) << " " << i ;
         }
         std::cout << std::endl;
     }
 
-    //filledTrajectory = filledTrajectory2;
+    filledTrajectory = filledTrajectory2;
 
 
     // end of the conversion
 
+    std::cout << " i am here " << std::endl;
 
   // have the initial trajectory in the response object somehow and then send it to detailed response object
   bool success = solve(detailed_res);
+
+    std::cout << " i am here after Solve method" << std::endl;
   if (success)
   {
     res.trajectory_ = detailed_res.trajectory_.back();
@@ -225,7 +228,7 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
   // create a EigenMatrixXd here and populate initial trajectory obtained from the response object
   // into the initial stomp trajectory.. basically initialize using a prior trajectory
   // stomp_trajectory response being used as a place holder here  being used as a 
-    Eigen::MatrixXd temp_original_trajectory;//=filledTrajectory;
+    Eigen::MatrixXd temp_original_trajectory=filledTrajectory;
     //moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory_[0]->getRobotTrajectoryMsg();
 
 
@@ -312,7 +315,10 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
     // ......dsfioga&(*^@*&^(*@#^*(#@
 
     //Eigen::MatrixXd temp_original_trajectory;
+    std::cout << " hello in main solver BEFORE it" << std::endl;
     planning_success = stomp_->solve(start, goal, parameters, temp_original_trajectory);
+
+      std::cout << " hello in main solver AFTER it" << std::endl;
   }
 
   // stopping timer
