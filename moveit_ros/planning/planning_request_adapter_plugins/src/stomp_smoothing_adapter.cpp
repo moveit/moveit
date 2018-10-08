@@ -175,7 +175,13 @@ public:
     planning_interface::MotionPlanResponse res1 = res;
 
     planners->setMotionPlanRequest(req);
-    planners->solve(res1);
+    bool stomp_planning_success = planners->solve(res1);
+
+    // populate the original response object 'res' with the CHOMP's optimized trajectory.
+    if (stomp_planning_success)
+    {
+      res = res1;
+    }
 
     // basically setting the trajectory from the response of the current planner into the response object of the
     // StompPlanningAdapter
