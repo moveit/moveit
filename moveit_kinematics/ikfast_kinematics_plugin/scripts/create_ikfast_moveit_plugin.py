@@ -7,8 +7,8 @@ This plugin and the move_group node can be used as a general
 kinematics service, from within the moveit planning environment, or in
 your own ROS node.
 
-Author: Michael Lautman PickNik Robotics
-        Dave Coleman, CU Boulder
+Author: Michael Lautman, PickNik Robotics
+        Dave Coleman PickNik Robotics
 
         Based heavily on the arm_kinematic_tools package by Jeremy Zoss, SwRI
         and the arm_navigation plugin generator by David Butterworth, KAIST
@@ -61,7 +61,7 @@ plugin_sub_dir = 'ikfast_kinematics_plugin' # sub directory which contains the t
 search_modes = ['OPTIMIZE_MAX_JOINT', 'OPTIMIZE_FREE_JOINT' ]
 
 
-def createParser():
+def create_parser():
   parser = argparse.ArgumentParser(description="Generate an IKFast MoveIt! kinematic plugin")
   parser.add_argument("robot_name", help="The name of your robot")
   parser.add_argument("planning_group_name", help="The name of the planning group for which your IKFast solution was generated")
@@ -95,13 +95,11 @@ def print_args(args):
   print "robot_name_in_srdf:", args.robot_name_in_srdf
   print "moveit_config_pkg:", args.moveit_config_pkg
 
-
 def update_deps(reqd_deps, req_type, e_parent):
   curr_deps = [e.text for e in e_parent.findall(req_type)]
   missing_deps = set(reqd_deps) - set(curr_deps)
-  for d in missing_deps:
-     etree.SubElement(e_parent, req_type).text = d
-  # return missing_deps
+  for dep in missing_deps:
+     etree.SubElement(e_parent, req_type).text = dep
 
 def update_package(args):
   try:
@@ -338,9 +336,8 @@ def main(args):
   populate_optional(args)
   print_args(args)
   update_package(args)
-  pass
 
 if __name__ == '__main__':
-  parser = createParser()
+  parser = create_parser()
   args = parser.parse_args()
   main(args)
