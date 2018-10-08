@@ -122,7 +122,6 @@ void StompPlanner::setup()
     setPlanningScene(planning_scene::PlanningSceneConstPtr(new planning_scene::PlanningScene(robot_model_)));
   }
 
-  std::cout << " Loading STOMP Parameters....!!!" << std::endl;
   // loading parameters
   try
   {
@@ -155,15 +154,17 @@ void StompPlanner::setup()
   }
 }
 
-Eigen::MatrixXd filledTrajectory;
 bool StompPlanner::solve(planning_interface::MotionPlanResponse& res)
 {
   ros::WallTime start_time = ros::WallTime::now();
   planning_interface::MotionPlanDetailedResponse detailed_res;
 
-
-    //converting planning_interface:: into moveit_msgs::
-
+  // execute the following block only when stomp_config_.initialization method = 4 implying the trajectory
+  // initialization needs to happen as a result of the motion plan obtained from a different motion planner
+  if (stomp_config_.initialization_method == 4)
+  {
+    // converting planning_interface::MotionPlanDetailedResponse into moveit_msgs::MotionPlanDetailedResponse to extract
+    // Trajectory in the format of moveit_msgs::RobotTrajectory
     planning_interface::MotionPlanDetailedResponse res_detailed;
     moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
 
@@ -173,42 +174,28 @@ bool StompPlanner::solve(planning_interface::MotionPlanResponse& res)
     res_detailed_moveit_msgs.trajectory[0] = trajectory_msgs_from_response;
 
     // reading the trajectory
-
     // create a RobotTrajectory msg to obtain the trajectory from the MotionPlanDetailedResponse object
     moveit_msgs::RobotTrajectory trajectory_msg = res_detailed_moveit_msgs.trajectory[0];
-    // get the number of points in the response trajectory obtained from OMPL
+    // get the number of points in the trajectory obtained from the different motion planner
     int num_response_points = trajectory_msg.joint_trajectory.points.size();
     // get the number of joints for each robot state
     int num_joints_trajectory = trajectory_msg.joint_trajectory.points[0].positions.size();
 
+    Eigen::MatrixXd temp_filledTrajectory(num_response_points, num_joints_trajectory);
 
-    std::cout << num_response_points << " response points " << num_joints_trajectory << " num_joints_trjectory " << std::endl;
+    // populate the temp_filledTrajectory parameter with the trajectory loaded into the response object and populate
+    // into the EigenXd::MatrixXd later to be used as the initialization of the trajectory method in stomp_core.cpp file
+    // in stomp_core package
+    for (int i = 0; i < num_response_points; i++)
+      for (int j = 0; j < num_joints_trajectory; j++)
+        temp_filledTrajectory(i, j) = trajectory_msg.joint_trajectory.points[i].positions[j];
 
-    //filledTrajectory = new Eigen::MatrixXd(num_response_points, num_joints_trajectory);
-    Eigen::MatrixXd filledTrajectory2(num_response_points, num_joints_trajectory);
+    // load the trajectory into the stomp_planner class's Eigen::MatrixXd filledTrajectory variable
+    filledTrajectory = temp_filledTrajectory;
+  }
 
-    for(int i=0 ; i<num_response_points ; i++)
-    {
-        for(int j=0 ; j<num_joints_trajectory ; j++)
-        {
-            std::cout << trajectory_msg.joint_trajectory.points[i].positions[j] << " " << i <<" " << j ;
-            filledTrajectory2(i,j) = trajectory_msg.joint_trajectory.points[i].positions[j];
-            //std::cout << filledTrajectory2(i,j) << " " << i ;
-        }
-        std::cout << std::endl;
-    }
-
-    filledTrajectory = filledTrajectory2;
-
-
-    // end of the conversion
-
-    std::cout << " i am here " << std::endl;
-
-  // have the initial trajectory in the response object somehow and then send it to detailed response object
   bool success = solve(detailed_res);
 
-    std::cout << " i am here after Solve method" << std::endl;
   if (success)
   {
     res.trajectory_ = detailed_res.trajectory_.back();
@@ -227,12 +214,12 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
   // INITIAL TRAJECTORY POPULATION STEP
   // create a EigenMatrixXd here and populate initial trajectory obtained from the response object
   // into the initial stomp trajectory.. basically initialize using a prior trajectory
-  // stomp_trajectory response being used as a place holder here  being used as a 
-    Eigen::MatrixXd temp_original_trajectory=filledTrajectory;
-    //moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory_[0]->getRobotTrajectoryMsg();
-
-
-
+  // stomp_trajectory response being used as a place holder here  being used as a
+  Eigen::MatrixXd temp_original_trajectory;
+  // execute the following initialization of the temp_original trajectory only when initialization_method parameter = 4
+  if (stomp_config_.initialization_method == 4)
+    temp_original_trajectory = filledTrajectory;
+  // moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory_[0]->getRobotTrajectoryMsg();
 
   // initializing response
   res.description_.resize(1, "");
@@ -271,9 +258,6 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
                                               },
                                               false);
 
-// WHERE ever solve(start, goal, parameters is called , check if the initialization method is
-// fillTrajectory, then populate an EigenXd parameter with the trajectory loaded into the response
-// object and re-populate into the EigenXd later to be used as the initialization of the trajectory method)
   if (use_seed)
   {
     ROS_INFO("%s Seeding trajectory from MotionPlanRequest", getName().c_str());
@@ -311,14 +295,11 @@ bool StompPlanner::solve(planning_interface::MotionPlanDetailedResponse& res)
 
     stomp_->setConfig(config_copy);
 
-    // CHANGE THIS HERE THE temp_original_trajectory
-    // ......dsfioga&(*^@*&^(*@#^*(#@
-
-    //Eigen::MatrixXd temp_original_trajectory;
-    std::cout << " hello in main solver BEFORE it" << std::endl;
+    // the argument temp_original trajectory contains the trajectory obtained from another initial planner if the
+    // parameter initialization_method = 4 in the stomp_planning.yaml file, else a blank unused default value is passed,
+    // at this stage the temp_original_trajectory is passed to the solve method of the stomp_core class in the
+    // industrial moveit package where later it is used to initialize the trajectory in STOMP
     planning_success = stomp_->solve(start, goal, parameters, temp_original_trajectory);
-
-      std::cout << " hello in main solver AFTER it" << std::endl;
   }
 
   // stopping timer
@@ -782,14 +763,11 @@ bool StompPlanner::getConfigData(ros::NodeHandle& nh, std::map<std::string, XmlR
 {
   // Create a stomp planner for each group
   XmlRpc::XmlRpcValue stomp_config;
-  std::cout << " I AM JUST BEFORE NH.GETPARAM() " << std::endl;
   if (!nh.getParam(param, stomp_config))
   {
     ROS_ERROR("The 'stomp' configuration parameter was not found");
     return false;
   }
-
-  std::cout << "JUST AFTER GETPARAM() " << std::endl;
 
   // each element under 'stomp' should be a group name
   std::string group_name;
@@ -797,9 +775,6 @@ bool StompPlanner::getConfigData(ros::NodeHandle& nh, std::map<std::string, XmlR
   {
     for (XmlRpc::XmlRpcValue::iterator v = stomp_config.begin(); v != stomp_config.end(); v++)
     {
-      std::cout << v->first << " stomp_config begin" << std::endl;
-      std::cout << v->second << " stomp_config begin sec" << std::endl;
-
       group_name = static_cast<std::string>(v->second["group_name"]);
       config.insert(std::make_pair(group_name, v->second));
     }

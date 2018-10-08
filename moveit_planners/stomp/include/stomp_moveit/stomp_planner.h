@@ -163,6 +163,9 @@ protected:
   XmlRpc::XmlRpcValue config_;
   stomp_core::StompConfiguration stomp_config_;
 
+  // filledTrajectory is the variable to be used to get an initial trajectory from another motion planner like CHOMP,
+  // OMPL, etc.
+  Eigen::MatrixXd filledTrajectory;
   // robot environment
   moveit::core::RobotModelConstPtr robot_model_;
 
