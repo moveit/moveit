@@ -171,14 +171,14 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   std::vector<double> joint_max_vector_;
   std::vector<bool> joint_has_limits_vector_;
   std::vector<std::string> link_names_;
-  const size_t num_joints_;
+  const size_t NUM_JOINTS_;
   std::vector<int> free_params_;
   robot_state::RobotStatePtr robot_state_;
 
   // The ikfast and base frame are the start and end of the kinematic chain for which the
   // IKFast analytic solution was generated.
-  const std::string ikfast_tip_frame_ = "_EEF_LINK_";
-  const std::string ikfast_base_frame_ = "_BASE_LINK_";
+  const std::string IKFAST_TIP_FRAME_ = "_EEF_LINK_";
+  const std::string IKFAST_BASE_FRAME_ = "_BASE_LINK_";
 
   // The transform tip and base bool are set to true if this solver is used with a kinematic
   // chain that extends beyond the ikfast tip and base frame. The solution will be valid so
@@ -208,7 +208,7 @@ public:
   /** @class
    *  @brief Interface for an IKFast kinematics plugin
    */
-  IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), active_(false)
+  IKFastKinematicsPlugin() : NUM_JOINTS_(GetNumJoints()), active_(false)
   {
     srand(time(NULL));
     supported_methods_.push_back(kinematics::DiscretizationMethods::NO_DISCRETIZATION);
@@ -409,53 +409,55 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   robot_model.reset(new robot_model::RobotModel(urdf_model, srdf));
   robot_state_.reset(new robot_state::RobotState(robot_model));
 
-  // This IKFast solution was generated with ikfast_tip_frame_ and ikfast_base_frame_.
+  // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
-  // To support these use cases, we store the transform from the ikfast_base_frame_ to the
+  // To support these use cases, we store the transform from the IKFAST_BASE_FRAME_ to the
   // base_frame_ and ikfast_tip_frame_to the tip_frame_ and transform to the input pose accordingly
-  tip_transform_required_ = !robot_state::Transforms::sameFrame(ikfast_tip_frame_, tip_frame_);
-  base_transform_required_ = !robot_state::Transforms::sameFrame(ikfast_base_frame_, base_frame_);
+  tip_transform_required_ = !robot_state::Transforms::sameFrame(IKFAST_TIP_FRAME_, tip_frame_);
+  base_transform_required_ = !robot_state::Transforms::sameFrame(IKFAST_BASE_FRAME_, base_frame_);
 
   // TODO(mlautman): Check for non-fixed joints between the ikfast tip and base frames and the group tip
   //                 and base frames. If any are found, we should throw an error and return.
-  if (tip_frame_ != ikfast_tip_frame_)
+  if (tip_frame_ != IKFAST_TIP_FRAME_)
     ROS_WARN_NAMED(name_, "This IKFastKinematicsPlugin was generated with a tip frame of %s, but is being "
                           "used with tip frame %s. There must not be any active joints between these "
                           "links. Please double check that this is the case",
-                   ikfast_tip_frame_.c_str(), tip_frame_.c_str());
+                   IKFAST_TIP_FRAME_.c_str(), tip_frame_.c_str());
 
-  if (base_frame_ != ikfast_base_frame_)
+  if (base_frame_ != IKFAST_BASE_FRAME_)
     ROS_WARN_NAMED(name_, "This IKFastKinematicsPlugin was generated with a base frame of %s, but is being "
                           "initialized with base frame %s. There must not be any active joints between these "
                           "links. Please double check that this is the case",
-                   ikfast_base_frame_.c_str(), base_name.c_str());
+                   IKFAST_BASE_FRAME_.c_str(), base_name.c_str());
 
   if (base_transform_required_)
   {
-    if (!robot_state_->knowsFrameTransform(base_frame_) || !robot_state_->knowsFrameTransform(ikfast_base_frame_))
+    if (!robot_state_->knowsFrameTransform(base_frame_) || !robot_state_->knowsFrameTransform(IKFAST_BASE_FRAME_))
     {
-      ROS_ERROR_NAMED(name_, "could not find base frame");
+      ROS_ERROR_NAMED(name_, "Could not find either the base frame: '%s' or the IKFAST_BASE_FRAME_: '%s'", base_frame_,
+                      IKFAST_BASE_FRAME_);
       return false;
     }
     else
     {
       chain_base_to_group_base_ =
-          robot_state_->getFrameTransform(ikfast_base_frame_).inverse() * robot_state_->getFrameTransform(base_frame_);
+          robot_state_->getFrameTransform(IKFAST_BASE_FRAME_).inverse() * robot_state_->getFrameTransform(base_frame_);
     }
   }
 
   if (tip_transform_required_)
   {
-    if (!robot_state_->knowsFrameTransform(tip_frame_) || !robot_state_->knowsFrameTransform(ikfast_tip_frame_))
+    if (!robot_state_->knowsFrameTransform(tip_frame_) || !robot_state_->knowsFrameTransform(IKFAST_TIP_FRAME_))
     {
-      ROS_ERROR_NAMED(name_, "could not find tip frame");
+      ROS_ERROR_NAMED(name_, "Could not find tip_frame_: '%s' or the IKFAST_TIP_FRAME_: '%s'", tip_frame_,
+                      IKFAST_TIP_FRAME_);
       return false;
     }
     else
     {
       group_tip_to_chain_tip_ =
-          robot_state_->getFrameTransform(tip_frame_).inverse() * robot_state_->getFrameTransform(ikfast_tip_frame_);
+          robot_state_->getFrameTransform(tip_frame_).inverse() * robot_state_->getFrameTransform(IKFAST_TIP_FRAME_);
     }
   }
 
@@ -497,7 +499,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   ROS_DEBUG_STREAM_NAMED(name_, "Reading joints and links from URDF");
 
   urdf::LinkConstSharedPtr link = robot_model_urdf.getLink(getTipFrame());
-  while (link->name != base_frame_ && joint_names_.size() <= num_joints_)
+  while (link->name != base_frame_ && joint_names_.size() <= NUM_JOINTS_)
   {
     ROS_DEBUG_NAMED(name_, "Link %s", link->name.c_str());
     link_names_.push_back(link->name);
@@ -552,10 +554,10 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
     link = link->getParent();
   }
 
-  if (joint_names_.size() != num_joints_)
+  if (joint_names_.size() != NUM_JOINTS_)
   {
     ROS_FATAL_STREAM_NAMED(name_, "Joint numbers mismatch: URDF has " << joint_names_.size() << " and IKFast has "
-                                                                      << num_joints_);
+                                                                      << NUM_JOINTS_);
     return false;
   }
 
@@ -565,9 +567,10 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   std::reverse(joint_max_vector_.begin(), joint_max_vector_.end());
   std::reverse(joint_has_limits_vector_.begin(), joint_has_limits_vector_.end());
 
-  for (size_t i = 0; i < num_joints_; ++i)
-    ROS_DEBUG_STREAM_NAMED(name_, joint_names_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i] << " "
-                                                  << joint_has_limits_vector_[i]);
+  for (size_t joint_id = 0; joint_id < NUM_JOINTS_; ++joint_id)
+    ROS_DEBUG_STREAM_NAMED(name_, joint_names_[joint_id] << " " << joint_min_vector_[joint_id] << " "
+                                                         << joint_max_vector_[joint_id] << " "
+                                                         << joint_has_limits_vector_[joint_id]);
 
   active_ = true;
   return true;
@@ -717,14 +720,14 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
                                          std::vector<double>& solution) const
 {
   solution.clear();
-  solution.resize(num_joints_);
+  solution.resize(NUM_JOINTS_);
 
   // IKFast56/61
   const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
   std::vector<IkReal> vsolfree(sol.GetFree().size());
   sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
 
-  for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
+  for (std::size_t joint_id = 0; joint_id < NUM_JOINTS_; ++joint_id)
   {
     if (joint_has_limits_vector_[joint_id])
     {
@@ -738,7 +741,7 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
                                          std::vector<double>& solution) const
 {
   solution.clear();
-  solution.resize(num_joints_);
+  solution.resize(NUM_JOINTS_);
 
   // IKFast56/61
   const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
@@ -746,7 +749,7 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
 
   // rotate joints by +/-360° where it is possible and useful
-  for (std::size_t i = 0; i < num_joints_; ++i)
+  for (std::size_t i = 0; i < NUM_JOINTS_; ++i)
   {
     if (joint_has_limits_vector_[i])
     {
@@ -766,24 +769,26 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   }
 }
 
-double IKFastKinematicsPlugin::enforceLimits(double joint_val, double min, double max) const
+double IKFastKinematicsPlugin::enforceLimits(double joint_value, double min, double max) const
 {
-  // If the joint_val is greater than max subtract 2 * PI until it is less than the max
-  while (joint_val > max)
+  // If the joint_value is greater than max subtract 2 * PI until it is less than the max
+  while (joint_value > max)
   {
-    joint_val -= 2 * M_PI;
+    joint_value -= 2 * M_PI;
   }
 
-  // If the joint_val is less than the min, add 2 * PI until it is more than the min
-  while (joint_val < min)
+  // If the joint_value is less than the min, add 2 * PI until it is more than the min
+  while (joint_value < min)
   {
-    joint_val += 2 * M_PI;
+    joint_value += 2 * M_PI;
   }
-  return joint_val;
+  return joint_value;
 }
 
 double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
 {
+  // TODO (mlautman): Go through the IKFastKinematicsPlugin code and remove this assumption that the user wants
+  //                  results centered around 0
   double dist_sqr = 0;
   std::vector<double> ss = ik_seed_state;
   for (size_t i = 0; i < ik_seed_state.size(); ++i)
@@ -911,14 +916,14 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_
 
   IkReal eerot[9], eetrans[3];
 
-  if (joint_angles.size() != num_joints_)
+  if (joint_angles.size() != NUM_JOINTS_)
   {
     ROS_ERROR_NAMED(name_, "Unexpected number of joint angles");
     return false;
   }
 
-  IkReal angles[num_joints_];
-  for (unsigned char i = 0; i < num_joints_; i++)
+  IkReal angles[NUM_JOINTS_];
+  for (unsigned char i = 0; i < NUM_JOINTS_; i++)
     angles[i] = joint_angles[i];
 
   // IKFast56/61
@@ -1044,17 +1049,17 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     return false;
   }
 
-  if (ik_seed_state.size() != num_joints_)
+  if (ik_seed_state.size() != NUM_JOINTS_)
   {
-    ROS_ERROR_STREAM_NAMED(name_, "Seed state must have size " << num_joints_ << " instead of size "
+    ROS_ERROR_STREAM_NAMED(name_, "Seed state must have size " << NUM_JOINTS_ << " instead of size "
                                                                << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
-  if (!consistency_limits.empty() && consistency_limits.size() != num_joints_)
+  if (!consistency_limits.empty() && consistency_limits.size() != NUM_JOINTS_)
   {
-    ROS_ERROR_STREAM_NAMED(name_, "Consistency limits be empty or must have size " << num_joints_ << " instead of size "
+    ROS_ERROR_STREAM_NAMED(name_, "Consistency limits be empty or must have size " << NUM_JOINTS_ << " instead of size "
                                                                                    << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
@@ -1089,7 +1094,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   if (!consistency_limits.empty())
   {
-    // moveit replaced consistency_limit (scalar) w/ consistency_limits (vector)
+    // MoveIt! replaced consistency_limit (scalar) w/ consistency_limits (vector)
     // Assume [0]th free_params element for now.  Probably wrong.
     double max_limit = fmin(joint_max_vector_[free_params_[0]], initial_guess + consistency_limits[free_params_[0]]);
     double min_limit = fmax(joint_min_vector_[free_params_[0]], initial_guess - consistency_limits[free_params_[0]]);
@@ -1221,10 +1226,10 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     return false;
   }
 
-  if (ik_seed_state.size() < num_joints_)
+  if (ik_seed_state.size() < NUM_JOINTS_)
   {
     ROS_ERROR_STREAM_NAMED(name_, "ik_seed_state only has " << ik_seed_state.size()
-                                                            << " entries, this ikfast solver requires " << num_joints_);
+                                                            << " entries, this ikfast solver requires " << NUM_JOINTS_);
     return false;
   }
 
@@ -1355,10 +1360,10 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
     return false;
   }
 
-  if (ik_seed_state.size() < num_joints_)
+  if (ik_seed_state.size() < NUM_JOINTS_)
   {
     ROS_ERROR_STREAM_NAMED(name_, "ik_seed_state only has " << ik_seed_state.size()
-                                                            << " entries, this ikfast solver requires " << num_joints_);
+                                                            << " entries, this ikfast solver requires " << NUM_JOINTS_);
     return false;
   }
 
