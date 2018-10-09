@@ -24,3 +24,7 @@
     local-name: srdfdom
     uri: https://github.com/ros-planning/srdfdom.git
     version: kinetic-devel
+- git:
+    local-name: industrial_moveit
+    uri: https://github.com/raghavendersahdev/industrial_moveit.git
+    version: STOMP_Smoothing_adapter
