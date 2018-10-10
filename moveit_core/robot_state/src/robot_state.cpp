@@ -1919,9 +1919,6 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
 
-  // For each waypoint we do not use random restarts since they would very likely result in IK jumps
-  std::size_t ik_attempts = 1;
-
   double last_valid_percentage = 0.0;
   for (std::size_t i = 1; i <= steps; ++i)
   {
@@ -1930,7 +1927,9 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
     pose.translation() = percentage * rotated_target.translation() + (1 - percentage) * start_pose.translation();
 
-    if (setFromIK(group, pose, link->getName(), ik_attempts, 0.0, validCallback, options))
+    // Explicitly use a single IK attempt only: We want a smooth trajectory.
+    // Random seeding (of additional attempts) would probably create IK jumps.
+    if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
       traj.push_back(RobotStatePtr(new RobotState(*this)));
     else
       break;
