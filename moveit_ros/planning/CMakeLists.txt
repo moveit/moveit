@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_msgs
   tf2_ros
+  chomp_motion_planner
 )
 
 find_package(Eigen3 REQUIRED)
