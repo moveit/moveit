@@ -159,6 +159,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ROS_INFO_NAMED("chomp_planner", "CHOMP trajectory initialized using method: %s ",
                  (params.trajectory_initialization_method_).c_str());
 
+  ROS_INFO_NAMED("chomp_planner", "CHOMP trajectory initialized using method: %s ",
+                 (params.trajectory_initialization_method_).c_str());
+
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());
   moveit::core::robotStateMsgToRobotState(req.start_state, start_state);
