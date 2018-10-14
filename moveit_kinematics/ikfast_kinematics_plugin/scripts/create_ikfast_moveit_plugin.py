@@ -7,8 +7,8 @@ This plugin and the move_group node can be used as a general
 kinematics service, from within the moveit planning environment, or in
 your own ROS node.
 
-Author: Michael Lautman, PickNik Robotics
-        Dave Coleman, PickNik Robotics
+Author: Dave Coleman, PickNik Robotics
+        Michael Lautman, PickNik Robotics
         Based heavily on the arm_kinematic_tools package by Jeremy Zoss, SwRI
         and the arm_navigation plugin generator by David Butterworth, KAIST
 
