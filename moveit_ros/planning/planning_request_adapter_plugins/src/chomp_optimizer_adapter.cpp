@@ -201,7 +201,7 @@ public:
     {
       res_detailed.trajectory_.resize(1);
       res_detailed.trajectory_[0] = robot_trajectory::RobotTrajectoryPtr(
-          new robot_trajectory::RobotTrajectory(planning_scene->getRobotModel(), "panda_arm"));
+          new robot_trajectory::RobotTrajectory(res.trajectory_->getRobotModel(), res.trajectory_->getGroup()));
 
       moveit::core::RobotState start_state(planning_scene->getRobotModel());
       robot_state::robotStateMsgToRobotState(res_detailed_moveit_msgs.trajectory_start, start_state);
