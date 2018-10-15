@@ -164,21 +164,23 @@ public:
     return "CHOMP Optimizer";
   }
 
-  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& ps,
                             const planning_interface::MotionPlanRequest& req,
                             planning_interface::MotionPlanResponse& res,
                             std::vector<std::size_t>& added_path_index) const
   {
     // following call to planner() calls the OMPL planner and stores the trajectory inside the MotionPlanResponse res
     // variable which is then used by CHOMP for optimization of the computed trajectory
-    bool solved = planner(planning_scene, req, res);
+    bool solved = planner(ps, req, res);
 
     // create a hybrid collision detector to set the collision checker as hybrid
     collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
         collision_detection::CollisionDetectorAllocatorHybrid::create());
 
+    // create a writable planning scene
+    planning_scene::PlanningScenePtr planning_scene = ps->diff();
     ROS_INFO_STREAM("Configuring Planning Scene for CHOMP ....");
-    planning_scene->setActiveCollisionDetectorConst(hybrid_cd, true);
+    planning_scene->setActiveCollisionDetector(hybrid_cd, true);
 
     chomp::ChompPlanner chompPlanner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
