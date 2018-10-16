@@ -561,17 +561,7 @@ public:
     memcpy(velocity_ + joint->getFirstVariableIndex(), velocity, joint->getVariableCount() * sizeof(double));
   }
 
-  void setJointEfforts(const JointModel* joint, const double* effort)
-  {
-    if (has_acceleration_)
-    {
-      ROS_ERROR_NAMED("robot_state", "Unable to set joint efforts because array is being used for accelerations");
-      return;
-    }
-    has_effort_ = true;
-
-    memcpy(effort_ + joint->getFirstVariableIndex(), effort, joint->getVariableCount() * sizeof(double));
-  }
+  void setJointEfforts(const JointModel* joint, const double* effort);
 
   const double* getJointPositions(const std::string& joint_name) const
   {
