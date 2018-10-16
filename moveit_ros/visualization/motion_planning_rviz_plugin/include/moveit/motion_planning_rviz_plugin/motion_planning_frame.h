@@ -313,10 +313,10 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
-  #ifdef ROS_KINETIC
+#ifdef ROS_KINETIC
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-  #endif
+#endif
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
 

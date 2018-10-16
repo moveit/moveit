@@ -145,10 +145,10 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
 
   known_collision_objects_version_ = 0;
 
-  #ifdef ROS_KINETIC
+#ifdef ROS_KINETIC
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, nh_);
-  #endif
+#endif
 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
@@ -319,13 +319,12 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
-      #ifdef ROS_KINETIC
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
-          opt, tf_buffer_, ros::WallDuration(30, 0)));
-      #else
+#ifdef ROS_KINETIC
+      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, tf_buffer_, ros::WallDuration(30, 0)));
+#else
       move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
           opt, context_->getFrameManager()->getTF2BufferPtr(), ros::WallDuration(30, 0)));
-      #endif
+#endif
 
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());

@@ -179,11 +179,11 @@ void PlanningSceneDisplay::clearJobs()
 void PlanningSceneDisplay::onInitialize()
 {
   Display::onInitialize();
-  #ifdef ROS_KINETIC
+#ifdef ROS_KINETIC
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, threaded_nh_);
-  // QUESTION: threaded_nh_ or update_nh_ ? http://docs.ros.org/kinetic/api/rviz/html/c++/classrviz_1_1Display.html
-  #endif
+// QUESTION: threaded_nh_ or update_nh_ ? http://docs.ros.org/kinetic/api/rviz/html/c++/classrviz_1_1Display.html
+#endif
 
   // the scene node that contains everything
   planning_scene_node_ = scene_node_->createChildSceneNode();
@@ -491,15 +491,14 @@ void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string&
 // ******************************************************************************************
 planning_scene_monitor::PlanningSceneMonitorPtr PlanningSceneDisplay::createPlanningSceneMonitor()
 {
-  #ifdef ROS_KINETIC
+#ifdef ROS_KINETIC
   return planning_scene_monitor::PlanningSceneMonitorPtr(new planning_scene_monitor::PlanningSceneMonitor(
-      robot_description_property_->getStdString(), tf_buffer_,
-      getNameStd() + "_planning_scene_monitor"));
-  #else
+      robot_description_property_->getStdString(), tf_buffer_, getNameStd() + "_planning_scene_monitor"));
+#else
   return planning_scene_monitor::PlanningSceneMonitorPtr(new planning_scene_monitor::PlanningSceneMonitor(
       robot_description_property_->getStdString(), context_->getFrameManager()->getTF2BufferPtr(),
       getNameStd() + "_planning_scene_monitor"));
-  #endif
+#endif
 }
 
 void PlanningSceneDisplay::clearRobotModel()

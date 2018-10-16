@@ -213,10 +213,10 @@ protected:
   rviz::EnumProperty* octree_render_property_;
   rviz::EnumProperty* octree_coloring_property_;
 
-  #ifdef ROS_KINETIC
+#ifdef ROS_KINETIC
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-  #endif
+#endif
 };
 
 }  // namespace moveit_rviz_plugin
