@@ -101,7 +101,7 @@ PR2ArmIKSolver::PR2ArmIKSolver(const urdf::ModelInterface& robot_model, const st
 int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init, const KDL::Frame& p_in, KDL::JntArray& q_out)
 {
   const bool verbose = false;
-  Eigen::Matrix4f b = KDLToEigenMatrix(p_in);
+  Eigen::Affine3f b = KDLToEigenMatrix(p_in);
   std::vector<std::vector<double> > solution_ik;
   if (free_angle_ == 0)
   {
@@ -216,9 +216,9 @@ bool getKDLChain(const urdf::ModelInterface& model, const std::string& root_name
   return true;
 }
 
-Eigen::Matrix4f KDLToEigenMatrix(const KDL::Frame& p)
+Eigen::Affine3f KDLToEigenMatrix(const KDL::Frame& p)
 {
-  Eigen::Matrix4f b = Eigen::Matrix4f::Identity();
+  Eigen::Affine3f b = Eigen::Affine3f::Identity();
   for (int i = 0; i < 3; i++)
   {
     for (int j = 0; j < 3; j++)
