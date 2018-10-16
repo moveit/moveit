@@ -93,7 +93,7 @@ int main(int argc, char** argv)
           state.setFromIK(jmg, pose);
           moveit::tools::Profiler::End("IK");
           const Eigen::Affine3d& pose_upd = state.getGlobalLinkTransform(tip);
-          Eigen::Affine3d diff = pose_upd * pose.inverse();
+          Eigen::Affine3d diff = pose_upd * pose.inverse(Eigen::Isometry);
           double rot_err = (diff.linear() - Eigen::Matrix3d::Identity()).norm();
           double trans_err = diff.translation().norm();
           moveit::tools::Profiler::Average("Rotation error", rot_err);

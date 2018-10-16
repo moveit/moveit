@@ -390,7 +390,7 @@ bool PositionConstraint::equal(const KinematicConstraint& other, double margin) 
       // need to check against all other regions
       for (std::size_t j = 0; j < o.constraint_region_.size(); ++j)
       {
-        Eigen::Affine3d diff = constraint_region_pose_[i].inverse() * o.constraint_region_pose_[j];
+        Eigen::Affine3d diff = constraint_region_pose_[i].inverse(Eigen::Isometry) * o.constraint_region_pose_[j];
         if (diff.translation().norm() < margin && diff.linear().isIdentity(margin) &&
             constraint_region_[i]->getType() == o.constraint_region_[j]->getType() &&
             fabs(constraint_region_[i]->computeVolume() - o.constraint_region_[j]->computeVolume()) < margin)
@@ -520,7 +520,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     tf.transformQuaternion(oc.header.frame_id, q, q);
     desired_rotation_frame_id_ = tf.getTargetFrame();
     desired_rotation_matrix_ = Eigen::Matrix3d(q);
-    desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
+    desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse(Eigen::Isometry);
     mobile_frame_ = false;
   }
   else
@@ -565,7 +565,7 @@ bool OrientationConstraint::equal(const KinematicConstraint& other, double margi
   if (o.link_model_ == link_model_ &&
       robot_state::Transforms::sameFrame(desired_rotation_frame_id_, o.desired_rotation_frame_id_))
   {
-    Eigen::Matrix3d diff = desired_rotation_matrix_.inverse() * o.desired_rotation_matrix_;
+    Eigen::Matrix3d diff = desired_rotation_matrix_.inverse(Eigen::Isometry) * o.desired_rotation_matrix_;
     if (!diff.isIdentity(margin))
       return false;
     return fabs(absolute_x_axis_tolerance_ - o.absolute_x_axis_tolerance_) <= margin &&
@@ -599,7 +599,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const robot_state::Robo
   if (mobile_frame_)
   {
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
-    Eigen::Affine3d diff(tmp.inverse() * state.getGlobalLinkTransform(link_model_).linear());
+    Eigen::Affine3d diff(tmp.inverse(Eigen::Isometry) * state.getGlobalLinkTransform(link_model_).linear());
     xyz = diff.linear().eulerAngles(0, 1, 2);
     // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
@@ -753,12 +753,12 @@ bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin
   {
     if (fabs(max_view_angle_ - o.max_view_angle_) > margin || fabs(target_radius_ - o.target_radius_) > margin)
       return false;
-    Eigen::Affine3d diff = sensor_pose_.inverse() * o.sensor_pose_;
+    Eigen::Affine3d diff = sensor_pose_.inverse(Eigen::Isometry) * o.sensor_pose_;
     if (diff.translation().norm() > margin)
       return false;
     if (!diff.linear().isIdentity(margin))
       return false;
-    diff = target_pose_.inverse() * o.target_pose_;
+    diff = target_pose_.inverse(Eigen::Isometry) * o.target_pose_;
     if (diff.translation().norm() > margin)
       return false;
     if (!diff.linear().isIdentity(margin))

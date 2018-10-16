@@ -144,7 +144,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
 
   Eigen::Matrix4f home = Eigen::Matrix4f::Identity();
   home(0, 3) = shoulder_upperarm_offset_ + upperarm_elbow_offset_ + elbow_wrist_offset_;
-  home_inv_ = home.inverse();
+  home_inv_ = home.inverse(Eigen::Isometry);
   grhs_ = home;
   gf_ = home_inv_;
   solution_.resize(NUM_JOINTS_ARM7DOF);

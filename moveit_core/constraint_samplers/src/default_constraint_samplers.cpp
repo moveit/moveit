@@ -561,7 +561,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
       // we need to convert this transform to the frame expected by the IK solver
       // both the planning frame and the frame for the IK are assumed to be robot links
       Eigen::Affine3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
-      ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;
+      ikq = reference_state.getFrameTransform(ik_frame_).inverse(Eigen::Isometry) * ikq;
       point = ikq.translation();
       quat = Eigen::Quaterniond(ikq.linear());
     }
