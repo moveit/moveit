@@ -89,7 +89,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
         const Eigen::Isometry3d& t2fixed_frame = tf->getTransform(mjs.header.frame_id);
         // we update the value of the transform so that it transforms from the known fixed frame to the desired child
         // link
-        inv_t = t2fixed_frame.inverse();
+        inv_t = t2fixed_frame.inverse(Eigen::Isometry);
         use_inv_t = true;
       }
       catch (std::exception& ex)

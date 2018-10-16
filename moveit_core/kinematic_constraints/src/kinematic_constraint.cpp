@@ -757,7 +757,7 @@ bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin
       return false;
     if (!diff.linear().isIdentity(margin))
       return false;
-    diff = target_pose_.inverse() * o.target_pose_;
+    diff = target_pose_.inverse(Eigen::Isometry) * o.target_pose_;
     if (diff.translation().norm() > margin)
       return false;
     if (!diff.linear().isIdentity(margin))

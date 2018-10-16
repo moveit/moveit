@@ -703,7 +703,7 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Isome
           global_link_transforms_[child_link->getLinkIndex()] *
           (child_link->getJointOriginTransform() *
            variable_joint_transforms_[child_link->getParentJointModel()->getJointIndex()])
-              .inverse();
+              .inverse(Eigen::Isometry);
 
       // update link transforms for descendant links only (leaving the transform for the current link untouched)
       // with the exception of the child link we are coming backwards from
@@ -1406,7 +1406,6 @@ bool RobotState::setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& 
       ROS_ERROR_STREAM_NAMED(LOGNAME, "IK frame '" << ik_frame << "' does not exist.");
       return false;
     }
-    pose = getGlobalLinkTransform(lm).inverse() * pose;
   }
   return true;
 }
@@ -1553,7 +1552,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
             return false;
           }
           pose_frame = ab->getAttachedLinkName();
-          pose = pose * ab_trans[0].inverse();
+          pose = pose * ab_trans[0].inverse(Eigen::Isometry);
         }
         if (pose_frame != solver_tip_frame)
         {
@@ -1764,7 +1763,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
           return false;
         }
         pose_frame = ab->getAttachedLinkName();
-        pose = pose * ab_trans[0].inverse();
+        pose = pose * ab_trans[0].inverse(Eigen::Isometry);
       }
       if (pose_frame != solver_tip_frame)
       {
