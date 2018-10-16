@@ -59,7 +59,7 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
 
   Eigen::Affine3d end_effector_transform;
   tf::poseMsgToEigen(goal_pose.pose, end_effector_transform);
-  end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
+  end_effector_transform = end_effector_transform * fixed_transforms[0].inverse(Eigen::Isometry);
   place_pose.header = goal_pose.header;
   tf::poseEigenToMsg(end_effector_transform, place_pose.pose);
   return true;
