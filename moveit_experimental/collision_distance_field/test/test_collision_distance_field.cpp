@@ -205,8 +205,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   collision_detection::CollisionResult res;
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
-  EXPECT_EQ(res.contacts.size(), 1);
-  EXPECT_EQ(res.contacts.begin()->second.size(), 1);
+  EXPECT_EQ(res.contacts.size(), 1u);
+  EXPECT_EQ(res.contacts.begin()->second.size(), 1u);
 
   res.clear();
   req.max_contacts = 2;
@@ -214,8 +214,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   //  req.verbose = true;
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
-  EXPECT_EQ(res.contact_count, 2);
-  EXPECT_EQ(res.contacts.begin()->second.size(), 1);
+  EXPECT_EQ(res.contact_count, 2u);
+  EXPECT_EQ(res.contacts.begin()->second.size(), 1u);
 
   res.contacts.clear();
   res.contact_count = 0;
@@ -225,8 +225,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
-  EXPECT_LE(res.contacts.size(), 10);
-  EXPECT_LE(res.contact_count, 10);
+  EXPECT_LE(res.contacts.size(), 10u);
+  EXPECT_LE(res.contact_count, 10u);
 }
 
 TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
@@ -253,8 +253,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   collision_detection::CollisionResult res;
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
-  ASSERT_EQ(res.contacts.size(), 1);
-  ASSERT_EQ(res.contacts.begin()->second.size(), 1);
+  ASSERT_EQ(res.contacts.size(), 1u);
+  ASSERT_EQ(res.contacts.begin()->second.size(), 1u);
 
   for (collision_detection::CollisionResult::ContactMap::const_iterator it = res.contacts.begin();
        it != res.contacts.end(); it++)
@@ -271,8 +271,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   collision_detection::CollisionResult res2;
   crobot_->checkSelfCollision(req, res2, kstate, *acm_);
   ASSERT_TRUE(res2.collision);
-  ASSERT_EQ(res2.contacts.size(), 1);
-  ASSERT_EQ(res2.contacts.begin()->second.size(), 1);
+  ASSERT_EQ(res2.contacts.size(), 1u);
+  ASSERT_EQ(res2.contacts.begin()->second.size(), 1u);
 
   for (collision_detection::CollisionResult::ContactMap::const_iterator it = res2.contacts.begin();
        it != res2.contacts.end(); it++)

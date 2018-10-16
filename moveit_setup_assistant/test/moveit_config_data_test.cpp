@@ -89,13 +89,13 @@ TEST_F(MoveItConfigData, ReadingControllers)
   config_data_->setRobotModel(robot_model);
 
   // Initially no controllers
-  EXPECT_EQ(config_data_->getROSControllers().size(), 0);
+  EXPECT_EQ(config_data_->getROSControllers().size(), 0u);
 
   // Adding default controllers, a controller for each planning group
   config_data_->addDefaultControllers();
 
   // Number of the planning groups defined in the model srdf
-  int group_count = config_data_->srdf_->srdf_model_->getGroups().size();
+  size_t group_count = config_data_->srdf_->srdf_model_->getGroups().size();
 
   // Test that addDefaultControllers() did accually add a controller for the new_group
   EXPECT_EQ(config_data_->getROSControllers().size(), group_count);
@@ -110,7 +110,7 @@ TEST_F(MoveItConfigData, ReadingControllers)
   config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
 
   // Initially no controllers
-  EXPECT_EQ(config_data_->getROSControllers().size(), 0);
+  EXPECT_EQ(config_data_->getROSControllers().size(), 0u);
 
   // ros_controllers.yaml read correctly
   EXPECT_EQ(config_data_->inputROSControllersYAML(test_file), true);
@@ -132,14 +132,14 @@ TEST_F(MoveItConfigData, ReadingSensorsConfig)
   boost::filesystem::path setup_assistant_path(config_data_->setup_assistant_path_);
 
   // Before parsing, no config available
-  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0);
+  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0u);
 
   // Read the file containing the default config parameters
   config_data_->input3DSensorsYAML((setup_assistant_path / "resources/default_config/sensors_3d.yaml").string());
 
   // Default config for the two available sensor plugins
   // Make sure both are parsed correctly
-  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 2);
+  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 2u);
 
   EXPECT_EQ(config_data_->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
             std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));

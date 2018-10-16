@@ -113,18 +113,18 @@ TEST(PlanningScene, LoadRestoreDiff)
   planning_scene::PlanningScenePtr next = ps->diff();
   EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
   next->getWorldNonConst()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
-  EXPECT_EQ(next->getWorld()->size(), 2);
-  EXPECT_EQ(ps->getWorld()->size(), 1);
+  EXPECT_EQ(next->getWorld()->size(), 2u);
+  EXPECT_EQ(ps->getWorld()->size(), 1u);
   next->getPlanningSceneDiffMsg(ps_msg);
-  EXPECT_EQ(ps_msg.world.collision_objects.size(), 1);
+  EXPECT_EQ(ps_msg.world.collision_objects.size(), 1u);
   next->decoupleParent();
   moveit_msgs::PlanningScene ps_msg2;
   next->getPlanningSceneDiffMsg(ps_msg2);
-  EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0);
+  EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0u);
   next->getPlanningSceneMsg(ps_msg);
-  EXPECT_EQ(ps_msg.world.collision_objects.size(), 2);
+  EXPECT_EQ(ps_msg.world.collision_objects.size(), 2u);
   ps->setPlanningSceneMsg(ps_msg);
-  EXPECT_EQ(ps->getWorld()->size(), 2);
+  EXPECT_EQ(ps->getWorld()->size(), 2u);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)

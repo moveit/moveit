@@ -135,14 +135,14 @@ TEST(World, AddRemoveShape)
 
   EXPECT_TRUE(world.hasObject("mix1"));
 
-  EXPECT_EQ(3, world.size());
+  EXPECT_EQ(3u, world.size());
 
   {
     collision_detection::World::ObjectConstPtr obj = world.getObject("mix1");
     EXPECT_EQ(2, obj.use_count());
 
-    ASSERT_EQ(2, obj->shapes_.size());
-    ASSERT_EQ(2, obj->shape_poses_.size());
+    ASSERT_EQ(2u, obj->shapes_.size());
+    ASSERT_EQ(2u, obj->shape_poses_.size());
 
     // check translation.z of pose
     EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
@@ -168,7 +168,7 @@ TEST(World, AddRemoveShape)
 
     world.removeObject("mix1");
 
-    EXPECT_EQ(2, world.size());
+    EXPECT_EQ(2u, world.size());
 
     // no change since obj2 still holds a ref
     EXPECT_EQ(3, box.use_count());
@@ -187,7 +187,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(1, cyl.use_count());
   EXPECT_EQ(3, ball.use_count());
 
-  EXPECT_EQ(2, world.size());
+  EXPECT_EQ(2u, world.size());
 
   world.clearObjects();
 
@@ -199,7 +199,7 @@ TEST(World, AddRemoveShape)
   EXPECT_FALSE(world.hasObject("ball"));
   EXPECT_FALSE(world.hasObject("ball2"));
 
-  EXPECT_EQ(0, world.size());
+  EXPECT_EQ(0u, world.size());
 }
 
 /* structure to hold copy of callback args */

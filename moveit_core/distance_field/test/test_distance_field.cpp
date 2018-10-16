@@ -853,13 +853,13 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
   tree_lowres.updateNode(point1, true);
   tree_lowres.updateNode(point2, true);
   tree_lowres.updateNode(point3, true);
-  ASSERT_EQ(countLeafNodes(tree_lowres), 3);
+  ASSERT_EQ(countLeafNodes(tree_lowres), 3u);
 
   PropagationDistanceField df_highres(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION, PERF_ORIGIN_X,
                                       PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
   df_highres.addOcTreeToField(&tree_lowres);
-  EXPECT_EQ(countOccupiedCells(df_highres), 3 * (4 * 4 * 4));
+  EXPECT_EQ(countOccupiedCells(df_highres), 3u * (4u * 4u * 4u));
   std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
 
   // testing adding shape that happens to be octree

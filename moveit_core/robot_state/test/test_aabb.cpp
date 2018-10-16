@@ -135,7 +135,7 @@ TEST_F(TestAABB, TestPR2)
 
   std::vector<double> pr2_aabb;
   pr2_state.computeAABB(pr2_aabb);
-  ASSERT_EQ(pr2_aabb.size(), 6);
+  ASSERT_EQ(pr2_aabb.size(), 6u);
 
   EXPECT_NEAR(pr2_aabb[0], -0.3376, 1e-4);
   EXPECT_NEAR(pr2_aabb[1], 0.6499, 1e-4);
@@ -335,7 +335,7 @@ TEST_F(TestAABB, TestSimple)
   std::vector<double> simple_aabb;
   simple_state.computeAABB(simple_aabb);
 
-  ASSERT_EQ(simple_aabb.size(), 6);
+  ASSERT_EQ(simple_aabb.size(), 6u);
   EXPECT_NEAR(simple_aabb[0], -0.6682 / 2, 1e-4);
   EXPECT_NEAR(simple_aabb[1], 0.6682 / 2, 1e-4);
   EXPECT_NEAR(simple_aabb[2], -0.6682 / 2, 1e-4);
@@ -407,7 +407,7 @@ TEST_F(TestAABB, TestComplex)
   std::vector<double> complex_aabb;
   complex_state.computeAABB(complex_aabb);
 
-  ASSERT_EQ(complex_aabb.size(), 6);
+  ASSERT_EQ(complex_aabb.size(), 6u);
   EXPECT_NEAR(complex_aabb[0], -5.05, 1e-4);
   EXPECT_NEAR(complex_aabb[1], 0.5, 1e-4);
   EXPECT_NEAR(complex_aabb[2], -0.5, 1e-4);
