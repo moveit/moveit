@@ -234,7 +234,7 @@ TEST_F(TestAABB, TestPR2)
     msg.scale.z = extents[2];
     msg.color.r = 0;
     msg.color.b = 1;
-    Eigen::Quaterniond q(transform.rotation());
+    Eigen::Quaterniond q(transform.linear());
     msg.pose.orientation.x = q.x();
     msg.pose.orientation.y = q.y();
     msg.pose.orientation.z = q.z();
@@ -280,7 +280,7 @@ TEST_F(TestAABB, TestPR2)
       msg.scale.z = extents[2];
       msg.color.r = 0;
       msg.color.b = 1;
-      Eigen::Quaterniond q(transforms[i].rotation());
+      Eigen::Quaterniond q(transforms[i].linear());
       msg.pose.orientation.x = q.x();
       msg.pose.orientation.y = q.y();
       msg.pose.orientation.z = q.z();

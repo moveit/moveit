@@ -226,7 +226,7 @@ void FloatingJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
   joint_values[2] = transf.translation().z();
-  Eigen::Quaterniond q(transf.rotation());
+  Eigen::Quaterniond q(transf.linear());
   joint_values[3] = q.x();
   joint_values[4] = q.y();
   joint_values[5] = q.z();

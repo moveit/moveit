@@ -2133,7 +2133,7 @@ std::vector<double> moveit::planning_interface::MoveGroupInterface::getCurrentRP
       {
         result.resize(3);
         tf::Matrix3x3 ptf;
-        tf::matrixEigenToTF(current_state->getGlobalLinkTransform(lm).rotation(), ptf);
+        tf::matrixEigenToTF(current_state->getGlobalLinkTransform(lm).linear(), ptf);
         tfScalar pitch, roll, yaw;
         ptf.getRPY(roll, pitch, yaw);
         result[0] = roll;

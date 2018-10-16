@@ -61,7 +61,7 @@ void LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
 {
   joint_origin_transform_ = transform;
   joint_origin_transform_is_identity_ =
-      joint_origin_transform_.rotation().isIdentity() &&
+      joint_origin_transform_.linear().isIdentity() &&
       joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
 }
 
@@ -82,7 +82,7 @@ void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, co
   for (std::size_t i = 0; i < shapes_.size(); ++i)
   {
     collision_origin_transform_is_identity_[i] =
-        (collision_origin_transform_[i].rotation().isIdentity() &&
+        (collision_origin_transform_[i].linear().isIdentity() &&
          collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ?
             1 :
             0;

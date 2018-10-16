@@ -112,11 +112,11 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   tf.transformPose(ks, "some_frame_2", x, x);
 
   EXPECT_TRUE(t2.translation() == x.translation());
-  EXPECT_TRUE(t2.rotation() == x.rotation());
+  EXPECT_TRUE(t2.linear() == x.linear());
 
   tf.transformPose(ks, kmodel->getModelFrame(), x, x);
   EXPECT_TRUE(t2.translation() == x.translation());
-  EXPECT_TRUE(t2.rotation() == x.rotation());
+  EXPECT_TRUE(t2.linear() == x.linear());
 
   x.setIdentity();
   tf.transformPose(ks, "r_wrist_roll_link", x, x);
