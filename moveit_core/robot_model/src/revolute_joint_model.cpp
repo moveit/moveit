@@ -268,7 +268,7 @@ void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Iso
 
 void RevoluteJointModel::computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const
 {
-  Eigen::Quaterniond q(transf.rotation());
+  Eigen::Quaterniond q(transf.linear());
   q.normalize();
   size_t max_idx;
   axis_.array().abs().maxCoeff(&max_idx);

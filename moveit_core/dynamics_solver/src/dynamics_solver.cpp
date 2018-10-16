@@ -53,7 +53,7 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Isometry3d& transform
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
-  p = transform.rotation() * p;
+  p = transform.linear() * p;
 
   geometry_msgs::Vector3 result;
   result.x = p.x();

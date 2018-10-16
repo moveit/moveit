@@ -259,7 +259,6 @@ inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
   f = b.matrix();
 #else
-  Eigen::Quaterniond q(b.rotation());
   f.setTranslation(fcl::Vector3d(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 #endif

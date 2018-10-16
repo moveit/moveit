@@ -94,7 +94,7 @@ int main(int argc, char** argv)
           moveit::tools::Profiler::End("IK");
           const Eigen::Isometry3d& pose_upd = state.getGlobalLinkTransform(tip);
           Eigen::Isometry3d diff = pose_upd * pose.inverse();
-          double rot_err = (diff.rotation() - Eigen::Matrix3d::Identity()).norm();
+          double rot_err = (diff.linear() - Eigen::Matrix3d::Identity()).norm();
           double trans_err = diff.translation().norm();
           moveit::tools::Profiler::Average("Rotation error", rot_err);
           moveit::tools::Profiler::Average("Translation error", trans_err);

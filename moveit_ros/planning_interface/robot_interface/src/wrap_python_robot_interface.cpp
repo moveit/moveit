@@ -153,7 +153,7 @@ public:
       v[0] = t.translation().x();
       v[1] = t.translation().y();
       v[2] = t.translation().z();
-      Eigen::Quaterniond q(t.rotation());
+      Eigen::Quaterniond q(t.linear());
       v[3] = q.x();
       v[4] = q.y();
       v[5] = q.z();
