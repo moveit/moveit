@@ -68,7 +68,9 @@ public:
       return;
     }
 
-    pub_ = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+    /* by setting latch to true we preserve the initial joint state while other nodes launch */
+    bool latch = true;
+    pub_ = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, latch);
 
     /* publish initial pose */
     XmlRpc::XmlRpcValue initial;
