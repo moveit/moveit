@@ -44,7 +44,7 @@ void moveit::core::AABB::extendWithTransformedBox(const Eigen::Affine3d& transfo
   //
   // Here's a nice explanation why it works: https://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
 
-  const Eigen::Matrix3d& R = transform.rotation();
+  const Eigen::Matrix3d& R = transform.linear();
   const Eigen::Vector3d& T = transform.translation();
 
   double x_range = 0.5 * (fabs(R(0, 0) * box[0]) + fabs(R(0, 1) * box[1]) + fabs(R(0, 2) * box[2]));

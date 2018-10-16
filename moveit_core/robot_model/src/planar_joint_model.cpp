@@ -224,7 +224,7 @@ void PlanarJointModel::computeVariablePositions(const Eigen::Affine3d& transf, d
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
 
-  Eigen::Quaterniond q(transf.rotation());
+  Eigen::Quaterniond q(transf.linear());
   // taken from Bullet
   double s_squared = 1.0 - (q.w() * q.w());
   if (s_squared < 10.0 * std::numeric_limits<double>::epsilon())
