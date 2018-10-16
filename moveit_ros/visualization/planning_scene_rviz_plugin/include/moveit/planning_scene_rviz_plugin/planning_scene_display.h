@@ -46,6 +46,10 @@
 #include <ros/ros.h>
 #endif
 
+#ifdef ROS_KINETIC
+#include <tf2_ros/transform_listener.h>
+#endif
+
 namespace Ogre
 {
 class SceneNode;
@@ -208,6 +212,11 @@ protected:
   rviz::FloatProperty* scene_display_time_property_;
   rviz::EnumProperty* octree_render_property_;
   rviz::EnumProperty* octree_coloring_property_;
+
+  #ifdef ROS_KINETIC
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  #endif
 };
 
 }  // namespace moveit_rviz_plugin
