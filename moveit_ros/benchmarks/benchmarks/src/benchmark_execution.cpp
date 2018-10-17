@@ -377,8 +377,8 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             tf2::fromMsg(wMc_msg, wMc);
 
             Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                      Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                      Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+                                        Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                        Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
             offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
             Eigen::Isometry3d wMnc = wMc * offset_tf;
@@ -443,8 +443,8 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
           req.motion_plan_request.workspace_parameters = options_.workspace_parameters;
 
           Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                    Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                    Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+                                      Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                      Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
           offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
           // Apply waypoint offsets, check fields

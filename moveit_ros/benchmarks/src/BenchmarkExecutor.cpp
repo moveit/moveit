@@ -439,8 +439,8 @@ void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& const
                                                  const std::vector<double> offset)
 {
   Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(offset[3], Eigen::Vector3d::UnitX()) *
-                            Eigen::AngleAxis<double>(offset[4], Eigen::Vector3d::UnitY()) *
-                            Eigen::AngleAxis<double>(offset[5], Eigen::Vector3d::UnitZ()));
+                              Eigen::AngleAxis<double>(offset[4], Eigen::Vector3d::UnitY()) *
+                              Eigen::AngleAxis<double>(offset[5], Eigen::Vector3d::UnitZ()));
   offset_tf.translation() = Eigen::Vector3d(offset[0], offset[1], offset[2]);
 
   geometry_msgs::Pose constraint_pose_msg;

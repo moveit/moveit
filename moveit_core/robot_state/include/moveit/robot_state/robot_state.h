@@ -1154,8 +1154,8 @@ as the new values that correspond to the group */
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const EigenSTL::vector_Isometry3d& waypoints, bool global_reference_frame, double max_step,
-                              double jump_threshold_factor,
+                              const EigenSTL::vector_Isometry3d& waypoints, bool global_reference_frame,
+                              double max_step, double jump_threshold_factor,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {

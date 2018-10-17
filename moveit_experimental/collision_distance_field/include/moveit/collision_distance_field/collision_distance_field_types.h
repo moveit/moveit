@@ -280,8 +280,8 @@ public:
   }
 
 protected:
-  void init(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& poses, double resolution,
-            double padding);
+  void init(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& poses,
+            double resolution, double padding);
 
 protected:
   bodies::BodyVector bodies_;

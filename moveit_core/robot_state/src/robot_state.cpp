@@ -95,7 +95,7 @@ void RobotState::allocMemory()
       1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
   const size_t bytes =
       sizeof(Eigen::Isometry3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
-                                 robot_model_->getLinkGeometryCount()) +
+                                   robot_model_->getLinkGeometryCount()) +
       sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
   memory_ = malloc(bytes);
 
@@ -146,7 +146,7 @@ void RobotState::copyFrom(const RobotState& other)
         1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
     const size_t bytes =
         sizeof(Eigen::Isometry3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
-                                   robot_model_->getLinkGeometryCount()) +
+                                     robot_model_->getLinkGeometryCount()) +
         sizeof(double) *
             (robot_model_->getVariableCount() * (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
                                                  ((has_acceleration_ || has_effort_) ? 1 : 0)) +

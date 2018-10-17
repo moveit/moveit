@@ -71,7 +71,8 @@ void LinkModel::setParentJointModel(const JointModel* joint)
   is_parent_joint_fixed_ = joint->getType() == JointModel::FIXED;
 }
 
-void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& origins)
+void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes,
+                            const EigenSTL::vector_Isometry3d& origins)
 {
   shapes_ = shapes;
   collision_origin_transform_ = origins;

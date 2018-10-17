@@ -94,7 +94,8 @@ void FixedJointModel::computeTransform(const double* /* joint_values */, Eigen::
   transf.setIdentity();
 }
 
-void FixedJointModel::computeVariablePositions(const Eigen::Isometry3d& /* transform */, double* /* joint_values */) const
+void FixedJointModel::computeVariablePositions(const Eigen::Isometry3d& /* transform */,
+                                               double* /* joint_values */) const
 {
 }
 

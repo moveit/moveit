@@ -474,8 +474,8 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
         2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
     Eigen::Isometry3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
-                         Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
-                         Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+                           Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
+                           Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
     Eigen::Isometry3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.rotation());
     quat = Eigen::Quaterniond(reqr.rotation());
 

@@ -678,9 +678,9 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
   shapes::Box big_table(2.0, 2.0, .5);
 
   Eigen::Isometry3d p = Eigen::Translation3d(PERF_WIDTH / 2.0, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
-                      Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+                        Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
   Eigen::Isometry3d np = Eigen::Translation3d(PERF_WIDTH / 2.0 + .01, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
-                       Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+                         Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   unsigned int big_num_points = ceil(2.0 / PERF_RESOLUTION) * ceil(2.0 / PERF_RESOLUTION) * ceil(.5 / PERF_RESOLUTION);
 

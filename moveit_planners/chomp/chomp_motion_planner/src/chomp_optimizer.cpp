@@ -788,8 +788,8 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
     std::string parent_link_name = joint_model->getParentLinkModel()->getName();
     std::string child_link_name = joint_model->getChildLinkModel()->getName();
     Eigen::Isometry3d joint_transform = state_.getGlobalLinkTransform(parent_link_name) *
-                                      (robot_model_->getLinkModel(child_link_name)->getJointOriginTransform() *
-                                       (state_.getJointTransform(joint_model)));
+                                        (robot_model_->getLinkModel(child_link_name)->getJointOriginTransform() *
+                                         (state_.getJointTransform(joint_model)));
 
     // joint_transform = inverseWorldTransform * jointTransform;
     Eigen::Vector3d axis;

@@ -1567,7 +1567,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (object.object.header.frame_id != object.link_name)
         {
           const Eigen::Isometry3d& t = robot_state_->getGlobalLinkTransform(lm).inverse() *
-                                     getTransforms().getTransform(object.object.header.frame_id);
+                                       getTransforms().getTransform(object.object.header.frame_id);
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
         }
@@ -1860,7 +1860,7 @@ const Eigen::Isometry3d& PlanningScene::getFrameTransform(const std::string& id)
 }
 
 const Eigen::Isometry3d& PlanningScene::getFrameTransform(const robot_state::RobotState& state,
-                                                        const std::string& id) const
+                                                          const std::string& id) const
 {
   if (!id.empty() && id[0] == '/')
     // Recursively call itself without the slash in front of frame name

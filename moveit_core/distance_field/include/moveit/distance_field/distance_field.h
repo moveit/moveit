@@ -227,7 +227,8 @@ public:
    * @param [in] old_pose The old pose of the shape
    * @param [in] new_pose The new pose of the shape
    */
-  void moveShapeInField(const shapes::Shape* shape, const Eigen::Isometry3d& old_pose, const Eigen::Isometry3d& new_pose);
+  void moveShapeInField(const shapes::Shape* shape, const Eigen::Isometry3d& old_pose,
+                        const Eigen::Isometry3d& new_pose);
 
   // DEPRECATED form
   MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
