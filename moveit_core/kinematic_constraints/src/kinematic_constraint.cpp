@@ -520,7 +520,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     tf.transformQuaternion(oc.header.frame_id, q, q);
     desired_rotation_frame_id_ = tf.getTargetFrame();
     desired_rotation_matrix_ = Eigen::Matrix3d(q);
-    desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
+    desired_rotation_matrix_inv_ = desired_rotation_matrix_.transpose();
     mobile_frame_ = false;
   }
   else
@@ -565,8 +565,7 @@ bool OrientationConstraint::equal(const KinematicConstraint& other, double margi
   if (o.link_model_ == link_model_ &&
       robot_state::Transforms::sameFrame(desired_rotation_frame_id_, o.desired_rotation_frame_id_))
   {
-    Eigen::Matrix3d diff = desired_rotation_matrix_.inverse() * o.desired_rotation_matrix_;
-    if (!diff.isIdentity(margin))
+    if (!desired_rotation_matrix_.isApprox(o.desired_rotation_matrix_))
       return false;
     return fabs(absolute_x_axis_tolerance_ - o.absolute_x_axis_tolerance_) <= margin &&
            fabs(absolute_y_axis_tolerance_ - o.absolute_y_axis_tolerance_) <= margin &&
@@ -599,7 +598,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const robot_state::Robo
   if (mobile_frame_)
   {
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).rotation() * desired_rotation_matrix_;
-    Eigen::Isometry3d diff(tmp.inverse() * state.getGlobalLinkTransform(link_model_).rotation());
+    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).rotation());
     xyz = diff.rotation().eulerAngles(0, 1, 2);
     // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
