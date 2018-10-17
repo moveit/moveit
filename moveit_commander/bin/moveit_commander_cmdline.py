@@ -14,7 +14,7 @@ from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, ro
 
 # compatibility with python3
 # python2's input function is dangerous anyway
-if hasattr(__builtin__, 'raw_input'):
+if hasattr(__builtins__, 'raw_input'):
     input = raw_input
 
 class bcolors:
