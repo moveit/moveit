@@ -321,7 +321,6 @@ void PlanningScene::setActiveCollisionDetector(const collision_detection::Collis
   {
     CollisionDetectorPtr p;
     CollisionDetectorIterator it = collision_.find(allocator->getName());
-
     if (it != collision_.end())
       p = it->second;
 
@@ -341,90 +340,6 @@ void PlanningScene::setActiveCollisionDetector(const collision_detection::Collis
 }
 
 bool PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
-{
-  CollisionDetectorIterator it = collision_.find(collision_detector_name);
-  if (it != collision_.end())
-  {
-    active_collision_ = it->second;
-    return true;
-  }
-  else
-  {
-    ROS_ERROR_NAMED("planning_scene",
-                    "Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
-                    "Keeping existing active collision detector '%s'",
-                    collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
-    return false;
-  }
-}
-
-const void
-PlanningScene::addCollisionDetectorConst(const collision_detection::CollisionDetectorAllocatorPtr& allocator) const
-{
-  const std::string& name = allocator->getName();
-  CollisionDetectorPtr& collision_detector = collision_[name];
-
-  if (collision_detector)  // already added this one
-    return;
-
-  collision_detector.reset(new CollisionDetector());
-
-  collision_detector->alloc_ = allocator;
-
-  if (!active_collision_)
-    active_collision_ = collision_detector;
-
-  collision_detector->findParent(*this);
-
-  collision_detector->cworld_ = collision_detector->alloc_->allocateWorld(world_);
-  collision_detector->cworld_const_ = collision_detector->cworld_;
-
-  // Allocate CollisionRobot unless we can use the parent's crobot_.
-  // If active_collision_->crobot_ is non-NULL there is local padding and we cannot use the parent's crobot_.
-  if (!collision_detector->parent_ || active_collision_->crobot_)
-  {
-    collision_detector->crobot_ = collision_detector->alloc_->allocateRobot(getRobotModel());
-    collision_detector->crobot_const_ = collision_detector->crobot_;
-
-    if (collision_detector != active_collision_)
-      collision_detector->copyPadding(*active_collision_);
-  }
-
-  // Allocate CollisionRobot unless we can use the parent's crobot_unpadded_.
-  if (!collision_detector->parent_)
-  {
-    collision_detector->crobot_unpadded_ = collision_detector->alloc_->allocateRobot(getRobotModel());
-    collision_detector->crobot_unpadded_const_ = collision_detector->crobot_unpadded_;
-  }
-}
-
-const void PlanningScene::setActiveCollisionDetectorConst(
-    const collision_detection::CollisionDetectorAllocatorPtr& allocator, bool exclusive) const
-{
-  if (exclusive)
-  {
-    CollisionDetectorPtr collision_detector_ptr;
-    CollisionDetectorIterator it = collision_.find(allocator->getName());
-
-    if (it != collision_.end())
-      collision_detector_ptr = it->second;
-
-    collision_.clear();
-    active_collision_.reset();
-
-    if (collision_detector_ptr)
-    {
-      collision_[allocator->getName()] = collision_detector_ptr;
-      active_collision_ = collision_detector_ptr;
-      return;
-    }
-  }
-
-  addCollisionDetectorConst(allocator);
-  setActiveCollisionDetectorConst(allocator->getName());
-}
-
-const bool PlanningScene::setActiveCollisionDetectorConst(const std::string& collision_detector_name) const
 {
   CollisionDetectorIterator it = collision_.find(collision_detector_name);
   if (it != collision_.end())
