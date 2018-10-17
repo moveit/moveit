@@ -99,7 +99,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
   collision_detection::World& world = *ps->getWorldNonConst();
-  Eigen::Affine3d id = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   moveit_msgs::PlanningScene ps_msg;
@@ -136,7 +136,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
   collision_detection::World& world = *ps->getWorldNonConst();
-  Eigen::Affine3d id = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   planning_scene::PlanningScenePtr attached_object_diff_scene = ps->diff();

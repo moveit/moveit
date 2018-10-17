@@ -53,15 +53,15 @@ TEST(LoadPlanningModelsPr2, InitOK)
 
   robot_state::Transforms tf(robot_model->getModelFrame());
 
-  Eigen::Affine3d t1;
+  Eigen::Isometry3d t1;
   t1.setIdentity();
   t1.translation() = Eigen::Vector3d(10.0, 1.0, 0.0);
   tf.setTransform(t1, "some_frame_1");
 
-  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0) * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
+  Eigen::Isometry3d t2(Eigen::Translation3d(10.0, 1.0, 0.0) * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
   tf.setTransform(t2, "some_frame_2");
 
-  Eigen::Affine3d t3;
+  Eigen::Isometry3d t3;
   t3.setIdentity();
   t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
   tf.setTransform(t3, "some_frame_3");
@@ -70,7 +70,7 @@ TEST(LoadPlanningModelsPr2, InitOK)
   EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
   EXPECT_TRUE(tf.isFixedFrame(robot_model->getModelFrame()));
 
-  Eigen::Affine3d x;
+  Eigen::Isometry3d x;
   x.setIdentity();
   tf.transformPose(robot_state, "some_frame_2", x, x);
 

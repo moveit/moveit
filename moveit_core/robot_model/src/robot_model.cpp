@@ -955,10 +955,10 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
 
 namespace
 {
-static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
+static inline Eigen::Isometry3d urdfPose2Isometry3d(const urdf::Pose& pose)
 {
   Eigen::Quaterniond q(pose.rotation.w, pose.rotation.x, pose.rotation.y, pose.rotation.z);
-  Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
+  Eigen::Isometry3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
   return af;
 }
 }
@@ -972,7 +972,7 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
                                            urdf_link->collision_array;
 
   std::vector<shapes::ShapeConstPtr> shapes;
-  EigenSTL::vector_Affine3d poses;
+  EigenSTL::vector_Isometry3d poses;
 
   for (std::size_t i = 0; i < col_array.size(); ++i)
     if (col_array[i] && col_array[i]->geometry)
@@ -981,7 +981,7 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
       if (s)
       {
         shapes.push_back(s);
-        poses.push_back(urdfPose2Affine3d(col_array[i]->origin));
+        poses.push_back(urdfPose2Isometry3d(col_array[i]->origin));
       }
     }
   if (shapes.empty())
@@ -996,7 +996,7 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
         if (s)
         {
           shapes.push_back(s);
-          poses.push_back(urdfPose2Affine3d(vis_array[i]->origin));
+          poses.push_back(urdfPose2Isometry3d(vis_array[i]->origin));
         }
       }
   }
@@ -1010,7 +1010,7 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
     {
       const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
       if (!mesh->filename.empty())
-        result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->visual->origin),
+        result->setVisualMesh(mesh->filename, urdfPose2Isometry3d(urdf_link->visual->origin),
                               Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
     }
   }
@@ -1020,13 +1020,13 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
     {
       const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get());
       if (!mesh->filename.empty())
-        result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->collision->origin),
+        result->setVisualMesh(mesh->filename, urdfPose2Isometry3d(urdf_link->collision->origin),
                               Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
     }
   }
 
   if (urdf_link->parent_joint)
-    result->setJointOriginTransform(urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform));
+    result->setJointOriginTransform(urdfPose2Isometry3d(urdf_link->parent_joint->parent_to_joint_origin_transform));
 
   return result;
 }
@@ -1390,7 +1390,7 @@ void RobotModel::printModelInfo(std::ostream& out) const
     joint_model_groups_[i]->printGroupInfo(out);
 }
 
-void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Isometry3d& transform,
                                         LinkTransformMap& associated_transforms)
 {
   associated_transforms[link] = transform * link->getJointOriginTransform();

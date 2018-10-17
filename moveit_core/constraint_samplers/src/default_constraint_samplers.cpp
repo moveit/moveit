@@ -231,7 +231,7 @@ void IKConstraintSampler::clear()
   kb_.reset();
   ik_frame_ = "";
   transform_ik_ = false;
-  eef_to_ik_tip_transform_ = Eigen::Affine3d::Identity();
+  eef_to_ik_tip_transform_ = Eigen::Isometry3d::Identity();
   need_eef_to_ik_tip_transform_ = false;
 }
 
@@ -473,18 +473,18 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     double angle_z =
         2.0 * (random_number_generator_.uniform01() - 0.5) *
         (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
-    Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
+    Eigen::Isometry3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
                          Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
                          Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.rotation());
+    Eigen::Isometry3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.rotation());
     quat = Eigen::Quaterniond(reqr.rotation());
 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the
     // model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
-      const Eigen::Affine3d& t = ks.getFrameTransform(sampling_pose_.orientation_constraint_->getReferenceFrame());
-      Eigen::Affine3d rt(t.rotation() * quat.toRotationMatrix());
+      const Eigen::Isometry3d& t = ks.getFrameTransform(sampling_pose_.orientation_constraint_->getReferenceFrame());
+      Eigen::Isometry3d rt(t.rotation() * quat.toRotationMatrix());
       quat = Eigen::Quaterniond(rt.rotation());
     }
   }
@@ -559,7 +559,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
     {
       // we need to convert this transform to the frame expected by the IK solver
       // both the planning frame and the frame for the IK are assumed to be robot links
-      Eigen::Affine3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
       ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;
       point = ikq.translation();
       quat = Eigen::Quaterniond(ikq.rotation());
@@ -568,7 +568,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
     if (need_eef_to_ik_tip_transform_)
     {
       // After sampling the pose needs to be transformed to the ik chain tip
-      Eigen::Affine3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
       ikq = ikq * eef_to_ik_tip_transform_;
       point = ikq.translation();
       quat = Eigen::Quaterniond(ikq.rotation());

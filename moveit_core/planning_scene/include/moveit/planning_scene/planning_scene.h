@@ -189,21 +189,21 @@ public:
      body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be
      successful or not. */
-  const Eigen::Affine3d& getFrameTransform(const std::string& id) const;
+  const Eigen::Isometry3d& getFrameTransform(const std::string& id) const;
 
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached
      body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be
      successful or not.
       Because this function is non-const, the current state transforms are also updated, if needed. */
-  const Eigen::Affine3d& getFrameTransform(const std::string& id);
+  const Eigen::Isometry3d& getFrameTransform(const std::string& id);
 
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached
      body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be
      successful or not. This function also
       updates the link transforms of \e state. */
-  const Eigen::Affine3d& getFrameTransform(robot_state::RobotState& state, const std::string& id) const
+  const Eigen::Isometry3d& getFrameTransform(robot_state::RobotState& state, const std::string& id) const
   {
     state.updateLinkTransforms();
     return getFrameTransform(static_cast<const robot_state::RobotState&>(state), id);
@@ -213,7 +213,7 @@ public:
      body id or a collision object.
       Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be
      successful or not. */
-  const Eigen::Affine3d& getFrameTransform(const robot_state::RobotState& state, const std::string& id) const;
+  const Eigen::Isometry3d& getFrameTransform(const robot_state::RobotState& state, const std::string& id) const;
 
   /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached
    * body id or a collision object */
@@ -688,7 +688,7 @@ public:
   bool loadGeometryFromStream(std::istream& in);
 
   /** \brief Load the geometry of the planning scene from a stream at a certain location using offset*/
-  bool loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset);
+  bool loadGeometryFromStream(std::istream& in, const Eigen::Isometry3d& offset);
 
   /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the
      parent.
@@ -750,7 +750,7 @@ public:
 
   void processOctomapMsg(const octomap_msgs::OctomapWithPose& map);
   void processOctomapMsg(const octomap_msgs::Octomap& map);
-  void processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Affine3d& t);
+  void processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Isometry3d& t);
 
   /**
    * \brief Clear all collision objects in planning scene

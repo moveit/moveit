@@ -254,7 +254,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
                                             const World::Object* obj);
 void cleanCollisionGeometryCache();
 
-inline void transform2fcl(const Eigen::Affine3d& b, fcl::Transform3d& f)
+inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
   f = b.matrix();
@@ -265,7 +265,7 @@ inline void transform2fcl(const Eigen::Affine3d& b, fcl::Transform3d& f)
 #endif
 }
 
-inline fcl::Transform3d transform2fcl(const Eigen::Affine3d& b)
+inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
 {
   fcl::Transform3d t;
   transform2fcl(b, t);

@@ -193,7 +193,7 @@ void DistanceField::getGradientMarkers(double min_distance, double max_distance,
   }
 }
 
-bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose,
+bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Isometry3d& pose,
                                    EigenSTL::vector_Vector3d* points)
 {
   if (shape->type == shapes::OCTREE)
@@ -216,7 +216,7 @@ bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affi
   return true;
 }
 
-void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Isometry3d& pose)
 {
   EigenSTL::vector_Vector3d point_vec;
   getShapePoints(shape, pose, &point_vec);
@@ -226,7 +226,7 @@ void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Aff
 // DEPRECATED
 void DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
-  Eigen::Affine3d pose_e;
+  Eigen::Isometry3d pose_e;
   tf2::fromMsg(pose, pose_e);
   addShapeToField(shape, pose_e);
 }
@@ -284,8 +284,8 @@ void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
   addPointsToField(points);
 }
 
-void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose,
-                                     const Eigen::Affine3d& new_pose)
+void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Isometry3d& old_pose,
+                                     const Eigen::Isometry3d& new_pose)
 {
   if (shape->type == shapes::OCTREE)
   {
@@ -307,13 +307,13 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Af
 void DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
                                      const geometry_msgs::Pose& new_pose)
 {
-  Eigen::Affine3d old_pose_e, new_pose_e;
+  Eigen::Isometry3d old_pose_e, new_pose_e;
   tf2::fromMsg(old_pose, old_pose_e);
   tf2::fromMsg(new_pose, new_pose_e);
   moveShapeInField(shape, old_pose_e, new_pose_e);
 }
 
-void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Isometry3d& pose)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
   body->setPose(pose);
@@ -326,7 +326,7 @@ void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen
 // DEPRECATED
 void DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
-  Eigen::Affine3d pose_e;
+  Eigen::Isometry3d pose_e;
   tf2::fromMsg(pose, pose_e);
   removeShapeFromField(shape, pose_e);
 }

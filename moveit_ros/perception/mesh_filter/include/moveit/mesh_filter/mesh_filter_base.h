@@ -64,7 +64,7 @@ class MeshFilterBase
 {
   // inner types and typedefs
 public:
-  typedef boost::function<bool(MeshHandle, Eigen::Affine3d&)> TransformCallback;
+  typedef boost::function<bool(MeshHandle, Eigen::Isometry3d&)> TransformCallback;
   // \todo @suat: to avoid a few comparisons, it would be much nicer if background = 14 and shadow = 15 (near/far clip
   // can be anything below that)
   // this would allow me to do a single comparison instead of 3, in the code i write

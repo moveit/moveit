@@ -1059,7 +1059,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
 
     if (link_spheres.find(link_models[i]->getName()) != link_spheres.end())
     {
-      bd->replaceCollisionSpheres(link_spheres.find(link_models[i]->getName())->second, Eigen::Affine3d::Identity());
+      bd->replaceCollisionSpheres(link_spheres.find(link_models[i]->getName())->second, Eigen::Isometry3d::Identity());
     }
     link_body_decomposition_vector_.push_back(bd);
     link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size() - 1;

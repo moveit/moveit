@@ -266,7 +266,7 @@ void EnvironmentChain3D::GetSuccs(int source_state_ID, std::vector<int>* succ_id
       continue;
     }
 
-    Eigen::Affine3d pose = tip_link_state_->getGlobalLinkTransform();
+    Eigen::Isometry3d pose = tip_link_state_->getGlobalLinkTransform();
 
     int xyz[3];
     if (!planning_parameters_.use_standard_collision_checking_)
@@ -548,7 +548,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
   joint_state_group_->getGroupStateValues(start_joint_values);
   std::vector<int> start_coords;
   convertJointAnglesToCoord(start_joint_values, start_coords);
-  Eigen::Affine3d start_pose = tip_link_state_->getGlobalLinkTransform();
+  Eigen::Isometry3d start_pose = tip_link_state_->getGlobalLinkTransform();
 
   int start_xyz[3];
   if (!planning_parameters_.use_standard_collision_checking_)
@@ -675,7 +675,7 @@ void EnvironmentChain3D::determineMaximumEndEffectorTravel()
       def.getLinkState(jsg->getJointModelGroup()->getLinkModelNames().back());
   std::vector<double> default_values;
   jsg->getGroupStateValues(default_values);
-  Eigen::Affine3d default_pose = tip_link_state->getGlobalLinkTransform();
+  Eigen::Isometry3d default_pose = tip_link_state->getGlobalLinkTransform();
   double default_x = default_pose.translation().x();
   double default_y = default_pose.translation().y();
   double default_z = default_pose.translation().z();
@@ -689,7 +689,7 @@ void EnvironmentChain3D::determineMaximumEndEffectorTravel()
       continue;
     }
     jsg->setStateValues(succ_joint_angles);
-    Eigen::Affine3d motion_pose = tip_link_state->getGlobalLinkTransform();
+    Eigen::Isometry3d motion_pose = tip_link_state->getGlobalLinkTransform();
     double motion_x = motion_pose.translation().x();
     double motion_y = motion_pose.translation().y();
     double motion_z = motion_pose.translation().z();
@@ -886,7 +886,7 @@ int EnvironmentChain3D::getEndEffectorHeuristic(int from_stateID, int to_stateID
   //}
 }
 
-bool EnvironmentChain3D::getGridXYZInt(const Eigen::Affine3d& pose, int (&xyz)[3]) const
+bool EnvironmentChain3D::getGridXYZInt(const Eigen::Isometry3d& pose, int (&xyz)[3]) const
 {
   if (!gsr_ || !gsr_->dfce_->distance_field_)
   {

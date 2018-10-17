@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     arr.markers.push_back(mk);
     pub_markers.publish(arr);
 
-    Eigen::Affine3d t;
+    Eigen::Isometry3d t;
     t.setIdentity();
     std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> points;
     std::size_t published = 0;

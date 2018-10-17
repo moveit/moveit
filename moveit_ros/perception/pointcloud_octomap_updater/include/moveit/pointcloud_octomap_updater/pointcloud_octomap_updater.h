@@ -68,7 +68,7 @@ protected:
                           std::vector<int>& mask);
 
 private:
-  bool getShapeTransform(ShapeHandle h, Eigen::Affine3d& transform) const;
+  bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
   void stopHelper();
 

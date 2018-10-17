@@ -75,7 +75,7 @@ public:
    * \param[in] transform the modelview transformation describing the pose of the mesh in camera coordinate frame
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void render(const Eigen::Affine3d& transform) const;
+  void render(const Eigen::Isometry3d& transform) const;
 
 private:
   /** \brief the OpenGL mesh represented as a OpenGL list */

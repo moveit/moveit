@@ -213,13 +213,13 @@ bool PlanarJointModel::enforcePositionBounds(double* values, const Bounds& bound
   return result;
 }
 
-void PlanarJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+void PlanarJointModel::computeTransform(const double* joint_values, Eigen::Isometry3d& transf) const
 {
-  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0) *
+  transf = Eigen::Isometry3d(Eigen::Translation3d(joint_values[0], joint_values[1], 0.0) *
                            Eigen::AngleAxisd(joint_values[2], Eigen::Vector3d::UnitZ()));
 }
 
-void PlanarJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
+void PlanarJointModel::computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const
 {
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();

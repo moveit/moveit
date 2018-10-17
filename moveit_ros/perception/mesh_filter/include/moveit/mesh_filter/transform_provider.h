@@ -75,7 +75,7 @@ public:
    * \param[out] transform pose of the mesh in camera coordinate system
    * \return true if transform available, false otherwise
    */
-  bool getTransform(mesh_filter::MeshHandle handle, Eigen::Affine3d& transform) const;
+  bool getTransform(mesh_filter::MeshHandle handle, Eigen::Isometry3d& transform) const;
 
   /**
    * \brief registers a mesh with its handle
@@ -135,7 +135,7 @@ private:
     }
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     std::string frame_id_;
-    Eigen::Affine3d transformation_;
+    Eigen::Isometry3d transformation_;
     boost::mutex mutex_;
   };
 

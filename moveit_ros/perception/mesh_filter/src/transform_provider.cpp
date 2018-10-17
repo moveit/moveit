@@ -94,7 +94,7 @@ void TransformProvider::setFrame(const string& frame)
   }
 }
 
-bool TransformProvider::getTransform(MeshHandle handle, Affine3d& transform) const
+bool TransformProvider::getTransform(MeshHandle handle, Isometry3d& transform) const
 {
   map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.find(handle);
 
@@ -128,7 +128,7 @@ void TransformProvider::setUpdateInterval(unsigned long usecs)
 
 void TransformProvider::updateTransforms()
 {
-  static tf2::Stamped<Affine3d> input_transform, output_transform;
+  static tf2::Stamped<Isometry3d> input_transform, output_transform;
   static robot_state::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
   try
@@ -166,7 +166,7 @@ void TransformProvider::updateTransforms()
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }
     handle2context_[contextIt->first]->mutex_.lock();
-    handle2context_[contextIt->first]->transformation_ = static_cast<Affine3d>(output_transform);
+    handle2context_[contextIt->first]->transformation_ = static_cast<Isometry3d>(output_transform);
     handle2context_[contextIt->first]->mutex_.unlock();
   }
 }

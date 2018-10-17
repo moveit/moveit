@@ -36,7 +36,7 @@
 
 #include <moveit/robot_model/aabb.h>
 
-void moveit::core::AABB::extendWithTransformedBox(const Eigen::Affine3d& transform, const Eigen::Vector3d& box)
+void moveit::core::AABB::extendWithTransformedBox(const Eigen::Isometry3d& transform, const Eigen::Vector3d& box)
 {
   // Method adapted from FCL src/shape/geometric_shapes_utility.cpp#computeBV<AABB, Box>(...) (BSD-licensed code):
   // https://github.com/flexible-collision-library/fcl/blob/fcl-0.4/src/shape/geometric_shapes_utility.cpp#L292

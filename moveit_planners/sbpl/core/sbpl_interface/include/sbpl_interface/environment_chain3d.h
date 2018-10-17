@@ -229,7 +229,7 @@ public:
 
   bool getPlaneBFSMarker(visualization_msgs::Marker& plane_marker, double z_val);
 
-  const Eigen::Affine3d& getGoalPose() const
+  const Eigen::Isometry3d& getGoalPose() const
   {
     return goal_pose_;
   }
@@ -237,7 +237,7 @@ public:
   void attemptShortcut(const trajectory_msgs::JointTrajectory& traj_in, trajectory_msgs::JointTrajectory& traj_out);
 
 protected:
-  bool getGridXYZInt(const Eigen::Affine3d& pose, int (&xyz)[3]) const;
+  bool getGridXYZInt(const Eigen::Isometry3d& pose, int (&xyz)[3]) const;
 
   void getMotionPrimitives(const std::string& group);
 
@@ -259,7 +259,7 @@ protected:
   kinematic_constraints::KinematicConstraintSet goal_constraint_set_;
   kinematic_constraints::KinematicConstraintSet path_constraint_set_;
   std::string planning_group_;
-  Eigen::Affine3d goal_pose_;
+  Eigen::Isometry3d goal_pose_;
   PlanningStatistics planning_statistics_;
   PlanningParameters planning_parameters_;
   int maximum_distance_for_motion_;

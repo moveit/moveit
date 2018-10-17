@@ -169,7 +169,7 @@ public:
    * @param [in] pose The pose of the shape.
    * @param [out] points The points determined for this shape.
    */
-  bool getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose, EigenSTL::vector_Vector3d* points);
+  bool getShapePoints(const shapes::Shape* shape, const Eigen::Isometry3d& pose, EigenSTL::vector_Vector3d* points);
 
   /**
    * \brief Adds the set of points corresponding to the shape at the
@@ -189,7 +189,7 @@ public:
    * @param [in] shape The shape to add to the distance field
    * @param [in] pose The pose of the shape
    */
-  void addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose);
+  void addShapeToField(const shapes::Shape* shape, const Eigen::Isometry3d& pose);
 
   // DEPRECATED form
   MOVEIT_DEPRECATED void addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
@@ -227,7 +227,7 @@ public:
    * @param [in] old_pose The old pose of the shape
    * @param [in] new_pose The new pose of the shape
    */
-  void moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose, const Eigen::Affine3d& new_pose);
+  void moveShapeInField(const shapes::Shape* shape, const Eigen::Isometry3d& old_pose, const Eigen::Isometry3d& new_pose);
 
   // DEPRECATED form
   MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
@@ -242,7 +242,7 @@ public:
    * @param [in] shape The shape to remove from the distance field
    * @param [in] pose The pose of the shape to remove
    */
-  void removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose);
+  void removeShapeFromField(const shapes::Shape* shape, const Eigen::Isometry3d& pose);
 
   // DEPRECATED form
   MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);

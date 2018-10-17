@@ -323,7 +323,7 @@ void mesh_filter::MeshFilterBase::doFilter(const void* sensor_data, const int en
       sensor_parameters_->getPaddingCoefficients() * padding_scale_ + Eigen::Vector3f(0, 0, padding_offset_);
   glUniform3f(padding_coefficients_id, padding_coefficients[0], padding_coefficients[1], padding_coefficients[2]);
 
-  Eigen::Affine3d transform;
+  Eigen::Isometry3d transform;
   for (std::map<MeshHandle, GLMeshPtr>::const_iterator meshIt = meshes_.begin(); meshIt != meshes_.end(); ++meshIt)
     if (transform_callback_(meshIt->first, transform))
       meshIt->second->render(transform);

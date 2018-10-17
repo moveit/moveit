@@ -124,7 +124,7 @@ TEST_F(TestAABB, TestPR2)
   // Test a specific link known to have some global rotation in the default pose
 
   const moveit::core::LinkModel* link = pr2_state.getLinkModel("l_forearm_link");
-  Eigen::Affine3d transform = pr2_state.getGlobalLinkTransform(link);  // intentional copy, we will translate
+  Eigen::Isometry3d transform = pr2_state.getGlobalLinkTransform(link);  // intentional copy, we will translate
   const Eigen::Vector3d& extents = link->getShapeExtentsAtOrigin();
   transform.translate(link->getCenteredBoundingBoxOffset());
   moveit::core::AABB aabb;
@@ -181,7 +181,7 @@ TEST_F(TestAABB, TestPR2)
   std::vector<const moveit::core::LinkModel*> links = pr2_state.getRobotModel()->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
-    Eigen::Affine3d transform = pr2_state.getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
+    Eigen::Isometry3d transform = pr2_state.getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
     const Eigen::Vector3d& extents = links[i]->getShapeExtentsAtOrigin();
     transform.translate(links[i]->getCenteredBoundingBoxOffset());
     moveit::core::AABB aabb;
@@ -225,7 +225,7 @@ TEST_F(TestAABB, TestPR2)
   for (std::vector<const moveit::core::AttachedBody*>::const_iterator it = attached_bodies.begin();
        it != attached_bodies.end(); ++it)
   {
-    const EigenSTL::vector_Affine3d& transforms = (*it)->getGlobalCollisionBodyTransforms();
+    const EigenSTL::vector_Isometry3d& transforms = (*it)->getGlobalCollisionBodyTransforms();
     const std::vector<shapes::ShapeConstPtr>& shapes = (*it)->getShapes();
     for (std::size_t i = 0; i < transforms.size(); ++i)
     {

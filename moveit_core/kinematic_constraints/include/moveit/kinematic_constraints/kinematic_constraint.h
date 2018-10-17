@@ -642,7 +642,7 @@ protected:
   Eigen::Vector3d offset_;                         /**< \brief The target offset */
   bool has_offset_;                                /**< \brief Whether the offset is substantially different than 0.0 */
   std::vector<bodies::BodyPtr> constraint_region_; /**< \brief The constraint region vector */
-  EigenSTL::vector_Affine3d constraint_region_pose_; /**< \brief The constraint region pose vector */
+  EigenSTL::vector_Isometry3d constraint_region_pose_; /**< \brief The constraint region pose vector */
   bool mobile_frame_;                                /**< \brief Whether or not a mobile frame is employed*/
   std::string constraint_frame_id_;                  /**< \brief The constraint frame id */
   const robot_model::LinkModel* link_model_;         /**< \brief The link model constraint subject */
@@ -838,9 +838,9 @@ protected:
   bool mobile_target_frame_;    /**< \brief True if the target is a non-fixed frame relative to the transform frame */
   std::string target_frame_id_; /**< \brief The target frame id */
   std::string sensor_frame_id_; /**< \brief The sensor frame id */
-  Eigen::Affine3d sensor_pose_; /**< \brief The sensor pose transformed into the transform frame */
+  Eigen::Isometry3d sensor_pose_; /**< \brief The sensor pose transformed into the transform frame */
   int sensor_view_direction_;   /**< \brief Storage for the sensor view direction */
-  Eigen::Affine3d target_pose_; /**< \brief The target pose transformed into the transform frame */
+  Eigen::Isometry3d target_pose_; /**< \brief The target pose transformed into the transform frame */
   unsigned int cone_sides_;     /**< \brief Storage for the cone sides  */
   EigenSTL::vector_Vector3d points_; /**< \brief A set of points along the base of the circle */
   double target_radius_;             /**< \brief Storage for the target radius */

@@ -63,7 +63,7 @@ public:
 
 private:
   void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
-  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d& transform) const;
+  bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Isometry3d& transform) const;
   void stopHelper();
 
   ros::NodeHandle nh_;

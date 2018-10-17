@@ -52,7 +52,7 @@ using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
 
-mesh_filter::MeshFilter::MeshFilter(const boost::function<bool(MeshFilter::MeshHandle, Affine3d&)>& transform_callback)
+mesh_filter::MeshFilter::MeshFilter(const boost::function<bool(MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
   : mesh_renderer_(640, 480, 0.3, 10)  // some default values for buffer sizes and clipping planes
   , depth_filter_(640, 480, 0.3, 10)
   , next_handle_(FirstLabel)  // 0 and 1 are reserved!
@@ -117,7 +117,7 @@ void mesh_filter::MeshFilter::setSize(unsigned width, unsigned height)
 }
 
 void mesh_filter::MeshFilter::setTransformCallback(
-    const boost::function<bool(mesh_filter::MeshFilter::MeshHandle, Affine3d&)>& transform_callback)
+    const boost::function<bool(mesh_filter::MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
 {
   transform_callback_ = transform_callback;
 }
@@ -319,7 +319,7 @@ void mesh_filter::MeshFilter::filter(const float* sensor_data, unsigned width, u
   GLuint padding_coefficients_id = glGetUniformLocation(mesh_renderer_.getProgramID(), "padding_coefficients");
   glUniform3f(padding_coefficients_id, padding_coefficients_[0], padding_coefficients_[1], padding_coefficients_[2]);
 
-  Affine3d transform;
+  Isometry3d transform;
   for (map<unsigned int, GLMesh*>::const_iterator meshIt = meshes_.begin(); meshIt != meshes_.end(); ++meshIt)
     if (transform_callback_(meshIt->first, transform))
       meshIt->second->render(transform);

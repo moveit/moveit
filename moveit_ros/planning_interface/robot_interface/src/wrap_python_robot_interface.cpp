@@ -148,7 +148,7 @@ public:
     const robot_model::LinkModel* lm = state->getLinkModel(name);
     if (lm)
     {
-      const Eigen::Affine3d& t = state->getGlobalLinkTransform(lm);
+      const Eigen::Isometry3d& t = state->getGlobalLinkTransform(lm);
       std::vector<double> v(7);
       v[0] = t.translation().x();
       v[1] = t.translation().y();

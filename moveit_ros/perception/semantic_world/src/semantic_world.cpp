@@ -245,7 +245,7 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(
   double z_min(std::numeric_limits<double>::max()), z_max(-std::numeric_limits<double>::max());
 
   Eigen::Quaterniond rotation(object_orientation.x, object_orientation.y, object_orientation.z, object_orientation.w);
-  Eigen::Affine3d object_pose(rotation);
+  Eigen::Isometry3d object_pose(rotation);
   double min_distance_from_edge;
   double height_above_table;
 
@@ -367,7 +367,7 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
         {
           Eigen::Vector3d point((double)(point_x) / scale_factor + x_min, (double)(point_y) / scale_factor + y_min,
                                 height_above_table + mm * delta_height);
-          Eigen::Affine3d pose;
+          Eigen::Isometry3d pose;
           tf2::fromMsg(table.pose, pose);
           point = pose * point;
           geometry_msgs::PoseStamped place_pose;
@@ -427,7 +427,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   cv::findContours(src, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
   Eigen::Vector3d point(pose.position.x, pose.position.y, pose.position.z);
-  Eigen::Affine3d pose_table;
+  Eigen::Isometry3d pose_table;
   tf2::fromMsg(table.pose, pose_table);
 
   // Point in table frame
@@ -488,8 +488,8 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
                                       << table_array.tables[i].pose.position.y << ","
                                       << table_array.tables[i].pose.position.z);
     std::string error_text;
-    const Eigen::Affine3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
-    Eigen::Affine3d original_pose;
+    const Eigen::Isometry3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
+    Eigen::Isometry3d original_pose;
     tf2::fromMsg(table_array.tables[i].pose, original_pose);
     original_pose = original_transform * original_pose;
     table_array.tables[i].pose = tf2::toMsg(original_pose);

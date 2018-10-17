@@ -77,7 +77,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
   }
 
   bool error = false;
-  Eigen::Affine3d inv_t;
+  Eigen::Isometry3d inv_t;
   bool use_inv_t = false;
 
   if (nj > 0 && !Transforms::sameFrame(mjs.header.frame_id, state.getRobotModel()->getModelFrame()))
@@ -86,7 +86,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       try
       {
         // find the transform that takes the given frame_id to the desired fixed frame
-        const Eigen::Affine3d& t2fixed_frame = tf->getTransform(mjs.header.frame_id);
+        const Eigen::Isometry3d& t2fixed_frame = tf->getTransform(mjs.header.frame_id);
         // we update the value of the transform so that it transforms from the known fixed frame to the desired child
         // link
         inv_t = t2fixed_frame.inverse();
@@ -115,7 +115,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       error = true;
       continue;
     }
-    Eigen::Affine3d transf = tf2::transformToEigen(mjs.transforms[i]);
+    Eigen::Isometry3d transf = tf2::transformToEigen(mjs.transforms[i]);
     // if frames do not mach, attempt to transform
     if (use_inv_t)
       transf = transf * inv_t;
@@ -136,7 +136,7 @@ static inline void _robotStateToMultiDOFJointState(const RobotState& state, sens
     geometry_msgs::TransformStamped p;
     if (state.dirtyJointTransform(js[i]))
     {
-      Eigen::Affine3d t;
+      Eigen::Isometry3d t;
       t.setIdentity();
       js[i]->computeTransform(state.getJointPositions(js[i]), t);
       p = tf2::eigenToTransform(t);
@@ -198,7 +198,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
 
   aco.object.operation = moveit_msgs::CollisionObject::ADD;
   const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_body.getShapes();
-  const EigenSTL::vector_Affine3d& ab_tf = attached_body.getFixedTransforms();
+  const EigenSTL::vector_Isometry3d& ab_tf = attached_body.getFixedTransforms();
   ShapeVisitorAddToCollisionObject sv(&aco.object);
   aco.object.primitives.clear();
   aco.object.meshes.clear();
@@ -247,14 +247,14 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
       if (lm)
       {
         std::vector<shapes::ShapeConstPtr> shapes;
-        EigenSTL::vector_Affine3d poses;
+        EigenSTL::vector_Isometry3d poses;
 
         for (std::size_t i = 0; i < aco.object.primitives.size(); ++i)
         {
           shapes::Shape* s = shapes::constructShapeFromMsg(aco.object.primitives[i]);
           if (s)
           {
-            Eigen::Affine3d p;
+            Eigen::Isometry3d p;
             tf2::fromMsg(aco.object.primitive_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
@@ -265,7 +265,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           shapes::Shape* s = shapes::constructShapeFromMsg(aco.object.meshes[i]);
           if (s)
           {
-            Eigen::Affine3d p;
+            Eigen::Isometry3d p;
             tf2::fromMsg(aco.object.mesh_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
@@ -276,7 +276,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           shapes::Shape* s = shapes::constructShapeFromMsg(aco.object.planes[i]);
           if (s)
           {
-            Eigen::Affine3d p;
+            Eigen::Isometry3d p;
             tf2::fromMsg(aco.object.plane_poses[i], p);
 
             shapes.push_back(shapes::ShapeConstPtr(s));
@@ -287,7 +287,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
         // transform poses to link frame
         if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
         {
-          Eigen::Affine3d t0;
+          Eigen::Isometry3d t0;
           if (state.knowsFrameTransform(aco.object.header.frame_id))
             t0 = state.getFrameTransform(aco.object.header.frame_id);
           else if (tf && tf->canTransform(aco.object.header.frame_id))
@@ -299,7 +299,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                                      "The pose of the attached body may be incorrect",
                             aco.object.header.frame_id.c_str());
           }
-          Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
+          Eigen::Isometry3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
         }

@@ -64,8 +64,8 @@ typedef std::map<std::string, LinkModel*> LinkModelMap;
 typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
 
 /** \brief Map from link model instances to Eigen transforms */
-typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
-                 Eigen::aligned_allocator<std::pair<const LinkModel* const, Eigen::Affine3d> > >
+typedef std::map<const LinkModel*, Eigen::Isometry3d, std::less<const LinkModel*>,
+                 Eigen::aligned_allocator<std::pair<const LinkModel* const, Eigen::Isometry3d> > >
     LinkTransformMap;
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
@@ -139,7 +139,7 @@ public:
       they are usually applied to the link's origin. The
       joint origin transform acts as an offset -- it is
       pre-applied before any other transform */
-  const Eigen::Affine3d& getJointOriginTransform() const
+  const Eigen::Isometry3d& getJointOriginTransform() const
   {
     return joint_origin_transform_;
   }
@@ -154,12 +154,12 @@ public:
     return is_parent_joint_fixed_;
   }
 
-  void setJointOriginTransform(const Eigen::Affine3d& transform);
+  void setJointOriginTransform(const Eigen::Isometry3d& transform);
 
   /** \brief In addition to the link transform, the geometry
       of a link that is used for collision checking may have
       a different offset itself, with respect to the origin */
-  const EigenSTL::vector_Affine3d& getCollisionOriginTransforms() const
+  const EigenSTL::vector_Isometry3d& getCollisionOriginTransforms() const
   {
     return collision_origin_transform_;
   }
@@ -176,7 +176,7 @@ public:
     return shapes_;
   }
 
-  void setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Affine3d& origins);
+  void setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& origins);
 
   /** \brief Get the extents of the link's geometry (dimensions of axis-aligned bounding box around all shapes that make
      up the
@@ -199,7 +199,7 @@ public:
   }
 
   /** \brief Remember that \e link_model is attached to this link using a fixed transform */
-  void addAssociatedFixedTransform(const LinkModel* link_model, const Eigen::Affine3d& transform)
+  void addAssociatedFixedTransform(const LinkModel* link_model, const Eigen::Isometry3d& transform)
   {
     associated_fixed_transforms_[link_model] = transform;
   }
@@ -217,12 +217,12 @@ public:
   }
 
   /** \brief Get the transform for the visual mesh origin */
-  const Eigen::Affine3d& getVisualMeshOrigin() const
+  const Eigen::Isometry3d& getVisualMeshOrigin() const
   {
     return visual_mesh_origin_;
   }
 
-  void setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin, const Eigen::Vector3d& scale);
+  void setVisualMesh(const std::string& visual_mesh, const Eigen::Isometry3d& origin, const Eigen::Vector3d& scale);
 
 private:
   /** \brief Name of the link */
@@ -244,10 +244,10 @@ private:
   bool joint_origin_transform_is_identity_;
 
   /** \brief The constant transform applied to the link (local) */
-  Eigen::Affine3d joint_origin_transform_;
+  Eigen::Isometry3d joint_origin_transform_;
 
   /** \brief The constant transform applied to the collision geometry of the link (local) */
-  EigenSTL::vector_Affine3d collision_origin_transform_;
+  EigenSTL::vector_Isometry3d collision_origin_transform_;
 
   /** \brief Flag indicating if the constant transform applied to the collision geometry of the link (local) is
    * identity; use int instead of bool to avoid bit operations */
@@ -269,7 +269,7 @@ private:
   std::string visual_mesh_filename_;
 
   /** \brief The additional origin transform for the mesh */
-  Eigen::Affine3d visual_mesh_origin_;
+  Eigen::Isometry3d visual_mesh_origin_;
 
   /** \brief Scale factor associated with the visual geometry mesh of this link. */
   Eigen::Vector3d visual_mesh_scale_;

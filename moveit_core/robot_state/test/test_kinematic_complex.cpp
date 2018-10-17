@@ -245,10 +245,10 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
   ks2.setToDefaultValues();
 
   std::vector<shapes::ShapeConstPtr> shapes;
-  EigenSTL::vector_Affine3d poses;
+  EigenSTL::vector_Isometry3d poses;
   shapes::Shape* shape = new shapes::Box(.1, .1, .1);
   shapes.push_back(shapes::ShapeConstPtr(shape));
-  poses.push_back(Eigen::Affine3d::Identity());
+  poses.push_back(Eigen::Isometry3d::Identity());
   std::set<std::string> touch_links;
 
   trajectory_msgs::JointTrajectory empty_state;
