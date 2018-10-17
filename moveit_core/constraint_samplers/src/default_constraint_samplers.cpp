@@ -484,7 +484,7 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
       const Eigen::Isometry3d& t = ks.getFrameTransform(sampling_pose_.orientation_constraint_->getReferenceFrame());
-      Eigen::Isometry3d rt(t.rotation() * quat.toRotationMatrix());
+      Eigen::Isometry3d rt(t.rotation() * quat);
       quat = Eigen::Quaterniond(rt.rotation());
     }
   }
@@ -499,7 +499,7 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
   // if there is an offset, we need to undo the induced rotation in the sampled transform origin (point)
   if (sampling_pose_.position_constraint_ && sampling_pose_.position_constraint_->hasLinkOffset())
     // the rotation matrix that corresponds to the desired orientation
-    pos = pos - quat.toRotationMatrix() * sampling_pose_.position_constraint_->getLinkOffset();
+    pos = pos - quat * sampling_pose_.position_constraint_->getLinkOffset();
 
   return true;
 }
@@ -559,7 +559,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
     {
       // we need to convert this transform to the frame expected by the IK solver
       // both the planning frame and the frame for the IK are assumed to be robot links
-      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);
       ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;
       point = ikq.translation();
       quat = Eigen::Quaterniond(ikq.rotation());
@@ -568,7 +568,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
     if (need_eef_to_ik_tip_transform_)
     {
       // After sampling the pose needs to be transformed to the ik chain tip
-      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);
       ikq = ikq * eef_to_ik_tip_transform_;
       point = ikq.translation();
       quat = Eigen::Quaterniond(ikq.rotation());
