@@ -1,4 +1,4 @@
-if(roscpp_VERSION VERSION_LESS 1.14) # Pre-Melodic release. REMOVE when Kinetic support is dropped
+if(roscpp_VERSION VERSION_LESS 1.14) # Pre-Melodic release. TODO: Remove when Kinetic support is dropped
   add_definitions(-DROS_KINETIC)
 endif()
 
