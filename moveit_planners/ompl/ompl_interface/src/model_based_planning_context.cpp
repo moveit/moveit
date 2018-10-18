@@ -257,7 +257,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     }
     // clang-format on
 
-    //convert to string using no locale
+    // convert to string using no locale
     std::ostringstream oss;
     oss.imbue(std::locale());
     oss << longest_valid_segment_fraction_final;

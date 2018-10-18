@@ -202,17 +202,24 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
   // read parameters specific for this configuration
   for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
   {
-    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString) {
+    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+    {
       planner_config.config[it->first] = static_cast<std::string>(it->second);
-    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble) {
-      //convert to string using no locale
+    }
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+    {
+      // convert to string using no locale
       std::ostringstream oss;
       oss.imbue(std::locale());
       oss << static_cast<double>(it->second);
       planner_config.config[it->first] = oss.str();
-    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt) {
+    }
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+    {
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
-    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean) {
+    }
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+    {
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
     }
   }
@@ -250,7 +257,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         double value_d;
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
-          //convert to string using no locale
+          // convert to string using no locale
           std::ostringstream oss;
           oss.imbue(std::locale());
           oss << value_d;
