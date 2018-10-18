@@ -59,8 +59,6 @@
 #include <OgreSceneNode.h>
 #include <rviz/ogre_helpers/shape.h>
 
-#include <tf/transform_listener.h>
-
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 
