@@ -42,6 +42,7 @@
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+#include <tf2_ros/buffer.h>
 
 #include <std_srvs/Empty.h>
 
