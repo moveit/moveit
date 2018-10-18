@@ -313,11 +313,11 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     try
     {
 #ifdef ROS_KINETIC
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, planning_display_->getTF2BufferPtr(), ros::WallDuration(30, 0)));
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = getTF2BufferPtr();
 #else
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
-          opt, context_->getFrameManager()->getTF2BufferPtr(), ros::WallDuration(30, 0)));
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = context_->getFrameManager()->getTF2BufferPtr();
 #endif
+      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, tf_buffer, ros::WallDuration(30, 0)));
 
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());

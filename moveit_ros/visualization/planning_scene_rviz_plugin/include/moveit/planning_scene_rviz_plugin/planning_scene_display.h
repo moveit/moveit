@@ -118,12 +118,9 @@ public:
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
 
 #ifdef ROS_KINETIC
-  // Grant Access to tf2 Transform Buffer
-  inline std::shared_ptr<tf2_ros::Buffer> getTF2BufferPtr(){
-    return tf_buffer_;
-  }
+  // Return (singleton) tf2 Transform Buffer shared between all MoveIt display instances
+  static std::shared_ptr<tf2_ros::Buffer> getTF2BufferPtr();
 #endif
-
 
 private Q_SLOTS:
 
@@ -220,10 +217,6 @@ protected:
   rviz::FloatProperty* scene_display_time_property_;
   rviz::EnumProperty* octree_render_property_;
   rviz::EnumProperty* octree_coloring_property_;
-#ifdef ROS_KINETIC
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-#endif
 };
 
 }  // namespace moveit_rviz_plugin
