@@ -51,8 +51,6 @@
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
-#include <tf2_ros/buffer.h>
-
 namespace moveit_rviz_plugin
 {
 MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context,
@@ -144,11 +142,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->tabWidget->setCurrentIndex(0);
 
   known_collision_objects_version_ = 0;
-
-#ifdef ROS_KINETIC
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, nh_);
-#endif
 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
@@ -320,7 +313,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     try
     {
 #ifdef ROS_KINETIC
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, tf_buffer_, ros::WallDuration(30, 0)));
+      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, planning_display_->getTF2BufferPtr(), ros::WallDuration(30, 0)));
 #else
       move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
           opt, context_->getFrameManager()->getTF2BufferPtr(), ros::WallDuration(30, 0)));

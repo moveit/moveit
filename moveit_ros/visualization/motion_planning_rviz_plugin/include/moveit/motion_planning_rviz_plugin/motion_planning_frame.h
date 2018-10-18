@@ -55,10 +55,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <object_recognition_msgs/ObjectRecognitionAction.h>
 
-#ifdef ROS_KINETIC
-#include <tf2_ros/transform_listener.h>
-#endif
-
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
 #endif
@@ -313,10 +309,6 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
-#ifdef ROS_KINETIC
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-#endif
 
   collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
 

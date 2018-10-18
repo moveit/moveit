@@ -117,6 +117,14 @@ public:
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
 
+#ifdef ROS_KINETIC
+  // Grant Access to tf2 Transform Buffer
+  inline std::shared_ptr<tf2_ros::Buffer> getTF2BufferPtr(){
+    return tf_buffer_;
+  }
+#endif
+
+
 private Q_SLOTS:
 
   // ******************************************************************************************
@@ -212,7 +220,6 @@ protected:
   rviz::FloatProperty* scene_display_time_property_;
   rviz::EnumProperty* octree_render_property_;
   rviz::EnumProperty* octree_coloring_property_;
-
 #ifdef ROS_KINETIC
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
