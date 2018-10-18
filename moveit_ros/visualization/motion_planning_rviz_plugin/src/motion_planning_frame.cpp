@@ -313,7 +313,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     try
     {
 #ifdef ROS_KINETIC
-      std::shared_ptr<tf2_ros::Buffer> tf_buffer = getTF2BufferPtr();
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = PlanningSceneDisplay::getTF2BufferPtr();
 #else
       std::shared_ptr<tf2_ros::Buffer> tf_buffer = context_->getFrameManager()->getTF2BufferPtr();
 #endif
