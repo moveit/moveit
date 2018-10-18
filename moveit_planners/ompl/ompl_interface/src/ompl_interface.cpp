@@ -40,6 +40,7 @@
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
 #include <fstream>
+#include <locale>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
   : nh_(nh)
@@ -201,14 +202,19 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
   // read parameters specific for this configuration
   for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
   {
-    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString) {
       planner_config.config[it->first] = static_cast<std::string>(it->second);
-    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
-    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble) {
+      //convert to string using no locale
+      std::ostringstream oss;
+      oss.imbue(std::locale());
+      oss << static_cast<double>(it->second);
+      planner_config.config[it->first] = oss.str();
+    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt) {
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
-    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+    } else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean) {
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
+    }
   }
 
   return true;
@@ -244,7 +250,11 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         double value_d;
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
+          //convert to string using no locale
+          std::ostringstream oss;
+          oss.imbue(std::locale());
+          oss << value_d;
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = oss.str();
           continue;
         }
 

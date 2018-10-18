@@ -256,7 +256,12 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
       );
     }
     // clang-format on
-    cfg["longest_valid_segment_fraction"] = boost::lexical_cast<std::string>(longest_valid_segment_fraction_final);
+
+    //convert to string using no locale
+    std::ostringstream oss;
+    oss.imbue(std::locale());
+    oss << longest_valid_segment_fraction_final;
+    cfg["longest_valid_segment_fraction"] = oss.str();
   }
 
   // set the projection evaluator
