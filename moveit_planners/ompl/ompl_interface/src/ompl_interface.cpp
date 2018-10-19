@@ -210,7 +210,7 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     {
       // convert to string using no locale
       std::ostringstream oss;
-      oss.imbue(std::locale());
+      oss.imbue(std::locale::classic());
       oss << static_cast<double>(it->second);
       planner_config.config[it->first] = oss.str();
     }
@@ -259,7 +259,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         {
           // convert to string using no locale
           std::ostringstream oss;
-          oss.imbue(std::locale());
+          oss.imbue(std::locale::classic());
           oss << value_d;
           specific_group_params[KNOWN_GROUP_PARAMS[k]] = oss.str();
           continue;
