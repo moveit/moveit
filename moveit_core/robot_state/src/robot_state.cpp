@@ -574,16 +574,20 @@ void RobotState::updateCollisionBodyTransforms()
     const std::vector<const LinkModel*>& links = dirty_collision_body_transforms_->getDescendantLinkModels();
     dirty_collision_body_transforms_ = nullptr;
 
-    for (std::size_t i = 0; i < links.size(); ++i)
+    for (const LinkModel* link : links)
     {
-      const EigenSTL::vector_Isometry3d& ot = links[i]->getCollisionOriginTransforms();
-      const std::vector<int>& ot_id = links[i]->areCollisionOriginTransformsIdentity();
-      const int index_co = links[i]->getFirstCollisionBodyTransformIndex();
-      const int index_l = links[i]->getLinkIndex();
-      for (std::size_t j = 0; j < ot.size(); ++j)
-        global_collision_body_transforms_[index_co + j].matrix().noalias() =
-            ot_id[j] ? global_link_transforms_[index_l].matrix() :
-                       global_link_transforms_[index_l].matrix() * ot[j].matrix();
+      const EigenSTL::vector_Isometry3d& ot = link->getCollisionOriginTransforms();
+      const std::vector<int>& ot_id = link->areCollisionOriginTransformsIdentity();
+      const int index_co = link->getFirstCollisionBodyTransformIndex();
+      const int index_l = link->getLinkIndex();
+      for (std::size_t j = 0, end = ot.size(); j != end; ++j)
+      {
+        if (ot_id[j])
+          global_collision_body_transforms_[index_co + j] = global_link_transforms_[index_l];
+        else
+          global_collision_body_transforms_[index_co + j].affine().noalias() =
+              global_link_transforms_[index_l].affine() * ot[j].matrix();
+      }
     }
   }
 }
@@ -606,31 +610,32 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
 {
   for (const LinkModel* link : start->getDescendantLinkModels())
   {
+    int idx_link = link->getLinkIndex();
     const LinkModel* parent = link->getParentLinkModel();
     if (parent)  // root JointModel will not have a parent
     {
+      int idx_parent = parent->getLinkIndex();
       if (link->parentJointIsFixed())
-        global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
-            global_link_transforms_[parent->getLinkIndex()].matrix() * link->getJointOriginTransform().matrix();
+        global_link_transforms_[idx_link].affine().noalias() =
+            global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix();
       else
       {
         if (link->jointOriginTransformIsIdentity())
-          global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
-              global_link_transforms_[parent->getLinkIndex()].matrix() *
-              getJointTransform(link->getParentJointModel()).matrix();
+          global_link_transforms_[idx_link].affine().noalias() =
+              global_link_transforms_[idx_parent].affine() * getJointTransform(link->getParentJointModel()).matrix();
         else
-          global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
-              global_link_transforms_[parent->getLinkIndex()].matrix() * link->getJointOriginTransform().matrix() *
+          global_link_transforms_[idx_link].affine().noalias() =
+              global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix() *
               getJointTransform(link->getParentJointModel()).matrix();
       }
     }
     else
     {
       if (link->jointOriginTransformIsIdentity())
-        global_link_transforms_[link->getLinkIndex()] = getJointTransform(link->getParentJointModel());
+        global_link_transforms_[idx_link] = getJointTransform(link->getParentJointModel());
       else
-        global_link_transforms_[link->getLinkIndex()].matrix().noalias() =
-            link->getJointOriginTransform().matrix() * getJointTransform(link->getParentJointModel()).matrix();
+        global_link_transforms_[idx_link].affine().noalias() =
+            link->getJointOriginTransform().affine() * getJointTransform(link->getParentJointModel()).matrix();
     }
   }
 
