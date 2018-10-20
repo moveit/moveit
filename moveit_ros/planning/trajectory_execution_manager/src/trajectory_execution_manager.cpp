@@ -156,7 +156,7 @@ void TrajectoryExecutionManager::initialize()
     if (!controller.empty())
       try
       {
-        controller_manager_.reset(controller_manager_loader_->createUnmanagedInstance(controller));
+        controller_manager_ = controller_manager_loader_->createUniqueInstance(controller);
       }
       catch (pluginlib::PluginlibException& ex)
       {

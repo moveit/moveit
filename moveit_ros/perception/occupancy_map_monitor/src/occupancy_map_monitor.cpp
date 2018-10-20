@@ -138,7 +138,7 @@ void OccupancyMapMonitor::initialize()
           OccupancyMapUpdaterPtr up;
           try
           {
-            up.reset(updater_plugin_loader_->createUnmanagedInstance(sensor_plugin));
+            up = updater_plugin_loader_->createUniqueInstance(sensor_plugin);
             up->setMonitor(this);
           }
           catch (pluginlib::PluginlibException& ex)

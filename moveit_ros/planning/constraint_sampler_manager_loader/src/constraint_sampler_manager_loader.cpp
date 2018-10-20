@@ -67,9 +67,9 @@ public:
       {
         try
         {
-          constraint_samplers::ConstraintSamplerAllocator* csa =
-              constraint_sampler_plugin_loader_->createUnmanagedInstance(*beg);
-          csm->registerSamplerAllocator(constraint_samplers::ConstraintSamplerAllocatorPtr(csa));
+          constraint_samplers::ConstraintSamplerAllocatorPtr csa =
+              constraint_sampler_plugin_loader_->createUniqueInstance(*beg);
+          csm->registerSamplerAllocator(csa);
           ROS_INFO("Loaded constraint sampling plugin %s", std::string(*beg).c_str());
         }
         catch (pluginlib::PluginlibException& ex)
