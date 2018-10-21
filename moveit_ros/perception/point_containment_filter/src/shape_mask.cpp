@@ -128,7 +128,16 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
     std::size_t j = 0;
     for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end(); ++it)
     {
-      if (transform_callback_(it->handle, tmp))
+      if (!transform_callback_(it->handle, tmp))
+      {
+        if (!it->body)
+          ROS_ERROR_STREAM_NAMED("shape_mask", "Missing transform for shape with handle " << it->handle << " without a "
+                                                                                                           "body");
+        else
+          ROS_ERROR_STREAM_NAMED("shape_mask", "Missing transform for shape " << it->body->getType() << " with handle "
+                                                                              << it->handle);
+      }
+      else
       {
         it->body->setPose(tmp);
         it->body->computeBoundingSphere(bspheres_[j++]);
