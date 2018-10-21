@@ -15,8 +15,9 @@ from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, ro
 # python3 has renamed raw_input to input: https://www.python.org/dev/peps/pep-3111
 # Here, we use the new input(). Hence, for python2, we redirect raw_input to input
 try:
-    input = getattr(__builtins__, 'raw_input')
-except AttributeError:
+    import __builtin__  # This is named builtin in python3
+    input = getattr(__builtin__, 'raw_input')
+except (ImportError, AttributeError):
     pass
 
 class bcolors:
