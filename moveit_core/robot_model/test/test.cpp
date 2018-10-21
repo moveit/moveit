@@ -102,6 +102,81 @@ TEST_F(LoadPlanningModelsPr2, Model)
   moveit::tools::Profiler::Status();
 }
 
+TEST(SiblingAssociateLinks, SimpleYRobot)
+{
+  /* base_link - a - b - c
+                  \
+                   - d ~ e          */
+  const std::string MODEL = "<?xml version=\"1.0\" ?>"
+                            "<robot name=\"one_robot\">"
+                            "<link name=\"base_link\"/>"
+                            "<joint name=\"joint_a\" type=\"continuous\">"
+                            "  <parent link=\"base_link\"/>"
+                            "  <child link=\"link_a\"/>"
+                            "  <axis xyz=\"0 0 1\"/>"
+                            "  <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
+                            "</joint>"
+                            "<link name=\"link_a\"/>"
+                            "<joint name=\"joint_b\" type=\"fixed\">"
+                            "  <parent link=\"link_a\"/>"
+                            "  <child link=\"link_b\"/>"
+                            "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
+                            "</joint>"
+                            "<link name=\"link_b\"/>"
+                            "<joint name=\"joint_c\" type=\"fixed\">"
+                            "  <parent link=\"link_b\"/>"
+                            "  <child link=\"link_c\"/>"
+                            "  <origin rpy=\" 0.0 0.42 0.0 \" xyz=\"0.0 0.5 0 \"/>"
+                            "</joint>"
+                            "<link name=\"link_c\"/>"
+                            "<joint name=\"joint_d\" type=\"fixed\">"
+                            "  <parent link=\"link_a\"/>"
+                            "  <child link=\"link_d\"/>"
+                            "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
+                            "</joint>"
+                            "<link name=\"link_d\"/>"
+                            "<joint name=\"joint_e\" type=\"continuous\">"
+                            "  <parent link=\"link_d\"/>"
+                            "  <child link=\"link_e\"/>"
+                            "  <axis xyz=\"0 0 1\"/>"
+                            "  <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
+                            "</joint>"
+                            "<link name=\"link_e\"/>"
+                            "</robot>";
+
+  const std::string SMODEL =
+      "<?xml version=\"1.0\" ?>"
+      "<robot name=\"one_robot\">"
+      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom\" type=\"planar\"/>"
+      "<group name=\"base_joint\"><joint name=\"base_joint\"/></group>"
+      "</robot>";
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL);
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  srdf_model->initString(*urdf_model, SMODEL);
+  moveit::core::RobotModelConstPtr robot_model;
+  robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+
+  const std::string a = "link_a", b = "link_b", c = "link_c", d = "link_d";
+  auto connected = { a, b, c, d };  // these are rigidly connected with each other
+  moveit::core::LinkTransformMap map;
+
+  for (const std::string& root : connected)
+  {
+    SCOPED_TRACE("root: " + root);
+    std::set<std::string> expected_set(connected);
+    expected_set.erase(root);
+    std::set<std::string> actual_set;
+    for (const auto& item : robot_model->getLinkModel(root)->getAssociatedFixedTransforms())
+      actual_set.insert(item.first->getName());
+
+    std::ostringstream expected, actual;
+    std::copy(expected_set.begin(), expected_set.end(), std::ostream_iterator<std::string>(expected, " "));
+    std::copy(actual_set.begin(), actual_set.end(), std::ostream_iterator<std::string>(actual, " "));
+
+    EXPECT_EQ(expected.str(), actual.str());
+  }
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
