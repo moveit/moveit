@@ -436,6 +436,7 @@ public:
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators);
 
 protected:
+  /** \brief Get the transforms between link and all its rigidly attached descendants */
   void computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
                               LinkTransformMap& associated_transforms);
 
