@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.14 (2018-10-20)
+-------------------
 * [improvement] skip non-actuated joints for trajectory execution (`#753 <https://github.com/ros-planning/moveit/issues/753>`_)
 * Contributors: Ryan Keating
 

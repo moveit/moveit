@@ -1,6 +1,6 @@
 <package>
   <name>moveit_full_pr2</name>
-  <version>0.7.13</version>
+  <version>0.7.14</version>
   <description>All MoveIt components, plugins and PR2-specific plugins</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>

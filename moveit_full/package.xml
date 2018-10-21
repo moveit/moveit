@@ -1,6 +1,6 @@
 <package>
   <name>moveit_full</name>
-  <version>0.7.13</version>
+  <version>0.7.14</version>
   <description>All MoveIt components and plugins</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>

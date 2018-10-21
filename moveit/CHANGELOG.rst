@@ -2,8 +2,8 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.14 (2018-10-20)
+-------------------
 * [fix][moveit_ros_visualization] Robot model not shown after MSA `#786 <https://github.com/ros-planning/moveit/issues/786>`_
 * [fix] race conditions when updating PlanningScene `#350 <https://github.com/ros-planning/moveit/issues/350>`_
 * [fix][moveit_core] computation of shape_extents_ of links w/o shapes  `#766 <https://github.com/ros-planning/moveit/issues/766>`_

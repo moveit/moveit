@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_benchmarks</name>
-  <version>0.7.13</version>
+  <version>0.7.14</version>
 
   <description>Enhanced tools for benchmarks in MoveIt!</description>
 

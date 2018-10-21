@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.14 (2018-10-20)
+-------------------
 * [fix] fix race conditions when updating PlanningScene `#350 <https://github.com/ros-planning/moveit/issues/350>`_
 * [improvement] skip non-actuated joints for trajectory execution (`#753 <https://github.com/ros-planning/moveit/issues/753>`_)
 * [capability][revert] Revert "Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)"

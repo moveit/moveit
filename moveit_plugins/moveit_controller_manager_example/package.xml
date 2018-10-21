@@ -1,6 +1,6 @@
 <package>
   <name>moveit_controller_manager_example</name>
-  <version>0.7.13</version>
+  <version>0.7.14</version>
   <description>An example controller manager plugin for MoveIt. This is not functional code.</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

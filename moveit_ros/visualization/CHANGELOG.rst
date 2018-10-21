@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.14 (2018-10-20)
+-------------------
 * [fix] Robot model not shown after MSA `#786 <https://github.com/ros-planning/moveit/issues/786>`_
 * [fix] fix race conditions when updating PlanningScene `#350 <https://github.com/ros-planning/moveit/issues/350>`_
 * Contributors: Michael Görner, Robert Haschke
