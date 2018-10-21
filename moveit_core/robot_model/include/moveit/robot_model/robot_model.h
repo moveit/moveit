@@ -436,8 +436,9 @@ public:
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators);
 
 protected:
-  void computeFixedTransformsBelow(const LinkModel* link, const Eigen::Affine3d& transform,
-                                   LinkTransformMap& associated_transforms);
+  /** \brief Get the transforms between link and all its rigidly attached descendants */
+  void computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+                              LinkTransformMap& associated_transforms);
 
   /** \brief Given two joints, find their common root */
   const JointModel* computeCommonRoot(const JointModel* a, const JointModel* b) const;

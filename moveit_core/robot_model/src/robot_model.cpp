@@ -300,8 +300,8 @@ void RobotModel::buildJointInfo()
       continue;
 
     LinkTransformMap associated_transforms;
-    computeFixedTransformsBelow(link_model_vector_[i], link_model_vector_[i]->getJointOriginTransform().inverse(),
-                                associated_transforms);
+    computeFixedTransforms(link_model_vector_[i], link_model_vector_[i]->getJointOriginTransform().inverse(),
+                           associated_transforms);
     for (auto& tf_base : associated_transforms)
     {
       link_considered[tf_base.first->getLinkIndex()] = true;
@@ -1397,14 +1397,14 @@ void RobotModel::printModelInfo(std::ostream& out) const
     joint_model_groups_[i]->printGroupInfo(out);
 }
 
-void moveit::core::RobotModel::computeFixedTransformsBelow(const LinkModel* link, const Eigen::Affine3d& transform,
-                                                           LinkTransformMap& associated_transforms)
+void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+                                        LinkTransformMap& associated_transforms)
 {
   associated_transforms[link] = transform * link->getJointOriginTransform();
   for (std::size_t i = 0; i < link->getChildJointModels().size(); ++i)
     if (link->getChildJointModels()[i]->getType() == JointModel::FIXED)
-      computeFixedTransformsBelow(link->getChildJointModels()[i]->getChildLinkModel(),
-                                  transform * link->getJointOriginTransform(), associated_transforms);
+      computeFixedTransforms(link->getChildJointModels()[i]->getChildLinkModel(),
+                             transform * link->getJointOriginTransform(), associated_transforms);
 }
 
 }  // end of namespace core
