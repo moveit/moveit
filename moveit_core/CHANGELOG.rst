@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] computation of shape_extents_ of links w/o shapes  `#766 <https://github.com/ros-planning/moveit/issues/766>`_
+* [capability][revert] Revert "Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)"
+* Contributors: Dave Coleman, Martin Pecka, Robert Haschke
+
 0.7.13 (2017-12-25)
 -------------------
 * [fix] Add missing logWarn argument (`#707 <https://github.com/ros-planning/moveit/issues/707>`_)

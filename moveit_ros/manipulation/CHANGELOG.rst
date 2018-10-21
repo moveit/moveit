@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] race conditions when updating PlanningScene `#350 <https://github.com/ros-planning/moveit/issues/350>`_
+* Contributors: Michael Görner, Robert Haschke
+
 0.7.13 (2017-12-25)
 -------------------
 

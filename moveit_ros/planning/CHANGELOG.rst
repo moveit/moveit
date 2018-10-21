@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] fix race conditions when updating PlanningScene `#350 <https://github.com/ros-planning/moveit/issues/350>`_
+* [improvement] skip non-actuated joints for trajectory execution (`#753 <https://github.com/ros-planning/moveit/issues/753>`_)
+* [capability][revert] Revert "Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)"
+* Contributors: Dave Coleman, Kei Okada, Michael Görner, Robert Haschke, Ryan Keating
+
 0.7.13 (2017-12-25)
 -------------------
 * [fix] Avoid segfault when validating a multidof-only trajectory (`#691 <https://github.com/ros-planning/moveit/issues/691>`_). Fixes `#539 <https://github.com/ros-planning/moveit/issues/539>`_
