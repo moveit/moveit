@@ -38,26 +38,24 @@
 #define MOVEIT_UTILS_
 
 #include <string>
-namespace moveit {
-namespace utils {
+namespace moveit
+{
+namespace utils
+{
+/** \brief Convert a double to std::string without using the system locale
 
-  /** \brief Convert a double to std::string without using the system locale
+Depending on the system locale, a different decimal seperator might be used
+for floating point numbers. This is often not wanted for internal (ie non-user
+facing) purposes. */
+std::string toString(double d);
 
-  Depending on the system locale, a different decimal seperator might be used
-  for floating point numbers. This is often not wanted for internal (ie non-user
-  facing) purposes. */
-  std::string toString(double d);
+/** \brief Convert a float to std::string without using the system locale
 
-
-  /** \brief Convert a float to std::string without using the system locale
-
-  Depending on the system locale, a different decimal seperator might be used
-  for floating point numbers. This is often not wanted for internal (ie non-user
-  facing) purposes. */
-  std::string toString(float d);
-
+Depending on the system locale, a different decimal seperator might be used
+for floating point numbers. This is often not wanted for internal (ie non-user
+facing) purposes. */
+std::string toString(float d);
 }
 }
 
 #endif
-

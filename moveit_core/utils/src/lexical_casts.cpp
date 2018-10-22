@@ -39,26 +39,26 @@
 #include <locale>
 #include <sstream>
 
-namespace moveit {
-namespace utils {
+namespace moveit
+{
+namespace utils
+{
+std::string toString(double d)
+{
+  // convert to string using no locale
+  std::ostringstream oss;
+  oss.imbue(std::locale::classic());
+  oss << d;
+  return oss.str();
+}
 
-  std::string toString(double d)
-  {
-    // convert to string using no locale
-    std::ostringstream oss;
-    oss.imbue(std::locale::classic());
-    oss << d;
-    return oss.str();
-  }
-
-  std::string toString(float d)
-  {
-    // convert to string using no locale
-    std::ostringstream oss;
-    oss.imbue(std::locale::classic());
-    oss << d;
-    return oss.str();
-  }
-
+std::string toString(float d)
+{
+  // convert to string using no locale
+  std::ostringstream oss;
+  oss.imbue(std::locale::classic());
+  oss << d;
+  return oss.str();
+}
 }
 }
