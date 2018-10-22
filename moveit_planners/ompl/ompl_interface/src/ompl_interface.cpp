@@ -39,6 +39,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
 #include <fstream>
 #include <locale>
 
@@ -209,10 +210,7 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
     {
       // convert to string using no locale
-      std::ostringstream oss;
-      oss.imbue(std::locale::classic());
-      oss << static_cast<double>(it->second);
-      planner_config.config[it->first] = oss.str();
+      planner_config.config[it->first] = moveit::utils::toString(static_cast<double>(it->second));
     }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
     {
@@ -258,10 +256,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
           // convert to string using no locale
-          std::ostringstream oss;
-          oss.imbue(std::locale::classic());
-          oss << value_d;
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = oss.str();
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = moveit::utils::toString(value_d);
           continue;
         }
 

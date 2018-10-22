@@ -45,6 +45,7 @@
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
 #include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
@@ -258,10 +259,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     // clang-format on
 
     // convert to string using no locale
-    std::ostringstream oss;
-    oss.imbue(std::locale::classic());
-    oss << longest_valid_segment_fraction_final;
-    cfg["longest_valid_segment_fraction"] = oss.str();
+    cfg["longest_valid_segment_fraction"] = moveit::utils::toString(longest_valid_segment_fraction_final);
   }
 
   // set the projection evaluator
