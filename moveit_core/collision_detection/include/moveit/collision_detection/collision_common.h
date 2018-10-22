@@ -44,7 +44,6 @@
 #include <map>
 #include <set>
 #include <Eigen/Core>
-#include <console_bridge/console.h>
 #include <moveit/robot_model/robot_model.h>
 
 namespace collision_detection

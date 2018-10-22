@@ -49,7 +49,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -62,10 +62,10 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::Move
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header =
-      new HeaderWidget("Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
-                                      "particular planning groups. This is useful for things like <i>folded arms</i>.",
-                       this);
+  HeaderWidget* header = new HeaderWidget(
+      "Define Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
+                            "particular planning groups. This is useful for things like <i>home position</i>.",
+      this);
   layout->addWidget(header);
 
   // Create contents screens ---------------------------------------
@@ -93,7 +93,7 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::Move
   pub_robot_state_ = nh.advertise<moveit_msgs::DisplayRobotState>(MOVEIT_ROBOT_STATE, 1);
 
   // Set the planning scene
-  config_data_->getPlanningScene()->setName("MoveIt Planning Scene");
+  config_data_->getPlanningScene()->setName("MoveIt! Planning Scene");
 
   // Collision Detection initializtion -------------------------------
 

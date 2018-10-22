@@ -39,7 +39,7 @@
 #include <moveit_simple_controller_manager/action_based_controller_handle.h>
 #include <moveit_simple_controller_manager/gripper_controller_handle.h>
 #include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <algorithm>
 #include <map>
 
@@ -114,7 +114,8 @@ public:
             {
               if (controller_list[i]["joints"].size() != 2)
               {
-                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two joints");
+                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two "
+                                                  "joints");
                 continue;
               }
               static_cast<GripperControllerHandle*>(new_handle.get())

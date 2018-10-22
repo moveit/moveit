@@ -46,30 +46,46 @@ ChompParameters::ChompParameters()
   smoothness_cost_weight_ = 0.1;
   obstacle_cost_weight_ = 1.0;
   learning_rate_ = 0.01;
-  animate_path_ = true;
-  add_randomness_ = false;
+
+  // add_randomness_ = false;
   smoothness_cost_velocity_ = 0.0;
   smoothness_cost_acceleration_ = 1.0;
   smoothness_cost_jerk_ = 0.0;
-  hmc_discretization_ = 0.01;
-  hmc_stochasticity_ = 0.01;
-  hmc_annealing_factor_ = 0.99;
-  use_hamiltonian_monte_carlo_ = false;
+  // hmc_discretization_ = 0.01;
+  // hmc_stochasticity_ = 0.01;
+  // hmc_annealing_factor_ = 0.99;
+  // use_hamiltonian_monte_carlo_ = false;
   ridge_factor_ = 0.0;
   use_pseudo_inverse_ = false;
   pseudo_inverse_ridge_factor_ = 1e-4;
-  animate_endeffector_ = false;
-  animate_endeffector_segment_ = std::string("r_gripper_tool_frame");
+
   joint_update_limit_ = 0.1;
   min_clearence_ = 0.2;
   collision_threshold_ = 0.07;
-  random_jump_amount_ = 1.0;
+  // random_jump_amount_ = 1.0;
   use_stochastic_descent_ = true;
   filter_mode_ = false;
+  trajectory_initialization_method_ = std::string("quintic-spline");
+  enable_failure_recovery_ = false;
+  max_recovery_attempts_ = 5;
 }
 
 ChompParameters::~ChompParameters()
 {
 }
 
+ChompParameters ChompParameters::getNonConstParams(ChompParameters params)
+{
+  ChompParameters non_const;
+  non_const = params;
+  return non_const;
+}
+void ChompParameters::setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit,
+                                        int max_iterations)
+{
+  this->learning_rate_ = learning_rate;
+  this->ridge_factor_ = ridge_factor;
+  this->planning_time_limit_ = planning_time_limit;
+  this->max_iterations_ = max_iterations;
+}
 }  // namespace chomp

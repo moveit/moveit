@@ -58,7 +58,7 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::string& r
   // call initialize method of wrapped class
   if (!KinematicsPlugin::initialize(robot_description, group_name, base_frame, tip_frame, search_discretization))
   {
-    ROS_ERROR_NAMED("cached_ik_kinematics_plugin", "failed to initialized caching plugin");
+    ROS_ERROR_NAMED("cached_ik", "failed to initialized caching plugin");
     return false;
   }
 
@@ -91,7 +91,7 @@ bool CachedMultiTipIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::s
   // call initialize method of wrapped class
   if (!KinematicsPlugin::initialize(robot_description, group_name, base_frame, tip_frames, search_discretization))
   {
-    ROS_ERROR_NAMED("cached_ik_kinematics_plugin", "failed to initialized caching plugin");
+    ROS_ERROR_NAMED("cached_ik", "failed to initialized caching plugin");
     return false;
   }
 

@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* boost::shared_ptr -> std::shared_ptr
+* [fix] make OpenGL parts optional (`#698 <https://github.com/ros-planning/moveit/issues/698>`_)
+* Contributors: Bence Magyar, Ian McMahon, Lukas Bulwahn, Michael Görner, Mikael Arguedas, Robert Haschke
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -26,7 +32,7 @@ Changelog for package moveit_ros_perception
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 
@@ -76,7 +82,7 @@ Changelog for package moveit_ros_perception
 
 0.6.3 (2014-12-03)
 ------------------
-* port `#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
+* port `moveit_ros#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
 * disable test that needs display when no display defined
 * GL_TYPE() is a function in newer versions of OpenGL, this fixes tests on Ubuntu 14.04
 * Contributors: Michael Ferguson

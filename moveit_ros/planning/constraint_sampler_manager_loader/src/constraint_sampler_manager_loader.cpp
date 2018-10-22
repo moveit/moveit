@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 #include <ros/ros.h>
 #include <boost/tokenizer.hpp>
 #include <memory>

@@ -1,8 +1,8 @@
-![](http://moveit.ros.org/wordpress/wp-content/uploads/2014/01/moveit-title-small.png)
+<img src="http://moveit.ros.org/assets/images/moveit2_logo_black.png" alt="MoveIt! Logo" width="200"/>
 
 The MoveIt! Motion Planning Framework
 
-Currently we support ROS Indigo, Kinetic, and Lunar, although the Lunar release still uses the Kinetic branch.
+Currently we support ROS Indigo, Kinetic, and Melodic.
 
 - [Overview of MoveIt!](http://moveit.ros.org)
 - [Installation Instructions](http://moveit.ros.org/install/)

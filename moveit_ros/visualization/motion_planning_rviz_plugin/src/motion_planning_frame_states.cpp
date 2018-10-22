@@ -223,7 +223,7 @@ void MotionPlanningFrame::removeStateButtonClicked()
       case QMessageBox::Yes:
       {
         QList<QListWidgetItem*> found_items = ui_->list_states->selectedItems();
-        for (std::size_t i = 0; i < found_items.size(); ++i)
+        for (int i = 0; i < found_items.size(); ++i)
         {
           const std::string& name = found_items[i]->text().toStdString();
           try

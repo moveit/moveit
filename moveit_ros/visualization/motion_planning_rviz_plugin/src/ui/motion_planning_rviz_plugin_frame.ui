@@ -6,10 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>430</height>
-    <width>702</width>
-    <height>413</height>
+    <width>692</width>
+    <height>414</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,6 +39,9 @@
           <string>Planning Library</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="2,3">
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_13">
             <item>
@@ -101,6 +102,9 @@
               <property name="rootIsDecorated">
                <bool>false</bool>
               </property>
+              <attribute name="headerMinimumSectionSize">
+               <number>20</number>
+              </attribute>
              </widget>
             </item>
            </layout>
@@ -114,6 +118,12 @@
           <string>Warehouse</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
@@ -189,23 +199,134 @@
        <item>
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
-          <string>Kinematics</string>
+          <string>Workspace</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_10">
+         <layout class="QGridLayout" name="gridLayout_18">
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="collision_aware_ik">
+           <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>Use Collision-Aware IK</string>
+             <string>Center (XYZ):</string>
             </property>
-            <property name="checked">
-             <bool>true</bool>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="wcenter_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QDoubleSpinBox" name="wcenter_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QDoubleSpinBox" name="wcenter_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="approximate_ik">
+           <widget class="QLabel" name="label_22">
             <property name="text">
-             <string>Allow Approximate IK Solutions</string>
+             <string>Size (XYZ):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="wsize_x">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="wrapping">
+             <bool>false</bool>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QDoubleSpinBox" name="wsize_y">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QDoubleSpinBox" name="wsize_z">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <double>-10000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -236,12 +357,18 @@
         <layout class="QVBoxLayout" name="verticalLayout_11">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QGroupBox" name="groupBox_9">
              <property name="title">
               <string>Commands</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_9">
+              <property name="spacing">
+               <number>4</number>
+              </property>
               <item>
                <widget class="QPushButton" name="plan_button">
                 <property name="text">
@@ -292,19 +419,6 @@
                 </property>
                </widget>
               </item>
-              <item>
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
             </widget>
            </item>
@@ -314,19 +428,15 @@
               <string>Query</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <item row="2" column="0">
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
               <item row="1" column="0">
                <widget class="QToolBox" name="query_stackedwidget">
                 <property name="sizePolicy">
@@ -350,7 +460,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>109</width>
-                   <height>78</height>
+                   <height>82</height>
                   </rect>
                  </property>
                  <attribute name="label">
@@ -399,8 +509,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>109</width>
-                   <height>78</height>
+                   <width>225</width>
+                   <height>82</height>
                   </rect>
                  </property>
                  <attribute name="label">
@@ -446,6 +556,26 @@
                 </widget>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="clear_octomap_button">
+                <property name="text">
+                 <string>Clear octomap</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
@@ -454,130 +584,31 @@
          <item>
           <widget class="QGroupBox" name="groupBox_12">
            <property name="title">
-            <string>Workspace</string>
+            <string>Path Constraints</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="wcenter_x">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-             </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_15">
+            <property name="topMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QComboBox" name="path_constraints_combo_box"/>
             </item>
-            <item row="2" column="2">
-             <widget class="QDoubleSpinBox" name="wsize_y">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QDoubleSpinBox" name="wcenter_y">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QDoubleSpinBox" name="wcenter_z">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="3">
-             <widget class="QDoubleSpinBox" name="wsize_z">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="wsize_x">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="wrapping">
-               <bool>false</bool>
-              </property>
-              <property name="minimum">
-               <double>-10000.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Center (XYZ):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Size (XYZ):</string>
-              </property>
-             </widget>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Goal Tolerance:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="goal_tolerance"/>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -603,8 +634,14 @@
           <string>Options</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_10">
+          <property name="spacing">
+           <number>2</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <property name="spacing">
+             <number>1</number>
+            </property>
             <item>
              <widget class="QLabel" name="label_9">
               <property name="text">
@@ -632,6 +669,9 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <property name="spacing">
+             <number>1</number>
+            </property>
             <item>
              <widget class="QLabel" name="label_10">
               <property name="text">
@@ -659,6 +699,9 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <property name="spacing">
+             <number>1</number>
+            </property>
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
@@ -683,6 +726,9 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_20">
+            <property name="spacing">
+             <number>1</number>
+            </property>
             <item>
              <widget class="QLabel" name="label_20">
               <property name="text">
@@ -736,33 +782,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QCheckBox" name="collision_aware_ik">
             <property name="text">
-             <string>Path Constraints:</string>
+             <string>Use Collision-Aware IK</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="path_constraints_combo_box"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Goal Tolerance:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="goal_tolerance"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="clear_octomap_button">
+           <widget class="QCheckBox" name="approximate_ik">
             <property name="text">
-             <string>Clear octomap</string>
+             <string>Allow Approx IK Solutions</string>
             </property>
            </widget>
           </item>
@@ -1205,19 +1237,6 @@
          </layout>
         </widget>
        </item>
-       <item row="3" column="1">
-        <spacer name="verticalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
        <item row="0" column="0" rowspan="4">
         <widget class="QGroupBox" name="groupBox_8">
          <property name="toolTip">
@@ -1248,13 +1267,6 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QListWidget" name="collision_objects_list">
-            <property name="editTriggers">
-             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="import_file_button">
             <property name="text">
@@ -1262,8 +1274,28 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QListWidget" name="collision_objects_list">
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
+       </item>
+       <item row="3" column="1">
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -1654,8 +1686,6 @@
   <tabstop>database_port</tabstop>
   <tabstop>reset_db_button</tabstop>
   <tabstop>database_connect_button</tabstop>
-  <tabstop>collision_aware_ik</tabstop>
-  <tabstop>approximate_ik</tabstop>
   <tabstop>plan_button</tabstop>
   <tabstop>execute_button</tabstop>
   <tabstop>plan_and_execute_button</tabstop>
@@ -1664,12 +1694,6 @@
   <tabstop>use_start_state_button</tabstop>
   <tabstop>goal_state_selection</tabstop>
   <tabstop>use_goal_state_button</tabstop>
-  <tabstop>wcenter_x</tabstop>
-  <tabstop>wcenter_y</tabstop>
-  <tabstop>wcenter_z</tabstop>
-  <tabstop>wsize_x</tabstop>
-  <tabstop>wsize_y</tabstop>
-  <tabstop>wsize_z</tabstop>
   <tabstop>planning_time</tabstop>
   <tabstop>planning_attempts</tabstop>
   <tabstop>velocity_scaling_factor</tabstop>
@@ -1677,9 +1701,7 @@
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
   <tabstop>allow_external_program</tabstop>
-  <tabstop>path_constraints_combo_box</tabstop>
   <tabstop>goal_tolerance</tabstop>
-  <tabstop>clear_octomap_button</tabstop>
   <tabstop>detected_objects_list</tabstop>
   <tabstop>detect_objects_button</tabstop>
   <tabstop>support_surfaces_list</tabstop>

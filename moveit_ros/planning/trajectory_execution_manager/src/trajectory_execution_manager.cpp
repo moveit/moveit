@@ -71,6 +71,7 @@ private:
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
+    owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -128,6 +129,9 @@ void TrajectoryExecutionManager::initialize()
     ROS_WARN_NAMED(name_, DEPRECATION_WARNING, "allowed_goal_duration_margin");
   else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+
+  // load controller-specific values for allowed_execution_duration_scaling and allowed_goal_duration_margin
+  loadControllerParams();
 
   // load the controller manager plugin
   try
@@ -209,6 +213,11 @@ void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 {
   allowed_start_tolerance_ = tolerance;
+}
+
+void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
+{
+  wait_for_trajectory_completion_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -989,7 +998,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       // Check multi-dof trajectory
       const std::vector<geometry_msgs::Transform>& transforms =
           trajectory.multi_dof_joint_trajectory.points.front().transforms;
-      const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
+      const std::vector<std::string>& joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
       if (transforms.size() != joint_names.size())
       {
         ROS_ERROR_NAMED(name_, "Wrong trajectory: #joints: %zu != #transforms: %zu", joint_names.size(),
@@ -1034,8 +1043,8 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
   {
-    ROS_WARN_NAMED(name_, "The trajectory to execute is empty");
-    return false;
+    // empty trajectories don't need to configure anything
+    return true;
   }
   std::set<std::string> actuated_joints;
 
@@ -1288,8 +1297,9 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
     }
   }
 
-  // only report that execution finished when the robot stopped moving
-  waitForRobotToStop(*trajectories_[i - 1]);
+  // only report that execution finished successfully when the robot actually stopped moving
+  if (last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+    waitForRobotToStop(*trajectories_[i - 1]);
 
   ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
 
@@ -1415,12 +1425,26 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
                          context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size()))
           longest_part = i;
       }
-      expected_trajectory_duration = std::max(d, expected_trajectory_duration);
-    }
-    // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
 
-    expected_trajectory_duration = expected_trajectory_duration * allowed_execution_duration_scaling_ +
-                                   ros::Duration(allowed_goal_duration_margin_);
+      // prefer controller-specific values over global ones if defined
+      // TODO: the controller-specific parameters are static, but override
+      //       the global ones are configurable via dynamic reconfigure
+      std::map<std::string, double>::const_iterator scaling_it =
+          controller_allowed_execution_duration_scaling_.find(context.controllers_[i]);
+      const double current_scaling = scaling_it != controller_allowed_execution_duration_scaling_.end() ?
+                                         scaling_it->second :
+                                         allowed_execution_duration_scaling_;
+
+      std::map<std::string, double>::const_iterator margin_it =
+          controller_allowed_goal_duration_margin_.find(context.controllers_[i]);
+      const double current_margin = margin_it != controller_allowed_goal_duration_margin_.end() ?
+                                        margin_it->second :
+                                        allowed_goal_duration_margin_;
+
+      // expected duration is the duration of the longest part
+      expected_trajectory_duration =
+          std::max(d * current_scaling + ros::Duration(current_margin), expected_trajectory_duration);
+    }
 
     // construct a map from expected time to state index, for easy access to expected state location
     if (longest_part >= 0)
@@ -1511,8 +1535,12 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
-  if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
+  // skip waiting for convergence?
+  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_)
+  {
+    ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
     return true;
+  }
 
   ros::WallTime start = ros::WallTime::now();
   double time_remaining = wait_time;
@@ -1723,6 +1751,28 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
       if (it->second.state_.active_)
         originally_active.insert(it->first);
     return std::includes(originally_active.begin(), originally_active.end(), controllers.begin(), controllers.end());
+  }
+}
+
+void TrajectoryExecutionManager::loadControllerParams()
+{
+  XmlRpc::XmlRpcValue controller_list;
+  if (node_handle_.getParam("controller_list", controller_list) &&
+      controller_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+  {
+    for (int i = 0; i < controller_list.size(); ++i)
+    {
+      XmlRpc::XmlRpcValue& controller = controller_list[i];
+      if (controller.hasMember("name"))
+      {
+        if (controller.hasMember("allowed_execution_duration_scaling"))
+          controller_allowed_execution_duration_scaling_[std::string(controller["name"])] =
+              controller["allowed_execution_duration_scaling"];
+        if (controller.hasMember("allowed_goal_duration_margin"))
+          controller_allowed_goal_duration_margin_[std::string(controller["name"])] =
+              controller["allowed_goal_duration_margin"];
+      }
+    }
   }
 }
 }

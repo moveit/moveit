@@ -42,6 +42,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QProgressBar>
+#include <QTextEdit>
 
 #ifndef Q_MOC_RUN
 #include <urdf/model.h>                                       // for testing a valid urdf is loaded
@@ -58,7 +59,7 @@ class SelectModeWidget;
 class LoadPathArgsWidget;
 
 /**
- * \brief Start screen user interface for MoveIt Configuration Assistant
+ * \brief Start screen user interface for MoveIt! Configuration Assistant
  */
 class StartScreenWidget : public SetupScreenWidget
 {
@@ -70,7 +71,7 @@ public:
   // ******************************************************************************************
 
   /**
-   * \brief Start screen user interface for MoveIt Configuration Assistant
+   * \brief Start screen user interface for MoveIt! Configuration Assistant
    */
   StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
@@ -87,8 +88,6 @@ public:
   QProgressBar* progress_bar_;
   QImage* right_image_;
   QLabel* right_image_label_;
-  QImage* logo_image_;
-  QLabel* logo_image_label_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
@@ -164,6 +163,9 @@ private:
 
   /// Make the full SRDF path using the loaded .setup_assistant data
   bool createFullSRDFPath(const std::string& package_path);
+
+  /// Loads sensors_3d yaml file
+  bool load3DSensorsFile();
 };
 
 // ******************************************************************************************
@@ -185,6 +187,7 @@ public:
   // Load file button
   QPushButton* btn_new_;
   QPushButton* btn_exist_;
+  QTextEdit* widget_instructions_;
 };
 }
 

@@ -40,7 +40,6 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/exceptions/exceptions.h>
-#include <console_bridge/console.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 
@@ -437,6 +436,7 @@ public:
   void setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators);
 
 protected:
+  /** \brief Get the transforms between link and all its rigidly attached descendants */
   void computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
                               LinkTransformMap& associated_transforms);
 

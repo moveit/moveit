@@ -46,7 +46,7 @@
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
 #include <boost/thread.hpp>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 #include <memory>
 
@@ -240,6 +240,9 @@ public:
   /// Set joint-value tolerance for validating trajectory's start point against current robot state
   void setAllowedStartTolerance(double tolerance);
 
+  /// Enable or disable waiting for trajectory completion
+  void setWaitForTrajectoryCompletion(bool flag);
+
 private:
   struct ControllerInformation
   {
@@ -296,6 +299,8 @@ private:
 
   void receiveEvent(const std_msgs::StringConstPtr& event);
 
+  void loadControllerParams();
+
   // Name of this class for logging
   const std::string name_ = "trajectory_execution_manager";
 
@@ -344,10 +349,17 @@ private:
   DynamicReconfigureImpl* reconfigure_impl_;
 
   bool execution_duration_monitoring_;
+  // 'global' values
   double allowed_execution_duration_scaling_;
   double allowed_goal_duration_margin_;
+  // controller-specific values
+  // override the 'global' values
+  std::map<std::string, double> controller_allowed_execution_duration_scaling_;
+  std::map<std::string, double> controller_allowed_goal_duration_margin_;
+
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
+  bool wait_for_trajectory_completion_;
 };
 }
 

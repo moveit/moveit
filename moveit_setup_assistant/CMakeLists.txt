@@ -71,8 +71,12 @@ set(HEADERS
   src/widgets/end_effectors_widget.h
   src/widgets/virtual_joints_widget.h
   src/widgets/passive_joints_widget.h
+  src/widgets/perception_widget.h
+  src/widgets/ros_controllers_widget.h
+  src/widgets/controller_edit_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
+  src/widgets/simulation_widget.h
   src/widgets/author_information_widget.h
 )
 
@@ -104,11 +108,15 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/end_effectors_widget.cpp
   src/widgets/virtual_joints_widget.cpp
   src/widgets/passive_joints_widget.cpp
+  src/widgets/perception_widget.cpp
   src/widgets/configuration_files_widget.cpp
+  src/widgets/ros_controllers_widget.cpp
+  src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
+  src/widgets/simulation_widget.cpp
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
@@ -141,3 +149,14 @@ install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+# Unit tests
+if(CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources REQUIRED)
+  include_directories(${moveit_resources_INCLUDE_DIRS})
+  catkin_add_gtest(test_reading_writing_config test/moveit_config_data_test.cpp)
+  target_link_libraries(test_reading_writing_config  ${PROJECT_NAME}_tools
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${MOVEIT_LIB_NAME})
+endif()
