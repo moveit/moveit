@@ -768,12 +768,12 @@ public:
   /** \brief Pick up an object
 
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
-  MoveItErrorCode planGraspsAndPick(const std::string& object = "");
+  MoveItErrorCode planGraspsAndPick(const std::string& object = "", bool plan_only = false);
 
   /** \brief Pick up an object
 
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
-  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object);
+  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   MoveItErrorCode place(const std::string& object, bool plan_only = false);
