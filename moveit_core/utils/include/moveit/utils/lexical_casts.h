@@ -42,7 +42,7 @@ namespace moveit
 {
 namespace utils
 {
-/** \brief Convert a double to std::string without using the system locale
+/** \brief Convert a double to std::string using the classic C locale
 
 Depending on the system locale, a different decimal seperator might be used
 for floating point numbers. This is often not wanted for internal (ie non-user
