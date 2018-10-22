@@ -351,7 +351,7 @@ void MotionPlanningFrame::pickObject()
 
 void MotionPlanningFrame::placeObject()
 {
-  move_group_->place(place_object_name_, place_poses_, false);
+  move_group_->place(place_object_name_, place_poses_);
   return;
 }
 }

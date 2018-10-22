@@ -67,10 +67,6 @@ class MoveGroupCommander(object):
         """ Get the joints of this group """
         return self._g.get_joints()
 
-    def get_named_targets(self):
-        """ Get the named targets available in MoveIt! """
-        return self._g.get_named_targets()
-
     def get_variable_count(self):
         """ Return the number of variables used to parameterize a state in this group (larger or equal to number of DOF)"""
         return self._g.get_variable_count()

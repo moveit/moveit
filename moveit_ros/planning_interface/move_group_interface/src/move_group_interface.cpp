@@ -751,7 +751,7 @@ public:
     }
   }
 
-  MoveItErrorCode planGraspsAndPick(const std::string& object)
+  MoveItErrorCode planGraspsAndPick(const std::string& object, bool plan_only = false)
   {
     if (object.empty())
     {
@@ -768,10 +768,10 @@ public:
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
-    return planGraspsAndPick(objects[object]);
+    return planGraspsAndPick(objects[object], plan_only);
   }
 
-  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object)
+  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false)
   {
     if (!plan_grasps_service_)
     {
@@ -797,7 +797,7 @@ public:
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 
-    return pick(object.id, response.grasps);
+    return pick(object.id, response.grasps, plan_only);
   }
 
   MoveItErrorCode plan(Plan& plan)
@@ -1542,15 +1542,15 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 }
 
 moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const std::string& object)
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const std::string& object, bool plan_only)
 {
-  return impl_->planGraspsAndPick(object);
+  return impl_->planGraspsAndPick(object, plan_only);
 }
 
-moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const moveit_msgs::CollisionObject& object)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(
+    const moveit_msgs::CollisionObject& object, bool plan_only)
 {
-  return impl_->planGraspsAndPick(object);
+  return impl_->planGraspsAndPick(object, plan_only);
 }
 
 moveit::planning_interface::MoveItErrorCode
