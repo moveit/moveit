@@ -1,5 +1,10 @@
 
 set(MOVEIT_LIB_NAME moveit_planning_scene_rviz_plugin)
+
+if(roscpp_VERSION VERSION_LESS 1.14) # Pre-Melodic release. TODO: Remove when Kinetic support is dropped
+  add_definitions(-DROS_KINETIC)
+endif()
+
 add_library(${MOVEIT_LIB_NAME}_core
   src/planning_scene_display.cpp
   include/moveit/planning_scene_rviz_plugin/planning_scene_display.h)

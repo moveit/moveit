@@ -42,6 +42,7 @@
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+#include <tf2_ros/buffer.h>
 
 #include <std_srvs/Empty.h>
 
@@ -50,8 +51,6 @@
 #include <QShortcut>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
-
-#include <tf2_ros/buffer.h>
 
 namespace moveit_rviz_plugin
 {
@@ -314,8 +313,13 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
-          opt, context_->getFrameManager()->getTF2BufferPtr(), ros::WallDuration(30, 0)));
+#ifdef ROS_KINETIC
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = PlanningSceneDisplay::getTF2BufferPtr();
+#else
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = context_->getFrameManager()->getTF2BufferPtr();
+#endif
+      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, tf_buffer, ros::WallDuration(30, 0)));
+
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
     }
