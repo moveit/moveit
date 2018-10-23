@@ -56,6 +56,12 @@ std::string toString(double d);
 
 /** \brief Convert a float to std::string using the classic C locale */
 std::string toString(float d);
+
+/** \brief Converts a std::string to double using the classic C locale */
+double toDouble(const std::string& s);
+
+/** \brief Converts a std::string to float using the classic C locale */
+float toFloat(const std::string& s);
 }
 }
 

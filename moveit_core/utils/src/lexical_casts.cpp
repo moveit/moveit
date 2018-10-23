@@ -60,5 +60,25 @@ std::string toString(float d)
   oss << d;
   return oss.str();
 }
+
+double toDouble(const std::string& s)
+{
+  // convert from string using no locale
+  std::istringstream iss(s);
+  iss.imbue(std::locale::classic());
+  double d;
+  iss >> d;
+  return d;
+}
+
+float toFloat(const std::string& s)
+{
+  // convert from string using no locale
+  std::istringstream iss(s);
+  iss.imbue(std::locale::classic());
+  float f;
+  iss >> f;
+  return f;
+}
 }
 }

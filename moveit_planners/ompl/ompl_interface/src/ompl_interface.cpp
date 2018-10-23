@@ -214,7 +214,7 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
     {
-      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+      planner_config.config[it->first] = std::to_string(static_cast<int>(it->second));
     }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
     {
@@ -263,7 +263,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         int value_i;
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_i))
         {
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = std::to_string(value_i);
           continue;
         }
 

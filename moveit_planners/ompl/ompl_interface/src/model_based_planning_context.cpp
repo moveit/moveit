@@ -244,7 +244,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     // clang-format off
     double longest_valid_segment_fraction_config = (it != cfg.end())
-      ? boost::lexical_cast<double>(it->second)  // value from config file if there
+      ? moveit::utils::toDouble(it->second)  // value from config file if there
       : 0.01;  // default value in OMPL.
     double longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
     if (max_solution_segment_length_ > 0.0)
