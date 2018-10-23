@@ -37,23 +37,24 @@
 #ifndef MOVEIT_UTILS_
 #define MOVEIT_UTILS_
 
+/** \file lexical_casts.h
+ *  \brief locale-agnostic conversion functions from floating point numbers to strings
+ *
+ *  Depending on the system locale, a different decimal seperator might be used
+ *  for floating point numbers. This is often not wanted for internal (ie non-user
+ *  facing) purposes. This module provides conversion functions that use std::locale::classic()
+ *  (i.e. the default if no locale is set on the system).
+ */
+
 #include <string>
 namespace moveit
 {
 namespace utils
 {
-/** \brief Convert a double to std::string using the classic C locale
-
-Depending on the system locale, a different decimal seperator might be used
-for floating point numbers. This is often not wanted for internal (ie non-user
-facing) purposes. */
+/** \brief Convert a double to std::string using the classic C locale */
 std::string toString(double d);
 
-/** \brief Convert a float to std::string without using the system locale
-
-Depending on the system locale, a different decimal seperator might be used
-for floating point numbers. This is often not wanted for internal (ie non-user
-facing) purposes. */
+/** \brief Convert a float to std::string using the classic C locale */
 std::string toString(float d);
 }
 }
