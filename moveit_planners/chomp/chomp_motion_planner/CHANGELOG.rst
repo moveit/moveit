@@ -2,8 +2,8 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.13 (2018-10-24)
+-------------------
 * [fix] Eigen alignment issuses due to missing aligned allocation (`#1039 <https://github.com/ros-planning/moveit/issues/1039>`_)
 * [fix] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
 * [fix] changelogs: migration from tf -> tf2 only accidentally became part of 0.9.12's changelog
