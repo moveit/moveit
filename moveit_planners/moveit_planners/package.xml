@@ -16,6 +16,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>chomp_motion_planner</run_depend>
+  <run_depend>moveit_planners_chomp</run_depend>
   <run_depend>moveit_planners_ompl</run_depend>
 
   <export>
