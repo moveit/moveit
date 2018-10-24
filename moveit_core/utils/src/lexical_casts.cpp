@@ -71,6 +71,10 @@ T toRealImpl(const std::string& s)
   iss.imbue(std::locale::classic());
   T d;
   iss >> d;
+  if (iss.fail() || !iss.eof())
+  {
+    throw std::runtime_error("Failed converting string to real number");
+  }
   return d;
 }
 
