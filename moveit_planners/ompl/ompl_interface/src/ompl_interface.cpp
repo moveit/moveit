@@ -204,22 +204,13 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
   for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
   {
     if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
-    {
       planner_config.config[it->first] = static_cast<std::string>(it->second);
-    }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-    {
-      // convert to string using no locale
       planner_config.config[it->first] = moveit::utils::toString(static_cast<double>(it->second));
-    }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-    {
       planner_config.config[it->first] = std::to_string(static_cast<int>(it->second));
-    }
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
-    {
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
-    }
   }
 
   return true;
