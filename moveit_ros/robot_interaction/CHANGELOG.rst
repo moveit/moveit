@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* Contributors: Mohmmad Ayman, Robert Haschke, mike lautman
+
 0.10.1 (2018-05-25)
 -------------------
 * [fix] interaction with planar joints (`#767 <https://github.com/ros-planning/moveit/issues/767>`_)
