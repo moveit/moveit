@@ -43,42 +43,45 @@ namespace moveit
 {
 namespace utils
 {
-std::string toString(double d)
+template <class T>
+std::string toStringImpl(T t)
 {
   // convert to string using no locale
   std::ostringstream oss;
   oss.imbue(std::locale::classic());
-  oss << d;
+  oss << t;
   return oss.str();
+}
+
+std::string toString(double d)
+{
+  return toStringImpl(d);
 }
 
 std::string toString(float d)
 {
-  // convert to string using no locale
-  std::ostringstream oss;
-  oss.imbue(std::locale::classic());
-  oss << d;
-  return oss.str();
+  return toStringImpl(d);
 }
 
-double toDouble(const std::string& s)
+template <class T>
+T toRealImpl(const std::string& s)
 {
   // convert from string using no locale
   std::istringstream iss(s);
   iss.imbue(std::locale::classic());
-  double d;
+  T d;
   iss >> d;
   return d;
 }
 
+double toDouble(const std::string& s)
+{
+  return toRealImpl<double>(s);
+}
+
 float toFloat(const std::string& s)
 {
-  // convert from string using no locale
-  std::istringstream iss(s);
-  iss.imbue(std::locale::classic());
-  float f;
-  iss >> f;
-  return f;
+  return toRealImpl<float>(s);
 }
 }
 }
