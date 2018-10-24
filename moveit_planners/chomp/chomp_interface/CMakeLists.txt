@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   chomp_motion_planner
-  moveit_experimental
 )
 
 find_package(Eigen3 REQUIRED)
