@@ -2,6 +2,12 @@
 Changelog for package moveit_fake_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] latch initial pose published by fake_controller_manager (`#1092 <https://github.com/ros-planning/moveit/issues/1092>`_)
+* [maintenance] add minimum required pluginlib version (`#927 <https://github.com/ros-planning/moveit/issues/927>`_)
+* Contributors: Mikael Arguedas, Mike Lautman, Mohmmad Ayman, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)

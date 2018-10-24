@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] build issue in boost/thread/mutex.hpp (`#1055 <https://github.com/ros-planning/moveit/issues/1055>`_)
+* [fix] optional namespace args (`#929 <https://github.com/ros-planning/moveit/issues/929>`_)
+* [maintenance] Python3 support (`#1103 <https://github.com/ros-planning/moveit/issues/1103>`_, `#1054 <https://github.com/ros-planning/moveit/issues/1054>`_)
+* [maintenance] add minimum required pluginlib version (`#927 <https://github.com/ros-planning/moveit/issues/927>`_)
+* Contributors: Michael Görner, Mikael Arguedas, Mohmmad Ayman, Robert Haschke, Timon Engelke, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * [maintenance] Reduce vertical size of Rviz MotionPlanning Window (`#891 <https://github.com/ros-planning/moveit/issues/891>`_)

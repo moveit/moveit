@@ -2,6 +2,11 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [capability] adaptions for OMPL 1.4 (`#903 <https://github.com/ros-planning/moveit/issues/903>`_)
+* Contributors: Dave Coleman, Michael Görner, Mikael Arguedas, Mohmmad Ayman, Robert Haschke, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * forward OMPL logging to rosconsole (`#916 <https://github.com/ros-planning/moveit/issues/916>`_)

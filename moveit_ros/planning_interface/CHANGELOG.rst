@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [capability] Added plan_only flags to pick and place (`#862 <https://github.com/ros-planning/moveit/issues/862>`_)
+* [maintenance] Python3 support (`#1103 <https://github.com/ros-planning/moveit/issues/1103>`_, `#1054 <https://github.com/ros-planning/moveit/issues/1054>`_)
+* [fix] optional namespace args (`#929 <https://github.com/ros-planning/moveit/issues/929>`_)
+* Contributors: David Watkins, Michael Görner, Mohmmad Ayman, Robert Haschke, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * [maintenance] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)

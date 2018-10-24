@@ -2,6 +2,11 @@
 Changelog for package moveit_controller_manager_example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] add minimum required pluginlib version (`#927 <https://github.com/ros-planning/moveit/issues/927>`_)
+* Contributors: Mikael Arguedas, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 
