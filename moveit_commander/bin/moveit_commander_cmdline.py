@@ -12,10 +12,13 @@ import signal
 import argparse
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
 
-# compatibility with python3
-# python2's input function is dangerous anyway
-if hasattr(__builtin__, 'raw_input'):
-    input = raw_input
+# python3 has renamed raw_input to input: https://www.python.org/dev/peps/pep-3111
+# Here, we use the new input(). Hence, for python2, we redirect raw_input to input
+try:
+    import __builtin__  # This is named builtin in python3
+    input = getattr(__builtin__, 'raw_input')
+except (ImportError, AttributeError):
+    pass
 
 class bcolors:
     HEADER = '\033[95m'

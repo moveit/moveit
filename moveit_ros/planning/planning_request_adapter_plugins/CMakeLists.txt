@@ -8,19 +8,23 @@ set(SOURCE_FILES
   src/fix_workspace_bounds.cpp
   src/add_time_parameterization.cpp
   src/add_iterative_spline_parameterization.cpp
+  src/chomp_optimizer_adapter.cpp
   src/stomp_smoothing_adapter.cpp)
 
 find_package(catkin REQUIRED COMPONENTS
         cmake_modules
         roscpp
         moveit_core
+        moveit_msgs
         pluginlib
         moveit_experimental
+        chomp_motion_planner
         stomp_core
         stomp_moveit
         )
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 
 #[[
 find_package(stomp_moveit)
@@ -39,7 +43,10 @@ include_directories(../../../moveit_planners
         ../../../../industrial_moveit/stomp_core
         ../../../../industrial_moveit/stomp_core/include/stomp_core
         ../../../../industrial_moveit/stomp_core/include
+        ../../../moveit_planners/chomp/chomp_motion_planner/include/
+        ../../../moveit_experimental/collision_distance_field/include
         )
+
 
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
@@ -52,4 +59,3 @@ target_link_libraries(moveit_list_request_adapter_plugins ${catkin_LIBRARIES} ${
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_list_request_adapter_plugins
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
