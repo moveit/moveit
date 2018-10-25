@@ -123,7 +123,7 @@ private:
   World::ObserverHandle observer_handle_;
 
   /* used to unregister the notifier */
-  std::weak_ptr<World> world_;
+  WorldWeakPtr world_;
 };
 }
 
