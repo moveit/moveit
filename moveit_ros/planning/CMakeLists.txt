@@ -78,9 +78,6 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
 )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 add_subdirectory(rdf_loader)
 add_subdirectory(collision_plugin_loader)
 add_subdirectory(kinematics_plugin_loader)
