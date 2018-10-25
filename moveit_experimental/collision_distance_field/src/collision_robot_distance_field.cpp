@@ -51,7 +51,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::Robo
 {
   // planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
 
-  std::map<std::string, std::vector<CollisionSphere>> link_body_decompositions;
+  std::map<std::string, std::vector<CollisionSphere> > link_body_decompositions;
   Eigen::Vector3d size(DEFAULT_SIZE_X, DEFAULT_SIZE_Y, DEFAULT_SIZE_Z);
   initialize(link_body_decompositions, size, Eigen::Vector3d(0, 0, 0), DEFAULT_USE_SIGNED_DISTANCE_FIELD,
              DEFAULT_RESOLUTION, DEFAULT_COLLISION_TOLERANCE, DEFAULT_MAX_PROPOGATION_DISTANCE);
@@ -60,7 +60,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::Robo
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(
     const robot_model::RobotModelConstPtr& kmodel,
-    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
+    const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions, double size_x, double size_y,
     double size_z, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance, double padding, double scale)
   : CollisionRobot(kmodel, padding, scale)
@@ -75,7 +75,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobot& c
                                                          double max_propogation_distance, double padding)
   : CollisionRobot(col_robot)
 {
-  std::map<std::string, std::vector<CollisionSphere>> link_body_decompositions;
+  std::map<std::string, std::vector<CollisionSphere> > link_body_decompositions;
   initialize(link_body_decompositions, size, origin, use_signed_distance_field, resolution, collision_tolerance,
              max_propogation_distance);
   setPadding(padding);
@@ -99,7 +99,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDis
 }
 
 void CollisionRobotDistanceField::initialize(
-    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, const Eigen::Vector3d& size,
+    const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions, const Eigen::Vector3d& size,
     const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance)
 {
@@ -859,7 +859,7 @@ boost::shared_ptr<DistanceFieldCacheEntry> CollisionRobotDistanceField::generate
     }
   }
 
-  std::map<std::string, boost::shared_ptr<GroupStateRepresentation>>::const_iterator it =
+  std::map<std::string, boost::shared_ptr<GroupStateRepresentation> >::const_iterator it =
       pregenerated_group_state_representation_map_.find(dfce->group_name_);
   if (it != pregenerated_group_state_representation_map_.end())
   {
@@ -1043,7 +1043,7 @@ void CollisionRobotDistanceField::createCollisionModelMarker(const moveit::core:
 }
 
 void CollisionRobotDistanceField::addLinkBodyDecompositions(
-    double resolution, const std::map<std::string, std::vector<CollisionSphere>>& link_spheres)
+    double resolution, const std::map<std::string, std::vector<CollisionSphere> >& link_spheres)
 {
   ROS_ASSERT_MSG(robot_model_, "RobotModelPtr is invalid");
   const std::vector<const moveit::core::LinkModel*>& link_models = robot_model_->getLinkModelsWithCollisionGeometry();

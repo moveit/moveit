@@ -67,7 +67,7 @@ public:
                               double collision_tolerance, double max_propogation_distance, double padding);
 
   CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel,
-                              const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
+                              const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                               double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y,
                               double size_z = DEFAULT_SIZE_Z,
                               bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
@@ -78,7 +78,7 @@ public:
 
   CollisionRobotDistanceField(const CollisionRobotDistanceField& other);
 
-  void initialize(const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
+  void initialize(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                   const Eigen::Vector3d& size, const Eigen::Vector3d& origin, bool use_signed_distance_field,
                   double resolution, double collision_tolerance, double max_propogation_distance);
 
@@ -219,7 +219,7 @@ protected:
   void addLinkBodyDecompositions(double resolution);
 
   void addLinkBodyDecompositions(double resolution,
-                                 const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions);
+                                 const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions);
 
   PosedBodySphereDecompositionPtr getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
                                                                       unsigned int ind) const;
@@ -250,8 +250,8 @@ protected:
 
   mutable boost::mutex update_cache_lock_;
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
-  std::map<std::string, std::map<std::string, bool>> in_group_update_map_;
-  std::map<std::string, boost::shared_ptr<GroupStateRepresentation>> pregenerated_group_state_representation_map_;
+  std::map<std::string, std::map<std::string, bool> > in_group_update_map_;
+  std::map<std::string, boost::shared_ptr<GroupStateRepresentation> > pregenerated_group_state_representation_map_;
 
   planning_scene::PlanningScenePtr planning_scene_;
 };

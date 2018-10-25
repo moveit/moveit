@@ -54,7 +54,7 @@ public:
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
 
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel,
-                       const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
+                       const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
                        double size_x = 3.0, double size_y = 3.0, double size_z = 4.0,
                        bool use_signed_distance_field = false, double resolution = .02,
                        double collision_tolerance = 0.0, double max_propogation_distance = .25, double padding = 0.0,
@@ -62,9 +62,10 @@ public:
 
   CollisionRobotHybrid(const CollisionRobotHybrid& other);
 
-  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
-                                    double size_x, double size_y, double size_z, bool use_signed_distance_field,
-                                    double resolution, double collision_tolerance, double max_propogation_distance)
+  void
+  initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
+                               double size_x, double size_y, double size_z, bool use_signed_distance_field,
+                               double resolution, double collision_tolerance, double max_propogation_distance)
   {
     crobot_distance_->initialize(link_body_decompositions, Eigen::Vector3d(size_x, size_y, size_z),
                                  Eigen::Vector3d(0, 0, 0), use_signed_distance_field, resolution, collision_tolerance,
