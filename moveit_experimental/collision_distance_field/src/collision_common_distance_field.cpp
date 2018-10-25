@@ -44,8 +44,8 @@ namespace collision_detection
 {
 struct BodyDecompositionCache
 {
-  using Comperator = std::owner_less<std::weak_ptr<const shapes::Shape>>;
-  using Map = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
+  using Comperator = std::owner_less<shapes::ShapeConstWeakPtr>;
+  using Map = std::map<shapes::ShapeConstWeakPtr, BodyDecompositionConstPtr, Comperator>;
 
   BodyDecompositionCache() : clean_count_(0)
   {
@@ -66,7 +66,7 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
 {
   // TODO - deal with changing resolution?
   BodyDecompositionCache& cache = getBodyDecompositionCache();
-  std::weak_ptr<const shapes::Shape> wptr(shape);
+  shapes::ShapeConstWeakPtr wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
     BodyDecompositionCache::Map::const_iterator cache_it = cache.map_.find(wptr);

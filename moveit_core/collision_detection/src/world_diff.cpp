@@ -62,7 +62,7 @@ WorldDiff::WorldDiff(WorldDiff& other)
   {
     changes_ = other.changes_;
 
-    std::weak_ptr<World>(world).swap(world_);
+    WorldWeakPtr(world).swap(world_);
     observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
   }
 }
@@ -86,7 +86,7 @@ void WorldDiff::reset(const WorldPtr& world)
   if (old_world)
     old_world->removeObserver(observer_handle_);
 
-  std::weak_ptr<World>(world).swap(world_);
+  WorldWeakPtr(world).swap(world_);
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
@@ -99,7 +99,7 @@ void WorldDiff::setWorld(const WorldPtr& world)
     old_world->removeObserver(observer_handle_);
   }
 
-  std::weak_ptr<World>(world).swap(world_);
+  WorldWeakPtr(world).swap(world_);
 
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
   world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);

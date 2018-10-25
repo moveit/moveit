@@ -350,7 +350,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
 
 struct FCLShapeCache
 {
-  using ShapeKey = std::weak_ptr<const shapes::Shape>;
+  using ShapeKey = shapes::ShapeConstWeakPtr;
   using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
 
   FCLShapeCache() : clean_count_(0)
@@ -635,12 +635,12 @@ struct IfSameType<T, T>
 template <typename BV, typename T>
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
 {
-  using ShapeKey = std::weak_ptr<const shapes::Shape>;
+  using ShapeKey = shapes::ShapeConstWeakPtr;
   using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
 
   FCLShapeCache& cache = GetShapeCache<BV, T>();
 
-  std::weak_ptr<const shapes::Shape> wptr(shape);
+  shapes::ShapeConstWeakPtr wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
