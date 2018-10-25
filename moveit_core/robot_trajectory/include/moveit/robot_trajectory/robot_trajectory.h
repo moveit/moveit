@@ -250,6 +250,69 @@ public:
    */
   bool getStateAtDurationFromStart(const double request_duration, robot_state::RobotStatePtr& output_state) const;
 
+  class iterator: public std::iterator<
+                      std::input_iterator_tag,
+                      std::pair<robot_state::RobotStatePtr, double>,
+                      long,
+                      const std::pair<robot_state::RobotStatePtr, double>*,
+                      std::pair<robot_state::RobotStatePtr, double>
+                                    >{
+      std::deque<robot_state::RobotStatePtr>::iterator waypoint_iterator;
+      std::deque<double>::iterator duration_iterator;
+      bool duration_is_empty = false;
+  public:
+      explicit iterator(std::deque<robot_state::RobotStatePtr>::iterator _waypoint_iterator,
+                        std::deque<double>::iterator _duration_iterator,
+                        bool _duration_is_empty) :
+        waypoint_iterator(_waypoint_iterator),
+        duration_iterator(_duration_iterator),
+        duration_is_empty(_duration_is_empty) {}
+      iterator& operator++() {
+        waypoint_iterator++;
+        if (!duration_is_empty) {
+          duration_iterator++;
+        }
+        return *this;
+      }
+      iterator operator++(int) {iterator retval = *this; ++(*this); return retval;}
+      bool operator==(iterator other) const {
+        return ((waypoint_iterator == other.waypoint_iterator) && (duration_iterator == other.duration_iterator));
+      }
+      bool operator!=(iterator other) const {return !(*this == other);}
+      reference operator*() const {
+        if (duration_is_empty)
+        {
+          return std::pair<robot_state::RobotStatePtr, double>(*waypoint_iterator, std::nan("no duration specified"));
+        } else
+        {
+          return std::pair<robot_state::RobotStatePtr, double>(*waypoint_iterator, *duration_iterator);
+        }
+      }
+  };
+  RobotTrajectory::iterator begin()
+  {
+    if(!duration_from_previous_.empty())
+    {
+      assert(waypoints_.size() == duration_from_previous_.size());
+      return iterator(waypoints_.begin(), duration_from_previous_.begin(), false);
+    } else
+    {
+      return iterator(waypoints_.begin(), duration_from_previous_.begin(), true);
+    }
+  }
+  RobotTrajectory::iterator end()
+  {
+    if(!duration_from_previous_.empty())
+    {
+      assert(waypoints_.size() == duration_from_previous_.size());
+      return iterator(waypoints_.end(), duration_from_previous_.end(), false);
+    } else
+    {
+      return iterator(waypoints_.end(), duration_from_previous_.end(), true);
+    }
+  }
+
+
 private:
   robot_model::RobotModelConstPtr robot_model_;
   const robot_model::JointModelGroup* group_;
