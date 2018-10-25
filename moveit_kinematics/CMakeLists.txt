@@ -12,9 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
   pluginlib
-  actionlib
   roscpp
-  rosconsole
   srdfdom
   urdf
   tf
