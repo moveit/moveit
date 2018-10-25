@@ -1,10 +1,18 @@
 <launch>
+  <!-- The argument for specifying robot type -->
+  <arg name="robot_name" default="[ROBOT_NAME]" />
 
-  <!-- loads moveit_controller_manager on the parameter server which is taken as argument 
-    if no argument is passed, moveit_simple_controller_manager will be set -->
+  <!-- The robot config argument -->
+  <arg name="robot_config" value="$(arg robot_name)_config" />
+
+  <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
   <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
   <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
 
-  <!-- loads ros_controllers to the param server -->
-  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/ros_controllers.yaml"/>
+  <!-- Flag indicating whether the controller manager should be used or not -->
+  <arg name="use_controller_manager" default="true" />
+  <param name="use_controller_manager" value="$(arg use_controller_manager)" />
+
+  <!-- The rest of the params are specific to this plugin -->
+  <rosparam file="$(find [GENERATED_PACKAGE_NAME])/config/controllers.yaml"/>
 </launch>
