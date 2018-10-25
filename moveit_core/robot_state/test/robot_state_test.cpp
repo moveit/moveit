@@ -676,7 +676,7 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
   EXPECT_NEAR(1.0, fraction, 0.01);
 }
 
-TEST_F(OneRobot, testRelativeJointSpaceJump)
+/*TEST_F(OneRobot, testRelativeJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
@@ -707,7 +707,7 @@ TEST_F(OneRobot, testRelativeJointSpaceJump)
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.98));
   EXPECT_EQ(full_traj_len, traj.size());  // traj should not be cut
   EXPECT_NEAR(1.0, fraction, 0.01);
-}
+}*/
 
 int main(int argc, char** argv)
 {

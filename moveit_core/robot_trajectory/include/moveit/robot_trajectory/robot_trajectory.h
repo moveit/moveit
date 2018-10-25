@@ -192,6 +192,12 @@ public:
    */
   void append(const RobotTrajectory& source, double dt);
 
+  std::size_t size()
+  {
+    assert(waypoints_.size() == duration_from_previous_.size());
+    return waypoints_.size();
+  }
+
   void swap(robot_trajectory::RobotTrajectory& other);
 
   void clear();
@@ -260,18 +266,15 @@ public:
       std::deque<robot_state::RobotStatePtr>::iterator waypoint_iterator;
       std::deque<double>::iterator duration_iterator;
       bool duration_is_empty = false;
+
   public:
       explicit iterator(std::deque<robot_state::RobotStatePtr>::iterator _waypoint_iterator,
-                        std::deque<double>::iterator _duration_iterator,
-                        bool _duration_is_empty) :
+                        std::deque<double>::iterator _duration_iterator) :
         waypoint_iterator(_waypoint_iterator),
-        duration_iterator(_duration_iterator),
-        duration_is_empty(_duration_is_empty) {}
+        duration_iterator(_duration_iterator) {}
       iterator& operator++() {
         waypoint_iterator++;
-        if (!duration_is_empty) {
-          duration_iterator++;
-        }
+        duration_iterator++;
         return *this;
       }
       iterator operator++(int) {iterator retval = *this; ++(*this); return retval;}
@@ -280,36 +283,19 @@ public:
       }
       bool operator!=(iterator other) const {return !(*this == other);}
       reference operator*() const {
-        if (duration_is_empty)
-        {
-          return std::pair<robot_state::RobotStatePtr, double>(*waypoint_iterator, std::nan("no duration specified"));
-        } else
-        {
-          return std::pair<robot_state::RobotStatePtr, double>(*waypoint_iterator, *duration_iterator);
-        }
+        return std::pair<robot_state::RobotStatePtr, double>(*waypoint_iterator, *duration_iterator);
       }
   };
+
   RobotTrajectory::iterator begin()
   {
-    if(!duration_from_previous_.empty())
-    {
-      assert(waypoints_.size() == duration_from_previous_.size());
-      return iterator(waypoints_.begin(), duration_from_previous_.begin(), false);
-    } else
-    {
-      return iterator(waypoints_.begin(), duration_from_previous_.begin(), true);
-    }
+    assert(waypoints_.size() == duration_from_previous_.size());
+    return iterator(waypoints_.begin(), duration_from_previous_.begin());
   }
   RobotTrajectory::iterator end()
   {
-    if(!duration_from_previous_.empty())
-    {
-      assert(waypoints_.size() == duration_from_previous_.size());
-      return iterator(waypoints_.end(), duration_from_previous_.end(), false);
-    } else
-    {
-      return iterator(waypoints_.end(), duration_from_previous_.end(), true);
-    }
+    assert(waypoints_.size() == duration_from_previous_.size());
+    return iterator(waypoints_.end(), duration_from_previous_.end());
   }
 
 

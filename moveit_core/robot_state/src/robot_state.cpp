@@ -118,6 +118,39 @@ RobotState& RobotState::operator=(const RobotState& other)
   return *this;
 }
 
+// TODO -- complete equality operator
+bool RobotState::operator==(const RobotState& other) const
+{
+  if(has_velocity_ != other.has_velocity_ ||
+     has_acceleration_ != other.has_acceleration_ ||
+     has_effort_ != other.has_effort_)
+  {
+    return false;
+  }
+
+  if(dirty_collision_body_transforms_ != other.dirty_collision_body_transforms_ ||
+     dirty_link_transforms_ != other.dirty_link_transforms_)
+  {
+    return false;
+  }
+
+  if(robot_model_ != other.robot_model_)
+  {
+    return false;
+  }
+
+  std::vector<const AttachedBody*> attached_bodies;
+  getAttachedBodies(attached_bodies);
+  std::vector<const AttachedBody*> attached_bodies_other;
+  other.getAttachedBodies(attached_bodies_other);
+  if(attached_bodies != attached_bodies_other)
+  {
+    return false;
+  }
+
+  return true;
+}
+
 void RobotState::copyFrom(const RobotState& other)
 {
   has_velocity_ = other.has_velocity_;

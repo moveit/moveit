@@ -134,6 +134,9 @@ public:
   /** \brief Copy operator */
   RobotState& operator=(const RobotState& other);
 
+  /** \brief Equality operator */
+  bool operator==(const RobotState& other) const;
+
   /** \brief Get the robot model this state is constructed for. */
   const RobotModelConstPtr& getRobotModel() const
   {
