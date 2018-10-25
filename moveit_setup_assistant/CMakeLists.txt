@@ -16,6 +16,7 @@ find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(catkin REQUIRED COMPONENTS
+  moveit_core
   moveit_ros_planning
   moveit_ros_visualization
   rviz
@@ -48,8 +49,13 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}_tools
   CATKIN_DEPENDS
+    moveit_core
     moveit_ros_planning
     moveit_ros_visualization
+    roscpp
+    srdfdom
+    rviz
+    urdf
 )
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
