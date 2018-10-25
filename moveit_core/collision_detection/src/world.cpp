@@ -161,7 +161,7 @@ bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
   if (it == objects_.end())
     return false;
   if (transform.isApprox(Eigen::Affine3d::Identity()))
-    return false;  // no movement
+    return true;  // object already at correct location
   ensureUnique(it->second);
   for (size_t i = 0, n = it->second->shapes_.size(); i < n; ++i)
   {
