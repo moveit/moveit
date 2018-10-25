@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <group ns="pr2">
+    <include file="$(find pr2_moveit_config)/launch/planning_context.launch" >
+      <arg name="load_robot_description" value="true"/>
+    </include>
+
+    <test test-name="pr2_right_arm_kinematics" pkg="kinematics_base_test" type="kinematics_base_test_utest" name="pr2_right_arm_kinematics" time-limit="180" >
+      <param name="tip_link" value="r_wrist_roll_link" />
+      <param name="root_link" value="torso_lift_link" />
+      <param name="group" value="right_arm" />
+      <param name="num_fk_tests" value="100" />
+      <param name="num_ik_tests" value="100" />
+      <param name="num_ik_cb_tests" value="100" />
+      <param name="num_ik_multiple_tests" value="100" />
+      <param name="ik_plugin_name" value="pr2_arm_kinematics/PR2ArmKinematicsPlugin" />
+      <rosparam param="joint_names">[
+                                r_elbow_flex_joint, 
+                                r_forearm_roll_joint, 
+                                r_shoulder_lift_joint, 
+                                r_shoulder_pan_joint, 
+                                r_upper_arm_roll_joint, 
+                                r_wrist_flex_joint,
+                                r_wrist_roll_joint]</rosparam>
+    </test>
+
+    <test test-name="pr2_left_arm_kinematics" pkg="kinematics_base_test" type="kinematics_base_test_utest" name="pr2_left_arm_kinematics" time-limit="180" >
+      <param name="tip_link" value="l_wrist_roll_link" />
+      <param name="root_link" value="torso_lift_link" />
+      <param name="group" value="left_arm" />
+      <param name="num_fk_tests" value="100" />
+      <param name="num_ik_tests" value="100" />
+      <param name="num_ik_cb_tests" value="100" />
+      <param name="num_ik_multiple_tests" value="100" />
+      <param name="ik_plugin_name" value="pr2_arm_kinematics/PR2ArmKinematicsPlugin" />
+      <rosparam param="joint_names">[
+                                l_elbow_flex_joint, 
+                                l_forearm_roll_joint, 
+                                l_shoulder_lift_joint, 
+                                l_shoulder_pan_joint, 
+                                l_upper_arm_roll_joint, 
+                                l_wrist_flex_joint,
+                                l_wrist_roll_joint]</rosparam>
+    </test>
+  </group>
+</launch>

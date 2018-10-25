@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  <group ns="ikfast">
+
+    <include file="$(find test_kuka_kr210_moveit_config)/launch/planning_context.launch">
+      <arg name="load_robot_description" value="true"/>
+    </include>
+
+    <test test-name="ikfast" pkg="kinematics_base_test" type="kinematics_base_test_utest" name="ikfast" time-limit="180" >
+      <param name="tip_link" value="tool0" />
+      <param name="root_link" value="base_link" />
+      <param name="group" value="manipulator" />
+      <param name="num_fk_tests" value="100" />
+      <param name="num_ik_tests" value="100" />
+      <param name="num_ik_cb_tests" value="100" />
+      <param name="num_ik_multiple_tests" value="100" />
+      <param name="num_nearest_ik_tests" value="1000" />
+      <param name="ik_plugin_name" value="test_kuka_kr210_manipulator_kinematics/IKFastKinematicsPlugin" />
+      <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 ]</rosparam>
+    </test>
+
+  </group>
+</launch>

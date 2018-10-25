@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package>
+  <name>kinematics_base_test</name>
+  <version>0.0.0</version>
+  <description>The kinematics_base_test package</description>
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
+  <license>BSD</license>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_kinematics_tests/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_kinematics_tests</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_kinematics</build_depend>
+  <build_depend>python-catkin-tools</build_depend>
+
+  <run_depend>pluginlib</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_kinematics</run_depend>
+	<run_depend>python-catkin-tools</run_depend>
+  <run_depend>kinematics_tests_support</run_depend>
+	<run_depend>kuka_kr210_manipulator_ik_plugin</run_depend>
+	<run_depend>motoman_sia20d_ikfast_manipulator_plugin</run_depend>
+	<run_depend>test_kuka_kr210_moveit_config</run_depend>
+	<run_depend>test_motoman_sia20d_moveit_config</run_depend>
+
+  <export>
+  </export>
+</package>
