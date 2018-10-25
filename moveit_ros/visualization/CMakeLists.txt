@@ -99,9 +99,6 @@ include_directories(SYSTEM
                     ${QT_INCLUDE_DIR}
                     ${OGRE_INCLUDE_DIRS})
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 add_subdirectory(rviz_plugin_render_tools)
 add_subdirectory(robot_state_rviz_plugin)
 add_subdirectory(planning_scene_rviz_plugin)
