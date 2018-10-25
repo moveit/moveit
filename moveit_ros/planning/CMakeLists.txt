@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   actionlib
   roscpp
-  rosconsole
   dynamic_reconfigure
   message_filters
   srdfdom
