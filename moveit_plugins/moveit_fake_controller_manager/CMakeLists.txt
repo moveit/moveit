@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_fake_controller_manager)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)

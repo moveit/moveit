@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(chomp_motion_planner)
 
-add_definitions(-std=c++11)
+add_definitions(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS roscpp moveit_experimental moveit_core)
 

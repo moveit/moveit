@@ -3,7 +3,7 @@ project(moveit_ros_benchmarks)
 
 set(MOVEIT_LIB_NAME moveit_ros_benchmarks)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
