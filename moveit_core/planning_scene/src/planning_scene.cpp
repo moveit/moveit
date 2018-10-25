@@ -47,6 +47,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <memory>
 #include <set>
+#include <tf/transform_datatypes.h>
 
 namespace planning_scene
 {
@@ -1702,7 +1703,15 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
       if (s)
       {
         Eigen::Affine3d p;
-        tf::poseMsgToEigen(object.primitive_poses[i], p);
+        // To normalize any input quaternion
+        geometry_msgs::Pose primitive_pose = object.primitive_poses[i];
+        tf::Quaternion tf_quaternion;
+        tf::quaternionMsgToTF(object.primitive_poses[i].orientation, tf_quaternion);
+        tf_quaternion.normalize();
+        geometry_msgs::Quaternion msg_quaternion;
+        quaternionTFToMsg (tf_quaternion, msg_quaternion);
+        primitive_pose.orientation = msg_quaternion;
+        tf::poseMsgToEigen(primitive_pose, p);
         world_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
       }
     }
