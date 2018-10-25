@@ -78,13 +78,12 @@ public:
     /// Return a flag indicating whether the state of the solver is initialized
     operator bool() const
     {
-      return allocator_ && !bijection_.empty() && solver_instance_;
+      return allocator_ && !bijection_.empty() && solver_instance_.lock();
     }
 
     void reset()
     {
       solver_instance_.reset();
-      solver_instance_const_.reset();
       bijection_.clear();
     }
 
@@ -98,9 +97,7 @@ public:
         i in the kinematic solver. */
     std::vector<unsigned int> bijection_;
 
-    kinematics::KinematicsBaseConstPtr solver_instance_const_;
-
-    kinematics::KinematicsBasePtr solver_instance_;
+    std::weak_ptr<kinematics::KinematicsBase> solver_instance_;
 
     double default_ik_timeout_;
 
@@ -526,22 +523,23 @@ public:
 
   void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& solvers);
 
-  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
+  kinematics::KinematicsBaseConstPtr getSolverInstance() const
   {
-    return group_kinematics_.first.solver_instance_const_;
+    return group_kinematics_.first.solver_instance_.lock();
   }
 
-  const kinematics::KinematicsBasePtr& getSolverInstance()
+  kinematics::KinematicsBasePtr getSolverInstance()
   {
-    return group_kinematics_.first.solver_instance_;
+    return group_kinematics_.first.solver_instance_.lock();
   }
 
   bool canSetStateFromIK(const std::string& tip) const;
 
   bool setRedundantJoints(const std::vector<std::string>& joints)
   {
-    if (group_kinematics_.first.solver_instance_)
-      return group_kinematics_.first.solver_instance_->setRedundantJoints(joints);
+    kinematics::KinematicsBasePtr si = group_kinematics_.first.solver_instance_.lock();
+    if (si)
+      return si->setRedundantJoints(joints);
     return false;
   }
 
