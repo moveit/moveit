@@ -20,6 +20,11 @@ find_package(catkin REQUIRED COMPONENTS
   geometric_shapes
   interactive_markers
   moveit_ros_perception
+  object_recognition_msgs
+  pluginlib
+  rosconsole
+  roscpp
+  rospy
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
   moveit_ros_warehouse
@@ -30,9 +35,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rviz
   tf2_eigen
-  roscpp
-  rosconsole
-  object_recognition_msgs
 )
 # TODO: Remove when Kinetic support is dropped
 if(rviz_VERSION VERSION_LESS 1.13.1) # Does rviz supports TF2?
@@ -95,7 +97,6 @@ include_directories(rviz_plugin_render_tools/include
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
                     ${QT_INCLUDE_DIR})
-
 add_subdirectory(rviz_plugin_render_tools)
 add_subdirectory(robot_state_rviz_plugin)
 add_subdirectory(planning_scene_rviz_plugin)
