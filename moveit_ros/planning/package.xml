@@ -18,23 +18,30 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>actionlib</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>message_filters</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_perception</build_depend>
   <build_depend version_gte="1.10.4">pluginlib</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>angles</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend>chomp_motion_planner</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>srdfdom</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
 
+  <run_depend>actionlib</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>message_filters</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend version_gte="1.10.4">pluginlib</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>angles</run_depend>
-  <run_depend>eigen_conversions</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+
 
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
