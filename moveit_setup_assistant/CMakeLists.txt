@@ -27,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 include_directories(${catkin_INCLUDE_DIRS})
 
 # Qt Stuff
-if(rviz_QT_VERSION VERSION_LESS "5")
+if("${rviz_QT_VERSION}" VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
   include(${QT_USE_FILE})
 else()
