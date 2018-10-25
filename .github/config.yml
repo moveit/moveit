@@ -4,13 +4,13 @@
 
 # Comment to be posted to on first time issues
 newIssueWelcomeComment: >
-  Thanks for opening your first issue here! Be sure to follow the issue template!
+  Thanks for opening your first issue here!
 
 # Configuration for new-pr-welcome - https://github.com/behaviorbot/new-pr-welcome
 
 # Comment to be posted to on PRs from first time contributors in your repository
 newPRWelcomeComment: >
-  Thanks for opening this pull request! Please check out our contributing guidelines.
+  Thanks for opening your first MoveIt! pull request :robot:
 
 # Configuration for first-pr-merge - https://github.com/behaviorbot/first-pr-merge
 
