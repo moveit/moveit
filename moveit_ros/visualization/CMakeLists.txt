@@ -32,7 +32,6 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   roscpp
   rospy
-  rostest
   rviz
   tf
 )
@@ -119,6 +118,6 @@ install(FILES
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if (CATKIN_ENABLE_TESTING)
-  find_package(rostest)
+  find_package(rostest REQUIRED)
   add_rostest(test/moveit_joy.test)
 endif()
