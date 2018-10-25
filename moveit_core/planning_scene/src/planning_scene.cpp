@@ -1709,7 +1709,7 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
         tf::quaternionMsgToTF(object.primitive_poses[i].orientation, tf_quaternion);
         tf_quaternion.normalize();
         geometry_msgs::Quaternion msg_quaternion;
-        quaternionTFToMsg (tf_quaternion, msg_quaternion);
+        quaternionTFToMsg(tf_quaternion, msg_quaternion);
         primitive_pose.orientation = msg_quaternion;
         tf::poseMsgToEigen(primitive_pose, p);
         world_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
