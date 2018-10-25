@@ -14,7 +14,6 @@ include_directories(include)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
@@ -25,7 +24,6 @@ find_package(catkin REQUIRED COMPONENTS
   srdfdom
 )
 include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
@@ -43,7 +41,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 find_package(PkgConfig)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp>=0.5)
 include_directories(${YAMLCPP_INCLUDE_DIRS})
-link_directories(${YAMLCPP_LIBRARY_DIRS})
 
 catkin_package(
   INCLUDE_DIRS
