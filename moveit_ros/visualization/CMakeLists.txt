@@ -28,8 +28,10 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_robot_interaction
   moveit_ros_warehouse
   object_recognition_msgs
+  pluginlib
   rosconsole
   roscpp
+  rospy
   rostest
   rviz
   tf
@@ -77,6 +79,7 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
+    object_recognition_msgs
   DEPENDS
     EIGEN3
 )
