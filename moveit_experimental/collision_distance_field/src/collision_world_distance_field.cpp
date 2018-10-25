@@ -504,7 +504,7 @@ void CollisionWorldDistanceField::updateDistanceObject(
     const std::string& id, boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
     EigenSTL::vector_Vector3d& add_points, EigenSTL::vector_Vector3d& subtract_points)
 {
-  std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>>::iterator cur_it =
+  std::map<std::string, std::vector<PosedBodyPointDecompositionPtr> >::iterator cur_it =
       dfce->posed_body_point_decompositions_.find(id);
   if (cur_it != dfce->posed_body_point_decompositions_.end())
   {

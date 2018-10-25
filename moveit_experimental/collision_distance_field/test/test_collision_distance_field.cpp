@@ -83,7 +83,7 @@ protected:
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-    std::map<std::string, std::vector<collision_detection::CollisionSphere>> link_body_decompositions;
+    std::map<std::string, std::vector<collision_detection::CollisionSphere> > link_body_decompositions;
     crobot_.reset(new DefaultCRobotType(robot_model_, link_body_decompositions));
     cworld_.reset(new DefaultCWorldType());
   }

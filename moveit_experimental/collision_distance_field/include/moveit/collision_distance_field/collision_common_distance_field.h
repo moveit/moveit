@@ -161,7 +161,7 @@ struct DistanceFieldCacheEntry
    * to check for collisions between this link and that object.  Size of inner
    * and outer lists are the same and equal the sum of the size of link_names_
    * and attached_body_names_ */
-  std::vector<std::vector<bool>> intra_group_collision_enabled_;
+  std::vector<std::vector<bool> > intra_group_collision_enabled_;
 };
 
 BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape, double resolution);

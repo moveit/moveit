@@ -49,7 +49,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   struct DistanceFieldCacheEntry
   {
-    std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;
+    std::map<std::string, std::vector<PosedBodyPointDecompositionPtr> > posed_body_point_decompositions_;
     boost::shared_ptr<distance_field::DistanceField> distance_field_;
   };
 
