@@ -21,7 +21,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_visualization
   rviz
   urdf
-  rosconsole
   roscpp
   srdfdom
 )
