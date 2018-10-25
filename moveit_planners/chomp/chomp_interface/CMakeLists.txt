@@ -4,7 +4,6 @@ project(moveit_planners_chomp)
 add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
   roscpp
   moveit_core
   pluginlib

@@ -11,7 +11,6 @@ set(SOURCE_FILES
   src/chomp_optimizer_adapter.cpp)
 
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
   roscpp
   moveit_core
   moveit_msgs
