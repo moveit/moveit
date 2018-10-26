@@ -37,6 +37,7 @@
 #ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_VISUALIZATION
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_VISUALIZATION
 
+#include <boost/thread/mutex.hpp>
 #include <moveit/macros/class_forward.h>
 #include <rviz/display.h>
 #include <rviz/panel_dock_widget.h>

@@ -251,7 +251,7 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
       return;
     }
 
-    for (std::size_t i = 0; i < planner_configs.size(); ++i)
+    for (int i = 0; i < planner_configs.size(); ++i)
     {
       if (planner_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {
@@ -274,7 +274,7 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
       ROS_INFO("Reading in planner names for plugin '%s'", plugin.c_str());
 
       std::vector<std::string> planners;
-      for (std::size_t j = 0; j < planner_configs[i]["planners"].size(); ++j)
+      for (int j = 0; j < planner_configs[i]["planners"].size(); ++j)
         planners.push_back(planner_configs[i]["planners"][j]);
 
       for (std::size_t j = 0; j < planners.size(); ++j)

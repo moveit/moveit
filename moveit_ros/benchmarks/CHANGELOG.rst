@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [capability] Benchmarking with different Motion Planners (STOMP, CHOMP, OMPL) (`#992 <https://github.com/ros-planning/moveit/issues/992>`_)
+* [maintenance] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
+* Contributors: Mohmmad Ayman, Raghavender Sahdev, Robert Haschke, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -26,7 +38,7 @@ Changelog for package moveit_ros_benchmarks
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 
@@ -55,31 +67,13 @@ Changelog for package moveit_ros_benchmarks
 0.9.1 (2016-10-21)
 ------------------
 * add full VERSIONs / SONAMEs to all libraries (`#273 <https://github.com/ros-planning/moveit/issues/273>`_)
-  * add full VERSIONs / SONAMEs to all core libraries
-  As a result the libraries do not install as `libmoveit_xyz.so` anymore,
-  but as `libmoveit_xyz.so.${MOVEIT_VERSION}` and only provide `libmoveit_xyz.so`
-  as a symlink pointing to the versioned file.
-  Because this sets each library's SONAME to the *full version*, this enforces
-  that *every* binary links with the versioned library file from now on and
-  has to be relinked with *each* new release of MoveIt!.
-  The alternative would be to set the SONAME to `$MAJOR.$MINOR` and ignore the patch version,
-  but because we currently stay with one `$MAJOR.$MINOR` number within each ROS distribution,
-  we had (and likely will have) ABI changes in the `$PATCH` version releases too.
-  The reason for this commit is that it is practically impossible to maintain full ABI compatibility
-  within each ROS distribution and still add the the features/patches the community asks for.
-  This has resulted in more than one ABI-incompatible MoveIt! release in the recent past
-  within a ROS distribution. Because the libraries have not been versioned up to now,
-  there was no way to indicate the incompatible changes and users who did not rebuild
-  their whole workspace with the new release encountered weird and hard-to-track segfaults
-  or broken behavior.
-  * add SONAMES to all non-core libraries too
-* More version consolidattion for all package.xml in the moveit repo, which are not even going to be released (addition to https://github.com/ros-planning/moveit/commit/fcb8df12dead9e5a62b276c46bb0ac6e2411daca).
+* More version consolidation for all package.xml in the moveit repo, which are not even going to be released (addition to https://github.com/ros-planning/moveit/commit/fcb8df12dead9e5a62b276c46bb0ac6e2411daca).
 * More version down for release preparation to consolidate version of to-be released packages (addition to https://github.com/ros-planning/moveit/commit/56a3c6fcd39ca0b548998f04a688655d5133abe0)
 * Cleanup readme (`#258 <https://github.com/ros-planning/moveit/issues/258>`_)
 * Convert assorted internal shared_ptrs.
 * Switch to std::unique_ptr (instead of boost::scoped_ptr).
 * Use shared_ptr typedefs in BenchmarkExecutor.cpp
-* Convert pluginlibs shared_ptrs to std::
+* Convert pluginlibs ``shared_ptrs`` to ``std::``
 * Code review fixup
   Remove package benchmark_gui
   clang-format Benchmarks package
@@ -95,11 +89,6 @@ Changelog for package moveit_ros_benchmarks
 * [jade] More Manual adjustment of package.xml versions to 0.8.3. Remove moveit_ikfast for now (see https://github.com/ros-planning/moveit/issues/22#issuecomment-241199671). (`#96 <https://github.com/ros-planning/moveit/issues/96>`_)
 * [Jade] Unify package version numbers (see https://github.com/davetcoleman/moveit_merge/issues/9). (`#79 <https://github.com/ros-planning/moveit/issues/79>`_)
 * Modifications for warehouse_ros refactor (`#699 <https://github.com/ros-planning/moveit/issues/699>`_)
-  * Modifications for warehouse_ros refactor
-  * Missing RobotStateStorage conversion
-  * Switch travis to moveit_ci
-* 0.6.6
-* update changelogs
 * Contributors: Dave Coleman, Isaac I.Y. Saito, Michael Ferguson
 
 0.7.6 (2016-12-30)

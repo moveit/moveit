@@ -102,6 +102,24 @@ void planning_scene_monitor::CurrentStateMonitor::setToCurrentState(robot_state:
   boost::mutex::scoped_lock slock(state_update_lock_);
   const double* pos = robot_state_.getVariablePositions();
   upd.setVariablePositions(pos);
+  if (copy_dynamics_)
+  {
+    if (robot_state_.hasVelocities())
+    {
+      const double* vel = robot_state_.getVariableVelocities();
+      upd.setVariableVelocities(vel);
+    }
+    if (robot_state_.hasAccelerations())
+    {
+      const double* acc = robot_state_.getVariableAccelerations();
+      upd.setVariableAccelerations(acc);
+    }
+    if (robot_state_.hasEffort())
+    {
+      const double* eff = robot_state_.getVariableEffort();
+      upd.setVariableEffort(eff);
+    }
+  }
 }
 
 void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
@@ -288,7 +306,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wa
 }
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
-  waitForCompleteState(wait_time);
+  return waitForCompleteState(wait_time);
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
@@ -418,9 +436,9 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       std::string err;
       if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
       {
-        ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                        << joint->getName() << "': TF has no common time between '"
-                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
+                             << joint->getName() << "': TF has no common time between '" << parent_frame.c_str()
+                             << "' and '" << child_frame.c_str() << "': " << err);
         continue;
       }
 
@@ -445,7 +463,12 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       tf::transformTFToEigen(transf, eigen_transf);
 
       double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(eigen_transf, new_values);
+      const robot_model::LinkModel* link = joint->getChildLinkModel();
+      if (link->jointOriginTransformIsIdentity())
+        joint->computeVariablePositions(eigen_transf, new_values);
+      else
+        joint->computeVariablePositions(link->getJointOriginTransform().inverse(Eigen::Isometry) * eigen_transf,
+                                        new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {

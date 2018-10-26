@@ -191,7 +191,6 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
   sphere_marker.color = attached_color;
   for (unsigned int i = 0; i < gsr->dfce_->attached_body_names_.size(); i++)
   {
-    int link_index = gsr->dfce_->attached_body_link_state_indices_[i];
     const moveit::core::AttachedBody* att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
     if (!att)
     {

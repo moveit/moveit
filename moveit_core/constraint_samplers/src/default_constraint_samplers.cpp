@@ -122,7 +122,7 @@ bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::
   const std::vector<const robot_model::JointModel*>& joints = jmg_->getJointModels();
   for (std::size_t i = 0; i < joints.size(); ++i)
     if (bound_data.find(joints[i]->getName()) == bound_data.end() && joints[i]->getVariableCount() > 0 &&
-        joints[i]->getMimic() == NULL)
+        joints[i]->getMimic() == nullptr)
     {
       // check if all the vars of the joint are found in bound_data instead
       const std::vector<std::string>& vars = joints[i]->getVariableNames();
@@ -509,7 +509,7 @@ namespace
 {
 void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_model::JointModelGroup* jmg,
                                  const robot_state::GroupStateValidityCallbackFn& constraint,
-                                 const geometry_msgs::Pose&, const std::vector<double>& ik_sol,
+                                 const geometry_msgs::Pose& /*unused*/, const std::vector<double>& ik_sol,
                                  moveit_msgs::MoveItErrorCodes& error_code)
 {
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();

@@ -53,9 +53,10 @@ PassiveJointsWidget::PassiveJointsWidget(QWidget* parent, moveit_setup_assistant
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header = new HeaderWidget("Passive Joints", "Specify the set of passive joints (not actuated). Joint "
-                                                            "state is not expected to be published for these joints.",
-                                          this);
+  HeaderWidget* header =
+      new HeaderWidget("Define Passive Joints", "Specify the set of passive joints (not actuated). Joint "
+                                                "state is not expected to be published for these joints.",
+                       this);
   layout->addWidget(header);
 
   // Joints edit widget
@@ -130,7 +131,7 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < joints.size(); ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 

@@ -2,6 +2,17 @@
 Changelog for package moveit_planners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.14 (2018-10-24)
+-------------------
+* Include chomp packages in a list of released package suite (addressing https://github.com/ros-planning/moveit/issues/1083#issuecomment-432737000). `#1127 <https://github.com/ros-planning/moveit/issues/1127>`_
+* Contributors: Isaac I.Y. Saito
+
+0.9.13 (2018-10-24)
+-------------------
+
+0.9.12 (2018-05-29)
+-------------------
+
 0.9.11 (2017-12-25)
 -------------------
 

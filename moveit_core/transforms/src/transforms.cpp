@@ -47,13 +47,13 @@ Transforms::Transforms(const std::string& target_frame) : target_frame_(target_f
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
-    ROS_ERROR_NAMED("transforms", "The target frame for MoveIt Transforms cannot be empty.");
+    ROS_ERROR_NAMED("transforms", "The target frame for MoveIt! Transforms cannot be empty.");
   else
   {
     if (target_frame_[0] != '/')
     {
       ROS_WARN_NAMED("transforms",
-                     "Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
+                     "Frame '%s' specified as target frame for MoveIt! Transforms. Assuming '/%s' instead.",
                      target_frame_.c_str(), target_frame_.c_str());
       target_frame_ = '/' + target_frame_;
     }
@@ -72,9 +72,7 @@ bool Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
   return frame1 == frame2;
 }
 
-Transforms::~Transforms()
-{
-}
+Transforms::~Transforms() = default;
 
 const std::string& Transforms::getTargetFrame() const
 {

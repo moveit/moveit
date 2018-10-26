@@ -1,4 +1,4 @@
-<!-- Launch the MoveIt Setup Assistant, or just use rosrun -->
+<!-- Launch the MoveIt! Setup Assistant, or just use rosrun -->
 <launch>
 
   <!-- Debug Info -->

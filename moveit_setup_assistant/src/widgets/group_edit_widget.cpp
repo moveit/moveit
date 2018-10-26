@@ -39,8 +39,9 @@
 #include <QMessageBox>
 #include <QFormLayout>
 #include <QString>
+#include <QGroupBox>
 #include "group_edit_widget.h"
-#include <pluginlib/class_loader.h>  // for loading all avail kinematic planners
+#include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 
 namespace moveit_setup_assistant
 {
@@ -53,15 +54,18 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
 
+  QGroupBox* group1 = new QGroupBox("Kinematics");
+  QGroupBox* group2 = new QGroupBox("OMPL Planning");
+
   // Label ------------------------------------------------
   title_ = new QLabel(this);  // specify the title from the parent widget
   QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 
-  // Simple form -------------------------------------------
+  // Kinematic form -------------------------------------------
   QFormLayout* form_layout = new QFormLayout();
-  form_layout->setContentsMargins(0, 15, 0, 15);
+  form_layout->setContentsMargins(0, 12, 0, 12);
 
   // Name input
   group_name_field_ = new QLineEdit(this);
@@ -89,53 +93,81 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_attempts_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Solver Attempts:", kinematics_attempts_field_);
 
-  layout->addLayout(form_layout);
+  group1->setLayout(form_layout);
+
+  // OMPL Planner form --------------------------------------------
+
+  QFormLayout* form_layout2 = new QFormLayout();
+  form_layout2->setContentsMargins(0, 12, 0, 12);
+
+  // Kinematic default planner
+  default_planner_field_ = new QComboBox(this);
+  default_planner_field_->setEditable(false);
+  default_planner_field_->setMaximumWidth(400);
+  form_layout2->addRow("Group Default Planner:", default_planner_field_);
+
+  group2->setLayout(form_layout2);
+
+  layout->addWidget(group1);
+  layout->addWidget(group2);
+
   layout->setAlignment(Qt::AlignTop);
 
   // New Group Options  ---------------------------------------------------------
   new_buttons_widget_ = new QWidget();
-  QVBoxLayout* new_buttons_layout = new QVBoxLayout();
+
+  QVBoxLayout* new_buttons_layout_container = new QVBoxLayout();
+  QHBoxLayout* label_layout = new QHBoxLayout();
+  QHBoxLayout* recommended_options = new QHBoxLayout();
+  QHBoxLayout* advanced_options = new QHBoxLayout();
 
   QLabel* save_and_add = new QLabel("Next, Add Components To Group:", this);
   QFont save_and_add_font(QFont().defaultFamily(), 12, QFont::Bold);
   save_and_add->setFont(save_and_add_font);
-  new_buttons_layout->addWidget(save_and_add);
+  label_layout->addWidget(save_and_add);
 
+  // Recommended options
   QLabel* add_subtitle = new QLabel("Recommended: ", this);
   QFont add_subtitle_font(QFont().defaultFamily(), 10, QFont::Bold);
   add_subtitle->setFont(add_subtitle_font);
-  new_buttons_layout->addWidget(add_subtitle);
+  recommended_options->addWidget(add_subtitle, 0, Qt::AlignLeft);
 
   // Save and add joints
   QPushButton* btn_save_joints = new QPushButton("Add Joints", this);
   btn_save_joints->setMaximumWidth(200);
   connect(btn_save_joints, SIGNAL(clicked()), this, SIGNAL(saveJoints()));
-  new_buttons_layout->addWidget(btn_save_joints);
+  recommended_options->addWidget(btn_save_joints);
 
+  // Advanced options
   QLabel* add_subtitle2 = new QLabel("Advanced Options:", this);
   add_subtitle2->setFont(add_subtitle_font);
-  new_buttons_layout->addWidget(add_subtitle2);
+  advanced_options->addWidget(add_subtitle2, 0, Qt::AlignLeft);
 
   // Save and add links
   QPushButton* btn_save_links = new QPushButton("Add Links", this);
   btn_save_links->setMaximumWidth(200);
   connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
-  new_buttons_layout->addWidget(btn_save_links);
+  advanced_options->addWidget(btn_save_links);
 
   // Save and add chain
   QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
   btn_save_chain->setMaximumWidth(200);
   connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
-  new_buttons_layout->addWidget(btn_save_chain);
+  advanced_options->addWidget(btn_save_chain);
 
   // Save and add subgroups
   QPushButton* btn_save_subgroups = new QPushButton("Add Subgroups", this);
   btn_save_subgroups->setMaximumWidth(200);
   connect(btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL(saveSubgroups()));
-  new_buttons_layout->addWidget(btn_save_subgroups);
+  advanced_options->addWidget(btn_save_subgroups);
+
+  // Add layouts
+  new_buttons_layout_container->addLayout(label_layout);
+  new_buttons_layout_container->addLayout(recommended_options);
+  new_buttons_layout_container->addLayout(advanced_options);
 
   // Create widget and add to main layout
-  new_buttons_widget_->setLayout(new_buttons_layout);
+  new_buttons_widget_->setLayout(new_buttons_layout_container);
   layout->addWidget(new_buttons_widget_);
 
   // Verticle Spacer -----------------------------------------------------
@@ -232,7 +264,7 @@ void GroupEditWidget::setSelected(const std::string& group_name)
                          QString("Unable to find the kinematic solver '")
                              .append(kin_solver.c_str())
                              .append("'. Trying running rosmake for this package. Until fixed, this setting will be "
-                                     "lost the next time the MoveIt configuration files are generated"));
+                                     "lost the next time the MoveIt! configuration files are generated"));
     return;
   }
   else
@@ -240,7 +272,25 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     kinematics_solver_field_->setCurrentIndex(index);
   }
 
-  // Set default
+  // Set default planner
+  std::string default_planner = config_data_->group_meta_data_[group_name].default_planner_;
+
+  // If this group doesn't have a solver, reset it to 'None'
+  if (default_planner.empty())
+  {
+    default_planner = "None";
+  }
+
+  index = default_planner_field_->findText(default_planner.c_str());
+  if (index == -1)
+  {
+    QMessageBox::warning(this, "Missing Default Planner",
+                         QString("Unable to find the default planner '%1'").arg(default_planner.c_str()));
+  }
+  else
+  {
+    default_planner_field_->setCurrentIndex(index);
+  }
 }
 
 // ******************************************************************************************
@@ -256,9 +306,11 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
 
   // Remove all old items
   kinematics_solver_field_->clear();
+  default_planner_field_->clear();
 
   // Add none option, the default
   kinematics_solver_field_->addItem("None");
+  default_planner_field_->addItem("None");
 
   // load all avail kin planners
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader;
@@ -290,6 +342,13 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
   {
     kinematics_solver_field_->addItem(plugin_it->c_str());
+  }
+
+  std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
+  for (std::size_t i = 0; i < planners.size(); ++i)
+  {
+    std::string planner_name = planners[i].name_;
+    default_planner_field_->addItem(planner_name.c_str());
   }
 }
 

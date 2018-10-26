@@ -103,12 +103,12 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, moveit_setup_assista
 
   // Top Label Area ------------------------------------------------
   HeaderWidget* header = new HeaderWidget(
-      "Planning Groups", "Create and edit planning groups for your robot based on joint collections, "
-                         "link collections, kinematic chains or subgroups. "
-                         "A planning group defines the set of (joint, link) pairs considered for planning "
-                         "and collision checking. "
-                         "Note: when adding a link to the group, its parent joint is added too and vice versa.\n"
-                         "Define individual groups for each subset of the robot you want to plan for.",
+      "Define Planning Groups",
+      "Create and edit 'joint model' groups for your robot based on joint collections, "
+      "link collections, kinematic chains or subgroups. "
+      "A planning group defines the set of (joint, link) pairs considered for planning "
+      "and collision checking. Define individual groups for each subset of the robot you want to plan for."
+      "Note: when adding a link to the group, its parent joint is added too and vice versa.",
       this);
   layout->addWidget(header);
 
@@ -378,7 +378,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   {
     warn_once = false;
     QMessageBox::warning(this, "Group with Multiple Kinematic Chains",
-                         "Warning: this MoveIt Setup Assistant is only designed to handle one kinematic chain per "
+                         "Warning: this MoveIt! Setup Assistant is only designed to handle one kinematic chain per "
                          "group. The loaded SRDF has more than one kinematic chain for a group. A possible loss of "
                          "data may occur.");
   }
@@ -919,8 +919,8 @@ void PlanningGroupsWidget::saveChainScreen()
   srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Get a reference to the supplied strings
-  const std::string& tip = chain_widget_->tip_link_field_->text().toStdString();
-  const std::string& base = chain_widget_->base_link_field_->text().toStdString();
+  const std::string& tip = chain_widget_->tip_link_field_->text().trimmed().toStdString();
+  const std::string& base = chain_widget_->base_link_field_->text().trimmed().toStdString();
 
   // Check that box the tip and base, or neither, have text
   if ((!tip.empty() && base.empty()) || (tip.empty() && !base.empty()))
@@ -1010,7 +1010,6 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Create the empty graph
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
   Graph g(group_nodes.size());
 
   // Traverse the group list again, this time inserting subgroups into graph
@@ -1091,8 +1090,9 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 bool PlanningGroupsWidget::saveGroupScreen()
 {
   // Get a reference to the supplied strings
-  const std::string& group_name = group_edit_widget_->group_name_field_->text().toStdString();
+  const std::string& group_name = group_edit_widget_->group_name_field_->text().trimmed().toStdString();
   const std::string& kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
+  const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
   const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
@@ -1266,6 +1266,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_attempts_ = kinematics_attempts_int;
+  config_data_->group_meta_data_[group_name].default_planner_ = default_planner;
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 
   // Reload main screen table
@@ -1436,7 +1437,7 @@ void PlanningGroupsWidget::previewSelectedLink(std::vector<std::string> links)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < links.size(); ++i)
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     if (links[i].empty())
     {
@@ -1456,7 +1457,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < joints.size(); ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
@@ -1487,7 +1488,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (int i = 0; i < groups.size(); ++i)
+  for (std::size_t i = 0; i < groups.size(); ++i)
   {
     // Highlight group
     Q_EMIT highlightGroup(groups[i]);

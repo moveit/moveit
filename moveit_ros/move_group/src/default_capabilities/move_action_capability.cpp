@@ -43,6 +43,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 
+#include <moveit/robot_state/conversions.h>
 move_group::MoveGroupMoveAction::MoveGroupMoveAction()
   : MoveGroupCapability("MoveAction"), move_state_(IDLE), preempt_requested_{ false }
 {
@@ -63,21 +64,26 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
   // before we start planning, ensure that we have the latest robot state received...
   context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
-
+  // Update the goal's start state to the robot's current state using the latest data from the planning scene
+  planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
   moveit_msgs::MoveGroupResult action_res;
-  if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
+  const robot_state::RobotState& current_state = lscene->getCurrentState();
+  moveit_msgs::MoveGroupGoal* new_goal = new moveit_msgs::MoveGroupGoal(*goal);
+  robot_state::robotStateToRobotStateMsg(current_state, new_goal->request.start_state);
+  moveit_msgs::MoveGroupGoalConstPtr change_goal(new_goal);
+  if (change_goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
-    if (!goal->planning_options.plan_only)
+    if (!change_goal->planning_options.plan_only)
       ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only "
                "set to false. Only a motion plan will be computed anyway.");
-    executeMoveCallback_PlanOnly(goal, action_res);
+    executeMoveCallback_PlanOnly(change_goal, action_res);
   }
   else
-    executeMoveCallback_PlanAndExecute(goal, action_res);
+    executeMoveCallback_PlanAndExecute(change_goal, action_res);
 
   bool planned_trajectory_empty = trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory);
   std::string response =
-      getActionResultString(action_res.error_code, planned_trajectory_empty, goal->planning_options.plan_only);
+      getActionResultString(action_res.error_code, planned_trajectory_empty, change_goal->planning_options.plan_only);
   if (action_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     move_action_server_->setSucceeded(action_res, response);
   else
@@ -244,5 +250,5 @@ void move_group::MoveGroupMoveAction::setMoveState(MoveGroupState state)
   move_action_server_->publishFeedback(move_feedback_);
 }
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupMoveAction, move_group::MoveGroupCapability)

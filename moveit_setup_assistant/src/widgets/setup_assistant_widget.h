@@ -59,7 +59,10 @@
 #include "virtual_joints_widget.h"
 #include "passive_joints_widget.h"
 #include "author_information_widget.h"
+#include "simulation_widget.h"
 #include "configuration_files_widget.h"
+#include "perception_widget.h"
+#include "ros_controllers_widget.h"
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
@@ -213,15 +216,18 @@ private:
   moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
 
   // Screen Widgets
-  StartScreenWidget* ssw_;
-  DefaultCollisionsWidget* dcw_;
-  PlanningGroupsWidget* pgw_;
-  RobotPosesWidget* rpw_;
-  EndEffectorsWidget* efw_;
-  VirtualJointsWidget* vjw_;
-  PassiveJointsWidget* pjw_;
-  AuthorInformationWidget* aiw_;
-  ConfigurationFilesWidget* cfw_;
+  StartScreenWidget* start_screen_widget_;
+  DefaultCollisionsWidget* default_collisions_widget_;
+  PlanningGroupsWidget* planning_groups_widget;
+  RobotPosesWidget* robot_poses_widget_;
+  EndEffectorsWidget* end_effectors_widget_;
+  VirtualJointsWidget* virtual_joints_widget_;
+  PassiveJointsWidget* passive_joints_widget_;
+  AuthorInformationWidget* author_information_widget_;
+  ConfigurationFilesWidget* configuration_files_widget_;
+  SimulationWidget* simulation_widget_;
+  PerceptionWidget* perception_widget_;
+  moveit_ros_control::ROSControllersWidget* controllers_widget_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;

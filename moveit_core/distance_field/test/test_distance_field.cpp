@@ -291,11 +291,11 @@ unsigned int countLeafNodes(const octomap::OcTree& octree)
 void check_distance_field(const PropagationDistanceField& df, const EigenSTL::vector_Vector3d& points, int numX,
                           int numY, int numZ, bool do_negs)
 {
-  std::vector<Eigen::Vector3i> points_ind(points.size());
+  EigenSTL::vector_Vector3i points_ind(points.size());
   for (unsigned int i = 0; i < points.size(); i++)
   {
     Eigen::Vector3i loc;
-    bool valid = df.worldToGrid(points[i].x(), points[i].y(), points[i].z(), loc.x(), loc.y(), loc.z());
+    df.worldToGrid(points[i].x(), points[i].y(), points[i].z(), loc.x(), loc.y(), loc.z());
     points_ind[i] = loc;
   }
 
@@ -530,7 +530,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
 
         EXPECT_EQ(ncell_dist, dist);
 
-        if (ncell == NULL)
+        if (ncell == nullptr)
         {
           if (ncell_dist > 0)
           {

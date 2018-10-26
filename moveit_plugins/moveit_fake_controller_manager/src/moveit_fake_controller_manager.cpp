@@ -39,7 +39,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <sensor_msgs/JointState.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <ros/console.h>
 #include <map>
 #include <iterator>
@@ -68,7 +68,9 @@ public:
       return;
     }
 
-    pub_ = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+    /* by setting latch to true we preserve the initial joint state while other nodes launch */
+    bool latch = true;
+    pub_ = node_handle_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, latch);
 
     /* publish initial pose */
     XmlRpc::XmlRpcValue initial;

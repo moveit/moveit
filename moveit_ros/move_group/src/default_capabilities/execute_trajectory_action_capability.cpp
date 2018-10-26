@@ -137,5 +137,5 @@ void MoveGroupExecuteTrajectoryAction::setExecuteTrajectoryState(MoveGroupState 
 
 }  // namespace move_group
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupExecuteTrajectoryAction, move_group::MoveGroupCapability)

@@ -19,20 +19,21 @@ pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
 
 find_package(catkin REQUIRED COMPONENTS
-  moveit_ros_planning_interface
-  moveit_ros_robot_interaction
-  moveit_ros_warehouse
-  moveit_ros_perception
+  class_loader
   eigen_conversions
   geometric_shapes
   interactive_markers
-  class_loader
+  moveit_ros_perception
+  moveit_ros_planning_interface
+  moveit_ros_robot_interaction
+  moveit_ros_warehouse
+  object_recognition_msgs
+  pluginlib
+  rosconsole
+  roscpp
+  rospy
   rviz
   tf
-  roscpp
-  rosconsole
-  object_recognition_msgs
-  rostest
 )
 
 find_package(Eigen3 REQUIRED)
@@ -63,20 +64,21 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
   LIBRARIES
-    moveit_rviz_plugin_render_tools
-    moveit_robot_state_rviz_plugin_core
     moveit_motion_planning_rviz_plugin_core
-    moveit_trajectory_rviz_plugin_core
     moveit_planning_scene_rviz_plugin_core
+    moveit_robot_state_rviz_plugin_core
+    moveit_rviz_plugin_render_tools
+    moveit_trajectory_rviz_plugin_core
   INCLUDE_DIRS
-    rviz_plugin_render_tools/include
-    robot_state_rviz_plugin/include
-    planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include
+    planning_scene_rviz_plugin/include
+    robot_state_rviz_plugin/include
+    rviz_plugin_render_tools/include
     trajectory_rviz_plugin/include
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
+    object_recognition_msgs
   DEPENDS
     EIGEN3
 )
@@ -97,9 +99,6 @@ include_directories(SYSTEM
                     ${QT_INCLUDE_DIR}
                     ${OGRE_INCLUDE_DIRS})
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 add_subdirectory(rviz_plugin_render_tools)
 add_subdirectory(robot_state_rviz_plugin)
 add_subdirectory(planning_scene_rviz_plugin)
@@ -116,6 +115,6 @@ install(FILES
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if (CATKIN_ENABLE_TESTING)
-  find_package(rostest)
+  find_package(rostest REQUIRED)
   add_rostest(test/moveit_joy.test)
 endif()

@@ -23,7 +23,6 @@ COMPONENTS
   rostime
   rosconsole
   pluginlib
-  cmake_modules
 )
 find_package(Eigen3 REQUIRED)
 

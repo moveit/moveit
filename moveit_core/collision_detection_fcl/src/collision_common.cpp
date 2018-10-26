@@ -189,7 +189,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         fcl2contact(col_result.getContact(i), c);
         // if the contact is  not allowed, we have a collision
-        if (dcf(c) == false)
+        if (!dcf(c))
         {
           // store the contact, if it is needed
           if (want_contact_count > 0)
@@ -365,7 +365,6 @@ struct FCLShapeCache
     if (clean_count_ > MAX_CLEAN_COUNT || force)
     {
       clean_count_ = 0;
-      unsigned int from = map_.size();
       for (auto it = map_.begin(); it != map_.end();)
       {
         auto nit = it;
@@ -518,8 +517,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     dist_result.distance = fcl_result.min_distance;
     dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
     dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
-    dist_result.link_names[0] = cd1->ptr.obj->id_;
-    dist_result.link_names[1] = cd2->ptr.obj->id_;
+    dist_result.link_names[0] = cd1->getID();
+    dist_result.link_names[1] = cd2->getID();
     dist_result.body_types[0] = cd1->type;
     dist_result.body_types[1] = cd2->type;
     if (cdata->req->enable_nearest_points)
@@ -542,7 +541,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         double max_dist = 0;
         int max_index = 0;
-        for (int i = 0; i < contacts; ++i)
+        for (std::size_t i = 0; i < contacts; ++i)
         {
           const fcl::Contact& contact = coll_res.getContact(i);
           if (contact.penetration_depth > max_dist)
@@ -647,7 +646,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
-      if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
+      if (cache_it->second->collision_geometry_data_->ptr.raw == data)
       {
         //        ROS_DEBUG_NAMED("collision_detection.fcl", "Collision data structures for object %s retrieved from
         //        cache.",

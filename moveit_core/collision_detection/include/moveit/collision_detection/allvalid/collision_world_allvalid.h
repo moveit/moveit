@@ -68,8 +68,12 @@ public:
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state) const;
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
                                const AllowedCollisionMatrix& acm) const;
+  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+                             const robot_state::RobotState& state) const override;
   virtual double distanceWorld(const CollisionWorld& world) const;
   virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm) const;
+  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res,
+                             const CollisionWorld& world) const override;
 };
 }
 

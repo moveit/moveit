@@ -50,9 +50,11 @@ namespace moveit
 {
 namespace core
 {
+const std::string LOGNAME = "robot_model";
+
 RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
 {
-  root_joint_ = NULL;
+  root_joint_ = nullptr;
   urdf_ = urdf_model;
   srdf_ = srdf_model;
   buildModel(*urdf_model, *srdf_model);
@@ -83,45 +85,44 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
 
-  root_joint_ = NULL;
-  root_link_ = NULL;
+  root_joint_ = nullptr;
+  root_link_ = nullptr;
   link_geometry_count_ = 0;
   variable_count_ = 0;
   model_name_ = urdf_model.getName();
-  ROS_INFO_NAMED("robot_model", "Loading robot model '%s'...", model_name_.c_str());
+  ROS_INFO_NAMED(LOGNAME, "Loading robot model '%s'...", model_name_.c_str());
 
   if (urdf_model.getRoot())
   {
     const urdf::Link* root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
 
-    ROS_DEBUG_NAMED("robot_model", "... building kinematic chain");
-    root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
+    ROS_DEBUG_NAMED(LOGNAME, "... building kinematic chain");
+    root_joint_ = buildRecursive(nullptr, root_link_ptr, srdf_model);
     if (root_joint_)
       root_link_ = root_joint_->getChildLinkModel();
-    ROS_DEBUG_NAMED("robot_model", "... building mimic joints");
+    ROS_DEBUG_NAMED(LOGNAME, "... building mimic joints");
     buildMimic(urdf_model);
 
-    ROS_DEBUG_NAMED("robot_model", "... computing joint indexing");
+    ROS_DEBUG_NAMED(LOGNAME, "... computing joint indexing");
     buildJointInfo();
 
     if (link_models_with_collision_geometry_vector_.empty())
-      ROS_WARN_NAMED("robot_model", "No geometry is associated to any robot links");
+      ROS_WARN_NAMED(LOGNAME, "No geometry is associated to any robot links");
 
     // build groups
 
-    ROS_DEBUG_NAMED("robot_model", "... constructing joint groups");
+    ROS_DEBUG_NAMED(LOGNAME, "... constructing joint groups");
     buildGroups(srdf_model);
 
-    ROS_DEBUG_NAMED("robot_model", "... constructing joint group states");
+    ROS_DEBUG_NAMED(LOGNAME, "... constructing joint group states");
     buildGroupStates(srdf_model);
 
     // For debugging entire model
-    if (false)
-      printModelInfo(std::cout);
+    // printModelInfo(std::cout);
   }
   else
-    ROS_WARN_NAMED("robot_model", "No root link found");
+    ROS_WARN_NAMED(LOGNAME, "No root link found");
 }
 
 namespace
@@ -269,7 +270,7 @@ void RobotModel::buildJointInfo()
         variable_names_.push_back(name_order[j]);
         joints_of_variable_.push_back(joint_model_vector_[i]);
       }
-      if (joint_model_vector_[i]->getMimic() == NULL)
+      if (joint_model_vector_[i]->getMimic() == nullptr)
       {
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
@@ -294,19 +295,23 @@ void RobotModel::buildJointInfo()
     }
   }
 
-  for (std::size_t i = 0; i < link_model_vector_.size(); ++i)
+  bool link_considered[link_model_vector_.size()] = { false };
+  for (const LinkModel* link : link_model_vector_)
   {
+    if (link_considered[link->getLinkIndex()])
+      continue;
+
     LinkTransformMap associated_transforms;
-    computeFixedTransforms(link_model_vector_[i], link_model_vector_[i]->getJointOriginTransform().inverse(),
-                           associated_transforms);
-    if (associated_transforms.size() > 1)
+    computeFixedTransforms(link, link->getJointOriginTransform().inverse(), associated_transforms);
+    for (auto& tf_base : associated_transforms)
     {
-      for (LinkTransformMap::iterator it = associated_transforms.begin(); it != associated_transforms.end(); ++it)
-        if (it->first != link_model_vector_[i])
-        {
-          getLinkModel(it->first->getName())->addAssociatedFixedTransform(link_model_vector_[i], it->second.inverse());
-          link_model_vector_[i]->addAssociatedFixedTransform(it->first, it->second);
-        }
+      link_considered[tf_base.first->getLinkIndex()] = true;
+      for (auto& tf_target : associated_transforms)
+      {
+        if (&tf_base != &tf_target)
+          const_cast<LinkModel*>(tf_base.first)  // regain write access to base LinkModel*
+              ->addAssociatedFixedTransform(tf_target.first, tf_base.second.inverse() * tf_target.second);
+      }
     }
   }
 
@@ -335,21 +340,21 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            ROS_ERROR_NAMED(
-                "robot_model", "The model for joint '%s' requires %d variable values, "
-                               "but only %d variable values were supplied in default state '%s' for group '%s'",
-                jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), jmg->getName().c_str());
+            ROS_ERROR_NAMED(LOGNAME, "The model for joint '%s' requires %d variable values, "
+                                     "but only %d variable values were supplied in default state '%s' for group '%s'",
+                            jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
+                            jmg->getName().c_str());
         }
         else
-          ROS_ERROR_NAMED("robot_model", "Group state '%s' specifies value for joint '%s', "
-                                         "but that joint is not part of group '%s'",
+          ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specifies value for joint '%s', "
+                                   "but that joint is not part of group '%s'",
                           ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!state.empty())
         jmg->addDefaultState(ds[i].name_, state);
     }
     else
-      ROS_ERROR_NAMED("robot_model", "Group state '%s' specified for group '%s', but that group does not exist",
+      ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specified for group '%s', but that group does not exist",
                       ds[i].name_.c_str(), ds[i].group_.c_str());
   }
 }
@@ -369,12 +374,11 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
           if (joint_model_vector_[i]->getVariableCount() == jit->second->getVariableCount())
             joint_model_vector_[i]->setMimic(jit->second, jm->mimic->multiplier, jm->mimic->offset);
           else
-            ROS_ERROR_NAMED("robot_model",
-                            "Join '%s' cannot mimic joint '%s' because they have different number of DOF",
+            ROS_ERROR_NAMED(LOGNAME, "Join '%s' cannot mimic joint '%s' because they have different number of DOF",
                             joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          ROS_ERROR_NAMED("robot_model", "Joint '%s' cannot mimic unknown joint '%s'",
+          ROS_ERROR_NAMED(LOGNAME, "Joint '%s' cannot mimic unknown joint '%s'",
                           joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
       }
   }
@@ -398,9 +402,9 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
         }
         if (joint_model_vector_[i] == joint_model_vector_[i]->getMimic())
         {
-          ROS_ERROR_NAMED("robot_model", "Cycle found in joint that mimic each other. Ignoring all mimic joints.");
+          ROS_ERROR_NAMED(LOGNAME, "Cycle found in joint that mimic each other. Ignoring all mimic joints.");
           for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
-            joint_model_vector_[i]->setMimic(NULL, 0.0, 0.0);
+            joint_model_vector_[i]->setMimic(nullptr, 0.0, 0.0);
           change = false;
           break;
         }
@@ -428,8 +432,8 @@ const JointModelGroup* RobotModel::getEndEffector(const std::string& name) const
     it = joint_model_group_map_.find(name);
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
-    ROS_ERROR_NAMED("robot_model", "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    return nullptr;
   }
   return it->second;
 }
@@ -442,8 +446,8 @@ JointModelGroup* RobotModel::getEndEffector(const std::string& name)
     it = joint_model_group_map_.find(name);
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
-    ROS_ERROR_NAMED("robot_model", "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    return nullptr;
   }
   return it->second;
 }
@@ -458,8 +462,8 @@ const JointModelGroup* RobotModel::getJointModelGroup(const std::string& name) c
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model", "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    return nullptr;
   }
   return it->second;
 }
@@ -469,8 +473,8 @@ JointModelGroup* RobotModel::getJointModelGroup(const std::string& name)
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model", "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    return nullptr;
   }
   return it->second;
 }
@@ -504,14 +508,14 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
           added = true;
           processed[i] = true;
           if (!addJointModelGroup(group_configs[i]))
-            ROS_WARN_NAMED("robot_model", "Failed to add group '%s'", group_configs[i].name_.c_str());
+            ROS_WARN_NAMED(LOGNAME, "Failed to add group '%s'", group_configs[i].name_.c_str());
         }
       }
   }
 
   for (std::size_t i = 0; i < processed.size(); ++i)
     if (!processed[i])
-      ROS_WARN_NAMED("robot_model", "Could not process group '%s' due to unmet subgroup dependencies",
+      ROS_WARN_NAMED(LOGNAME, "Could not process group '%s' due to unmet subgroup dependencies",
                      group_configs[i].name_.c_str());
 
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -585,7 +589,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
             }
           }
 
-        JointModelGroup* eef_parent_group = NULL;
+        JointModelGroup* eef_parent_group = nullptr;
         // if a parent group is specified in SRDF, try to use it
         if (!eefs[k].parent_group_.empty())
         {
@@ -597,22 +601,21 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
               if (jt->second != it->second)
                 eef_parent_group = jt->second;
               else
-                ROS_ERROR_NAMED("robot_model", "Group '%s' for end-effector '%s' cannot be its own parent",
+                ROS_ERROR_NAMED(LOGNAME, "Group '%s' for end-effector '%s' cannot be its own parent",
                                 eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
             else
-              ROS_ERROR_NAMED("robot_model", "Group '%s' was specified as parent group for end-effector '%s' "
-                                             "but it does not include the parent link '%s'",
+              ROS_ERROR_NAMED(LOGNAME, "Group '%s' was specified as parent group for end-effector '%s' "
+                                       "but it does not include the parent link '%s'",
                               eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
           }
           else
-            ROS_ERROR_NAMED("robot_model",
-                            "Group name '%s' not found (specified as parent group for end-effector '%s')",
+            ROS_ERROR_NAMED(LOGNAME, "Group name '%s' not found (specified as parent group for end-effector '%s')",
                             eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
         }
 
         // if no parent group was specified, use a default one
-        if (eef_parent_group == NULL)
+        if (eef_parent_group == nullptr)
           if (!possible_parent_groups.empty())
           {
             // if there are multiple options for the group that contains this end-effector,
@@ -631,7 +634,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
         }
         else
         {
-          ROS_WARN_NAMED("robot_model", "Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
+          ROS_WARN_NAMED(LOGNAME, "Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
           it->second->setEndEffectorParent("", eefs[k].parent_link_);
         }
         break;
@@ -644,7 +647,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
-    ROS_WARN_NAMED("robot_model", "A group named '%s' already exists. Not adding.", gc.name_.c_str());
+    ROS_WARN_NAMED(LOGNAME, "A group named '%s' already exists. Not adding.", gc.name_.c_str());
     return false;
   }
 
@@ -741,7 +744,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 
   if (jset.empty())
   {
-    ROS_WARN_NAMED("robot_model", "Group '%s' must have at least one valid joint", gc.name_.c_str());
+    ROS_WARN_NAMED(LOGNAME, "Group '%s' must have at least one valid joint", gc.name_.c_str());
     return false;
   }
 
@@ -760,9 +763,9 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
   // construct the joint
   JointModel* joint = urdf_link->parent_joint ?
                           constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
-                          constructJointModel(NULL, urdf_link, srdf_model);
-  if (joint == NULL)
-    return NULL;
+                          constructJointModel(nullptr, urdf_link, srdf_model);
+  if (joint == nullptr)
+    return nullptr;
 
   // bookkeeping for the joint
   joint_model_map_[joint->getName()] = joint;
@@ -843,7 +846,7 @@ static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
 JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                             const srdf::Model& srdf_model)
 {
-  JointModel* result = NULL;
+  JointModel* result = nullptr;
 
   // must be the root link transform
   if (urdf_joint)
@@ -886,7 +889,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         result = new FixedJointModel(urdf_joint->name);
         break;
       default:
-        ROS_ERROR_NAMED("robot_model", "Unknown joint type: %d", (int)urdf_joint->type);
+        ROS_ERROR_NAMED(LOGNAME, "Unknown joint type: %d", (int)urdf_joint->type);
         break;
     }
   }
@@ -897,13 +900,13 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (vjoints[i].child_link_ != child_link->name)
       {
-        ROS_WARN_NAMED("robot_model", "Skipping virtual joint '%s' because its child frame '%s' "
-                                      "does not match the URDF frame '%s'",
+        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its child frame '%s' "
+                                "does not match the URDF frame '%s'",
                        vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
       }
       else if (vjoints[i].parent_frame_.empty())
       {
-        ROS_WARN_NAMED("robot_model", "Skipping virtual joint '%s' because its parent frame is empty",
+        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its parent frame is empty",
                        vjoints[i].name_.c_str());
       }
       else
@@ -929,7 +932,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     }
     if (!result)
     {
-      ROS_INFO_NAMED("robot_model", "No root/virtual joint specified in SRDF. Assuming fixed joint");
+      ROS_INFO_NAMED(LOGNAME, "No root/virtual joint specified in SRDF. Assuming fixed joint");
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
@@ -1033,7 +1036,7 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
 {
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
-  shapes::Shape* result = NULL;
+  shapes::Shape* result = nullptr;
   switch (geom->type)
   {
     case urdf::Geometry::SPHERE:
@@ -1061,7 +1064,7 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
     }
     break;
     default:
-      ROS_ERROR_NAMED("robot_model", "Unknown geometry type: %d", (int)geom->type);
+      ROS_ERROR_NAMED(LOGNAME, "Unknown geometry type: %d", (int)geom->type);
       break;
   }
 
@@ -1083,17 +1086,16 @@ const JointModel* RobotModel::getJointModel(const std::string& name) const
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED("robot_model", "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  return nullptr;
 }
 
 const JointModel* RobotModel::getJointModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(joint_model_vector_.size()))
   {
-    ROS_ERROR_NAMED("robot_model", "Joint index '%i' out of bounds of joints in model '%s'", index,
-                    model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "Joint index '%i' out of bounds of joints in model '%s'", index, model_name_.c_str());
+    return nullptr;
   }
   assert(joint_model_vector_[index]->getJointIndex() == index);
   return joint_model_vector_[index];
@@ -1104,8 +1106,8 @@ JointModel* RobotModel::getJointModel(const std::string& name)
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED("robot_model", "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  return nullptr;
 }
 
 const LinkModel* RobotModel::getLinkModel(const std::string& name) const
@@ -1117,8 +1119,8 @@ const LinkModel* RobotModel::getLinkModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(link_model_vector_.size()))
   {
-    ROS_ERROR_NAMED("robot_model", "Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
-    return NULL;
+    ROS_ERROR_NAMED(LOGNAME, "Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
+    return nullptr;
   }
   assert(link_model_vector_[index]->getLinkIndex() == index);
   return link_model_vector_[index];
@@ -1129,8 +1131,8 @@ LinkModel* RobotModel::getLinkModel(const std::string& name)
   LinkModelMap::const_iterator it = link_model_map_.find(name);
   if (it != link_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED("robot_model", "Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  ROS_ERROR_NAMED(LOGNAME, "Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  return nullptr;
 }
 
 const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
@@ -1199,7 +1201,7 @@ void RobotModel::getMissingVariableNames(const std::vector<std::string>& variabl
   std::set<std::string> keys(variables.begin(), variables.end());
   for (std::size_t i = 0; i < variable_names_.size(); ++i)
     if (keys.find(variable_names_[i]) == keys.end())
-      if (getJointOfVariable(variable_names_[i])->getMimic() == NULL)
+      if (getJointOfVariable(variable_names_[i])->getMimic() == nullptr)
         missing_variables.push_back(variable_names_[i]);
 }
 
@@ -1330,7 +1332,7 @@ void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAlloc
           ss << subs[i]->getName() << " ";
           result.second[subs[i]] = allocators.find(subs[i]->getName())->second;
         }
-        ROS_DEBUG_NAMED("robot_model", "Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(),
+        ROS_DEBUG_NAMED(LOGNAME, "Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(),
                         ss.str().c_str());
       }
       jmg->setSolverAllocators(result);

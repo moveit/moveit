@@ -2,6 +2,17 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* fix refrences to moveit! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* Contributors: Mohmmad Ayman
+
+0.9.12 (2018-05-29)
+-------------------
+
 0.9.11 (2017-12-25)
 -------------------
 

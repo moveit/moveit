@@ -37,6 +37,8 @@
 #   Author: Ryohei Ueda, Dave Coleman
 #   Desc:   Interface between PS3/XBox controller and MoveIt! Motion Planning Rviz Plugin
 
+from __future__ import print_function
+
 import xml.dom.minidom
 from operator import add
 import sys
@@ -348,7 +350,7 @@ class StatusHistory():
 
 class MoveitJoy:
     def parseSRDF(self):
-        ri = RobotInterface("/robot_description", "")
+        ri = RobotInterface("/robot_description")
         planning_groups = {}
         for g in ri.get_group_names():
             self.planning_groups_tips[g] = ri.get_group_joint_tips(g)
@@ -358,7 +360,7 @@ class MoveitJoy:
             if len(planning_groups[name]) == 0:
                 del planning_groups[name]
             else:
-                print name, planning_groups[name]
+                print(name, planning_groups[name])
         self.planning_groups = planning_groups
         self.planning_groups_keys = planning_groups.keys()   #we'd like to store the 'order'
         self.frame_id = ri.get_planning_frame()

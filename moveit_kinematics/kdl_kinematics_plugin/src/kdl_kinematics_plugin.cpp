@@ -35,7 +35,7 @@
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
@@ -559,7 +559,6 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
     ROS_ERROR_NAMED("kdl", "kinematics not active");

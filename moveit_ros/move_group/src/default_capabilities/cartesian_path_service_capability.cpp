@@ -181,5 +181,5 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
   return true;
 }
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupCartesianPathService, move_group::MoveGroupCapability)

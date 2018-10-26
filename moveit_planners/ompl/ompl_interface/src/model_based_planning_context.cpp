@@ -127,7 +127,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
         if (vc > 0)
         {
           int idx = getJointModelGroup()->getVariableGroupIndex(v);
-          for (int q = 0; q < vc; ++q)
+          for (unsigned int q = 0; q < vc; ++q)
             j.push_back(idx + q);
         }
         else
@@ -370,7 +370,7 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
 
     // Find the number of states that will be in the interpolated solution.
     // This is what interpolate() does internally.
-    int eventual_states = 1;
+    unsigned int eventual_states = 1;
     std::vector<ompl::base::State*> states = pg.getStates();
     for (size_t i = 0; i < states.size() - 1; i++)
     {

@@ -373,7 +373,7 @@ static void wrap_robot_interface()
 {
   using namespace moveit;
 
-  bp::class_<RobotInterfacePython> RobotClass("RobotInterface", bp::init<std::string, std::string>());
+  bp::class_<RobotInterfacePython> RobotClass("RobotInterface", bp::init<std::string, bp::optional<std::string>>());
 
   RobotClass.def("get_joint_names", &RobotInterfacePython::getJointNames);
   RobotClass.def("get_group_joint_names", &RobotInterfacePython::getGroupJointNames);

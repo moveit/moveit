@@ -59,6 +59,7 @@ DepthImageOctomapUpdater::DepthImageOctomapUpdater()
   , shadow_threshold_(0.04)
   , padding_scale_(0.0)
   , padding_offset_(0.02)
+  , max_update_rate_(0)
   , skip_vertical_pixels_(4)
   , skip_horizontal_pixels_(6)
   , image_callback_count_(0)
@@ -93,6 +94,8 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "shadow_threshold", &shadow_threshold_);
     readXmlParam(params, "padding_scale", &padding_scale_);
     readXmlParam(params, "padding_offset", &padding_offset_);
+    if (params.hasMember("max_update_rate"))
+      readXmlParam(params, "max_update_rate", &max_update_rate_);
     readXmlParam(params, "skip_vertical_pixels", &skip_vertical_pixels_);
     readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
     if (params.hasMember("filtered_cloud_topic"))
@@ -207,8 +210,15 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 {
   ROS_DEBUG("Received a new depth image message (frame = '%s', encoding='%s')", depth_msg->header.frame_id.c_str(),
             depth_msg->encoding.c_str());
-
   ros::WallTime start = ros::WallTime::now();
+
+  if (max_update_rate_ > 0)
+  {
+    // ensure we are not updating the octomap representation too often
+    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
+      return;
+    last_update_time_ = ros::Time::now();
+  }
 
   // measure the frequency at which we receive updates
   if (image_callback_count_ < 1000)
@@ -330,8 +340,8 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   const double py = info_msg->K[5];
 
   // if the camera parameters have changed at all, recompute the cache we had
-  if (w >= x_cache_.size() || h >= y_cache_.size() || K2_ != px || K5_ != py || K0_ != info_msg->K[0] ||
-      K4_ != info_msg->K[4])
+  if (w >= static_cast<int>(x_cache_.size()) || h >= static_cast<int>(y_cache_.size()) || K2_ != px || K5_ != py ||
+      K0_ != info_msg->K[0] || K4_ != info_msg->K[4])
   {
     K2_ = px;
     K5_ = py;
@@ -346,9 +356,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       return;
 
     // Pre-compute some constants
-    if (x_cache_.size() < w)
+    if (static_cast<int>(x_cache_.size()) < w)
       x_cache_.resize(w);
-    if (y_cache_.size() < h)
+    if (static_cast<int>(y_cache_.size()) < h)
       y_cache_.resize(h);
 
     for (int x = 0; x < w; ++x)

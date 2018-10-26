@@ -41,6 +41,7 @@
 #include <srdfdom/model.h>        // use their struct datastructures
 #include <srdfdom/srdf_writer.h>  // for writing srdf data
 #include <urdf/model.h>           // to share throughout app
+#include <yaml-cpp/yaml.h>        // outputing yaml config files
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h>              // for figuring out if robot is in collision
@@ -74,6 +75,17 @@ struct GroupMetaData
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
   int kinematics_solver_attempts_;              // solver attempts
+  std::string default_planner_;                 // Name of the default planner to use
+};
+
+/**
+ * ROS Controllers settings which may be set in the config files
+ */
+struct ROSControlConfig
+{
+  std::string name_;                 // controller name
+  std::string type_;                 // controller type
+  std::vector<std::string> joints_;  // joints controller by this controller
 };
 
 /**
@@ -123,10 +135,52 @@ public:
   std::string type_;  // type of planner (geometric)
 };
 
+/**
+ * Reusable parameter class which may be used in reading and writing configuration files
+ */
+class GenericParameter
+{
+public:
+  GenericParameter()
+  {
+    comment_ = "";
+  };
+
+  void setName(std::string name)
+  {
+    name_ = name;
+  };
+  void setValue(std::string value)
+  {
+    value_ = value;
+  };
+  void setComment(std::string comment)
+  {
+    comment_ = comment;
+  };
+  std::string getName()
+  {
+    return name_;
+  };
+  std::string getValue()
+  {
+    return value_;
+  };
+  std::string getComment()
+  {
+    return comment_;
+  };
+
+private:
+  std::string name_;     // name of parameter
+  std::string value_;    // value parameter will receive (but as a string)
+  std::string comment_;  // comment briefly describing what this parameter does
+};
+
 MOVEIT_CLASS_FORWARD(MoveItConfigData);
 
 /** \brief This class is shared with all widgets and contains the common configuration data
-    needed for generating each robot's MoveIt configuration package.
+    needed for generating each robot's MoveIt! configuration package.
 
     All SRDF data is contained in a subclass of this class -
     srdf_writer.cpp. This class also contains the functions for writing
@@ -149,11 +203,12 @@ public:
     END_EFFECTORS = 1 << 7,
     PASSIVE_JOINTS = 1 << 8,
     AUTHOR_INFO = 1 << 9,
+    SENSORS_CONFIG = 1 << 10,
     SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
 
-  // All of the data needed for creating a MoveIt Configuration Files
+  // All of the data needed for creating a MoveIt! Configuration Files
 
   // ******************************************************************************************
   // URDF Data
@@ -175,6 +230,9 @@ public:
 
   /// URDF robot model
   urdf::ModelSharedPtr urdf_model_;
+
+  /// URDF robot model string
+  std::string urdf_string_;
 
   // ******************************************************************************************
   // SRDF Data
@@ -224,6 +282,9 @@ public:
   // Public Functions
   // ******************************************************************************************
 
+  /// Load a robot model
+  void setRobotModel(robot_model::RobotModelPtr robot_model);
+
   /// Provide a shared kinematic model loader
   robot_model::RobotModelConstPtr getRobotModel();
 
@@ -247,11 +308,31 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
+  std::vector<OMPLPlannerDescription> getOMPLPlanners();
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
+  bool outputCHOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
+
+  /**
+   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
+   * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
+   * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
+   */
+  void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
+                                       std::vector<ROSControlConfig>& ros_controllers_config_output);
+
+  bool outputROSControllersYAML(const std::string& file_path);
+  bool output3DSensorPluginYAML(const std::string& file_path);
+
+  /**
+   * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
+   * added
+   * \return gazebo compatible urdf or empty if error encountered
+   */
+  std::string getGazeboCompatibleURDF();
 
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
@@ -268,23 +349,57 @@ public:
   std::string decideProjectionJoints(std::string planning_group);
 
   /**
+   * Input ompl_planning.yaml file for editing its values
+   * @param file_path path to ompl_planning.yaml in the input package
+   * @return true if the file was read correctly
+   */
+  bool inputOMPLYAML(const std::string& file_path);
+
+  /**
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputKinematicsYAML(const std::string& file_path);
 
   /**
+   * Helper function for parsing ros_controllers.yaml file
+   * @param YAML::Node - individual controller to be parsed
+   * @return true if the file was read correctly
+   */
+  bool parseROSController(const YAML::Node& controller);
+
+  /**
+   * Helper function for parsing ros_controllers.yaml file
+   * @param YAML::Node - controllers to be parsed
+   * @return true if the file was read correctly
+   */
+  bool processROSControllers(const YAML::Node& controllers);
+
+  /**
+   * Input ros_controllers.yaml file for editing its values
+   * @param file_path path to ros_controllers.yaml in the input package
+   * @return true if the file was read correctly
+   */
+  bool inputROSControllersYAML(const std::string& file_path);
+
+  /**
+   * \brief Add a Follow Joint Trajectory action Controller for each Planning Group
+   * \return true if controllers were added to the ros_controllers_config_ data structure
+   */
+  bool addDefaultControllers();
+
+  /**
    * Set package path; try to resolve path from package name if directory does not exist
    * @param pkg_path path to package or package name
-   * @return bool if the path was set
+   * @return true if the path was set
    */
   bool setPackagePath(const std::string& pkg_path);
 
   /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
-   * @return bool if the path could be resolved
+   * @return true if the path could be resolved
    */
   bool getSetupAssistantYAMLPath(std::string& path);
 
@@ -295,12 +410,21 @@ public:
   bool createFullSRDFPath(const std::string& package_path);
 
   /**
-   * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
+   * Input .setup_assistant file - contains data used for the MoveIt! Setup Assistant
    *
    * @param file_path path to .setup_assistant file
-   * @return bool if the file was read correctly
+   * @return true if the file was read correctly
    */
   bool inputSetupAssistantYAML(const std::string& file_path);
+
+  /**
+   * Input sensors_3d file - contains 3d sensors config data
+   *
+   * @param default_file_path path to sensors_3d yaml file which contains default parameter values
+   * @param file_path path to sensors_3d yaml file in the config package
+   * @return true if the file was read correctly
+   */
+  bool input3DSensorsYAML(const std::string& default_file_path, const std::string& file_path = "");
 
   /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
@@ -311,6 +435,51 @@ public:
    * @return string resulting combined paths
    */
   std::string appendPaths(const std::string& path1, const std::string& path2);
+
+  /**
+   * \brief Adds a ROS controller to ros_controllers_config_ vector
+   * \param new_controller a new ROS Controller to add
+   * \return true if inserted correctly
+   */
+  bool addROSController(const ROSControlConfig& new_controller);
+
+  /**
+   * \brief Gets ros_controllers_config_ vector
+   * \return pointer to ros_controllers_config_
+   */
+  std::vector<ROSControlConfig>& getROSControllers();
+
+  /**
+   * Find the associated ROS controller by name
+   *
+   * @param controller_name - name of ROS controller to find in datastructure
+   * @return pointer to data in datastructure
+   */
+  ROSControlConfig* findROSControllerByName(const std::string& controller_name);
+
+  /**
+   * Delete ROS controller by name
+   *
+   * @param controller_name - name of ROS controller to delete
+   * @return true if deleted, false if not found
+   */
+  bool deleteROSController(const std::string& controller_name);
+
+  /**
+   * \brief Used for adding a sensor plugin configuation prameter to the sensor plugin configuration parameter list
+   */
+  void addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value = "",
+                                               const std::string& comment = "");
+
+  /**
+   * \brief Clear the sensor plugin configuration parameter list
+   */
+  void clearSensorPluginConfig();
+
+  /**
+   * \brief Used for adding a sensor plugin configuation parameter to the sensor plugin configuration parameter list
+   */
+  std::vector<std::map<std::string, GenericParameter> > getSensorPluginConfig();
 
   /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
@@ -331,11 +500,16 @@ private:
   // Private Vars
   // ******************************************************************************************
 
-  // Shared kinematic model
-  robot_model::RobotModelPtr robot_model_;
-  robot_model::RobotModelConstPtr robot_model_const_;
+  /// Sensor plugin configuration parameter list, each sensor plugin type is a map
+  std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
 
-  // Shared planning scene
+  /// Shared kinematic model
+  robot_model::RobotModelPtr robot_model_;
+
+  /// ROS Controllers config data
+  std::vector<ROSControlConfig> ros_controllers_config_;
+
+  /// Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
 };
 

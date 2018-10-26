@@ -2,6 +2,19 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* [enhancement] warehouse: added params for timeout + #retries (`#1008 <https://github.com/ros-planning/moveit/issues/1008>`_)
+* [maintenance] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
+* Contributors: Mohmmad Ayman, Robert Haschke, dg-shadow, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -25,7 +38,7 @@ Changelog for package moveit_ros_warehouse
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * Contributors: Dave Coleman
 
 0.9.4 (2017-02-06)
@@ -34,7 +47,7 @@ Changelog for package moveit_ros_warehouse
 * Contributors: Dave Coleman
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.6.6 (2016-06-08)
 ------------------

@@ -133,7 +133,6 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
   std::vector<double> solution;
   result.solution_percentage = 0.0;
 
-  bool supported = false;
   if (std::find(supported_methods_.begin(), supported_methods_.end(), options.discretization_method) ==
       supported_methods_.end())
   {
@@ -148,7 +147,7 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
     return false;
   }
 
-  if (ik_poses.size() == 0)
+  if (ik_poses.empty())
   {
     ROS_ERROR_NAMED("kinematics_base", "Input ik_poses array is empty");
     result.kinematic_error = KinematicErrors::EMPTY_TIP_POSES;

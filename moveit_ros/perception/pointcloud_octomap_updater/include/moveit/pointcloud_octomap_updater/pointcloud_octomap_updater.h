@@ -76,12 +76,15 @@ private:
   ros::NodeHandle private_nh_;
   boost::shared_ptr<tf::Transformer> tf_;
 
+  ros::Time last_update_time_;
+
   /* params */
   std::string point_cloud_topic_;
   double scale_;
   double padding_;
   double max_range_;
   unsigned int point_subsample_;
+  double max_update_rate_;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
 

@@ -2,6 +2,25 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [capability] Added plan_only flags to pick and place (`#862 <https://github.com/ros-planning/moveit/issues/862>`_)
+* [maintenance] Python3 support (`#1103 <https://github.com/ros-planning/moveit/issues/1103>`_, `#1054 <https://github.com/ros-planning/moveit/issues/1054>`_)
+* Contributors: David Watkins, Michael Görner, d-walsh, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+* Get robot markers from state (`#836 <https://github.com/ros-planning/moveit/issues/836>`_)
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+* Constrained Cartesian planning using moveit commander (`#805 <https://github.com/ros-planning/moveit/issues/805>`_)
+* Handle robot_description parameter in RobotCommander (`#782 <https://github.com/ros-planning/moveit/issues/782>`_)
+* support TrajectoryConstraints in MoveGroupInterface + MoveitCommander (`#793 <https://github.com/ros-planning/moveit/issues/793>`_)
+* API to get planner_id (`#788 <https://github.com/ros-planning/moveit/issues/788>`_)
+* Contributors: Akiyoshi Ochiai, Bence Magyar, Bryce Willey, Dave Coleman, Michael Görner, Ryan Keating, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -26,7 +45,7 @@ Changelog for package moveit_commander
 0.9.5 (2017-03-08)
 ------------------
 * [fix] Regression on Ubuntu Xenial; numpy.ndarray indices bug (from `#86 <https://github.com/ros-planning/moveit/issues/86>`_) (`#450 <https://github.com/ros-planning/moveit/issues/450>`_).
-* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_) 
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
 * Contributors: Adam Allevato, Ravi Prakash Joshi
 
 0.9.4 (2017-02-06)
@@ -82,7 +101,7 @@ Changelog for package moveit_commander
 
 0.5.6 (2014-03-24)
 ------------------
-* Added the calls necessary to manage path constraints. 
+* Added the calls necessary to manage path constraints.
 * fix joint and link acces on __getattr__  when trying to acces a joint and its paramaters throught
 * Contributors: Acorn, Emili Boronat, Sachin Chitta
 
