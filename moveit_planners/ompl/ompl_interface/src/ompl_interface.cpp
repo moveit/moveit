@@ -41,6 +41,7 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
+#include <locale>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
                                              const ros::NodeHandle& nh)
