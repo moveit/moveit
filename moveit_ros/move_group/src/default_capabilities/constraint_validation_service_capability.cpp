@@ -48,12 +48,12 @@ move_group::MoveGroupConstraintValidationService::MoveGroupConstraintValidationS
 
 void move_group::MoveGroupConstraintValidationService::initialize()
 {
-  constraint_validity_service_ = root_node_handle_.advertiseService(CONSTRAINT_VALIDITY_SERVICE_NAME,
-                                                         &MoveGroupConstraintValidationService::computeService, this);
+  constraint_validity_service_ = root_node_handle_.advertiseService(
+      CONSTRAINT_VALIDITY_SERVICE_NAME, &MoveGroupConstraintValidationService::computeService, this);
 }
 
 bool move_group::MoveGroupConstraintValidationService::computeService(moveit_msgs::GetConstraintValidity::Request& req,
-                                                                 moveit_msgs::GetConstraintValidity::Response& res)
+                                                                      moveit_msgs::GetConstraintValidity::Response& res)
 {
   planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
   robot_state::RobotState rs = ls->getCurrentState();
@@ -65,7 +65,7 @@ bool move_group::MoveGroupConstraintValidationService::computeService(moveit_msg
   bool v = true;
   // for (std::size_t i = 0; i < res.constraints.size(); ++i)
   // {
-    // v = v * kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints[i]);
+  // v = v * kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints[i]);
   // }
   v = v * kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints);
 

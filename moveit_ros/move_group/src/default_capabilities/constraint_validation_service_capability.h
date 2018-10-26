@@ -50,7 +50,8 @@ public:
   virtual void initialize();
 
 private:
-  bool computeService(moveit_msgs::GetConstraintValidity::Request& req, moveit_msgs::GetConstraintValidity::Response& res);
+  bool computeService(moveit_msgs::GetConstraintValidity::Request& req,
+                      moveit_msgs::GetConstraintValidity::Response& res);
 
   ros::ServiceServer constraint_validity_service_;
 };

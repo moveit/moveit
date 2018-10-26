@@ -301,7 +301,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           named_frames[name] = p;
         }
 
-        // Transform shape poses and named frames to link frame        
+        // Transform shape poses and named frames to link frame
         if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
         {
           Eigen::Affine3d t0;
@@ -319,7 +319,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
-          for (auto it = named_frames.begin(); it != named_frames.end(); it++ )
+          for (auto it = named_frames.begin(); it != named_frames.end(); it++)
             it->second = t * it->second;
         }
 
@@ -333,7 +333,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                                            "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture,
-                            named_frames);
+                           named_frames);
           ROS_DEBUG_NAMED("robot_state", "Attached object '%s' to link '%s'", aco.object.id.c_str(),
                           aco.link_name.c_str());
         }

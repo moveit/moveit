@@ -1602,7 +1602,7 @@ as the new values that correspond to the group */
    * @param link_name The link to attach to
    * @param detach_posture The posture of the gripper when placing the object
    * @param named_frames Transforms to points of interest on the object (can be used as end effector link)
-   * 
+   *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
    * representations of the object elsewhere in the system.  So if the
@@ -1610,11 +1610,12 @@ as the new values that correspond to the group */
    * from a planning_scene::PlanningScene), you will likely need to remove the
    * corresponding object from that world to avoid having collisions
    * detected against it. */
-  void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                  const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-                  const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
-                  const std::map<std::string, Eigen::Affine3d>& named_frames = std::map<std::string, Eigen::Affine3d>());
+  void
+  attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+             const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
+             const std::string& link_name,
+             const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+             const std::map<std::string, Eigen::Affine3d>& named_frames = std::map<std::string, Eigen::Affine3d>());
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body

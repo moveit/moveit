@@ -123,7 +123,7 @@ public:
     return named_frames_.find(frame_name)->second;
   }
 
-  /** \brief Returns true if the named 
+  /** \brief Returns true if the named
    */
   bool hasNamedTransform(const std::string& frame_name) const
   {
@@ -195,7 +195,7 @@ private:
   EigenSTL::vector_Affine3d global_collision_body_transforms_;
 
   /** \brief Transforms to named frames on the object. Transforms are applied to the link.
-   *  Use these to define points of interest on the object to plan with 
+   *  Use these to define points of interest on the object to plan with
    *  (e.g. screwdriver_tip, kettle_spout, mug_base).
    * */
   std::map<std::string, Eigen::Affine3d> named_frames_;

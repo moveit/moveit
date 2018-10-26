@@ -1165,7 +1165,6 @@ public:
         validateConstraints(constraint);
       }
     }
-      
   }
 
   void constructGoal(moveit_msgs::MoveGroupGoal& goal)
