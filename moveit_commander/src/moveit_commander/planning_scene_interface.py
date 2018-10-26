@@ -51,11 +51,9 @@ except:
         pyassimp = False
         print("Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info")
 
-# This is going to have more functionality; (feel free to add some!)
-# This class will include simple Python code for publishing messages for a planning scene
 
 class PlanningSceneInterface(object):
-    """ Simple interface to making updates to a planning scene """
+    """ Easily make updates to a planning scene such as adding/removing objects """
 
     def __init__(self, ns=''):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
@@ -263,3 +261,51 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
+
+    def wait_for_object_removed(self, object_name, timeout=4):
+        """ Ensure collision object is removed from the planning scene """
+        return self._wait_for_object_state_update(object_name, False, False, timeout)
+
+    def wait_for_object_exists_unattached(self, object_name, timeout=4):
+        """ Ensure collision object is added to planning scene """
+        return self._wait_for_object_state_update(object_name, True, False, timeout)
+
+    def wait_for_object_attached(self, object_name, object_is_known=False, object_is_attached=False, timeout=4):
+        """ Ensure collision object is attached to robot """
+        return self._wait_for_object_state_update(object_name, False, True, timeout)
+
+    def _wait_for_object_state_update(self, object_name, object_is_known=False, object_is_attached=False, timeout=4):
+        """ Ensuring Collision Updates Are Receieved """
+
+        ## If a node dies before publishing a collision object update message, the message
+        ## could get lost and the object will not appear. To ensure that the updates are
+        ## made, we wait until we see the changes reflected in the
+        ## ``get_attached_objects()`` and ``get_known_object_names()`` lists.
+        ## We call this function after adding, removing, attaching or detaching an object
+        ## in the planning scene. We then wait until the updates have been made or ``timeout``
+        ## seconds have passed
+
+        # TODO(https://github.com/ros-planning/moveit/pull/1157): Change this to not call a ROS
+        # service repeatidly
+
+        start_time = rospy.get_time()
+        current_time = start_time
+        while (current_time - start_time < timeout) and not rospy.is_shutdown():
+          # Test if the object is in attached objects
+          attached_objects = self.get_attached_objects([object_name])
+          is_attached = object_name in attached_objects
+
+          # Test if the object is in the scene.
+          # Note that attaching the object will remove it from known_objects
+          is_known = object_name in self.get_known_object_names()
+
+          # Test if we are in the expected state
+          if (object_is_attached == is_attached) and (object_is_known == is_known):
+            return True
+
+          UPDATE_RATE = 2 # hz
+          rospy.sleep(1/UPDATE_RATE)
+          current_time = rospy.get_time()
+
+        # Timed out
+        return False
