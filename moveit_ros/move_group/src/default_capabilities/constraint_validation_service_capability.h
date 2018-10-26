@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2018, OMRON SINIC X Corporation
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of OMRON SINIC X Corp. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,7 +32,16 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Felix von Drigalski */
+/* This service is used for constraints that are applied to frames on
+ * objects attached to the robot (e.g. "tip of screw driver"). 
+ * It makes these constraints valid by transforming them from the frame
+ * on the object to a frame on the robot. The planning request is not
+ * valid unless the constraints are applied to a robot link.
+ *
+ * This service might become a PlanningRequestAdapter in the near future.
+ * 
+ * Author: Felix von Drigalski 
+ */
 
 #ifndef MOVEIT_MOVE_GROUP_CONSTRAINT_VALIDATION_SERVICE_CAPABILITY_
 #define MOVEIT_MOVE_GROUP_CONSTRAINT_VALIDATION_SERVICE_CAPABILITY_

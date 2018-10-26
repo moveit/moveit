@@ -185,10 +185,12 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
                                                   double tolerance = 1e-3);
 
 /**
- * \brief Attempts to make a constraint message valid which in its link_name field
- * has the name of an AttachedBody object that exists in the RobotState. The link_name
- * field if changed to the link the AttachedBody object is attached to.
- * This function is to be used when constructing goals.
+ * \brief Converts constraints that refer to frames of AttachedBody objects 
+ * to frames that exist on the robot. This is required to construct a valid
+ * planning request. The link_name field of the constraint is changed from
+ * the name of the object frame to the name of the robot link that the 
+ * AttachedBody object is attached to.
+ * This function is used when constructing goals. 
  *
  * @param [in] state The pointer to the state from which to generate goal joint constraints
  * @param [in] c The message to be validated (modified directly).
@@ -196,10 +198,12 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
 bool validatePositionConstraints(const robot_state::RobotState& state, moveit_msgs::Constraints& c);
 
 /**
- * \brief Attempts to make a constraint message valid which in its link_name field
- * has the name of an AttachedBody object that exists in the RobotState. The link_name
- * field if changed to the link the AttachedBody object is attached to.
- * This function is to be used when constructing goals.
+ * \brief Converts constraints that refer to frames of AttachedBody objects 
+ * to frames that exist on the robot. This is required to construct a valid
+ * planning request. The link_name field of the constraint is changed from
+ * the name of the object frame to the name of the robot link that the 
+ * AttachedBody object is attached to.
+ * This function is used when constructing goals. 
  *
  * @param [in] state The pointer to the state from which to generate goal joint constraints
  * @param [in] c The message to be validated (modified directly).
@@ -207,10 +211,12 @@ bool validatePositionConstraints(const robot_state::RobotState& state, moveit_ms
 bool validateOrientationConstraints(const robot_state::RobotState& state, moveit_msgs::Constraints& c);
 
 /**
- * \brief Attempts to make a constraint message valid which in its link_name field
- * has the name of an AttachedBody object that exists in the RobotState. The link_name
- * field if changed to the link the AttachedBody object is attached to.
- * This function is to be used when constructing goals.
+ * \brief Converts constraints that refer to frames of AttachedBody objects 
+ * to frames that exist on the robot. This is required to construct a valid
+ * planning request. The link_name field of the constraint is changed from
+ * the name of the object frame to the name of the robot link that the 
+ * AttachedBody object is attached to.
+ * This function is used when constructing goals. 
  *
  * @param [in] state The pointer to the state from which to generate goal joint constraints
  * @param [in] c The message to be validated (modified directly).

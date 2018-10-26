@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2018, OMRON SINIC X Corporation
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of OMRON SINIC X Corp. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -58,18 +58,14 @@ bool move_group::MoveGroupConstraintValidationService::computeService(moveit_msg
   planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
   robot_state::RobotState rs = ls->getCurrentState();
 
-  ROS_INFO("Validating constraints inside capability");
+  ROS_INFO_NAMED("constraint_validation_service_capability", "Validating constraints inside capability");
   // Checks if the goal is defined either for existing link_names or the names of AttachedBody objects
   // that are attached to the robot. The latter are transformed to link_names so the planner can deal with them.
   res.constraints = req.constraints;
-  bool v = true;
-  // for (std::size_t i = 0; i < res.constraints.size(); ++i)
-  // {
-  // v = v * kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints[i]);
-  // }
-  v = v * kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints);
+  bool valid = true;
+  valid = valid && kinematic_constraints::validatePositionOrientationConstraints(rs, res.constraints);
 
-  res.valid = v;
+  res.valid = valid;
   return true;
 }
 

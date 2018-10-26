@@ -42,14 +42,14 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, con
                                          const EigenSTL::vector_Affine3d& attach_trans,
                                          const std::set<std::string>& touch_links,
                                          const trajectory_msgs::JointTrajectory& detach_posture,
-                                         const std::map<std::string, Eigen::Affine3d>& named_frames)
+                                         const std::map<std::string, Eigen::Affine3d>& named_frame_poses)
   : parent_link_model_(parent_link_model)
   , id_(id)
   , shapes_(shapes)
   , attach_trans_(attach_trans)
   , touch_links_(touch_links)
   , detach_posture_(detach_posture)
-  , named_frames_(named_frames)
+  , named_frame_poses_(named_frame_poses)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
   for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)

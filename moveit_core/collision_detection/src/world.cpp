@@ -61,7 +61,7 @@ inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::Shape
   obj->shape_poses_.push_back(pose);
 }
 
-void World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+void World::addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
                         const EigenSTL::vector_Affine3d& poses)
 {
   if (shapes.size() != poses.size())
@@ -76,10 +76,10 @@ void World::addToObject(const std::string& id, const std::vector<shapes::ShapeCo
 
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
+  ObjectPtr& obj = objects_[object_id];
   if (!obj)
   {
-    obj.reset(new Object(id));
+    obj.reset(new Object(object_id));
     action |= CREATE;
   }
 
@@ -91,14 +91,14 @@ void World::addToObject(const std::string& id, const std::vector<shapes::ShapeCo
   notify(obj, Action(action));
 }
 
-void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+void World::addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
 {
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
+  ObjectPtr& obj = objects_[object_id];
   if (!obj)
   {
-    obj.reset(new Object(id));
+    obj.reset(new Object(object_id));
     action |= CREATE;
   }
 
@@ -110,15 +110,15 @@ void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shap
 
 std::vector<std::string> World::getObjectIds() const
 {
-  std::vector<std::string> id;
+  std::vector<std::string> object_id;
   for (const auto& object : objects_)
-    id.push_back(object.first);
-  return id;
+    object_id.push_back(object.first);
+  return object_id;
 }
 
-World::ObjectConstPtr World::getObject(const std::string& id) const
+World::ObjectConstPtr World::getObject(const std::string& object_id) const
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it == objects_.end())
     return ObjectConstPtr();
   else
@@ -131,59 +131,61 @@ void World::ensureUnique(ObjectPtr& obj)
     obj.reset(new Object(*obj));
 }
 
-bool World::hasObject(const std::string& id) const
+bool World::hasObject(const std::string& object_id) const
 {
-  return objects_.find(id) != objects_.end();
+  return objects_.find(object_id) != objects_.end();
 }
 
-bool World::knowsTransform(const std::string& id) const
+bool World::knowsTransform(const std::string& object_id) const
 {
   // Check object names first
-  if (objects_.find(id) != objects_.end())
+  if (objects_.find(object_id) != objects_.end())
     return true;
   else  // Then objects' named frames
   {
-    for (auto o : objects_)
+    for (const auto& object : objects_)
     {
-      if (o.second->named_frames_.count(id) > 0)
+      if (object.second->named_frame_poses_.find(object_id) != object.second->named_frame_poses_.end())
         return true;
     }
   }
   return false;
 }
 
-const Eigen::Affine3d& World::getTransform(const std::string& id) const
+const Eigen::Affine3d& World::getTransform(const std::string& object_id) const
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
     return it->second->shape_poses_[0];
   else  // Find within named frames
   {
-    for (auto o : objects_)
+    for (const auto& object : objects_)
     {
-      if (o.second->named_frames_.count(id) > 0)
-        return o.second->named_frames_[id];
+      if (object.second->named_frame_poses_.find(object_id) != object.second->named_frame_poses_.end())
+        return object.second->named_frame_poses_[object_id];
     }
   }
 }
 
-std::string World::getParent(const std::string& id) const
+std::string World::getObjectOwningFrame(const std::string& frame_name) const
 {
-  for (auto o : objects_)
-  {
-    if (o.second->named_frames_.count(id) > 0)
-      return o.second->id_;
-  }
   // If it is an object's name, return the object
-  auto it = objects_.find(id);
+  auto it = objects_.find(frame_name);
   if (it != objects_.end())
     return it->second->id_;
+  
+  // Return the object owning the frame
+  for (const auto& object : objects_)
+  {
+    if (object.second->named_frame_poses_.find(frame_name) != object.second->named_frame_poses_.end())
+      return object.second->id_;
+  }
   return "";
 }
 
-bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -200,9 +202,9 @@ bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr
   return false;
 }
 
-bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
+bool World::moveObject(const std::string& object_id, const Eigen::Affine3d& transform)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it == objects_.end())
     return false;
   ensureUnique(it->second);
@@ -214,21 +216,21 @@ bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
   return true;
 }
 
-bool World::replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+bool World::replaceShapesInObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
                                   const EigenSTL::vector_Affine3d& poses)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it == objects_.end())
     return false;
   it->second->shapes_.clear();
   it->second->shape_poses_.clear();
-  addToObject(id, shapes, poses);
+  addToObject(object_id, shapes, poses);
   return true;
 }
 
-bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
+bool World::removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -254,9 +256,9 @@ bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeCons
   return false;
 }
 
-bool World::removeObject(const std::string& id)
+bool World::removeObject(const std::string& object_id)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     notify(it->second, DESTROY);
@@ -272,14 +274,14 @@ void World::clearObjects()
   objects_.clear();
 }
 
-bool World::setNamedFramesOfObject(const std::string& id, const std::map<std::string, Eigen::Affine3d>& named_frames)
+bool World::setNamedFramesOfObject(const std::string& object_id, const std::map<std::string, Eigen::Affine3d>& named_frame_poses)
 {
-  ObjectPtr& obj = objects_[id];
-  if (!obj)
+  auto obj_pair = objects_.find(object_id);
+  if (obj_pair == objects_.end())
   {
     return false;
   }
-  obj->named_frames_ = named_frames;
+  obj_pair->second->named_frame_poses_ = named_frame_poses;
   return true;
 }
 

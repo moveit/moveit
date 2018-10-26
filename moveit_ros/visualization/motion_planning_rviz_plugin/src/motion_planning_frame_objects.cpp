@@ -176,10 +176,10 @@ static QString decideStatusText(const collision_detection::CollisionWorld::Objec
     }
     status_text += ".";
   }
-  if (obj->named_frames_.size() > 0)
+  if (obj->named_frame_poses_.size() > 0)
   {
     status_text += "\nIt has the named frames '";
-    for (auto frame : obj->named_frames_)
+    for (auto frame : obj->named_frame_poses_)
     {
       status_text += QString::fromStdString(frame.first) + "', '";
     }

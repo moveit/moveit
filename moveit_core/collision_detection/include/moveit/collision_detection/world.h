@@ -80,13 +80,13 @@ public:
   /** \brief A representation of an object */
   struct Object
   {
-    Object(const std::string& id) : id_(id)
+    Object(const std::string& object_id) : id_(object_id)
     {
     }
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    /** \brief The id for this object */
+    /** \brief The object_id for this object */
     std::string id_;
 
     /** \brief All the shapes making up this object.
@@ -111,14 +111,14 @@ public:
      *  Use these to define points of interest on the object to plan with
      *  (e.g. screwdriver_tip, kettle_spout, mug_base).
      * */
-    std::map<std::string, Eigen::Affine3d> named_frames_;
+    std::map<std::string, Eigen::Affine3d> named_frame_poses_;
   };
 
   /** \brief Get the list of Object ids */
   std::vector<std::string> getObjectIds() const;
 
   /** \brief Get a particular object */
-  ObjectConstPtr getObject(const std::string& id) const;
+  ObjectConstPtr getObject(const std::string& object_id) const;
 
   /** iterator over the objects in the world. */
   typedef std::map<std::string, ObjectPtr>::const_iterator const_iterator;
@@ -138,22 +138,22 @@ public:
     return objects_.size();
   }
   /** find changes for a named object */
-  const_iterator find(const std::string& id) const
+  const_iterator find(const std::string& object_id) const
   {
-    return objects_.find(id);
+    return objects_.find(object_id);
   }
 
   /** \brief Check if a particular object exists in the collision world*/
-  bool hasObject(const std::string& id) const;
+  bool hasObject(const std::string& object_id) const;
 
-  /** \brief Check if a frame or object with name id exists in the collision world*/
-  bool knowsTransform(const std::string& id) const;
+  /** \brief Check if a frame or object with name object_id exists in the collision world*/
+  bool knowsTransform(const std::string& object_id) const;
 
-  /** \brief Get the transform to a frame or object with name id*/
-  const Eigen::Affine3d& getTransform(const std::string& id) const;
+  /** \brief Get the transform to a frame or object with name object_id*/
+  const Eigen::Affine3d& getTransform(const std::string& object_id) const;
 
-  /** \brief Get the object id that owns the named frame with name id*/
-  std::string getParent(const std::string& id) const;
+  /** \brief Get the object id that owns the named frame with name object_id*/
+  std::string getObjectOwningFrame(const std::string& frame_name) const;
 
   /** \brief Add shapes to an object in the map.
    * This function makes repeated calls to addToObjectInternal() to add the
@@ -167,20 +167,20 @@ public:
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
-  void addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose);
+  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose);
 
   /** \brief Update the pose of a shape in an object. Shape equality is
    * verified by comparing pointers. Returns true on success. */
-  bool moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose);
+  bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose);
 
   /** \brief Move all shapes in an object according to the given transform specified in world frame */
-  bool moveObject(const std::string& id, const Eigen::Affine3d& transform);
+  bool moveObject(const std::string& object_id, const Eigen::Affine3d& transform);
 
   /** \brief Replaces all shapes in an existing object.
-   * If the object already exists, this call will add the shape to the object
+   * If the object already exists, this call will assign the new shapes to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
-  bool replaceShapesInObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+  bool replaceShapesInObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
                              const EigenSTL::vector_Affine3d& poses);
 
   /** \brief Remove shape from object.
@@ -189,16 +189,16 @@ public:
    * exist) if this was the last shape in the object.
    * Returns true on success and false if the object did not exist or did not
    * contain the shape. */
-  bool removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape);
+  bool removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape);
 
   /** \brief Remove a particular object.
    * If there are no external pointers to the corresponding instance of
    * Object, the memory is freed.
    * Returns true on success and false if no such object was found. */
-  bool removeObject(const std::string& id);
+  bool removeObject(const std::string& object_id);
 
   /** \brief Set named frames on an object. */
-  bool setNamedFramesOfObject(const std::string& id, const std::map<std::string, Eigen::Affine3d>& named_frames);
+  bool setNamedFramesOfObject(const std::string& object_id, const std::map<std::string, Eigen::Affine3d>& named_frame_poses);
 
   /** \brief Clear all objects.
    * If there are no other pointers to corresponding instances of Objects,
@@ -277,7 +277,7 @@ private:
   /** send notification of change to all objects. */
   void notifyAll(Action action);
 
-  /** \brief Make sure that the object named \e id is known only to this
+  /** \brief Make sure that the object named \e object_id is known only to this
    * instance of the World. If the object is known outside of it, a
    * clone is made so that it can be safely modified later on. */
   void ensureUnique(ObjectPtr& obj);

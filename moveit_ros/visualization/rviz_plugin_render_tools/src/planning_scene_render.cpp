@@ -109,7 +109,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     // TODO: Integrate this properly (either by publishing to TF, or frames that can be toggled)
     auto s = shapes::Sphere(.002);
     rviz::Color red(1.0, 0.0, 0.0);
-    for (auto nf_pair : o->named_frames_)
+    for (auto nf_pair : o->named_frame_poses_)
     {
       render_shapes_->renderShape(planning_scene_geometry_node_, &s, nf_pair.second, octree_voxel_rendering,
                                   octree_color_mode, red, 1.0);

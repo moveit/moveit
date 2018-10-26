@@ -216,13 +216,13 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
     }
   }
   aco.object.frame_names.clear();
-  aco.object.named_frames.clear();
-  for (auto it : attached_body.getNamedTransforms())
+  aco.object.named_frame_poses.clear();
+  for (auto frame_pair : attached_body.getNamedTransforms())
   {
-    aco.object.frame_names.push_back(it.first);
-    geometry_msgs::Pose p;
-    tf::poseEigenToMsg(it.second, p);
-    aco.object.named_frames.push_back(p);
+    aco.object.frame_names.push_back(frame_pair.first);
+    geometry_msgs::Pose pose;
+    tf::poseEigenToMsg(frame_pair.second, pose);
+    aco.object.named_frame_poses.push_back(pose);
   }
 }
 
@@ -292,13 +292,13 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           }
         }
 
-        std::map<std::string, Eigen::Affine3d> named_frames;
-        for (std::size_t i = 0; i < aco.object.named_frames.size(); ++i)
+        std::map<std::string, Eigen::Affine3d> named_frame_poses;
+        for (std::size_t i = 0; i < aco.object.named_frame_poses.size(); ++i)
         {
           Eigen::Affine3d p;
-          tf::poseMsgToEigen(aco.object.named_frames[i], p);
+          tf::poseMsgToEigen(aco.object.named_frame_poses[i], p);
           std::string name = aco.object.frame_names[i];
-          named_frames[name] = p;
+          named_frame_poses[name] = p;
         }
 
         // Transform shape poses and named frames to link frame
@@ -319,7 +319,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
-          for (auto it = named_frames.begin(); it != named_frames.end(); it++)
+          for (auto it = named_frame_poses.begin(); it != named_frame_poses.end(); it++)
             it->second = t * it->second;
         }
 
@@ -333,7 +333,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                                            "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture,
-                           named_frames);
+                           named_frame_poses);
           ROS_DEBUG_NAMED("robot_state", "Attached object '%s' to link '%s'", aco.object.id.c_str(),
                           aco.link_name.c_str());
         }

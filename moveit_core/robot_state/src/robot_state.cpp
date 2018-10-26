@@ -844,14 +844,14 @@ void RobotState::attachBody(AttachedBody* attached_body)
 void RobotState::attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                             const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
                             const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture,
-                            const std::map<std::string, Eigen::Affine3d>& named_frames)
+                            const std::map<std::string, Eigen::Affine3d>& named_frame_poses)
 {
   const LinkModel* l = robot_model_->getLinkModel(link);
-  AttachedBody* ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture, named_frames);
-  attached_body_map_[id] = ab;
-  ab->computeTransform(getGlobalLinkTransform(l));
+  AttachedBody* body = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture, named_frame_poses);
+  attached_body_map_[id] = body;
+  body->computeTransform(getGlobalLinkTransform(l));
   if (attached_body_update_callback_)
-    attached_body_update_callback_(ab, true);
+    attached_body_update_callback_(body, true);
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const
@@ -967,10 +967,10 @@ const Eigen::Affine3d& RobotState::getFrameTransform(const std::string& id) cons
   }
 
   // Check named frames of the AttachedBody objects
-  for (auto ab : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
+  for (auto body : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
   {
-    if (ab.second->hasNamedTransform(id))
-      return ab.second->getNamedTransform(id);
+    if (body.second->hasNamedTransform(id))
+      return body.second->getNamedTransform(id);
   }
   // TODO: Is this efficient? Probably not, should be a find() + iterator comparison instead of two loops.
 
@@ -1010,9 +1010,9 @@ bool RobotState::knowsFrameTransform(const std::string& id) const
   if (robot_model_->hasLinkModel(id))
     return true;
 
-  for (auto ab : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
+  for (auto body : attached_body_map_)  // Check if an AttachedBody has a child frame with name id
   {
-    if (ab.second->hasNamedTransform(id))
+    if (body.second->hasNamedTransform(id))
       return true;
   }
 
@@ -1512,15 +1512,15 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
       {
         if (hasAttachedBody(pose_frame))
         {
-          const AttachedBody* ab = getAttachedBody(pose_frame);
-          const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
+          const AttachedBody* body = getAttachedBody(pose_frame);
+          const EigenSTL::vector_Affine3d& ab_trans = body->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
             ROS_ERROR_NAMED("robot_state", "Cannot use an attached body "
                                            "with multiple geometries as a reference frame.");
             return false;
           }
-          pose_frame = ab->getAttachedLinkName();
+          pose_frame = body->getAttachedLinkName();
           pose = pose * ab_trans[0].inverse();
         }
         if (pose_frame != solver_tip_frame)
@@ -1755,14 +1755,14 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
     {
       if (hasAttachedBody(pose_frame))
       {
-        const AttachedBody* ab = getAttachedBody(pose_frame);
-        const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
+        const AttachedBody* body = getAttachedBody(pose_frame);
+        const EigenSTL::vector_Affine3d& ab_trans = body->getFixedTransforms();
         if (ab_trans.size() != 1)
         {
           ROS_ERROR_NAMED("robot_state", "Cannot use an attached body with multiple geometries as a reference frame.");
           return false;
         }
-        pose_frame = ab->getAttachedLinkName();
+        pose_frame = body->getAttachedLinkName();
         pose = pose * ab_trans[0].inverse();
       }
       if (pose_frame != solver_tip_frame)
