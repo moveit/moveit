@@ -39,7 +39,9 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
 #include <fstream>
+#include <locale>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
   : nh_(nh)
@@ -201,11 +203,11 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     if (element.second.getType() == XmlRpc::XmlRpcValue::TypeString)
       planner_config.config[element.first] = static_cast<std::string>(element.second);
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-      planner_config.config[element.first] = std::to_string(static_cast<double>(element.second));
+      planner_config.config[element.first] = moveit::core::toString(static_cast<double>(element.second));
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-      planner_config.config[element.first] = std::to_string(static_cast<int>(element.second));
+      planner_config.config[element.first] = moveit::core::toString(static_cast<int>(element.second));
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
-      planner_config.config[element.first] = std::to_string(static_cast<bool>(element.second));
+      planner_config.config[element.first] = moveit::core::toString(static_cast<bool>(element.second));
   }
 
   return true;
@@ -240,14 +242,23 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         double value_d;
         if (nh_.getParam(group_name + "/" + k, value_d))
         {
+<<<<<<< HEAD
           specific_group_params[k] = std::to_string(value_d);
+=======
+          // convert to string using no locale
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = moveit::core::toString(value_d);
+>>>>>>> e855e7f... Use locale independent conversion from double to string (#1099)
           continue;
         }
 
         int value_i;
         if (nh_.getParam(group_name + "/" + k, value_i))
         {
+<<<<<<< HEAD
           specific_group_params[k] = std::to_string(value_i);
+=======
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = std::to_string(value_i);
+>>>>>>> e855e7f... Use locale independent conversion from double to string (#1099)
           continue;
         }
 

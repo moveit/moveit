@@ -90,6 +90,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     profiler/include
     sensor_manager/include
     trajectory_processing/include
+    utils/include
 )
 
 catkin_package(
@@ -115,6 +116,7 @@ catkin_package(
     moveit_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
+    moveit_utils
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     tf2_eigen
@@ -186,3 +188,4 @@ add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+add_subdirectory(utils)
