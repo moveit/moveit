@@ -611,7 +611,8 @@ void JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, Sol
         ks.solver_instance_ = const_cast<JointModelGroup*>(it->first)->getSolverInstance();
         ks.default_ik_timeout_ = group_kinematics_.first.default_ik_timeout_;
         ks.default_ik_attempts_ = group_kinematics_.first.default_ik_attempts_;
-        if (!computeIKIndexBijection(ks.solver_instance_.lock()->getJointNames(), ks.bijection_))
+        kinematics::KinematicsBasePtr si = ks.solver_instance_.lock();
+        if (!si || !computeIKIndexBijection(si->getJointNames(), ks.bijection_))
         {
           group_kinematics_.second.clear();
           break;
