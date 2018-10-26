@@ -33,14 +33,14 @@
  *********************************************************************/
 
 /* This service is used for constraints that are applied to frames on
- * objects attached to the robot (e.g. "tip of screw driver"). 
+ * objects attached to the robot (e.g. "tip of screw driver").
  * It makes these constraints valid by transforming them from the frame
  * on the object to a frame on the robot. The planning request is not
  * valid unless the constraints are applied to a robot link.
  *
  * This service might become a PlanningRequestAdapter in the near future.
- * 
- * Author: Felix von Drigalski 
+ *
+ * Author: Felix von Drigalski
  */
 
 #ifndef MOVEIT_MOVE_GROUP_CONSTRAINT_VALIDATION_SERVICE_CAPABILITY_

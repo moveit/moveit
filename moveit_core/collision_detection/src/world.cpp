@@ -173,7 +173,7 @@ std::string World::getObjectOwningFrame(const std::string& frame_name) const
   auto it = objects_.find(frame_name);
   if (it != objects_.end())
     return it->second->id_;
-  
+
   // Return the object owning the frame
   for (const auto& object : objects_)
   {
@@ -183,7 +183,8 @@ std::string World::getObjectOwningFrame(const std::string& frame_name) const
   return "";
 }
 
-bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+                              const Eigen::Affine3d& pose)
 {
   auto it = objects_.find(object_id);
   if (it != objects_.end())
@@ -274,7 +275,8 @@ void World::clearObjects()
   objects_.clear();
 }
 
-bool World::setNamedFramesOfObject(const std::string& object_id, const std::map<std::string, Eigen::Affine3d>& named_frame_poses)
+bool World::setNamedFramesOfObject(const std::string& object_id,
+                                   const std::map<std::string, Eigen::Affine3d>& named_frame_poses)
 {
   auto obj_pair = objects_.find(object_id);
   if (obj_pair == objects_.end())

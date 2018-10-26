@@ -127,7 +127,6 @@ public:
    */
   bool hasNamedTransform(const std::string& frame_name) const
   {
-    
     return (named_frame_poses_.find(frame_name) != named_frame_poses_.end());
   }
 

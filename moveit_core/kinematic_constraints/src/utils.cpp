@@ -282,15 +282,16 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
   for (auto& pos_con_it : c.position_constraints)
   {
     ROS_DEBUG_NAMED("kinematic_constraints_utils", "Cycling through position constraint.");
-    ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "Current position constraint: link_name "
-                    << pos_con_it.link_name << ", offset " << pos_con_it.target_point_offset.x << " "
-                    << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z
-                    << ". header/frame_id: " << pos_con_it.header.frame_id);
+    ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                           "Current position constraint: link_name "
+                               << pos_con_it.link_name << ", offset " << pos_con_it.target_point_offset.x << " "
+                               << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z
+                               << ". header/frame_id: " << pos_con_it.header.frame_id);
     // If the link is not found in the robot model
     if (!state.hasLinkModel(pos_con_it.link_name))
     {
       // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the
-      // link_frame of the robot, and I can't think of a good name for a function that returns bool frame_exists, 
+      // link_frame of the robot, and I can't think of a good name for a function that returns bool frame_exists,
       // Eigen::Affine3d transform and std::string link_name.
       // TODO(felixvd): Make this comment understandable.
       std::vector<const robot_state::AttachedBody*> bodies;
@@ -301,7 +302,8 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
       // Try finding it in attached bodies
       if (state.hasAttachedBody(pos_con_it.link_name))
       {
-        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has attached body with name " << pos_con_it.link_name);
+        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has attached body with name "
+                                                                  << pos_con_it.link_name);
         const robot_state::AttachedBody* body = state.getAttachedBody(pos_con_it.link_name);
         transform = body->getFixedTransforms()[0];
         robot_link_name = body->getAttachedLinkName();
@@ -309,18 +311,21 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
       }
       else  // Try finding it in attached bodies' named frames
       {
-        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has no attached body with name " << pos_con_it.link_name << ". Checking named frames.");
+        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has no attached body with name "
+                                                                  << pos_con_it.link_name
+                                                                  << ". Checking named frames.");
         for (auto body : bodies)
         {
           ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "Checking attached body " << body->getName());
-          ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", body->getName() << " has " << body->getNamedTransforms().size() << " named frames.");
+          ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                                 body->getName() << " has " << body->getNamedTransforms().size() << " named frames.");
           if (body->hasNamedTransform(pos_con_it.link_name))
           {
             transform = body->getNamedTransform(pos_con_it.link_name);
             robot_link_name = body->getAttachedLinkName();
             ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has "
-                            << " named frame called " << pos_con_it.link_name << " on attached body "
-                            << body->getName());
+                                                                      << " named frame called " << pos_con_it.link_name
+                                                                      << " on attached body " << body->getName());
             transform_found = true;
           }
         }
@@ -332,17 +337,19 @@ bool kinematic_constraints::validatePositionConstraints(const robot_state::Robot
           pos_in_original_frame(pos_con_it.target_point_offset.x, pos_con_it.target_point_offset.y,
                                 pos_con_it.target_point_offset.z);
 
-      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "Original position constraint in frame "
-                      << pos_con_it.link_name << " is " << pos_con_it.target_point_offset.x << " "
-                      << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z);
+      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                             "Original position constraint in frame "
+                                 << pos_con_it.link_name << " is " << pos_con_it.target_point_offset.x << " "
+                                 << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z);
       pos_in_link_frame = transform * pos_in_original_frame;
       pos_con_it.link_name = robot_link_name;
       pos_con_it.target_point_offset.x = pos_in_link_frame[0];
       pos_con_it.target_point_offset.y = pos_in_link_frame[1];
       pos_con_it.target_point_offset.z = pos_in_link_frame[2];
-      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "New position constraint in frame "
-                      << pos_con_it.link_name << " is " << pos_con_it.target_point_offset.x << " "
-                      << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z);
+      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                             "New position constraint in frame "
+                                 << pos_con_it.link_name << " is " << pos_con_it.target_point_offset.x << " "
+                                 << pos_con_it.target_point_offset.y << " " << pos_con_it.target_point_offset.z);
     }
   }
   return true;
@@ -360,7 +367,7 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
     if (!state.hasLinkModel(ori_con_it.link_name))
     {
       // NOTE: This could use state.knowsFrameTransform() and state.getFrameTransform(), but those don't return the
-      // link_frame of the robot, and I can't think of a good name for a function that returns bool frame_exists, 
+      // link_frame of the robot, and I can't think of a good name for a function that returns bool frame_exists,
       // Eigen::Affine3d transform and std::string link_name.
       // TODO(felixvd): Make this comment understandable.
       std::vector<const robot_state::AttachedBody*> bodies;
@@ -371,7 +378,8 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
       // Try finding it in attached bodies
       if (state.hasAttachedBody(ori_con_it.link_name))
       {
-        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has attached body with name " << ori_con_it.link_name);
+        ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has attached body with name "
+                                                                  << ori_con_it.link_name);
         const robot_state::AttachedBody* body = state.getAttachedBody(ori_con_it.link_name);
         q_body_to_link = body->getFixedTransforms()[0].inverse().rotation();
         robot_link_name = body->getAttachedLinkName();
@@ -386,8 +394,8 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
             q_body_to_link = body->getNamedTransform(ori_con_it.link_name).inverse().rotation();
             robot_link_name = body->getAttachedLinkName();
             ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "State has "
-                            << " named frame called " << ori_con_it.link_name << " on attached body "
-                            << body->getName());
+                                                                      << " named frame called " << ori_con_it.link_name
+                                                                      << " on attached body " << body->getName());
             transform_found = true;
           }
         }
@@ -399,17 +407,19 @@ bool kinematic_constraints::validateOrientationConstraints(const robot_state::Ro
                                   ori_con_it.orientation.z);
       Eigen::Quaterniond q_in_link = q_body_to_link * q_target;
 
-      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "Original orientation constraint in frame "
-                      << ori_con_it.link_name << " is (xyz) " << ori_con_it.orientation.x << " "
-                      << ori_con_it.orientation.y << " " << ori_con_it.orientation.z);
+      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                             "Original orientation constraint in frame "
+                                 << ori_con_it.link_name << " is (xyz) " << ori_con_it.orientation.x << " "
+                                 << ori_con_it.orientation.y << " " << ori_con_it.orientation.z);
       ori_con_it.link_name = robot_link_name;
       ori_con_it.orientation.x = q_in_link.x();
       ori_con_it.orientation.y = q_in_link.y();
       ori_con_it.orientation.z = q_in_link.z();
       ori_con_it.orientation.w = q_in_link.w();
-      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils", "New orientation constraint in frame "
-                      << ori_con_it.link_name << " is (xyz)  " << ori_con_it.orientation.x << " "
-                      << ori_con_it.orientation.y << " " << ori_con_it.orientation.z);
+      ROS_DEBUG_STREAM_NAMED("kinematic_constraints_utils",
+                             "New orientation constraint in frame "
+                                 << ori_con_it.link_name << " is (xyz)  " << ori_con_it.orientation.x << " "
+                                 << ori_con_it.orientation.y << " " << ori_con_it.orientation.z);
     }
   }
   return true;

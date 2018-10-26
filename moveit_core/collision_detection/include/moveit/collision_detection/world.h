@@ -198,7 +198,8 @@ public:
   bool removeObject(const std::string& object_id);
 
   /** \brief Set named frames on an object. */
-  bool setNamedFramesOfObject(const std::string& object_id, const std::map<std::string, Eigen::Affine3d>& named_frame_poses);
+  bool setNamedFramesOfObject(const std::string& object_id,
+                              const std::map<std::string, Eigen::Affine3d>& named_frame_poses);
 
   /** \brief Clear all objects.
    * If there are no other pointers to corresponding instances of Objects,

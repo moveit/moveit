@@ -1610,12 +1610,12 @@ as the new values that correspond to the group */
    * from a planning_scene::PlanningScene), you will likely need to remove the
    * corresponding object from that world to avoid having collisions
    * detected against it. */
-  void
-  attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-             const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-             const std::string& link_name,
-             const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
-             const std::map<std::string, Eigen::Affine3d>& named_frame_poses = std::map<std::string, Eigen::Affine3d>());
+  void attachBody(
+      const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+      const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
+      const std::string& link_name,
+      const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+      const std::map<std::string, Eigen::Affine3d>& named_frame_poses = std::map<std::string, Eigen::Affine3d>());
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1633,11 +1633,12 @@ as the new values that correspond to the group */
    * from a planning_scene::PlanningScene), you will likely need to remove the
    * corresponding object from that world to avoid having collisions
    * detected against it. */
-  void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                  const EigenSTL::vector_Affine3d& attach_trans, const std::vector<std::string>& touch_links,
-                  const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
-                  const std::map<std::string, Eigen::Affine3d>& named_frame_poses = std::map<std::string, Eigen::Affine3d>())
+  void
+  attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+             const EigenSTL::vector_Affine3d& attach_trans, const std::vector<std::string>& touch_links,
+             const std::string& link_name,
+             const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+             const std::map<std::string, Eigen::Affine3d>& named_frame_poses = std::map<std::string, Eigen::Affine3d>())
   {
     std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
     attachBody(id, shapes, attach_trans, touch_links_set, link_name, detach_posture, named_frame_poses);

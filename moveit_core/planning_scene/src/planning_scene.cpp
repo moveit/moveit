@@ -1543,7 +1543,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (object.object.header.frame_id != object.link_name)
         {
           const Eigen::Affine3d& transform = kstate_->getGlobalLinkTransform(link_model).inverse() *
-                                     getTransforms().getTransform(object.object.header.frame_id);
+                                             getTransforms().getTransform(object.object.header.frame_id);
           for (std::size_t i = 0; i < object_to_attach.shape_poses_.size(); ++i)
             object_to_attach.shape_poses_[i] = transform * object_to_attach.shape_poses_[i];
         }
@@ -1565,7 +1565,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         object_to_attach.named_frame_poses_ = obj_in_world->named_frame_poses_;
         // Transform named frames to the link frame
         const Eigen::Affine3d& inv_transform = kstate_->getGlobalLinkTransform(link_model).inverse();
-        for (auto it = object_to_attach.named_frame_poses_.begin(); it != object_to_attach.named_frame_poses_.end(); it++)
+        for (auto it = object_to_attach.named_frame_poses_.begin(); it != object_to_attach.named_frame_poses_.end();
+             it++)
           it->second = inv_transform * it->second;
       }
       else  // Populate named frames from message
@@ -1582,8 +1583,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (object.object.header.frame_id != object.link_name)
         {
           const Eigen::Affine3d& transform = kstate_->getGlobalLinkTransform(link_model).inverse() *
-                                     getTransforms().getTransform(object.object.header.frame_id);
-          for (auto frame_pair = object_to_attach.named_frame_poses_.begin(); frame_pair != object_to_attach.named_frame_poses_.end(); frame_pair++)
+                                             getTransforms().getTransform(object.object.header.frame_id);
+          for (auto frame_pair = object_to_attach.named_frame_poses_.begin();
+               frame_pair != object_to_attach.named_frame_poses_.end(); frame_pair++)
             frame_pair->second = transform * frame_pair->second;
         }
       }
