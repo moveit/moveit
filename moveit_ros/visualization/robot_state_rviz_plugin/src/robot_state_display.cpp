@@ -95,9 +95,9 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_r
                                                      "Whether to display the collision representation of the robot.",
                                                      this, SLOT(changedEnableCollisionVisible()), this);
 
-  enable_attached_body_visible_ = new rviz::BoolProperty("Attached Body Visible", true,
-                                                         "Whether to display the attached body.",
-                                                         this, SLOT(changedEnableAttachedBodyVisible()), this);
+  enable_attached_body_visible_ =
+      new rviz::BoolProperty("Attached Body Visible", true, "Whether to display the attached body.", this,
+                             SLOT(changedEnableAttachedBodyVisible()), this);
 
   show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", this,
                                            SLOT(changedAllLinks()), this);

@@ -110,7 +110,7 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
   robot_.setCollisionVisible(collision_visible_);
   robot_.setVisible(visible_);
   if (!attached_body_visible_)
-      return;
+    return;
 
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
@@ -166,7 +166,7 @@ void RobotStateVisualization::setAttachedBodyVisible(bool visible)
   // currently rviz::Shape does not provide a setVisible-method, so
   // the best we can do here is to clear the shapes-vector in the not-visible-case
   if (!attached_body_visible_)
-      render_shapes_->clear();
+    render_shapes_->clear();
 }
 
 void RobotStateVisualization::setAlpha(float alpha)
