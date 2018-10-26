@@ -1331,7 +1331,7 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     float v;
     if (config.mapGetFloat("Velocity_Scaling_Factor", &v))
       frame_->ui_->velocity_scaling_factor->setValue(v);
-    if (config.mapGetFloat("Acceleration_Scaling_Factor", &v));
+    if (config.mapGetFloat("Acceleration_Scaling_Factor", &v))
       frame_->ui_->acceleration_scaling_factor->setValue(v);
 
     rviz::Config workspace = config.mapGetChild("MoveIt_Workspace");
