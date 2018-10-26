@@ -45,6 +45,8 @@
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
+#include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
@@ -242,7 +244,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     // clang-format off
     double longest_valid_segment_fraction_config = (it != cfg.end())
-      ? boost::lexical_cast<double>(it->second)  // value from config file if there
+      ? moveit::core::toDouble(it->second)  // value from config file if there
       : 0.01;  // default value in OMPL.
     double longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
     if (max_solution_segment_length_ > 0.0)
@@ -255,7 +257,9 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
       );
     }
     // clang-format on
-    cfg["longest_valid_segment_fraction"] = std::to_string(longest_valid_segment_fraction_final);
+
+    // convert to string using no locale
+    cfg["longest_valid_segment_fraction"] = moveit::core::toString(longest_valid_segment_fraction_final);
   }
 
   // set the projection evaluator
