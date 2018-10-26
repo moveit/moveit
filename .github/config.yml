@@ -11,7 +11,7 @@ newIssueWelcomeComment: >
 
 # Comment to be posted to on PRs from first time contributors in your repository
 newPRWelcomeComment: >
-  Thanks for opening your first MoveIt! pull request :robot:
+  Thanks for helping in improving MoveIt!
 
 # Configuration for first-pr-merge - https://github.com/behaviorbot/first-pr-merge
 
