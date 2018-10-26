@@ -41,10 +41,10 @@
 
 namespace moveit
 {
-namespace utils
+namespace core
 {
-template <class T>
-std::string toStringImpl(T t)
+template <class InType>
+std::string toStringImpl(InType t)
 {
   // convert to string using no locale
   std::ostringstream oss;
@@ -58,24 +58,24 @@ std::string toString(double d)
   return toStringImpl(d);
 }
 
-std::string toString(float d)
+std::string toString(float f)
 {
-  return toStringImpl(d);
+  return toStringImpl(f);
 }
 
-template <class T>
-T toRealImpl(const std::string& s)
+template <class OutType>
+OutType toRealImpl(const std::string& s)
 {
   // convert from string using no locale
-  std::istringstream iss(s);
-  iss.imbue(std::locale::classic());
-  T d;
-  iss >> d;
-  if (iss.fail() || !iss.eof())
+  std::istringstream stream(s);
+  stream.imbue(std::locale::classic());
+  OutType result;
+  stream >> result;
+  if (stream.fail() || !stream.eof())
   {
     throw std::runtime_error("Failed converting string to real number");
   }
-  return d;
+  return result;
 }
 
 double toDouble(const std::string& s)

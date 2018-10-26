@@ -206,7 +206,7 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
       planner_config.config[it->first] = static_cast<std::string>(it->second);
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-      planner_config.config[it->first] = moveit::utils::toString(static_cast<double>(it->second));
+      planner_config.config[it->first] = moveit::core::toString(static_cast<double>(it->second));
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
       planner_config.config[it->first] = std::to_string(static_cast<int>(it->second));
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
@@ -247,7 +247,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
           // convert to string using no locale
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = moveit::utils::toString(value_d);
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = moveit::core::toString(value_d);
           continue;
         }
 

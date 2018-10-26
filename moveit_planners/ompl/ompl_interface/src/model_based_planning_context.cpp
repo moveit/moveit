@@ -244,7 +244,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     // clang-format off
     double longest_valid_segment_fraction_config = (it != cfg.end())
-      ? moveit::utils::toDouble(it->second)  // value from config file if there
+      ? moveit::core::toDouble(it->second)  // value from config file if there
       : 0.01;  // default value in OMPL.
     double longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
     if (max_solution_segment_length_ > 0.0)
@@ -259,7 +259,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     // clang-format on
 
     // convert to string using no locale
-    cfg["longest_valid_segment_fraction"] = moveit::utils::toString(longest_valid_segment_fraction_final);
+    cfg["longest_valid_segment_fraction"] = moveit::core::toString(longest_valid_segment_fraction_final);
   }
 
   // set the projection evaluator

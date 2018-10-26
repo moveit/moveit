@@ -34,8 +34,8 @@
 
 /* Author: Simon Schmeisser */
 
-#ifndef MOVEIT_UTILS_
-#define MOVEIT_UTILS_
+#ifndef MOVEIT_CORE_UTILS_LEXICAL_CASTS_
+#define MOVEIT_CORE_UTILS_LEXICAL_CASTS_
 
 /** \file lexical_casts.h
  *  \brief locale-agnostic conversion functions from floating point numbers to strings
@@ -49,13 +49,13 @@
 #include <string>
 namespace moveit
 {
-namespace utils
+namespace core
 {
 /** \brief Convert a double to std::string using the classic C locale */
 std::string toString(double d);
 
 /** \brief Convert a float to std::string using the classic C locale */
-std::string toString(float d);
+std::string toString(float f);
 
 /** \brief Converts a std::string to double using the classic C locale
  \throws std::runtime_exception if not a valid number

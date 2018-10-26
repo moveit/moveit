@@ -820,7 +820,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
                                        const planning_interface::MotionPlanDetailedResponse& mp_res, bool solved,
                                        double total_time)
 {
-  metrics["time REAL"] = moveit::utils::toString(total_time);
+  metrics["time REAL"] = moveit::core::toString(total_time);
   metrics["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 
   if (solved)
@@ -893,15 +893,15 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         smoothness /= (double)p.getWayPointCount();
       }
       metrics["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::utils::toString(L);
-      metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::utils::toString(clearance);
-      metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::utils::toString(smoothness);
-      metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::utils::toString(mp_res.processing_time_[j]);
+      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(L);
+      metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::core::toString(clearance);
+      metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
+      metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
       process_time -= mp_res.processing_time_[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;
-    metrics["process_time REAL"] = moveit::utils::toString(process_time);
+    metrics["process_time REAL"] = moveit::core::toString(process_time);
   }
 }
 
