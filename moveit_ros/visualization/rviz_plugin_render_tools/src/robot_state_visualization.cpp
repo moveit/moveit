@@ -49,6 +49,7 @@ RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rvi
   , visible_(true)
   , visual_visible_(true)
   , collision_visible_(false)
+  , attached_body_visible_(true)
 {
   default_attached_object_color_.r = 0.0f;
   default_attached_object_color_.g = 0.7f;
@@ -105,6 +106,12 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
 
+  robot_.setVisualVisible(visual_visible_);
+  robot_.setCollisionVisible(collision_visible_);
+  robot_.setVisible(visible_);
+  if (!attached_body_visible_)
+      return;
+
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
   for (std::size_t i = 0; i < attached_bodies.size(); ++i)
@@ -133,9 +140,6 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
                                   octree_voxel_color_mode_, rcolor, alpha);
     }
   }
-  robot_.setVisualVisible(visual_visible_);
-  robot_.setCollisionVisible(collision_visible_);
-  robot_.setVisible(visible_);
 }
 
 void RobotStateVisualization::setVisible(bool visible)
@@ -154,6 +158,15 @@ void RobotStateVisualization::setCollisionVisible(bool visible)
 {
   collision_visible_ = visible;
   robot_.setCollisionVisible(visible);
+}
+
+void RobotStateVisualization::setAttachedBodyVisible(bool visible)
+{
+  attached_body_visible_ = visible;
+  // currently rviz::Shape does not provide a setVisible-method, so
+  // the best we can do here is to clear the shapes-vector in the not-visible-case
+  if (!attached_body_visible_)
+      render_shapes_->clear();
 }
 
 void RobotStateVisualization::setAlpha(float alpha)
