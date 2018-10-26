@@ -178,7 +178,7 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(
       kinematics_loader_ = kloader;
     else
       kinematics_loader_.reset(
-          new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
+          new kinematics_plugin_loader::KinematicsPluginLoader(model_, rdf_loader_->getRobotDescription()));
     robot_model::SolverAllocatorFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
     const std::vector<std::string>& groups = kinematics_loader_->getKnownGroups();
     std::stringstream ss;

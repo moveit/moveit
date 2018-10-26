@@ -55,9 +55,10 @@ public:
       ROS parameter under which the robot description can be
       found. This is passed to the kinematics solver initialization as
       well as used to read the SRDF document when needed. */
-  KinematicsPluginLoader(const std::string& robot_description = "robot_description",
+  KinematicsPluginLoader(const moveit::core::RobotModelPtr& model,
+                         const std::string& robot_description = "robot_description",
                          double default_search_resolution = 0.0)
-    : robot_description_(robot_description), default_search_resolution_(default_search_resolution)
+    : model_(model), robot_description_(robot_description), default_search_resolution_(default_search_resolution)
   {
   }
 
@@ -108,6 +109,8 @@ public:
   void status() const;
 
 private:
+  const moveit::core::RobotModelPtr model_;
+
   std::string robot_description_;
   double default_search_resolution_;
 

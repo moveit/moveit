@@ -50,7 +50,9 @@ namespace moveit
 namespace core
 {
 class JointModelGroup;
+class RobotModel;
 class RobotState;
+MOVEIT_CLASS_FORWARD(RobotModel);
 }
 }
 
@@ -583,7 +585,19 @@ public:
     supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
   }
 
+  void setRobotModel(const moveit::core::RobotModelPtr& rm)
+  {
+    robot_model_ = rm;
+  }
+
+  moveit::core::RobotModelPtr getRobotModel() const
+  {
+    return robot_model_;
+  }
+
+
 protected:
+  moveit::core::RobotModelPtr robot_model_;
   std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;

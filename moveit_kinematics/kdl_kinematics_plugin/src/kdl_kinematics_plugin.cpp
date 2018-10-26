@@ -131,17 +131,20 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
 {
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
-  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
+  if (!robot_model_)
+  {
+    ROS_ERROR_NAMED("kdl", "RobotModel must be set for KDL kinematics solver to work.");
+    return false;
+  }
+
+  const srdf::ModelConstSharedPtr& srdf = getRobotModel()->getSRDF();
+  const urdf::ModelInterfaceSharedPtr& urdf_model = getRobotModel()->getURDF();
 
   if (!urdf_model || !srdf)
   {
     ROS_ERROR_NAMED("kdl", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
     return false;
   }
-
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
   robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (!joint_model_group)

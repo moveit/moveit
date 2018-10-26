@@ -188,8 +188,6 @@ private:
 
   mutable random_numbers::RandomNumberGenerator random_number_generator_;
 
-  robot_model::RobotModelPtr robot_model_;
-
   robot_state::RobotStatePtr state_, state_2_;
 
   int num_possible_redundant_joints_;
