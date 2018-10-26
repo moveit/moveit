@@ -36,10 +36,20 @@
 
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+#include <moveit/collision_detection_fcl/fcl_compat.h>
+
+#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
+#include <fcl/geometry/geometric_shape_to_BVH_model.h>
+#include <fcl/narrowphase/detail/traversal/collision/bvh_collision_traversal_node.h>
+#include <fcl/narrowphase/detail/traversal/collision_node.h>
+#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
+#else
 #include <fcl/shape/geometric_shape_to_BVH_model.h>
 #include <fcl/traversal/traversal_node_bvhs.h>
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
+#endif
+
 #include <boost/bind.hpp>
 
 namespace collision_detection
@@ -48,7 +58,7 @@ const std::string CollisionDetectorAllocatorFCL::NAME_("FCL");
 
 CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManager();
+  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager_.reset(m);
 
@@ -58,7 +68,7 @@ CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
 
 CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) : CollisionWorld(world)
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManager();
+  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager_.reset(m);
 
@@ -70,7 +80,7 @@ CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) : CollisionWorld(wor
 CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL& other, const WorldPtr& world)
   : CollisionWorld(other, world)
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManager();
+  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager_.reset(m);
 
@@ -181,7 +191,7 @@ void CollisionWorldFCL::constructFCLObject(const World::Object* obj, FCLObject& 
     FCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
     if (g)
     {
-      auto co = new fcl::CollisionObject(g->collision_geometry_, transform2fcl(obj->shape_poses_[i]));
+      auto co = new fcl::CollisionObjectd(g->collision_geometry_, transform2fcl(obj->shape_poses_[i]));
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(co));
       fcl_obj.collision_geometry_.push_back(g);
     }
