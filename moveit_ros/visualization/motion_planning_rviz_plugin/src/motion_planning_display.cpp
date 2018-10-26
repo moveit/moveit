@@ -1391,7 +1391,6 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
     config.mapSetValue("MoveIt_Allow_Approximate_IK", frame_->ui_->approximate_ik->isChecked());
 
-
     rviz::Config workspace = config.mapMakeChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapMakeChild("Center");
     ws_center.mapSetValue("X", frame_->ui_->wcenter_x->value());
