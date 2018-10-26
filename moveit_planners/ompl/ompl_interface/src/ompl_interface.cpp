@@ -39,7 +39,9 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
 #include <fstream>
+#include <locale>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
   : nh_(nh)
@@ -204,9 +206,9 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
       planner_config.config[it->first] = static_cast<std::string>(it->second);
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+      planner_config.config[it->first] = moveit::core::toString(static_cast<double>(it->second));
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+      planner_config.config[it->first] = std::to_string(static_cast<int>(it->second));
     else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
       planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
   }
@@ -244,14 +246,15 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         double value_d;
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
+          // convert to string using no locale
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = moveit::core::toString(value_d);
           continue;
         }
 
         int value_i;
         if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_i))
         {
-          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = std::to_string(value_i);
           continue;
         }
 
