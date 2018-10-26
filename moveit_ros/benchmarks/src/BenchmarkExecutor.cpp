@@ -35,6 +35,7 @@
 /* Author: Ryan Luna */
 
 #include <moveit/benchmarks/BenchmarkExecutor.h>
+#include <moveit/utils/lexical_casts.h>
 #include <moveit/version.h>
 #include <tf2_eigen/tf2_eigen.h>
 
@@ -819,7 +820,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
                                        const planning_interface::MotionPlanDetailedResponse& mp_res, bool solved,
                                        double total_time)
 {
-  metrics["time REAL"] = boost::lexical_cast<std::string>(total_time);
+  metrics["time REAL"] = moveit::core::toString(total_time);
   metrics["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
 
   if (solved)
@@ -892,16 +893,15 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         smoothness /= (double)p.getWayPointCount();
       }
       metrics["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      metrics["path_" + mp_res.description_[j] + "_length REAL"] = boost::lexical_cast<std::string>(L);
-      metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = boost::lexical_cast<std::string>(clearance);
-      metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = boost::lexical_cast<std::string>(smoothness);
-      metrics["path_" + mp_res.description_[j] + "_time REAL"] =
-          boost::lexical_cast<std::string>(mp_res.processing_time_[j]);
+      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(L);
+      metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::core::toString(clearance);
+      metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
+      metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
       process_time -= mp_res.processing_time_[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;
-    metrics["process_time REAL"] = boost::lexical_cast<std::string>(process_time);
+    metrics["process_time REAL"] = moveit::core::toString(process_time);
   }
 }
 

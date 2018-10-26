@@ -39,6 +39,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/lexical_casts.h>
 #include <fstream>
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
@@ -201,7 +202,7 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
     if (element.second.getType() == XmlRpc::XmlRpcValue::TypeString)
       planner_config.config[element.first] = static_cast<std::string>(element.second);
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-      planner_config.config[element.first] = std::to_string(static_cast<double>(element.second));
+      planner_config.config[element.first] = moveit::core::toString(static_cast<double>(element.second));
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeInt)
       planner_config.config[element.first] = std::to_string(static_cast<int>(element.second));
     else if (element.second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
@@ -240,7 +241,8 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         double value_d;
         if (nh_.getParam(group_name + "/" + k, value_d))
         {
-          specific_group_params[k] = std::to_string(value_d);
+          // convert to string using no locale
+          specific_group_params[k] = moveit::core::toString(value_d);
           continue;
         }
 
