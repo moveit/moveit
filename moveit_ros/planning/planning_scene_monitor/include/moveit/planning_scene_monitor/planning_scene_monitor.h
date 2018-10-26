@@ -499,7 +499,7 @@ protected:
   ros::Subscriber attached_collision_object_subscriber_;
 
   std::unique_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
-  std::unique_ptr<tf2_ros::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
+  std::unique_ptr<tf2_ros::MessageFilter<moveit_msgs::CollisionObject> > tf_message_filter_;
 
   // include a octomap monitor
   std::unique_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;

@@ -1046,14 +1046,14 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(
         new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024));
     if (tf_buffer_)
     {
-      collision_object_filter_.reset(new tf2_ros::MessageFilter<moveit_msgs::CollisionObject>(
+      tf_message_filter_.reset(new tf2_ros::MessageFilter<moveit_msgs::CollisionObject>(
           *collision_object_subscriber_, *tf_buffer_, scene_->getPlanningFrame(), 1024, root_nh_));
-      collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-      collision_object_filter_->registerFailureCallback(
+      tf_message_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
+      tf_message_filter_->registerFailureCallback(
           boost::bind(&PlanningSceneMonitor::collisionObjectFailTFCallback, this, _1, _2));
       ROS_INFO_NAMED(LOGNAME, "Listening to '%s' using message notifier with target frame '%s'",
                      root_nh_.resolveName(collision_objects_topic).c_str(),
-                     collision_object_filter_->getTargetFramesString().c_str());
+                     tf_message_filter_->getTargetFramesString().c_str());
     }
     else
     {
@@ -1091,10 +1091,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(
 
 void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
-  if (collision_object_subscriber_ || collision_object_filter_)
+  if (collision_object_subscriber_ || tf_message_filter_)
   {
     ROS_INFO_NAMED(LOGNAME, "Stopping world geometry monitor");
-    collision_object_filter_.reset();
+    tf_message_filter_.reset();
     collision_object_subscriber_.reset();
     planning_scene_world_subscriber_.shutdown();
   }
