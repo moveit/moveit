@@ -302,7 +302,7 @@ void RobotModel::buildJointInfo()
       continue;
 
     LinkTransformMap associated_transforms;
-    computeFixedTransforms(link, link->getJointOriginTransform().inverse(), associated_transforms);
+    computeFixedTransforms(link, link->getJointOriginTransform().inverse(Eigen::Isometry), associated_transforms);
     for (auto& tf_base : associated_transforms)
     {
       link_considered[tf_base.first->getLinkIndex()] = true;
@@ -310,7 +310,8 @@ void RobotModel::buildJointInfo()
       {
         if (&tf_base != &tf_target)
           const_cast<LinkModel*>(tf_base.first)  // regain write access to base LinkModel*
-              ->addAssociatedFixedTransform(tf_target.first, tf_base.second.inverse() * tf_target.second);
+              ->addAssociatedFixedTransform(tf_target.first,
+                                            tf_base.second.inverse(Eigen::Isometry) * tf_target.second);
       }
     }
   }

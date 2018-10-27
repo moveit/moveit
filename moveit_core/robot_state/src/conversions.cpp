@@ -89,7 +89,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
         const Eigen::Affine3d& t2fixed_frame = tf->getTransform(mjs.header.frame_id);
         // we update the value of the transform so that it transforms from the known fixed frame to the desired child
         // link
-        inv_t = t2fixed_frame.inverse();
+        inv_t = t2fixed_frame.inverse(Eigen::Isometry);
         use_inv_t = true;
       }
       catch (std::exception& ex)
@@ -300,7 +300,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                                      "The pose of the attached body may be incorrect",
                             aco.object.header.frame_id.c_str());
           }
-          Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
+          Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse(Eigen::Isometry) * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];
         }

@@ -1018,7 +1018,7 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
           shapes::saveAsText(obj->shapes_[j].get(), out);
           out << obj->shape_poses_[j].translation().x() << " " << obj->shape_poses_[j].translation().y() << " "
               << obj->shape_poses_[j].translation().z() << std::endl;
-          Eigen::Quaterniond r(obj->shape_poses_[j].rotation());
+          Eigen::Quaterniond r(obj->shape_poses_[j].linear());
           out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
           if (hasObjectColor(ns[i]))
           {
@@ -1470,7 +1470,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           world_->removeObject(object.object.id);
 
           // need to transform poses to the link frame
-          const Eigen::Affine3d& i_t = kstate_->getGlobalLinkTransform(lm).inverse();
+          const Eigen::Affine3d& i_t = kstate_->getGlobalLinkTransform(lm).inverse(Eigen::Isometry);
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = i_t * poses[i];
         }
@@ -1534,7 +1534,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         // transform poses to link frame
         if (object.object.header.frame_id != object.link_name)
         {
-          const Eigen::Affine3d& t = kstate_->getGlobalLinkTransform(lm).inverse() *
+          const Eigen::Affine3d& t = kstate_->getGlobalLinkTransform(lm).inverse(Eigen::Isometry) *
                                      getTransforms().getTransform(object.object.header.frame_id);
           for (std::size_t i = 0; i < poses.size(); ++i)
             poses[i] = t * poses[i];

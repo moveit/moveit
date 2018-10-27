@@ -673,7 +673,7 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Affin
           global_link_transforms_[child_link->getLinkIndex()] *
           (child_link->getJointOriginTransform() *
            variable_joint_transforms_[child_link->getParentJointModel()->getJointIndex()])
-              .inverse();
+              .inverse(Eigen::Isometry);
 
       // update link transforms for descendant links only (leaving the transform for the current link untouched)
       // with the exception of the child link we are coming backwards from
@@ -1125,7 +1125,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
   const robot_model::JointModel* root_joint_model = group->getJointModels()[0];  // group->getJointRoots()[0];
   const robot_model::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
   Eigen::Affine3d reference_transform =
-      root_link_model ? getGlobalLinkTransform(root_link_model).inverse() : Eigen::Affine3d::Identity();
+      root_link_model ? getGlobalLinkTransform(root_link_model).inverse(Eigen::Isometry) : Eigen::Affine3d::Identity();
   int rows = use_quaternion_representation ? 7 : 6;
   int columns = group->getVariableCount();
   jacobian = Eigen::MatrixXd::Zero(rows, columns);
@@ -1164,7 +1164,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
       if (pjm->getType() == robot_model::JointModel::REVOLUTE)
       {
         joint_transform = reference_transform * getGlobalLinkTransform(link);
-        joint_axis = joint_transform.rotation() * static_cast<const robot_model::RevoluteJointModel*>(pjm)->getAxis();
+        joint_axis = joint_transform.linear() * static_cast<const robot_model::RevoluteJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) =
             jacobian.block<3, 1>(0, joint_index) + joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3, 1>(3, joint_index) = jacobian.block<3, 1>(3, joint_index) + joint_axis;
@@ -1201,7 +1201,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     //        [x]           [  w -z  y ]    [ omega_2 ]
     //        [y]           [  z  w -x ]    [ omega_3 ]
     //        [z]           [ -y  x  w ]
-    Eigen::Quaterniond q(link_transform.rotation());
+    Eigen::Quaterniond q(link_transform.linear());
     double w = q.w(), x = q.x(), y = q.y(), z = q.z();
     Eigen::MatrixXd quaternion_update_matrix(4, 3);
     quaternion_update_matrix << -x, -y, -z, w, -z, y, z, w, -x, -y, x, w;
@@ -1235,7 +1235,7 @@ void RobotState::computeVariableVelocity(const JointModelGroup* jmg, Eigen::Vect
   getJacobian(jmg, tip, reference_point, J, false);
 
   // Rotate the jacobian to the end-effector frame
-  Eigen::Affine3d eMb = getGlobalLinkTransform(tip).inverse();
+  Eigen::Affine3d eMb = getGlobalLinkTransform(tip).inverse(Eigen::Isometry);
   Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
   eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
   eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
@@ -1362,7 +1362,7 @@ bool RobotState::setToIKSolverFrame(Eigen::Affine3d& pose, const std::string& ik
     const LinkModel* lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
     if (!lm)
       return false;
-    pose = getGlobalLinkTransform(lm).inverse() * pose;
+    pose = getGlobalLinkTransform(lm).inverse(Eigen::Isometry) * pose;
   }
   return true;
 }
@@ -1509,7 +1509,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
             return false;
           }
           pose_frame = ab->getAttachedLinkName();
-          pose = pose * ab_trans[0].inverse();
+          pose = pose * ab_trans[0].inverse(Eigen::Isometry);
         }
         if (pose_frame != solver_tip_frame)
         {
@@ -1750,7 +1750,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
           return false;
         }
         pose_frame = ab->getAttachedLinkName();
-        pose = pose * ab_trans[0].inverse();
+        pose = pose * ab_trans[0].inverse(Eigen::Isometry);
       }
       if (pose_frame != solver_tip_frame)
       {
@@ -1784,7 +1784,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
 
   for (std::size_t i = 0; i < transformed_poses.size(); ++i)
   {
-    Eigen::Quaterniond quat(transformed_poses[i].rotation());
+    Eigen::Quaterniond quat(transformed_poses[i].linear());
     Eigen::Vector3d point(transformed_poses[i].translation());
     ik_queries[i].position.x = point.x();
     ik_queries[i].position.y = point.y();
@@ -1871,7 +1871,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   const Eigen::Affine3d& start_pose = getGlobalLinkTransform(link);
 
   // the direction can be in the local reference frame (in which case we rotate it)
-  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.linear() * direction;
 
   // The target pose is built by applying a translation to the start pose for the desired direction and distance
   Eigen::Affine3d target_pose = start_pose;
@@ -1900,8 +1900,8 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   // the target can be in the local reference frame (in which case we rotate it)
   Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
 
-  Eigen::Quaterniond start_quaternion(start_pose.rotation());
-  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  Eigen::Quaterniond start_quaternion(start_pose.linear());
+  Eigen::Quaterniond target_quaternion(rotated_target.linear());
 
   if (max_step.translation <= 0.0 && max_step.rotation <= 0.0)
   {
@@ -2200,7 +2200,7 @@ void RobotState::printStateInfo(std::ostream& out) const
 
 void RobotState::printTransform(const Eigen::Affine3d& transform, std::ostream& out) const
 {
-  Eigen::Quaterniond q(transform.rotation());
+  Eigen::Quaterniond q(transform.linear());
   out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
       << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()
       << "]" << std::endl;

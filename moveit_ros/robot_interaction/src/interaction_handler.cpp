@@ -342,7 +342,7 @@ void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const 
   tf::poseMsgToEigen(*feedback_pose, pose);
 
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
-    pose = state->getGlobalLinkTransform(vj->parent_frame).inverse() * pose;
+    pose = state->getGlobalLinkTransform(vj->parent_frame).inverse(Eigen::Isometry) * pose;
 
   state->setJointPositions(vj->joint_name, pose);
   state->update();

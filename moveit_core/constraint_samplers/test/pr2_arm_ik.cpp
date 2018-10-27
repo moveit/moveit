@@ -142,9 +142,9 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
   shoulder_elbow_offset_ = shoulder_upperarm_offset_ + upperarm_elbow_offset_;
   shoulder_wrist_offset_ = shoulder_upperarm_offset_ + upperarm_elbow_offset_ + elbow_wrist_offset_;
 
-  Eigen::Matrix4f home = Eigen::Matrix4f::Identity();
+  Eigen::Affine3f home = Eigen::Affine3f::Identity();
   home(0, 3) = shoulder_upperarm_offset_ + upperarm_elbow_offset_ + elbow_wrist_offset_;
-  home_inv_ = home.inverse();
+  home_inv_ = home.inverse(Eigen::Isometry);
   grhs_ = home;
   gf_ = home_inv_;
   solution_.resize(NUM_JOINTS_ARM7DOF);
@@ -194,15 +194,15 @@ void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo& info)
   info = solver_info_;
 }
 
-void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
+void PR2ArmIK::computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& t1_in,
                                     std::vector<std::vector<double> >& solution) const
 {
   // t1 = shoulder/turret pan is specified
   //  solution_ik_.resize(0);
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
-  Eigen::Matrix4f g = g_in;
-  Eigen::Matrix4f gf_local = home_inv_;
-  Eigen::Matrix4f grhs_local = home_inv_;
+  Eigen::Affine3f g = g_in;
+  Eigen::Affine3f gf_local = home_inv_;
+  Eigen::Affine3f grhs_local = home_inv_;
   // First bring everything into the arm frame
   g(0, 3) = g_in(0, 3) - torso_shoulder_offset_x_;
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;
@@ -461,7 +461,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   }
 }
 
-void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
+void PR2ArmIK::computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& t3,
                                      std::vector<std::vector<double> >& solution) const
 {
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
@@ -475,9 +475,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
   //  if(!solution_ik_.empty())
   //    solution_ik_.resize(0);
   // t3 = shoulder/turret roll is specified
-  Eigen::Matrix4f g = g_in;
-  Eigen::Matrix4f gf_local = home_inv_;
-  Eigen::Matrix4f grhs_local = home_inv_;
+  Eigen::Affine3f g = g_in;
+  Eigen::Affine3f gf_local = home_inv_;
+  Eigen::Affine3f grhs_local = home_inv_;
   // First bring everything into the arm frame
   g(0, 3) = g_in(0, 3) - torso_shoulder_offset_x_;
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;

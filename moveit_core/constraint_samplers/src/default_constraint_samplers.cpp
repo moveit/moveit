@@ -477,16 +477,16 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
                          Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
                          Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
-    Eigen::Affine3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.rotation());
-    quat = Eigen::Quaterniond(reqr.rotation());
+    Eigen::Affine3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.linear());
+    quat = Eigen::Quaterniond(reqr.linear());
 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the
     // model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
       const Eigen::Affine3d& t = ks.getFrameTransform(sampling_pose_.orientation_constraint_->getReferenceFrame());
-      Eigen::Affine3d rt(t.rotation() * quat.toRotationMatrix());
-      quat = Eigen::Quaterniond(rt.rotation());
+      Eigen::Affine3d rt(t.linear() * quat.toRotationMatrix());
+      quat = Eigen::Quaterniond(rt.linear());
     }
   }
   else
@@ -561,9 +561,9 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
       // we need to convert this transform to the frame expected by the IK solver
       // both the planning frame and the frame for the IK are assumed to be robot links
       Eigen::Affine3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
-      ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;
+      ikq = reference_state.getFrameTransform(ik_frame_).inverse(Eigen::Isometry) * ikq;
       point = ikq.translation();
-      quat = Eigen::Quaterniond(ikq.rotation());
+      quat = Eigen::Quaterniond(ikq.linear());
     }
 
     if (need_eef_to_ik_tip_transform_)
@@ -572,7 +572,7 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
       Eigen::Affine3d ikq(Eigen::Translation3d(point) * quat.toRotationMatrix());
       ikq = ikq * eef_to_ik_tip_transform_;
       point = ikq.translation();
-      quat = Eigen::Quaterniond(ikq.rotation());
+      quat = Eigen::Quaterniond(ikq.linear());
     }
 
     geometry_msgs::Pose ik_query;
