@@ -7,6 +7,7 @@ API changes in MoveIt! releases
 - Migration to ``tf2`` API.
 - The move_group capability ``ExecuteTrajectoryServiceCapability`` has been removed in favor of the improved ``ExecuteTrajectoryActionCapability`` capability. Since Indigo, both capabilities were supported. If you still load default capabilities in your ``config/launch/move_group.launch``, you can just remove them from the capabilities parameter. The correct default capabilities will be loaded automatically.
 - Deprecated method ``CurrentStateMonitor::waitForCurrentState(double wait_time)`` was finally removed.
+- Renamed ``RobotState::getCollisionBodyTransforms`` to ``getCollisionBodyTransform`` as it returns a single transform only.
 
 ## ROS Kinetic
 

@@ -1373,7 +1373,7 @@ as the new values that correspond to the group */
     return global_link_transforms_[link->getLinkIndex()];
   }
 
-  const Eigen::Affine3d& getCollisionBodyTransforms(const std::string& link_name, std::size_t index)
+  const Eigen::Affine3d& getCollisionBodyTransform(const std::string& link_name, std::size_t index)
   {
     return getCollisionBodyTransform(robot_model_->getLinkModel(link_name), index);
   }
