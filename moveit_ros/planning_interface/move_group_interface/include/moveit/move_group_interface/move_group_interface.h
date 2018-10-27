@@ -193,6 +193,9 @@ public:
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
 
+  /** \brief Get the available planning group names */
+  const std::vector<std::string>& getJointModelGroupNames() const;
+
   /** \brief Get vector of names of joints available in move group */
   const std::vector<std::string>& getJointNames();
 

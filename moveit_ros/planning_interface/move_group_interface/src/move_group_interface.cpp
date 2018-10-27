@@ -2167,6 +2167,11 @@ const std::string& moveit::planning_interface::MoveGroupInterface::getPlanningFr
   return impl_->getRobotModel()->getModelFrame();
 }
 
+const std::vector<std::string>& moveit::planning_interface::MoveGroupInterface::getJointModelGroupNames() const
+{
+  return impl_->getRobotModel()->getJointModelGroupNames();
+}
+
 bool moveit::planning_interface::MoveGroupInterface::attachObject(const std::string& object, const std::string& link)
 {
   return attachObject(object, link, std::vector<std::string>());
