@@ -169,11 +169,11 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
   left_arm_joints_group = robot_model2->getJointModelGroup("left_arm_joints");
   ASSERT_TRUE(left_arm_joints_group != nullptr);
 
-  EXPECT_EQ(left_arm_base_tip_group->getJointModels().size(), 9);
-  EXPECT_EQ(left_arm_joints_group->getJointModels().size(), 7);
+  EXPECT_EQ(left_arm_base_tip_group->getJointModels().size(), 9u);
+  EXPECT_EQ(left_arm_joints_group->getJointModels().size(), 7u);
 
   EXPECT_EQ(left_arm_joints_group->getVariableNames().size(), left_arm_joints_group->getVariableCount());
-  EXPECT_EQ(left_arm_joints_group->getVariableCount(), 7);
+  EXPECT_EQ(left_arm_joints_group->getVariableCount(), 7u);
 
   EXPECT_EQ(robot_model2->getVariableNames().size(), robot_model2->getVariableCount());
 
@@ -219,11 +219,11 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit)
   moveit::core::RobotModel robot_model(urdf_model, srdf_model);
   const moveit::core::JointModelGroup* jmg = robot_model.getJointModelGroup("arms");
   ASSERT_TRUE(jmg);
-  EXPECT_EQ(jmg->getSubgroupNames().size(), 2);
+  EXPECT_EQ(jmg->getSubgroupNames().size(), 2u);
   EXPECT_TRUE(jmg->isSubgroup("right_arm"));
 
   const moveit::core::JointModelGroup* jmg2 = robot_model.getJointModelGroup("whole_body");
-  EXPECT_EQ(jmg2->getSubgroupNames().size(), 5);
+  EXPECT_EQ(jmg2->getSubgroupNames().size(), 5u);
   EXPECT_TRUE(jmg2->isSubgroup("arms"));
   EXPECT_TRUE(jmg2->isSubgroup("right_arm"));
 }
@@ -258,22 +258,22 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies_1;
   ks.getAttachedBodies(attached_bodies_1);
-  ASSERT_EQ(attached_bodies_1.size(), 1);
+  ASSERT_EQ(attached_bodies_1.size(), 1u);
 
   std::vector<const moveit::core::AttachedBody*> attached_bodies_2;
   ks2 = ks;
   ks2.getAttachedBodies(attached_bodies_2);
-  ASSERT_EQ(attached_bodies_2.size(), 1);
+  ASSERT_EQ(attached_bodies_2.size(), 1u);
 
   ks.clearAttachedBody("box");
   attached_bodies_1.clear();
   ks.getAttachedBodies(attached_bodies_1);
-  ASSERT_EQ(attached_bodies_1.size(), 0);
+  ASSERT_EQ(attached_bodies_1.size(), 0u);
 
   ks2 = ks;
   attached_bodies_2.clear();
   ks2.getAttachedBodies(attached_bodies_2);
-  ASSERT_EQ(attached_bodies_2.size(), 0);
+  ASSERT_EQ(attached_bodies_2.size(), 0u);
 }
 
 int main(int argc, char** argv)

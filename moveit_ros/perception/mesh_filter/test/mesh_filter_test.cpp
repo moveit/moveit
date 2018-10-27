@@ -319,7 +319,5 @@ INSTANTIATE_TEST_CASE_P(ushort_test, MeshFilterTestUnsignedShort, ::testing::Ran
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  int arg;
-
   return RUN_ALL_TESTS();
 }

@@ -205,9 +205,7 @@ TEST(TestTimeParameterization, TestRepeatedPoint)
   trajectory_processing::IterativeSplineParameterization time_parameterization(true);
   EXPECT_EQ(initRepeatedPointTrajectory(trajectory), 0);
 
-  ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
-  // std::cout << " took " << (ros::WallTime::now() - wt).toSec() << std::endl;
   printTrajectory(trajectory);
   ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 0.001);
 }

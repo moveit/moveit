@@ -161,8 +161,8 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jc1.configure(jcm1));
   js.push_back(jc1);
   EXPECT_TRUE(jcs.configure(js));
-  EXPECT_EQ(jcs.getConstrainedJointCount(), 1);
-  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
+  EXPECT_EQ(jcs.getConstrainedJointCount(), 1u);
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6u);
   EXPECT_TRUE(jcs.sample(ks, ks, 1));
 
   for (int t = 0; t < 100; ++t)
@@ -173,7 +173,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
   // redoing the configure leads to 6 unconstrained variables as well
   EXPECT_TRUE(jcs.configure(js));
-  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6u);
 
   kinematic_constraints::JointConstraint jc2(kmodel);
 
@@ -1011,8 +1011,8 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 
   constraint_samplers::JointConstraintSampler jcs(ps, "arms");
   jcs.configure(js);
-  EXPECT_EQ(jcs.getConstrainedJointCount(), 2);
-  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 12);
+  EXPECT_EQ(jcs.getConstrainedJointCount(), 2u);
+  EXPECT_EQ(jcs.getUnconstrainedJointCount(), 12u);
 
   for (int t = 0; t < 100; ++t)
   {

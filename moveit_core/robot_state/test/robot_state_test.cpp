@@ -189,12 +189,12 @@ TEST(LoadingAndFK, SimpleRobot)
   // testing incomplete state
   std::vector<std::string> missing_states;
   state.setVariablePositions(joint_values, missing_states);
-  ASSERT_EQ(missing_states.size(), 1);
+  ASSERT_EQ(missing_states.size(), 1u);
   EXPECT_EQ(missing_states[0], std::string("base_joint/theta"));
   joint_values["base_joint/theta"] = 0.1;
 
   state.setVariablePositions(joint_values, missing_states);
-  ASSERT_EQ(missing_states.size(), 0);
+  ASSERT_EQ(missing_states.size(), 0u);
 
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
 
@@ -424,16 +424,16 @@ TEST_F(OneRobot, FK)
   ASSERT_TRUE(g_four == nullptr);
 
   // joint_b is a fixed joint, so no one should have it
-  ASSERT_EQ(g_one->getJointModelNames().size(), 3);
-  ASSERT_EQ(g_two->getJointModelNames().size(), 3);
-  ASSERT_EQ(g_three->getJointModelNames().size(), 4);
-  ASSERT_EQ(g_mim->getJointModelNames().size(), 2);
+  ASSERT_EQ(g_one->getJointModelNames().size(), 3u);
+  ASSERT_EQ(g_two->getJointModelNames().size(), 3u);
+  ASSERT_EQ(g_three->getJointModelNames().size(), 4u);
+  ASSERT_EQ(g_mim->getJointModelNames().size(), 2u);
 
   // only the links in between the joints, and the children of the leafs
-  ASSERT_EQ(g_one->getLinkModelNames().size(), 3);
+  ASSERT_EQ(g_one->getLinkModelNames().size(), 3u);
   // g_two only has three links
-  ASSERT_EQ(g_two->getLinkModelNames().size(), 3);
-  ASSERT_EQ(g_three->getLinkModelNames().size(), 4);
+  ASSERT_EQ(g_two->getLinkModelNames().size(), 3u);
+  ASSERT_EQ(g_three->getLinkModelNames().size(), 4u);
 
   std::vector<std::string> jmn = g_one->getJointModelNames();
   std::sort(jmn.begin(), jmn.end());
@@ -453,9 +453,9 @@ TEST_F(OneRobot, FK)
   EXPECT_EQ(jmn[3], "joint_c");
 
   // but they should have the same links to be updated
-  ASSERT_EQ(g_one->getUpdatedLinkModels().size(), 6);
-  ASSERT_EQ(g_two->getUpdatedLinkModels().size(), 6);
-  ASSERT_EQ(g_three->getUpdatedLinkModels().size(), 6);
+  ASSERT_EQ(g_one->getUpdatedLinkModels().size(), 6u);
+  ASSERT_EQ(g_two->getUpdatedLinkModels().size(), 6u);
+  ASSERT_EQ(g_three->getUpdatedLinkModels().size(), 6u);
 
   EXPECT_EQ(g_one->getUpdatedLinkModels()[0]->getName(), "base_link");
   EXPECT_EQ(g_one->getUpdatedLinkModels()[1]->getName(), "link_a");
@@ -546,7 +546,7 @@ TEST_F(OneRobot, FK)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
 
-  ASSERT_EQ(g_mim->getVariableCount(), 2);
+  ASSERT_EQ(g_mim->getVariableCount(), 2u);
   double gstate[2];
   state.copyJointGroupPositions(g_mim, gstate);
 
