@@ -84,7 +84,6 @@ public:
     void reset()
     {
       solver_instance_.reset();
-      solver_instance_const_.reset();
       bijection_.clear();
     }
 
@@ -97,8 +96,6 @@ public:
        the variable at index
         i in the kinematic solver. */
     std::vector<unsigned int> bijection_;
-
-    kinematics::KinematicsBaseConstPtr solver_instance_const_;
 
     kinematics::KinematicsBasePtr solver_instance_;
 
@@ -526,9 +523,9 @@ public:
 
   void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& solvers);
 
-  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
+  const kinematics::KinematicsBaseConstPtr getSolverInstance() const
   {
-    return group_kinematics_.first.solver_instance_const_;
+    return group_kinematics_.first.solver_instance_;
   }
 
   const kinematics::KinematicsBasePtr& getSolverInstance()
