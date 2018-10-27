@@ -242,9 +242,8 @@ private:
   std::map<const robot_model::JointModelGroup*, std::vector<kinematics::KinematicsBasePtr> > instances_;
   boost::mutex lock_;
 };
-}
 
-void kinematics_plugin_loader::KinematicsPluginLoader::status() const
+void KinematicsPluginLoader::status() const
 {
   if (loader_)
     loader_->status();
@@ -252,7 +251,7 @@ void kinematics_plugin_loader::KinematicsPluginLoader::status() const
     ROS_INFO("Loader function was never required");
 }
 
-robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction()
+robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction");
@@ -266,8 +265,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
   return getLoaderFunction(rml.getSRDF());
 }
 
-robot_model::SolverAllocatorFn
-kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
+robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");
@@ -450,4 +448,5 @@ kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::
   }
 
   return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
+}
 }
