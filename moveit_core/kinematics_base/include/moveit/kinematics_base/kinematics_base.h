@@ -40,7 +40,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/deprecation.h>
 #include <ros/node_handle.h>
 
 #include <boost/function.hpp>
@@ -371,7 +370,6 @@ public:
    *
    * Instead of this method, use the method passing in a RobotModel.
    */
-  MOVEIT_DEPRECATED
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                           const std::string& base_frame, const std::string& tip_frame,
                           double search_discretization) = 0;
@@ -389,7 +387,6 @@ public:
    *
    * Instead of this method, use the method passing in a RobotModel.
    */
-  MOVEIT_DEPRECATED
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
                           double search_discretization);
