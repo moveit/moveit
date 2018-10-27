@@ -46,8 +46,6 @@
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 
-#include <moveit/rdf_loader/rdf_loader.h>
-
 // register KDLKinematics as a KinematicsBase implementation
 CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)
 
@@ -123,29 +121,6 @@ bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
   for (std::size_t i = 0; i < dimension_; ++i)
     if (fabs(seed_state(i) - solution(i)) > consistency_limits[i])
       return false;
-  return true;
-}
-
-bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
-                                     const std::string& base_frame, const std::string& tip_frame,
-                                     double search_discretization)
-{
-  rdf_loader::RDFLoader rdf_loader(robot_description);
-  const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
-  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
-
-  if (!urdf_model || !srdf)
-  {
-    ROS_ERROR_NAMED("kdl", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
-    return false;
-  }
-
-  robot_model::RobotModelConstPtr robot_model(new robot_model::RobotModel(urdf_model, srdf));
-  if (!initialize(*robot_model, group_name, base_frame, { tip_frame }, search_discretization))
-    return false;
-
-  robot_model_ = robot_model;  // store created robot_model (to free it later)
-  robot_description_ = robot_description;
   return true;
 }
 

@@ -372,7 +372,7 @@ public:
    * @return True if initialization was successful, false otherwise
    *
    * Instead of this method, use the method passing in a RobotModel!
-   * Default implementation returns false, indicating that this API is not supported.
+   * Default implementation forwards to new API.
    */
   MOVEIT_DEPRECATED virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                                             const std::string& base_frame, const std::string& tip_frame,
