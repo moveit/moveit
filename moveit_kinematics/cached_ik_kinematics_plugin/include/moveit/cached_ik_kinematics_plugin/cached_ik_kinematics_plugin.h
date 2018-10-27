@@ -39,6 +39,7 @@
 
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
+#include <moveit/robot_model/robot_model.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <moveit/cached_ik_kinematics_plugin/detail/NearestNeighborsGNAT.h>
@@ -97,8 +98,8 @@ public:
   /** get the entry from the IK cache that best matches a given vector of poses */
   const IKEntry& getBestApproximateIKSolution(const std::vector<Pose>& poses) const;
   /** initialize cache, read from disk if found */
-  void initializeCache(const std::string& robot_description, const std::string& group_name,
-                       const std::string& cache_name, const unsigned int num_joints, Options opts = Options());
+  void initializeCache(const std::string& robot_id, const std::string& group_name, const std::string& cache_name,
+                       const unsigned int num_joints, Options opts = Options());
   /**
     insert (pose,config) as an entry if it's different enough from the
     most similar cache entry
@@ -109,7 +110,7 @@ public:
     most similar cache entry
   */
   void updateCache(const IKEntry& nearest, const std::vector<Pose>& poses, const std::vector<double>& config) const;
-  /** verify with forward kinematics that that the cache entries are correct */
+  /** verify with forward kinematics that the cache entries are correct */
   void verifyCache(kdl_kinematics_plugin::KDLKinematicsPlugin& fk) const;
 
 protected:
@@ -176,6 +177,34 @@ protected:
   unsigned int num_joints_;
 };
 
+// Helper class to enable/disable initialize() methods with new/old API
+// hasRobotModelAPI<T>::value provides a true/false constexpr depending on KinematicsPlugin offers the new API
+// This uses SFINAE magic: https://jguegant.github.io/blogs/tech/sfinae-introduction.html
+template <typename KinematicsPlugin, typename = bool>
+struct hasRobotModelAPI : std::false_type
+{
+};
+
+template <typename KinematicsPlugin>
+struct hasRobotModelAPI<KinematicsPlugin, decltype(std::declval<KinematicsPlugin&>().initialize(
+                                              std::declval<const moveit::core::RobotModel&>(), std::string(),
+                                              std::string(), std::vector<std::string>(), 0.0))> : std::true_type
+{
+};
+
+template <typename KinematicsPlugin, typename = bool>
+struct hasRobotDescAPI : std::false_type
+{
+};
+
+template <typename KinematicsPlugin>
+struct hasRobotDescAPI<KinematicsPlugin,
+                       decltype(std::declval<KinematicsPlugin&>().KinematicsPlugin::initialize(
+                           std::string(), std::string(), std::string(), std::vector<std::string>(), 0.0))>
+    : std::true_type
+{
+};
+
 /** Caching wrapper for kinematics::KinematicsBase-derived IK solvers. */
 template <class KinematicsPlugin>
 class CachedIKKinematicsPlugin : public KinematicsPlugin
@@ -192,12 +221,22 @@ public:
 
   // virtual methods that need to be wrapped:
 
+  bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                  const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                  double search_discretization) override
+  {
+    return initImpl(robot_model, group_name, base_frame, tip_frames, search_discretization);
+  }
+
+  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_frame,
+                  const std::string& tip_frame, double search_discretization) override
+  {
+    return initImpl(robot_description, group_name, base_frame, tip_frame, search_discretization);
+  }
+
   bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                      std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                      const KinematicsQueryOptions& options = KinematicsQueryOptions()) const override;
-
-  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_frame,
-                  const std::string& tip_frame, double search_discretization) override;
 
   bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
                         std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
@@ -218,8 +257,59 @@ public:
                         const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
                         const KinematicsQueryOptions& options = KinematicsQueryOptions()) const override;
 
-protected:
+private:
   IKCache cache_;
+
+  void initCache(const std::string& robot_id, const std::string& group_name, const std::string& cache_name);
+
+  /* Using templates and SFINAE magic, we can selectively enable/disable methods depending on
+     availability of API in wrapped KinematicsPlugin class.
+     However, as templates and virtual functions cannot be combined, we need helpers initImpl(). */
+  template <class T = KinematicsPlugin>
+  typename std::enable_if<hasRobotModelAPI<T>::value, bool>::type
+  initImpl(const moveit::core::RobotModel& robot_model, const std::string& group_name, const std::string& base_frame,
+           const std::vector<std::string>& tip_frames, double search_discretization)
+  {
+    if (tip_frames.size() != 1)
+    {
+      ROS_ERROR_NAMED("cached_ik", "This solver does not support multiple tip frames");
+      return false;
+    }
+
+    // call initialize method of wrapped class
+    if (!KinematicsPlugin::initialize(robot_model, group_name, base_frame, tip_frames, search_discretization))
+      return false;
+    initCache(robot_model.getName(), group_name, base_frame + tip_frames[0]);
+    return true;
+  }
+
+  template <class T = KinematicsPlugin>
+  typename std::enable_if<!hasRobotModelAPI<T>::value, bool>::type initImpl(const moveit::core::RobotModel&,
+                                                                            const std::string&, const std::string&,
+                                                                            const std::vector<std::string>&, double)
+  {
+    return false;  // API not supported
+  }
+
+  template <class T = KinematicsPlugin>
+  typename std::enable_if<hasRobotDescAPI<T>::value, bool>::type
+  initImpl(const std::string& robot_description, const std::string& group_name, const std::string& base_frame,
+           const std::string& tip_frame, double search_discretization)
+  {
+    // call initialize method of wrapped class
+    if (!KinematicsPlugin::initialize(robot_description, group_name, base_frame, tip_frame, search_discretization))
+      return false;
+    initCache(robot_description, group_name, base_frame + tip_frame);
+    return true;
+  }
+
+  template <class T = KinematicsPlugin>
+  typename std::enable_if<!hasRobotDescAPI<T>::value, bool>::type initImpl(const std::string&, const std::string&,
+                                                                           const std::string&, const std::string&,
+                                                                           double)
+  {
+    return false;  // API not supported
+  }
 };
 
 /**
@@ -241,6 +331,10 @@ public:
   using IKEntry = IKCache::IKEntry;
   using IKCallbackFn = kinematics::KinematicsBase::IKCallbackFn;
   using KinematicsQueryOptions = kinematics::KinematicsQueryOptions;
+
+  bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                  const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                  double search_discretization) override;
 
   bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_frame,
                   const std::vector<std::string>& tip_frames, double search_discretization) override;

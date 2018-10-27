@@ -50,18 +50,9 @@ CachedIKKinematicsPlugin<KinematicsPlugin>::~CachedIKKinematicsPlugin()
 }
 
 template <class KinematicsPlugin>
-bool CachedIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::string& robot_description,
-                                                            const std::string& group_name,
-                                                            const std::string& base_frame, const std::string& tip_frame,
-                                                            double search_discretization)
+void CachedIKKinematicsPlugin<KinematicsPlugin>::initCache(const std::string& robot_id, const std::string& group_name,
+                                                           const std::string& cache_name)
 {
-  // call initialize method of wrapped class
-  if (!KinematicsPlugin::initialize(robot_description, group_name, base_frame, tip_frame, search_discretization))
-  {
-    ROS_ERROR_NAMED("cached_ik", "failed to initialized caching plugin");
-    return false;
-  }
-
   IKCache::Options opts;
   int max_cache_size;  // rosparam can't handle unsigned int
   kinematics::KinematicsBase::lookupParam("max_cache_size", max_cache_size, static_cast<int>(opts.max_cache_size));
@@ -70,14 +61,29 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::string& r
   kinematics::KinematicsBase::lookupParam("min_joint_config_distance", opts.min_joint_config_distance, 1.0);
   kinematics::KinematicsBase::lookupParam<std::string>("cached_ik_path", opts.cached_ik_path, "");
 
-  cache_.initializeCache(robot_description, group_name, base_frame + tip_frame,
-                         KinematicsPlugin::getJointNames().size(), opts);
+  cache_.initializeCache(robot_id, group_name, cache_name, KinematicsPlugin::getJointNames().size(), opts);
 
   // for debugging purposes:
   // kdl_kinematics_plugin::KDLKinematicsPlugin fk;
   // fk.initialize(robot_description, group_name, base_frame, tip_frame, search_discretization);
   // cache_.verifyCache(fk);
+}
 
+template <class KinematicsPlugin>
+bool CachedMultiTipIKKinematicsPlugin<KinematicsPlugin>::initialize(const moveit::core::RobotModel& robot_model,
+                                                                    const std::string& group_name,
+                                                                    const std::string& base_frame,
+                                                                    const std::vector<std::string>& tip_frames,
+                                                                    double search_discretization)
+{
+  // call initialize method of wrapped class
+  if (!KinematicsPlugin::initialize(robot_model, group_name, base_frame, tip_frames, search_discretization))
+    return false;
+
+  std::string cache_name = base_frame;
+  std::accumulate(tip_frames.begin(), tip_frames.end(), cache_name);
+  CachedIKKinematicsPlugin<KinematicsPlugin>::cache_.initializeCache(robot_model.getName(), group_name, cache_name,
+                                                                     KinematicsPlugin::getJointNames().size());
   return true;
 }
 
@@ -90,10 +96,7 @@ bool CachedMultiTipIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::s
 {
   // call initialize method of wrapped class
   if (!KinematicsPlugin::initialize(robot_description, group_name, base_frame, tip_frames, search_discretization))
-  {
-    ROS_ERROR_NAMED("cached_ik", "failed to initialized caching plugin");
     return false;
-  }
 
   std::string cache_name = base_frame;
   std::accumulate(tip_frames.begin(), tip_frames.end(), cache_name);
