@@ -130,9 +130,7 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
                                      const std::string& base_frame, const std::string& tip_frame,
                                      double search_discretization)
 {
-  setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
-
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
+  rdf_loader::RDFLoader rdf_loader(robot_description);
   const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
 
@@ -142,9 +140,21 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
     return false;
   }
 
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
+  robot_model::RobotModelConstPtr robot_model(new robot_model::RobotModel(urdf_model, srdf));
+  if (!initialize(*robot_model, group_name, base_frame, { tip_frame }, search_discretization))
+    return false;
 
-  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
+  robot_model_ = robot_model;  // store created robot_model (to free it later)
+  robot_description_ = robot_description;
+  return true;
+}
+
+bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                     const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                     double search_discretization)
+{
+  storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (!joint_model_group)
     return false;
 
@@ -161,7 +171,7 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
 
   KDL::Tree kdl_tree;
 
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
+  if (!kdl_parser::treeFromUrdfModel(*robot_model.getURDF(), kdl_tree))
   {
     ROS_ERROR_NAMED("kdl", "Could not initialize tree object");
     return false;
@@ -274,7 +284,6 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
-  state_2_.reset(new robot_state::RobotState(robot_model_));
 
   // Store things for when the set of redundant joints may change
   position_ik_ = position_ik;
