@@ -187,6 +187,7 @@ private Q_SLOTS:
   void changedMetricsSetPayload();
   void changedMetricsTextHeight();
   void changedWorkspace();
+  void changedPlanningFrame();
   void resetInteractiveMarkers();
   void motionPanelVisibilityChange(bool enable);
 
