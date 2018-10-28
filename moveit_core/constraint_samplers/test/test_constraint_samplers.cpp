@@ -513,7 +513,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   js.push_back(jc1);
 
   constraint_samplers::JointConstraintSamplerPtr jcsp(new constraint_samplers::JointConstraintSampler(ps_, "arms_and_"
-                                                                                                          "torso"));
+                                                                                                           "torso"));
   EXPECT_TRUE(jcsp->configure(js));
 
   std::vector<kinematic_constraints::JointConstraint> js2;
