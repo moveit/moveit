@@ -47,6 +47,8 @@
 
 namespace kinematics_plugin_loader
 {
+static const std::string LOGNAME = "kinematics_plugin_loader";
+
 class KinematicsPluginLoader::KinematicsLoaderImpl
 {
 public:
@@ -73,7 +75,7 @@ public:
     }
     catch (pluginlib::PluginlibException& e)
     {
-      ROS_ERROR("Unable to construct kinematics loader. Error: %s", e.what());
+      ROS_ERROR_NAMED(LOGNAME, "Unable to construct kinematics loader. Error: %s", e.what());
     }
   }
 
@@ -92,7 +94,7 @@ public:
     if (ik_it != iksolver_to_tip_links_.end())
     {
       // the tip is being chosen based on a corresponding rosparam ik link
-      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Chooing tip frame of kinematic solver for group "
+      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Choosing tip frame of kinematic solver for group "
                                                              << jmg->getName()
                                                              << " based on values in rosparam server.");
       tips = ik_it->second;
@@ -100,7 +102,7 @@ public:
     else
     {
       // get the last link in the chain
-      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Chooing tip frame of kinematic solver for group "
+      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Choosing tip frame of kinematic solver for group "
                                                              << jmg->getName() << " based on last link in chain");
 
       tips.push_back(jmg->getLinkModels().back()->getName());
@@ -125,80 +127,83 @@ public:
   kinematics::KinematicsBasePtr allocKinematicsSolver(const robot_model::JointModelGroup* jmg)
   {
     kinematics::KinematicsBasePtr result;
+    if (!kinematics_loader_)
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Invalid kinematics loader.");
+      return result;
+    }
     if (!jmg)
     {
-      ROS_ERROR("Specified group is NULL. Cannot allocate kinematics solver.");
+      ROS_ERROR_NAMED(LOGNAME, "Specified group is NULL. Cannot allocate kinematics solver.");
+      return result;
+    }
+    const std::vector<const robot_model::LinkModel*>& links = jmg->getLinkModels();
+    if (links.empty())
+    {
+      ROS_ERROR_NAMED(LOGNAME, "No links specified for group '%s'. Cannot allocate kinematics solver.",
+                      jmg->getName().c_str());
       return result;
     }
 
-    ROS_DEBUG("Received request to allocate kinematics solver for group '%s'", jmg->getName().c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "Trying to allocate kinematics solver for group '%s'", jmg->getName().c_str());
 
-    if (kinematics_loader_ && jmg)
+    std::map<std::string, std::vector<std::string> >::const_iterator it =
+        possible_kinematics_solvers_.find(jmg->getName());
+    if (it == possible_kinematics_solvers_.end())
     {
-      std::map<std::string, std::vector<std::string> >::const_iterator it =
-          possible_kinematics_solvers_.find(jmg->getName());
-      if (it != possible_kinematics_solvers_.end())
+      ROS_DEBUG_NAMED(LOGNAME, "No kinematics solver available for this group");
+      return result;
+    }
+
+    const std::string& base = links.front()->getParentJointModel()->getParentLinkModel() ?
+                                  links.front()->getParentJointModel()->getParentLinkModel()->getName() :
+                                  jmg->getParentModel().getModelFrame();
+
+    // just to be sure, do not call the same pluginlib instance allocation function in parallel
+    boost::mutex::scoped_lock slock(lock_);
+    for (std::size_t i = 0; !result && i < it->second.size(); ++i)
+    {
+      try
       {
-        // just to be sure, do not call the same pluginlib instance allocation function in parallel
-        boost::mutex::scoped_lock slock(lock_);
-
-        for (std::size_t i = 0; !result && i < it->second.size(); ++i)
+        result = kinematics_loader_->createUniqueInstance(it->second[i]);
+        if (result)
         {
-          try
+          // choose the tip of the IK solver
+          const std::vector<std::string> tips = chooseTipFrames(jmg);
+
+          // choose search resolution
+          double search_res = search_res_.find(jmg->getName())->second[i];  // we know this exists, by construction
+
+          if (!result->initialize(jmg->getParentModel(), jmg->getName(),
+                                  (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res) &&
+              // on failure: fallback to old method (TODO: remove in future)
+              !result->initialize(robot_description_, jmg->getName(),
+                                  (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res))
           {
-            result = kinematics_loader_->createUniqueInstance(it->second[i]);
-            if (result)
-            {
-              const std::vector<const robot_model::LinkModel*>& links = jmg->getLinkModels();
-              if (!links.empty())
-              {
-                const std::string& base = links.front()->getParentJointModel()->getParentLinkModel() ?
-                                              links.front()->getParentJointModel()->getParentLinkModel()->getName() :
-                                              jmg->getParentModel().getModelFrame();
-
-                // choose the tip of the IK solver
-                const std::vector<std::string> tips = chooseTipFrames(jmg);
-
-                // choose search resolution
-                double search_res =
-                    search_res_.find(jmg->getName())->second[i];  // we know this exists, by construction
-
-                if (!result->initialize(jmg->getParentModel(), jmg->getName(),
-                                        (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res) &&
-                    // on failure: fallback to old method (TODO: remove in future)
-                    !result->initialize(robot_description_, jmg->getName(),
-                                        (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res))
-                {
-                  ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'",
+            ROS_ERROR_NAMED(LOGNAME, "Kinematics solver of type '%s' could not be initialized for group '%s'",
                             it->second[i].c_str(), jmg->getName().c_str());
-                  result.reset();
-                }
-                else
-                {
-                  result->setDefaultTimeout(jmg->getDefaultIKTimeout());
-                  ROS_DEBUG("Successfully allocated and initialized a kinematics solver of type '%s' with search "
-                            "resolution %lf for group '%s' at address %p",
-                            it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
-                }
-              }
-              else
-                ROS_ERROR("No links specified for group '%s'", jmg->getName().c_str());
-            }
+            result.reset();
+            continue;
           }
-          catch (pluginlib::PluginlibException& e)
-          {
-            ROS_ERROR("The kinematics plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
-          }
+
+          result->setDefaultTimeout(jmg->getDefaultIKTimeout());
+          ROS_DEBUG_NAMED(LOGNAME,
+                          "Successfully allocated and initialized a kinematics solver of type '%s' with search "
+                          "resolution %lf for group '%s' at address %p",
+                          it->second[i].c_str(), search_res, jmg->getName().c_str(), result.get());
+          break;
         }
       }
-      else
-        ROS_DEBUG("No kinematics solver available for this group");
+      catch (pluginlib::PluginlibException& e)
+      {
+        ROS_ERROR_NAMED(LOGNAME, "The kinematics plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
+      }
     }
 
     if (!result)
     {
-      ROS_DEBUG("No usable kinematics solver was found for this group.");
-      ROS_DEBUG("Did you load kinematics.yaml into your node's namespace?");
+      ROS_DEBUG_NAMED(LOGNAME, "No usable kinematics solver was found for this group.\n"
+                               "Did you load kinematics.yaml into your node's namespace?");
     }
     return result;
   }
@@ -211,7 +216,7 @@ public:
       for (std::size_t i = 0; i < vi.size(); ++i)
         if (vi[i].unique())
         {
-          ROS_DEBUG("Reusing cached kinematics solver for group '%s'", jmg->getName().c_str());
+          ROS_DEBUG_NAMED(LOGNAME, "Reusing cached kinematics solver for group '%s'", jmg->getName().c_str());
           return vi[i];  // this is safe since the shared_ptr is copied on stack BEFORE the destructors in scope get
                          // called
         }
@@ -231,8 +236,8 @@ public:
     for (std::map<std::string, std::vector<std::string> >::const_iterator it = possible_kinematics_solvers_.begin();
          it != possible_kinematics_solvers_.end(); ++it)
       for (std::size_t i = 0; i < it->second.size(); ++i)
-        ROS_INFO("Solver for group '%s': '%s' (search resolution = %lf)", it->first.c_str(), it->second[i].c_str(),
-                 search_res_.at(it->first)[i]);
+        ROS_INFO_NAMED(LOGNAME, "Solver for group '%s': '%s' (search resolution = %lf)", it->first.c_str(),
+                       it->second[i].c_str(), search_res_.at(it->first)[i]);
   }
 
 private:
@@ -251,7 +256,7 @@ void KinematicsPluginLoader::status() const
   if (loader_)
     loader_->status();
   else
-    ROS_INFO("Loader function was never required");
+    ROS_INFO_NAMED(LOGNAME, "Loader function was never required");
 }
 
 robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
@@ -274,7 +279,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
 
   if (!loader_)
   {
-    ROS_DEBUG("Configuring kinematics solvers");
+    ROS_DEBUG_NAMED(LOGNAME, "Configuring kinematics solvers");
     groups_.clear();
 
     std::map<std::string, std::vector<std::string> > possible_kinematics_solvers;
@@ -289,7 +294,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
 
       if (default_solver_plugin_.empty())
       {
-        ROS_DEBUG("Loading settings for kinematics solvers from the ROS param server ...");
+        ROS_DEBUG_NAMED(LOGNAME, "Loading settings for kinematics solvers from the ROS param server ...");
 
         // read data using ROS params
         ros::NodeHandle nh("~");
@@ -305,13 +310,12 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
           if (!found || !nh.hasParam(ksolver_param_name))
           {
             base_param_name = robot_description_ + "_kinematics/" + known_groups[i].name_;
-            ROS_DEBUG_NAMED("kinematics_plugin_loader", "Looking for param %s ",
-                            (base_param_name + "/kinematics_solver").c_str());
+            ROS_DEBUG_NAMED(LOGNAME, "Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
             found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           }
           if (found)
           {
-            ROS_DEBUG_NAMED("kinematics_plugin_loader", "Found param %s", ksolver_param_name.c_str());
+            ROS_DEBUG_NAMED(LOGNAME, "Found param %s", ksolver_param_name.c_str());
             std::string ksolver;
             if (nh.getParam(ksolver_param_name, ksolver))
             {
@@ -327,8 +331,8 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
                 std::string solver;
                 ss >> solver >> std::ws;
                 possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
-                ROS_DEBUG_NAMED("kinematics_plugin_loader", "Using kinematics solver '%s' for group '%s'.",
-                                solver.c_str(), known_groups[i].name_.c_str());
+                ROS_DEBUG_NAMED(LOGNAME, "Using kinematics solver '%s' for group '%s'.", solver.c_str(),
+                                known_groups[i].name_.c_str());
               }
             }
           }
@@ -391,9 +395,9 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
             std::string ksolver_ik_link;
             if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link))  // has a custom rosparam-based tip link
             {
-              ROS_WARN_STREAM_NAMED("kinematics_plugin_loader", "Using kinematics_solver_ik_link rosparam is "
-                                                                "deprecated in favor of kinematics_solver_ik_links "
-                                                                "rosparam array.");
+              ROS_WARN_STREAM_NAMED(LOGNAME, "Using kinematics_solver_ik_link rosparam is "
+                                             "deprecated in favor of kinematics_solver_ik_links "
+                                             "rosparam array.");
               iksolver_to_tip_links[known_groups[i].name_].push_back(ksolver_ik_link);
             }
           }
@@ -407,18 +411,16 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
             {
               if (ksolver_ik_links.getType() != XmlRpc::XmlRpcValue::TypeArray)
               {
-                ROS_WARN_STREAM_NAMED("kinematics_plugin_loader", "rosparam '"
-                                                                      << ksolver_ik_links_param_name
-                                                                      << "' should be an XmlRpc value type 'Array'");
+                ROS_WARN_STREAM_NAMED(LOGNAME, "rosparam '" << ksolver_ik_links_param_name << "' should be an XmlRpc "
+                                                                                              "value type 'Array'");
               }
               else
               {
                 for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)
                 {
                   ROS_ASSERT(ksolver_ik_links[j].getType() == XmlRpc::XmlRpcValue::TypeString);
-                  ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader",
-                                         "found tip " << static_cast<std::string>(ksolver_ik_links[j]) << " for group "
-                                                      << known_groups[i].name_);
+                  ROS_DEBUG_STREAM_NAMED(LOGNAME, "found tip " << static_cast<std::string>(ksolver_ik_links[j])
+                                                               << " for group " << known_groups[i].name_);
                   iksolver_to_tip_links[known_groups[i].name_].push_back(static_cast<std::string>(ksolver_ik_links[j]));
                 }
               }
@@ -433,7 +435,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
       }
       else
       {
-        ROS_DEBUG("Using specified default settings for kinematics solvers ...");
+        ROS_DEBUG_NAMED(LOGNAME, "Using specified default settings for kinematics solvers ...");
         for (std::size_t i = 0; i < known_groups.size(); ++i)
         {
           possible_kinematics_solvers[known_groups[i].name_].resize(1, default_solver_plugin_);
