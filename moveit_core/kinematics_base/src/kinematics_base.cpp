@@ -35,9 +35,7 @@
 /* Author: Sachin Chitta, Dave Coleman */
 
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model/joint_model_group.h>
-#include <moveit/rdf_loader/rdf_loader.h>
 
 static const std::string LOGNAME = "kinematics_base";
 
@@ -97,30 +95,11 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
   setValues(robot_description, group_name, base_frame, std::vector<std::string>({ tip_frame }), search_discretization);
 }
 
-// fallback implementation, redirecting to new API, passing RobotModel
 bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
                                 const std::string& base_frame, const std::string& tip_frame,
                                 double search_discretization)
 {
-  ROS_WARN_NAMED(LOGNAME, "Called deprecated initialize() API. Forwarding to new API, passing a RobotModel.");
-
-  rdf_loader::RDFLoader rdf_loader(robot_description);
-  const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
-  const urdf::ModelInterfaceSharedPtr& urdf = rdf_loader.getURDF();
-
-  if (!urdf || !srdf)
-  {
-    ROS_ERROR_NAMED(LOGNAME, "Failed to load URDF or SRDF to initialize IK solver.");
-    return false;
-  }
-
-  moveit::core::RobotModelConstPtr robot_model(new moveit::core::RobotModel(urdf, srdf));
-  if (!initialize(*robot_model, group_name, base_frame, { tip_frame }, search_discretization))
-    return false;
-
-  robot_model_ = robot_model;  // store created robot_model (to free it later)
-  robot_description_ = robot_description;
-  return true;
+  return false;  // default implementation returns false
 }
 
 bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
