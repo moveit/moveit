@@ -320,7 +320,7 @@ void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& refer
                                             const trajectory_msgs::JointTrajectory& trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
-  robot_state::RobotState copy = reference_state;
+  const robot_state::RobotState& copy = reference_state;
   clear();
   std::size_t state_count = trajectory.points.size();
   ros::Time last_time_stamp = trajectory.header.stamp;
@@ -346,7 +346,7 @@ void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& refer
                                             const moveit_msgs::RobotTrajectory& trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
-  robot_state::RobotState copy = reference_state;
+  const robot_state::RobotState& copy = reference_state;
   clear();
 
   std::size_t state_count =
