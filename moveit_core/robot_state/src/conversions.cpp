@@ -522,14 +522,14 @@ void robotStateToStream(const RobotState& state, std::ostream& out,
 
 void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
 {
-  std::stringstream lineStream(line);
+  std::stringstream line_stream(line);
   std::string cell;
 
   // For each item/column
   for (std::size_t i = 0; i < state.getVariableCount(); ++i)
   {
     // Get a variable
-    if (!std::getline(lineStream, cell, separator[0]))
+    if (!std::getline(line_stream, cell, separator[0]))
       ROS_ERROR_STREAM_NAMED(LOGNAME, "Missing variable " << state.getVariableNames()[i]);
 
     state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());

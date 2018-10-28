@@ -247,12 +247,12 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   double denominator =
       2 * (shoulder_upperarm_offset_ - shoulder_elbow_offset_) * (shoulder_elbow_offset_ - shoulder_wrist_offset_);
 
-  double acosTerm = numerator / denominator;
+  double acos_term = numerator / denominator;
 
-  if (acosTerm > 1.0 || acosTerm < -1.0)
+  if (acos_term > 1.0 || acos_term < -1.0)
     return;
 
-  double acos_angle = acos(acosTerm);
+  double acos_angle = acos(acos_term);
 
   theta4[0] = acos_angle;
   theta4[1] = -acos_angle;

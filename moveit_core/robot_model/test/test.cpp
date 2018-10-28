@@ -48,7 +48,7 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
   void SetUp() override
   {
-    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
   };
 
   void TearDown() override
@@ -56,26 +56,26 @@ protected:
   }
 
 protected:
-  moveit::core::RobotModelConstPtr robot_model;
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-  ASSERT_EQ(robot_model->getURDF()->getName(), "pr2");
-  ASSERT_EQ(robot_model->getSRDF()->getName(), "pr2");
+  ASSERT_EQ(robot_model_->getURDF()->getName(), "pr2");
+  ASSERT_EQ(robot_model_->getSRDF()->getName(), "pr2");
 }
 
 TEST_F(LoadPlanningModelsPr2, Model)
 {
-  // robot_model->printModelInfo(std::cout);
+  // robot_model_->printModelInfo(std::cout);
 
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   for (std::size_t i = 0; i < joints.size(); ++i)
   {
     ASSERT_EQ(joints[i]->getJointIndex(), static_cast<int>(i));
-    ASSERT_EQ(robot_model->getJointModel(joints[i]->getName()), joints[i]);
+    ASSERT_EQ(robot_model_->getJointModel(joints[i]->getName()), joints[i]);
   }
-  const std::vector<const moveit::core::LinkModel*>& links = robot_model->getLinkModels();
+  const std::vector<const moveit::core::LinkModel*>& links = robot_model_->getLinkModels();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
     ASSERT_EQ(links[i]->getLinkIndex(), static_cast<int>(i));

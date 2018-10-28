@@ -68,9 +68,9 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr& sa
   ros::WallTime end = ros::WallTime::now() + ros::WallDuration(1.0);
   do
   {
-    static const unsigned int n = 10;
-    total += n;
-    for (unsigned int i = 0; i < n; ++i)
+    static const unsigned int N = 10;
+    total += N;
+    for (unsigned int i = 0; i < N; ++i)
     {
       if (sampler->sample(ks, 1))
         valid++;

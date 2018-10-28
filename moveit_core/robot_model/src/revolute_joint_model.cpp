@@ -248,9 +248,9 @@ void RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();
-  size_t maxIdx;
-  axis_.array().abs().maxCoeff(&maxIdx);
-  joint_values[0] = 2. * atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
+  size_t max_idx;
+  axis_.array().abs().maxCoeff(&max_idx);
+  joint_values[0] = 2. * atan2(q.vec()[max_idx] / axis_[max_idx], q.w());
 }
 
 }  // end of namespace core

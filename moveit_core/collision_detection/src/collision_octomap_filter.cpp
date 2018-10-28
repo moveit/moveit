@@ -234,35 +234,35 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
   intensity = 0.f;
   gradient = octomath::Vector3(0, 0, 0);
 
-  double R = r_multiple * spacing;  // TODO magic number!
+  double r = r_multiple * spacing;  // TODO magic number!
   // double T = 0.5; // TODO magic number!
 
-  int NN = cloud.size();
-  if (NN == 0)
+  int nn = cloud.size();
+  if (nn == 0)
   {
     return false;
   }
 
   // variables for Wyvill
-  double a = 0, b = 0, c = 0, R2 = 0, R4 = 0, R6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0, c2 = 0;
-  bool WYVILL = true;
+  double a = 0, b = 0, c = 0, r2 = 0, r4 = 0, r6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0, c2 = 0;
+  bool wyvill = true;
 
   octomap::point3d_list::const_iterator it;
   for (it = cloud.begin(); it != cloud.end(); ++it)
   {
     octomath::Vector3 v = (*it);
 
-    if (WYVILL)
+    if (wyvill)
     {
-      R2 = R * R;
-      R4 = R2 * R2;
-      R6 = R4 * R2;
+      r2 = r * r;
+      r4 = r2 * r2;
+      r6 = r4 * r2;
       a = -4.0 / 9.0;
       b = 17.0 / 9.0;
       c = -22.0 / 9.0;
-      a1 = a / R6;
-      b1 = b / R4;
-      c1 = c / R2;
+      a1 = a / r6;
+      b1 = b / r4;
+      c1 = c / r2;
       a2 = 6 * a1;
       b2 = 4 * b1;
       c2 = 2 * c1;
@@ -278,7 +278,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     octomath::Vector3 pos = position - v;
     double r = pos.norm();
     pos = pos * (1.0 / r);
-    if (r > R)  // must skip points outside valid bounds.
+    if (r > r)  // must skip points outside valid bounds.
     {
       continue;
     }
@@ -288,7 +288,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     double r5 = r3 * r2;
     double r6 = r3 * r3;
 
-    if (WYVILL)
+    if (wyvill)
     {
       f_val = (a1 * r6 + b1 * r4 + c1 * r2 + 1);
       f_grad = pos * (a2 * r5 + b2 * r3 + c2 * r);
@@ -296,10 +296,10 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     else
     {
       ROS_ERROR_NAMED("collision_detection", "This should not be called!");
-      double r_scaled = r / R;
+      double r_scaled = r / r;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);
-      f_grad = pos * (-4.0 / R * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) + 4.0 / R * pow(1 - r_scaled, 4));
+      f_grad = pos * (-4.0 / r * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) + 4.0 / r * pow(1 - r_scaled, 4));
     }
 
     // TODO:  The whole library should be overhauled to follow the "gradient points out"

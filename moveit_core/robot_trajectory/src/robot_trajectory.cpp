@@ -62,8 +62,8 @@ const std::string& RobotTrajectory::getGroupName() const
 {
   if (group_)
     return group_->getName();
-  static const std::string empty;
-  return empty;
+  static const std::string EMPTY;
+  return EMPTY;
 }
 
 double RobotTrajectory::getAverageSegmentDuration() const
@@ -229,7 +229,7 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
     trajectory.multi_dof_joint_trajectory.points.resize(waypoints_.size());
   }
 
-  static const ros::Duration zero_duration(0.0);
+  static const ros::Duration ZERO_DURATION(0.0);
   double total_time = 0.0;
   for (std::size_t i = 0; i < waypoints_.size(); ++i)
   {
@@ -269,7 +269,7 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
       if (duration_from_previous_.size() > i)
         trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(total_time);
       else
-        trajectory.joint_trajectory.points[i].time_from_start = zero_duration;
+        trajectory.joint_trajectory.points[i].time_from_start = ZERO_DURATION;
     }
     if (!mdof.empty())
     {
@@ -311,7 +311,7 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
       if (duration_from_previous_.size() > i)
         trajectory.multi_dof_joint_trajectory.points[i].time_from_start = ros::Duration(total_time);
       else
-        trajectory.multi_dof_joint_trajectory.points[i].time_from_start = zero_duration;
+        trajectory.multi_dof_joint_trajectory.points[i].time_from_start = ZERO_DURATION;
     }
   }
 }
