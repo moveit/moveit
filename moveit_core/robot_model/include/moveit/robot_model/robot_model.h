@@ -575,10 +575,10 @@ protected:
   void buildGroups(const srdf::Model& srdf_model);
 
   /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupsInfo_Subgroups(const srdf::Model& srdf_model);
+  void buildGroupsInfoSubgroups(const srdf::Model& srdf_model);
 
   /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model);
+  void buildGroupsInfoEndEffectors(const srdf::Model& srdf_model);
 
   /** \brief Given the URDF model, build up the mimic joints (mutually constrained joints) */
   void buildMimic(const urdf::ModelInterface& urdf_model);

@@ -787,11 +787,5 @@ bool PR2ArmIK::checkJointLimits(const double& joint_value, const int& joint_num)
   else
     jv = angles::normalize_angle(joint_value * angle_multipliers_[joint_num]);
 
-  if (jv < min_angles_[joint_num] || jv > max_angles_[joint_num])
-  {
-    // ROS_INFO("Angle %d = %f out of range:
-    // (%f,%f)\n",joint_num,joint_value,min_angles_[joint_num],max_angles_[joint_num]);
-    return false;
-  }
-  return true;
+  return not (jv < min_angles_[joint_num] || jv > max_angles_[joint_num]);
 }

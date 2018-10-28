@@ -159,7 +159,7 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init, const KDL::Frame& p_i
     return -1;
 }
 
-int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in, const KDL::Frame& p_in, KDL::JntArray& q_out,
+int PR2ArmIKSolver::cartToJntSearch(const KDL::JntArray& q_in, const KDL::Frame& p_in, KDL::JntArray& q_out,
                                     const double& timeout)
 {
   const bool verbose = false;
@@ -354,7 +354,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     jnt_pos_in(i) = ik_seed_state[i];
   }
 
-  int ik_valid = pr2_arm_ik_solver_->CartToJntSearch(jnt_pos_in, pose_desired, jnt_pos_out, timeout);
+  int ik_valid = pr2_arm_ik_solver_->cartToJntSearch(jnt_pos_in, pose_desired, jnt_pos_out, timeout);
   if (ik_valid == pr2_arm_kinematics::NO_IK_SOLUTION)
   {
     error_code.val = error_code.NO_IK_SOLUTION;
