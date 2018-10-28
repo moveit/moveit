@@ -163,7 +163,10 @@ public:
                 double search_res =
                     search_res_.find(jmg->getName())->second[i];  // we know this exists, by construction
 
-                if (!result->initialize(robot_description_, jmg->getName(),
+                if (!result->initialize(jmg->getParentModel(), jmg->getName(),
+                                        (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res) &&
+                    // on failure: fallback to old method (TODO: remove in future)
+                    !result->initialize(robot_description_, jmg->getName(),
                                         (base.empty() || base[0] != '/') ? base : base.substr(1), tips, search_res))
                 {
                   ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'",
@@ -257,8 +260,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction");
 
   if (loader_)
-    return boost::bind(&KinematicsPluginLoader::KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(),
-                       _1);
+    return boost::bind(&KinematicsLoaderImpl::allocKinematicsSolverWithCache, loader_.get(), _1);
 
   rdf_loader::RDFLoader rml(robot_description_);
   robot_description_ = rml.getRobotDescription();

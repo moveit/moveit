@@ -44,10 +44,34 @@ namespace kinematics
 const double KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
+static void noDeleter(const moveit::core::RobotModel*)
+{
+}
+
+void KinematicsBase::storeValues(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                 const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                 double search_discretization)
+{
+  // The RobotModel is passed in as a borrowed reference from the JointModelGroup belonging to this RobotModel.
+  // Hence, it is ensured that the RobotModel will not be destroyed before the JMG and its associated
+  // kinematics solvers. To keep RobotModelPtr API (instead of storing the reference here only), but break
+  // the circular reference (RM => JMG => KS -> RM), here we create a new shared_ptr that doesn't delete the RM.
+  robot_model_ = moveit::core::RobotModelConstPtr(&robot_model, &noDeleter);
+  robot_description_ = "";
+  group_name_ = group_name;
+  base_frame_ = removeSlash(base_frame);
+  tip_frames_.clear();
+  for (const std::string& name : tip_frames)
+    tip_frames_.push_back(removeSlash(name));
+  setSearchDiscretization(search_discretization);
+  search_discretization_ = search_discretization;
+}
+
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                double search_discretization)
 {
+  robot_model_.reset();
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
@@ -72,6 +96,13 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
 }
 
 bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
+                                const std::string& base_frame, const std::string& tip_frame,
+                                double search_discretization)
+{
+  return false;  // default implementation returns false
+}
+
+bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
                                 const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                 double search_discretization)
 {
@@ -82,6 +113,14 @@ bool KinematicsBase::initialize(const std::string& robot_description, const std:
   }
 
   ROS_ERROR_NAMED(LOGNAME, "This solver does not support multiple tip frames");
+  return false;
+}
+
+bool KinematicsBase::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                double search_discretization)
+{
+  ROS_WARN_NAMED("kinematics_base", "Plugin uses a deprecated API. Please use initialize(RobotModel&).");
   return false;
 }
 

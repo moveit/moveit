@@ -371,11 +371,12 @@ public:
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    *
-   * Instead of this method, use the method passing in a RobotModel.
+   * Instead of this method, use the method passing in a RobotModel!
+   * Default implementation returns false, indicating that this API is not supported.
    */
-  virtual bool initialize(const std::string& robot_description, const std::string& group_name,
-                          const std::string& base_frame, const std::string& tip_frame,
-                          double search_discretization) = 0;
+  MOVEIT_DEPRECATED virtual bool initialize(const std::string& robot_description, const std::string& group_name,
+                                            const std::string& base_frame, const std::string& tip_frame,
+                                            double search_discretization);
 
   /**
    * @brief  Initialization function for the kinematics, for use with non-chain IK solvers
@@ -388,7 +389,8 @@ public:
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    *
-   * Instead of this method, use the method passing in a RobotModel.
+   * Instead of this method, use the method passing in a RobotModel!
+   * Default implementation calls initialize() for tip_frames[0] and reports an error if tip_frames.size() != 1.
    */
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
@@ -403,15 +405,14 @@ public:
    * @param tip_frames The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return true if initialization was successful, false otherwise
+   *
+   * When returning false, the KinematicsPlugingLoader will use the old method, passing a robot_description.
+   * Default implementation returns false and issues a warning to implement this new API.
+   * TODO: Make this method purely virtual after some soaking time, replacing the fallback.
    */
   virtual bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
-                          double search_discretization)
-  {
-    // For IK solvers that do not support passing in a RobotModel, return false and have
-    // the kinematics_plugin_loader try the older version of loading
-    return false;
-  }
+                          double search_discretization);
 
   /**
    * @brief  Return the name of the group that the solver is operating on
@@ -584,6 +585,7 @@ public:
   KinematicsBase();
 
 protected:
+  moveit::core::RobotModelConstPtr robot_model_;
   std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
@@ -646,6 +648,18 @@ protected:
 
     return false;
   }
+
+  /** Store some core variables passed via initialize().
+   *
+   * @param robot_model RobotModel, this kinematics solver should act on.
+   * @param group_name The group for which this solver is being configured.
+   * @param base_frame The base frame in which all input poses are expected.
+   * @param tip_frames The tips of the kinematics tree.
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   */
+  void storeValues(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                   const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                   double search_discretization);
 
 private:
   std::string removeSlash(const std::string& str) const;
