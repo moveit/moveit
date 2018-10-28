@@ -45,36 +45,30 @@ const double KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
-                               const std::string& base_frame, const std::string& tip_frame,
-                               double search_discretization)
-{
-  robot_description_ = robot_description;
-  group_name_ = group_name;
-  base_frame_ = removeSlash(base_frame);
-  tip_frame_ = removeSlash(tip_frame);  // for backwards compatibility
-  tip_frames_.push_back(removeSlash(tip_frame));
-  search_discretization_ = search_discretization;
-  setSearchDiscretization(search_discretization);
-}
-
-void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
-  search_discretization_ = search_discretization;
+  tip_frames_.clear();
+  for (const std::string& name : tip_frames)
+    tip_frames_.push_back(removeSlash(name));
   setSearchDiscretization(search_discretization);
 
-  // Copy tip frames to local vector after stripping slashes
-  tip_frames_.clear();
-  for (std::size_t i = 0; i < tip_frames.size(); ++i)
-    tip_frames_.push_back(removeSlash(tip_frames[i]));
+  // store deprecated values for backwards compatibility
+  search_discretization_ = search_discretization;
+  if (tip_frames_.size() == 1)
+    tip_frame_ = tip_frames_[0];
+  else
+    tip_frame_.clear();
+}
 
-  // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
-  if (tip_frames.size() == 1)
-    tip_frame_ = removeSlash(tip_frames[0]);
+void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
+                               const std::string& base_frame, const std::string& tip_frame,
+                               double search_discretization)
+{
+  setValues(robot_description, group_name, base_frame, std::vector<std::string>({ tip_frame }), search_discretization);
 }
 
 bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
@@ -139,6 +133,20 @@ bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg, std
   }
 
   return true;
+}
+
+KinematicsBase::KinematicsBase()
+  : tip_frame_("DEPRECATED")
+  // help users understand why this variable might not be set
+  // (if multiple tip frames provided, this variable will be unset)
+  , search_discretization_(DEFAULT_SEARCH_DISCRETIZATION)
+  , default_timeout_(DEFAULT_TIMEOUT)
+{
+  supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
+}
+
+KinematicsBase::~KinematicsBase()
+{
 }
 
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,

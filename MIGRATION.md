@@ -8,7 +8,8 @@ API changes in MoveIt! releases
 - The move_group capability ``ExecuteTrajectoryServiceCapability`` has been removed in favor of the improved ``ExecuteTrajectoryActionCapability`` capability. Since Indigo, both capabilities were supported. If you still load default capabilities in your ``config/launch/move_group.launch``, you can just remove them from the capabilities parameter. The correct default capabilities will be loaded automatically.
 - Deprecated method ``CurrentStateMonitor::waitForCurrentState(double wait_time)`` was finally removed.
 - Renamed ``RobotState::getCollisionBodyTransforms`` to ``getCollisionBodyTransform`` as it returns a single transform only.
-- Remove deprecated class MoveGroup (was renamed to MoveGroupInterface).
+- Removed deprecated class MoveGroup (was renamed to MoveGroupInterface).
+- KinematicsBase: Deprecate members tip_frame_, search_discretization_. Use tip_frames_ and redundant_joint_discretization_ instead.
 
 ## ROS Kinetic
 

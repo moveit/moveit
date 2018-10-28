@@ -40,6 +40,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
+#include <moveit/macros/deprecation.h>
 #include <ros/node_handle.h>
 
 #include <boost/function.hpp>
@@ -340,8 +341,10 @@ public:
    * @param tip_frame The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    */
-  virtual void setValues(const std::string& robot_description, const std::string& group_name,
-                         const std::string& base_frame, const std::string& tip_frame, double search_discretization);
+  /* Replace by tip_frames-based method! */
+  MOVEIT_DEPRECATED virtual void setValues(const std::string& robot_description, const std::string& group_name,
+                                           const std::string& base_frame, const std::string& tip_frame,
+                                           double search_discretization);
 
   /**
    * @brief Set the parameters for the solver, for use with non-chain IK solvers
@@ -430,10 +433,8 @@ public:
   }
 
   /**
-   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link
-   * name.
-   * No namespacing (e.g., no "/" prefix) should be used.
-   * Deprecated in favor of getTipFrames(), but will remain for foreseeable future for backwards compatibility
+   * @brief  Return the name of the tip frame of the chain on which the solver is operating.
+   * This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
   virtual const std::string& getTipFrame() const
@@ -442,7 +443,7 @@ public:
       ROS_ERROR_NAMED("kinematics_base", "This kinematic solver has more than one tip frame, "
                                          "do not call getTipFrame()");
 
-    return tip_frame_;  // for backwards-compatibility. should actually use tip_frames_[0]
+    return tip_frames_[0];
   }
 
   /**
@@ -515,11 +516,8 @@ public:
   void setSearchDiscretization(double sd)
   {
     redundant_joint_discretization_.clear();
-    for (std::vector<unsigned int>::iterator i = redundant_joint_indices_.begin(); i != redundant_joint_indices_.end();
-         i++)
-    {
-      redundant_joint_discretization_[*i] = sd;
-    }
+    for (unsigned int index : redundant_joint_indices_)
+      redundant_joint_discretization_[index] = sd;
   }
 
   /**
@@ -581,31 +579,21 @@ public:
   /**
    * @brief  Virtual destructor for the interface
    */
-  virtual ~KinematicsBase()
-  {
-  }
+  virtual ~KinematicsBase();
 
-  KinematicsBase()
-    : tip_frame_("DEPRECATED")
-    ,  // help users understand why this variable might not be set
-       // (if multiple tip frames provided, this variable will be unset)
-    search_discretization_(DEFAULT_SEARCH_DISCRETIZATION)
-    , default_timeout_(DEFAULT_TIMEOUT)
-  {
-    supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
-  }
+  KinematicsBase();
 
 protected:
   std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
   std::vector<std::string> tip_frames_;
-  std::string tip_frame_;  // DEPRECATED - this variable only still exists for backwards compatibility with
-                           // previously generated custom ik solvers like IKFast
 
-  double search_discretization_;  // DEPRECATED - this variable only still exists for backwards compatibility
-                                  // with previous implementations.  Discretization values for each joint are
-                                  // now stored in the redundant_joint_discretization_ member
+  // The next two variables still exists for backwards compatibility
+  // with previously generated custom ik solvers like IKFast
+  // Replace tip_frame_ -> tip_frames_[0], search_discretization_ -> redundant_joint_discretization_
+  MOVEIT_DEPRECATED std::string tip_frame_;
+  MOVEIT_DEPRECATED double search_discretization_;
 
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
