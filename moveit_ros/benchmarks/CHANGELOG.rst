@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
+* Contributors: Simon Schmeisser
+
 0.9.14 (2018-10-24)
 -------------------
 

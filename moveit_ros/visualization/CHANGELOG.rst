@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* [maintenance] Store more settings of rviz' PlanningFrame (`#1135 <https://github.com/ros-planning/moveit/issues/1135>`_)
+* [code] cleanup, improvements (`#1141 <https://github.com/ros-planning/moveit/issues/1141>`_)
+* Contributors: Alexander Gutenkunst, Jonathan Hechtbauer, Robert Haschke
+
 0.9.14 (2018-10-24)
 -------------------
 

@@ -2,6 +2,13 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_) 
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* [code] cleanup, improvements (`#1141 <https://github.com/ros-planning/moveit/issues/1141>`_, `#1099 <https://github.com/ros-planning/moveit/issues/1099>`_, `#1108 <https://github.com/ros-planning/moveit/issues/1108>`_)
+* Contributors: Alexander Gutenkunst, Jonathan Hechtbauer, Robert Haschke, Simon Schmeisser
+
 0.9.14 (2018-10-24)
 -------------------
 * [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
