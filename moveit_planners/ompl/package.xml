@@ -1,6 +1,6 @@
 <package>
   <name>moveit_planners_ompl</name>
-  <version>0.9.14</version>
+  <version>0.9.15</version>
   <description>MoveIt! interface to OMPL</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

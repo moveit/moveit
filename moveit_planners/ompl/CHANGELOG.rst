@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.15 (2018-10-29)
+-------------------
 * [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
 * Contributors: Simon Schmeisser
 
