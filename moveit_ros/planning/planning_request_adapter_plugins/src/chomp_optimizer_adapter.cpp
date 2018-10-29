@@ -48,8 +48,6 @@
 
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 
-#include <tf/transform_listener.h>
-
 #include <moveit/robot_state/conversions.h>
 
 #include <vector>
