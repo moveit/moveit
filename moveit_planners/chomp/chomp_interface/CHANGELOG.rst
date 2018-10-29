@@ -2,6 +2,12 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_)
+* [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
+* Contributors: Robert Haschke
+
 0.10.2 (2018-10-24)
 -------------------
 * [fix] chomp tests: fix order of moveit includes (`#970 <https://github.com/ros-planning/moveit/issues/970>`_)

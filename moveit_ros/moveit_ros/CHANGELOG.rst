@@ -2,6 +2,9 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.10.2 (2018-10-24)
 -------------------
 * fix refrences to moveit! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)

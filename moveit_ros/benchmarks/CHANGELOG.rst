@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] Use locale independent conversion from double to string (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
+* Contributors: Simon Schmeisser
+
 0.10.2 (2018-10-24)
 -------------------
 * [capability] Benchmarking with different Motion Planners (STOMP, CHOMP, OMPL) (`#992 <https://github.com/ros-planning/moveit/issues/992>`_)

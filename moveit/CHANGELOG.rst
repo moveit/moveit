@@ -2,6 +2,15 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_)
+* [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
+* [capability] Get available planning group names from MoveGroup C++ (`#1159 <https://github.com/ros-planning/moveit/issues/1159>`_)
+* [maintenance] Store more settings of rviz' PlanningFrame (`#1135 <https://github.com/ros-planning/moveit/issues/1135>`_)
+* [code] cleanup, improvements (`#1107 <https://github.com/ros-planning/moveit/issues/1107>`_, `#1099 <https://github.com/ros-planning/moveit/issues/1099>`_, `#1108 <https://github.com/ros-planning/moveit/issues/1108>`_, `#1144 <https://github.com/ros-planning/moveit/issues/1144>`_, `#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
+* Contributors: Alexander Gutenkunst, Dave Coleman, Robert Haschke, Simon Schmeisser
+
 0.10.2 (2018-10-24)
 -------------------
 * [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
