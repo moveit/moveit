@@ -1,6 +1,6 @@
 <package>
   <name>moveit_fake_controller_manager</name>
-  <version>0.10.2</version>
+  <version>0.10.3</version>
   <description>A fake controller manager plugin for MoveIt.</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

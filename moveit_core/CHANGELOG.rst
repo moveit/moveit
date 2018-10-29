@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.3 (2018-10-29)
+-------------------
 * [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
 * [code] cleanup (`#1107 <https://github.com/ros-planning/moveit/issues/1107>`_, `#1099 <https://github.com/ros-planning/moveit/issues/1099>`_, `#1108 <https://github.com/ros-planning/moveit/issues/1108>`_)
 * Contributors: Robert Haschke, Simon Schmeisser

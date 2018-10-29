@@ -1,6 +1,6 @@
 <package>
   <name>moveit_plugins</name>
-  <version>0.10.2</version>
+  <version>0.10.3</version>
   <description>Metapackage for MoveIt! plugins.</description>
 
   <author email="mferguson@fetchrobotics.com">Michael Ferguson</author>

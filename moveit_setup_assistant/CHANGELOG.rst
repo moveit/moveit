@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.3 (2018-10-29)
+-------------------
 * [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
 * Contributors: Robert Haschke
 

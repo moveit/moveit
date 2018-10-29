@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros</name>
-  <version>0.10.2</version>
+  <version>0.10.3</version>
   <description>Components of MoveIt! that use ROS</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>

@@ -1,6 +1,6 @@
 <package>
   <name>moveit_commander</name>
-  <version>0.10.2</version>
+  <version>0.10.3</version>
   <description>Python interfaces to MoveIt</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

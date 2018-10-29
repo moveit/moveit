@@ -2,8 +2,8 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.3 (2018-10-29)
+-------------------
 * [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_)
 * [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
 * Contributors: Robert Haschke

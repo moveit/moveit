@@ -1,6 +1,6 @@
 <package>
   <name>moveit_simple_controller_manager</name>
-  <version>0.10.2</version>
+  <version>0.10.3</version>
   <description>A generic, simple controller manager plugin for MoveIt.</description>
 
   <author email="mferguson@fetchrobotics.com">Michael Ferguson</author>
