@@ -46,47 +46,21 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
   virtual void SetUp()
   {
-    srdf_model_.reset(new srdf::Model());
-
-    std::string xml_string;
-    std::fstream xml_file("pr2_description/urdf/robot.xml", std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model_ = urdf::parseURDF(xml_string);
-      urdf_ok_ = urdf_model_;
-    }
-    else
-      urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "pr2_description/srdf/robot.xml");
-  };
+  }
 
   virtual void TearDown()
   {
   }
-
-protected:
-  urdf::ModelInterfaceSharedPtr urdf_model_;
-  srdf::ModelSharedPtr srdf_model_;
-  bool urdf_ok_;
-  bool srdf_ok_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-  ASSERT_TRUE(urdf_ok_);
-  ASSERT_EQ(urdf_model_->getName(), "pr2_test");
-
-  robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model_, srdf_model_));
-  robot_state::RobotState ks(robot_model);
-  ks.setToRandomValues();
-  ks.setToDefaultValues();
+  robot_model::RobotModelPtr robot_model(moveit::core::loadRobot("pr2_description"));
+  ASSERT_TRUE(robot_model != nullptr);
+  ASSERT_EQ(robot_model->getName(), "pr2_test");
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToRandomValues();
+  robot_state.setToDefaultValues();
 
   robot_state::Transforms tf(robot_model->getModelFrame());
 
@@ -109,17 +83,17 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
   Eigen::Affine3d x;
   x.setIdentity();
-  tf.transformPose(ks, "some_frame_2", x, x);
+  tf.transformPose(robot_state, "some_frame_2", x, x);
 
   EXPECT_TRUE(t2.translation() == x.translation());
   EXPECT_TRUE(t2.rotation() == x.rotation());
 
-  tf.transformPose(ks, robot_model->getModelFrame(), x, x);
+  tf.transformPose(robot_state, robot_model->getModelFrame(), x, x);
   EXPECT_TRUE(t2.translation() == x.translation());
   EXPECT_TRUE(t2.rotation() == x.rotation());
 
   x.setIdentity();
-  tf.transformPose(ks, "r_wrist_roll_link", x, x);
+  tf.transformPose(robot_state, "r_wrist_roll_link", x, x);
 
   EXPECT_NEAR(x.translation().x(), 0.585315, 1e-4);
   EXPECT_NEAR(x.translation().y(), -0.188, 1e-4);

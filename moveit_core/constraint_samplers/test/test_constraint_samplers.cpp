@@ -42,7 +42,7 @@
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit_resources/config.h>
+#include <moveit/utils/robot_model_builder.h>
 
 #include <geometric_shapes/shape_operations.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -51,7 +51,6 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <boost/bind.hpp>
-#include <boost/filesystem/path.hpp>
 
 #include "pr2_arm_kinematics_plugin.h"
 
@@ -74,33 +73,18 @@ protected:
 
   void SetUp() override
   {
-    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-
-    srdf_model.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model = urdf::parseURDF(xml_string);
-    }
-    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
-    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+    robot_model = moveit::core::loadRobot("pr2_description");
+    urdf::ModelInterfaceSharedPtr urdf;
+    urdf.reset(robot_model->getURDF().get());
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
-    pr2_kinematics_plugin_right_arm_->setRobotModel(urdf_model);
+    pr2_kinematics_plugin_right_arm_->setRobotModel(urdf);
     pr2_kinematics_plugin_right_arm_->initialize("", "right_arm", "torso_lift_link", "r_wrist_roll_link", .01);
 
     pr2_kinematics_plugin_left_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
-    pr2_kinematics_plugin_left_arm_->setRobotModel(urdf_model);
+    pr2_kinematics_plugin_left_arm_->setRobotModel(urdf);
     pr2_kinematics_plugin_left_arm_->initialize("", "left_arm", "torso_lift_link", "l_wrist_roll_link", .01);
 
     func_right_arm = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
@@ -122,8 +106,6 @@ protected:
   }
 
 protected:
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  srdf::ModelSharedPtr srdf_model;
   robot_model::RobotModelPtr robot_model;
   planning_scene::PlanningScenePtr ps;
   pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_right_arm_;

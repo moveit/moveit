@@ -36,6 +36,7 @@
 #include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/robot_model_builder.h>
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
 #include <sstream>
@@ -109,7 +110,9 @@ TEST(Loading, SimpleRobot)
 
   EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
 
-  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
+  moveit::core::RobotModelBuilder builder("myrobot", "base_link");
+  builder.addVirtualJoint("odom_combined", "base_link", "floating", "base_joint");
+  moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
 
   state.setToDefaultValues();

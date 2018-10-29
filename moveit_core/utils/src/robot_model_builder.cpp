@@ -37,15 +37,16 @@
 #include <ros/ros.h>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <geometry_msgs/Pose.h>
 #include "moveit/utils/robot_model_builder.h"
 
 namespace moveit
 {
 namespace core
 {
-    moveit::core::RobotModelConstPtr loadRobot(std::string robot_name)
+    moveit::core::RobotModelPtr loadRobot(std::string robot_name)
     {
-        moveit::core::RobotModelConstPtr robot_model;
+        moveit::core::RobotModelPtr robot_model;
         boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
         urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile((res_path / robot_name / "urdf/robot.xml").string());
@@ -76,7 +77,7 @@ namespace core
         srdf_writer_->robot_name_ = name;
     }
 
-    void RobotModelBuilder::add(std::string section, std::string type)
+  void RobotModelBuilder::add(std::string section, std::string type, std::vector<geometry_msgs::Pose> origins)
     {
         std::vector<std::string> link_names;
         boost::split_regex(link_names, section, boost::regex("->"));
@@ -109,7 +110,13 @@ namespace core
             joint.reset(new urdf::Joint);
             joint->name = link_names[i - 1] + "-" + link_names[i] + "-joint";
             // Default to Identity transform for origins.
+            geometry_msgs::Pose o = origins[i - 1];
             joint->parent_to_joint_origin_transform.clear();
+            joint->parent_to_joint_origin_transform.position =
+              urdf::Vector3(o.position.x, o.position.y, o.position.z);
+            joint->parent_to_joint_origin_transform.rotation =
+              urdf::Rotation(o.orientation.x, o.orientation.y, o.orientation.z, o.orientation.w);
+
             joint->parent_link_name = link_names[i - 1];
             joint->child_link_name = link_names[i];
             if (type == "planar")
@@ -143,6 +150,48 @@ namespace core
             urdf_model_->joints_.insert(std::make_pair(joint->name, joint));
         }
     }
+
+  void RobotModelBuilder::addLinkBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+  {
+    if (not urdf_model_->getLink(link_name))
+      {
+        ROS_ERROR("Link %s not present in builder yet!", link_name.c_str());
+        return;
+      }
+    urdf::LinkSharedPtr link;
+    urdf_model_->getLink(link_name, link);
+
+    urdf::CollisionSharedPtr coll;
+    coll.reset(new urdf::Collision);
+    coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+    coll->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
+    urdf::BoxSharedPtr geometry;
+    geometry.reset(new urdf::Box);
+    geometry->dim = urdf::Vector3(size.x, size.y, size.z);
+    coll->geometry = geometry;
+    link->collision_array.push_back(coll);
+  }
+
+  void RobotModelBuilder::addLinkMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin)
+  {
+    if (not urdf_model_->getLink(link_name))
+      {
+        ROS_ERROR("Link %s not present in builder yet!", link_name.c_str());
+        return;
+      }
+    urdf::LinkSharedPtr link;
+    urdf_model_->getLink(link_name, link);
+
+    urdf::CollisionSharedPtr coll;
+    coll.reset(new urdf::Collision);
+    coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+    coll->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
+    urdf::MeshSharedPtr geometry;
+    geometry.reset(new urdf::Mesh);
+    geometry->filename = filename;
+    coll->geometry = geometry;
+    link->collision_array.push_back(coll);
+  }
 
   void RobotModelBuilder::addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name)
     {
@@ -185,9 +234,9 @@ namespace core
         srdf_writer_->groups_.push_back(new_group);
     }
 
-    moveit::core::RobotModelConstPtr RobotModelBuilder::build()
+    moveit::core::RobotModelPtr RobotModelBuilder::build()
     {
-        moveit::core::RobotModelConstPtr robot_model;
+        moveit::core::RobotModelPtr robot_model;
         std::map<std::string, std::string> parent_link_tree;
         parent_link_tree.clear();
 

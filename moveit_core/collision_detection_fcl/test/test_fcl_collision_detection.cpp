@@ -38,7 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
-#include <moveit_resources/config.h>
+#include <moveit/utils/robot_model_builder.h>
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
@@ -49,7 +49,6 @@
 #include <ctype.h>
 #include <fstream>
 
-#include <boost/filesystem.hpp>
 
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
@@ -59,35 +58,9 @@ class FclCollisionDetectionTester : public testing::Test
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-    std::string urdf_file = (res_path / "pr2_description/urdf/robot.xml").string();
-    std::string srdf_file = (res_path / "pr2_description/srdf/robot.xml").string();
+    robot_model_ = moveit::core::loadRobot("pr2_description");
+    robot_model_ok_ = static_cast<bool>(robot_model_);
     kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
-
-    srdf_model_.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file(urdf_file.c_str(), std::fstream::in);
-
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model_ = urdf::parseURDF(xml_string);
-      urdf_ok_ = static_cast<bool>(urdf_model_);
-    }
-    else
-    {
-      EXPECT_EQ("FAILED TO OPEN FILE", urdf_file);
-      urdf_ok_ = false;
-    }
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, srdf_file);
-
-    robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
@@ -100,11 +73,7 @@ protected:
   }
 
 protected:
-  bool urdf_ok_;
-  bool srdf_ok_;
-
-  urdf::ModelInterfaceSharedPtr urdf_model_;
-  srdf::ModelSharedPtr srdf_model_;
+  bool robot_model_ok_;
 
   robot_model::RobotModelPtr robot_model_;
 
@@ -118,8 +87,7 @@ protected:
 
 TEST_F(FclCollisionDetectionTester, InitOK)
 {
-  ASSERT_TRUE(urdf_ok_);
-  ASSERT_TRUE(srdf_ok_);
+  ASSERT_TRUE(robot_model_ok_);
 }
 
 TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)

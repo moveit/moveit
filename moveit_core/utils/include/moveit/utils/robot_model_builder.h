@@ -50,21 +50,19 @@
 #include <boost/filesystem/path.hpp>
 #include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
+#include <geometry_msgs/Pose.h>
 
 namespace moveit
 {
 namespace core
 {
 
-  // Class declaration needs to be forward so this class can be in utils.
-  //MOVEIT_CLASS_FORWARD(RobotModel);
-
     /** \brief Loads a robot from moveit_resources.
      * \param[in] robot_name The name of the robot package in moveit_resources to load.
      *            For example, "panda_description", or "faunc_description".
      * \returns a RobotModel constructed from robot_name's URDF and SRDF.
      */
-    moveit::core::RobotModelConstPtr loadRobot(std::string robot_name);
+    moveit::core::RobotModelPtr loadRobot(std::string robot_name);
 
     /** \brief Easily build different robot models for testing.
      *  Should only be used for testing, as many model fields will be left at their defaults.
@@ -78,8 +76,10 @@ namespace core
          * Adds new joints and links to the robot model.
          * Example: builder.add("a->b->c", "prismatic");
          */
-        void add(std::string section, std::string type);
+        void add(std::string section, std::string type, std::vector<geometry_msgs::Pose> origins = {});
 
+        void addLinkMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin);
+        void addLinkBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
 
         void addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name="");
         void addGroupChain(std::string base_link, std::string tip_link, std::string name="");
@@ -88,7 +88,7 @@ namespace core
         /**
          * Builds and returns the specified robot model.
          */
-        moveit::core::RobotModelConstPtr build();
+        moveit::core::RobotModelPtr build();
 
     private:
         urdf::ModelInterfaceSharedPtr urdf_model_;
