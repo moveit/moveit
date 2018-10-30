@@ -35,6 +35,7 @@
 /* Author: Dave Coleman */
 
 #include "navigation_widget.h"
+#include <QApplication>
 #include <QDebug>
 #include <iostream>
 
@@ -134,54 +135,44 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
                                      QPoint(option.rect.x(), option.rect.y() + option.rect.height()));
   if (isSelected)
   {
-    backgroundGradient.setColorAt(0, QColor(109, 164, 219));
-    backgroundGradient.setColorAt(1, QColor(61, 138, 212));
+    backgroundGradient.setColorAt(0, QApplication::palette().color(QPalette::Highlight).lighter(125));
+    backgroundGradient.setColorAt(1, QApplication::palette().color(QPalette::Highlight));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
   }
   else
   {
-    backgroundGradient.setColorAt(0, QColor(245, 245, 245));
-    backgroundGradient.setColorAt(1, QColor(240, 240, 240));
+    backgroundGradient.setColorAt(0, QApplication::palette().color(QPalette::Light));
+    backgroundGradient.setColorAt(1, QApplication::palette().color(QPalette::Button));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
   }
 
-  painter->setPen(QColor(225, 225, 225));
+  painter->setPen(QApplication::palette().color(QPalette::Button));
   if (isSelected)
   {
-    painter->setPen(QColor(37, 105, 169));
+    painter->setPen(QApplication::palette().color(QPalette::Mid));
     painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
     painter->setPen(Qt::transparent);
   }
   painter->drawLine(option.rect.topLeft(), option.rect.topRight());
   if (!isSelected)
   {
-    painter->setPen(QColor(248, 248, 248));
+    painter->setPen(QApplication::palette().color(QPalette::Light));
     painter->drawLine(QPoint(option.rect.x(), option.rect.y() + 1),
                       QPoint(option.rect.x() + option.rect.width(), option.rect.y() + 1));
   }
 
   QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
-
   QFont textFont(painter->font());
   textFont.setPixelSize(14);  // Set font size
   painter->setFont(textFont);
 
   // Font color
   if (isSelected)
-  {
-    // Selected
-    painter->setPen(QColor(229, 229, 229));
-  }
-  else if (index.flags().testFlag(Qt::NoItemFlags))
-  {
-    // Disabled font color if disabled
-    painter->setPen(QColor(170, 170, 170));  // TODO: make this work
-  }
+    painter->setPen(QApplication::palette().color(QPalette::HighlightedText));
+  else if (!option.state.testFlag(QStyle::State_Enabled))
+    painter->setPen(QApplication::palette().color(QPalette::Dark));
   else
-  {
-    // Normal
-    painter->setPen(QColor(69, 69, 69));
-  }
+    painter->setPen(QApplication::palette().color(QPalette::ButtonText));
 
   painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, nav_name);
 

@@ -455,7 +455,7 @@ bool StartScreenWidget::loadNewFiles()
   // Check that box is filled out
   if (config_data_->urdf_path_.empty())
   {
-    QMessageBox::warning(this, "Error Loading Files", "No robot model file specefied");
+    QMessageBox::warning(this, "Error Loading Files", "No robot model file specified");
     return false;
   }
 
