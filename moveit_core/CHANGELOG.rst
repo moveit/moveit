@@ -2,6 +2,9 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.10.3 (2018-10-29)
 -------------------
 * [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
