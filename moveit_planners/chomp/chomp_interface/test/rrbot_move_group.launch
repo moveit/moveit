@@ -6,7 +6,7 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <param name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find moveit_planners_chomp)/test/rrbot.xacro'"/>
+  <param name="$(arg robot_description)" command="$(find xacro)/xacro '$(find moveit_planners_chomp)/test/rrbot.xacro'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
   <param name="$(arg robot_description)_semantic" textfile="$(find moveit_planners_chomp)/test/rrbot.srdf" />
