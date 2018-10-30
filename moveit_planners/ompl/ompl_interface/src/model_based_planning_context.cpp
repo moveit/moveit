@@ -46,7 +46,6 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
-#include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
