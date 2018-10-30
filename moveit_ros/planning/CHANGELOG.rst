@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.4 (2018-10-29)
+-------------------
 * [fix] Build regression (`#1170 <https://github.com/ros-planning/moveit/issues/1170>`_)
 * Contributors: Robert Haschke
 
