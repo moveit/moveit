@@ -127,7 +127,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
                              "optional xacro arguments:", this, true);  // directory
   // user needs to select option before this is shown
   stack_path_->hide();
-  stack_path_->setArgs("--inorder ");
+  stack_path_->setArgs("");
   connect(stack_path_, SIGNAL(pathChanged(QString)), this, SLOT(onPackagePathChanged(QString)));
   left_layout->addWidget(stack_path_);
 
@@ -138,7 +138,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
                                       "optional xacro arguments:", this, false, true);  // no directory, load only
   // user needs to select option before this is shown
   urdf_file_->hide();
-  urdf_file_->setArgs("--inorder ");
+  urdf_file_->setArgs("");
   connect(urdf_file_, SIGNAL(pathChanged(QString)), this, SLOT(onUrdfPathChanged(QString)));
   left_layout->addWidget(urdf_file_);
 
