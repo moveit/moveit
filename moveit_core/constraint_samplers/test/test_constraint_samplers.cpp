@@ -74,8 +74,7 @@ protected:
   void SetUp() override
   {
     robot_model = moveit::core::loadRobot("pr2_description");
-    urdf::ModelInterfaceSharedPtr urdf;
-    urdf.reset(robot_model->getURDF().get());
+    urdf::ModelInterfaceSharedPtr urdf = moveit::core::loadURDF("pr2_description");
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 

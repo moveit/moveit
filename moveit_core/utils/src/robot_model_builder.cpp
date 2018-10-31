@@ -44,24 +44,36 @@ namespace moveit
 {
 namespace core
 {
+  const std::string LOGNAME = "robot_model_builder";
     moveit::core::RobotModelPtr loadRobot(std::string robot_name)
     {
+        urdf::ModelInterfaceSharedPtr urdf = loadURDF(robot_name);
+        srdf::ModelSharedPtr srdf = loadSRDF(robot_name);
         moveit::core::RobotModelPtr robot_model;
-        boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-
-        urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile((res_path / robot_name / "urdf/robot.xml").string());
-        if (urdf_model == nullptr)
-        {
-            ROS_ERROR("Cannot find URDF for %s. Make sure moveit_resources/your robot description is installed",
-                      robot_name.c_str());
-            return robot_model;
-        }
-        srdf::ModelSharedPtr srdf_model;
-        srdf_model.reset(new srdf::Model());
-        srdf_model->initFile(*urdf_model, (res_path / robot_name / "srdf/robot.xml").string());
-        robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+        robot_model.reset(new moveit::core::RobotModel(urdf, srdf));
         return robot_model;
     }
+
+  urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name)
+  {
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+    urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile((res_path / robot_name / "urdf/robot.xml").string());
+    if (urdf_model == nullptr)
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Cannot find URDF for %s. Make sure moveit_resources/your robot description is installed",
+                        robot_name.c_str());
+      }
+    return urdf_model;
+  }
+
+  srdf::ModelSharedPtr loadSRDF(std::string robot_name)
+  {
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+    urdf::ModelInterfaceSharedPtr urdf_model = loadURDF(robot_name);
+    srdf::ModelSharedPtr srdf_model(new srdf::Model());
+    srdf_model->initFile(*urdf_model, (res_path / robot_name / "srdf/robot.xml").string());
+    return srdf_model;
+  }
 
     RobotModelBuilder::RobotModelBuilder(std::string name, std::string base_link_name) :
         urdf_model_(new urdf::ModelInterface()), srdf_writer_(new srdf::SRDFWriter())
@@ -69,28 +81,33 @@ namespace core
         urdf_model_->clear();
         urdf_model_->name_ = name;
 
-        urdf::LinkSharedPtr base_link;
-        base_link.reset(new urdf::Link);
+        urdf::LinkSharedPtr base_link(new urdf::Link);
         base_link->name = base_link_name;
         urdf_model_->links_.insert(std::make_pair(base_link_name, base_link));
 
         srdf_writer_->robot_name_ = name;
     }
 
-  void RobotModelBuilder::add(std::string section, std::string type, std::vector<geometry_msgs::Pose> origins)
+  void RobotModelBuilder::add(std::string section, std::string type, std::vector<geometry_msgs::Pose> joint_origins)
     {
         std::vector<std::string> link_names;
         boost::split_regex(link_names, section, boost::regex("->"));
         if (link_names.empty())
         {
-            ROS_ERROR("No links specified (empty section?)");
+          ROS_ERROR_NAMED(LOGNAME, "No links specified (empty section?)");
             return;
         }
         // First link should already be added.
         if (not urdf_model_->getLink(link_names[0]))
         {
-            ROS_ERROR("Link %s not present in builder yet!", link_names[0].c_str());
+          ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_names[0].c_str());
             return;
+        }
+
+        if (not joint_origins.empty() && link_names.size() - 1 != joint_origins.size())
+        {
+          ROS_ERROR_NAMED(LOGNAME, "There should be one more link (%zu) than there are joint origins (%zu)", link_names.size(), joint_origins.size());
+          return;
         }
 
         // Iterate through each link.
@@ -99,23 +116,24 @@ namespace core
             // These links shouldn't be present already.
             if (urdf_model_->getLink(link_names[i]))
             {
-                ROS_ERROR("Link %s is already specified", link_names[i].c_str());
+              ROS_ERROR_NAMED(LOGNAME, "Link %s is already specified", link_names[i].c_str());
                 return;
             }
-            urdf::LinkSharedPtr link;
-            link.reset(new urdf::Link);
+            urdf::LinkSharedPtr link(new urdf::Link);
             link->name = link_names[i];
             urdf_model_->links_.insert(std::make_pair(link_names[i], link));
-            urdf::JointSharedPtr joint;
-            joint.reset(new urdf::Joint);
+            urdf::JointSharedPtr joint(new urdf::Joint);
             joint->name = link_names[i - 1] + "-" + link_names[i] + "-joint";
             // Default to Identity transform for origins.
-            geometry_msgs::Pose o = origins[i - 1];
             joint->parent_to_joint_origin_transform.clear();
-            joint->parent_to_joint_origin_transform.position =
-              urdf::Vector3(o.position.x, o.position.y, o.position.z);
-            joint->parent_to_joint_origin_transform.rotation =
-              urdf::Rotation(o.orientation.x, o.orientation.y, o.orientation.z, o.orientation.w);
+            if (not joint_origins.empty())
+            {
+              geometry_msgs::Pose o = joint_origins[i - 1];
+              joint->parent_to_joint_origin_transform.position =
+                urdf::Vector3(o.position.x, o.position.y, o.position.z);
+              joint->parent_to_joint_origin_transform.rotation =
+                urdf::Rotation(o.orientation.x, o.orientation.y, o.orientation.z, o.orientation.w);
+            }
 
             joint->parent_link_name = link_names[i - 1];
             joint->child_link_name = link_names[i];
@@ -133,15 +151,14 @@ namespace core
                 joint->type = urdf::Joint::FIXED;
             else
             {
-                ROS_ERROR("No such joint type as %s", type.c_str());
+              ROS_ERROR_NAMED(LOGNAME, "No such joint type as %s", type.c_str());
                 return;
             }
 
             joint->axis = urdf::Vector3(1.0, 0.0, 0.0);
             if (joint->type == urdf::Joint::REVOLUTE || joint->type == urdf::Joint::PRISMATIC)
             {
-              urdf::JointLimitsSharedPtr limits;
-              limits.reset(new urdf::JointLimits);
+              urdf::JointLimitsSharedPtr limits(new urdf::JointLimits);
               limits->lower = -boost::math::constants::pi<double>();
               limits->upper = boost::math::constants::pi<double>();
 
@@ -151,59 +168,107 @@ namespace core
         }
     }
 
-  void RobotModelBuilder::addLinkBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+  void RobotModelBuilder::addInertial(std::string link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz, double iyy, double iyz, double izz)
   {
     if (not urdf_model_->getLink(link_name))
       {
-        ROS_ERROR("Link %s not present in builder yet!", link_name.c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
         return;
       }
+
+    urdf::InertialSharedPtr inertial(new urdf::Inertial);
+    inertial->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+    inertial->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
+    inertial->mass = mass;
+    inertial->ixx = ixx;
+    inertial->ixy = ixy;
+    inertial->ixz = ixz;
+    inertial->iyy = iyy;
+    inertial->iyz = iyz;
+    inertial->izz = izz;
+
     urdf::LinkSharedPtr link;
     urdf_model_->getLink(link_name, link);
+    link->inertial = inertial;
+  }
 
-    urdf::CollisionSharedPtr coll;
-    coll.reset(new urdf::Collision);
-    coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
-    coll->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
-    urdf::BoxSharedPtr geometry;
-    geometry.reset(new urdf::Box);
+  void RobotModelBuilder::addVisualBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+  {
+    urdf::VisualSharedPtr vis(new urdf::Visual);
+    urdf::BoxSharedPtr geometry(new urdf::Box);
+    geometry->dim = urdf::Vector3(size.x, size.y, size.z);
+    vis->geometry = geometry;
+    addLinkVisual(link_name, vis, origin);
+  }
+
+  void RobotModelBuilder::addCollBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+  {
+    urdf::CollisionSharedPtr coll(new urdf::Collision);
+    urdf::BoxSharedPtr geometry(new urdf::Box);
     geometry->dim = urdf::Vector3(size.x, size.y, size.z);
     coll->geometry = geometry;
+    addLinkCollision(link_name, coll, origin);
+  }
+
+  void RobotModelBuilder::addCollMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin)
+  {
+    urdf::CollisionSharedPtr coll(new urdf::Collision);
+    urdf::MeshSharedPtr geometry(new urdf::Mesh);
+    geometry->filename = filename;
+    coll->geometry = geometry;
+    addLinkCollision(link_name, coll, origin);
+  }
+
+  void RobotModelBuilder::addLinkCollision(std::string link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin)
+  {
+    if (not urdf_model_->getLink(link_name))
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
+        return;
+      }
+    coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+    coll->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
+
+    urdf::LinkSharedPtr link;
+    urdf_model_->getLink(link_name, link);
     link->collision_array.push_back(coll);
   }
 
-  void RobotModelBuilder::addLinkMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin)
+  void RobotModelBuilder::addLinkVisual(std::string link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin)
   {
     if (not urdf_model_->getLink(link_name))
       {
-        ROS_ERROR("Link %s not present in builder yet!", link_name.c_str());
+        ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
         return;
       }
+    vis->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+    vis->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
+
     urdf::LinkSharedPtr link;
     urdf_model_->getLink(link_name, link);
-
-    urdf::CollisionSharedPtr coll;
-    coll.reset(new urdf::Collision);
-    coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
-    coll->origin.rotation = urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
-    urdf::MeshSharedPtr geometry;
-    geometry.reset(new urdf::Mesh);
-    geometry->filename = filename;
-    coll->geometry = geometry;
-    link->collision_array.push_back(coll);
+    if (not link->visual_array.empty())
+      {
+        link->visual_array.push_back(vis);
+      }
+    else if (link->visual)
+      {
+        link->visual_array.push_back(link->visual);
+        link->visual.reset();
+        link->visual_array.push_back(vis);
+      }
+    else
+      {
+        link->visual = vis;
+      }
   }
 
   void RobotModelBuilder::addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name)
     {
       srdf::Model::VirtualJoint new_virtual_joint;
       if (name == "")
-        {
             new_virtual_joint.name_ = parent_frame + "-" + child_link + "-virtual_joint";
-        }
       else
-        {
           new_virtual_joint.name_ = name;
-        }
         new_virtual_joint.type_ = type;
         new_virtual_joint.parent_frame_ = parent_frame;
         new_virtual_joint.child_link_ = child_link;
@@ -214,13 +279,9 @@ namespace core
     {
         srdf::Model::Group new_group;
         if (name == "")
-        {
             new_group.name_ = base_link + "-" + tip_link + "-chain-group";
-        }
         else
-        {
             new_group.name_ = name;
-        }
         new_group.chains_.push_back(std::make_pair(base_link, tip_link));
         srdf_writer_->groups_.push_back(new_group);
     }
@@ -246,7 +307,7 @@ namespace core
         }
         catch (urdf::ParseError &e)
         {
-            ROS_ERROR("Failed to build tree: %s", e.what());
+          ROS_ERROR_NAMED(LOGNAME, "Failed to build tree: %s", e.what());
             return robot_model;
         }
 
@@ -257,7 +318,7 @@ namespace core
         }
         catch(urdf::ParseError &e)
         {
-            ROS_ERROR("Failed to find root link: %s", e.what());
+          ROS_ERROR_NAMED(LOGNAME, "Failed to find root link: %s", e.what());
             return robot_model;
         }
         srdf_writer_->updateSRDFModel(*urdf_model_);

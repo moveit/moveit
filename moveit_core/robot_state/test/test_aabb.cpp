@@ -279,7 +279,7 @@ TEST_F(TestAABB, TestSimple)
   builder.add("base_footprint->base_link", "fixed", {origin});
 
   origin.position.z = 0;
-  builder.addLinkMesh("base_link",
+  builder.addCollMesh("base_link",
                       "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl",
                       origin);
 
@@ -288,7 +288,7 @@ TEST_F(TestAABB, TestSimple)
   size.x = 0.001;
   size.y = 0.001;
   size.z = 0.001;
-  builder.addLinkBox("base_footprint", size, origin);
+  builder.addCollBox("base_footprint", size, origin);
 
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, {"world_joint"}, "base");
@@ -326,9 +326,9 @@ TEST_F(TestAABB, TestComplex)
   origin.position.x = 5.0;
   origin.position.y = 0;
   origin.position.z = 1.0;
-  builder.addLinkBox("base_link", size, origin);
+  builder.addCollBox("base_link", size, origin);
   origin.position.x = 4.0;
-  builder.addLinkBox("base_link", size, origin);
+  builder.addCollBox("base_link", size, origin);
   origin.position.x = -5.0;
   origin.position.y =  0.0;
   origin.position.z = -1.0;
@@ -337,7 +337,7 @@ TEST_F(TestAABB, TestComplex)
   size.x = 0.1;
   size.y = 1.0;
   size.z = 0.1;
-  builder.addLinkBox("base_footprint", size, origin);
+  builder.addCollBox("base_footprint", size, origin);
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, {"world_joint"}, "base");
 
