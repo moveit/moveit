@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.10.4 (2018-10-29)
 -------------------
 

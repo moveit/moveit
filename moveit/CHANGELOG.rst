@@ -2,6 +2,12 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Build regression (`#1174 <https://github.com/ros-planning/moveit/issues/1174>`_)
+* [doc] Update README for ROS Melodic (`#1171 <https://github.com/ros-planning/moveit/issues/1171>`_)
+* Contributors: Chris Lalancette, Ian McMahon
+
 0.10.4 (2018-10-29)
 -------------------
 * [fix] Build regression (`#1170 <https://github.com/ros-planning/moveit/issues/1170>`_)

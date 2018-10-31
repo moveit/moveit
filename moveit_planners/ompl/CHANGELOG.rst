@@ -2,6 +2,11 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Build regression (`#1174 <https://github.com/ros-planning/moveit/issues/1174>`_)
+* Contributors: Chris Lalancette
+
 0.10.4 (2018-10-29)
 -------------------
 

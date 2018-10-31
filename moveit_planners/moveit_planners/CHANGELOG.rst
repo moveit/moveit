@@ -2,6 +2,9 @@
 Changelog for package moveit_planners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.10.4 (2018-10-29)
 -------------------
 
