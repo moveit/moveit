@@ -94,7 +94,7 @@ TEST(SiblingAssociateLinks, SimpleYRobot)
   builder.add("a->d", "fixed");
   builder.add("d->e", "continuous");
   builder.addVirtualJoint("odom", "base_link", "planar", "base_joint");
-  builder.addGroup({}, {"base_joint"}, "base_joint");
+  builder.addGroup({}, { "base_joint" }, "base_joint");
   moveit::core::RobotModelConstPtr robot_model = builder.build();
 
   const std::string a = "a", b = "b", c = "c", d = "d";

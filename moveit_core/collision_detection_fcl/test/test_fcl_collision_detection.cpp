@@ -49,7 +49,6 @@
 #include <ctype.h>
 #include <fstream>
 
-
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 

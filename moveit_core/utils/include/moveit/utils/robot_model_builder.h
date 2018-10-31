@@ -55,119 +55,123 @@ namespace moveit
 {
 namespace core
 {
+/** \brief Loads a robot from moveit_resources.
+ * \param[in] robot_name The name of the robot package in moveit_resources to load.
+ *            For example, "panda_description", or "faunc_description".
+ * \returns a RobotModel constructed from robot_name's URDF and SRDF.
+ */
+moveit::core::RobotModelPtr loadRobot(std::string robot_name);
 
-    /** \brief Loads a robot from moveit_resources.
-     * \param[in] robot_name The name of the robot package in moveit_resources to load.
-     *            For example, "panda_description", or "faunc_description".
-     * \returns a RobotModel constructed from robot_name's URDF and SRDF.
-     */
-    moveit::core::RobotModelPtr loadRobot(std::string robot_name);
+urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name);
 
-    urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name);
+srdf::ModelSharedPtr loadSRDF(std::string robot_name);
 
-    srdf::ModelSharedPtr loadSRDF(std::string robot_name);
+/** \brief Easily build different robot models for testing.
+ *  Essentially a programmer-friendly light wrapper around URDF and SRDF.
+ *  Best shown by an example:
+ *  \code{.cpp}
+ *  RobotModelBuilder builder("my_robot", "base_link");
+ *  builder.add("a->b->c", "continuous");
+ *  builder.addGroup({"a", "b"}, {}, "example_group");
+ *  RobotModelPtr model = builder.build();
+ *  \endcode
+ */
+class RobotModelBuilder
+{
+public:
+  /** \brief Constructor, takes the names of the robot and the base link.
+   * \param[in] name The name of the robot, i.e. the 'name' attribute of the robot tag in URDF
+   * \param[in] base_link_name The name of the base/root link of the robot. All other links should be descendants
+   *            of this link
+   */
+  RobotModelBuilder(std::string name, std::string base_link_name);
 
-    /** \brief Easily build different robot models for testing.
-     *  Essentially a programmer-friendly light wrapper around URDF and SRDF.
-     *  Best shown by an example:
-     *  \code{.cpp}
-     *  RobotModelBuilder builder("my_robot", "base_link");
-     *  builder.add("a->b->c", "continuous");
-     *  builder.addGroup({"a", "b"}, {}, "example_group");
-     *  RobotModelPtr model = builder.build();
-     *  \endcode
-     */
-    class RobotModelBuilder
-    {
-    public:
-        /** \brief Constructor, takes the names of the robot and the base link.
-         * \param[in] name The name of the robot, i.e. the 'name' attribute of the robot tag in URDF
-         * \param[in] base_link_name The name of the base/root link of the robot. All other links should be descendants
-         *            of this link
-         */
-        RobotModelBuilder(std::string name, std::string base_link_name);
+  /** \name URDF Functions
+      \{ */
 
-        /** \name URDF Functions
-            \{ */
+  /** \brief Adds a chain of links and joints to the builder.
+   *  The joint names are generated automatically as "<parent>-<child>-joint".
+   * \param[in] section A list of link names separated by "->". The first link should already be added to the build by
+   * the time this function is called
+   * \param[in] type The type of the joints connecting all of the given links, e.g. "revolute" or "continuous". All of
+   * the joints will be given this type. To add multiple types of joints, call this method multiple times
+   * \param[in] joint_origins The "parent to joint" origins for the joints connecting the links. If not used, all
+   * origins will default to the identity transform
+   */
+  void add(std::string section, std::string type, std::vector<geometry_msgs::Pose> joint_origins = {});
 
-        /** \brief Adds a chain of links and joints to the builder.
-         *  The joint names are generated automatically as "<parent>-<child>-joint".
-         * \param[in] section A list of link names separated by "->". The first link should already be added to the build by the time this function is called
-         * \param[in] type The type of the joints connecting all of the given links, e.g. "revolute" or "continuous". All of the joints will be given this type. To add multiple types of joints, call this method multiple times
-         * \param[in] joint_origins The "parent to joint" origins for the joints connecting the links. If not used, all origins will default to the identity transform
-         */
-        void add(std::string section, std::string type, std::vector<geometry_msgs::Pose> joint_origins = {});
+  /** \brief Adds a collision mesh to a specific link.
+   *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
+   *  \param[in] filename The path to the mesh file, e.g.
+   * "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl"
+   *  \param[in] origin The origin pose of this collision mesh relative to the link origin
+   */
+  void addCollMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin);
+  /** \brief Adds a collision box to a specific link.
+   *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
+   *  \param[in] size The dimensions of the box
+   *  \param[in] origin The origin pose of this collision box relative to the link origin
+   */
+  void addCollBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
 
-        /** \brief Adds a collision mesh to a specific link.
-         *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
-         *  \param[in] filename The path to the mesh file, e.g. "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl"
-         *  \param[in] origin The origin pose of this collision mesh relative to the link origin
-         */
-        void addCollMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin);
-        /** \brief Adds a collision box to a specific link.
-         *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
-         *  \param[in] size The dimensions of the box
-         *  \param[in] origin The origin pose of this collision box relative to the link origin
-         */
-        void addCollBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
+  /** \brief Adds a visual box to a specific link.
+   *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
+   *  \param[in] size The dimensions of the box
+   *  \param[in] origin The origin pose of this visual box relative to the link origin
+   */
+  void addVisualBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
 
-        /** \brief Adds a visual box to a specific link.
-         *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
-         *  \param[in] size The dimensions of the box
-         *  \param[in] origin The origin pose of this visual box relative to the link origin
-         */
-        void addVisualBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
+  /**
+   * Adds an inertial component to a link.
+   * \param[in] link_name The name of the link for this inertial information
+   * \param[in] mass The mass of the link
+   * \param[in] origin The origin center pose of the center of mass of this link
+   */
+  void addInertial(std::string link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz,
+                   double iyy, double iyz, double izz);
 
-        /**
-         * Adds an inertial component to a link.
-         * \param[in] link_name The name of the link for this inertial information
-         * \param[in] mass The mass of the link
-         * \param[in] origin The origin center pose of the center of mass of this link
-         */
-        void addInertial(std::string link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz, double iyy, double iyz, double izz);
+  /** \} */
 
-        /** \} */
+  /** \name SRDF functions
+      \{ */
 
-        /** \name SRDF functions
-            \{ */
+  /** \brief Adds a virtual joint to the SRDF.
+   *  \param[in] parent_frame The parent, e.g. "odom"
+   *  \param[in] child_link The child link of this virtual joint, usually the base link
+   *  \param[in] type The type of joint, can be "fixed", "floating", or "planar"
+   *  \param[in] name The name of the virtual joint, if not given it's automatically made to be
+   * "<parent_frame>-<child>-virtual-joint"
+   */
+  void addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name = "");
 
-        /** \brief Adds a virtual joint to the SRDF.
-         *  \param[in] parent_frame The parent, e.g. "odom"
-         *  \param[in] child_link The child link of this virtual joint, usually the base link
-         *  \param[in] type The type of joint, can be "fixed", "floating", or "planar"
-         *  \param[in] name The name of the virtual joint, if not given it's automatically made to be "<parent_frame>-<child>-virtual-joint"
-         */
-        void addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name="");
+  /** \brief Adds a new group using a chain of links. The group is the parent joint of each link in the chain.
+   *  \param[in] base_link The starting link of the chain
+   *  \param[in] tip_link The ending link of the chain.
+   *  \param[in] name The name of the group, if not given it's set as "<base>-<tip>-chain-group"
+   */
+  void addGroupChain(std::string base_link, std::string tip_link, std::string name = "");
 
-        /** \brief Adds a new group using a chain of links. The group is the parent joint of each link in the chain.
-         *  \param[in] base_link The starting link of the chain
-         *  \param[in] tip_link The ending link of the chain.
-         *  \param[in] name The name of the group, if not given it's set as "<base>-<tip>-chain-group"
-         */
-        void addGroupChain(std::string base_link, std::string tip_link, std::string name="");
+  /** \brief Adds a new group using a list of links and a list of joints.
+   *  \param[in] links The links (really their parent joints) to include in the group
+   *  \param[in] joints The joints to include in the group
+   *  \param[in] name The name of the group, required
+   */
+  void addGroup(std::vector<std::string> links, std::vector<std::string> joints, std::string name);
 
-        /** \brief Adds a new group using a list of links and a list of joints.
-         *  \param[in] links The links (really their parent joints) to include in the group
-         *  \param[in] joints The joints to include in the group
-         *  \param[in] name The name of the group, required
-         */
-        void addGroup(std::vector<std::string> links, std::vector<std::string> joints, std::string name);
+  /** \brief Builds and returns the robot model added to the builder.
+   */
+  moveit::core::RobotModelPtr build();
 
-        /** \brief Builds and returns the robot model added to the builder.
-         */
-        moveit::core::RobotModelPtr build();
+private:
+  /** \brief Adds different collision geometries to a link. */
+  void addLinkCollision(std::string link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin);
 
-    private:
-        /** \brief Adds different collision geometries to a link. */
-        void addLinkCollision(std::string link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin);
+  /** \brief Adds different visual geometries to a link. */
+  void addLinkVisual(std::string link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin);
 
-        /** \brief Adds different visual geometries to a link. */
-        void addLinkVisual(std::string link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin);
-
-        urdf::ModelInterfaceSharedPtr urdf_model_;
-        srdf::SRDFWriterPtr srdf_writer_;
-    };
-
+  urdf::ModelInterfaceSharedPtr urdf_model_;
+  srdf::SRDFWriterPtr srdf_writer_;
+};
 }
 }
 

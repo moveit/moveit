@@ -276,12 +276,10 @@ TEST_F(TestAABB, TestSimple)
   origin.position.y = 0;
   origin.position.z = 0.051;
   origin.orientation.w = 1.0;
-  builder.add("base_footprint->base_link", "fixed", {origin});
+  builder.add("base_footprint->base_link", "fixed", { origin });
 
   origin.position.z = 0;
-  builder.addCollMesh("base_link",
-                      "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl",
-                      origin);
+  builder.addCollMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl", origin);
 
   origin.position.z = 0.071;
   geometry_msgs::Point size;
@@ -291,7 +289,7 @@ TEST_F(TestAABB, TestSimple)
   builder.addCollBox("base_footprint", size, origin);
 
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
-  builder.addGroup({}, {"world_joint"}, "base");
+  builder.addGroup({}, { "world_joint" }, "base");
 
   robot_state::RobotState simple_state = loadModel(builder.build());
 
@@ -318,7 +316,7 @@ TEST_F(TestAABB, TestComplex)
   tf2::Quaternion q;
   q.setRPY(0, 0, 1.5708);
   origin.orientation = tf2::toMsg(q);
-  builder.add("base_footprint->base_link", "fixed", {origin});
+  builder.add("base_footprint->base_link", "fixed", { origin });
   geometry_msgs::Point size;
   size.x = 1.0;
   size.y = 0.1;
@@ -330,7 +328,7 @@ TEST_F(TestAABB, TestComplex)
   origin.position.x = 4.0;
   builder.addCollBox("base_link", size, origin);
   origin.position.x = -5.0;
-  origin.position.y =  0.0;
+  origin.position.y = 0.0;
   origin.position.z = -1.0;
   q.setRPY(0, 1.5708, 0);
   origin.orientation = tf2::toMsg(q);
@@ -339,7 +337,7 @@ TEST_F(TestAABB, TestComplex)
   size.z = 0.1;
   builder.addCollBox("base_footprint", size, origin);
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
-  builder.addGroup({}, {"world_joint"}, "base");
+  builder.addGroup({}, { "world_joint" }, "base");
 
   robot_state::RobotState complex_state = this->loadModel(builder.build());
 

@@ -140,7 +140,7 @@ TEST(LoadingAndFK, SimpleRobot)
   pose.orientation = tf2::toMsg(q);
   builder.addInertial("base_link", 2.81, pose, 0.1, -0.2, 0.5, -0.09, 1, 0.101);
   builder.addVirtualJoint("odom_combined", "base_link", "base_joint");
-  builder.addGroup({}, {"base_joint"}, "base");
+  builder.addGroup({}, { "base_joint" }, "base");
 
   moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
