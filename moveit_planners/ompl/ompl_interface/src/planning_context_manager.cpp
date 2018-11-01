@@ -111,9 +111,9 @@ struct PlanningContextManager::CachedContexts
 
 }  // namespace ompl_interface
 
-ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr kmodel,
+ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
                                                                constraint_samplers::ConstraintSamplerManagerPtr csm)
-  : robot_model_(std::move(kmodel))
+  : robot_model_(std::move(robot_model))
   , constraint_sampler_manager_(std::move(csm))
   , max_goal_samples_(10)
   , max_state_sampling_attempts_(4)

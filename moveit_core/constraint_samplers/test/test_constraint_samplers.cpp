@@ -91,7 +91,7 @@ protected:
       urdf_model = urdf::parseURDF(xml_string);
     }
     srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
-    kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
@@ -112,9 +112,9 @@ protected:
     allocators["whole_body"] = func_right_arm;
     allocators["base"] = func_left_arm;
 
-    kmodel->setKinematicsAllocators(allocators);
+    robot_model->setKinematicsAllocators(allocators);
 
-    ps.reset(new planning_scene::PlanningScene(kmodel));
+    ps.reset(new planning_scene::PlanningScene(robot_model));
   };
 
   void TearDown() override
@@ -124,7 +124,7 @@ protected:
 protected:
   urdf::ModelInterfaceSharedPtr urdf_model;
   srdf::ModelSharedPtr srdf_model;
-  robot_model::RobotModelPtr kmodel;
+  robot_model::RobotModelPtr robot_model;
   planning_scene::PlanningScenePtr ps;
   pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_right_arm_;
   pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_left_arm_;
@@ -134,13 +134,13 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
 
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
 
-  kinematic_constraints::JointConstraint jc1(kmodel);
+  kinematic_constraints::JointConstraint jc1(robot_model);
   moveit_msgs::JointConstraint jcm1;
   // leaving off joint name
   jcm1.position = 0.42;
@@ -175,7 +175,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jcs.configure(js));
   EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6u);
 
-  kinematic_constraints::JointConstraint jc2(kmodel);
+  kinematic_constraints::JointConstraint jc2(robot_model);
 
   moveit_msgs::JointConstraint jcm2;
   jcm2.joint_name = "r_shoulder_pan_joint";
@@ -278,7 +278,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
   robot_state::Transforms& tf = ps->getTransformsNonConst();
 
-  kinematic_constraints::PositionConstraint pc(kmodel);
+  kinematic_constraints::PositionConstraint pc(robot_model);
   moveit_msgs::PositionConstraint pcm;
 
   pcm.link_name = "l_wrist_roll_link";
@@ -311,7 +311,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 
   EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
 
-  pcm.header.frame_id = kmodel->getModelFrame();
+  pcm.header.frame_id = robot_model->getModelFrame();
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
 
@@ -339,16 +339,16 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
   robot_state::Transforms& tf = ps->getTransformsNonConst();
 
-  kinematic_constraints::OrientationConstraint oc(kmodel);
+  kinematic_constraints::OrientationConstraint oc(robot_model);
   moveit_msgs::OrientationConstraint ocm;
 
   ocm.link_name = "r_wrist_roll_link";
@@ -367,7 +367,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   bool p1 = oc.decide(ks).satisfied;
   EXPECT_FALSE(p1);
 
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   EXPECT_TRUE(oc.configure(ocm, tf));
 
   constraint_samplers::IKConstraintSampler iks(ps, "right_arm");
@@ -382,16 +382,16 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 
 TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
   robot_state::Transforms& tf = ps->getTransformsNonConst();
 
-  kinematic_constraints::PositionConstraint pc(kmodel);
+  kinematic_constraints::PositionConstraint pc(robot_model);
   moveit_msgs::PositionConstraint pcm;
 
   pcm.link_name = "l_wrist_roll_link";
@@ -403,7 +403,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
   pcm.constraint_region.primitives[0].dimensions.resize(1);
   pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
 
-  pcm.header.frame_id = kmodel->getModelFrame();
+  pcm.header.frame_id = robot_model->getModelFrame();
 
   pcm.constraint_region.primitive_poses.resize(1);
   pcm.constraint_region.primitive_poses[0].position.x = 0.55;
@@ -417,11 +417,11 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 
   EXPECT_TRUE(pc.configure(pcm, tf));
 
-  kinematic_constraints::OrientationConstraint oc(kmodel);
+  kinematic_constraints::OrientationConstraint oc(robot_model);
   moveit_msgs::OrientationConstraint ocm;
 
   ocm.link_name = "l_wrist_roll_link";
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -461,17 +461,17 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 
 TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
 
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
   robot_state::Transforms& tf = ps->getTransformsNonConst();
 
-  kinematic_constraints::JointConstraint jc1(kmodel);
+  kinematic_constraints::JointConstraint jc1(robot_model);
 
   std::map<std::string, double> state_values;
 
@@ -483,7 +483,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   torso_constraint.weight = 1.0;
   EXPECT_TRUE(jc1.configure(torso_constraint));
 
-  kinematic_constraints::JointConstraint jc2(kmodel);
+  kinematic_constraints::JointConstraint jc2(robot_model);
   moveit_msgs::JointConstraint jcm2;
   jcm2.joint_name = "r_elbow_flex_joint";
   jcm2.position = ks.getVariablePosition("r_elbow_flex_joint");
@@ -513,12 +513,12 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
   pcm.weight = 1.0;
 
-  pcm.header.frame_id = kmodel->getModelFrame();
+  pcm.header.frame_id = robot_model->getModelFrame();
 
   moveit_msgs::OrientationConstraint ocm;
 
   ocm.link_name = "l_wrist_roll_link";
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -541,10 +541,10 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   constraint_samplers::JointConstraintSamplerPtr jcsp2(new constraint_samplers::JointConstraintSampler(ps, "arms"));
   EXPECT_TRUE(jcsp2->configure(js2));
 
-  kinematic_constraints::PositionConstraint pc(kmodel);
+  kinematic_constraints::PositionConstraint pc(robot_model);
   EXPECT_TRUE(pc.configure(pcm, tf));
 
-  kinematic_constraints::OrientationConstraint oc(kmodel);
+  kinematic_constraints::OrientationConstraint oc(robot_model);
   EXPECT_TRUE(oc.configure(ocm, tf));
 
   constraint_samplers::IKConstraintSamplerPtr iksp(new constraint_samplers::IKConstraintSampler(ps, "left_arm"));
@@ -585,10 +585,10 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   ocm.link_name = "r_wrist_roll_link";
   cspv.clear();
 
-  kinematic_constraints::PositionConstraint pc2(kmodel);
+  kinematic_constraints::PositionConstraint pc2(robot_model);
   EXPECT_TRUE(pc2.configure(pcm, tf));
 
-  kinematic_constraints::OrientationConstraint oc2(kmodel);
+  kinematic_constraints::OrientationConstraint oc2(robot_model);
   EXPECT_TRUE(oc2.configure(ocm, tf));
 
   constraint_samplers::IKConstraintSamplerPtr iksp2(new constraint_samplers::IKConstraintSampler(ps, "right_arm"));
@@ -629,14 +629,14 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 
 TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
-  kinematic_constraints::PositionConstraint pc(kmodel);
+  kinematic_constraints::PositionConstraint pc(robot_model);
 
   moveit_msgs::PositionConstraint pcm;
   pcm.link_name = "l_wrist_roll_link";
@@ -648,7 +648,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   pcm.constraint_region.primitives[0].dimensions.resize(1);
   pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
 
-  pcm.header.frame_id = kmodel->getModelFrame();
+  pcm.header.frame_id = robot_model->getModelFrame();
 
   pcm.constraint_region.primitive_poses.resize(1);
   pcm.constraint_region.primitive_poses[0].position.x = 0.55;
@@ -663,7 +663,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   moveit_msgs::OrientationConstraint ocm;
 
   ocm.link_name = "l_wrist_roll_link";
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -715,7 +715,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
 
@@ -788,7 +788,7 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
   con.position_constraints[0].constraint_region.primitives[0].dimensions.resize(1);
   con.position_constraints[0].constraint_region.primitives[0].dimensions[0] = 0.001;
 
-  con.position_constraints[0].header.frame_id = kmodel->getModelFrame();
+  con.position_constraints[0].header.frame_id = robot_model->getModelFrame();
 
   con.position_constraints[0].constraint_region.primitive_poses.resize(1);
   con.position_constraints[0].constraint_region.primitive_poses[0].position.x = 0.55;
@@ -824,7 +824,7 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 
   // again, screwing this up intentionally
   con.orientation_constraints[0].link_name = "r_wrist_roll_link";
-  con.orientation_constraints[0].header.frame_id = kmodel->getModelFrame();
+  con.orientation_constraints[0].header.frame_id = robot_model->getModelFrame();
   con.orientation_constraints[0].orientation.x = 0.0;
   con.orientation_constraints[0].orientation.y = 0.0;
   con.orientation_constraints[0].orientation.z = 0.0;
@@ -884,10 +884,10 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
@@ -900,7 +900,7 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
   con.joint_constraints[0].tolerance_below = 0.01;
   con.joint_constraints[0].weight = 1.0;
 
-  kinematic_constraints::JointConstraint jc(kmodel);
+  kinematic_constraints::JointConstraint jc(robot_model);
   EXPECT_TRUE(jc.configure(con.joint_constraints[0]));
 
   con.position_constraints.resize(1);
@@ -924,11 +924,11 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
   con.position_constraints[0].constraint_region.primitive_poses[0].orientation.w = 1.0;
   con.position_constraints[0].weight = 1.0;
 
-  con.position_constraints[0].header.frame_id = kmodel->getModelFrame();
+  con.position_constraints[0].header.frame_id = robot_model->getModelFrame();
 
   con.orientation_constraints.resize(1);
   con.orientation_constraints[0].link_name = "l_wrist_roll_link";
-  con.orientation_constraints[0].header.frame_id = kmodel->getModelFrame();
+  con.orientation_constraints[0].header.frame_id = robot_model->getModelFrame();
   con.orientation_constraints[0].orientation.x = 0.0;
   con.orientation_constraints[0].orientation.y = 0.0;
   con.orientation_constraints[0].orientation.z = 0.0;
@@ -960,14 +960,14 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 
 TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 
-  kinematic_constraints::JointConstraint jc1(kmodel);
+  kinematic_constraints::JointConstraint jc1(robot_model);
   moveit_msgs::JointConstraint jcm1;
   jcm1.joint_name = "head_pan_joint";
   jcm1.position = 0.42;
@@ -976,7 +976,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   jcm1.weight = 1.0;
   EXPECT_TRUE(jc1.configure(jcm1));
 
-  kinematic_constraints::JointConstraint jc2(kmodel);
+  kinematic_constraints::JointConstraint jc2(robot_model);
   moveit_msgs::JointConstraint jcm2;
   jcm2.joint_name = "l_shoulder_pan_joint";
   jcm2.position = 0.9;
@@ -985,7 +985,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   jcm2.weight = 1.0;
   EXPECT_TRUE(jc2.configure(jcm2));
 
-  kinematic_constraints::JointConstraint jc3(kmodel);
+  kinematic_constraints::JointConstraint jc3(robot_model);
   moveit_msgs::JointConstraint jcm3;
   jcm3.joint_name = "r_wrist_roll_joint";
   jcm3.position = 0.7;
@@ -994,7 +994,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   jcm3.weight = 1.0;
   EXPECT_TRUE(jc3.configure(jcm3));
 
-  kinematic_constraints::JointConstraint jc4(kmodel);
+  kinematic_constraints::JointConstraint jc4(robot_model);
   moveit_msgs::JointConstraint jcm4;
   jcm4.joint_name = "torso_lift_joint";
   jcm4.position = 0.2;
@@ -1063,7 +1063,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   pcm.constraint_region.primitives[0].dimensions.resize(1);
   pcm.constraint_region.primitives[0].dimensions[0] = 0.001;
 
-  pcm.header.frame_id = kmodel->getModelFrame();
+  pcm.header.frame_id = robot_model->getModelFrame();
 
   pcm.constraint_region.primitive_poses.resize(1);
   pcm.constraint_region.primitive_poses[0].position.x = 0.55;
@@ -1078,7 +1078,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 
   moveit_msgs::OrientationConstraint ocm;
   ocm.link_name = "l_wrist_roll_link";
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -1090,7 +1090,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   c.orientation_constraints.push_back(ocm);
 
   ocm.link_name = "r_wrist_roll_link";
-  ocm.header.frame_id = kmodel->getModelFrame();
+  ocm.header.frame_id = robot_model->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -1109,13 +1109,13 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
       dynamic_cast<constraint_samplers::UnionConstraintSampler*>(s.get());
   EXPECT_TRUE(ucs);
 
-  kinematic_constraints::KinematicConstraintSet kset(kmodel);
+  kinematic_constraints::KinematicConstraintSet kset(robot_model);
   kset.add(c, tf);
 
-  robot_state::RobotState ks(kmodel);
+  robot_state::RobotState ks(robot_model);
   ks.setToDefaultValues();
   ks.update();
-  robot_state::RobotState ks_const(kmodel);
+  robot_state::RobotState ks_const(robot_model);
   ks_const.setToDefaultValues();
   ks_const.update();
 

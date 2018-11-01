@@ -177,7 +177,7 @@ private:
     ROS_INFO_STREAM("Displaying states for context " << pc->getName());
     const og::SimpleSetup &ss = pc->getOMPLSimpleSetup();
     ob::ValidStateSamplerPtr vss = ss.getSpaceInformation()->allocValidStateSampler();
-    robot_state::RobotState kstate = pc->getPlanningScene()->getCurrentState();
+    robot_state::RobotState robot_state = pc->getPlanningScene()->getCurrentState();
     ob::ScopedState<> rstate1(ss.getStateSpace());
     ob::ScopedState<> rstate2(ss.getStateSpace());
     ros::WallDuration wait(2);
@@ -188,10 +188,10 @@ private:
       {
         if (!vss->sampleNear(rstate1.get(), rstate2.get(), 10000000))
           continue;
-        pc->getOMPLStateSpace()->copyToRobotState(kstate, rstate1.get());
-        kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
+        pc->getOMPLStateSpace()->copyToRobotState(robot_state, rstate1.get());
+        robot_state.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
         moveit_msgs::DisplayRobotState state_msg;
-        robot_state::robotStateToRobotStateMsg(kstate, state_msg.state);
+        robot_state::robotStateToRobotStateMsg(robot_state, state_msg.state);
         pub_valid_states_.publish(state_msg);
         n = (n + 1) % 2;
         if (n == 0)
@@ -201,8 +201,8 @@ private:
           ROS_INFO("Generated a motion with %u states", g);
           for (std::size_t i = 0 ; i < g ; ++i)
           {
-            pc->getOMPLStateSpace()->copyToRobotState(kstate, sts[i]);
-            traj.addSuffixWayPoint(kstate, 0.0);
+            pc->getOMPLStateSpace()->copyToRobotState(robot_state, sts[i]);
+            traj.addSuffixWayPoint(robot_state, 0.0);
           }
           moveit_msgs::DisplayTrajectory msg;
           msg.model_id = pc->getRobotModel()->getName();
@@ -224,7 +224,7 @@ private:
     {
       ompl::base::PlannerData pd(pc->getOMPLSimpleSetup()->getSpaceInformation());
       pc->getOMPLSimpleSetup()->getPlannerData(pd);
-      robot_state::RobotState kstate = planning_scene->getCurrentState();
+      robot_state::RobotState robot_state = planning_scene->getCurrentState();
       visualization_msgs::MarkerArray arr;
       std_msgs::ColorRGBA color;
       color.r = 1.0f;
@@ -234,9 +234,9 @@ private:
       unsigned int nv = pd.numVertices();
       for (unsigned int i = 0 ; i < nv ; ++i)
       {
-        pc->getOMPLStateSpace()->copyToRobotState(kstate, pd.getVertex(i).getState());
-        kstate.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
-        const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
+        pc->getOMPLStateSpace()->copyToRobotState(robot_state, pd.getVertex(i).getState());
+        robot_state.getJointStateGroup(pc->getJointModelGroupName())->updateLinkTransforms();
+        const Eigen::Vector3d &pos = robot_state.getLinkState(link_name)->getGlobalLinkTransform().translation();
 
         visualization_msgs::Marker mk;
         mk.header.stamp = ros::Time::now();

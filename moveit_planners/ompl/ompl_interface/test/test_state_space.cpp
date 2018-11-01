@@ -146,25 +146,25 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   EXPECT_TRUE(passed);
 
-  robot_state::RobotState kstate(robot_model_);
-  kstate.setToRandomPositions();
-  EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToRandomPositions();
+  EXPECT_TRUE(robot_state.distance(robot_state) < 1e-12);
   ompl::base::State* state = ss.allocState();
   for (int i = 0; i < 10; ++i)
   {
-    robot_state::RobotState kstate2(kstate);
-    EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
-    ss.copyToOMPLState(state, kstate);
-    kstate.setToRandomPositions(kstate.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
-    std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+    robot_state::RobotState robot_state2(robot_state);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+    ss.copyToOMPLState(state, robot_state);
+    robot_state.setToRandomPositions(robot_state.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
+    std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
+                  robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
-    ss.copyToRobotState(kstate, state);
-    std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+    EXPECT_TRUE(robot_state.distance(robot_state2) > 1e-12);
+    ss.copyToRobotState(robot_state, state);
+    std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
+                  robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
   }
 
   ss.freeState(state);

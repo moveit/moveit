@@ -295,8 +295,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             for (std::size_t i = 0; i < index.size(); ++i)
             {
               // check validity with verbose on
-              const robot_state::RobotState& kstate = res.trajectory_->getWayPoint(index[i]);
-              planning_scene->isStateValid(kstate, req.path_constraints, req.group_name, true);
+              const robot_state::RobotState& robot_state = res.trajectory_->getWayPoint(index[i]);
+              planning_scene->isStateValid(robot_state, req.path_constraints, req.group_name, true);
 
               // compute the contacts if any
               collision_detection::CollisionRequest c_req;
@@ -305,7 +305,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               c_req.max_contacts = 10;
               c_req.max_contacts_per_pair = 3;
               c_req.verbose = false;
-              planning_scene->checkCollision(c_req, c_res, kstate);
+              planning_scene->checkCollision(c_req, c_res, robot_state);
               if (c_res.contact_count > 0)
               {
                 visualization_msgs::MarkerArray arr_i;

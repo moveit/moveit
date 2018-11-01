@@ -42,11 +42,11 @@ ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory() : Model
   type_ = PoseModelStateSpace::PARAMETERIZATION_TYPE;
 }
 
-int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::string& group,
-                                                                    const moveit_msgs::MotionPlanRequest& req,
-                                                                    const robot_model::RobotModelConstPtr& kmodel) const
+int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(
+    const std::string& group, const moveit_msgs::MotionPlanRequest& req,
+    const robot_model::RobotModelConstPtr& robot_model) const
 {
-  const robot_model::JointModelGroup* jmg = kmodel->getJointModelGroup(group);
+  const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
     const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>&

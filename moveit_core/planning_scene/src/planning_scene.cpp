@@ -524,15 +524,15 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 
 void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                    collision_detection::CollisionResult& res,
-                                   const robot_state::RobotState& kstate) const
+                                   const robot_state::RobotState& robot_state) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), robot_state, getAllowedCollisionMatrix());
 
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
     // do self-collision checking with the unpadded version of the robot
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
   }
 }
 
@@ -546,15 +546,16 @@ void PlanningScene::checkSelfCollision(const collision_detection::CollisionReque
 }
 
 void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
-                                   collision_detection::CollisionResult& res, const robot_state::RobotState& kstate,
+                                   collision_detection::CollisionResult& res,
+                                   const robot_state::RobotState& robot_state,
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
+  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, acm);
 }
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
@@ -568,16 +569,16 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                                            collision_detection::CollisionResult& res,
-                                           const robot_state::RobotState& kstate,
+                                           const robot_state::RobotState& robot_state,
                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the unpadded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
+  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, acm);
   }
 }
 
@@ -590,7 +591,7 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
 }
 
 void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
-                                      const robot_state::RobotState& kstate,
+                                      const robot_state::RobotState& robot_state,
                                       const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionRequest req;
@@ -598,7 +599,7 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
   req.max_contacts = getRobotModel()->getLinkModelsWithCollisionGeometry().size() + 1;
   req.max_contacts_per_pair = 1;
   collision_detection::CollisionResult res;
-  checkCollision(req, res, kstate, acm);
+  checkCollision(req, res, robot_state, acm);
   res.contacts.swap(contacts);
 }
 
@@ -610,11 +611,11 @@ void PlanningScene::getCollidingLinks(std::vector<std::string>& links)
     getCollidingLinks(links, getCurrentState(), getAllowedCollisionMatrix());
 }
 
-void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const robot_state::RobotState& kstate,
+void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const robot_state::RobotState& robot_state,
                                       const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionResult::ContactMap contacts;
-  getCollidingPairs(contacts, kstate, acm);
+  getCollidingPairs(contacts, robot_state, acm);
   links.clear();
   for (collision_detection::CollisionResult::ContactMap::const_iterator it = contacts.begin(); it != contacts.end();
        ++it)

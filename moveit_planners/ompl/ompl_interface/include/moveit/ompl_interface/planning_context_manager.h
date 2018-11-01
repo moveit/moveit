@@ -51,7 +51,8 @@ namespace ompl_interface
 class PlanningContextManager
 {
 public:
-  PlanningContextManager(robot_model::RobotModelConstPtr kmodel, constraint_samplers::ConstraintSamplerManagerPtr csm);
+  PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
+                         constraint_samplers::ConstraintSamplerManagerPtr csm);
   ~PlanningContextManager();
 
   /** @brief Specify configurations for the planners.

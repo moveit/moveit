@@ -376,11 +376,11 @@ void MotionPlanningFrame::configureWorkspace()
     move_group_->setWorkspace(bx.min_position_, by.min_position_, bz.min_position_, bx.max_position_, by.max_position_,
                               bz.max_position_);
   planning_scene_monitor::PlanningSceneMonitorPtr psm = planning_display_->getPlanningSceneMonitor();
-  // get non-const access to the kmodel and update planar & floating joints as indicated by the workspace settings
+  // get non-const access to the robot_model and update planar & floating joints as indicated by the workspace settings
   if (psm && psm->getRobotModelLoader() && psm->getRobotModelLoader()->getModel())
   {
-    const robot_model::RobotModelPtr& kmodel = psm->getRobotModelLoader()->getModel();
-    const std::vector<robot_model::JointModel*>& jm = kmodel->getJointModels();
+    const robot_model::RobotModelPtr& robot_model = psm->getRobotModelLoader()->getModel();
+    const std::vector<robot_model::JointModel*>& jm = robot_model->getJointModels();
     for (std::size_t i = 0; i < jm.size(); ++i)
       if (jm[i]->getType() == robot_model::JointModel::PLANAR)
       {

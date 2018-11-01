@@ -42,11 +42,12 @@
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
+                                             const ros::NodeHandle& nh)
   : nh_(nh)
-  , robot_model_(kmodel)
+  , robot_model_(robot_model)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
-  , context_manager_(kmodel, constraint_sampler_manager_)
+  , context_manager_(robot_model, constraint_sampler_manager_)
   , constraints_library_(new ConstraintsLibrary(context_manager_))
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
@@ -57,13 +58,13 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   loadConstraintSamplers();
 }
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel,
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
                                              const planning_interface::PlannerConfigurationMap& pconfig,
                                              const ros::NodeHandle& nh)
   : nh_(nh)
-  , robot_model_(kmodel)
+  , robot_model_(robot_model)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
-  , context_manager_(kmodel, constraint_sampler_manager_)
+  , context_manager_(robot_model, constraint_sampler_manager_)
   , constraints_library_(new ConstraintsLibrary(context_manager_))
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)

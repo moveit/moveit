@@ -78,9 +78,9 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm)
-  : robot_model_(kmodel), csm_(csm), node_handle_("~")
+  : robot_model_(robot_model), csm_(csm), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -88,10 +88,10 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm,
                                                        bool manage_controllers)
-  : robot_model_(kmodel), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
+  : robot_model_(robot_model), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }

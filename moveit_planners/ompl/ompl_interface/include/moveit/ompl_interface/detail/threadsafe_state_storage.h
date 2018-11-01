@@ -46,7 +46,7 @@ namespace ompl_interface
 class TSStateStorage
 {
 public:
-  TSStateStorage(const robot_model::RobotModelPtr& kmodel);
+  TSStateStorage(const robot_model::RobotModelPtr& robot_model);
   TSStateStorage(const robot_state::RobotState& start_state);
   ~TSStateStorage();
 

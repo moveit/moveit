@@ -51,9 +51,9 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& robot_model);
 
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel,
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& robot_model,
                        const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
                        double size_x = 3.0, double size_y = 3.0, double size_z = 4.0,
                        bool use_signed_distance_field = false, double resolution = .02,

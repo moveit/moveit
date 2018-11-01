@@ -45,7 +45,7 @@ namespace sbpl_interface
 class SBPLInterface
 {
 public:
-  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel)
+  SBPLInterface(const planning_models::RobotModelConstPtr& robot_model)
   {
   }
   virtual ~SBPLInterface()
