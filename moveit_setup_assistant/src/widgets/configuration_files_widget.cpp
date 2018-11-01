@@ -85,7 +85,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent,
   stack_path_ = new LoadPathWidget("Configuration Package Save Path",
                                    "Specify the desired directory for the MoveIt! configuration package to be "
                                    "generated. Overwriting an existing configuration package directory is acceptable. "
-                                   "Example: <i>/u/robot/ros/pr2_moveit_config</i>",
+                                   "Example: <i>/u/robot/ros/panda_moveit_config</i>",
                                    this, true);  // is directory
   layout->addWidget(stack_path_);
 
