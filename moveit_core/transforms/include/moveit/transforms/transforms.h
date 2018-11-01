@@ -196,7 +196,7 @@ public:
 
 protected:
   std::string target_frame_;
-  FixedTransformsMap transforms_;
+  FixedTransformsMap transforms_map_;
 };
 }
 }
