@@ -154,7 +154,7 @@ void PlanningScene::initialize()
 {
   name_ = DEFAULT_SCENE_NAME;
 
-  ftf_.reset(new SceneTransforms(this));
+  scene_transforms_.reset(new SceneTransforms(this));
 
   robot_state_.reset(new robot_state::RobotState(robot_model_));
   robot_state_->setToDefaultValues();
@@ -446,7 +446,7 @@ void PlanningScene::clearDiffs()
     }
   }
 
-  ftf_.reset();
+  scene_transforms_.reset();
   robot_state_.reset();
   acm_.reset();
   object_colors_.reset();
@@ -458,8 +458,8 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
   if (!parent_)
     return;
 
-  if (ftf_)
-    scene->getTransformsNonConst().setAllTransforms(ftf_->getAllTransforms());
+  if (scene_transforms_)
+    scene->getTransformsNonConst().setAllTransforms(scene_transforms_->getAllTransforms());
 
   if (robot_state_)
   {
@@ -681,19 +681,23 @@ collision_detection::AllowedCollisionMatrix& PlanningScene::getAllowedCollisionM
 
 const robot_state::Transforms& PlanningScene::getTransforms()
 {
+  // Trigger an update of the robot transforms
   getCurrentStateNonConst().update();
   return static_cast<const PlanningScene*>(this)->getTransforms();
 }
 
 robot_state::Transforms& PlanningScene::getTransformsNonConst()
 {
+  // Trigger an update of the robot transforms
   getCurrentStateNonConst().update();
-  if (!ftf_)
+  if (!scene_transforms_)
   {
-    ftf_.reset(new SceneTransforms(this));
-    ftf_->setAllTransforms(parent_->getTransforms().getAllTransforms());
+    // The only case when there are no transforms is if this planning scene has a parent. When a non-const version of
+    // the planning scene is requested, a copy of the parent's transforms is forced
+    scene_transforms_.reset(new SceneTransforms(this));
+    scene_transforms_->setAllTransforms(parent_->getTransforms().getAllTransforms());
   }
-  return *ftf_;
+  return *scene_transforms_;
 }
 
 void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const
@@ -702,8 +706,8 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   scene_msg.robot_model_name = getRobotModel()->getName();
   scene_msg.is_diff = true;
 
-  if (ftf_)
-    ftf_->copyTransforms(scene_msg.fixed_frame_transforms);
+  if (scene_transforms_)
+    scene_transforms_->copyTransforms(scene_msg.fixed_frame_transforms);
   else
     scene_msg.fixed_frame_transforms.clear();
 
@@ -1137,7 +1141,7 @@ void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
     robot_state::robotStateMsgToRobotState(getTransforms(), state_no_attached, *robot_state_);
   }
   else
-    robot_state::robotStateMsgToRobotState(*ftf_, state_no_attached, *robot_state_);
+    robot_state::robotStateMsgToRobotState(*scene_transforms_, state_no_attached, *robot_state_);
 
   for (std::size_t i = 0; i < state.attached_collision_objects.size(); ++i)
   {
@@ -1162,10 +1166,11 @@ void PlanningScene::decoupleParent()
   if (!parent_)
     return;
 
-  if (!ftf_)
+  // This child planning scene did not have its own copy of frame transforms
+  if (!scene_transforms_)
   {
-    ftf_.reset(new SceneTransforms(this));
-    ftf_->setAllTransforms(parent_->getTransforms().getAllTransforms());
+    scene_transforms_.reset(new SceneTransforms(this));
+    scene_transforms_->setAllTransforms(parent_->getTransforms().getAllTransforms());
   }
 
   if (!robot_state_)
@@ -1243,9 +1248,9 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
   // if the list is empty, then nothing has been set
   if (!scene_msg.fixed_frame_transforms.empty())
   {
-    if (!ftf_)
-      ftf_.reset(new SceneTransforms(this));
-    ftf_->setTransforms(scene_msg.fixed_frame_transforms);
+    if (!scene_transforms_)
+      scene_transforms_.reset(new SceneTransforms(this));
+    scene_transforms_->setTransforms(scene_msg.fixed_frame_transforms);
   }
 
   // if at least some joints have been specified, we set them
@@ -1299,7 +1304,7 @@ bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
     decoupleParent();
 
   object_types_.reset();
-  ftf_->setTransforms(scene_msg.fixed_frame_transforms);
+  scene_transforms_->setTransforms(scene_msg.fixed_frame_transforms);
   setCurrentState(scene_msg.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
   for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
@@ -1692,137 +1697,152 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
 
   if (object.operation == moveit_msgs::CollisionObject::ADD || object.operation == moveit_msgs::CollisionObject::APPEND)
   {
-    if (object.primitives.empty() && object.meshes.empty() && object.planes.empty())
-    {
-      ROS_ERROR_NAMED(LOGNAME, "There are no shapes specified in the collision object message");
-      return false;
-    }
-
-    if (object.primitives.size() != object.primitive_poses.size())
-    {
-      ROS_ERROR_NAMED(LOGNAME, "Number of primitive shapes does not match number of poses "
-                               "in collision object message");
-      return false;
-    }
-
-    if (object.meshes.size() != object.mesh_poses.size())
-    {
-      ROS_ERROR_NAMED(LOGNAME, "Number of meshes does not match number of poses in collision object message");
-      return false;
-    }
-
-    if (object.planes.size() != object.plane_poses.size())
-    {
-      ROS_ERROR_NAMED(LOGNAME, "Number of planes does not match number of poses in collision object message");
-      return false;
-    }
-
-    // replace the object if ADD is specified instead of APPEND
-    if (object.operation == moveit_msgs::CollisionObject::ADD && world_->hasObject(object.id))
-      world_->removeObject(object.id);
-
-    const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
-
-    for (std::size_t i = 0; i < object.primitives.size(); ++i)
-    {
-      shapes::Shape* s = shapes::constructShapeFromMsg(object.primitives[i]);
-      if (s)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.primitive_poses[i], p);
-        world_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
-      }
-    }
-    for (std::size_t i = 0; i < object.meshes.size(); ++i)
-    {
-      shapes::Shape* s = shapes::constructShapeFromMsg(object.meshes[i]);
-      if (s)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.mesh_poses[i], p);
-        world_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
-      }
-    }
-    for (std::size_t i = 0; i < object.planes.size(); ++i)
-    {
-      shapes::Shape* s = shapes::constructShapeFromMsg(object.planes[i]);
-      if (s)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.plane_poses[i], p);
-        world_->addToObject(object.id, shapes::ShapeConstPtr(s), t * p);
-      }
-    }
-    if (!object.type.key.empty() || !object.type.db.empty())
-      setObjectType(object.id, object.type);
-    return true;
+    return processCollisionObjectAdd(object);
   }
   else if (object.operation == moveit_msgs::CollisionObject::REMOVE)
   {
-    if (object.id.empty())
-    {
-      removeAllCollisionObjects();
-    }
-    else
-    {
-      world_->removeObject(object.id);
-      removeObjectColor(object.id);
-      removeObjectType(object.id);
-    }
-    return true;
+    return processCollisionObjectRemove(object);
   }
   else if (object.operation == moveit_msgs::CollisionObject::MOVE)
   {
-    if (world_->hasObject(object.id))
+    return processCollisionObjectMove(object);
+  }
+
+  ROS_ERROR_NAMED(LOGNAME, "Unknown collision object operation: %d", object.operation);
+  return false;
+}
+
+bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject& object)
+{
+  if (object.primitives.empty() && object.meshes.empty() && object.planes.empty())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "There are no shapes specified in the collision object message");
+    return false;
+  }
+
+  if (object.primitives.size() != object.primitive_poses.size())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Number of primitive shapes does not match number of poses "
+                             "in collision object message");
+    return false;
+  }
+
+  if (object.meshes.size() != object.mesh_poses.size())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Number of meshes does not match number of poses in collision object message");
+    return false;
+  }
+
+  if (object.planes.size() != object.plane_poses.size())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Number of planes does not match number of poses in collision object message");
+    return false;
+  }
+
+  // replace the object if ADD is specified instead of APPEND
+  if (object.operation == moveit_msgs::CollisionObject::ADD && world_->hasObject(object.id))
+    world_->removeObject(object.id);
+
+  const Eigen::Affine3d& object_frame_transform = getTransforms().getTransform(object.header.frame_id);
+
+  for (std::size_t i = 0; i < object.primitives.size(); ++i)
+  {
+    shapes::Shape* s = shapes::constructShapeFromMsg(object.primitives[i]);
+    if (s)
     {
-      if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
-        ROS_WARN_NAMED(LOGNAME, "Move operation for object '%s' ignores the geometry specified in the message.",
-                       object.id.c_str());
-
-      const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
-      EigenSTL::vector_Affine3d new_poses;
-      for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.primitive_poses[i], p);
-        new_poses.push_back(t * p);
-      }
-      for (std::size_t i = 0; i < object.mesh_poses.size(); ++i)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.mesh_poses[i], p);
-        new_poses.push_back(t * p);
-      }
-      for (std::size_t i = 0; i < object.plane_poses.size(); ++i)
-      {
-        Eigen::Affine3d p;
-        tf2::fromMsg(object.plane_poses[i], p);
-        new_poses.push_back(t * p);
-      }
-
-      collision_detection::World::ObjectConstPtr obj = world_->getObject(object.id);
-      if (obj->shapes_.size() == new_poses.size())
-      {
-        std::vector<shapes::ShapeConstPtr> shapes = obj->shapes_;
-        obj.reset();
-        world_->removeObject(object.id);
-        world_->addToObject(object.id, shapes, new_poses);
-      }
-      else
-      {
-        ROS_ERROR_NAMED(LOGNAME,
-                        "Number of supplied poses (%zu) for object '%s' does not match number of shapes (%zu). "
-                        "Not moving.",
-                        new_poses.size(), object.id.c_str(), obj->shapes_.size());
-        return false;
-      }
-      return true;
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
-    else
-      ROS_ERROR_NAMED(LOGNAME, "World object '%s' does not exist. Cannot move.", object.id.c_str());
+  }
+  for (std::size_t i = 0; i < object.meshes.size(); ++i)
+  {
+    shapes::Shape* s = shapes::constructShapeFromMsg(object.meshes[i]);
+    if (s)
+    {
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
+    }
+  }
+  for (std::size_t i = 0; i < object.planes.size(); ++i)
+  {
+    shapes::Shape* s = shapes::constructShapeFromMsg(object.planes[i]);
+    if (s)
+    {
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.plane_poses[i], object_pose);
+      world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
+    }
+  }
+  if (!object.type.key.empty() || !object.type.db.empty())
+    setObjectType(object.id, object.type);
+  return true;
+}
+
+bool PlanningScene::processCollisionObjectRemove(const moveit_msgs::CollisionObject& object)
+{
+  if (object.id.empty())
+  {
+    removeAllCollisionObjects();
   }
   else
-    ROS_ERROR_NAMED(LOGNAME, "Unknown collision object operation: %d", object.operation);
+  {
+    world_->removeObject(object.id);
+    removeObjectColor(object.id);
+    removeObjectType(object.id);
+  }
+  return true;
+}
+
+bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObject& object)
+{
+  if (world_->hasObject(object.id))
+  {
+    if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
+      ROS_WARN_NAMED(LOGNAME, "Move operation for object '%s' ignores the geometry specified in the message.",
+                     object.id.c_str());
+
+    const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
+    EigenSTL::vector_Affine3d new_poses;
+    for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
+    {
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      new_poses.push_back(t * object_pose);
+    }
+    for (std::size_t i = 0; i < object.mesh_poses.size(); ++i)
+    {
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      new_poses.push_back(t * object_pose);
+    }
+    for (std::size_t i = 0; i < object.plane_poses.size(); ++i)
+    {
+      Eigen::Affine3d object_pose;
+      tf2::fromMsg(object.plane_poses[i], object_pose);
+      new_poses.push_back(t * object_pose);
+    }
+
+    collision_detection::World::ObjectConstPtr obj = world_->getObject(object.id);
+    if (obj->shapes_.size() == new_poses.size())
+    {
+      std::vector<shapes::ShapeConstPtr> shapes = obj->shapes_;
+      obj.reset();
+      world_->removeObject(object.id);
+      world_->addToObject(object.id, shapes, new_poses);
+    }
+    else
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Number of supplied poses (%zu) for object '%s' does not match number of shapes (%zu). "
+                               "Not moving.",
+                      new_poses.size(), object.id.c_str(), obj->shapes_.size());
+      return false;
+    }
+    return true;
+  }
+
+  ROS_ERROR_NAMED(LOGNAME, "World object '%s' does not exist. Cannot move.", object.id.c_str());
   return false;
 }
 
@@ -1843,6 +1863,8 @@ const Eigen::Affine3d& PlanningScene::getFrameTransform(const robot_state::Robot
                                                         const std::string& id) const
 {
   if (!id.empty() && id[0] == '/')
+    // Recursively call itself without the slash in front of frame name
+    // TODO: minor cleanup, but likely getFrameTransform(state, id.substr(1)); can be used, but requires further testing
     return getFrameTransform(id.substr(1));
   if (state.knowsFrameTransform(id))
     return state.getFrameTransform(id);

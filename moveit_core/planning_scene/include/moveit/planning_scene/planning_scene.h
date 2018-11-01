@@ -118,12 +118,10 @@ public:
    *  The child scene has its own copy of the world. It maintains a list (in
    *  world_diff_) of changes made to the child world.
    *
-   *  The robot_model_, robot_state_, ftf_, and acm_ are not copied.  They are shared
-   *  with the parent.  So if changes to these are made in the parent they will
-   *  be visible in the child.  But if any of these is modified (i.e. if the
-   *  get*NonConst functions are called) in the child then a copy is made and
-   *  subsequent changes to the corresponding member of the parent will no
-   *  longer be visible in the child.
+   *  The robot_model_, robot_state_, scene_transforms_, and acm_ are not copied.
+   *  They are shared with the parent.  So if changes to these are made in the parent they will be visible in the child.
+   * But if any of these is modified (i.e. if the get*NonConst functions are called) in the child then a copy is made
+   * and subsequent changes to the corresponding member of the parent will no longer be visible in the child.
    */
   PlanningScenePtr diff() const;
 
@@ -165,14 +163,19 @@ public:
   const std::string& getPlanningFrame() const
   {
     // if we have an updated set of transforms, return it; otherwise, return the parent one
-    return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
+    return scene_transforms_ ? scene_transforms_->getTargetFrame() : parent_->getPlanningFrame();
   }
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   const robot_state::Transforms& getTransforms() const
   {
-    // if we have updated transforms, return those
-    return (ftf_ || !parent_) ? *ftf_ : parent_->getTransforms();
+    if (scene_transforms_ || !parent_)
+    {
+      return *scene_transforms_;
+    }
+
+    // if this planning scene is a child of another, and doesn't have its own custom transforms
+    return parent_->getTransforms();
   }
 
   /** \brief Get the set of fixed transforms from known frames to the planning frame. This variant is non-const and also
@@ -973,6 +976,11 @@ private:
   static robot_model::RobotModelPtr createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
                                                      const srdf::ModelConstSharedPtr& srdf_model);
 
+  /* Helper functions for processing collision objects */
+  bool processCollisionObjectAdd(const moveit_msgs::CollisionObject& object);
+  bool processCollisionObjectRemove(const moveit_msgs::CollisionObject& object);
+  bool processCollisionObjectMove(const moveit_msgs::CollisionObject& object);
+
   MOVEIT_CLASS_FORWARD(CollisionDetector);
 
   /* \brief A set of compatible collision detectors */
@@ -1014,11 +1022,14 @@ private:
 
   robot_model::RobotModelConstPtr robot_model_;  // Never null (may point to same model as parent)
 
-  robot_state::RobotStatePtr robot_state_;                                  // if NULL use parent's
-  robot_state::AttachedBodyCallback current_state_attached_body_callback_;  // called when changes are made to attached
-                                                                            // bodies
+  robot_state::RobotStatePtr robot_state_;  // if NULL use parent's
 
-  robot_state::TransformsPtr ftf_;  // if NULL use parent's
+  // Called when changes are made to attached bodies
+  robot_state::AttachedBodyCallback current_state_attached_body_callback_;
+
+  // This variable is not necessarily used by child planning scenes
+  // This Transforms class is actually a SceneTransform class
+  robot_state::TransformsPtr scene_transforms_;  // if NULL use parent's
 
   collision_detection::WorldPtr world_;             // never NULL, never shared with parent/child
   collision_detection::WorldConstPtr world_const_;  // copy of world_
