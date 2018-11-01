@@ -43,7 +43,8 @@
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 // To visualize bbox of the PR2, set this to 1.
 #ifndef VISUALIZE_PR2_RVIZ
@@ -63,7 +64,7 @@ protected:
 
   robot_state::RobotState loadModel(const std::string robot_name)
   {
-    robot_model::RobotModelPtr model = moveit::core::loadRobot(robot_name);
+    robot_model::RobotModelPtr model = moveit::core::loadTestingRobotModel(robot_name);
     return loadModel(model);
   }
 
@@ -272,25 +273,20 @@ TEST_F(TestAABB, TestSimple)
   // Contains a link with simple geometry and an offset in the collision link
   moveit::core::RobotModelBuilder builder("simple", "base_footprint");
   geometry_msgs::Pose origin;
-  origin.position.x = 0;
-  origin.position.y = 0;
-  origin.position.z = 0.051;
+  tf2::toMsg(tf2::Vector3(0, 0, 0.051), origin.position);
   origin.orientation.w = 1.0;
-  builder.add("base_footprint->base_link", "fixed", { origin });
+  builder.addChain("base_footprint->base_link", "fixed", { origin });
 
-  origin.position.z = 0;
-  builder.addCollMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl", origin);
+  tf2::toMsg(tf2::Vector3(0, 0, 0), origin.position);
+  builder.addCollisionMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl", origin);
 
-  origin.position.z = 0.071;
-  geometry_msgs::Point size;
-  size.x = 0.001;
-  size.y = 0.001;
-  size.z = 0.001;
-  builder.addCollBox("base_footprint", size, origin);
+  tf2::toMsg(tf2::Vector3(0, 0, 0.071), origin.position);
+  builder.addCollisionBox("base_footprint", {0.001, 0.001, 0.001}, origin);
 
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, { "world_joint" }, "base");
 
+  ASSERT_TRUE(builder.isValid());
   robot_state::RobotState simple_state = loadModel(builder.build());
 
   std::vector<double> simple_aabb;
@@ -310,35 +306,23 @@ TEST_F(TestAABB, TestComplex)
   // Contains a link with simple geometry and an offset and rotation in the collision link
   moveit::core::RobotModelBuilder builder("complex", "base_footprint");
   geometry_msgs::Pose origin;
-  origin.position.x = 0;
-  origin.position.y = 0;
-  origin.position.z = 1.0;
+  tf2::toMsg(tf2::Vector3(0, 0, 1.0), origin.position);
   tf2::Quaternion q;
   q.setRPY(0, 0, 1.5708);
   origin.orientation = tf2::toMsg(q);
-  builder.add("base_footprint->base_link", "fixed", { origin });
-  geometry_msgs::Point size;
-  size.x = 1.0;
-  size.y = 0.1;
-  size.z = 0.1;
-  origin.position.x = 5.0;
-  origin.position.y = 0;
-  origin.position.z = 1.0;
-  builder.addCollBox("base_link", size, origin);
-  origin.position.x = 4.0;
-  builder.addCollBox("base_link", size, origin);
-  origin.position.x = -5.0;
-  origin.position.y = 0.0;
-  origin.position.z = -1.0;
+  builder.addChain("base_footprint->base_link", "fixed", { origin });
+  tf2::toMsg(tf2::Vector3(5.0, 0, 1.0), origin.position);
+  builder.addCollisionBox("base_link", {1.0, 0.1, 0.1}, origin);
+  tf2::toMsg(tf2::Vector3(4.0, 0, 1.0), origin.position);
+  builder.addCollisionBox("base_link", {1.0, 0.1, 0.1}, origin);
+  tf2::toMsg(tf2::Vector3(-5.0, 0.0, -1.0), origin.position);
   q.setRPY(0, 1.5708, 0);
   origin.orientation = tf2::toMsg(q);
-  size.x = 0.1;
-  size.y = 1.0;
-  size.z = 0.1;
-  builder.addCollBox("base_footprint", size, origin);
+  builder.addCollisionBox("base_footprint", {0.1, 1.0, 0.1}, origin);
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, { "world_joint" }, "base");
 
+  ASSERT_TRUE(builder.isValid());
   robot_state::RobotState complex_state = this->loadModel(builder.build());
 
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[0], 0.1, 1e-4);

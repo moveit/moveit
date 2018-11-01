@@ -41,10 +41,10 @@
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr rmodel = moveit::core::loadRobot("pr2_description");
+moveit::core::RobotModelConstPtr rmodel = moveit::core::loadTestingRobotModel("pr2_description");
 robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
 
 // Initialize one-joint, 3 points exactly the same.

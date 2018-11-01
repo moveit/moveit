@@ -41,14 +41,14 @@
 #include <boost/filesystem/path.hpp>
 #include <moveit/profiler/profiler.h>
 #include <moveit_resources/config.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    robot_model = moveit::core::loadRobot("pr2_description");
+    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
   };
 
   void TearDown() override
@@ -89,12 +89,14 @@ TEST(SiblingAssociateLinks, SimpleYRobot)
                   \
                    - d ~ e          */
   moveit::core::RobotModelBuilder builder("one_robot", "base_link");
-  builder.add("base_link->a", "continuous");
-  builder.add("a->b->c", "fixed");
-  builder.add("a->d", "fixed");
-  builder.add("d->e", "continuous");
+  bool is_valid = true;
+  builder.addChain("base_link->a", "continuous");
+  builder.addChain("a->b->c", "fixed");
+  builder.addChain("a->d", "fixed");
+  builder.addChain("d->e", "continuous");
   builder.addVirtualJoint("odom", "base_link", "planar", "base_joint");
   builder.addGroup({}, { "base_joint" }, "base_joint");
+  ASSERT_TRUE(builder.isValid());
   moveit::core::RobotModelConstPtr robot_model = builder.build();
 
   const std::string a = "a", b = "b", c = "c", d = "d";

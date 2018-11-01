@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of MoveIt! nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -33,13 +33,11 @@
  *********************************************************************/
 
 /* Author: Bryce Willey */
+/** \brief convenience functions and classes used for making simple robot models for testing. */
 
 #ifndef MOVEIT_CORE_UTILS_TEST_
 #define MOVEIT_CORE_UTILS_TEST_
 
-/** \file test_utils.h
- *  \brief convenience functions and classes used for making simple robot models for testing.
- */
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
 #include <urdf_model/joint.h>
@@ -57,22 +55,33 @@ namespace core
 {
 /** \brief Loads a robot from moveit_resources.
  * \param[in] robot_name The name of the robot package in moveit_resources to load.
- *            For example, "panda_description", or "faunc_description".
+ *            For example, "panda_description", or "fanuc_description".
  * \returns a RobotModel constructed from robot_name's URDF and SRDF.
  */
-moveit::core::RobotModelPtr loadRobot(std::string robot_name);
+moveit::core::RobotModelPtr loadTestingRobotModel(const std::string& robot_name);
 
-urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name);
+/** \brief Loads a URDF Model Interface from moveit_resources.
+ * \param[in] robot_name The name of the robot package in moveit_resources to load.
+ *            For example, "panda_description", or "fanuc_description".
+ * \returns a ModelInterface constructed from robot_name's URDF.
+ */
+urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name);
 
-srdf::ModelSharedPtr loadSRDF(std::string robot_name);
+/** \brief Loads an SRDF Model from moveit_resources.
+ * \param[in] robot_name The name of the robot package in moveit_resources to load.
+ *            For example, "panda_description", or "fanuc_description".
+ * \returns an SRDF Model constructed from robot_names' URDF and SRDF.
+ */
+srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name);
 
 /** \brief Easily build different robot models for testing.
  *  Essentially a programmer-friendly light wrapper around URDF and SRDF.
  *  Best shown by an example:
  *  \code{.cpp}
  *  RobotModelBuilder builder("my_robot", "base_link");
- *  builder.add("a->b->c", "continuous");
+ *  builder.addChain("a->b->c", "continuous");
  *  builder.addGroup({"a", "b"}, {}, "example_group");
+ *  ASSERT_TRUE(builder.isValid());
  *  RobotModelPtr model = builder.build();
  *  \endcode
  */
@@ -81,10 +90,9 @@ class RobotModelBuilder
 public:
   /** \brief Constructor, takes the names of the robot and the base link.
    * \param[in] name The name of the robot, i.e. the 'name' attribute of the robot tag in URDF
-   * \param[in] base_link_name The name of the base/root link of the robot. All other links should be descendants
-   *            of this link
+   * \param[in] base_link_name The name of the root link of the robot. All other links should be descendants of this
    */
-  RobotModelBuilder(std::string name, std::string base_link_name);
+  RobotModelBuilder(const std::string& name, const std::string& base_link_name);
 
   /** \name URDF Functions
       \{ */
@@ -98,7 +106,7 @@ public:
    * \param[in] joint_origins The "parent to joint" origins for the joints connecting the links. If not used, all
    * origins will default to the identity transform
    */
-  void add(std::string section, std::string type, std::vector<geometry_msgs::Pose> joint_origins = {});
+  void addChain(const std::string& section, const std::string& type, const std::vector<geometry_msgs::Pose>& joint_origins = {});
 
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
@@ -106,20 +114,20 @@ public:
    * "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl"
    *  \param[in] origin The origin pose of this collision mesh relative to the link origin
    */
-  void addCollMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin);
+  void addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin);
   /** \brief Adds a collision box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
    *  \param[in] size The dimensions of the box
    *  \param[in] origin The origin pose of this collision box relative to the link origin
    */
-  void addCollBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
+  void addCollisionBox(const std::string& link_name, const std::vector<double>& dims, geometry_msgs::Pose origin);
 
   /** \brief Adds a visual box to a specific link.
    *  \param[in] link_name The name of the link to which the box will be added. Must already be in the builder.
    *  \param[in] size The dimensions of the box
    *  \param[in] origin The origin pose of this visual box relative to the link origin
    */
-  void addVisualBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin);
+  void addVisualBox(const std::string& link_name, const std::vector<double>& size, geometry_msgs::Pose origin);
 
   /**
    * Adds an inertial component to a link.
@@ -127,7 +135,7 @@ public:
    * \param[in] mass The mass of the link
    * \param[in] origin The origin center pose of the center of mass of this link
    */
-  void addInertial(std::string link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz,
+  void addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz,
                    double iyy, double iyz, double izz);
 
   /** \} */
@@ -142,21 +150,26 @@ public:
    *  \param[in] name The name of the virtual joint, if not given it's automatically made to be
    * "<parent_frame>-<child>-virtual-joint"
    */
-  void addVirtualJoint(std::string parent_frame, std::string child_link, std::string type, std::string name = "");
+  void addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type, const std::string& name = "");
 
   /** \brief Adds a new group using a chain of links. The group is the parent joint of each link in the chain.
    *  \param[in] base_link The starting link of the chain
    *  \param[in] tip_link The ending link of the chain.
    *  \param[in] name The name of the group, if not given it's set as "<base>-<tip>-chain-group"
    */
-  void addGroupChain(std::string base_link, std::string tip_link, std::string name = "");
+  void addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name = "");
 
   /** \brief Adds a new group using a list of links and a list of joints.
    *  \param[in] links The links (really their parent joints) to include in the group
    *  \param[in] joints The joints to include in the group
    *  \param[in] name The name of the group, required
    */
-  void addGroup(std::vector<std::string> links, std::vector<std::string> joints, std::string name);
+  void addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints, const std::string& name);
+
+  /** \} */
+
+  /** \brief Returns true if the building process so far has been valid. */
+  bool isValid();
 
   /** \brief Builds and returns the robot model added to the builder.
    */
@@ -164,13 +177,18 @@ public:
 
 private:
   /** \brief Adds different collision geometries to a link. */
-  void addLinkCollision(std::string link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin);
+  void addLinkCollision(const std::string& link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin);
 
   /** \brief Adds different visual geometries to a link. */
-  void addLinkVisual(std::string link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin);
+  void addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin);
 
+  /// The URDF model, holds all of the URDF components of the robot added so far.
   urdf::ModelInterfaceSharedPtr urdf_model_;
+  /// The SRDF model, holds all of the SRDF components of the robot added so far.
   srdf::SRDFWriterPtr srdf_writer_;
+
+  /// Whether the current builder state is valid. If any 'add' method fails, this becomes false.
+  bool is_valid_ = true;
 };
 }
 }

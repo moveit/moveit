@@ -38,7 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
@@ -57,7 +57,7 @@ class FclCollisionDetectionTester : public testing::Test
 protected:
   void SetUp() override
   {
-    robot_model_ = moveit::core::loadRobot("pr2_description");
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
     robot_model_ok_ = static_cast<bool>(robot_model_);
     kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 

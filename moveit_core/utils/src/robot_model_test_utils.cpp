@@ -38,23 +38,23 @@
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <geometry_msgs/Pose.h>
-#include "moveit/utils/robot_model_builder.h"
+#include "moveit/utils/robot_model_test_utils.h"
 
 namespace moveit
 {
 namespace core
 {
 const std::string LOGNAME = "robot_model_builder";
-moveit::core::RobotModelPtr loadRobot(std::string robot_name)
+
+moveit::core::RobotModelPtr loadTestingRobotModel(const std::string& robot_name)
 {
-  urdf::ModelInterfaceSharedPtr urdf = loadURDF(robot_name);
-  srdf::ModelSharedPtr srdf = loadSRDF(robot_name);
-  moveit::core::RobotModelPtr robot_model;
-  robot_model.reset(new moveit::core::RobotModel(urdf, srdf));
+  urdf::ModelInterfaceSharedPtr urdf = loadModelInterface(robot_name);
+  srdf::ModelSharedPtr srdf = loadSRDFModel(robot_name);
+  moveit::core::RobotModelPtr robot_model(new moveit::core::RobotModel(urdf, srdf));
   return robot_model;
 }
 
-urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name)
+urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
   urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile((res_path / robot_name / "urdf/robot.xml").string());
@@ -66,16 +66,16 @@ urdf::ModelInterfaceSharedPtr loadURDF(std::string robot_name)
   return urdf_model;
 }
 
-srdf::ModelSharedPtr loadSRDF(std::string robot_name)
+srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-  urdf::ModelInterfaceSharedPtr urdf_model = loadURDF(robot_name);
+  urdf::ModelInterfaceSharedPtr urdf_model = loadModelInterface(robot_name);
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   srdf_model->initFile(*urdf_model, (res_path / robot_name / "srdf/robot.xml").string());
   return srdf_model;
 }
 
-RobotModelBuilder::RobotModelBuilder(std::string name, std::string base_link_name)
+RobotModelBuilder::RobotModelBuilder(const std::string& name, const std::string& base_link_name)
   : urdf_model_(new urdf::ModelInterface()), srdf_writer_(new srdf::SRDFWriter())
 {
   urdf_model_->clear();
@@ -88,19 +88,21 @@ RobotModelBuilder::RobotModelBuilder(std::string name, std::string base_link_nam
   srdf_writer_->robot_name_ = name;
 }
 
-void RobotModelBuilder::add(std::string section, std::string type, std::vector<geometry_msgs::Pose> joint_origins)
+void RobotModelBuilder::addChain(const std::string& section, const std::string& type, const std::vector<geometry_msgs::Pose>& joint_origins)
 {
   std::vector<std::string> link_names;
   boost::split_regex(link_names, section, boost::regex("->"));
   if (link_names.empty())
   {
     ROS_ERROR_NAMED(LOGNAME, "No links specified (empty section?)");
+    is_valid_ = false;
     return;
   }
   // First link should already be added.
   if (not urdf_model_->getLink(link_names[0]))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_names[0].c_str());
+    is_valid_ = false;
     return;
   }
 
@@ -108,16 +110,18 @@ void RobotModelBuilder::add(std::string section, std::string type, std::vector<g
   {
     ROS_ERROR_NAMED(LOGNAME, "There should be one more link (%zu) than there are joint origins (%zu)",
                     link_names.size(), joint_origins.size());
+    is_valid_ = false;
     return;
   }
 
   // Iterate through each link.
-  for (size_t i = 1; i < link_names.size(); i++)
+  for (size_t i = 1; i < link_names.size(); ++i)
   {
     // These links shouldn't be present already.
     if (urdf_model_->getLink(link_names[i]))
     {
       ROS_ERROR_NAMED(LOGNAME, "Link %s is already specified", link_names[i].c_str());
+      is_valid_ = false;
       return;
     }
     urdf::LinkSharedPtr link(new urdf::Link);
@@ -152,6 +156,7 @@ void RobotModelBuilder::add(std::string section, std::string type, std::vector<g
     else
     {
       ROS_ERROR_NAMED(LOGNAME, "No such joint type as %s", type.c_str());
+      is_valid_ = false;
       return;
     }
 
@@ -168,12 +173,13 @@ void RobotModelBuilder::add(std::string section, std::string type, std::vector<g
   }
 }
 
-void RobotModelBuilder::addInertial(std::string link_name, double mass, geometry_msgs::Pose origin, double ixx,
+void RobotModelBuilder::addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx,
                                     double ixy, double ixz, double iyy, double iyz, double izz)
 {
   if (not urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
+    is_valid_ = false;
     return;
   }
 
@@ -194,25 +200,31 @@ void RobotModelBuilder::addInertial(std::string link_name, double mass, geometry
   link->inertial = inertial;
 }
 
-void RobotModelBuilder::addVisualBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+void RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size, geometry_msgs::Pose origin)
 {
   urdf::VisualSharedPtr vis(new urdf::Visual);
   urdf::BoxSharedPtr geometry(new urdf::Box);
-  geometry->dim = urdf::Vector3(size.x, size.y, size.z);
+  geometry->dim = urdf::Vector3(size[0], size[1], size[2]);
   vis->geometry = geometry;
   addLinkVisual(link_name, vis, origin);
 }
 
-void RobotModelBuilder::addCollBox(std::string link_name, geometry_msgs::Point size, geometry_msgs::Pose origin)
+void RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims, geometry_msgs::Pose origin)
 {
+  if (dims.size() != 3)
+  {
+    ROS_ERROR("There can only be 3 dimensions of a box (given %zu!)", dims.size());
+    is_valid_ = false;
+    return;
+  }
   urdf::CollisionSharedPtr coll(new urdf::Collision);
   urdf::BoxSharedPtr geometry(new urdf::Box);
-  geometry->dim = urdf::Vector3(size.x, size.y, size.z);
+  geometry->dim = urdf::Vector3(dims[0], dims[1], dims[2]);
   coll->geometry = geometry;
   addLinkCollision(link_name, coll, origin);
 }
 
-void RobotModelBuilder::addCollMesh(std::string link_name, std::string filename, geometry_msgs::Pose origin)
+void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin)
 {
   urdf::CollisionSharedPtr coll(new urdf::Collision);
   urdf::MeshSharedPtr geometry(new urdf::Mesh);
@@ -221,28 +233,30 @@ void RobotModelBuilder::addCollMesh(std::string link_name, std::string filename,
   addLinkCollision(link_name, coll, origin);
 }
 
-void RobotModelBuilder::addLinkCollision(std::string link_name, urdf::CollisionSharedPtr coll,
+void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::CollisionSharedPtr collision,
                                          geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
+    is_valid_ = false;
     return;
   }
-  coll->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
-  coll->origin.rotation =
+  collision->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
+  collision->origin.rotation =
       urdf::Rotation(origin.orientation.x, origin.orientation.y, origin.orientation.z, origin.orientation.w);
 
   urdf::LinkSharedPtr link;
   urdf_model_->getLink(link_name, link);
-  link->collision_array.push_back(coll);
+  link->collision_array.push_back(collision);
 }
 
-void RobotModelBuilder::addLinkVisual(std::string link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin)
+void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
+    is_valid_ = false;
     return;
   }
   vis->origin.position = urdf::Vector3(origin.position.x, origin.position.y, origin.position.z);
@@ -267,8 +281,7 @@ void RobotModelBuilder::addLinkVisual(std::string link_name, urdf::VisualSharedP
   }
 }
 
-void RobotModelBuilder::addVirtualJoint(std::string parent_frame, std::string child_link, std::string type,
-                                        std::string name)
+void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type, const std::string& name)
 {
   srdf::Model::VirtualJoint new_virtual_joint;
   if (name == "")
@@ -281,7 +294,7 @@ void RobotModelBuilder::addVirtualJoint(std::string parent_frame, std::string ch
   srdf_writer_->virtual_joints_.push_back(new_virtual_joint);
 }
 
-void RobotModelBuilder::addGroupChain(std::string base_link, std::string tip_link, std::string name)
+void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name)
 {
   srdf::Model::Group new_group;
   if (name == "")
@@ -292,13 +305,18 @@ void RobotModelBuilder::addGroupChain(std::string base_link, std::string tip_lin
   srdf_writer_->groups_.push_back(new_group);
 }
 
-void RobotModelBuilder::addGroup(std::vector<std::string> links, std::vector<std::string> joints, std::string name)
+void RobotModelBuilder::addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints, const std::string& name)
 {
   srdf::Model::Group new_group;
   new_group.name_ = name;
   new_group.links_ = links;
   new_group.joints_ = joints;
   srdf_writer_->groups_.push_back(new_group);
+}
+
+bool RobotModelBuilder::isValid()
+{
+  return is_valid_;
 }
 
 moveit::core::RobotModelPtr RobotModelBuilder::build()
@@ -331,5 +349,5 @@ moveit::core::RobotModelPtr RobotModelBuilder::build()
   robot_model.reset(new moveit::core::RobotModel(urdf_model_, srdf_writer_->srdf_model_));
   return robot_model;
 }
-}
-}
+} // namespace core
+} // namespace moveit

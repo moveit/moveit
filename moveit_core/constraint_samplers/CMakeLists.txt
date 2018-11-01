@@ -37,7 +37,7 @@ if(CATKIN_ENABLE_TESTING)
     test/pr2_arm_ik.cpp
   )
   target_link_libraries(test_constraint_samplers
-    moveit_utils
+    moveit_test_utils
     ${MOVEIT_LIB_NAME}
     ${catkin_LIBRARIES}
     ${angles_LIBRARIES}

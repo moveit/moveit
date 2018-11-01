@@ -36,7 +36,7 @@
 #include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <urdf_parser/urdf_parser.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <gtest/gtest.h>
@@ -89,6 +89,7 @@ TEST(Loading, SimpleRobot)
 {
   moveit::core::RobotModelBuilder builder("myrobot", "base_link");
   builder.addVirtualJoint("odom_combined", "base_link", "floating", "base_joint");
+  ASSERT_TRUE(builder.isValid());
   moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
 
@@ -115,33 +116,24 @@ TEST(Loading, SimpleRobot)
 TEST(LoadingAndFK, SimpleRobot)
 {
   moveit::core::RobotModelBuilder builder("myrobot", "base_link");
-  geometry_msgs::Point size;
-  size.x = 1;
-  size.y = 2;
-  size.z = 1;
   geometry_msgs::Pose pose;
-  pose.position.x = -0.1;
-  pose.position.y = 0;
-  pose.position.z = 0;
+  tf2::toMsg(tf2::Vector3(-0.1, 0, 0), pose.position);
   tf2::Quaternion q;
   q.setRPY(0, 0, -1);
   pose.orientation = tf2::toMsg(q);
-  builder.addCollBox("base_link", size, pose);
-  pose.position.x = 0;
-  pose.position.y = 0;
-  pose.position.z = 0;
+  builder.addCollisionBox("base_link", {1, 2, 1}, pose);
+  tf2::toMsg(tf2::Vector3(0, 0, 0), pose.position);
   q.setRPY(0, 0, 0);
   pose.orientation = tf2::toMsg(q);
-  builder.addVisualBox("base_link", size, pose);
-  pose.position.x = 0;
-  pose.position.y = 0.099;
-  pose.position.z = 0;
+  builder.addVisualBox("base_link", {1, 2, 1}, pose);
+  tf2::toMsg(tf2::Vector3(0, 0.099, 0), pose.position);
   q.setRPY(0, 0, 0);
   pose.orientation = tf2::toMsg(q);
   builder.addInertial("base_link", 2.81, pose, 0.1, -0.2, 0.5, -0.09, 1, 0.101);
   builder.addVirtualJoint("odom_combined", "base_link", "planar", "base_joint");
   builder.addGroup({}, { "base_joint" }, "base");
 
+  ASSERT_TRUE(builder.isValid());
   moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
 

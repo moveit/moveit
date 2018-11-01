@@ -40,6 +40,7 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -55,7 +56,7 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-  robot_model::RobotModelPtr robot_model(moveit::core::loadRobot("pr2_description"));
+  robot_model::RobotModelPtr robot_model(moveit::core::loadTestingRobotModel("pr2_description"));
   ASSERT_TRUE(robot_model != nullptr);
   ASSERT_EQ(robot_model->getName(), "pr2_test");
   robot_state::RobotState robot_state(robot_model);

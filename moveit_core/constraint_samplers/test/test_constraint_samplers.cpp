@@ -42,7 +42,7 @@
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 #include <geometric_shapes/shape_operations.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -73,8 +73,8 @@ protected:
 
   void SetUp() override
   {
-    robot_model = moveit::core::loadRobot("pr2_description");
-    urdf::ModelInterfaceSharedPtr urdf = moveit::core::loadURDF("pr2_description");
+    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
+    urdf::ModelInterfaceSharedPtr urdf = moveit::core::loadModelInterface("pr2_description");
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 

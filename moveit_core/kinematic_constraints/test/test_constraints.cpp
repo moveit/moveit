@@ -39,14 +39,14 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <tf2_eigen/tf2_eigen.h>
-#include <moveit/utils/robot_model_builder.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    kmodel = moveit::core::loadRobot("pr2_description");
+    kmodel = moveit::core::loadTestingRobotModel("pr2_description");
   }
 
   void TearDown() override
