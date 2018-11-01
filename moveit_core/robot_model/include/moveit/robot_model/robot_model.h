@@ -448,10 +448,11 @@ protected:
 
   // GENERIC INFO
 
-  /** \brief The name of the model */
+  /** \brief The name of the robot */
   std::string model_name_;
 
-  /** \brief The reference frame for this model */
+  /** \brief The reference (base) frame for this model. The frame is either extracted from the SRDF as a virtual joint,
+   * or it is assumed to be the name of the root link in the URDF */
   std::string model_frame_;
 
   srdf::ModelConstSharedPtr srdf_;
