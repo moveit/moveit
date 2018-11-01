@@ -20,7 +20,6 @@ link_directories( ${OGRE_LIBRARY_DIRS} )
 
 find_package(catkin REQUIRED COMPONENTS
   class_loader
-  eigen_conversions
   geometric_shapes
   interactive_markers
   moveit_ros_perception
