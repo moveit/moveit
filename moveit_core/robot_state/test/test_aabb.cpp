@@ -278,10 +278,11 @@ TEST_F(TestAABB, TestSimple)
   builder.addChain("base_footprint->base_link", "fixed", { origin });
 
   tf2::toMsg(tf2::Vector3(0, 0, 0), origin.position);
-  builder.addCollisionMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl", origin);
+  builder.addCollisionMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl",
+                           origin);
 
   tf2::toMsg(tf2::Vector3(0, 0, 0.071), origin.position);
-  builder.addCollisionBox("base_footprint", {0.001, 0.001, 0.001}, origin);
+  builder.addCollisionBox("base_footprint", { 0.001, 0.001, 0.001 }, origin);
 
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, { "world_joint" }, "base");
@@ -312,13 +313,13 @@ TEST_F(TestAABB, TestComplex)
   origin.orientation = tf2::toMsg(q);
   builder.addChain("base_footprint->base_link", "fixed", { origin });
   tf2::toMsg(tf2::Vector3(5.0, 0, 1.0), origin.position);
-  builder.addCollisionBox("base_link", {1.0, 0.1, 0.1}, origin);
+  builder.addCollisionBox("base_link", { 1.0, 0.1, 0.1 }, origin);
   tf2::toMsg(tf2::Vector3(4.0, 0, 1.0), origin.position);
-  builder.addCollisionBox("base_link", {1.0, 0.1, 0.1}, origin);
+  builder.addCollisionBox("base_link", { 1.0, 0.1, 0.1 }, origin);
   tf2::toMsg(tf2::Vector3(-5.0, 0.0, -1.0), origin.position);
   q.setRPY(0, 1.5708, 0);
   origin.orientation = tf2::toMsg(q);
-  builder.addCollisionBox("base_footprint", {0.1, 1.0, 0.1}, origin);
+  builder.addCollisionBox("base_footprint", { 0.1, 1.0, 0.1 }, origin);
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, { "world_joint" }, "base");
 

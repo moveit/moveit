@@ -88,7 +88,8 @@ RobotModelBuilder::RobotModelBuilder(const std::string& name, const std::string&
   srdf_writer_->robot_name_ = name;
 }
 
-void RobotModelBuilder::addChain(const std::string& section, const std::string& type, const std::vector<geometry_msgs::Pose>& joint_origins)
+void RobotModelBuilder::addChain(const std::string& section, const std::string& type,
+                                 const std::vector<geometry_msgs::Pose>& joint_origins)
 {
   std::vector<std::string> link_names;
   boost::split_regex(link_names, section, boost::regex("->"));
@@ -200,7 +201,8 @@ void RobotModelBuilder::addInertial(const std::string& link_name, double mass, g
   link->inertial = inertial;
 }
 
-void RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size, geometry_msgs::Pose origin)
+void RobotModelBuilder::addVisualBox(const std::string& link_name, const std::vector<double>& size,
+                                     geometry_msgs::Pose origin)
 {
   urdf::VisualSharedPtr vis(new urdf::Visual);
   urdf::BoxSharedPtr geometry(new urdf::Box);
@@ -209,7 +211,8 @@ void RobotModelBuilder::addVisualBox(const std::string& link_name, const std::ve
   addLinkVisual(link_name, vis, origin);
 }
 
-void RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims, geometry_msgs::Pose origin)
+void RobotModelBuilder::addCollisionBox(const std::string& link_name, const std::vector<double>& dims,
+                                        geometry_msgs::Pose origin)
 {
   if (dims.size() != 3)
   {
@@ -224,7 +227,8 @@ void RobotModelBuilder::addCollisionBox(const std::string& link_name, const std:
   addLinkCollision(link_name, coll, origin);
 }
 
-void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin)
+void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std::string& filename,
+                                         geometry_msgs::Pose origin)
 {
   urdf::CollisionSharedPtr coll(new urdf::Collision);
   urdf::MeshSharedPtr geometry(new urdf::Mesh);
@@ -251,7 +255,8 @@ void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::Col
   link->collision_array.push_back(collision);
 }
 
-void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin)
+void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis,
+                                      geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
   {
@@ -281,7 +286,8 @@ void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::Visual
   }
 }
 
-void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type, const std::string& name)
+void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const std::string& child_link,
+                                        const std::string& type, const std::string& name)
 {
   srdf::Model::VirtualJoint new_virtual_joint;
   if (name == "")
@@ -294,7 +300,8 @@ void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const s
   srdf_writer_->virtual_joints_.push_back(new_virtual_joint);
 }
 
-void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name)
+void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link,
+                                      const std::string& name)
 {
   srdf::Model::Group new_group;
   if (name == "")
@@ -305,7 +312,8 @@ void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::s
   srdf_writer_->groups_.push_back(new_group);
 }
 
-void RobotModelBuilder::addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints, const std::string& name)
+void RobotModelBuilder::addGroup(const std::vector<std::string>& links, const std::vector<std::string>& joints,
+                                 const std::string& name)
 {
   srdf::Model::Group new_group;
   new_group.name_ = name;
@@ -349,5 +357,5 @@ moveit::core::RobotModelPtr RobotModelBuilder::build()
   robot_model.reset(new moveit::core::RobotModel(urdf_model_, srdf_writer_->srdf_model_));
   return robot_model;
 }
-} // namespace core
-} // namespace moveit
+}  // namespace core
+}  // namespace moveit

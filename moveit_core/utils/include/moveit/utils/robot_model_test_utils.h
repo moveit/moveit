@@ -106,7 +106,8 @@ public:
    * \param[in] joint_origins The "parent to joint" origins for the joints connecting the links. If not used, all
    * origins will default to the identity transform
    */
-  void addChain(const std::string& section, const std::string& type, const std::vector<geometry_msgs::Pose>& joint_origins = {});
+  void addChain(const std::string& section, const std::string& type,
+                const std::vector<geometry_msgs::Pose>& joint_origins = {});
 
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
@@ -135,8 +136,8 @@ public:
    * \param[in] mass The mass of the link
    * \param[in] origin The origin center pose of the center of mass of this link
    */
-  void addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy, double ixz,
-                   double iyy, double iyz, double izz);
+  void addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx, double ixy,
+                   double ixz, double iyy, double iyz, double izz);
 
   /** \} */
 
@@ -150,7 +151,8 @@ public:
    *  \param[in] name The name of the virtual joint, if not given it's automatically made to be
    * "<parent_frame>-<child>-virtual-joint"
    */
-  void addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type, const std::string& name = "");
+  void addVirtualJoint(const std::string& parent_frame, const std::string& child_link, const std::string& type,
+                       const std::string& name = "");
 
   /** \brief Adds a new group using a chain of links. The group is the parent joint of each link in the chain.
    *  \param[in] base_link The starting link of the chain

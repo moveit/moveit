@@ -121,11 +121,11 @@ TEST(LoadingAndFK, SimpleRobot)
   tf2::Quaternion q;
   q.setRPY(0, 0, -1);
   pose.orientation = tf2::toMsg(q);
-  builder.addCollisionBox("base_link", {1, 2, 1}, pose);
+  builder.addCollisionBox("base_link", { 1, 2, 1 }, pose);
   tf2::toMsg(tf2::Vector3(0, 0, 0), pose.position);
   q.setRPY(0, 0, 0);
   pose.orientation = tf2::toMsg(q);
-  builder.addVisualBox("base_link", {1, 2, 1}, pose);
+  builder.addVisualBox("base_link", { 1, 2, 1 }, pose);
   tf2::toMsg(tf2::Vector3(0, 0.099, 0), pose.position);
   q.setRPY(0, 0, 0);
   pose.orientation = tf2::toMsg(q);
