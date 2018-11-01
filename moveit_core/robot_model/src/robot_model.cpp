@@ -848,7 +848,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
 {
   JointModel* result = nullptr;
 
-  // must be the root link transform
+  // if urdf_joint exists, must be the root link transform
   if (urdf_joint)
   {
     switch (urdf_joint->type)
@@ -893,36 +893,37 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         break;
     }
   }
-  else
+  else  // if urdf_joint passed in as null, then we're at root of URDF model
   {
-    const std::vector<srdf::Model::VirtualJoint>& vjoints = srdf_model.getVirtualJoints();
-    for (std::size_t i = 0; i < vjoints.size(); ++i)
+    const std::vector<srdf::Model::VirtualJoint>& virtual_joints = srdf_model.getVirtualJoints();
+    for (std::size_t i = 0; i < virtual_joints.size(); ++i)
     {
-      if (vjoints[i].child_link_ != child_link->name)
+      if (virtual_joints[i].child_link_ != child_link->name)
       {
         ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its child frame '%s' "
                                 "does not match the URDF frame '%s'",
-                       vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
+                       virtual_joints[i].name_.c_str(), virtual_joints[i].child_link_.c_str(),
+                       child_link->name.c_str());
       }
-      else if (vjoints[i].parent_frame_.empty())
+      else if (virtual_joints[i].parent_frame_.empty())
       {
         ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its parent frame is empty",
-                       vjoints[i].name_.c_str());
+                       virtual_joints[i].name_.c_str());
       }
       else
       {
-        if (vjoints[i].type_ == "fixed")
-          result = new FixedJointModel(vjoints[i].name_);
-        else if (vjoints[i].type_ == "planar")
-          result = new PlanarJointModel(vjoints[i].name_);
-        else if (vjoints[i].type_ == "floating")
-          result = new FloatingJointModel(vjoints[i].name_);
+        if (virtual_joints[i].type_ == "fixed")
+          result = new FixedJointModel(virtual_joints[i].name_);
+        else if (virtual_joints[i].type_ == "planar")
+          result = new PlanarJointModel(virtual_joints[i].name_);
+        else if (virtual_joints[i].type_ == "floating")
+          result = new FloatingJointModel(virtual_joints[i].name_);
         if (result)
         {
           // for fixed frames we still use the robot root link
-          if (vjoints[i].type_ != "fixed")
+          if (virtual_joints[i].type_ != "fixed")
           {
-            model_frame_ = vjoints[i].parent_frame_;
+            model_frame_ = virtual_joints[i].parent_frame_;
           }
           break;
         }
