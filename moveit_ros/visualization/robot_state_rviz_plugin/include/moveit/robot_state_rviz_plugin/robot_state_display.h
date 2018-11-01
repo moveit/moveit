@@ -78,7 +78,7 @@ public:
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
+    return robot_model_;
   }
 
   void setLinkColor(const std::string& link_name, const QColor& color);
@@ -128,8 +128,8 @@ protected:
 
   RobotStateVisualizationPtr robot_;
   rdf_loader::RDFLoaderPtr rdf_loader_;
-  robot_model::RobotModelConstPtr kmodel_;
-  robot_state::RobotStatePtr kstate_;
+  robot_model::RobotModelConstPtr robot_model_;
+  robot_state::RobotStatePtr robot_state_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
   bool load_robot_model_;  // for delayed robot initialization

@@ -85,7 +85,7 @@ public:
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
-  RobotInteraction(const robot_model::RobotModelConstPtr& kmodel, const std::string& ns = "");
+  RobotInteraction(const robot_model::RobotModelConstPtr& robot_model, const std::string& ns = "");
   virtual ~RobotInteraction();
 
   const std::string& getServerTopic(void) const

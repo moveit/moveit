@@ -46,7 +46,7 @@ namespace sbpl_interface
 class SBPLMetaInterface
 {
 public:
-  SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel);
+  SBPLMetaInterface(const planning_models::RobotModelConstPtr& robot_model);
   virtual ~SBPLMetaInterface()
   {
   }

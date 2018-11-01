@@ -254,11 +254,11 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
-  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
+  const robot_model::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (group.empty())
     return;
-  const robot_model::JointModelGroup* jmg = kmodel->getJointModelGroup(group);
+  const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
     ui_->start_state_selection->addItem(QString("<random valid>"));
@@ -296,19 +296,19 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
-  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
+  const robot_model::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
 
-  if (!group.empty() && kmodel)
+  if (!group.empty() && robot_model)
   {
     if (move_group_ && move_group_->getName() == group)
       return;
     ROS_INFO("Constructing new MoveGroup connection for group '%s' in namespace '%s'", group.c_str(),
              planning_display_->getMoveGroupNS().c_str());
     moveit::planning_interface::MoveGroupInterface::Options opt(group);
-    opt.robot_model_ = kmodel;
+    opt.robot_model_ = robot_model;
     opt.robot_description_.clear();
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try

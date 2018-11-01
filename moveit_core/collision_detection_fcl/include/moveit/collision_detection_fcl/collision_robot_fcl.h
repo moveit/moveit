@@ -46,7 +46,7 @@ class CollisionRobotFCL : public CollisionRobot
   friend class CollisionWorldFCL;
 
 public:
-  CollisionRobotFCL(const robot_model::RobotModelConstPtr& kmodel, double padding = 0.0, double scale = 1.0);
+  CollisionRobotFCL(const robot_model::RobotModelConstPtr& robot_model, double padding = 0.0, double scale = 1.0);
 
   CollisionRobotFCL(const CollisionRobotFCL& other);
 

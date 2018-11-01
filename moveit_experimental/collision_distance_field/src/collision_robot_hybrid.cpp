@@ -38,20 +38,21 @@
 
 namespace collision_detection
 {
-CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel) : CollisionRobotFCL(kmodel)
+CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr& robot_model)
+  : CollisionRobotFCL(robot_model)
 {
-  crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(kmodel));
+  crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(robot_model));
 }
 
 CollisionRobotHybrid::CollisionRobotHybrid(
-    const robot_model::RobotModelConstPtr& kmodel,
+    const robot_model::RobotModelConstPtr& robot_model,
     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
     double size_z, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance, double padding, double scale)
-  : CollisionRobotFCL(kmodel)
+  : CollisionRobotFCL(robot_model)
 {
   crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(
-      kmodel, link_body_decompositions, size_x, size_y, size_z, use_signed_distance_field, resolution,
+      robot_model, link_body_decompositions, size_x, size_y, size_z, use_signed_distance_field, resolution,
       collision_tolerance, max_propogation_distance, padding, scale));
 }
 

@@ -83,12 +83,12 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   ASSERT_TRUE(urdf_ok_);
   ASSERT_EQ(urdf_model_->getName(), "pr2_test");
 
-  robot_model::RobotModelPtr kmodel(new robot_model::RobotModel(urdf_model_, srdf_model_));
-  robot_state::RobotState ks(kmodel);
+  robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model_, srdf_model_));
+  robot_state::RobotState ks(robot_model);
   ks.setToRandomValues();
   ks.setToDefaultValues();
 
-  robot_state::Transforms tf(kmodel->getModelFrame());
+  robot_state::Transforms tf(robot_model->getModelFrame());
 
   Eigen::Affine3d t1;
   t1.setIdentity();
@@ -105,7 +105,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
   EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
   EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
-  EXPECT_TRUE(tf.isFixedFrame(kmodel->getModelFrame()));
+  EXPECT_TRUE(tf.isFixedFrame(robot_model->getModelFrame()));
 
   Eigen::Affine3d x;
   x.setIdentity();
@@ -114,7 +114,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   EXPECT_TRUE(t2.translation() == x.translation());
   EXPECT_TRUE(t2.rotation() == x.rotation());
 
-  tf.transformPose(ks, kmodel->getModelFrame(), x, x);
+  tf.transformPose(ks, robot_model->getModelFrame(), x, x);
   EXPECT_TRUE(t2.translation() == x.translation());
   EXPECT_TRUE(t2.rotation() == x.rotation());
 

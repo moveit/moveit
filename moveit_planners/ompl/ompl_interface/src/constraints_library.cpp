@@ -229,8 +229,8 @@ ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_m
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count,
 visualization_msgs::MarkerArray &arr) const
 {
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   ompl::RNG rng;
   std_msgs::ColorRGBA color;
@@ -243,13 +243,13 @@ visualization_msgs::MarkerArray &arr) const
 
   for (std::size_t i = 0 ; i < count ; ++i)
   {
-    state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToRobotState(kstate,
+    state_storage_->getStateSpace()->as<ModelBasedStateSpace>()->copyToRobotState(robot_state,
 state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
-    const Eigen::Vector3d &pos = kstate.getLinkState(link_name)->getGlobalLinkTransform().translation();
+    const Eigen::Vector3d &pos = robot_state.getLinkState(link_name)->getGlobalLinkTransform().translation();
 
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
-    mk.header.frame_id = kmodel_->getModelFrame();
+    mk.header.frame_id = robot_model_->getModelFrame();
     mk.ns = "stored_constraint_data";
     mk.id = i;
     mk.type = visualization_msgs::Marker::SPHERE;
@@ -460,7 +460,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
   // construct the constrained states
 
-  robot_state::RobotState kstate(default_state);
+  robot_state::RobotState robot_state(default_state);
   const constraint_samplers::ConstraintSamplerManagerPtr& csmng = pcontext->getConstraintSamplerManager();
   ConstrainedSampler* csmp = nullptr;
   if (csmng)
@@ -501,8 +501,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
 
     ss->sampleUniform(temp.get());
-    pcontext->getOMPLStateSpace()->copyToRobotState(kstate, temp.get());
-    if (kset.decide(kstate).satisfied)
+    pcontext->getOMPLStateSpace()->copyToRobotState(robot_state, temp.get());
+    if (kset.decide(robot_state).satisfied)
     {
       if (sstor->size() < options.samples)
       {
@@ -566,8 +566,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         {
           double this_step = step / (1.0 - (k - 1) * step);
           space->interpolate(int_states[k - 1], sj, this_step, int_states[k]);
-          pcontext->getOMPLStateSpace()->copyToRobotState(kstate, int_states[k]);
-          if (!kset.decide(kstate).satisfied)
+          pcontext->getOMPLStateSpace()->copyToRobotState(robot_state, int_states[k]);
+          if (!kset.decide(robot_state).satisfied)
           {
             ok = false;
             break;

@@ -289,8 +289,8 @@ void RobotStateDisplay::changedRobotStateTopic()
   robot_state_subscriber_.shutdown();
 
   // reset model to default state, we don't want to show previous messages
-  if (static_cast<bool>(kstate_))
-    kstate_->setToDefaultValues();
+  if (static_cast<bool>(robot_state_))
+    robot_state_->setToDefaultValues();
   update_state_ = true;
 
   robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10,
@@ -299,12 +299,12 @@ void RobotStateDisplay::changedRobotStateTopic()
 
 void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr& state_msg)
 {
-  if (!kmodel_)
+  if (!robot_model_)
     return;
-  if (!kstate_)
-    kstate_.reset(new robot_state::RobotState(kmodel_));
+  if (!robot_state_)
+    robot_state_.reset(new robot_state::RobotState(robot_model_));
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion functio?
-  robot_state::robotStateMsgToRobotState(state_msg->state, *kstate_);
+  robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
   setRobotHighlights(state_msg->highlight_links);
   update_state_ = true;
 }
@@ -350,10 +350,10 @@ void RobotStateDisplay::loadRobotModel()
   {
     const srdf::ModelSharedPtr& srdf =
         rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-    kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-    robot_->load(*kmodel_->getURDF());
-    kstate_.reset(new robot_state::RobotState(kmodel_));
-    kstate_->setToDefaultValues();
+    robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+    robot_->load(*robot_model_->getURDF());
+    robot_state_.reset(new robot_state::RobotState(robot_model_));
+    robot_state_->setToDefaultValues();
     bool oldState = root_link_name_property_->blockSignals(true);
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(oldState);
@@ -399,11 +399,11 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
   }
 
   calculateOffsetPosition();
-  if (robot_ && update_state_ && kstate_)
+  if (robot_ && update_state_ && robot_state_)
   {
     update_state_ = false;
-    kstate_->update();
-    robot_->update(kstate_);
+    robot_state_->update();
+    robot_->update(robot_state_);
   }
 }
 

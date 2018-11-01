@@ -51,7 +51,8 @@ namespace ompl_interface
 class PlanningContextManager
 {
 public:
-  PlanningContextManager(robot_model::RobotModelConstPtr kmodel, constraint_samplers::ConstraintSamplerManagerPtr csm);
+  PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
+                         constraint_samplers::ConstraintSamplerManagerPtr csm);
   ~PlanningContextManager();
 
   /** @brief Specify configurations for the planners.
@@ -137,7 +138,7 @@ public:
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
+    return robot_model_;
   }
 
   ModelBasedPlanningContextPtr getLastPlanningContext() const;
@@ -190,7 +191,7 @@ protected:
                                                               const moveit_msgs::MotionPlanRequest& req) const;
 
   /** \brief The kinematic model for which motion plans are computed */
-  robot_model::RobotModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr robot_model_;
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 

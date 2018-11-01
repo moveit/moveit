@@ -46,8 +46,8 @@ namespace collision_detection
 {
 const double EPSILON = 0.001f;
 
-CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel)
-  : CollisionRobot(kmodel)
+CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& robot_model)
+  : CollisionRobot(robot_model)
 {
   // planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
 
@@ -59,11 +59,11 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::Robo
 }
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(
-    const robot_model::RobotModelConstPtr& kmodel,
+    const robot_model::RobotModelConstPtr& robot_model,
     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
     double size_z, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance, double padding, double scale)
-  : CollisionRobot(kmodel, padding, scale)
+  : CollisionRobot(robot_model, padding, scale)
 {
   initialize(link_body_decompositions, Eigen::Vector3d(size_x, size_y, size_z), Eigen::Vector3d(0, 0, 0),
              use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);

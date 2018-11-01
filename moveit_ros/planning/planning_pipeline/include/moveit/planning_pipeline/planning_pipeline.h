@@ -163,7 +163,7 @@ public:
   /** \brief Get the robot model that this pipeline is using */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kmodel_;
+    return robot_model_;
   }
 
 private:
@@ -188,7 +188,7 @@ private:
   std::unique_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   std::vector<std::string> adapter_plugin_names_;
 
-  robot_model::RobotModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr robot_model_;
 
   /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
   bool check_solution_paths_;

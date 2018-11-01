@@ -87,11 +87,11 @@ protected:
     }
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, srdf_file);
 
-    kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
+    robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
+    acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-    crobot_.reset(new DefaultCRobotType(kmodel_));
+    crobot_.reset(new DefaultCRobotType(robot_model_));
     cworld_.reset(new DefaultCWorldType());
   }
 
@@ -106,7 +106,7 @@ protected:
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
 
-  robot_model::RobotModelPtr kmodel_;
+  robot_model::RobotModelPtr robot_model_;
 
   collision_detection::CollisionRobotPtr crobot_;
   collision_detection::CollisionWorldPtr cworld_;
@@ -124,13 +124,13 @@ TEST_F(FclCollisionDetectionTester, InitOK)
 
 TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)
 {
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_FALSE(res.collision);
 }
 
@@ -143,36 +143,36 @@ TEST_F(FclCollisionDetectionTester, LinksInCollision)
   // req.contacts = true;
   // req.max_contacts = 100;
 
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
   offset.translation().x() = .01;
 
-  //  kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-  //  kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
-  kstate.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
-  kstate.updateStateWithLinkAt("base_bellow_link", offset);
-  kstate.update();
+  //  robot_state.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  //  robot_state.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
+  robot_state.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("base_bellow_link", offset);
+  robot_state.update();
 
   acm_->setEntry("base_link", "base_bellow_link", false);
-  crobot_->checkSelfCollision(req, res1, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res1, robot_state, *acm_);
   ASSERT_TRUE(res1.collision);
 
   acm_->setEntry("base_link", "base_bellow_link", true);
-  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res2, robot_state, *acm_);
   ASSERT_FALSE(res2.collision);
 
   //  req.verbose = true;
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-  //  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
-  kstate.updateStateWithLinkAt("l_gripper_palm_link", offset);
-  kstate.update();
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("l_gripper_palm_link", offset);
+  robot_state.update();
 
   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
-  crobot_->checkSelfCollision(req, res3, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res3, robot_state, *acm_);
   ASSERT_TRUE(res3.collision);
 }
 
@@ -182,29 +182,29 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   Eigen::Affine3d offset = Eigen::Affine3d::Identity();
   offset.translation().x() = .01;
 
-  //  kstate.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-  //  kstate.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
-  //  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
+  //  robot_state.getLinkState("base_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  //  robot_state.getLinkState("base_bellow_link")->updateGivenGlobalLinkTransform(offset);
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(Eigen::Affine3d::Identity());
+  //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(offset);
 
-  kstate.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
-  kstate.updateStateWithLinkAt("base_bellow_link", offset);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
-  kstate.updateStateWithLinkAt("l_gripper_palm_link", offset);
-  kstate.update();
+  robot_state.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("base_bellow_link", offset);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("l_gripper_palm_link", offset);
+  robot_state.update();
 
   acm_->setEntry("base_link", "base_bellow_link", false);
   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
 
   collision_detection::CollisionResult res;
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_EQ(res.contacts.size(), 1u);
   EXPECT_EQ(res.contacts.begin()->second.size(), 1u);
@@ -213,7 +213,7 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   req.max_contacts = 2;
   req.max_contacts_per_pair = 1;
   //  req.verbose = true;
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_EQ(res.contacts.size(), 2u);
   EXPECT_EQ(res.contacts.begin()->second.size(), 1u);
@@ -223,8 +223,8 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
 
   req.max_contacts = 10;
   req.max_contacts_per_pair = 2;
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), false));
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_LE(res.contacts.size(), 10u);
   EXPECT_LE(res.contact_count, 10u);
@@ -236,9 +236,9 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
   Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
@@ -246,16 +246,16 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   pos1.translation().x() = 5.0;
   pos2.translation().x() = 5.01;
 
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  //  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", pos1);
-  kstate.updateStateWithLinkAt("l_gripper_palm_link", pos2);
-  kstate.update();
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
+  robot_state.updateStateWithLinkAt("l_gripper_palm_link", pos2);
+  robot_state.update();
 
   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
 
   collision_detection::CollisionResult res;
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_EQ(res.contacts.size(), 1u);
   ASSERT_EQ(res.contacts.begin()->second.size(), 1u);
@@ -268,14 +268,14 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
 
   pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
   pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  //  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", pos1);
-  kstate.updateStateWithLinkAt("l_gripper_palm_link", pos2);
-  kstate.update();
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
+  robot_state.updateStateWithLinkAt("l_gripper_palm_link", pos2);
+  robot_state.update();
 
   collision_detection::CollisionResult res2;
-  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res2, robot_state, *acm_);
   ASSERT_TRUE(res2.collision);
   ASSERT_EQ(res2.contacts.size(), 1u);
   ASSERT_EQ(res2.contacts.begin()->second.size(), 1u);
@@ -288,14 +288,14 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
 
   pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
   pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(M_PI / 4.0, 0.0, M_PI / 4.0, 0.0));
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  //  kstate.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", pos1);
-  kstate.updateStateWithLinkAt("l_gripper_palm_link", pos2);
-  kstate.update();
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
+  robot_state.updateStateWithLinkAt("l_gripper_palm_link", pos2);
+  robot_state.update();
 
   collision_detection::CollisionResult res3;
-  crobot_->checkSelfCollision(req, res2, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res2, robot_state, *acm_);
   ASSERT_FALSE(res3.collision);
 }
 
@@ -304,26 +304,26 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
   pos1.translation().x() = 5.0;
 
-  //  kstate.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
-  kstate.updateStateWithLinkAt("r_gripper_palm_link", pos1);
-  kstate.update();
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
+  robot_state.update();
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_FALSE(res.collision);
 
   shapes::Shape* shape = new shapes::Box(.1, .1, .1);
   cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
 
   res = collision_detection::CollisionResult();
-  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 
   // deletes shape
@@ -335,43 +335,43 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::vector<std::string> touch_links;
-  kstate.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
+  robot_state.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
 
   res = collision_detection::CollisionResult();
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 
   // deletes shape
-  kstate.clearAttachedBody("box");
+  robot_state.clearAttachedBody("box");
 
   touch_links.push_back("r_gripper_palm_link");
   touch_links.push_back("r_gripper_motor_accelerometer_link");
   shapes[0].reset(new shapes::Box(.1, .1, .1));
-  kstate.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
-  kstate.update();
+  robot_state.attachBody("box", shapes, poses, touch_links, "r_gripper_palm_link");
+  robot_state.update();
 
   res = collision_detection::CollisionResult();
-  crobot_->checkSelfCollision(req, res, kstate, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_FALSE(res.collision);
 
   pos1.translation().x() = 5.01;
   shapes::Shape* coll = new shapes::Box(.1, .1, .1);
   cworld_->getWorld()->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);
   res = collision_detection::CollisionResult();
-  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 
   acm_->setEntry("coll", "r_gripper_palm_link", true);
   res = collision_detection::CollisionResult();
-  cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
+  cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 }
 
 TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 {
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
@@ -380,10 +380,10 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
       *(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
 
   ros::WallTime before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   double first_check = (ros::WallTime::now() - before).toSec();
   before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   double second_check = (ros::WallTime::now() - before).toSec();
 
   EXPECT_LT(fabs(first_check - second_check), .05);
@@ -397,13 +397,13 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   poses.push_back(Eigen::Affine3d::Identity());
 
   std::vector<std::string> touch_links;
-  kstate.attachBody("kinect", shapes, poses, touch_links, "r_gripper_palm_link");
+  robot_state.attachBody("kinect", shapes, poses, touch_links, "r_gripper_palm_link");
 
   before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   first_check = (ros::WallTime::now() - before).toSec();
   before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   second_check = (ros::WallTime::now() - before).toSec();
 
   // the first check is going to take a while, as data must be constructed
@@ -412,10 +412,10 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   collision_detection::CollisionRobotFCL other_new_crobot(
       *(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
   before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   first_check = (ros::WallTime::now() - before).toSec();
   before = ros::WallTime::now();
-  new_crobot.checkSelfCollision(req, res, kstate);
+  new_crobot.checkSelfCollision(req, res, robot_state);
   second_check = (ros::WallTime::now() - before).toSec();
 
   EXPECT_LT(fabs(first_check - second_check), .05);
@@ -433,15 +433,15 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   cworld_->getWorld()->addToObject("kinect", shape, pos1);
 
-  robot_state::RobotState kstate(kmodel_);
-  kstate.setToDefaultValues();
-  kstate.update();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+  robot_state.update();
 
   ros::WallTime before = ros::WallTime::now();
-  cworld_->checkRobotCollision(req, res, *crobot_, kstate);
+  cworld_->checkRobotCollision(req, res, *crobot_, robot_state);
   double first_check = (ros::WallTime::now() - before).toSec();
   before = ros::WallTime::now();
-  cworld_->checkRobotCollision(req, res, *crobot_, kstate);
+  cworld_->checkRobotCollision(req, res, *crobot_, robot_state);
   double second_check = (ros::WallTime::now() - before).toSec();
 
   EXPECT_LT(second_check, .05);
@@ -449,35 +449,35 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   collision_detection::CollisionWorld::ObjectConstPtr object = cworld_->getWorld()->getObject("kinect");
   cworld_->getWorld()->removeObject("kinect");
 
-  robot_state::RobotState kstate1(kmodel_);
-  robot_state::RobotState kstate2(kmodel_);
-  kstate1.setToDefaultValues();
-  kstate2.setToDefaultValues();
-  kstate1.update();
-  kstate2.update();
+  robot_state::RobotState robot_state1(robot_model_);
+  robot_state::RobotState robot_state2(robot_model_);
+  robot_state1.setToDefaultValues();
+  robot_state2.setToDefaultValues();
+  robot_state1.update();
+  robot_state2.update();
 
   std::vector<std::string> touch_links;
-  kstate1.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
+  robot_state1.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
 
   EigenSTL::vector_Affine3d other_poses;
   other_poses.push_back(pos2);
 
   // This creates a new set of constant properties for the attached body, which happens to be the same as the one above;
-  kstate2.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
+  robot_state2.attachBody("kinect", object->shapes_, object->shape_poses_, touch_links, "r_gripper_palm_link");
 
   // going to take a while, but that's fine
   res = collision_detection::CollisionResult();
-  crobot_->checkSelfCollision(req, res, kstate1);
+  crobot_->checkSelfCollision(req, res, robot_state1);
 
   EXPECT_TRUE(res.collision);
 
   before = ros::WallTime::now();
-  crobot_->checkSelfCollision(req, res, kstate1, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state1, *acm_);
   first_check = (ros::WallTime::now() - before).toSec();
   before = ros::WallTime::now();
   req.verbose = true;
   res = collision_detection::CollisionResult();
-  crobot_->checkSelfCollision(req, res, kstate2, *acm_);
+  crobot_->checkSelfCollision(req, res, robot_state2, *acm_);
   second_check = (ros::WallTime::now() - before).toSec();
 
   EXPECT_LT(first_check, .05);
@@ -504,9 +504,9 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 
 TEST_F(FclCollisionDetectionTester, MoveMesh)
 {
-  robot_state::RobotState kstate1(kmodel_);
-  kstate1.setToDefaultValues();
-  kstate1.update();
+  robot_state::RobotState robot_state1(robot_model_);
+  robot_state1.setToDefaultValues();
+  robot_state1.update();
 
   Eigen::Affine3d kinect_pose;
   kinect_pose.setIdentity();
@@ -522,15 +522,15 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
     cworld_->getWorld()->moveShapeInObject("kinect", kinect_shape, np);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
-    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+    cworld_->checkCollision(req, res, *crobot_, robot_state1, *acm_);
   }
 }
 
 TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
 {
-  robot_state::RobotState kstate1(kmodel_);
-  kstate1.setToDefaultValues();
-  kstate1.update();
+  robot_state::RobotState robot_state1(robot_model_);
+  robot_state1.setToDefaultValues();
+  robot_state1.update();
 
   collision_detection::CollisionRequest req1;
   collision_detection::CollisionResult res1;
@@ -549,7 +549,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
     cworld_->getWorld()->addToObject("shape", shapes, poses);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
-    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+    cworld_->checkCollision(req, res, *crobot_, robot_state1, *acm_);
     ASSERT_TRUE(res.collision);
   }
 
@@ -559,7 +559,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
   cworld_->getWorld()->addToObject("kinect", kinect_shape, kinect_pose);
   collision_detection::CollisionRequest req2;
   collision_detection::CollisionResult res2;
-  cworld_->checkCollision(req2, res2, *crobot_, kstate1, *acm_);
+  cworld_->checkCollision(req2, res2, *crobot_, robot_state1, *acm_);
   ASSERT_TRUE(res2.collision);
   for (unsigned int i = 0; i < 5; i++)
   {
@@ -571,7 +571,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
     cworld_->getWorld()->addToObject("shape", shapes, poses);
     collision_detection::CollisionRequest req;
     collision_detection::CollisionResult res;
-    cworld_->checkCollision(req, res, *crobot_, kstate1, *acm_);
+    cworld_->checkCollision(req, res, *crobot_, robot_state1, *acm_);
     ASSERT_TRUE(res.collision);
   }
 }

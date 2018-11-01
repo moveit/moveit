@@ -129,7 +129,7 @@ struct CollisionData
   }
 
   /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr& kmodel);
+  void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
 
   /// The collision request passed by the user
   const CollisionRequest* req_;

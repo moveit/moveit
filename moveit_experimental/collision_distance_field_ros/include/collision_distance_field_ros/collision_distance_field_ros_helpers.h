@@ -44,7 +44,7 @@
 namespace collision_detection
 {
 static inline bool loadLinkBodySphereDecompositions(
-    ros::NodeHandle& nh, const planning_models::RobotModelConstPtr& kmodel,
+    ros::NodeHandle& nh, const planning_models::RobotModelConstPtr& robot_model,
     std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
 {
   if (!nh.hasParam("link_spheres"))

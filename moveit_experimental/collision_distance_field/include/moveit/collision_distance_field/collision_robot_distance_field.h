@@ -63,13 +63,13 @@ class CollisionRobotDistanceField : public CollisionRobot
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel);
+  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& robot_model);
 
   CollisionRobotDistanceField(const CollisionRobot& col_robot, const Eigen::Vector3d& size,
                               const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
                               double collision_tolerance, double max_propogation_distance, double padding);
 
-  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel,
+  CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& robot_model,
                               const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
                               double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y,
                               double size_z = DEFAULT_SIZE_Z,

@@ -899,10 +899,10 @@ void cleanCollisionGeometryCache()
 }
 }
 
-void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& kmodel)
+void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& robot_model)
 {
-  if (kmodel->hasJointModelGroup(req_->group_name))
-    active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
+  if (robot_model->hasJointModelGroup(req_->group_name))
+    active_components_only_ = &robot_model->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
   else
     active_components_only_ = nullptr;
 }
