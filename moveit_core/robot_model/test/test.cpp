@@ -89,7 +89,6 @@ TEST(SiblingAssociateLinks, SimpleYRobot)
                   \
                    - d ~ e          */
   moveit::core::RobotModelBuilder builder("one_robot", "base_link");
-  bool is_valid = true;
   builder.addChain("base_link->a", "continuous");
   builder.addChain("a->b->c", "fixed");
   builder.addChain("a->d", "fixed");
