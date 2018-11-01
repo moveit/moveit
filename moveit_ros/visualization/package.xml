@@ -22,7 +22,6 @@
 
   <build_depend>class_loader</build_depend>
   <build_depend>eigen</build_depend>
-  <build_depend>eigen_conversions</build_depend>
   <build_depend>geometric_shapes</build_depend>
   <build_depend>interactive_markers</build_depend>
   <build_depend>libogre-dev</build_depend>
