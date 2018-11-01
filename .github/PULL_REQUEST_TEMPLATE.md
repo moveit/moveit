@@ -8,6 +8,6 @@ Please explain the changes you made, including a reference to the related issue 
 - [ ] Include a screenshot if changing a GUI
 - [ ] Created tests, which fail without this PR [reference](http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/tests.html)
 - [ ] Decide if this should be cherry-picked to other current ROS branches
-- [ ] While waiting for someone to review your request, please consider reviewing [another open pull request](https://github.com/ros-planning/moveit/pulls) to support the maintainers
+- [ ] While waiting for someone to review your request, please consider reviewing [another open pull request](https://github.com/ros-planning/moveit/pulls) to support the maintainers. You can refer to our [ROS code review guide](https://github.com/rosin-project/ros_code_review_guide/blob/master/README.md) for direction
 
 [//]: # "You can expect a response from a maintainer within 7 days. If you haven't heard anything by then, feel free to ping the thread. Thank you!"
