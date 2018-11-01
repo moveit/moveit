@@ -118,7 +118,7 @@ public:
    *  The child scene has its own copy of the world. It maintains a list (in
    *  world_diff_) of changes made to the child world.
    *
-   *  The kmodel_, kstate_, ftf_, and acm_ are not copied.  They are shared
+   *  The robot_model_, robot_state_, ftf_, and acm_ are not copied.  They are shared
    *  with the parent.  So if changes to these are made in the parent they will
    *  be visible in the child.  But if any of these is modified (i.e. if the
    *  get*NonConst functions are called) in the child then a copy is made and
@@ -141,14 +141,14 @@ public:
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     // the kinematic model does not change
-    return kmodel_;
+    return robot_model_;
   }
 
   /** \brief Get the state at which the robot is assumed to be. */
   const robot_state::RobotState& getCurrentState() const
   {
     // if we have an updated state, return it; otherwise, return the parent one
-    return kstate_ ? *kstate_ : parent_->getCurrentState();
+    return robot_state_ ? *robot_state_ : parent_->getCurrentState();
   }
   /** \brief Get the state at which the robot is assumed to be. */
   robot_state::RobotState& getCurrentStateNonConst();
@@ -1000,9 +1000,9 @@ private:
 
   PlanningSceneConstPtr parent_;  // Null unless this is a diff scene
 
-  robot_model::RobotModelConstPtr kmodel_;  // Never null (may point to same model as parent)
+  robot_model::RobotModelConstPtr robot_model_;  // Never null (may point to same model as parent)
 
-  robot_state::RobotStatePtr kstate_;                                       // if NULL use parent's
+  robot_state::RobotStatePtr robot_state_;                                  // if NULL use parent's
   robot_state::AttachedBodyCallback current_state_attached_body_callback_;  // called when changes are made to attached
                                                                             // bodies
 

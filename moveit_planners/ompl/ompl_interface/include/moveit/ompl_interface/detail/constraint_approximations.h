@@ -64,7 +64,7 @@ struct ConstraintApproximation
   std::string factory_;
   std::string serialization_;
   moveit_msgs::Constraints constraint_msg_;
-  planning_models::RobotModelConstPtr kmodel_;
+  planning_models::RobotModelConstPtr robot_model_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
   std::vector<int> space_signature_;
 

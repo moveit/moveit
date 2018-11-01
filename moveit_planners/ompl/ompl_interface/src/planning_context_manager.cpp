@@ -113,7 +113,7 @@ struct PlanningContextManager::CachedContexts
 
 ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr kmodel,
                                                                constraint_samplers::ConstraintSamplerManagerPtr csm)
-  : kmodel_(std::move(kmodel))
+  : robot_model_(std::move(kmodel))
   , constraint_sampler_manager_(std::move(csm))
   , max_goal_samples_(10)
   , max_state_sampling_attempts_(4)
@@ -300,7 +300,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // Create a new planning context
   if (!context)
   {
-    ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
+    ModelBasedStateSpaceSpecification space_spec(robot_model_, config.group);
     ModelBasedPlanningContextSpecification context_spec;
     context_spec.config_ = config.config;
     context_spec.planner_selector_ = getPlannerSelector();
@@ -323,7 +323,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
         const ompl_interface::ModelBasedStateSpaceFactoryPtr& sub_fact = factory_selector(*beg);
         if (sub_fact)
         {
-          ModelBasedStateSpaceSpecification sub_space_spec(kmodel_, *beg);
+          ModelBasedStateSpaceSpecification sub_space_spec(robot_model_, *beg);
           context_spec.subspaces_.push_back(sub_fact->getNewStateSpace(sub_space_spec));
         }
       }
@@ -374,7 +374,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   int prev_priority = -1;
   for (auto it = state_space_factories_.begin(); it != state_space_factories_.end(); ++it)
   {
-    int priority = it->second->canRepresentProblem(group, req, kmodel_);
+    int priority = it->second->canRepresentProblem(group, req, robot_model_);
     if (priority > 0)
       if (best == state_space_factories_.end() || priority > prev_priority)
       {

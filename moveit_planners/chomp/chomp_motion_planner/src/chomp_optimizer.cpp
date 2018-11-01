@@ -55,7 +55,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
                                const std::string& planning_group, const ChompParameters* parameters,
                                const moveit::core::RobotState& start_state)
   : full_trajectory_(trajectory)
-  , kmodel_(planning_scene->getRobotModel())
+  , robot_model_(planning_scene->getRobotModel())
   , planning_group_(planning_group)
   , parameters_(parameters)
   , group_trajectory_(*full_trajectory_, planning_group_, DIFF_RULE_LENGTH)
@@ -281,7 +281,7 @@ void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
   const moveit::core::JointModel* parent_model = NULL;
   bool found_root = false;
 
-  if (model == kmodel_->getRootJoint())
+  if (model == robot_model_->getRootJoint())
     return;
 
   while (!found_root)
@@ -302,7 +302,7 @@ void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
     }
     else
     {
-      if (parent_model == kmodel_->getRootJoint())
+      if (parent_model == robot_model_->getRootJoint())
       {
         found_root = true;
       }
@@ -787,9 +787,9 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
 
     std::string parent_link_name = joint_model->getParentLinkModel()->getName();
     std::string child_link_name = joint_model->getChildLinkModel()->getName();
-    Eigen::Affine3d joint_transform =
-        state_.getGlobalLinkTransform(parent_link_name) *
-        (kmodel_->getLinkModel(child_link_name)->getJointOriginTransform() * (state_.getJointTransform(joint_model)));
+    Eigen::Affine3d joint_transform = state_.getGlobalLinkTransform(parent_link_name) *
+                                      (robot_model_->getLinkModel(child_link_name)->getJointOriginTransform() *
+                                       (state_.getJointTransform(joint_model)));
 
     // joint_transform = inverseWorldTransform * jointTransform;
     Eigen::Vector3d axis;

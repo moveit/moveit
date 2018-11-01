@@ -87,11 +87,11 @@ protected:
     }
     srdf_ok_ = srdf_model_->initFile(*urdf_model_, srdf_file);
 
-    kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
+    robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
+    acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-    crobot_.reset(new DefaultCRobotType(kmodel_));
+    crobot_.reset(new DefaultCRobotType(robot_model_));
     cworld_.reset(new DefaultCWorldType());
   }
 
@@ -106,7 +106,7 @@ protected:
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
 
-  robot_model::RobotModelPtr kmodel_;
+  robot_model::RobotModelPtr robot_model_;
 
   collision_detection::CollisionRobotPtr crobot_;
   collision_detection::CollisionWorldPtr cworld_;
@@ -124,7 +124,7 @@ TEST_F(FclCollisionDetectionTester, InitOK)
 
 TEST_F(FclCollisionDetectionTester, DefaultNotInCollision)
 {
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -143,7 +143,7 @@ TEST_F(FclCollisionDetectionTester, LinksInCollision)
   // req.contacts = true;
   // req.max_contacts = 100;
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -182,7 +182,7 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -223,7 +223,7 @@ TEST_F(FclCollisionDetectionTester, ContactReporting)
 
   req.max_contacts = 10;
   req.max_contacts_per_pair = 2;
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), false));
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_TRUE(res.collision);
   EXPECT_LE(res.contacts.size(), 10u);
@@ -236,7 +236,7 @@ TEST_F(FclCollisionDetectionTester, ContactPositions)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -304,9 +304,9 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  acm_.reset(new collision_detection::AllowedCollisionMatrix(kmodel_->getLinkModelNames(), true));
+  acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -369,7 +369,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
 
 TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 {
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -433,7 +433,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   cworld_->getWorld()->addToObject("kinect", shape, pos1);
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
   kstate.update();
 
@@ -449,8 +449,8 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   collision_detection::CollisionWorld::ObjectConstPtr object = cworld_->getWorld()->getObject("kinect");
   cworld_->getWorld()->removeObject("kinect");
 
-  robot_state::RobotState kstate1(kmodel_);
-  robot_state::RobotState kstate2(kmodel_);
+  robot_state::RobotState kstate1(robot_model_);
+  robot_state::RobotState kstate2(robot_model_);
   kstate1.setToDefaultValues();
   kstate2.setToDefaultValues();
   kstate1.update();
@@ -504,7 +504,7 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
 
 TEST_F(FclCollisionDetectionTester, MoveMesh)
 {
-  robot_state::RobotState kstate1(kmodel_);
+  robot_state::RobotState kstate1(robot_model_);
   kstate1.setToDefaultValues();
   kstate1.update();
 
@@ -528,7 +528,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
 
 TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
 {
-  robot_state::RobotState kstate1(kmodel_);
+  robot_state::RobotState kstate1(robot_model_);
   kstate1.setToDefaultValues();
   kstate1.update();
 

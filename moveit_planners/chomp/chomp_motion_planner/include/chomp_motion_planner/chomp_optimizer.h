@@ -128,7 +128,7 @@ private:
   unsigned int collision_free_iteration_;
 
   ChompTrajectory* full_trajectory_;
-  const moveit::core::RobotModelConstPtr& kmodel_;
+  const moveit::core::RobotModelConstPtr& robot_model_;
   std::string planning_group_;
   const ChompParameters* parameters_;
   ChompTrajectory group_trajectory_;

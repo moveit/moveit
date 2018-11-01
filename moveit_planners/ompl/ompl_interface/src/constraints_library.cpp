@@ -229,7 +229,7 @@ ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_m
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count,
 visualization_msgs::MarkerArray &arr) const
 {
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToDefaultValues();
 
   ompl::RNG rng;
@@ -249,7 +249,7 @@ state_storage_->getState(rng.uniformInt(0, state_storage_->size() - 1)));
 
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
-    mk.header.frame_id = kmodel_->getModelFrame();
+    mk.header.frame_id = robot_model_->getModelFrame();
     mk.ns = "stored_constraint_data";
     mk.id = i;
     mk.type = visualization_msgs::Marker::SPHERE;

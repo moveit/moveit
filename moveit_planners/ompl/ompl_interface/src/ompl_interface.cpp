@@ -44,7 +44,7 @@
 
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
   : nh_(nh)
-  , kmodel_(kmodel)
+  , robot_model_(kmodel)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
   , context_manager_(kmodel, constraint_sampler_manager_)
   , constraints_library_(new ConstraintsLibrary(context_manager_))
@@ -61,7 +61,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
                                              const planning_interface::PlannerConfigurationMap& pconfig,
                                              const ros::NodeHandle& nh)
   : nh_(nh)
-  , kmodel_(kmodel)
+  , robot_model_(kmodel)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
   , context_manager_(kmodel, constraint_sampler_manager_)
   , constraints_library_(new ConstraintsLibrary(context_manager_))
@@ -81,7 +81,7 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
 
   // construct default configurations for planning groups that don't have configs already passed in
-  for (const robot_model::JointModelGroup* group : kmodel_->getJointModelGroups())
+  for (const robot_model::JointModelGroup* group : robot_model_->getJointModelGroups())
   {
     if (pconfig.find(group->getName()) == pconfig.end())
     {
@@ -218,7 +218,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
   planning_interface::PlannerConfigurationMap pconfig;
   pconfig.clear();
 
-  for (const std::string& group_name : kmodel_->getJointModelGroupNames())
+  for (const std::string& group_name : robot_model_->getJointModelGroupNames())
   {
     // the set of planning parameters that can be specific for the group (inherited by configurations of that group)
     static const std::string KNOWN_GROUP_PARAMS[] = { "projection_evaluator", "longest_valid_segment_fraction",

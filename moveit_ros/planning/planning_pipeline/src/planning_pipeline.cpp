@@ -52,7 +52,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
                                                       const ros::NodeHandle& nh,
                                                       const std::string& planner_plugin_param_name,
                                                       const std::string& adapter_plugins_param_name)
-  : nh_(nh), kmodel_(model)
+  : nh_(nh), robot_model_(model)
 {
   std::string planner;
   if (nh_.getParam(planner_plugin_param_name, planner))
@@ -73,7 +73,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
 planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model,
                                                       const ros::NodeHandle& nh, const std::string& planner_plugin_name,
                                                       const std::vector<std::string>& adapter_plugin_names)
-  : nh_(nh), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names), kmodel_(model)
+  : nh_(nh), planner_plugin_name_(planner_plugin_name), adapter_plugin_names_(adapter_plugin_names), robot_model_(model)
 {
   configure();
 }
@@ -114,7 +114,7 @@ void planning_pipeline::PlanningPipeline::configure()
   try
   {
     planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
-    if (!planner_instance_->initialize(kmodel_, nh_.getNamespace()))
+    if (!planner_instance_->initialize(robot_model_, nh_.getNamespace()))
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
@@ -332,7 +332,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (display_computed_motion_plans_ && solved)
   {
     moveit_msgs::DisplayTrajectory disp;
-    disp.model_id = kmodel_->getName();
+    disp.model_id = robot_model_->getName();
     disp.trajectory.resize(1);
     res.trajectory_->getRobotTrajectoryMsg(disp.trajectory[0]);
     robot_state::robotStateToRobotStateMsg(res.trajectory_->getFirstWayPoint(), disp.trajectory_start);

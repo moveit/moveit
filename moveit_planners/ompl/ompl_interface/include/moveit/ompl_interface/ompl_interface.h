@@ -183,7 +183,7 @@ protected:
   ros::NodeHandle nh_;  /// The ROS node handle
 
   /** \brief The kinematic model for which motion plans are computed */
-  robot_model::RobotModelConstPtr kmodel_;
+  robot_model::RobotModelConstPtr robot_model_;
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
