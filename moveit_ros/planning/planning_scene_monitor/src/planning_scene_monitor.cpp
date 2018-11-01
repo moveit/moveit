@@ -634,16 +634,18 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectFailTFCallback
 void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(
     const moveit_msgs::CollisionObjectConstPtr& obj)
 {
-  if (scene_)
+  if (!scene_)
   {
-    updateFrameTransforms();
-    {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      last_update_time_ = ros::Time::now();
-      scene_->processCollisionObjectMsg(*obj);
-    }
-    triggerSceneUpdateEvent(UPDATE_GEOMETRY);
+    return;
   }
+
+  updateFrameTransforms();
+  {
+    boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+    last_update_time_ = ros::Time::now();
+    scene_->processCollisionObjectMsg(*obj);
+  }
+  triggerSceneUpdateEvent(UPDATE_GEOMETRY);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(
@@ -965,7 +967,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
 {
   stopSceneMonitor();
 
-  ROS_INFO_NAMED(LOGNAME, "Starting scene monitor");
+  ROS_INFO_NAMED(LOGNAME, "Starting planning scene monitor");
   // listen for planning scene updates; these messages include transforms, so no need for filters
   if (!scene_topic.empty())
   {
@@ -979,7 +981,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
 {
   if (planning_scene_subscriber_)
   {
-    ROS_INFO_NAMED(LOGNAME, "Stopping scene monitor");
+    ROS_INFO_NAMED(LOGNAME, "Stopping planning scene monitor");
     planning_scene_subscriber_.shutdown();
   }
 }
@@ -1037,9 +1039,10 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(
     const bool load_octomap_monitor)
 {
   stopWorldGeometryMonitor();
-  ROS_INFO_NAMED(LOGNAME, "Starting world geometry monitor");
+  ROS_INFO_NAMED(LOGNAME, "Starting world geometry update monitor for collision objects, attached objects, octomap "
+                          "updates.");
 
-  // listen for world geometry updates using message filters
+  // Listen to the /collision_objects topic to detect requests to add/remove/update collision objects to/from the world
   if (!collision_objects_topic.empty())
   {
     collision_object_subscriber_.reset(
