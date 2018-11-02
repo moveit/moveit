@@ -21,5 +21,5 @@ if(CATKIN_ENABLE_TESTING)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
   catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
-  target_link_libraries(test_fcl_collision_detection  ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+  target_link_libraries(test_fcl_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()

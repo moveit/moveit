@@ -36,46 +36,16 @@
 
 #include <gtest/gtest.h>
 #include <fstream>
-#include <boost/filesystem/path.hpp>
-#include <urdf_parser/urdf_parser.h>
-#include <moveit_resources/config.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-
-// Function declarations
-moveit::core::RobotModelConstPtr loadModel();
+#include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr rmodel = loadModel();
+moveit::core::RobotModelConstPtr rmodel = moveit::core::loadTestingRobotModel("pr2_description");
 robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
-
-// Load pr2.  Take a look at test/ in planning_scene, robot_mode,
-// and robot_state for inspiration.
-moveit::core::RobotModelConstPtr loadModel()
-{
-  moveit::core::RobotModelConstPtr robot_model;
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  srdf::ModelSharedPtr srdf_model;
-  boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-  std::string xml_string;
-  std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-  EXPECT_TRUE(xml_file.is_open());
-  while (xml_file.good())
-  {
-    std::string line;
-    std::getline(xml_file, line);
-    xml_string += (line + "\n");
-  }
-  xml_file.close();
-  urdf_model = urdf::parseURDF(xml_string);
-  srdf_model.reset(new srdf::Model());
-  srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
-  robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
-  return robot_model;
-}
 
 // Initialize one-joint, 3 points exactly the same.
 int initRepeatedPointTrajectory(robot_trajectory::RobotTrajectory& trajectory)

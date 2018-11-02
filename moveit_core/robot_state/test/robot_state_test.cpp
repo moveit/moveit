@@ -36,7 +36,9 @@
 #include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <urdf_parser/urdf_parser.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
@@ -85,31 +87,10 @@ static void expect_near(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y,
 
 TEST(Loading, SimpleRobot)
 {
-  static const std::string MODEL0 = "<?xml version=\"1.0\" ?>"
-                                    "<robot name=\"myrobot\">"
-                                    "  <link name=\"base_link\">"
-                                    "    <collision name=\"base_collision\">"
-                                    "    <origin rpy=\"0 0 0\" xyz=\"0 0 0.165\"/>"
-                                    "    <geometry name=\"base_collision_geom\">"
-                                    "      <box size=\"0.65 0.65 0.23\"/>"
-                                    "    </geometry>"
-                                    "    </collision>"
-                                    "   </link>"
-                                    "</robot>";
-
-  static const std::string SMODEL0 =
-      "<?xml version=\"1.0\" ?>"
-      "<robot name=\"myrobot\">"
-      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
-      "</robot>";
-
-  urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL0);
-  srdf::ModelSharedPtr srdfModel(new srdf::Model());
-  srdfModel->initString(*urdfModel, SMODEL0);
-
-  EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
-
-  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
+  moveit::core::RobotModelBuilder builder("myrobot", "base_link");
+  builder.addVirtualJoint("odom_combined", "base_link", "floating", "base_joint");
+  ASSERT_TRUE(builder.isValid());
+  moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
 
   state.setToDefaultValues();
@@ -134,45 +115,26 @@ TEST(Loading, SimpleRobot)
 
 TEST(LoadingAndFK, SimpleRobot)
 {
-  static const std::string MODEL1 =
-      "<?xml version=\"1.0\" ?>"
-      "<robot name=\"myrobot\">"
-      "<link name=\"base_link\">"
-      "  <inertial>"
-      "    <mass value=\"2.81\"/>"
-      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.099 .0\"/>"
-      "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-      "  </inertial>"
-      "  <collision name=\"my_collision\">"
-      "    <origin rpy=\"0 0 -1\" xyz=\"-0.1 0 0\"/>"
-      "    <geometry>"
-      "      <box size=\"1 2 1\" />"
-      "    </geometry>"
-      "  </collision>"
-      "  <visual>"
-      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-      "    <geometry>"
-      "      <box size=\"1 2 1\" />"
-      "    </geometry>"
-      "  </visual>"
-      "</link>"
-      "</robot>";
+  moveit::core::RobotModelBuilder builder("myrobot", "base_link");
+  geometry_msgs::Pose pose;
+  tf2::toMsg(tf2::Vector3(-0.1, 0, 0), pose.position);
+  tf2::Quaternion q;
+  q.setRPY(0, 0, -1);
+  pose.orientation = tf2::toMsg(q);
+  builder.addCollisionBox("base_link", { 1, 2, 1 }, pose);
+  tf2::toMsg(tf2::Vector3(0, 0, 0), pose.position);
+  q.setRPY(0, 0, 0);
+  pose.orientation = tf2::toMsg(q);
+  builder.addVisualBox("base_link", { 1, 2, 1 }, pose);
+  tf2::toMsg(tf2::Vector3(0, 0.099, 0), pose.position);
+  q.setRPY(0, 0, 0);
+  pose.orientation = tf2::toMsg(q);
+  builder.addInertial("base_link", 2.81, pose, 0.1, -0.2, 0.5, -0.09, 1, 0.101);
+  builder.addVirtualJoint("odom_combined", "base_link", "planar", "base_joint");
+  builder.addGroup({}, { "base_joint" }, "base");
 
-  static const std::string SMODEL1 =
-      "<?xml version=\"1.0\" ?>"
-      "<robot name=\"myrobot\">"
-      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
-      "<group name=\"base\">"
-      "<joint name=\"base_joint\"/>"
-      "</group>"
-      "</robot>";
-
-  urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL1);
-
-  srdf::ModelSharedPtr srdfModel(new srdf::Model());
-  srdfModel->initString(*urdfModel, SMODEL1);
-
-  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
+  ASSERT_TRUE(builder.isValid());
+  moveit::core::RobotModelPtr model = builder.build();
   moveit::core::RobotState state(model);
 
   EXPECT_EQ((unsigned int)3, state.getVariableCount());

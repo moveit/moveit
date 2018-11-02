@@ -21,5 +21,5 @@ if(CATKIN_ENABLE_TESTING)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
   catkin_add_gtest(test_constraints test/test_constraints.cpp)
-  target_link_libraries(test_constraints  ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_constraints moveit_test_utils ${MOVEIT_LIB_NAME})
 endif()

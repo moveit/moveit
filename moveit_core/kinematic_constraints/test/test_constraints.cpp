@@ -39,52 +39,28 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <tf2_eigen/tf2_eigen.h>
-#include <boost/filesystem/path.hpp>
-#include <moveit_resources/config.h>
+#include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-
-    srdf_model.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model = urdf::parseURDF(xml_string);
-    }
-    else
-    {
-      FAIL() << "Failed to find robot.xml";
-    }
-    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
-    robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
-  };
+    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
+  }
 
   void TearDown() override
   {
   }
 
 protected:
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  srdf::ModelSharedPtr srdf_model;
   robot_model::RobotModelPtr robot_model;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::JointConstraint jc(robot_model);
@@ -101,34 +77,34 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
   // tests that the default state is outside the bounds
   // given that the default state is at 0.0
   EXPECT_TRUE(jc.configure(jcm));
-  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
+  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(robot_state);
   EXPECT_FALSE(p1.satisfied);
   EXPECT_NEAR(p1.distance, jcm.position, 1e-6);
 
   // tests that when we set the state within the bounds
   // the constraint is satisfied
   double jval = 0.41;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(robot_state);
   EXPECT_TRUE(p2.satisfied);
   EXPECT_NEAR(p2.distance, 0.01, 1e-6);
 
   // exactly equal to the low bound is fine too
   jval = 0.35;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // and so is less than epsilon when there's no other source of error
   //    jvals[jcm.joint_name] = 0.35-std::numeric_limits<double>::epsilon();
   jval = 0.35 - std::numeric_limits<double>::epsilon();
 
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // but this is too much
   jval = 0.35 - 3 * std::numeric_limits<double>::epsilon();
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // negative value makes configuration fail
   jcm.tolerance_below = -0.05;
@@ -139,23 +115,23 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
   // still satisfied at a slightly different state
   jval = 0.46;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // still satisfied at a slightly different state
   jval = 0.501;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // still satisfied at a slightly different state
   jval = 0.39;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // outside the bounds
   jval = 0.34;
-  ks.setJointPositions(jcm.joint_name, &jval);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setJointPositions(jcm.joint_name, &jval);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // testing equality
   kinematic_constraints::JointConstraint jc2(robot_model);
@@ -198,9 +174,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
-  ks.update();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
+  robot_state.update();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::JointConstraint jc(robot_model);
@@ -217,29 +193,29 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
   std::map<std::string, double> jvals;
 
   // state should have zeros, and work
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // within the above tolerance
   jvals[jcm.joint_name] = .03;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // outside the above tolerance
   jvals[jcm.joint_name] = .05;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // inside the below tolerance
   jvals[jcm.joint_name] = -.01;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // ouside the below tolerance
   jvals[jcm.joint_name] = -.03;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // now testing wrap around from positive to negative
   jcm.position = 3.14;
@@ -247,44 +223,44 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
   // testing that wrap works
   jvals[jcm.joint_name] = 3.17;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(robot_state);
   EXPECT_TRUE(p1.satisfied);
   EXPECT_NEAR(p1.distance, 0.03, 1e-6);
 
   // testing that negative wrap works
   jvals[jcm.joint_name] = -3.14;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(robot_state);
   EXPECT_TRUE(p2.satisfied);
   EXPECT_NEAR(p2.distance, 0.003185, 1e-4);
 
   // over bound testing
   jvals[jcm.joint_name] = 3.19;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // reverses to other direction
   // but still tested using above tolerance
   jvals[jcm.joint_name] = -3.11;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // outside of the bound given the wrap
   jvals[jcm.joint_name] = -3.09;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // lower tolerance testing
   // within bounds
   jvals[jcm.joint_name] = 3.13;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // within outside
   jvals[jcm.joint_name] = 3.11;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // testing the other direction
   jcm.position = -3.14;
@@ -292,23 +268,23 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
   // should be governed by above tolerance
   jvals[jcm.joint_name] = -3.11;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // outside upper bound
   jvals[jcm.joint_name] = -3.09;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // governed by lower bound
   jvals[jcm.joint_name] = 3.13;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // outside lower bound (but would be inside upper)
   jvals[jcm.joint_name] = 3.12;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // testing wrap
   jcm.position = 6.28;
@@ -316,8 +292,8 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
   // should wrap to zero
   jvals[jcm.joint_name] = 0.0;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(jc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(jc.decide(robot_state).satisfied);
 
   // should wrap to close and test to be near
   moveit_msgs::JointConstraint jcm2 = jcm;
@@ -329,8 +305,8 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
 
   kinematic_constraints::JointConstraint jc(robot_model);
   moveit_msgs::JointConstraint jcm;
@@ -349,18 +325,18 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 
   std::map<std::string, double> jvals;
   jvals[jcm.joint_name] = 3.2;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(robot_state);
   EXPECT_TRUE(p1.satisfied);
 
   jvals[jcm.joint_name] = 3.25;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(robot_state);
   EXPECT_FALSE(p2.satisfied);
 
   jvals[jcm.joint_name] = -3.14;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p3 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p3 = jc.decide(robot_state);
   EXPECT_FALSE(p3.satisfied);
 
   // theta is continuous
@@ -368,21 +344,21 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
   EXPECT_TRUE(jc.configure(jcm));
 
   jvals[jcm.joint_name] = -3.14;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p4 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p4 = jc.decide(robot_state);
   EXPECT_TRUE(p4.satisfied);
 
   jvals[jcm.joint_name] = 3.25;
-  ks.setVariablePositions(jvals);
-  kinematic_constraints::ConstraintEvaluationResult p5 = jc.decide(ks);
+  robot_state.setVariablePositions(jvals);
+  kinematic_constraints::ConstraintEvaluationResult p5 = jc.decide(robot_state);
   EXPECT_FALSE(p5.satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
-  ks.update(true);
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
+  robot_state.update(true);
   robot_state::Transforms tf(robot_model->getModelFrame());
   kinematic_constraints::PositionConstraint pc(robot_model);
   moveit_msgs::PositionConstraint pcm;
@@ -423,13 +399,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_FALSE(pc.mobileReferenceFrame());
 
-  EXPECT_TRUE(pc.decide(ks).satisfied);
+  EXPECT_TRUE(pc.decide(robot_state).satisfied);
 
   std::map<std::string, double> jvals;
   jvals["torso_lift_joint"] = 0.4;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_FALSE(pc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_FALSE(pc.decide(robot_state).satisfied);
   EXPECT_TRUE(pc.equal(pc, 1e-12));
 
   // arbitrary offset that puts it back into the pose range
@@ -439,7 +415,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_TRUE(pc.hasLinkOffset());
-  EXPECT_TRUE(pc.decide(ks).satisfied);
+  EXPECT_TRUE(pc.decide(robot_state).satisfied);
 
   pc.clear();
   EXPECT_FALSE(pc.enabled());
@@ -451,15 +427,15 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
   pcm.constraint_region.primitive_poses[0].orientation.w = 0.0;
 
   EXPECT_TRUE(pc.configure(pcm, tf));
-  EXPECT_TRUE(pc.decide(ks).satisfied);
+  EXPECT_TRUE(pc.decide(robot_state).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
   robot_state::Transforms tf(robot_model->getModelFrame());
-  ks.update();
+  robot_state.update();
 
   kinematic_constraints::PositionConstraint pc(robot_model);
   moveit_msgs::PositionConstraint pcm;
@@ -490,7 +466,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_TRUE(pc.mobileReferenceFrame());
 
-  EXPECT_TRUE(pc.decide(ks).satisfied);
+  EXPECT_TRUE(pc.decide(robot_state).satisfied);
 
   pcm.constraint_region.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
   pcm.constraint_region.primitives[0].dimensions.resize(3);
@@ -501,15 +477,15 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
   std::map<std::string, double> jvals;
   jvals["l_shoulder_pan_joint"] = 0.4;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_TRUE(pc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_TRUE(pc.decide(robot_state).satisfied);
   EXPECT_TRUE(pc.equal(pc, 1e-12));
 
   jvals["l_shoulder_pan_joint"] = -0.4;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_FALSE(pc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_FALSE(pc.decide(robot_state).satisfied);
 
   // adding a second constrained region makes this work
   pcm.constraint_region.primitive_poses.resize(2);
@@ -528,13 +504,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
   pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
   pcm.constraint_region.primitives[1].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.1;
   EXPECT_TRUE(pc.configure(pcm, tf));
-  EXPECT_TRUE(pc.decide(ks, false).satisfied);
+  EXPECT_TRUE(pc.decide(robot_state, false).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::PositionConstraint pc(robot_model);
@@ -619,9 +595,9 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
-  ks.update();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
+  robot_state.update();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::OrientationConstraint oc(robot_model);
@@ -648,41 +624,41 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
   EXPECT_TRUE(oc.configure(ocm, tf));
   EXPECT_FALSE(oc.mobileReferenceFrame());
 
-  EXPECT_FALSE(oc.decide(ks).satisfied);
+  EXPECT_FALSE(oc.decide(robot_state).satisfied);
 
   ocm.header.frame_id = ocm.link_name;
   EXPECT_TRUE(oc.configure(ocm, tf));
 
-  EXPECT_TRUE(oc.decide(ks).satisfied);
+  EXPECT_TRUE(oc.decide(robot_state).satisfied);
   EXPECT_TRUE(oc.equal(oc, 1e-12));
   EXPECT_TRUE(oc.mobileReferenceFrame());
 
   ASSERT_TRUE(oc.getLinkModel());
 
-  geometry_msgs::Pose p = tf2::toMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()));
+  geometry_msgs::Pose p = tf2::toMsg(robot_state.getGlobalLinkTransform(oc.getLinkModel()->getName()));
 
   ocm.orientation = p.orientation;
   ocm.header.frame_id = robot_model->getModelFrame();
   EXPECT_TRUE(oc.configure(ocm, tf));
-  EXPECT_TRUE(oc.decide(ks).satisfied);
+  EXPECT_TRUE(oc.decide(robot_state).satisfied);
 
   std::map<std::string, double> jvals;
   jvals["r_wrist_roll_joint"] = .05;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_TRUE(oc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_TRUE(oc.decide(robot_state).satisfied);
 
   jvals["r_wrist_roll_joint"] = .11;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_FALSE(oc.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_FALSE(oc.decide(robot_state).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
-  ks.update();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
+  robot_state.update();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::VisibilityConstraint vc(robot_model);
@@ -708,32 +684,32 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 
   EXPECT_TRUE(vc.configure(vcm, tf));
   // sensor and target are perfectly lined up
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   vcm.max_view_angle = .1;
 
   // true, even with view angle
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // very slight angle, so still ok
   vcm.target_pose.pose.orientation.y = 0.03;
   vcm.target_pose.pose.orientation.w = .9995;
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // a little bit more puts it over
   vcm.target_pose.pose.orientation.y = 0.06;
   vcm.target_pose.pose.orientation.w = .9981;
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_FALSE(vc.decide(ks, true).satisfied);
+  EXPECT_FALSE(vc.decide(robot_state, true).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
-  ks.update();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
+  robot_state.update();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::VisibilityConstraint vc(robot_model);
@@ -759,54 +735,54 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   // this is all fine
   vcm.target_radius = .05;
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // this moves into collision with the cone, and should register false
   std::map<std::string, double> state_values;
   state_values["l_shoulder_lift_joint"] = .5;
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -1.4;
-  ks.setVariablePositions(state_values);
-  ks.update();
-  EXPECT_FALSE(vc.decide(ks, true).satisfied);
+  robot_state.setVariablePositions(state_values);
+  robot_state.update();
+  EXPECT_FALSE(vc.decide(robot_state, true).satisfied);
 
   // this moves far enough away that it's fine
   state_values["r_shoulder_pan_joint"] = .4;
-  ks.setVariablePositions(state_values);
-  ks.update();
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  robot_state.setVariablePositions(state_values);
+  robot_state.update();
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // this is in collision with the arm, but now the cone, and should be fine
   state_values["l_shoulder_lift_joint"] = 0;
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -.6;
-  ks.setVariablePositions(state_values);
-  ks.update();
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  robot_state.setVariablePositions(state_values);
+  robot_state.update();
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // this shouldn't matter
   vcm.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_X;
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
-  ks.setToDefaultValues();
-  ks.update();
+  robot_state.setToDefaultValues();
+  robot_state.update();
   // just hits finger tip
   vcm.target_radius = .01;
   vcm.target_pose.pose.position.z = 0.00;
   vcm.target_pose.pose.position.x = 0.035;
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_TRUE(vc.decide(ks, true).satisfied);
+  EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // larger target means it also hits finger
   vcm.target_radius = .05;
   EXPECT_TRUE(vc.configure(vcm, tf));
-  EXPECT_FALSE(vc.decide(ks, true).satisfied);
+  EXPECT_FALSE(vc.decide(robot_state, true).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::KinematicConstraintSet kcs(robot_model);
@@ -825,14 +801,14 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   EXPECT_TRUE(kcs.add(jcv));
 
   // but it isn't satisfied in the default state
-  EXPECT_FALSE(kcs.decide(ks).satisfied);
+  EXPECT_FALSE(kcs.decide(robot_state).satisfied);
 
   // now it is
   std::map<std::string, double> jvals;
   jvals[jcm.joint_name] = 0.41;
-  ks.setVariablePositions(jvals);
-  ks.update();
-  EXPECT_TRUE(kcs.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  robot_state.update();
+  EXPECT_TRUE(kcs.decide(robot_state).satisfied);
 
   // adding another constraint for a different joint
   EXPECT_FALSE(kcs.empty());
@@ -843,17 +819,17 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   EXPECT_TRUE(kcs.add(jcv));
 
   // now this one isn't satisfied
-  EXPECT_FALSE(kcs.decide(ks).satisfied);
+  EXPECT_FALSE(kcs.decide(robot_state).satisfied);
 
   // now it is
   jvals[jcv.back().joint_name] = 0.41;
-  ks.setVariablePositions(jvals);
-  EXPECT_TRUE(kcs.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_TRUE(kcs.decide(robot_state).satisfied);
 
   // changing one joint outside the bounds makes it unsatisfied
   jvals[jcv.back().joint_name] = 0.51;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(kcs.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(kcs.decide(robot_state).satisfied);
 
   // one invalid constraint makes the add return false
   kcs.clear();
@@ -861,18 +837,18 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   EXPECT_FALSE(kcs.add(jcv));
 
   // but we can still evaluate it succesfully for the remaining constraint
-  EXPECT_TRUE(kcs.decide(ks).satisfied);
+  EXPECT_TRUE(kcs.decide(robot_state).satisfied);
 
   // violating the remaining good constraint changes this
   jvals["head_pan_joint"] = 0.51;
-  ks.setVariablePositions(jvals);
-  EXPECT_FALSE(kcs.decide(ks).satisfied);
+  robot_state.setVariablePositions(jvals);
+  EXPECT_FALSE(kcs.decide(robot_state).satisfied);
 }
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
 {
-  robot_state::RobotState ks(robot_model);
-  ks.setToDefaultValues();
+  robot_state::RobotState robot_state(robot_model);
+  robot_state.setToDefaultValues();
   robot_state::Transforms tf(robot_model->getModelFrame());
 
   kinematic_constraints::KinematicConstraintSet kcs(robot_model);

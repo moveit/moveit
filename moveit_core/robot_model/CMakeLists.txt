@@ -22,7 +22,7 @@ if(CATKIN_ENABLE_TESTING)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
   catkin_add_gtest(test_robot_model test/test.cpp)
-  target_link_libraries(test_robot_model ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_robot_model moveit_test_utils ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME}
