@@ -46,7 +46,7 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
   void SetUp() override
   {
-    kmodel = moveit::core::loadTestingRobotModel("pr2_description");
+    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
   }
 
   void TearDown() override

@@ -42,19 +42,7 @@
 #include <gtest/gtest.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
-class LoadPlanningModelsPr2 : public testing::Test
-{
-protected:
-  virtual void SetUp()
-  {
-  }
-
-  virtual void TearDown()
-  {
-  }
-};
-
-TEST_F(LoadPlanningModelsPr2, InitOK)
+TEST(LoadPlanningModelsPr2, InitOK)
 {
   robot_model::RobotModelPtr robot_model(moveit::core::loadTestingRobotModel("pr2_description"));
   ASSERT_TRUE(robot_model != nullptr);
