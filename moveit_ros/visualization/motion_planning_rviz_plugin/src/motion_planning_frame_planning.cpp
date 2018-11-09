@@ -210,6 +210,11 @@ void MotionPlanningFrame::useGoalStateButtonExec()
   planning_display_->setQueryGoalState(goal);
 }
 
+void MotionPlanningFrame::planningGroupTextChanged(const QString& planning_group)
+{
+  planning_display_->changePlanningGroup(planning_group.toStdString());
+}
+
 void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state, const std::string& v)
 {
   if (v == "<random>")

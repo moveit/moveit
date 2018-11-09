@@ -161,6 +161,7 @@ private Q_SLOTS:
   void pathConstraintsIndexChanged(int index);
   void useStartStateButtonClicked();
   void useGoalStateButtonClicked();
+  void planningGroupTextChanged(const QString& planning_group);
   void onClearOctomapClicked();
 
   // Scene Objects tab
@@ -231,6 +232,8 @@ private:
   void fillStateSelectionOptions();
   void useStartStateButtonExec();
   void useGoalStateButtonExec();
+  void fillPlanningGroupOptions();
+  void setPlanningGroupText();
 
   // Scene objects tab
   void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,

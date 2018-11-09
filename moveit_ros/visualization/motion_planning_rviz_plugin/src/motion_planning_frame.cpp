@@ -75,6 +75,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->stop_button, SIGNAL(clicked()), this, SLOT(stopButtonClicked()));
   connect(ui_->use_start_state_button, SIGNAL(clicked()), this, SLOT(useStartStateButtonClicked()));
   connect(ui_->use_goal_state_button, SIGNAL(clicked()), this, SLOT(useGoalStateButtonClicked()));
+  connect(ui_->planning_group_combo_box, SIGNAL(currentIndexChanged(QString)), this,
+          SLOT(planningGroupTextChanged(QString)));
   connect(ui_->database_connect_button, SIGNAL(clicked()), this, SLOT(databaseConnectButtonClicked()));
   connect(ui_->save_scene_button, SIGNAL(clicked()), this, SLOT(saveSceneButtonClicked()));
   connect(ui_->save_query_button, SIGNAL(clicked()), this, SLOT(saveQueryButtonClicked()));
@@ -248,6 +250,21 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
   }
 }
 
+void MotionPlanningFrame::fillPlanningGroupOptions()
+{
+  const QSignalBlocker planning_group_blocker(ui_->planning_group_combo_box);
+  ui_->planning_group_combo_box->clear();
+
+  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
+  for (const std::string group_name : kmodel->getJointModelGroupNames())
+    ui_->planning_group_combo_box->addItem(QString::fromStdString(group_name));
+}
+
+void MotionPlanningFrame::setPlanningGroupText()
+{
+  ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(planning_display_->getCurrentPlanningGroup()));
+}
+
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
   ui_->start_state_selection->clear();
@@ -294,6 +311,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::setPlanningGroupText, this));
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
