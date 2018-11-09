@@ -409,9 +409,9 @@ void PropagationDistanceField::propagatePositive()
 
       // select the neighborhood list based on the update direction:
       EigenSTL::vector_Vector3i* neighborhood;
-      int D = i;
-      if (D > 1)
-        D = 1;
+      int d = i;
+      if (d > 1)
+        d = 1;
 
       // This will never happen.  update_direction_ is always set before voxel is added to bucket queue.
       if (vptr->update_direction_ < 0 || vptr->update_direction_ > 26)
@@ -421,7 +421,7 @@ void PropagationDistanceField::propagatePositive()
         continue;
       }
 
-      neighborhood = &neighborhoods_[D][vptr->update_direction_];
+      neighborhood = &neighborhoods_[d][vptr->update_direction_];
 
       for (unsigned int n = 0; n < neighborhood->size(); n++)
       {
@@ -467,9 +467,9 @@ void PropagationDistanceField::propagateNegative()
 
       // select the neighborhood list based on the update direction:
       EigenSTL::vector_Vector3i* neighborhood;
-      int D = i;
-      if (D > 1)
-        D = 1;
+      int d = i;
+      if (d > 1)
+        d = 1;
 
       // This will never happen.  negative_update_direction_ is always set before voxel is added to
       // negative_bucket_queue_.
@@ -480,7 +480,7 @@ void PropagationDistanceField::propagateNegative()
         continue;
       }
 
-      neighborhood = &neighborhoods_[D][vptr->negative_update_direction_];
+      neighborhood = &neighborhoods_[d][vptr->negative_update_direction_];
 
       for (unsigned int n = 0; n < neighborhood->size(); n++)
       {

@@ -969,9 +969,9 @@ const Eigen::Affine3d& RobotState::getFrameTransform(const std::string& id) cons
     return getFrameTransform(id.substr(1));
   BOOST_VERIFY(checkLinkTransforms());
 
-  static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
+  static const Eigen::Affine3d IDENTITY_TRANSFORM = Eigen::Affine3d::Identity();
   if (id == robot_model_->getModelFrame())
-    return identity_transform;
+    return IDENTITY_TRANSFORM;
   if (robot_model_->hasLinkModel(id))
   {
     const LinkModel* lm = robot_model_->getLinkModel(id);
@@ -983,14 +983,14 @@ const Eigen::Affine3d& RobotState::getFrameTransform(const std::string& id) cons
     ROS_ERROR_NAMED(LOGNAME, "Transform from frame '%s' to frame '%s' is not known "
                              "('%s' should be a link name or an attached body id).",
                     id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
-    return identity_transform;
+    return IDENTITY_TRANSFORM;
   }
   const EigenSTL::vector_Affine3d& tf = jt->second->getGlobalCollisionBodyTransforms();
   if (tf.empty())
   {
     ROS_ERROR_NAMED(LOGNAME, "Attached body '%s' has no geometry associated to it. No transform to return.",
                     id.c_str());
-    return identity_transform;
+    return IDENTITY_TRANSFORM;
   }
   if (tf.size() > 1)
     ROS_DEBUG_NAMED(LOGNAME, "There are multiple geometries associated to attached body '%s'. "
@@ -1230,41 +1230,41 @@ void RobotState::computeVariableVelocity(const JointModelGroup* jmg, Eigen::Vect
                                          const Eigen::VectorXd& twist, const LinkModel* tip) const
 {
   // Get the Jacobian of the group at the current configuration
-  Eigen::MatrixXd J(6, jmg->getVariableCount());
+  Eigen::MatrixXd j(6, jmg->getVariableCount());
   Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
-  getJacobian(jmg, tip, reference_point, J, false);
+  getJacobian(jmg, tip, reference_point, j, false);
 
   // Rotate the jacobian to the end-effector frame
-  Eigen::Affine3d eMb = getGlobalLinkTransform(tip).inverse();
-  Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
-  eWb.block(0, 0, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
-  eWb.block(3, 3, 3, 3) = eMb.matrix().block(0, 0, 3, 3);
-  J = eWb * J;
+  Eigen::Affine3d e_mb = getGlobalLinkTransform(tip).inverse();
+  Eigen::MatrixXd e_wb = Eigen::ArrayXXd::Zero(6, 6);
+  e_wb.block(0, 0, 3, 3) = e_mb.matrix().block(0, 0, 3, 3);
+  e_wb.block(3, 3, 3, 3) = e_mb.matrix().block(0, 0, 3, 3);
+  j = e_wb * j;
 
   // Do the Jacobian moore-penrose pseudo-inverse
-  Eigen::JacobiSVD<Eigen::MatrixXd> svdOfJ(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  const Eigen::MatrixXd U = svdOfJ.matrixU();
-  const Eigen::MatrixXd V = svdOfJ.matrixV();
-  const Eigen::VectorXd S = svdOfJ.singularValues();
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd_of_j(j, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  const Eigen::MatrixXd& u = svd_of_j.matrixU();
+  const Eigen::MatrixXd& v = svd_of_j.matrixV();
+  const Eigen::VectorXd& s = svd_of_j.singularValues();
 
-  Eigen::VectorXd Sinv = S;
-  static const double pinvtoler = std::numeric_limits<float>::epsilon();
+  Eigen::VectorXd sinv = s;
+  static const double PINVTOLER = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0;
-  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
-    if (fabs(S(i)) > maxsv)
-      maxsv = fabs(S(i));
-  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
+  for (std::size_t i = 0; i < static_cast<std::size_t>(s.rows()); ++i)
+    if (fabs(s(i)) > maxsv)
+      maxsv = fabs(s(i));
+  for (std::size_t i = 0; i < static_cast<std::size_t>(s.rows()); ++i)
   {
     // Those singular values smaller than a percentage of the maximum singular value are removed
-    if (fabs(S(i)) > maxsv * pinvtoler)
-      Sinv(i) = 1.0 / S(i);
+    if (fabs(s(i)) > maxsv * PINVTOLER)
+      sinv(i) = 1.0 / s(i);
     else
-      Sinv(i) = 0.0;
+      sinv(i) = 0.0;
   }
-  Eigen::MatrixXd Jinv = (V * Sinv.asDiagonal() * U.transpose());
+  Eigen::MatrixXd jinv = (v * sinv.asDiagonal() * u.transpose());
 
   // Compute joint velocity
-  qdot = Jinv * twist;
+  qdot = jinv * twist;
 }
 
 bool RobotState::integrateVariableVelocity(const JointModelGroup* jmg, const Eigen::VectorXd& qdot, double dt,
@@ -1390,8 +1390,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
                            const GroupStateValidityCallbackFn& constraint,
                            const kinematics::KinematicsQueryOptions& options)
 {
-  static const std::vector<std::vector<double> > consistency_limits;
-  return setFromIK(jmg, poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);
+  static const std::vector<std::vector<double> > CONSISTENCY_LIMITS;
+  return setFromIK(jmg, poses_in, tips_in, CONSISTENCY_LIMITS, attempts, timeout, constraint, options);
 }
 
 bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
@@ -1966,10 +1966,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   for (std::size_t i = 0; i < waypoints.size(); ++i)
   {
     // Don't test joint space jumps for every waypoint, test them later on the whole trajectory.
-    static const JumpThreshold no_joint_space_jump_test;
+    static const JumpThreshold NO_JOINT_SPACE_JUMP_TEST;
     std::vector<RobotStatePtr> waypoint_traj;
     double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
-                                                       max_step, no_joint_space_jump_test, validCallback, options);
+                                                       max_step, NO_JOINT_SPACE_JUMP_TEST, validCallback, options);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
@@ -2050,8 +2050,8 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
 {
   struct LimitData
   {
-    double limit;
-    bool check;
+    double limit_;
+    bool check_;
   };
   LimitData data[2] = { { revolute_threshold, revolute_threshold > 0.0 },
                         { prismatic_threshold, prismatic_threshold > 0.0 } };
@@ -2076,14 +2076,14 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
                          joint->getName().c_str(), joint->getTypeName().c_str());
           continue;
       }
-      if (!data[type_index].check)
+      if (!data[type_index].check_)
         continue;
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if (distance > data[type_index].limit)
+      if (distance > data[type_index].limit_)
       {
         ROS_DEBUG_NAMED(LOGNAME, "Truncating Cartesian path due to detected jump of %.4f > %.4f in joint %s", distance,
-                        data[type_index].limit, joint->getName().c_str());
+                        data[type_index].limit_, joint->getName().c_str());
         still_valid = false;
         break;
       }

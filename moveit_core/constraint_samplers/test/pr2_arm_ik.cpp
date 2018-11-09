@@ -151,7 +151,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
   return true;
 }
 
-void PR2ArmIK::addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo& info)
+void PR2ArmIK::addJointToChainInfo(const urdf::JointConstSharedPtr& joint, moveit_msgs::KinematicSolverInfo& info)
 {
   moveit_msgs::JointLimits limit;
   info.joint_names.push_back(joint->name);  // Joints are coming in reverse order
@@ -247,12 +247,12 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   double denominator =
       2 * (shoulder_upperarm_offset_ - shoulder_elbow_offset_) * (shoulder_elbow_offset_ - shoulder_wrist_offset_);
 
-  double acosTerm = numerator / denominator;
+  double acos_term = numerator / denominator;
 
-  if (acosTerm > 1.0 || acosTerm < -1.0)
+  if (acos_term > 1.0 || acos_term < -1.0)
     return;
 
-  double acos_angle = acos(acosTerm);
+  double acos_angle = acos(acos_term);
 
   theta4[0] = acos_angle;
   theta4[1] = -acos_angle;
@@ -787,11 +787,5 @@ bool PR2ArmIK::checkJointLimits(const double& joint_value, const int& joint_num)
   else
     jv = angles::normalize_angle(joint_value * angle_multipliers_[joint_num]);
 
-  if (jv < min_angles_[joint_num] || jv > max_angles_[joint_num])
-  {
-    // ROS_INFO("Angle %d = %f out of range:
-    // (%f,%f)\n",joint_num,joint_value,min_angles_[joint_num],max_angles_[joint_num]);
-    return false;
-  }
-  return true;
+  return not(jv < min_angles_[joint_num] || jv > max_angles_[joint_num]);
 }

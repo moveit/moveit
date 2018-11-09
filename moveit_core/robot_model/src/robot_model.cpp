@@ -527,11 +527,11 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
     joint_model_group_names_.push_back(joint_model_groups_[i]->getName());
   }
 
-  buildGroupsInfo_Subgroups(srdf_model);
-  buildGroupsInfo_EndEffectors(srdf_model);
+  buildGroupsInfoSubgroups(srdf_model);
+  buildGroupsInfoEndEffectors(srdf_model);
 }
 
-void RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
+void RobotModel::buildGroupsInfoSubgroups(const srdf::Model& srdf_model)
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -560,7 +560,7 @@ void RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
   }
 }
 
-void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
+void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
 {
   // set the end-effector flags
   const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEffectors();

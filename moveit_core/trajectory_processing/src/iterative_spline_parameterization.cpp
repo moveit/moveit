@@ -60,15 +60,15 @@ static double global_adjustment_factor(const int n, double dt[], const double x[
 // The path of a single joint: positions, velocities, and accelerations
 struct SingleJointTrajectory
 {
-  std::vector<double> positions;  // joint's position at time[x]
-  std::vector<double> velocities;
-  std::vector<double> accelerations;
-  double initial_acceleration;
-  double final_acceleration;
-  double min_velocity;
-  double max_velocity;
-  double min_acceleration;
-  double max_acceleration;
+  std::vector<double> positions_;  // joint's position at time[x]
+  std::vector<double> velocities_;
+  std::vector<double> accelerations_;
+  double initial_acceleration_;
+  double final_acceleration_;
+  double min_velocity_;
+  double max_velocity_;
+  double min_acceleration_;
+  double max_acceleration_;
 };
 
 void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, const int num_points,
@@ -78,9 +78,7 @@ IterativeSplineParameterization::IterativeSplineParameterization(bool add_points
 {
 }
 
-IterativeSplineParameterization::~IterativeSplineParameterization()
-{
-}
+IterativeSplineParameterization::~IterativeSplineParameterization() = default;
 
 bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
@@ -172,73 +170,73 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   for (unsigned int j = 0; j < num_joints; j++)
   {
     // Copy positions
-    t2[j].positions.resize(num_points, 0.0);
+    t2[j].positions_.resize(num_points, 0.0);
     for (unsigned int i = 0; i < num_points; i++)
     {
-      t2[j].positions[i] = trajectory.getWayPointPtr(i)->getVariablePosition(idx[j]);
+      t2[j].positions_[i] = trajectory.getWayPointPtr(i)->getVariablePosition(idx[j]);
     }
 
     // Initialize velocities
-    t2[j].velocities.resize(num_points, 0.0);
+    t2[j].velocities_.resize(num_points, 0.0);
     // Copy initial/final velocities if specified
     if (trajectory.getWayPointPtr(0)->hasVelocities())
-      t2[j].velocities[0] = trajectory.getWayPointPtr(0)->getVariableVelocity(idx[j]);
+      t2[j].velocities_[0] = trajectory.getWayPointPtr(0)->getVariableVelocity(idx[j]);
     if (trajectory.getWayPointPtr(num_points - 1)->hasVelocities())
-      t2[j].velocities[num_points - 1] = trajectory.getWayPointPtr(num_points - 1)->getVariableVelocity(idx[j]);
+      t2[j].velocities_[num_points - 1] = trajectory.getWayPointPtr(num_points - 1)->getVariableVelocity(idx[j]);
 
     // Initialize accelerations
-    t2[j].accelerations.resize(num_points, 0.0);
-    t2[j].initial_acceleration = 0.0;
-    t2[j].final_acceleration = 0.0;
+    t2[j].accelerations_.resize(num_points, 0.0);
+    t2[j].initial_acceleration_ = 0.0;
+    t2[j].final_acceleration_ = 0.0;
     // Copy initial/final accelerations if specified
     if (trajectory.getWayPointPtr(0)->hasAccelerations())
-      t2[j].initial_acceleration = trajectory.getWayPointPtr(0)->getVariableAcceleration(idx[j]);
-    t2[j].accelerations[0] = t2[j].initial_acceleration;
+      t2[j].initial_acceleration_ = trajectory.getWayPointPtr(0)->getVariableAcceleration(idx[j]);
+    t2[j].accelerations_[0] = t2[j].initial_acceleration_;
     if (trajectory.getWayPointPtr(num_points - 1)->hasAccelerations())
-      t2[j].final_acceleration = trajectory.getWayPointPtr(num_points - 1)->getVariableAcceleration(idx[j]);
-    t2[j].accelerations[num_points - 1] = t2[j].final_acceleration;
+      t2[j].final_acceleration_ = trajectory.getWayPointPtr(num_points - 1)->getVariableAcceleration(idx[j]);
+    t2[j].accelerations_[num_points - 1] = t2[j].final_acceleration_;
 
     // Set bounds based on model, or default limits
     const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
-    t2[j].max_velocity = VLIMIT;
-    t2[j].min_velocity = -VLIMIT;
+    t2[j].max_velocity_ = VLIMIT;
+    t2[j].min_velocity_ = -VLIMIT;
     if (bounds.velocity_bounded_)
     {
-      t2[j].max_velocity = bounds.max_velocity_;
-      t2[j].min_velocity = bounds.min_velocity_;
-      if (t2[j].min_velocity == 0.0)
-        t2[j].min_velocity = -t2[j].max_velocity;
+      t2[j].max_velocity_ = bounds.max_velocity_;
+      t2[j].min_velocity_ = bounds.min_velocity_;
+      if (t2[j].min_velocity_ == 0.0)
+        t2[j].min_velocity_ = -t2[j].max_velocity_;
     }
-    t2[j].max_velocity *= velocity_scaling_factor;
-    t2[j].min_velocity *= velocity_scaling_factor;
+    t2[j].max_velocity_ *= velocity_scaling_factor;
+    t2[j].min_velocity_ *= velocity_scaling_factor;
 
-    t2[j].max_acceleration = ALIMIT;
-    t2[j].min_acceleration = -ALIMIT;
+    t2[j].max_acceleration_ = ALIMIT;
+    t2[j].min_acceleration_ = -ALIMIT;
     if (bounds.acceleration_bounded_)
     {
-      t2[j].max_acceleration = bounds.max_acceleration_;
-      t2[j].min_acceleration = bounds.min_acceleration_;
-      if (t2[j].min_acceleration == 0.0)
-        t2[j].min_acceleration = -t2[j].max_acceleration;
+      t2[j].max_acceleration_ = bounds.max_acceleration_;
+      t2[j].min_acceleration_ = bounds.min_acceleration_;
+      if (t2[j].min_acceleration_ == 0.0)
+        t2[j].min_acceleration_ = -t2[j].max_acceleration_;
     }
-    t2[j].max_acceleration *= acceleration_scaling_factor;
-    t2[j].min_acceleration *= acceleration_scaling_factor;
+    t2[j].max_acceleration_ *= acceleration_scaling_factor;
+    t2[j].min_acceleration_ *= acceleration_scaling_factor;
 
     // Error out if bounds don't make sense
-    if (t2[j].max_velocity <= 0.0 || t2[j].max_acceleration <= 0.0)
+    if (t2[j].max_velocity_ <= 0.0 || t2[j].max_acceleration_ <= 0.0)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
                       "Joint %d max velocity %f and max acceleration %f must be greater than zero "
                       "or a solution won't be found.\n",
-                      j, t2[j].max_velocity, t2[j].max_acceleration);
+                      j, t2[j].max_velocity_, t2[j].max_acceleration_);
       return false;
     }
-    if (t2[j].min_velocity >= 0.0 || t2[j].min_acceleration >= 0.0)
+    if (t2[j].min_velocity_ >= 0.0 || t2[j].min_acceleration_ >= 0.0)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
                       "Joint %d min velocity %f and min acceleration %f must be less than zero "
                       "or a solution won't be found.\n",
-                      j, t2[j].min_velocity, t2[j].min_acceleration);
+                      j, t2[j].min_velocity_, t2[j].min_acceleration_);
       return false;
     }
   }
@@ -252,30 +250,30 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
   for (unsigned int j = 0; j < num_joints; j++)
   {
-    if (t2[j].velocities[0] > t2[j].max_velocity || t2[j].velocities[0] < t2[j].min_velocity)
+    if (t2[j].velocities_[0] > t2[j].max_velocity_ || t2[j].velocities_[0] < t2[j].min_velocity_)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization", "Initial velocity %f out of bounds\n",
-                      t2[j].velocities[0]);
+                      t2[j].velocities_[0]);
       return false;
     }
-    else if (t2[j].velocities[num_points - 1] > t2[j].max_velocity ||
-             t2[j].velocities[num_points - 1] < t2[j].min_velocity)
+    else if (t2[j].velocities_[num_points - 1] > t2[j].max_velocity_ ||
+             t2[j].velocities_[num_points - 1] < t2[j].min_velocity_)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization", "Final velocity %f out of bounds\n",
-                      t2[j].velocities[num_points - 1]);
+                      t2[j].velocities_[num_points - 1]);
       return false;
     }
-    else if (t2[j].accelerations[0] > t2[j].max_acceleration || t2[j].accelerations[0] < t2[j].min_acceleration)
+    else if (t2[j].accelerations_[0] > t2[j].max_acceleration_ || t2[j].accelerations_[0] < t2[j].min_acceleration_)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
-                      "Initial acceleration %f out of bounds\n", t2[j].accelerations[0]);
+                      "Initial acceleration %f out of bounds\n", t2[j].accelerations_[0]);
       return false;
     }
-    else if (t2[j].accelerations[num_points - 1] > t2[j].max_acceleration ||
-             t2[j].accelerations[num_points - 1] < t2[j].min_acceleration)
+    else if (t2[j].accelerations_[num_points - 1] > t2[j].max_acceleration_ ||
+             t2[j].accelerations_[num_points - 1] < t2[j].min_acceleration_)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
-                      "Final acceleration %f out of bounds\n", t2[j].accelerations[num_points - 1]);
+                      "Final acceleration %f out of bounds\n", t2[j].accelerations_[num_points - 1]);
       return false;
     }
   }
@@ -285,7 +283,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   // epsilon to prevent divide-by-zero
   std::vector<double> time_diff(trajectory.getWayPointCount() - 1, std::numeric_limits<double>::epsilon());
   for (unsigned int j = 0; j < num_joints; j++)
-    init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity, t2[j].min_velocity);
+    init_times(num_points, &time_diff[0], &t2[j].positions_[0], t2[j].max_velocity_, t2[j].min_velocity_);
 
   // Stretch intervals until close to the bounds
   while (1)
@@ -299,19 +297,20 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       // Move points to satisfy initial/final acceleration
       if (add_points_)
       {
-        adjust_two_positions(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                             &t2[j].accelerations[0], t2[j].initial_acceleration, t2[j].final_acceleration);
+        adjust_two_positions(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0],
+                             &t2[j].accelerations_[0], t2[j].initial_acceleration_, t2[j].final_acceleration_);
       }
 
-      fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0]);
+      fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0],
+                       &t2[j].accelerations_[0]);
       for (unsigned i = 0; i < num_points; i++)
       {
-        const double acc = t2[j].accelerations[i];
+        const double acc = t2[j].accelerations_[i];
         double atfactor = 1.0;
-        if (acc > t2[j].max_acceleration)
-          atfactor = sqrt(acc / t2[j].max_acceleration);
-        if (acc < t2[j].min_acceleration)
-          atfactor = sqrt(acc / t2[j].min_acceleration);
+        if (acc > t2[j].max_acceleration_)
+          atfactor = sqrt(acc / t2[j].max_acceleration_);
+        if (acc < t2[j].min_acceleration_)
+          atfactor = sqrt(acc / t2[j].min_acceleration_);
         if (atfactor > 1.01)  // within 1%
           loop = 1;
         atfactor = (atfactor - 1.0) / 16.0 + 1.0;  // 1/16th
@@ -340,9 +339,9 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   {
     for (unsigned int j = 0; j < num_joints; j++)
     {
-      trajectory.getWayPointPtr(i)->setVariablePosition(idx[j], t2[j].positions[i]);
-      trajectory.getWayPointPtr(i)->setVariableVelocity(idx[j], t2[j].velocities[i]);
-      trajectory.getWayPointPtr(i)->setVariableAcceleration(idx[j], t2[j].accelerations[i]);
+      trajectory.getWayPointPtr(i)->setVariablePosition(idx[j], t2[j].positions_[i]);
+      trajectory.getWayPointPtr(i)->setVariableVelocity(idx[j], t2[j].velocities_[i]);
+      trajectory.getWayPointPtr(i)->setVariableAcceleration(idx[j], t2[j].accelerations_[i]);
     }
   }
 
@@ -580,9 +579,9 @@ void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, co
   for (int j = 0; j < num_joints; j++)
   {
     double tfactor;
-    tfactor = global_adjustment_factor(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                       &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
-                                       t2[j].max_acceleration, t2[j].min_acceleration);
+    tfactor = global_adjustment_factor(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0],
+                                       &t2[j].accelerations_[0], t2[j].max_velocity_, t2[j].min_velocity_,
+                                       t2[j].max_acceleration_, t2[j].min_acceleration_);
     if (tfactor > gtfactor)
       gtfactor = tfactor;
   }
@@ -593,7 +592,7 @@ void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, co
 
   for (int j = 0; j < num_joints; j++)
   {
-    fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0]);
+    fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0], &t2[j].accelerations_[0]);
   }
 }
 }

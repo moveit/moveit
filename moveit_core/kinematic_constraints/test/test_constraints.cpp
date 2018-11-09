@@ -46,7 +46,7 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
   void SetUp() override
   {
-    robot_model = moveit::core::loadTestingRobotModel("pr2_description");
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
   }
 
   void TearDown() override
@@ -54,16 +54,16 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr robot_model;
+  robot_model::RobotModelPtr robot_model_;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::JointConstraint jc(robot_model);
+  kinematic_constraints::JointConstraint jc(robot_model_);
   moveit_msgs::JointConstraint jcm;
   jcm.joint_name = "head_pan_joint";
   jcm.position = 0.4;
@@ -134,7 +134,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
   EXPECT_FALSE(jc.decide(robot_state).satisfied);
 
   // testing equality
-  kinematic_constraints::JointConstraint jc2(robot_model);
+  kinematic_constraints::JointConstraint jc2(robot_model_);
   EXPECT_TRUE(jc2.configure(jcm));
   EXPECT_TRUE(jc2.enabled());
   EXPECT_TRUE(jc.equal(jc2, 1e-12));
@@ -174,12 +174,12 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::JointConstraint jc(robot_model);
+  kinematic_constraints::JointConstraint jc(robot_model_);
   moveit_msgs::JointConstraint jcm;
 
   jcm.joint_name = "l_wrist_roll_joint";
@@ -298,17 +298,17 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
   // should wrap to close and test to be near
   moveit_msgs::JointConstraint jcm2 = jcm;
   jcm2.position = -6.28;
-  kinematic_constraints::JointConstraint jc2(robot_model);
+  kinematic_constraints::JointConstraint jc2(robot_model_);
   EXPECT_TRUE(jc.configure(jcm2));
   jc.equal(jc2, .02);
 }
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
-  kinematic_constraints::JointConstraint jc(robot_model);
+  kinematic_constraints::JointConstraint jc(robot_model_);
   moveit_msgs::JointConstraint jcm;
   jcm.joint_name = "world_joint";
   jcm.position = 3.14;
@@ -356,11 +356,11 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update(true);
-  robot_state::Transforms tf(robot_model->getModelFrame());
-  kinematic_constraints::PositionConstraint pc(robot_model);
+  robot_state::Transforms tf(robot_model_->getModelFrame());
+  kinematic_constraints::PositionConstraint pc(robot_model_);
   moveit_msgs::PositionConstraint pcm;
 
   // empty certainly means false
@@ -395,7 +395,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
   // intentionally leaving header frame blank to test behavior
   EXPECT_FALSE(pc.configure(pcm, tf));
 
-  pcm.header.frame_id = robot_model->getModelFrame();
+  pcm.header.frame_id = robot_model_->getModelFrame();
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_FALSE(pc.mobileReferenceFrame());
 
@@ -432,12 +432,12 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
   robot_state.update();
 
-  kinematic_constraints::PositionConstraint pc(robot_model);
+  kinematic_constraints::PositionConstraint pc(robot_model_);
   moveit_msgs::PositionConstraint pcm;
 
   pcm.link_name = "l_wrist_roll_link";
@@ -509,12 +509,12 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
 TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::PositionConstraint pc(robot_model);
-  kinematic_constraints::PositionConstraint pc2(robot_model);
+  kinematic_constraints::PositionConstraint pc(robot_model_);
+  kinematic_constraints::PositionConstraint pc2(robot_model_);
   moveit_msgs::PositionConstraint pcm;
 
   pcm.link_name = "l_wrist_roll_link";
@@ -595,12 +595,12 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsEquality)
 
 TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::OrientationConstraint oc(robot_model);
+  kinematic_constraints::OrientationConstraint oc(robot_model_);
 
   moveit_msgs::OrientationConstraint ocm;
 
@@ -611,7 +611,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
   // all we currently have to specify is the link name to get a valid constraint
   EXPECT_TRUE(oc.configure(ocm, tf));
 
-  ocm.header.frame_id = robot_model->getModelFrame();
+  ocm.header.frame_id = robot_model_->getModelFrame();
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
   ocm.orientation.z = 0.0;
@@ -638,7 +638,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
   geometry_msgs::Pose p = tf2::toMsg(robot_state.getGlobalLinkTransform(oc.getLinkModel()->getName()));
 
   ocm.orientation = p.orientation;
-  ocm.header.frame_id = robot_model->getModelFrame();
+  ocm.header.frame_id = robot_model_->getModelFrame();
   EXPECT_TRUE(oc.configure(ocm, tf));
   EXPECT_TRUE(oc.decide(robot_state).satisfied);
 
@@ -656,12 +656,12 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::VisibilityConstraint vc(robot_model);
+  kinematic_constraints::VisibilityConstraint vc(robot_model_);
   moveit_msgs::VisibilityConstraint vcm;
 
   EXPECT_FALSE(vc.configure(vcm, tf));
@@ -707,12 +707,12 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 
 TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::VisibilityConstraint vc(robot_model);
+  kinematic_constraints::VisibilityConstraint vc(robot_model_);
   moveit_msgs::VisibilityConstraint vcm;
 
   vcm.sensor_pose.header.frame_id = "narrow_stereo_optical_frame";
@@ -781,11 +781,11 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::KinematicConstraintSet kcs(robot_model);
+  kinematic_constraints::KinematicConstraintSet kcs(robot_model_);
   EXPECT_TRUE(kcs.empty());
 
   moveit_msgs::JointConstraint jcm;
@@ -847,12 +847,12 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 
 TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
 {
-  robot_state::RobotState robot_state(robot_model);
+  robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
-  robot_state::Transforms tf(robot_model->getModelFrame());
+  robot_state::Transforms tf(robot_model_->getModelFrame());
 
-  kinematic_constraints::KinematicConstraintSet kcs(robot_model);
-  kinematic_constraints::KinematicConstraintSet kcs2(robot_model);
+  kinematic_constraints::KinematicConstraintSet kcs(robot_model_);
+  kinematic_constraints::KinematicConstraintSet kcs2(robot_model_);
 
   moveit_msgs::JointConstraint jcm;
   jcm.joint_name = "head_pan_joint";
@@ -881,7 +881,7 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
   pcm.constraint_region.primitive_poses[0].orientation.w = 1.0;
   pcm.weight = 1.0;
 
-  pcm.header.frame_id = robot_model->getModelFrame();
+  pcm.header.frame_id = robot_model_->getModelFrame();
 
   // this is a valid constraint
   std::vector<moveit_msgs::JointConstraint> jcv;

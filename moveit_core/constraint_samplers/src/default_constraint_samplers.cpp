@@ -456,9 +456,9 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
   else
   {
     // do FK for rand state
-    robot_state::RobotState tempState(ks);
-    tempState.setToRandomPositions(jmg_);
-    pos = tempState.getGlobalLinkTransform(sampling_pose_.orientation_constraint_->getLinkModel()).translation();
+    robot_state::RobotState temp_state(ks);
+    temp_state.setToRandomPositions(jmg_);
+    pos = temp_state.getGlobalLinkTransform(sampling_pose_.orientation_constraint_->getLinkModel()).translation();
   }
 
   if (sampling_pose_.orientation_constraint_)

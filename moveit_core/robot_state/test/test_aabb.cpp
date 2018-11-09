@@ -289,7 +289,6 @@ TEST_F(TestAABB, TestSimple)
 
   ASSERT_TRUE(builder.isValid());
   robot_state::RobotState simple_state = loadModel(builder.build());
-
   std::vector<double> simple_aabb;
   simple_state.computeAABB(simple_aabb);
 

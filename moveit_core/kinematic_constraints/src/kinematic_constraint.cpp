@@ -84,7 +84,7 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
     joint_model_ = robot_model_->getJointModel(joint_variable_name_);
   else
   {
-    std::size_t pos = jc.joint_name.find_last_of("/");
+    std::size_t pos = jc.joint_name.find_last_of('/');
     if (pos != std::string::npos)
     {
       joint_model_ = robot_model_->getJointModel(jc.joint_name.substr(0, pos));
@@ -785,13 +785,13 @@ shapes::Mesh* VisibilityConstraint::getVisibilityCone(const robot_state::RobotSt
 
   // transform the points on the disc to the desired target frame
   const EigenSTL::vector_Vector3d* points = &points_;
-  std::unique_ptr<EigenSTL::vector_Vector3d> tempPoints;
+  std::unique_ptr<EigenSTL::vector_Vector3d> temp_points;
   if (mobile_target_frame_)
   {
-    tempPoints.reset(new EigenSTL::vector_Vector3d(points_.size()));
+    temp_points.reset(new EigenSTL::vector_Vector3d(points_.size()));
     for (std::size_t i = 0; i < points_.size(); ++i)
-      tempPoints->at(i) = tp * points_[i];
-    points = tempPoints.get();
+      temp_points->at(i) = tp * points_[i];
+    points = temp_points.get();
   }
 
   // allocate memory for a mesh to represent the visibility cone
