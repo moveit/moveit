@@ -137,10 +137,12 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
 {
-  if (move_group_ && current_plan_)
+  // ensures the MoveGroupInterface is not destroyed while executing
+  moveit::planning_interface::MoveGroupInterfacePtr mgi(move_group_);
+  if (mgi && current_plan_)
   {
     ui_->stop_button->setEnabled(true);  // enable stopping
-    bool success = move_group_->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = mgi->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
 }
