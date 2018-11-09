@@ -24,3 +24,12 @@
     local-name: srdfdom
     uri: https://github.com/ros-planning/srdfdom.git
     version: melodic-devel
+- git:
+    local-name: moveit_tutorials
+    uri: https://github.com/ros-planning/moveit_tutorials.git
+    version: melodic-devel
+# TODO: remove the Panda dependency once released as Debian
+- git:
+    local-name: panda_moveit_config
+    uri: https://github.com/ros-planning/panda_moveit_config.git
+    version: kinetic-devel
