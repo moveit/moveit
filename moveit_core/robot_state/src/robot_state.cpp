@@ -1172,7 +1172,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
       else if (pjm->getType() == robot_model::JointModel::PRISMATIC)
       {
         joint_transform = reference_transform * getGlobalLinkTransform(link);
-        joint_axis = joint_transform * static_cast<const robot_model::PrismaticJointModel*>(pjm)->getAxis();
+        joint_axis = joint_transform.rotation() * static_cast<const robot_model::PrismaticJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) = jacobian.block<3, 1>(0, joint_index) + joint_axis;
       }
       else if (pjm->getType() == robot_model::JointModel::PLANAR)
