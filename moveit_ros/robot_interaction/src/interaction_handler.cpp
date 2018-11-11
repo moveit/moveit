@@ -60,14 +60,12 @@ InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interact
                                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(initial_robot_state)
   , name_(fixName(name))
-  , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
+  , planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
   , tf_buffer_(tf_buffer)
-  , robot_interaction_(NULL)
   , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
   , display_meshes_(true)
   , display_controls_(true)
 {
-  setRobotInteraction(robot_interaction.get());
 }
 
 InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
@@ -76,37 +74,7 @@ InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interact
   , name_(fixName(name))
   , planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
   , tf_buffer_(tf_buffer)
-  , robot_interaction_(NULL)
   , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
-  , display_meshes_(true)
-  , display_controls_(true)
-{
-  setRobotInteraction(robot_interaction.get());
-}
-
-// DEPRECATED
-InteractionHandler::InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
-                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
-  : LockedRobotState(initial_robot_state)
-  , name_(fixName(name))
-  , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
-  , tf_buffer_(tf_buffer)
-  , robot_interaction_(NULL)
-  , kinematic_options_map_(new KinematicOptionsMap)
-  , display_meshes_(true)
-  , display_controls_(true)
-{
-}
-
-// DEPRECATED
-InteractionHandler::InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& robot_model,
-                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
-  : LockedRobotState(robot_model)
-  , name_(fixName(name))
-  , planning_frame_(robot_model->getModelFrame())
-  , tf_buffer_(tf_buffer)
-  , robot_interaction_(NULL)
-  , kinematic_options_map_(new KinematicOptionsMap)
   , display_meshes_(true)
   , display_controls_(true)
 {
@@ -429,106 +397,6 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
     }
   }
   return true;
-}
-
-// This syncs the InteractionHandler's KinematicOptionsMap with the
-// RobotInteraction's.  After this both will share the same
-// KinematicOptionsMap.
-//
-// With the constructors that take a RobotInteraction parameter this function
-// is not needed (except as a sanity check that the RobotInteraction and
-// InteractionHandler are matched).  This function is necessary because when
-// the old constructors are used the InteractionHandler may not know what
-// RobotInteraction it is associated with until after some options have been
-// set on the InteractionHandler.
-void InteractionHandler::setRobotInteraction(RobotInteraction* robot_interaction)
-{
-  boost::mutex::scoped_lock lock(state_lock_);
-
-  // Verivy that this InteractionHandler is only used with one
-  // RobotInteraction.
-  // This is the only use for robot_interaction_.
-  if (robot_interaction_)
-  {
-    if (robot_interaction_ != robot_interaction)
-    {
-      ROS_ERROR("setKinematicOptions() called from 2 different RobotInteraction instances.");
-    }
-    return;
-  }
-
-  robot_interaction_ = robot_interaction;
-
-  KinematicOptionsMapPtr shared_kinematic_options_map = robot_interaction->getKinematicOptionsMap();
-
-  // merge old options into shared options
-  // This is necessary because some legacy code sets values using deprecated
-  // InteractionHandler methods before a RobotInteraction is associated with
-  // this InteractionHandler.
-  //
-  // This is a nop if a constructor with a robot_interaction parameter is used.
-  shared_kinematic_options_map->merge(*kinematic_options_map_);
-
-  // from now on the InteractionHandler shares the same KinematicOptionsMap
-  // with RobotInteraction.
-  // The old *kinematic_options_map_ is automatically deleted by std::shared_ptr.
-  //
-  // This is a nop if a constructor with a robot_interaction parameter is used.
-  kinematic_options_map_ = shared_kinematic_options_map;
-}
-
-// ============= DEPRECATED FUNCTIONS =====================
-
-void InteractionHandler::setIKTimeout(double timeout)
-{
-  KinematicOptions delta;
-  delta.timeout_seconds_ = timeout;
-
-  boost::mutex::scoped_lock lock(state_lock_);
-  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::TIMEOUT);
-}
-
-void InteractionHandler::setIKAttempts(unsigned int attempts)
-{
-  KinematicOptions delta;
-  delta.max_attempts_ = attempts;
-
-  boost::mutex::scoped_lock lock(state_lock_);
-  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::MAX_ATTEMPTS);
-}
-
-void InteractionHandler::setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt)
-{
-  KinematicOptions delta;
-  delta.options_ = opt;
-
-  boost::mutex::scoped_lock lock(state_lock_);
-  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::ALL_QUERY_OPTIONS);
-}
-
-void InteractionHandler::setKinematicsQueryOptionsForGroup(const std::string& group_name,
-                                                           const kinematics::KinematicsQueryOptions& opt)
-{
-  KinematicOptions delta;
-  delta.options_ = opt;
-
-  boost::mutex::scoped_lock lock(state_lock_);
-  kinematic_options_map_->setOptions(group_name, delta, KinematicOptions::ALL_QUERY_OPTIONS);
-}
-
-void InteractionHandler::setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback)
-{
-  KinematicOptions delta;
-  delta.state_validity_callback_ = callback;
-
-  boost::mutex::scoped_lock lock(state_lock_);
-  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::STATE_VALIDITY_CALLBACK);
-}
-
-kinematics::KinematicsQueryOptions InteractionHandler::getKinematicsQueryOptions() const
-{
-  boost::mutex::scoped_lock lock(state_lock_);
-  return kinematic_options_map_->getOptions(KinematicOptionsMap::DEFAULT).options_;
 }
 
 void InteractionHandler::setUpdateCallback(const InteractionHandlerCallbackFn& callback)

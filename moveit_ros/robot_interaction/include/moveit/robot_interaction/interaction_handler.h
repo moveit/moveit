@@ -218,11 +218,6 @@ public:
    * This makes the markers appear as if the state is no longer invalid. */
   void clearError(void);
 
-  /** \brief This should only be called by RobotInteraction.
-   * Associates this InteractionHandler to a RobotInteraction.
-   */
-  void setRobotInteraction(RobotInteraction* robot_interaction);
-
 protected:
   bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback,
                              const geometry_msgs::Pose& offset, geometry_msgs::PoseStamped& tpose);
@@ -277,15 +272,6 @@ private:
   // PROTECTED BY pose_map_lock_
   std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
 
-  // The RobotInteraction we are associated with.
-  // This is never safe to use because the RobotInteraction could be deleted at
-  // any time.
-  // Therefore it is stored as a void* to discourage its use.
-  // This is only used inside setKinematicOptions() with the state_lock_ held.
-  // That function should only be called from RobotInteraction methods.
-  // PROTECTED BY state_lock_
-  const void* robot_interaction_;
-
   boost::mutex pose_map_lock_;
   boost::mutex offset_map_lock_;
 
@@ -323,18 +309,6 @@ private:
 
   // remove '_' characters from name
   static std::string fixName(std::string name);
-
-public:
-  // DEPRECATED FUNCTIONS.
-  // DO NOT USE THESE.  Instead access the KinematicOptions by calling
-  // RobotInteraction::getKinematicOptionsMap()
-  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback);
-  void setIKTimeout(double timeout);
-  void setIKAttempts(unsigned int attempts);
-  kinematics::KinematicsQueryOptions getKinematicsQueryOptions() const;
-  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt);
-  void setKinematicsQueryOptionsForGroup(const std::string& group_name,
-                                         const kinematics::KinematicsQueryOptions& options);
 };
 }
 

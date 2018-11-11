@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/robot_interaction/kinematic_options_map.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <rviz/visualization_manager.h>
@@ -948,17 +949,13 @@ void MotionPlanningDisplay::setQueryGoalState(const robot_state::RobotState& goa
 
 void MotionPlanningDisplay::useApproximateIK(bool flag)
 {
-  if (query_start_state_)
+  if (robot_interaction_)
   {
-    kinematics::KinematicsQueryOptions o = query_start_state_->getKinematicsQueryOptions();
-    o.return_approximate_solution = flag;
-    query_start_state_->setKinematicsQueryOptions(o);
-  }
-  if (query_goal_state_)
-  {
-    kinematics::KinematicsQueryOptions o = query_goal_state_->getKinematicsQueryOptions();
-    o.return_approximate_solution = flag;
-    query_goal_state_->setKinematicsQueryOptions(o);
+    robot_interaction::KinematicOptions o;
+    o.options_.return_approximate_solution = flag;
+    robot_interaction_->getKinematicOptionsMap()->setOptions
+        (robot_interaction::KinematicOptionsMap::DEFAULT, o,
+         robot_interaction::KinematicOptions::RETURN_APPROXIMATE_SOLUTION);
   }
 }
 
@@ -1128,22 +1125,23 @@ void MotionPlanningDisplay::onRobotModelLoaded()
 
   robot_interaction_.reset(
       new robot_interaction::RobotInteraction(getRobotModel(), "rviz_moveit_motion_planning_display"));
+  robot_interaction::KinematicOptions o;
+  o.state_validity_callback_ = boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2, _3);
+  robot_interaction_->getKinematicOptionsMap()->setOptions
+      (robot_interaction::KinematicOptionsMap::ALL, o, robot_interaction::KinematicOptions::STATE_VALIDITY_CALLBACK);
+
   int_marker_display_->subProp("Update Topic")
       ->setValue(QString::fromStdString(robot_interaction_->getServerTopic() + "/update"));
   query_robot_start_->load(*getRobotModel()->getURDF());
   query_robot_goal_->load(*getRobotModel()->getURDF());
 
   robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
-  query_start_state_.reset(new robot_interaction::InteractionHandler(
-      "start", *ks, planning_scene_monitor_->getTFClient()));
-  query_goal_state_.reset(new robot_interaction::InteractionHandler(
-      "goal", *ks, planning_scene_monitor_->getTFClient()));
+  query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start",
+      *ks, planning_scene_monitor_->getTFClient()));
+  query_goal_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "goal",
+      *ks, planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
-  query_start_state_->setGroupStateValidityCallback(
-      boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2, _3));
-  query_goal_state_->setGroupStateValidityCallback(
-      boost::bind(&MotionPlanningDisplay::isIKSolutionCollisionFree, this, _1, _2, _3));
 
   // Interactive marker menus
   populateMenuHandler(menu_handler_start_);

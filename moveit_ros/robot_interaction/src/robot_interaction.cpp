@@ -452,7 +452,6 @@ static inline std::string getMarkerName(const InteractionHandlerPtr& handler,
 void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handler,
                                              const double marker_scale)
 {
-  handler->setRobotInteraction(this);
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
   ros::NodeHandle nh;
@@ -624,7 +623,6 @@ void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr& handler,
 
 void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr& handler)
 {
-  handler->setRobotInteraction(this);
   std::string root_link;
   std::map<std::string, geometry_msgs::Pose> pose_updates;
   {
