@@ -1024,16 +1024,15 @@ void MotionPlanningDisplay::changedPlanningGroup()
   if (!getRobotModel() || !robot_interaction_)
     return;
 
-  if (!planning_group_property_->getStdString().empty())
-    if (!getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
-    {
-      planning_group_property_->setStdString("");
-      return;
-    }
+  if (!planning_group_property_->getStdString().empty() &&
+      !getRobotModel()->hasJointModelGroup(planning_group_property_->getStdString()))
+  {
+    planning_group_property_->setStdString("");
+    return;
+  }
   modified_groups_.insert(planning_group_property_->getStdString());
 
-  if (robot_interaction_)
-    robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
+  robot_interaction_->decideActiveComponents(planning_group_property_->getStdString());
 
   updateQueryStartState();
   updateQueryGoalState();
