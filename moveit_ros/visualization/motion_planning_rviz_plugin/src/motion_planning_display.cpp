@@ -276,18 +276,10 @@ void MotionPlanningDisplay::toggleSelectPlanningGroupSubscription(bool enable)
 
 void MotionPlanningDisplay::selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg)
 {
-  if (!getRobotModel() || !robot_interaction_)
-    return;
-  if (getRobotModel()->hasJointModelGroup(msg->data))
-  {
-    planning_group_property_->setStdString(msg->data);
-    changedPlanningGroup();
-  }
-  else
-  {
-    ROS_ERROR("Group [%s] not found in the robot model.", msg->data.c_str());
-  }
+  // synchronize ROS callback with main loop
+  addMainLoopJob(boost::bind(&MotionPlanningDisplay::changePlanningGroup, this, msg->data));
 }
+
 void MotionPlanningDisplay::reset()
 {
   text_to_display_->setVisible(false);
