@@ -370,7 +370,7 @@ void RobotInteraction::clearInteractiveMarkersUnsafe()
   int_marker_server_->clear();
 }
 
-void RobotInteraction::addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handler,
                                              const EndEffectorInteraction& eef,
                                              visualization_msgs::InteractiveMarker& im, bool position, bool orientation)
 {
@@ -379,7 +379,7 @@ void RobotInteraction::addEndEffectorMarkers(const ::robot_interaction::Interact
   addEndEffectorMarkers(handler, eef, pose, im, position, orientation);
 }
 
-void RobotInteraction::addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handler,
                                              const EndEffectorInteraction& eef, const geometry_msgs::Pose& im_to_eef,
                                              visualization_msgs::InteractiveMarker& im, bool position, bool orientation)
 {
@@ -431,25 +431,25 @@ void RobotInteraction::addEndEffectorMarkers(const ::robot_interaction::Interact
   im.controls.push_back(m_control);
 }
 
-static inline std::string getMarkerName(const ::robot_interaction::InteractionHandlerPtr& handler,
+static inline std::string getMarkerName(const InteractionHandlerPtr& handler,
                                         const EndEffectorInteraction& eef)
 {
   return "EE:" + handler->getName() + "_" + eef.parent_link;
 }
 
-static inline std::string getMarkerName(const ::robot_interaction::InteractionHandlerPtr& handler,
+static inline std::string getMarkerName(const InteractionHandlerPtr& handler,
                                         const JointInteraction& vj)
 {
   return "JJ:" + handler->getName() + "_" + vj.connecting_link;
 }
 
-static inline std::string getMarkerName(const ::robot_interaction::InteractionHandlerPtr& handler,
+static inline std::string getMarkerName(const InteractionHandlerPtr& handler,
                                         const GenericInteraction& g)
 {
   return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
 }
 
-void RobotInteraction::addInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handler,
                                              const double marker_scale)
 {
   handler->setRobotInteraction(this);
@@ -593,7 +593,7 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
   }
 }
 
-void RobotInteraction::computeMarkerPose(const ::robot_interaction::InteractionHandlerPtr& handler,
+void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr& handler,
                                          const EndEffectorInteraction& eef, const robot_state::RobotState& robot_state,
                                          geometry_msgs::Pose& pose, geometry_msgs::Pose& control_to_eef_tf) const
 {
@@ -622,7 +622,7 @@ void RobotInteraction::computeMarkerPose(const ::robot_interaction::InteractionH
   tf2::toMsg(tf_root_to_control, pose);
 }
 
-void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr& handler)
+void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr& handler)
 {
   handler->setRobotInteraction(this);
   std::string root_link;
@@ -669,7 +669,7 @@ void RobotInteraction::publishInteractiveMarkers()
   int_marker_server_->applyChanges();
 }
 
-bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHandlerPtr& handler)
+bool RobotInteraction::showingMarkers(const InteractionHandlerPtr& handler)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
@@ -776,7 +776,7 @@ void RobotInteraction::processingThread()
       }
       std::string marker_class = feedback->marker_name.substr(0, 2);
       std::string handler_name = feedback->marker_name.substr(3, u - 3);  // skip the ":"
-      std::map<std::string, ::robot_interaction::InteractionHandlerPtr>::const_iterator jt =
+      std::map<std::string, InteractionHandlerPtr>::const_iterator jt =
           handlers_.find(handler_name);
       if (jt == handlers_.end())
       {
@@ -791,7 +791,7 @@ void RobotInteraction::processingThread()
         {
           // make a copy of the data, so we do not lose it while we are unlocked
           EndEffectorInteraction eef = active_eef_[it->second];
-          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          InteractionHandlerPtr ih = jt->second;
           marker_access_lock_.unlock();
           try
           {
@@ -807,7 +807,7 @@ void RobotInteraction::processingThread()
         {
           // make a copy of the data, so we do not lose it while we are unlocked
           JointInteraction vj = active_vj_[it->second];
-          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          InteractionHandlerPtr ih = jt->second;
           marker_access_lock_.unlock();
           try
           {
@@ -821,7 +821,7 @@ void RobotInteraction::processingThread()
         }
         else if (marker_class == "GG")
         {
-          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          InteractionHandlerPtr ih = jt->second;
           GenericInteraction g = active_generic_[it->second];
           marker_access_lock_.unlock();
           try

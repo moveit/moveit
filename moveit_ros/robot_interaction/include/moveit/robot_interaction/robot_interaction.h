@@ -74,14 +74,6 @@ MOVEIT_CLASS_FORWARD(RobotInteraction);
 class RobotInteraction
 {
 public:
-  // DEPRECATED TYPES.  For backwards compatibility.  Avoid using these.
-  typedef ::robot_interaction::InteractionHandler InteractionHandler;
-  typedef ::robot_interaction::InteractionHandlerPtr InteractionHandlerPtr;
-  typedef ::robot_interaction::EndEffectorInteraction EndEffector;
-  typedef ::robot_interaction::JointInteraction Joint;
-  typedef ::robot_interaction::GenericInteraction Generic;
-
-public:
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
@@ -128,15 +120,15 @@ public:
   /// call this for each handler for which you want markers.
   /// The markers are not actually added until you call
   /// publishInteractiveMarkers().
-  void addInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+  void addInteractiveMarkers(const InteractionHandlerPtr& handler,
                              const double marker_scale = 0.0);
 
   // Update pose of all interactive markers to match the handler's RobotState.
   // Call this when the handler's RobotState changes.
-  void updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr& handler);
+  void updateInteractiveMarkers(const InteractionHandlerPtr& handler);
 
   // True if markers are being shown for this handler.
-  bool showingMarkers(const ::robot_interaction::InteractionHandlerPtr& handler);
+  bool showingMarkers(const InteractionHandlerPtr& handler);
 
   // Display all markers that have been added.
   // This is needed after calls to addInteractiveMarkers() to publish the
@@ -183,14 +175,14 @@ private:
   // return the diameter of the sphere that certainly can enclose the AABB of
   // the links in this group
   double computeGroupMarkerSize(const std::string& group);
-  void computeMarkerPose(const ::robot_interaction::InteractionHandlerPtr& handler, const EndEffectorInteraction& eef,
+  void computeMarkerPose(const InteractionHandlerPtr& handler, const EndEffectorInteraction& eef,
                          const robot_state::RobotState& robot_state, geometry_msgs::Pose& pose,
                          geometry_msgs::Pose& control_to_eef_tf) const;
 
-  void addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+  void addEndEffectorMarkers(const InteractionHandlerPtr& handler,
                              const EndEffectorInteraction& eef, visualization_msgs::InteractiveMarker& im,
                              bool position = true, bool orientation = true);
-  void addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
+  void addEndEffectorMarkers(const InteractionHandlerPtr& handler,
                              const EndEffectorInteraction& eef, const geometry_msgs::Pose& offset,
                              visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
@@ -210,7 +202,7 @@ private:
   std::vector<JointInteraction> active_vj_;
   std::vector<GenericInteraction> active_generic_;
 
-  std::map<std::string, ::robot_interaction::InteractionHandlerPtr> handlers_;
+  std::map<std::string, InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
 
   // This mutex is locked every time markers are read or updated;

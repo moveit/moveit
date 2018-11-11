@@ -482,7 +482,7 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string& group,
 {
   if (!robot_interaction_)
     return;
-  const std::vector<robot_interaction::RobotInteraction::EndEffector>& eef =
+  const std::vector<robot_interaction::EndEffectorInteraction>& eef =
       robot_interaction_->getActiveEndEffectors();
   if (eef.empty())
     return;
@@ -495,7 +495,7 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string& group,
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>& metrics,
-                                                   const robot_interaction::RobotInteraction::EndEffector& ee,
+                                                   const robot_interaction::EndEffectorInteraction& ee,
                                                    const robot_state::RobotState& state, double payload)
 {
   metrics.clear();
@@ -560,7 +560,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
     return;
 
   static const Ogre::Quaternion orientation(1.0, 0.0, 0.0, 0.0);
-  const std::vector<robot_interaction::RobotInteraction::EndEffector>& eef =
+  const std::vector<robot_interaction::EndEffectorInteraction>& eef =
       robot_interaction_->getActiveEndEffectors();
   if (eef.empty())
     return;
@@ -904,7 +904,7 @@ void MotionPlanningDisplay::changedAttachedBodyColor()
   trajectory_visual_->setDefaultAttachedObjectColor(color);
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler*,
+void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::InteractionHandler*,
                                                         bool error_state_changed)
 {
   if (!planning_scene_monitor_)
@@ -916,7 +916,7 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Robot
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler*,
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler*,
                                                        bool error_state_changed)
 {
   if (!planning_scene_monitor_)
@@ -1143,10 +1143,10 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_robot_goal_->load(*getRobotModel()->getURDF());
 
   robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
-  query_start_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler(
+  query_start_state_.reset(new robot_interaction::InteractionHandler(
       "start", *ks, planning_scene_monitor_->getTFClient()));
-  query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler(
-      "goal", *getQueryStartState(), planning_scene_monitor_->getTFClient()));
+  query_goal_state_.reset(new robot_interaction::InteractionHandler(
+      "goal", *ks, planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
   query_start_state_->setGroupStateValidityCallback(
