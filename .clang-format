@@ -26,10 +26,10 @@ NamespaceIndentation: None
 ObjCSpaceBeforeProtocolList: true
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 60
-PenaltyBreakString: 1
+PenaltyBreakString: 100
 PenaltyBreakFirstLessLess: 1000
 PenaltyExcessCharacter: 1000
-PenaltyReturnTypeOnItsOwnLine: 90
+PenaltyReturnTypeOnItsOwnLine: 70
 SpacesBeforeTrailingComments: 2
 Cpp11BracedListStyle: false
 Standard:        Auto
