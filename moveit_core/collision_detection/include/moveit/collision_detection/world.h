@@ -68,13 +68,13 @@ public:
    * This does copy on write and should be quick. */
   World(const World& other);
 
-  ~World();
+  virtual ~World();
 
   /**********************************************************************/
   /* Collision Bodies                                                   */
   /**********************************************************************/
 
-  MOVEIT_CLASS_FORWARD(Object);
+  MOVEIT_STRUCT_FORWARD(Object);
 
   /** \brief A representation of an object */
   struct Object

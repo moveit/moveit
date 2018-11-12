@@ -961,7 +961,7 @@ private:
   static robot_model::RobotModelPtr createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
                                                      const srdf::ModelConstSharedPtr& srdf_model);
 
-  MOVEIT_CLASS_FORWARD(CollisionDetector);
+  MOVEIT_STRUCT_FORWARD(CollisionDetector);
 
   /* \brief A set of compatible collision detectors */
   struct CollisionDetector
