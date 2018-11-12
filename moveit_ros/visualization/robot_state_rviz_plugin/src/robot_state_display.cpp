@@ -94,6 +94,10 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_r
                                                      "Whether to display the collision representation of the robot.",
                                                      this, SLOT(changedEnableCollisionVisible()), this);
 
+  enable_attached_body_visible_ =
+      new rviz::BoolProperty("Attached Body Visible", true, "Whether to display the attached body.", this,
+                             SLOT(changedEnableAttachedBodyVisible()), this);
+
   show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", this,
                                            SLOT(changedAllLinks()), this);
 }
@@ -181,6 +185,12 @@ void RobotStateDisplay::changedEnableVisualVisible()
 void RobotStateDisplay::changedEnableCollisionVisible()
 {
   robot_->setCollisionVisible(enable_collision_visible_->getBool());
+}
+
+void RobotStateDisplay::changedEnableAttachedBodyVisible()
+{
+  robot_->setAttachedBodyVisible(enable_attached_body_visible_->getBool());
+  update_state_ = true;
 }
 
 static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)

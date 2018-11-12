@@ -97,6 +97,7 @@ private Q_SLOTS:
   void changedEnableLinkHighlight();
   void changedEnableVisualVisible();
   void changedEnableCollisionVisible();
+  void changedEnableAttachedBodyVisible();
   void changedAllLinks();
 
 protected:
@@ -142,6 +143,7 @@ protected:
   rviz::BoolProperty* enable_link_highlight_;
   rviz::BoolProperty* enable_visual_visible_;
   rviz::BoolProperty* enable_collision_visible_;
+  rviz::BoolProperty* enable_attached_body_visible_;
   rviz::BoolProperty* show_all_links_;
 };
 

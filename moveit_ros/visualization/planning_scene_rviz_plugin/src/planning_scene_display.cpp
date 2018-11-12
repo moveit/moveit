@@ -134,6 +134,10 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                                        "displayed as defined for collision detection purposes.",
         robot_category_, SLOT(changedSceneRobotCollisionEnabled()), this);
 
+    scene_robot_attached_body_enabled_property_ = new rviz::BoolProperty(
+        "Show Attached Body", true, "Indicates whether the robot state's attached body should be displayed",
+        robot_category_, SLOT(changedSceneRobotAttachedBodyEnabled()), this);
+
     robot_alpha_property_ = new rviz::FloatProperty("Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
                                                     robot_category_, SLOT(changedRobotSceneAlpha()), this);
     robot_alpha_property_->setMin(0.0);
@@ -145,11 +149,12 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   }
   else
   {
-    robot_category_ = NULL;
-    scene_robot_visual_enabled_property_ = NULL;
-    scene_robot_collision_enabled_property_ = NULL;
-    robot_alpha_property_ = NULL;
-    attached_body_color_property_ = NULL;
+    robot_category_ = nullptr;
+    scene_robot_visual_enabled_property_ = nullptr;
+    scene_robot_collision_enabled_property_ = nullptr;
+    scene_robot_attached_body_enabled_property_ = nullptr;
+    robot_alpha_property_ = nullptr;
+    attached_body_color_property_ = nullptr;
   }
 }
 
@@ -191,6 +196,7 @@ void PlanningSceneDisplay::onInitialize()
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+    planning_scene_robot_->setAttachedBodyVisible(scene_robot_attached_body_enabled_property_->getBool());
     changedRobotSceneAlpha();
     changedAttachedBodyColor();
   }
@@ -210,6 +216,7 @@ void PlanningSceneDisplay::reset()
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+    planning_scene_robot_->setAttachedBodyVisible(scene_robot_attached_body_enabled_property_->getBool());
   }
 }
 
@@ -406,6 +413,15 @@ void PlanningSceneDisplay::changedSceneRobotCollisionEnabled()
   }
 }
 
+void PlanningSceneDisplay::changedSceneRobotAttachedBodyEnabled()
+{
+  if (isEnabled() && planning_scene_robot_)
+  {
+    planning_scene_robot_->setAttachedBodyVisible(scene_robot_attached_body_enabled_property_->getBool());
+    planning_scene_needs_render_ = true;
+  }
+}
+
 void PlanningSceneDisplay::changedSceneEnabled()
 {
   if (planning_scene_render_)
@@ -582,6 +598,7 @@ void PlanningSceneDisplay::onEnable()
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+    planning_scene_robot_->setAttachedBodyVisible(scene_robot_attached_body_enabled_property_->getBool());
   }
   if (planning_scene_render_)
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
