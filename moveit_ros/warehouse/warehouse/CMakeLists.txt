@@ -29,6 +29,9 @@ target_link_libraries(moveit_init_demo_warehouse ${catkin_LIBRARIES} ${MOVEIT_LI
 add_executable(moveit_warehouse_services src/warehouse_services.cpp)
 target_link_libraries(moveit_warehouse_services ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 
+add_executable(moveit_warehouse_generate_random_queries src/generate_random_queries.cpp)
+target_link_libraries(moveit_warehouse_generate_random_queries ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
 install(
   TARGETS
     ${MOVEIT_LIB_NAME}
@@ -38,6 +41,7 @@ install(
     moveit_warehouse_save_as_text
     moveit_init_demo_warehouse
     moveit_warehouse_services
+    moveit_warehouse_generate_random_queries
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
