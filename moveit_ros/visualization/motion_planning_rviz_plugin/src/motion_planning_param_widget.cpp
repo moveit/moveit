@@ -51,6 +51,8 @@ MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget* parent) : rviz::Pr
 
 MotionPlanningParamWidget::~MotionPlanningParamWidget()
 {
+  if (property_tree_model_)
+    delete property_tree_model_;
 }
 
 void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupInterfacePtr& mg)
