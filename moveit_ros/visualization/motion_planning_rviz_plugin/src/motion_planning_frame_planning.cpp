@@ -178,35 +178,36 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   ui_->stop_button->setEnabled(false);
 
   // update query start state to current if neccessary
-  if (ui_->start_state_selection->currentText() == "<current>")
-    useStartStateButtonClicked();
+  if (ui_->start_state_combo_box->currentText() == "<current>")
+    startStateTextChanged(ui_->start_state_combo_box->currentText());
 }
 
-void MotionPlanningFrame::useStartStateButtonClicked()
+void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this),  //
-                                      "update start state");
+  planning_display_->addBackgroundJob(
+      boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this, start_state.toStdString()),
+      "update start state");
 }
 
-void MotionPlanningFrame::useStartStateButtonExec()
+void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_state)
 {
   robot_state::RobotState start = *planning_display_->getQueryStartState();
-  updateQueryStateHelper(start, ui_->start_state_selection->currentText().toStdString());
+  updateQueryStateHelper(start, start_state);
   planning_display_->setQueryStartState(start);
 }
 
-void MotionPlanningFrame::useGoalStateButtonClicked()
+void MotionPlanningFrame::goalStateTextChanged(const QString& goal_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this),  //
-                                      "update goal state");
+  planning_display_->addBackgroundJob(
+      boost::bind(&MotionPlanningFrame::goalStateTextChangedExec, this, goal_state.toStdString()), "update goal state");
 }
 
-void MotionPlanningFrame::useGoalStateButtonExec()
+void MotionPlanningFrame::goalStateTextChangedExec(const std::string& goal_state)
 {
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
-  updateQueryStateHelper(goal, ui_->goal_state_selection->currentText().toStdString());
+  updateQueryStateHelper(goal, goal_state);
   planning_display_->setQueryGoalState(goal);
 }
 

@@ -73,8 +73,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->execute_button, SIGNAL(clicked()), this, SLOT(executeButtonClicked()));
   connect(ui_->plan_and_execute_button, SIGNAL(clicked()), this, SLOT(planAndExecuteButtonClicked()));
   connect(ui_->stop_button, SIGNAL(clicked()), this, SLOT(stopButtonClicked()));
-  connect(ui_->use_start_state_button, SIGNAL(clicked()), this, SLOT(useStartStateButtonClicked()));
-  connect(ui_->use_goal_state_button, SIGNAL(clicked()), this, SLOT(useGoalStateButtonClicked()));
+  connect(ui_->start_state_combo_box, SIGNAL(activated(QString)), this, SLOT(startStateTextChanged(QString)));
+  connect(ui_->goal_state_combo_box, SIGNAL(activated(QString)), this, SLOT(goalStateTextChanged(QString)));
   connect(ui_->planning_group_combo_box, SIGNAL(currentIndexChanged(QString)), this,
           SLOT(planningGroupTextChanged(QString)));
   connect(ui_->database_connect_button, SIGNAL(clicked()), this, SLOT(databaseConnectButtonClicked()));
@@ -267,8 +267,10 @@ void MotionPlanningFrame::setPlanningGroupText()
 
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
-  ui_->start_state_selection->clear();
-  ui_->goal_state_selection->clear();
+  const QSignalBlocker start_state_blocker(ui_->start_state_combo_box);
+  const QSignalBlocker goal_state_blocker(ui_->goal_state_combo_box);
+  ui_->start_state_combo_box->clear();
+  ui_->goal_state_combo_box->clear();
 
   if (!planning_display_->getPlanningSceneMonitor())
     return;
@@ -280,29 +282,30 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
-    ui_->start_state_selection->addItem(QString("<random valid>"));
-    ui_->start_state_selection->addItem(QString("<random>"));
-    ui_->start_state_selection->addItem(QString("<current>"));
-    ui_->start_state_selection->addItem(QString("<same as goal>"));
+    ui_->start_state_combo_box->addItem(QString("<random valid>"));
+    ui_->start_state_combo_box->addItem(QString("<random>"));
+    ui_->start_state_combo_box->addItem(QString("<current>"));
+    ui_->start_state_combo_box->addItem(QString("<same as goal>"));
 
-    ui_->goal_state_selection->addItem(QString("<random valid>"));
-    ui_->goal_state_selection->addItem(QString("<random>"));
-    ui_->goal_state_selection->addItem(QString("<current>"));
-    ui_->goal_state_selection->addItem(QString("<same as start>"));
+    ui_->goal_state_combo_box->addItem(QString("<random valid>"));
+    ui_->goal_state_combo_box->addItem(QString("<random>"));
+    ui_->goal_state_combo_box->addItem(QString("<current>"));
+    ui_->goal_state_combo_box->addItem(QString("<same as start>"));
 
     const std::vector<std::string>& known_states = jmg->getDefaultStateNames();
     if (!known_states.empty())
     {
-      ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
-      ui_->goal_state_selection->insertSeparator(ui_->goal_state_selection->count());
+      ui_->start_state_combo_box->insertSeparator(ui_->start_state_combo_box->count());
+      ui_->goal_state_combo_box->insertSeparator(ui_->goal_state_combo_box->count());
       for (std::size_t i = 0; i < known_states.size(); ++i)
       {
-        ui_->start_state_selection->addItem(QString::fromStdString(known_states[i]));
-        ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
+        ui_->start_state_combo_box->addItem(QString::fromStdString(known_states[i]));
+        ui_->goal_state_combo_box->addItem(QString::fromStdString(known_states[i]));
       }
     }
-    ui_->start_state_selection->setCurrentIndex(2);  // default to 'current'
-    ui_->goal_state_selection->setCurrentIndex(0);   // default to 'random valid'
+
+    ui_->start_state_combo_box->setCurrentIndex(2);  // default to 'current'
+    ui_->goal_state_combo_box->setCurrentIndex(2);   // default to 'current'
   }
 }
 

@@ -159,8 +159,8 @@ private Q_SLOTS:
   void allowLookingToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
-  void useStartStateButtonClicked();
-  void useGoalStateButtonClicked();
+  void startStateTextChanged(const QString& start_state);
+  void goalStateTextChanged(const QString& goal_state);
   void planningGroupTextChanged(const QString& planning_group);
   void onClearOctomapClicked();
 
@@ -230,10 +230,10 @@ private:
   void configureWorkspace();
   void updateQueryStateHelper(robot_state::RobotState& state, const std::string& v);
   void fillStateSelectionOptions();
-  void useStartStateButtonExec();
-  void useGoalStateButtonExec();
   void fillPlanningGroupOptions();
   void setPlanningGroupText();
+  void startStateTextChangedExec(const std::string& start_state);
+  void goalStateTextChangedExec(const std::string& goal_state);
 
   // Scene objects tab
   void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
