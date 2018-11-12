@@ -395,6 +395,7 @@ void PlanningSceneDisplay::changedSceneRobotVisualEnabled()
   {
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
+    planning_scene_needs_render_ = true;
   }
 }
 
@@ -404,6 +405,7 @@ void PlanningSceneDisplay::changedSceneRobotCollisionEnabled()
   {
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+    planning_scene_needs_render_ = true;
   }
 }
 
