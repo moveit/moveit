@@ -590,6 +590,7 @@ void PlanningSceneDisplay::onEnable()
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
   calculateOffsetPosition();
+  planning_scene_needs_render_ = true;
 }
 
 // ******************************************************************************************
