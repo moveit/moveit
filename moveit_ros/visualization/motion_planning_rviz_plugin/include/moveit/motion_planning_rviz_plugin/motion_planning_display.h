@@ -167,6 +167,7 @@ private Q_SLOTS:
   void changedQueryGoalAlpha();
   void changedQueryCollidingLinkColor();
   void changedQueryJointViolationColor();
+  void changedAttachedBodyColor() override;
   void changedPlanningGroup();
   void changedShowWeightLimit();
   void changedShowManipulabilityIndex();

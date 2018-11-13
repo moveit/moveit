@@ -197,13 +197,15 @@ void MotionPlanningDisplay::onInitialize()
 
   // Planned Path Display
   trajectory_visual_->onInitialize(planning_scene_node_, context_, update_nh_);
+  QColor qcolor = attached_body_color_property_->getColor();
+  trajectory_visual_->setDefaultAttachedObjectColor(qcolor);
 
   query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   std_msgs::ColorRGBA color;
-  QColor qcolor = query_start_color_property_->getColor();
+  qcolor = query_start_color_property_->getColor();
   color.r = qcolor.redF();
   color.g = qcolor.greenF();
   color.b = qcolor.blueF();
@@ -894,6 +896,14 @@ void MotionPlanningDisplay::changedQueryJointViolationColor()
 {
   changedQueryStartState();
   changedQueryGoalState();
+}
+
+void MotionPlanningDisplay::changedAttachedBodyColor()
+{
+  PlanningSceneDisplay::changedAttachedBodyColor();
+  // forward color to TrajectoryVisualization
+  const QColor& color = attached_body_color_property_->getColor();
+  trajectory_visual_->setDefaultAttachedObjectColor(color);
 }
 
 void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler*,

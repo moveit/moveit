@@ -515,6 +515,19 @@ void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
     link.second->unsetColor();
 }
 
+void TrajectoryVisualization::setDefaultAttachedObjectColor(const QColor& color)
+{
+  if (!display_path_robot_)
+    return;
+
+  std_msgs::ColorRGBA color_msg;
+  color_msg.r = color.redF();
+  color_msg.g = color.greenF();
+  color_msg.b = color.blueF();
+  color_msg.a = color.alphaF();
+  display_path_robot_->setDefaultAttachedObjectColor(color_msg);
+}
+
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)
 {
   for (auto& link : robot->getLinks())

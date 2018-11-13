@@ -99,6 +99,7 @@ public:
 
 public Q_SLOTS:
   void interruptCurrentDisplay();
+  void setDefaultAttachedObjectColor(const QColor& color);
 
 private Q_SLOTS:
 
