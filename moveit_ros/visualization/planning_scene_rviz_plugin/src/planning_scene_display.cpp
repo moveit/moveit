@@ -326,8 +326,6 @@ void PlanningSceneDisplay::changedSceneName()
 
 void PlanningSceneDisplay::renderPlanningScene()
 {
-  if (planning_scene_render_ && planning_scene_needs_render_)
-  {
     QColor color = scene_color_property_->getColor();
     rviz::Color env_color(color.redF(), color.greenF(), color.blueF());
     if (attached_body_color_property_)
@@ -346,9 +344,7 @@ void PlanningSceneDisplay::renderPlanningScene()
     {
       ROS_ERROR("Caught %s while rendering planning scene", ex.what());
     }
-    planning_scene_needs_render_ = false;
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
-  }
 }
 
 void PlanningSceneDisplay::changedSceneAlpha()
@@ -623,11 +619,13 @@ void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
 {
   current_scene_time_ += wall_dt;
-  if (current_scene_time_ > scene_display_time_property_->getFloat())
+  if (current_scene_time_ > scene_display_time_property_->getFloat() &&
+      planning_scene_render_ && planning_scene_needs_render_)
   {
     renderPlanningScene();
     calculateOffsetPosition();
     current_scene_time_ = 0.0f;
+    planning_scene_needs_render_ = false;
   }
 }
 
