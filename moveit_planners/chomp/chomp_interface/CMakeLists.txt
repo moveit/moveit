@@ -58,9 +58,7 @@ if(CATKIN_ENABLE_TESTING)
   # additional test dependencies
   find_package(moveit_ros_planning_interface REQUIRED)
   find_package(rostest REQUIRED)
-  # add moveit includes *before* the rest for better overlay compliance
-  include_directories(BEFORE ${moveit_ros_planning_interface})
-  include_directories(AFTER ${rostest_INCLUDE_DIRS})
+  include_directories(${moveit_ros_planning_interface_INCLUDE_DIRS})
   add_rostest_gtest(chomp_moveit_test
     test/chomp_moveit.test
     test/chomp_moveit_test.cpp)

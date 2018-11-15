@@ -47,7 +47,7 @@ public:
   moveit::planning_interface::MoveGroupInterface::Plan my_plan_;
 
 public:
-  CHOMPMoveitTest() : move_group_(moveit::planning_interface::MoveGroupInterface("arm"))
+  CHOMPMoveitTest() : move_group_("arm")
   {
   }
 };
