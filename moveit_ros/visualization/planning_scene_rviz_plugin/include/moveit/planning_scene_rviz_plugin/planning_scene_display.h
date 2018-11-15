@@ -127,11 +127,13 @@ private Q_SLOTS:
   void changedRobotSceneAlpha();
   void changedSceneAlpha();
   void changedSceneColor();
-  void changedAttachedBodyColor();
   void changedPlanningSceneTopic();
   void changedSceneDisplayTime();
   void changedOctreeRenderMode();
   void changedOctreeColorMode();
+
+protected Q_SLOTS:
+  virtual void changedAttachedBodyColor();
 
 protected:
   /// This function reloads the robot model and reinitializes the PlanningSceneMonitor
