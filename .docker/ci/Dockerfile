@@ -31,7 +31,8 @@ RUN \
         sudo \
         # Preferred build tools
         python-catkin-tools \
-        clang ccache && \
+        clang && \
+        ccache && \
     #
     # Download all dependencies of MoveIt!
     rosdep update && \
