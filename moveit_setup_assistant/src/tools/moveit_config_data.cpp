@@ -789,7 +789,7 @@ bool MoveItConfigData::outputFollowJointTrajectoryYAML(const std::string& file_p
 }
 
 // ******************************************************************************************
-// Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
+// Helper function to write the configuration for the given ROS controllers,
 // and erases the controller that have been written, to avoid mixing between FollowJointTrajectory
 // which are published under the namespace of 'controller_list' and other types of controllers.
 // ******************************************************************************************

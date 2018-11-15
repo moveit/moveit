@@ -311,12 +311,17 @@ public:
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
 
+  /*
+   * Adds a follow joint trajectory controller to each move group and outputs the configuration
+   * created by its namesake function to controllers.yaml file
+   */
+  bool outputFollowJointTrajectoryYAML(const std::string& file_path);
+
   /**
-   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
+   * Helper function for setting configuration for the controllers given by its namesake function
    * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
    * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
    */
-  bool outputFollowJointTrajectoryYAML(const std::string& file_path);
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
                                        std::vector<ROSControlConfig>& ros_controllers_config_output);
 
