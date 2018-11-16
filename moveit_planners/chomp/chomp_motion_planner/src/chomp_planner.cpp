@@ -182,7 +182,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ChompOptimizer* optimizer;
 
   // create a non_const_params variable which stores the non constant version of the const params variable
-  ChompParameters params_nonconst = params_nonconst.getNonConstParams(params);
+  ChompParameters params_nonconst = params;
 
   // while loop for replanning (recovery behaviour) if collision free optimized solution not found
   while (true)
