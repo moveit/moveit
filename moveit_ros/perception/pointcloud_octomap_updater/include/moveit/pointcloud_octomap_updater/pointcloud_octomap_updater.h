@@ -53,15 +53,15 @@ class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
   PointCloudOctomapUpdater();
-  virtual ~PointCloudOctomapUpdater();
+  ~PointCloudOctomapUpdater() override;
 
-  virtual bool setParams(XmlRpc::XmlRpcValue& params);
+  bool setParams(XmlRpc::XmlRpcValue& params) override;
 
-  virtual bool initialize();
-  virtual void start();
-  virtual void stop();
-  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape);
-  virtual void forgetShape(ShapeHandle handle);
+  bool initialize() override;
+  void start() override;
+  void stop() override;
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
+  void forgetShape(ShapeHandle handle) override;
 
 protected:
   virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,

@@ -52,14 +52,14 @@ class DepthImageOctomapUpdater : public OccupancyMapUpdater
 {
 public:
   DepthImageOctomapUpdater();
-  virtual ~DepthImageOctomapUpdater();
+  ~DepthImageOctomapUpdater() override;
 
-  virtual bool setParams(XmlRpc::XmlRpcValue& params);
-  virtual bool initialize();
-  virtual void start();
-  virtual void stop();
-  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape);
-  virtual void forgetShape(ShapeHandle handle);
+  bool setParams(XmlRpc::XmlRpcValue& params) override;
+  bool initialize() override;
+  void start() override;
+  void stop() override;
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
+  void forgetShape(ShapeHandle handle) override;
 
 private:
   void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);

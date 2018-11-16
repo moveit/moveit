@@ -91,25 +91,25 @@ public:
   };
 
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
-  virtual ~PoseModelStateSpace();
+  ~PoseModelStateSpace() override;
 
-  virtual ompl::base::State* allocState() const;
-  virtual void freeState(ompl::base::State* state) const;
-  virtual void copyState(ompl::base::State* destination, const ompl::base::State* source) const;
-  virtual void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t,
-                           ompl::base::State* state) const;
-  virtual double distance(const ompl::base::State* state1, const ompl::base::State* state2) const;
-  virtual double getMaximumExtent() const;
+  ompl::base::State* allocState() const override;
+  void freeState(ompl::base::State* state) const override;
+  void copyState(ompl::base::State* destination, const ompl::base::State* source) const override;
+  void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t,
+                   ompl::base::State* state) const override;
+  double distance(const ompl::base::State* state1, const ompl::base::State* state2) const override;
+  double getMaximumExtent() const override;
 
-  virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
+  ompl::base::StateSamplerPtr allocDefaultStateSampler() const override;
 
   bool computeStateFK(ompl::base::State* state) const;
   bool computeStateIK(ompl::base::State* state) const;
   bool computeStateK(ompl::base::State* state) const;
 
-  virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
-  virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
-  virtual void sanityChecks() const;
+  void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ) override;
+  void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const override;
+  void sanityChecks() const override;
 
 private:
   struct PoseComponent

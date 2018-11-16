@@ -56,13 +56,13 @@ public:
   ConstrainedSampler(const ModelBasedPlanningContext* pc, constraint_samplers::ConstraintSamplerPtr cs);
 
   /** @brief Sample a state (uniformly)*/
-  virtual void sampleUniform(ompl::base::State* state);
+  void sampleUniform(ompl::base::State* state) override;
 
   /** @brief Sample a state (uniformly) within a certain distance of another state*/
-  virtual void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance);
+  void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance) override;
 
   /** @brief Sample a state using the specified Gaussian*/
-  virtual void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev);
+  void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev) override;
 
   double getConstrainedSamplingRate() const;
 

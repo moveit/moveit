@@ -260,7 +260,7 @@ public:
   {
   }
 
-  virtual void robotStateChanged()
+  void robotStateChanged() override
   {
     cnt_++;
   }

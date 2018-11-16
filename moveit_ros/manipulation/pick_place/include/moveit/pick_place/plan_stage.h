@@ -49,9 +49,9 @@ public:
   PlanStage(const planning_scene::PlanningSceneConstPtr& scene,
             const planning_pipeline::PlanningPipelinePtr& planning_pipeline);
 
-  virtual void signalStop();
+  void signalStop() override;
 
-  virtual bool evaluate(const ManipulationPlanPtr& plan) const;
+  bool evaluate(const ManipulationPlanPtr& plan) const override;
 
 private:
   planning_scene::PlanningSceneConstPtr planning_scene_;

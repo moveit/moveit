@@ -72,25 +72,25 @@ public:
     Parameters(unsigned width, unsigned height, float near_clipping_plane_distance, float far_clipping_plane_distance,
                float fx, float fy, float cx, float cy, float base_line, float disparity_resolution);
     /** \brief Descturctor*/
-    ~Parameters();
+    ~Parameters() override;
 
     /**
      * \brief polymorphic clone method
      * \return deep copied Parameters of type StereoCameraModel::Parameters
      */
-    SensorModel::Parameters* clone() const;
+    SensorModel::Parameters* clone() const override;
 
     /**
      * \brief set the shader parameters required for the model rendering
      * \param[in] renderer the renderer that holds the rendering shader.
      */
-    void setRenderParameters(GLRenderer& renderer) const;
+    void setRenderParameters(GLRenderer& renderer) const override;
 
     /**
      * \brief set the shader parameters required for the mesh filtering
      * @param[in] renderer the renderer that holds the filtering shader
      */
-    void setFilterParameters(GLRenderer& renderer) const;
+    void setFilterParameters(GLRenderer& renderer) const override;
 
     /**
      * \brief sets the camera parameters of the pinhole camera where the disparities were obtained. Usually the left
@@ -118,7 +118,7 @@ public:
      * \brief returns the coefficients that are required for obtaining the padding for meshes
      * \return the padding coefficients
      */
-    const Eigen::Vector3f& getPaddingCoefficients() const;
+    const Eigen::Vector3f& getPaddingCoefficients() const override;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

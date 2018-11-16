@@ -49,7 +49,7 @@ class MoveGroupQueryPlannersService : public MoveGroupCapability
 public:
   MoveGroupQueryPlannersService();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& req,

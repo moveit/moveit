@@ -47,7 +47,7 @@ class MoveGroupStateValidationService : public MoveGroupCapability
 public:
   MoveGroupStateValidationService();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   bool computeService(moveit_msgs::GetStateValidity::Request& req, moveit_msgs::GetStateValidity::Response& res);

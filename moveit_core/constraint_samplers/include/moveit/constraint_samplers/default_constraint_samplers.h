@@ -88,7 +88,7 @@ public:
    *
    * @return True if the conditions are met, otherwise false
    */
-  virtual bool configure(const moveit_msgs::Constraints& constr);
+  bool configure(const moveit_msgs::Constraints& constr) override;
 
   /**
    * \brief Configures a joint constraint given a vector of constraints.
@@ -117,9 +117,9 @@ public:
    */
   bool configure(const std::vector<kinematic_constraints::JointConstraint>& jc);
 
-  virtual bool sample(robot_state::RobotState& state, const robot_state::RobotState& ks, unsigned int max_attempts);
+  bool sample(robot_state::RobotState& state, const robot_state::RobotState& ks, unsigned int max_attempts) override;
 
-  virtual bool project(robot_state::RobotState& state, unsigned int max_attempts);
+  bool project(robot_state::RobotState& state, unsigned int max_attempts) override;
 
   /**
    * \brief Gets the number of constrained joints - joints that have an
@@ -149,7 +149,7 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual const std::string& getName() const
+  const std::string& getName() const override
   {
     static const std::string SAMPLER_NAME = "JointConstraintSampler";
     return SAMPLER_NAME;
@@ -190,7 +190,7 @@ protected:
     std::size_t index_; /**< The index within the joint state vector for this joint */
   };
 
-  virtual void clear();
+  void clear() override;
 
   random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random number generator used to sample */
   std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the
@@ -332,7 +332,7 @@ public:
    * exist and the overloaded configuration function returns true.
    * Otherwise, returns false.
    */
-  virtual bool configure(const moveit_msgs::Constraints& constr);
+  bool configure(const moveit_msgs::Constraints& constr) override;
 
   /**
    * \brief Configures the Constraint given a IKSamplingPose.
@@ -446,10 +446,10 @@ public:
    *
    * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false.
    */
-  virtual bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
-                      unsigned int max_attempts);
+  bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+              unsigned int max_attempts) override;
 
-  virtual bool project(robot_state::RobotState& state, unsigned int max_attempts);
+  bool project(robot_state::RobotState& state, unsigned int max_attempts) override;
   /**
    * \brief Returns a pose that falls within the constraint regions.
    *
@@ -480,14 +480,14 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual const std::string& getName() const
+  const std::string& getName() const override
   {
     static const std::string SAMPLER_NAME = "IKConstraintSampler";
     return SAMPLER_NAME;
   }
 
 protected:
-  virtual void clear();
+  void clear() override;
 
   /**
    * \brief Performs checks and sets various internal values associated with the IK solver

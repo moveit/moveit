@@ -76,11 +76,11 @@ public:
                                 ChainFkSolverPos& fksolver, ChainIkSolverPos_LMA& iksolver, unsigned int maxiter = 100,
                                 double eps = 1e-6, bool position_ik = false);
 
-  virtual void updateInternalDataStructures();
+  void updateInternalDataStructures() override;
 
-  ~ChainIkSolverPos_LMA_JL_Mimic();
+  ~ChainIkSolverPos_LMA_JL_Mimic() override;
 
-  virtual int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out);
+  int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out) override;
 
   virtual int CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints);
 

@@ -51,7 +51,7 @@ class MoveGroupPickPlaceAction : public MoveGroupCapability
 {
 public:
   MoveGroupPickPlaceAction();
-  virtual void initialize();
+  void initialize() override;
 
 private:
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal);

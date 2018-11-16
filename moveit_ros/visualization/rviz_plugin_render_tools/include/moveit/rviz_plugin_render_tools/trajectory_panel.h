@@ -56,9 +56,9 @@ class TrajectoryPanel : public rviz::Panel
 public:
   TrajectoryPanel(QWidget* parent = 0);
 
-  virtual ~TrajectoryPanel();
+  ~TrajectoryPanel() override;
 
-  void onInitialize();
+  void onInitialize() override;
   void onEnable();
   void onDisable();
   void update(int way_point_count);

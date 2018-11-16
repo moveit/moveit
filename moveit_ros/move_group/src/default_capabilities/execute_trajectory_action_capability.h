@@ -53,7 +53,7 @@ class MoveGroupExecuteTrajectoryAction : public MoveGroupCapability
 public:
   MoveGroupExecuteTrajectoryAction();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   void executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal);

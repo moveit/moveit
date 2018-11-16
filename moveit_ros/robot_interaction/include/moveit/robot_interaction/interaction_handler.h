@@ -92,7 +92,7 @@ public:
   InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& model,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
-  virtual ~InteractionHandler()
+  ~InteractionHandler() override
   {
   }
 

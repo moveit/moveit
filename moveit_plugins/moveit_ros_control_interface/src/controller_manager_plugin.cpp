@@ -216,7 +216,7 @@ public:
    * @param name
    * @return
    */
-  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
+  moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     HandleMap::iterator it = handles_.find(name);
@@ -231,7 +231,7 @@ public:
    * \brief Refresh controller list and output all managed controllers
    * @param[out] names list of controllers (with namespace)
    */
-  virtual void getControllersList(std::vector<std::string>& names)
+  void getControllersList(std::vector<std::string>& names) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover();
@@ -246,7 +246,7 @@ public:
    * \brief Refresh controller list and output all active, managed controllers
    * @param[out] names list of controllers (with namespace)
    */
-  virtual void getActiveControllers(std::vector<std::string>& names)
+  void getActiveControllers(std::vector<std::string>& names) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover();
@@ -263,7 +263,7 @@ public:
    * @param[in] name name of controller (with namespace)
    * @param[out] joints
    */
-  virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints)
+  void getControllerJoints(const std::string& name, std::vector<std::string>& joints) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     ControllersMap::iterator it = managed_controllers_.find(name);
@@ -286,7 +286,7 @@ public:
    * @param[in] name name of controller (with namespace)
    * @return state
    */
-  virtual ControllerState getControllerState(const std::string& name)
+  ControllerState getControllerState(const std::string& name) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover();
@@ -307,7 +307,7 @@ public:
    * @param deactivate
    * @return true if switching succeeded
    */
-  virtual bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate)
+  bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
   {
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover(true);
@@ -464,7 +464,7 @@ public:
    * @param name
    * @return handle
    */
-  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
+  moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
 
@@ -481,7 +481,7 @@ public:
    * \brief Read all managed controllers from discovered interfaces
    * @param names
    */
-  virtual void getControllersList(std::vector<std::string>& names)
+  void getControllersList(std::vector<std::string>& names) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
     discover();
@@ -496,7 +496,7 @@ public:
    * \brief Read all active, managed controllers from discovered interfaces
    * @param names
    */
-  virtual void getActiveControllers(std::vector<std::string>& names)
+  void getActiveControllers(std::vector<std::string>& names) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
     discover();
@@ -512,7 +512,7 @@ public:
    * @param name
    * @param joints
    */
-  virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints)
+  void getControllerJoints(const std::string& name, std::vector<std::string>& joints) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
 
@@ -529,7 +529,7 @@ public:
    * @param name
    * @return
    */
-  virtual ControllerState getControllerState(const std::string& name)
+  ControllerState getControllerState(const std::string& name) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
 
@@ -548,7 +548,7 @@ public:
    * @param deactivate
    * @return
    */
-  virtual bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate)
+  bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
 

@@ -61,7 +61,7 @@ public:
 
   CollisionWorldHybrid(const CollisionWorldHybrid& other, const WorldPtr& world);
 
-  virtual ~CollisionWorldHybrid()
+  ~CollisionWorldHybrid() override
   {
   }
 
@@ -91,7 +91,7 @@ public:
                                         const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
                                         GroupStateRepresentationPtr& gsr) const;
 
-  virtual void setWorld(const WorldPtr& world);
+  void setWorld(const WorldPtr& world) override;
 
   void getCollisionGradients(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                              const robot_state::RobotState& state, const AllowedCollisionMatrix* acm,

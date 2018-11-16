@@ -47,7 +47,7 @@ class MoveGroupCartesianPathService : public MoveGroupCapability
 public:
   MoveGroupCartesianPathService();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   bool computeService(moveit_msgs::GetCartesianPath::Request& req, moveit_msgs::GetCartesianPath::Response& res);

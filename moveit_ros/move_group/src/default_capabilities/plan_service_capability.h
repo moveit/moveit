@@ -47,7 +47,7 @@ class MoveGroupPlanService : public MoveGroupCapability
 public:
   MoveGroupPlanService();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   bool computePlanService(moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res);
