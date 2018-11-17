@@ -46,10 +46,6 @@
 #include <ros/ros.h>
 #endif
 
-#ifdef ROS_KINETIC
-#include <tf2_ros/buffer.h>
-#endif
-
 namespace Ogre
 {
 class SceneNode;
@@ -116,11 +112,6 @@ public:
   /// get write access to planning scene
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
-
-#ifdef ROS_KINETIC
-  // Return (singleton) tf2 Transform Buffer shared between all MoveIt display instances
-  static std::shared_ptr<tf2_ros::Buffer> getTF2BufferPtr();
-#endif
 
 private Q_SLOTS:
 

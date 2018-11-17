@@ -1,7 +1,3 @@
-if(roscpp_VERSION VERSION_LESS 1.14) # Pre-Melodic release. TODO: Remove when Kinetic support is dropped
-  add_definitions(-DROS_KINETIC)
-endif()
-
 set(HEADERS
   include/moveit/motion_planning_rviz_plugin/motion_planning_display.h
   include/moveit/motion_planning_rviz_plugin/motion_planning_frame.h

@@ -38,6 +38,10 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
   rostest
 )
+# TODO: Remove when Kinetic support is dropped
+if(rviz_VERSION VERSION_LESS 1.13.1) # Does rviz supports TF2?
+  add_definitions(-DRVIZ_TF1)
+endif()
 
 find_package(Eigen3 REQUIRED)
 
