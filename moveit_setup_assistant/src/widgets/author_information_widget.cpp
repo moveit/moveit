@@ -42,20 +42,10 @@
 #include <QSplitter>
 // ROS
 #include "author_information_widget.h"
-#include <srdfdom/model.h>  // use their struct datastructures
 #include <ros/ros.h>
-// Boost
-#include <boost/algorithm/string.hpp>  // for trimming whitespace from user input
-#include <boost/filesystem.hpp>        // for creating folders/files
-// Read write files
-#include <iostream>  // For writing yaml and launch files
-#include <fstream>
 
 namespace moveit_setup_assistant
 {
-// Boost file system
-namespace fs = boost::filesystem;
-
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************

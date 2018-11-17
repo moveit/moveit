@@ -50,25 +50,22 @@
 #include "ros/ros.h"
 #include "header_widget.h"
 #include "planning_groups_widget.h"
-#include <boost/thread.hpp>
-#include <boost/lexical_cast.hpp>  // for checking convertion of string to double
+#include "double_list_widget.h"      // for joints, links and subgroups pages
+#include "kinematic_chain_widget.h"  // for kinematic chain page
+#include "group_edit_widget.h"       // for group rename page
 // Qt
 #include <QApplication>
-#include <QDebug>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLabel>
+#include <QStackedLayout>
 #include <QPushButton>
 #include <QMessageBox>
-#include <QString>
-#include <QLineEdit>
+#include <QTreeWidget>
 #include <QTreeWidgetItem>
-#include <QHeaderView>
-// Cycle checking
-#include <boost/utility.hpp>
+
+//// Cycle checking
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/visitors.hpp>
 
 namespace moveit_setup_assistant
 {

@@ -43,11 +43,11 @@
 #include <QRegExp>
 // ROS
 #include "configuration_files_widget.h"
-#include <srdfdom/model.h>  // use their struct datastructures
 #include <ros/ros.h>
 // Boost
-#include <boost/algorithm/string.hpp>  // for trimming whitespace from user input
-#include <boost/filesystem.hpp>        // for creating folders/files
+#include <boost/algorithm/string.hpp>       // for string find and replace in templates
+#include <boost/filesystem/path.hpp>        // for creating folders/files
+#include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
 // Read write files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>

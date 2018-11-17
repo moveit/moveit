@@ -37,14 +37,12 @@
 #ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
-#include <srdfdom/model.h>        // use their struct datastructures
-#include <srdfdom/srdf_writer.h>  // for writing srdf data
-#include <urdf/model.h>           // to share throughout app
-#include <yaml-cpp/yaml.h>        // outputing yaml config files
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
-#include <moveit/collision_detection/collision_matrix.h>              // for figuring out if robot is in collision
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>  // for LinkPairMap
+#include <yaml-cpp/yaml.h>                                            // outputing yaml config files
+#include <urdf/model.h>                                               // to share throughout app
+#include <srdfdom/srdf_writer.h>                                      // for writing srdf data
 
 namespace moveit_setup_assistant
 {
@@ -282,10 +280,10 @@ public:
   // ******************************************************************************************
 
   /// Load a robot model
-  void setRobotModel(robot_model::RobotModelPtr robot_model);
+  void setRobotModel(moveit::core::RobotModelPtr robot_model);
 
   /// Provide a shared kinematic model loader
-  robot_model::RobotModelConstPtr getRobotModel();
+  moveit::core::RobotModelConstPtr getRobotModel();
 
   /// Update the Kinematic Model with latest SRDF modifications
   void updateRobotModel();
@@ -503,7 +501,7 @@ private:
   std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
 
   /// Shared kinematic model
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   /// ROS Controllers config data
   std::vector<ROSControlConfig> ros_controllers_config_;

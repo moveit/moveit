@@ -38,26 +38,27 @@
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
 
 // Qt
-#include <QWidget>
-#include <QTreeWidget>
-#include <QSplitter>
-#include <QStackedLayout>
+class QPushButton;
+class QStackedLayout;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 // Setup Asst
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include "double_list_widget.h"      // for joints, links and subgroups pages
-#include "kinematic_chain_widget.h"  // for kinematic chain page
-#include "group_edit_widget.h"       // for group rename page
-#include "setup_screen_widget.h"     // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 // Forward Declaration (outside of namespace for Qt)
 class PlanGroupType;
 
 namespace moveit_setup_assistant
 {
+class DoubleListWidget;
+class KinematicChainWidget;
+class GroupEditWidget;
+
 // Custom Type
 enum GroupType
 {

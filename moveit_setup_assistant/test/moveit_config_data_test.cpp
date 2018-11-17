@@ -41,8 +41,8 @@
 #include <fstream>
 #include <string>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <moveit_resources/config.h>
-#include <boost/filesystem.hpp>  // for creating/deleting folders/files
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 // This tests writing/parsing of ros_controller.yaml

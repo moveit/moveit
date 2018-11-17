@@ -38,8 +38,9 @@
 // Reading/Writing Files
 #include <iostream>  // For writing yaml and launch files
 #include <fstream>
-#include <boost/filesystem.hpp>        // for creating folders/files
-#include <boost/algorithm/string.hpp>  // for string find and replace in templates
+#include <boost/filesystem/path.hpp>        // for creating folders/files
+#include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
+#include <boost/algorithm/string/trim.hpp>
 
 // ROS
 #include <ros/console.h>

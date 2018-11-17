@@ -39,6 +39,7 @@
 
 #include <QItemSelection>
 #include <QPainter>
+#include <cmath>
 
 using namespace moveit_setup_assistant;
 
