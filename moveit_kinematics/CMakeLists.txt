@@ -8,6 +8,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost)
+find_package(orocos_kdl)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
@@ -20,6 +21,12 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_kdl
 )
+
+# Does kdl provide updateInternalDataStructures()?
+# TODO: remove when Kinetic support is dropped
+if(orocos_kdl_VERSION VERSION_LESS 1.4.0)
+  add_definitions(-DKDL_MISSES_UPDATE_INTERNAL)
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)

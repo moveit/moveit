@@ -76,7 +76,11 @@ public:
                                 ChainFkSolverPos& fksolver, ChainIkSolverPos_LMA& iksolver, unsigned int maxiter = 100,
                                 double eps = 1e-6, bool position_ik = false);
 
+#ifdef KDL_MISSES_UPDATE_INTERNAL
+  void updateInternalDataStructures();
+#else
   void updateInternalDataStructures() override;
+#endif
 
   ~ChainIkSolverPos_LMA_JL_Mimic() override;
 

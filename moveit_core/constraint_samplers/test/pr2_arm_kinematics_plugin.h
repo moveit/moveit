@@ -86,7 +86,11 @@ public:
 
   ~PR2ArmIKSolver() override{};
 
+#ifdef KDL_MISSES_UPDATE_INTERNAL
+  void updateInternalDataStructures();
+#else
   void updateInternalDataStructures() override;
+#endif
 
   /**
    * @brief The PR2 inverse kinematics solver
