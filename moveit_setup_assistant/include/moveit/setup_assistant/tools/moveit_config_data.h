@@ -280,10 +280,10 @@ public:
   // ******************************************************************************************
 
   /// Load a robot model
-  void setRobotModel(moveit::core::RobotModelPtr robot_model);
+  void setRobotModel(robot_model::RobotModelPtr robot_model);
 
   /// Provide a shared kinematic model loader
-  moveit::core::RobotModelConstPtr getRobotModel();
+  robot_model::RobotModelConstPtr getRobotModel();
 
   /// Update the Kinematic Model with latest SRDF modifications
   void updateRobotModel();
@@ -501,7 +501,7 @@ private:
   std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
 
   /// Shared kinematic model
-  moveit::core::RobotModelPtr robot_model_;
+  robot_model::RobotModelPtr robot_model_;
 
   /// ROS Controllers config data
   std::vector<ROSControlConfig> ros_controllers_config_;
