@@ -4,9 +4,14 @@ project(moveit_core)
 add_compile_options(-std=c++11)
 
 # Warnings
-add_definitions(-Wall -Wextra
+add_compile_options(-Wall -Wextra
   -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-  -Wno-unused-parameter -Wno-unused-function -Wno-maybe-uninitialized)
+  -Wno-unused-parameter -Wno-unused-function)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # This too often has false-positives
+  add_compile_options(-Wno-maybe-uninitialized)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -16,14 +21,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
-
 find_package(Eigen3 REQUIRED)
-
-# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
-if(NOT EIGEN3_INCLUDE_DIRS)
-  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
-endif()
-
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(LIBFCL REQUIRED fcl)
@@ -31,7 +29,6 @@ find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
 find_package(octomap REQUIRED)
-
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 

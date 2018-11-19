@@ -58,7 +58,7 @@ typedef collision_detection::CollisionRobotDistanceField DefaultCRobotType;
 class DistanceFieldCollisionDetectionTester : public testing::Test
 {
 protected:
-  virtual void SetUp()
+  void SetUp() override
   {
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
@@ -88,7 +88,7 @@ protected:
     cworld_.reset(new DefaultCWorldType());
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
   }
 

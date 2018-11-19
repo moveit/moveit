@@ -27,6 +27,7 @@
   <build_depend>eigen</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>tf2_kdl</build_depend>
+  <build_depend>orocos_kdl</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend version_gte="1.11.2">pluginlib</run_depend>
@@ -34,7 +35,7 @@
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>tf2</run_depend>
   <run_depend>tf2_kdl</run_depend>
-
+  <run_depend>orocos_kdl</run_depend>
 
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>

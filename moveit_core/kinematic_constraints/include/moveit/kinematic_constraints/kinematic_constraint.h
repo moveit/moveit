@@ -244,12 +244,12 @@ public:
    *
    * @return True if equal, otherwise false
    */
-  virtual bool equal(const KinematicConstraint& other, double margin) const;
+  bool equal(const KinematicConstraint& other, double margin) const override;
 
-  virtual ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const;
-  virtual bool enabled() const;
-  virtual void clear();
-  virtual void print(std::ostream& out = std::cout) const;
+  ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const override;
+  bool enabled() const override;
+  void clear() override;
+  void print(std::ostream& out = std::cout) const override;
 
   /**
    * \brief Get the joint model for which this constraint operates
@@ -392,12 +392,12 @@ public:
    *
    * @return True if equal, otherwise false
    */
-  virtual bool equal(const KinematicConstraint& other, double margin) const;
+  bool equal(const KinematicConstraint& other, double margin) const override;
 
-  virtual void clear();
-  virtual ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const;
-  virtual bool enabled() const;
-  virtual void print(std::ostream& out = std::cout) const;
+  void clear() override;
+  ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const override;
+  bool enabled() const override;
+  void print(std::ostream& out = std::cout) const override;
 
   /**
    * \brief Gets the subject link model
@@ -559,12 +559,12 @@ public:
    *
    * @return True if equal, otherwise false
    */
-  virtual bool equal(const KinematicConstraint& other, double margin) const;
+  bool equal(const KinematicConstraint& other, double margin) const override;
 
-  virtual void clear();
-  virtual ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const;
-  virtual bool enabled() const;
-  virtual void print(std::ostream& out = std::cout) const;
+  void clear() override;
+  ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const override;
+  bool enabled() const override;
+  void print(std::ostream& out = std::cout) const override;
 
   /**
    * \brief Returns the associated link model, or NULL if not enabled
@@ -791,8 +791,8 @@ public:
    *
    * @return True if equal, otherwise false
    */
-  virtual bool equal(const KinematicConstraint& other, double margin) const;
-  virtual void clear();
+  bool equal(const KinematicConstraint& other, double margin) const override;
+  void clear() override;
 
   /**
    * \brief Gets a trimesh shape representing the visibility cone
@@ -816,9 +816,9 @@ public:
    */
   void getMarkers(const robot_state::RobotState& state, visualization_msgs::MarkerArray& markers) const;
 
-  virtual bool enabled() const;
-  virtual ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const;
-  virtual void print(std::ostream& out = std::cout) const;
+  bool enabled() const override;
+  ConstraintEvaluationResult decide(const robot_state::RobotState& state, bool verbose = false) const override;
+  void print(std::ostream& out = std::cout) const override;
 
 protected:
   /**

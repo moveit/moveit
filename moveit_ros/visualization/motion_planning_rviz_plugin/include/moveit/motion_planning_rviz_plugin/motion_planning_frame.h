@@ -101,7 +101,7 @@ class MotionPlanningFrame : public QWidget
 
 public:
   MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = 0);
-  ~MotionPlanningFrame();
+  ~MotionPlanningFrame() override;
 
   void changePlanningGroup();
   void enable();

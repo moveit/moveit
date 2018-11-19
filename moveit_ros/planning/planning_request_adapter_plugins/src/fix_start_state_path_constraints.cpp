@@ -50,15 +50,14 @@ public:
   {
   }
 
-  virtual std::string getDescription() const
+  std::string getDescription() const override
   {
     return "Fix Start State Path Constraints";
   }
 
-  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest& req,
-                            planning_interface::MotionPlanResponse& res,
-                            std::vector<std::size_t>& added_path_index) const
+  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& added_path_index) const override
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 

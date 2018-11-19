@@ -75,7 +75,7 @@ public:
    */
   StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
-  ~StartScreenWidget();
+  ~StartScreenWidget() override;
 
   // ******************************************************************************************
   // Qt Components

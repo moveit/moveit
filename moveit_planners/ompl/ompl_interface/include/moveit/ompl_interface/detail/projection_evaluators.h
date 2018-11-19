@@ -58,9 +58,9 @@ class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 public:
   ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext* pc, const std::string& link);
 
-  virtual unsigned int getDimension() const;
-  virtual void defaultCellSizes();
-  virtual void project(const ompl::base::State* state, OMPLProjection projection) const override;
+  unsigned int getDimension() const override;
+  void defaultCellSizes() override;
+  void project(const ompl::base::State* state, OMPLProjection projection) const override;
 
 private:
   const ModelBasedPlanningContext* planning_context_;
@@ -75,9 +75,9 @@ class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 public:
   ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc, std::vector<unsigned int> variables);
 
-  virtual unsigned int getDimension() const;
-  virtual void defaultCellSizes();
-  virtual void project(const ompl::base::State* state, OMPLProjection projection) const;
+  unsigned int getDimension() const override;
+  void defaultCellSizes() override;
+  void project(const ompl::base::State* state, OMPLProjection projection) const override;
 
 private:
   const ModelBasedPlanningContext* planning_context_;

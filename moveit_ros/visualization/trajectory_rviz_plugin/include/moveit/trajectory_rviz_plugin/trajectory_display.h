@@ -62,18 +62,18 @@ class TrajectoryDisplay : public rviz::Display
 public:
   TrajectoryDisplay();
 
-  virtual ~TrajectoryDisplay();
+  ~TrajectoryDisplay() override;
 
   void loadRobotModel();
 
-  virtual void update(float wall_dt, float ros_dt);
-  virtual void reset();
+  void update(float wall_dt, float ros_dt) override;
+  void reset() override;
 
   // overrides from Display
-  virtual void onInitialize();
-  virtual void onEnable();
-  virtual void onDisable();
-  void setName(const QString& name);
+  void onInitialize() override;
+  void onEnable() override;
+  void onDisable() override;
+  void setName(const QString& name) override;
 
 private Q_SLOTS:
   /**

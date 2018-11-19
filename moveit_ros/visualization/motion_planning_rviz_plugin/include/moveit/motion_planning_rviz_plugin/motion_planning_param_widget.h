@@ -54,7 +54,7 @@ class MotionPlanningParamWidget : public rviz::PropertyTreeWidget
   Q_OBJECT
 public:
   MotionPlanningParamWidget(QWidget* parent = 0);
-  ~MotionPlanningParamWidget();
+  ~MotionPlanningParamWidget() override;
 
   void setMoveGroup(const moveit::planning_interface::MoveGroupInterfacePtr& mg);
   void setGroupName(const std::string& group_name);

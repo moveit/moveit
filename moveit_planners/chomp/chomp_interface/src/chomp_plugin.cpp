@@ -49,7 +49,7 @@ public:
   {
   }
 
-  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
   {
     // model->printModelInfo(std::cout);
     std::vector<std::string> groups = model->getJointModelGroupNames();
@@ -65,7 +65,7 @@ public:
 
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                             const planning_interface::MotionPlanRequest& req,
-                                                            moveit_msgs::MoveItErrorCodes& error_code) const
+                                                            moveit_msgs::MoveItErrorCodes& error_code) const override
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
@@ -89,19 +89,19 @@ public:
     return planning_contexts_.at(req.group_name);
   }
 
-  bool canServiceRequest(const planning_interface::MotionPlanRequest& req) const
+  bool canServiceRequest(const planning_interface::MotionPlanRequest& req) const override
   {
     // TODO: this is a dummy implementation
     //      capabilities.dummy = false;
     return true;
   }
 
-  std::string getDescription() const
+  std::string getDescription() const override
   {
     return "CHOMP";
   }
 
-  void getPlanningAlgorithms(std::vector<std::string>& algs) const
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const override
   {
     algs.resize(1);
     algs[0] = "CHOMP";

@@ -66,11 +66,15 @@ public:
   explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
                                        bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
-  virtual void updateInternalDataStructures();
+#ifdef KDL_MISSES_UPDATE_INTERNAL
+  void updateInternalDataStructures();
+#else
+  void updateInternalDataStructures() override;
+#endif
 
-  ~ChainIkSolverVel_pinv_mimic();
+  ~ChainIkSolverVel_pinv_mimic() override;
 
-  virtual int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
+  int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override;
 
   virtual int CartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
 
@@ -78,7 +82,7 @@ public:
    * not (yet) implemented.
    *
    */
-  virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out)
+  int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out) override
   {
     return -1;
   };

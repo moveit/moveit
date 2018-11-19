@@ -47,7 +47,7 @@ class ClearOctomapService : public MoveGroupCapability
 public:
   ClearOctomapService();
 
-  virtual void initialize();
+  void initialize() override;
 
 private:
   bool clearOctomap(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);

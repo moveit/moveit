@@ -38,13 +38,12 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
   rostest
 )
+# TODO: Remove when Kinetic support is dropped
+if(rviz_VERSION VERSION_LESS 1.13.1) # Does rviz supports TF2?
+  add_definitions(-DRVIZ_TF1)
+endif()
 
 find_package(Eigen3 REQUIRED)
-
-# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
-if(NOT EIGEN3_INCLUDE_DIRS)
-  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
-endif()
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")

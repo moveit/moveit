@@ -57,7 +57,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(CollisionGeometryData);
+MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 
 struct CollisionGeometryData
 {
@@ -177,7 +177,7 @@ struct DistanceData
   bool done;
 };
 
-MOVEIT_CLASS_FORWARD(FCLGeometry);
+MOVEIT_STRUCT_FORWARD(FCLGeometry);
 
 struct FCLGeometry
 {

@@ -79,15 +79,15 @@ class ModelBasedPlanningContext : public planning_interface::PlanningContext
 public:
   ModelBasedPlanningContext(const std::string& name, const ModelBasedPlanningContextSpecification& spec);
 
-  virtual ~ModelBasedPlanningContext()
+  ~ModelBasedPlanningContext() override
   {
   }
 
-  virtual bool solve(planning_interface::MotionPlanResponse& res);
-  virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);
+  bool solve(planning_interface::MotionPlanResponse& res) override;
+  bool solve(planning_interface::MotionPlanDetailedResponse& res) override;
 
-  virtual void clear();
-  virtual bool terminate();
+  void clear() override;
+  bool terminate() override;
 
   const ModelBasedPlanningContextSpecification& getSpecification() const
   {

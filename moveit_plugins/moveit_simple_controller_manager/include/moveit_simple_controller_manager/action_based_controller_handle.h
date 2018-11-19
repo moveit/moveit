@@ -106,7 +106,7 @@ public:
     return static_cast<bool>(controller_action_client_);
   }
 
-  virtual bool cancelExecution()
+  bool cancelExecution() override
   {
     if (!controller_action_client_)
       return false;
@@ -120,24 +120,24 @@ public:
     return true;
   }
 
-  virtual bool waitForExecution(const ros::Duration& timeout = ros::Duration(0))
+  bool waitForExecution(const ros::Duration& timeout = ros::Duration(0)) override
   {
     if (controller_action_client_ && !done_)
       return controller_action_client_->waitForResult(timeout);
     return true;
   }
 
-  virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus()
+  moveit_controller_manager::ExecutionStatus getLastExecutionStatus() override
   {
     return last_exec_;
   }
 
-  virtual void addJoint(const std::string& name)
+  void addJoint(const std::string& name) override
   {
     joints_.push_back(name);
   }
 
-  virtual void getJoints(std::vector<std::string>& joints)
+  void getJoints(std::vector<std::string>& joints) override
   {
     joints = joints_;
   }

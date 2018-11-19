@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/move_group/capability_names.h>
@@ -313,8 +314,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
-#ifdef ROS_KINETIC
-      std::shared_ptr<tf2_ros::Buffer> tf_buffer = PlanningSceneDisplay::getTF2BufferPtr();
+#ifdef RVIZ_TF1
+      std::shared_ptr<tf2_ros::Buffer> tf_buffer = moveit::planning_interface::getSharedTF();
 #else
       std::shared_ptr<tf2_ros::Buffer> tf_buffer = context_->getFrameManager()->getTF2BufferPtr();
 #endif

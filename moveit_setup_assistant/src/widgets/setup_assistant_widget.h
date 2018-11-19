@@ -108,7 +108,7 @@ public:
    * Deconstructor
    *
    */
-  ~SetupAssistantWidget();
+  ~SetupAssistantWidget() override;
 
   /**
    * Changes viewable screen
@@ -121,7 +121,7 @@ public:
    * Qt close event function for reminding user to save
    * @param event A Qt paramenter
    */
-  void closeEvent(QCloseEvent* event);
+  void closeEvent(QCloseEvent* event) override;
 
   /**
    * Qt error handling function

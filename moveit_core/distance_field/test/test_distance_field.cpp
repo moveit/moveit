@@ -57,9 +57,6 @@ static const double ORIGIN_Y = 0.0;
 static const double ORIGIN_Z = 0.0;
 static const double max_dist = 0.3;
 
-static const int MAX_DIST_IN_VOXELS = max_dist / resolution + 0.5;
-static const int MAX_DIST_SQ_IN_VOXELS = MAX_DIST_IN_VOXELS * MAX_DIST_IN_VOXELS;
-
 static const Eigen::Vector3d point1(0.1, 0.0, 0.0);
 static const Eigen::Vector3d POINT2(0.0, 0.1, 0.2);
 static const Eigen::Vector3d POINT3(0.4, 0.0, 0.0);

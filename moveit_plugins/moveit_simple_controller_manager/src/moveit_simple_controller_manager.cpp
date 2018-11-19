@@ -169,14 +169,14 @@ public:
     }
   }
 
-  virtual ~MoveItSimpleControllerManager()
+  ~MoveItSimpleControllerManager() override
   {
   }
 
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml
    */
-  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
+  moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name) override
   {
     std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -189,7 +189,7 @@ public:
   /*
    * Get the list of controller names.
    */
-  virtual void getControllersList(std::vector<std::string>& names)
+  void getControllersList(std::vector<std::string>& names) override
   {
     for (std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.begin();
          it != controllers_.end(); ++it)
@@ -201,7 +201,7 @@ public:
    * This plugin assumes that all controllers are already active -- and if they are not, well, it has no way to deal
    * with it anyways!
    */
-  virtual void getActiveControllers(std::vector<std::string>& names)
+  void getActiveControllers(std::vector<std::string>& names) override
   {
     getControllersList(names);
   }
@@ -217,7 +217,7 @@ public:
   /*
    * Get the list of joints that a controller can control.
    */
-  virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints)
+  void getControllerJoints(const std::string& name, std::vector<std::string>& joints) override
   {
     std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -236,8 +236,8 @@ public:
   /*
    * Controllers are all active and default -- that's what makes this thing simple.
    */
-  virtual moveit_controller_manager::MoveItControllerManager::ControllerState
-  getControllerState(const std::string& name)
+  moveit_controller_manager::MoveItControllerManager::ControllerState
+  getControllerState(const std::string& name) override
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = true;
@@ -246,7 +246,7 @@ public:
   }
 
   /* Cannot switch our controllers */
-  virtual bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate)
+  bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
   {
     return false;
   }

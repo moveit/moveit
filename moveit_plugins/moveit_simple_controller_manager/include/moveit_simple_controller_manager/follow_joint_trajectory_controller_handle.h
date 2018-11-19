@@ -56,7 +56,7 @@ public:
   {
   }
 
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory)
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) override
   {
     ROS_DEBUG_STREAM_NAMED("FollowJointTrajectoryController", "new trajectory to " << name_);
 

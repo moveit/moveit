@@ -1050,7 +1050,7 @@ public:
     : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
   {
   }
-  operator const srdf::Model::DisabledCollision() const
+  operator const srdf::Model::DisabledCollision&() const
   {
     return dc_;
   }

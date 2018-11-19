@@ -88,15 +88,15 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
 public:
   MotionPlanningDisplay();
 
-  virtual ~MotionPlanningDisplay();
+  ~MotionPlanningDisplay() override;
 
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
+  void load(const rviz::Config& config) override;
+  void save(rviz::Config config) const override;
 
-  virtual void update(float wall_dt, float ros_dt);
-  virtual void reset();
+  void update(float wall_dt, float ros_dt) override;
+  void reset() override;
 
-  void setName(const QString& name);
+  void setName(const QString& name) override;
 
   robot_state::RobotStateConstPtr getQueryStartState() const
   {
@@ -186,9 +186,9 @@ protected:
     OUTSIDE_BOUNDS_LINK
   };
 
-  virtual void onRobotModelLoaded();
-  virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
-  virtual void updateInternal(float wall_dt, float ros_dt);
+  void onRobotModelLoaded() override;
+  void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type) override;
+  void updateInternal(float wall_dt, float ros_dt) override;
 
   void renderWorkspaceBox();
   void updateLinkColors();
@@ -226,10 +226,10 @@ protected:
   void selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg);
 
   // overrides from Display
-  virtual void onInitialize();
-  virtual void onEnable();
-  virtual void onDisable();
-  virtual void fixedFrameChanged();
+  void onInitialize() override;
+  void onEnable() override;
+  void onDisable() override;
+  void fixedFrameChanged() override;
 
   RobotStateVisualizationPtr query_robot_start_;  ///< Handles drawing the robot at the start configuration
   RobotStateVisualizationPtr query_robot_goal_;   ///< Handles drawing the robot at the goal configuration

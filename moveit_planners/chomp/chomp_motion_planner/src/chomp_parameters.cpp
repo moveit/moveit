@@ -74,12 +74,6 @@ ChompParameters::~ChompParameters()
 {
 }
 
-ChompParameters ChompParameters::getNonConstParams(ChompParameters params)
-{
-  ChompParameters non_const;
-  non_const = params;
-  return non_const;
-}
 void ChompParameters::setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit,
                                         int max_iterations)
 {

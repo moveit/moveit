@@ -45,8 +45,8 @@ class RotatedHeaderView : public QHeaderView
 {
 public:
   RotatedHeaderView(Qt::Orientation orientation, QWidget* parent = NULL);
-  void paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const;
-  QSize sectionSizeFromContents(int logicalIndex) const;
+  void paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const override;
+  QSize sectionSizeFromContents(int logicalIndex) const override;
   int sectionSizeHint(int logicalIndex) const;
 };
 }

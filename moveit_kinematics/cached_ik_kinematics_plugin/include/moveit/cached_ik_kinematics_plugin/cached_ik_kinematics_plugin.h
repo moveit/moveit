@@ -188,7 +188,7 @@ public:
 
   CachedIKKinematicsPlugin();
 
-  ~CachedIKKinematicsPlugin();
+  ~CachedIKKinematicsPlugin() override;
 
   // virtual methods that need to be wrapped:
 

@@ -49,6 +49,10 @@ MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
 class CollisionDetectorAllocator
 {
 public:
+  virtual ~CollisionDetectorAllocator()
+  {
+  }
+
   /** A unique name identifying the CollisionWorld/CollisionRobot pairing. */
   virtual const std::string& getName() const = 0;
 
@@ -72,27 +76,27 @@ template <class CollisionWorldType, class CollisionRobotType, class CollisionDet
 class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
 {
 public:
-  virtual const std::string& getName() const
+  const std::string& getName() const override
   {
     return CollisionDetectorAllocatorType::NAME_;
   }
 
-  virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const
+  CollisionWorldPtr allocateWorld(const WorldPtr& world) const override
   {
     return CollisionWorldPtr(new CollisionWorldType(world));
   }
 
-  virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const
+  CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const override
   {
     return CollisionWorldPtr(new CollisionWorldType(dynamic_cast<const CollisionWorldType&>(*orig), world));
   }
 
-  virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const
+  CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const override
   {
     return CollisionRobotPtr(new CollisionRobotType(robot_model));
   }
 
-  virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const
+  CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const override
   {
     return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
   }

@@ -50,9 +50,9 @@ public:
   {
   }
 
-  virtual bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position,
-                                 Ogre::Quaternion& visual_orientation, Ogre::Vector3& collision_position,
-                                 Ogre::Quaternion& collision_orientation) const;
+  bool getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position,
+                         Ogre::Quaternion& visual_orientation, Ogre::Vector3& collision_position,
+                         Ogre::Quaternion& collision_orientation) const override;
 
 private:
   robot_state::RobotStateConstPtr kinematic_state_;
