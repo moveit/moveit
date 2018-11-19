@@ -54,9 +54,8 @@
 #include <fstream>  // for reading in urdf
 #include <streambuf>
 // Boost
-#include <boost/algorithm/string.hpp>  // for trimming whitespace from user input
-#include <boost/filesystem.hpp>        // for reading folders/files
-#include <boost/algorithm/string.hpp>  // for string find and replace in paths
+#include <boost/filesystem/path.hpp>        // for reading folders/files
+#include <boost/filesystem/operations.hpp>  // for reading folders/files
 // MoveIt
 #include <moveit/rdf_loader/rdf_loader.h>
 

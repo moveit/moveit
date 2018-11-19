@@ -37,7 +37,6 @@
 #ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
 
-#include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QTableView>
@@ -53,13 +52,11 @@
 #include <QAction>
 
 #ifndef Q_MOC_RUN
-#include <boost/thread.hpp>
-#include <boost/function.hpp>
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>
+#include <boost/thread/thread.hpp>
+#include <boost/function/function_fwd.hpp>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include "header_widget.h"
 #include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant

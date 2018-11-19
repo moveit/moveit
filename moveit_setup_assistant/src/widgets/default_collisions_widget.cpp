@@ -46,6 +46,7 @@
 #include <QMenu>
 
 #include "default_collisions_widget.h"
+#include "header_widget.h"
 #include "../tools/collision_matrix_model.h"
 #include "../tools/collision_linear_model.h"
 #include "../tools/rotated_header_view.h"
