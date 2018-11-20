@@ -1046,8 +1046,8 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
   {
     if (link_models[i]->getShapes().empty())
     {
-      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName() << " since it contains no "
-                                                                                            "geometries");
+      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName()
+                                                            << " since it contains no geometries");
       continue;
     }
 
