@@ -145,9 +145,10 @@ PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePt
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
-    const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
-    const ros::NodeHandle& nh, const boost::shared_ptr<tf::Transformer>& tf, const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                                           const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+                                           const ros::NodeHandle& nh, const boost::shared_ptr<tf::Transformer>& tf,
+                                           const std::string& name)
   : monitor_name_(name), nh_("~"), root_nh_(nh), tf_(tf), rm_loader_(rm_loader)
 {
   // use same callback queue as root_nh_
@@ -1422,5 +1423,6 @@ void PlanningSceneMonitor::configureDefaultPadding()
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_scale_.size() << " default link scales");
+}
 }
 }  // namespace planning_scene_monitor
