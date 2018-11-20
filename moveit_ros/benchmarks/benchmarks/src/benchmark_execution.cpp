@@ -529,8 +529,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string& filen
                                           boost::program_options::value<std::string>()->default_value(""),
                                           "Override the planning frame to use")(
         "scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
-        "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints "
-        "message")("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"),
+        "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"),
                    "Goal offset in x")(
         "scene.goal_offset_y", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in y")(
         "scene.goal_offset_z", boost::program_options::value<std::string>()->default_value("0.0"),
