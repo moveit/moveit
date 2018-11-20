@@ -93,6 +93,21 @@ void RobotTrajectory::append(const RobotTrajectory& source, double dt)
     duration_from_previous_[index] += dt;
 }
 
+void RobotTrajectory::append(const RobotTrajectory& source, double dt, size_t start_index, size_t end_index)
+{
+  end_index = std::min(end_index, source.waypoints_.size());
+  if (start_index >= end_index)
+    return;
+  waypoints_.insert(waypoints_.end(), std::next(source.waypoints_.begin(), start_index),
+                    std::next(source.waypoints_.begin(), end_index));
+  std::size_t index = duration_from_previous_.size();
+  duration_from_previous_.insert(duration_from_previous_.end(),
+                                 std::next(source.duration_from_previous_.begin(), start_index),
+                                 std::next(source.duration_from_previous_.begin(), end_index));
+  if (duration_from_previous_.size() > index)
+    duration_from_previous_[index] += dt;
+}
+
 void RobotTrajectory::reverse()
 {
   std::reverse(waypoints_.begin(), waypoints_.end());
