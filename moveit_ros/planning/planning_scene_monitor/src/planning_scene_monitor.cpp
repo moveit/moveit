@@ -104,43 +104,38 @@ private:
   PlanningSceneMonitor* owner_;
   dynamic_reconfigure::Server<PlanningSceneMonitorDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
-}
 
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC = "joint_states";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC =
-    "attached_collision_object";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "collision_object";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "planning_scene_world";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "planning_scene";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE = "get_planning_scene";
-const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
+const std::string PlanningSceneMonitor::DEFAULT_JOINT_STATES_TOPIC = "joint_states";
+const std::string PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC = "attached_collision_object";
+const std::string PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "collision_object";
+const std::string PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "planning_scene_world";
+const std::string PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "planning_scene";
+const std::string PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE = "get_planning_scene";
+const std::string PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string& robot_description,
-                                                                   const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                                                                   const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const std::string& robot_description,
+                                           const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
   : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), robot_description, tf_buffer, name)
 {
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
-                                                                   const std::string& robot_description,
-                                                                   const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                                                                   const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                                           const std::string& robot_description,
+                                           const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
   : PlanningSceneMonitor(scene, std::make_shared<robot_model_loader::RobotModelLoader>(robot_description), tf_buffer,
                          name)
 {
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
-    const robot_model_loader::RobotModelLoaderPtr& rm_loader, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-    const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+                                           const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
   : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), rm_loader, tf_buffer, name)
 {
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
-    const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
-    const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                                           const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+                                           const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
   : monitor_name_(name), nh_("~"), tf_buffer_(tf_buffer), rm_loader_(rm_loader)
 {
   root_nh_.setCallbackQueue(&queue_);
@@ -150,9 +145,10 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
-    const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
-    const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& name)
+PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
+                                           const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+                                           const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+                                           const std::string& name)
   : monitor_name_(name), nh_("~"), root_nh_(nh), tf_buffer_(tf_buffer), rm_loader_(rm_loader)
 {
   // use same callback queue as root_nh_
@@ -160,7 +156,7 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
   initialize(scene);
 }
 
-planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
+PlanningSceneMonitor::~PlanningSceneMonitor()
 {
   if (scene_)
   {
@@ -182,7 +178,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   rm_loader_.reset();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& scene)
+void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& scene)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
@@ -262,7 +258,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
+void PlanningSceneMonitor::monitorDiffs(bool flag)
 {
   if (scene_)
   {
@@ -309,7 +305,7 @@ void planning_scene_monitor::PlanningSceneMonitor::monitorDiffs(bool flag)
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene()
+void PlanningSceneMonitor::stopPublishingPlanningScene()
 {
   if (publish_planning_scene_)
   {
@@ -323,8 +319,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene()
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(SceneUpdateType update_type,
-                                                                                const std::string& planning_scene_topic)
+void PlanningSceneMonitor::startPublishingPlanningScene(SceneUpdateType update_type,
+                                                        const std::string& planning_scene_topic)
 {
   publish_update_types_ = update_type;
   if (!publish_planning_scene_ && scene_)
@@ -336,7 +332,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startPublishingPlanningScene(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
+void PlanningSceneMonitor::scenePublishingThread()
 {
   ROS_DEBUG_NAMED(LOGNAME, "Started scene publishing thread ...");
 
@@ -419,7 +415,7 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
   } while (publish_planning_scene_);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string>& topics) const
+void PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string>& topics) const
 {
   topics.clear();
   if (current_state_monitor_)
@@ -449,18 +445,17 @@ bool sceneIsParentOf(const planning_scene::PlanningSceneConstPtr& scene,
 }
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(const planning_scene::PlanningScenePtr& scene) const
+bool PlanningSceneMonitor::updatesScene(const planning_scene::PlanningScenePtr& scene) const
 {
   return sceneIsParentOf(scene_const_, scene.get());
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(
-    const planning_scene::PlanningSceneConstPtr& scene) const
+bool PlanningSceneMonitor::updatesScene(const planning_scene::PlanningSceneConstPtr& scene) const
 {
   return sceneIsParentOf(scene_const_, scene.get());
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(SceneUpdateType update_type)
+void PlanningSceneMonitor::triggerSceneUpdateEvent(SceneUpdateType update_type)
 {
   // do not modify update functions while we are calling them
   boost::recursive_mutex::scoped_lock lock(update_lock_);
@@ -471,7 +466,7 @@ void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(Scene
   new_scene_update_condition_.notify_all();
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_name)
+bool PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_name)
 {
   // use global namespace for service
   ros::ServiceClient client = ros::NodeHandle().serviceClient<moveit_msgs::GetPlanningScene>(service_name);
@@ -503,20 +498,19 @@ bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(con
   return true;
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(
-    const moveit_msgs::PlanningSceneConstPtr& scene)
+void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr& scene)
 {
   newPlanningSceneMessage(*scene);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::clearOctomap()
+void PlanningSceneMonitor::clearOctomap()
 {
   octomap_monitor_->getOcTreePtr()->lockWrite();
   octomap_monitor_->getOcTreePtr()->clear();
   octomap_monitor_->getOcTreePtr()->unlockWrite();
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
+bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
 {
   if (!scene_)
     return false;
@@ -596,8 +590,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
   return result;
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback(
-    const moveit_msgs::PlanningSceneWorldConstPtr& world)
+void PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr& world)
 {
   if (scene_)
   {
@@ -621,16 +614,15 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::collisionObjectFailTFCallback(
-    const moveit_msgs::CollisionObjectConstPtr& obj, tf2_ros::filter_failure_reasons::FilterFailureReason reason)
+void PlanningSceneMonitor::collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr& obj,
+                                                         tf2_ros::filter_failure_reasons::FilterFailureReason reason)
 {
   // if we just want to remove objects, the frame does not matter
   if (reason == tf2_ros::filter_failure_reasons::EmptyFrameID && obj->operation == moveit_msgs::CollisionObject::REMOVE)
     collisionObjectCallback(obj);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(
-    const moveit_msgs::CollisionObjectConstPtr& obj)
+void PlanningSceneMonitor::collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr& obj)
 {
   if (!scene_)
   {
@@ -646,8 +638,7 @@ void planning_scene_monitor::PlanningSceneMonitor::collisionObjectCallback(
   triggerSceneUpdateEvent(UPDATE_GEOMETRY);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(
-    const moveit_msgs::AttachedCollisionObjectConstPtr& obj)
+void PlanningSceneMonitor::attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr& obj)
 {
   if (scene_)
   {
@@ -661,7 +652,7 @@ void planning_scene_monitor::PlanningSceneMonitor::attachObjectCallback(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
+void PlanningSceneMonitor::excludeRobotLinksFromOctree()
 {
   if (!octomap_monitor_)
     return;
@@ -697,7 +688,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::includeRobotLinksInOctree()
+void PlanningSceneMonitor::includeRobotLinksInOctree()
 {
   if (!octomap_monitor_)
     return;
@@ -710,7 +701,7 @@ void planning_scene_monitor::PlanningSceneMonitor::includeRobotLinksInOctree()
   link_shape_handles_.clear();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodiesInOctree()
+void PlanningSceneMonitor::includeAttachedBodiesInOctree()
 {
   if (!octomap_monitor_)
     return;
@@ -725,7 +716,7 @@ void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodiesInOctree
   attached_body_shape_handles_.clear();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::excludeAttachedBodiesFromOctree()
+void PlanningSceneMonitor::excludeAttachedBodiesFromOctree()
 {
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
@@ -737,7 +728,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeAttachedBodiesFromOctr
     excludeAttachedBodyFromOctree(ab[i]);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::includeWorldObjectsInOctree()
+void PlanningSceneMonitor::includeWorldObjectsInOctree()
 {
   if (!octomap_monitor_)
     return;
@@ -752,7 +743,7 @@ void planning_scene_monitor::PlanningSceneMonitor::includeWorldObjectsInOctree()
   collision_body_shape_handles_.clear();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectsFromOctree()
+void PlanningSceneMonitor::excludeWorldObjectsFromOctree()
 {
   boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
@@ -762,8 +753,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectsFromOctree
     excludeWorldObjectFromOctree(it->second);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::excludeAttachedBodyFromOctree(
-    const robot_state::AttachedBody* attached_body)
+void PlanningSceneMonitor::excludeAttachedBodyFromOctree(const robot_state::AttachedBody* attached_body)
 {
   if (!octomap_monitor_)
     return;
@@ -785,8 +775,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeAttachedBodyFromOctree
     ROS_DEBUG_NAMED(LOGNAME, "Excluding attached body '%s' from monitored octomap", attached_body->getName().c_str());
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodyInOctree(
-    const robot_state::AttachedBody* attached_body)
+void PlanningSceneMonitor::includeAttachedBodyInOctree(const robot_state::AttachedBody* attached_body)
 {
   if (!octomap_monitor_)
     return;
@@ -803,8 +792,7 @@ void planning_scene_monitor::PlanningSceneMonitor::includeAttachedBodyInOctree(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectFromOctree(
-    const collision_detection::World::ObjectConstPtr& obj)
+void PlanningSceneMonitor::excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr& obj)
 {
   if (!octomap_monitor_)
     return;
@@ -827,8 +815,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeWorldObjectFromOctree(
     ROS_DEBUG_NAMED(LOGNAME, "Excluding collision object '%s' from monitored octomap", obj->id_.c_str());
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::includeWorldObjectInOctree(
-    const collision_detection::World::ObjectConstPtr& obj)
+void PlanningSceneMonitor::includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr& obj)
 {
   if (!octomap_monitor_)
     return;
@@ -845,8 +832,8 @@ void planning_scene_monitor::PlanningSceneMonitor::includeWorldObjectInOctree(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback(
-    robot_state::AttachedBody* attached_body, bool just_attached)
+void PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody* attached_body,
+                                                                  bool just_attached)
 {
   if (!octomap_monitor_)
     return;
@@ -857,8 +844,8 @@ void planning_scene_monitor::PlanningSceneMonitor::currentStateAttachedBodyUpdat
     includeAttachedBodyInOctree(attached_body);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::currentWorldObjectUpdateCallback(
-    const collision_detection::World::ObjectConstPtr& obj, collision_detection::World::Action action)
+void PlanningSceneMonitor::currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& obj,
+                                                            collision_detection::World::Action action)
 {
   if (!octomap_monitor_)
     return;
@@ -876,7 +863,7 @@ void planning_scene_monitor::PlanningSceneMonitor::currentWorldObjectUpdateCallb
   }
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(const ros::Time& t, double wait_time)
+bool PlanningSceneMonitor::waitForCurrentRobotState(const ros::Time& t, double wait_time)
 {
   if (t.isZero())
     return false;
@@ -933,35 +920,35 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   return success;
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
+void PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->lockRead();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead()
+void PlanningSceneMonitor::unlockSceneRead()
 {
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->unlockRead();
   scene_update_mutex_.unlock_shared();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
+void PlanningSceneMonitor::lockSceneWrite()
 {
   scene_update_mutex_.lock();
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->lockWrite();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite()
+void PlanningSceneMonitor::unlockSceneWrite()
 {
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->unlockWrite();
   scene_update_mutex_.unlock();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string& scene_topic)
+void PlanningSceneMonitor::startSceneMonitor(const std::string& scene_topic)
 {
   stopSceneMonitor();
 
@@ -975,7 +962,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
+void PlanningSceneMonitor::stopSceneMonitor()
 {
   if (planning_scene_subscriber_)
   {
@@ -984,9 +971,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopSceneMonitor()
   }
 }
 
-bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(
-    const std::string& target_frame, const ros::Time& target_time,
-    occupancy_map_monitor::ShapeTransformCache& cache) const
+bool PlanningSceneMonitor::getShapeTransformCache(const std::string& target_frame, const ros::Time& target_time,
+                                                  occupancy_map_monitor::ShapeTransformCache& cache) const
 {
   if (!tf_buffer_)
     return false;
@@ -1032,9 +1018,9 @@ bool planning_scene_monitor::PlanningSceneMonitor::getShapeTransformCache(
   return true;
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(
-    const std::string& collision_objects_topic, const std::string& planning_scene_world_topic,
-    const bool load_octomap_monitor)
+void PlanningSceneMonitor::startWorldGeometryMonitor(const std::string& collision_objects_topic,
+                                                     const std::string& planning_scene_world_topic,
+                                                     const bool load_octomap_monitor)
 {
   stopWorldGeometryMonitor();
   ROS_INFO_NAMED(LOGNAME, "Starting world geometry update monitor for collision objects, attached objects, octomap "
@@ -1090,7 +1076,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
+void PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
   if (collision_object_subscriber_ || collision_object_filter_)
   {
@@ -1108,8 +1094,8 @@ void planning_scene_monitor::PlanningSceneMonitor::stopWorldGeometryMonitor()
     octomap_monitor_->stopMonitor();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::string& joint_states_topic,
-                                                                     const std::string& attached_objects_topic)
+void PlanningSceneMonitor::startStateMonitor(const std::string& joint_states_topic,
+                                             const std::string& attached_objects_topic)
 {
   stopStateMonitor();
   if (scene_)
@@ -1138,7 +1124,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     ROS_ERROR_NAMED(LOGNAME, "Cannot monitor robot state because planning scene is not configured");
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor()
+void PlanningSceneMonitor::stopStateMonitor()
 {
   if (current_state_monitor_)
     current_state_monitor_->stopStateMonitor();
@@ -1153,8 +1139,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor()
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(
-    const sensor_msgs::JointStateConstPtr& /* joint_state */)
+void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& /* joint_state */)
 {
   const ros::WallTime& n = ros::WallTime::now();
   ros::WallDuration dt = n - last_robot_state_update_wall_time_;
@@ -1179,7 +1164,7 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(
     updateSceneWithCurrentState();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& event)
+void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& event)
 {
   if (state_update_pending_)
   {
@@ -1210,7 +1195,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback()
+void PlanningSceneMonitor::octomapUpdateCallback()
 {
   if (!octomap_monitor_)
     return;
@@ -1234,7 +1219,7 @@ void planning_scene_monitor::PlanningSceneMonitor::octomapUpdateCallback()
   triggerSceneUpdateEvent(UPDATE_GEOMETRY);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(double hz)
+void PlanningSceneMonitor::setStateUpdateFrequency(double hz)
 {
   bool update = false;
   if (hz > std::numeric_limits<double>::epsilon())
@@ -1259,7 +1244,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(doubl
     updateSceneWithCurrentState();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
+void PlanningSceneMonitor::updateSceneWithCurrentState()
 {
   if (current_state_monitor_)
   {
@@ -1285,28 +1270,27 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "State monitor is not active. Unable to set the planning scene state");
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)>& fn)
+void PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)>& fn)
 {
   boost::recursive_mutex::scoped_lock lock(update_lock_);
   if (fn)
     update_callbacks_.push_back(fn);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::clearUpdateCallbacks()
+void PlanningSceneMonitor::clearUpdateCallbacks()
 {
   boost::recursive_mutex::scoped_lock lock(update_lock_);
   update_callbacks_.clear();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::setPlanningScenePublishingFrequency(double hz)
+void PlanningSceneMonitor::setPlanningScenePublishingFrequency(double hz)
 {
   publish_planning_scene_frequency_ = hz;
   ROS_DEBUG_NAMED(LOGNAME, "Maximum frquency for publishing a planning scene is now %lf Hz",
                   publish_planning_scene_frequency_);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(
-    std::vector<geometry_msgs::TransformStamped>& transforms)
+void PlanningSceneMonitor::getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped>& transforms)
 {
   const std::string& target = getRobotModel()->getModelFrame();
 
@@ -1335,7 +1319,7 @@ void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
+void PlanningSceneMonitor::updateFrameTransforms()
 {
   if (!tf_buffer_)
     return;
@@ -1353,14 +1337,13 @@ void planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms()
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::publishDebugInformation(bool flag)
+void PlanningSceneMonitor::publishDebugInformation(bool flag)
 {
   if (octomap_monitor_)
     octomap_monitor_->publishDebugInformation(flag);
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(
-    const planning_scene::PlanningScenePtr& scene)
+void PlanningSceneMonitor::configureCollisionMatrix(const planning_scene::PlanningScenePtr& scene)
 {
   if (!scene || robot_description_.empty())
     return;
@@ -1403,7 +1386,7 @@ void planning_scene_monitor::PlanningSceneMonitor::configureCollisionMatrix(
   }
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
+void PlanningSceneMonitor::configureDefaultPadding()
 {
   if (robot_description_.empty())
   {
@@ -1429,4 +1412,5 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_scale_.size() << " default link scales");
+}
 }
