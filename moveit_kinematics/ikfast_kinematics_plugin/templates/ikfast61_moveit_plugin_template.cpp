@@ -591,8 +591,8 @@ int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<doub
       return solutions.GetNumSolutions();
 
     default:
-      ROS_ERROR_NAMED(name_, "Unknown IkParameterizationType! Was the solver generated with an incompatible version "
-                             "of Openrave?");
+      ROS_ERROR_NAMED(name_, "Unknown IkParameterizationType! "
+                             "Was the solver generated with an incompatible version of Openrave?");
       return 0;
   }
 }

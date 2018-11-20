@@ -150,8 +150,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   {
     if (!(trajectory.fillInFromTrajectory(res)))
     {
-      ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, trajectory must contain "
-                                              "atleast start and goal state");
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, "
+                                              "trajectory must contain at least start and goal state");
       return false;
     }
   }

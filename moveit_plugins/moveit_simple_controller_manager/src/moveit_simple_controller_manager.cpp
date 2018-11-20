@@ -91,8 +91,8 @@ public:
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
-          ROS_ERROR_STREAM_NAMED("manager", "The list of joints for controller " << name << " is not specified as an "
-                                                                                            "array");
+          ROS_ERROR_STREAM_NAMED("manager", "The list of joints for controller " << name
+                                                                                 << " is not specified as an array");
           continue;
         }
 
@@ -114,8 +114,7 @@ public:
             {
               if (controller_list[i]["joints"].size() != 2)
               {
-                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two "
-                                                  "joints");
+                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two joints");
                 continue;
               }
               static_cast<GripperControllerHandle*>(new_handle.get())
