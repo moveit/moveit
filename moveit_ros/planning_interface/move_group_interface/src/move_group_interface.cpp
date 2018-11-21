@@ -50,7 +50,6 @@
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/ExecuteTrajectoryAction.h>
 #include <moveit_msgs/PlaceAction.h>
@@ -61,7 +60,6 @@
 #include <moveit_msgs/GetPlannerParams.h>
 #include <moveit_msgs/SetPlannerParams.h>
 
-#include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
 #include <tf/transform_listener.h>
@@ -329,6 +327,11 @@ public:
   const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return joint_model_group_;
+  }
+
+  const std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > getMoveActionClient() const
+  {
+    return move_action_client_;
   }
 
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc)
@@ -1309,7 +1312,7 @@ private:
   boost::shared_ptr<tf::Transformer> tf_;
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
-  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
+  std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
@@ -1500,6 +1503,12 @@ void moveit::planning_interface::MoveGroupInterface::setMaxAccelerationScalingFa
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::asyncMove()
 {
   return impl_->move(false);
+}
+
+const std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> >
+moveit::planning_interface::MoveGroupInterface::getMoveActionClient()
+{
+  return impl_->getMoveActionClient();
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::move()
