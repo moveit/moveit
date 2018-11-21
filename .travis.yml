@@ -19,7 +19,7 @@ env:
     - ROS_DISTRO=melodic ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
 
-matrix: # Add a separate config to the matrix, using clang as comiler
+matrix: # Add a separate config to the matrix, using clang as compiler
   include:
     - env: ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
       compiler: clang
