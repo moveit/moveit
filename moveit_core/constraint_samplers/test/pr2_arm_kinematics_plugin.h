@@ -193,8 +193,8 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
   bool searchPositionIK(
-      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-      std::vector<double>& solution, const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   std::vector<double>& solution, const IKCallbackFn& solution_callback,
       const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
