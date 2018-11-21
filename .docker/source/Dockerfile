@@ -1,5 +1,5 @@
 # moveit/moveit:melodic-source
-# Downloads the moveit source code, install remaining debian dependencies, and builds workspace
+# Downloads the moveit source code and install remaining debian dependencies
 
 FROM moveit/moveit:melodic-ci-shadow-fixed
 MAINTAINER Dave Coleman dave@picknik.ai
@@ -22,9 +22,9 @@ RUN \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     rm -rf /var/lib/apt/lists/*
 
-# Build repo
+# Configure catkin workspace, but do not build because Docker times out
 ENV PYTHONIOENCODING UTF-8
-RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-    # Status rate is limited so that just enough info is shown to keep Docker from timing out, but not too much
-    # such that the Docker log gets too long (another form of timeout)
-    catkin build --jobs 1 --limit-status-rate 0.001 --no-notify
+RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release
+    # Status rate is limited so that just enough info is shown to keep Docker from timing out,
+    # but not too much such that the Docker log gets too long (another form of timeout)
+    # catkin build --limit-status-rate 0.001 --no-notify
