@@ -161,8 +161,8 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
         }
         else
         {
-          QMessageBox::warning(this, "Warning", "Not connected to a database. The state will be created but not "
-                                                "stored");
+          QMessageBox::warning(this, "Warning",
+                               "Not connected to a database. The state will be created but not stored");
         }
       }
     }
