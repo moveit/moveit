@@ -101,7 +101,7 @@ PR2ArmIKSolver::PR2ArmIKSolver(const urdf::ModelInterface& robot_model, const st
 int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init, const KDL::Frame& p_in, KDL::JntArray& q_out)
 {
   const bool verbose = false;
-  Eigen::Matrix4f b = KDLToEigenMatrix(p_in);
+  Eigen::Affine3f b = KDLToEigenMatrix(p_in);
   std::vector<std::vector<double> > solution_ik;
   if (free_angle_ == 0)
   {
@@ -216,9 +216,9 @@ bool getKDLChain(const urdf::ModelInterface& model, const std::string& root_name
   return true;
 }
 
-Eigen::Matrix4f KDLToEigenMatrix(const KDL::Frame& p)
+Eigen::Affine3f KDLToEigenMatrix(const KDL::Frame& p)
 {
-  Eigen::Matrix4f b = Eigen::Matrix4f::Identity();
+  Eigen::Affine3f b = Eigen::Affine3f::Identity();
   for (int i = 0; i < 3; i++)
   {
     for (int j = 0; j < 3; j++)
@@ -256,9 +256,7 @@ PR2ArmKinematicsPlugin::PR2ArmKinematicsPlugin() : active_(false)
 
 bool PR2ArmKinematicsPlugin::isActive()
 {
-  if (active_)
-    return true;
-  return false;
+  return active_;
 }
 
 void PR2ArmKinematicsPlugin::setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model)
@@ -276,7 +274,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, co
   dimension_ = 7;
 
   ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "Loading KDL Tree");
-  if (!getKDLChain(*robot_model_.get(), base_frame_, tip_frame_, kdl_chain_))
+  if (!getKDLChain(*robot_model_, base_frame_, tip_frame_, kdl_chain_))
   {
     active_ = false;
     ROS_ERROR("Could not load kdl tree");
@@ -284,7 +282,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, co
   jnt_to_pose_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
   free_angle_ = 2;
 
-  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model_.get(), base_frame_, tip_frame_,
+  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model_, base_frame_, tip_frame_,
                                                                   search_discretization_, free_angle_));
   if (!pr2_arm_ik_solver_->active_)
   {

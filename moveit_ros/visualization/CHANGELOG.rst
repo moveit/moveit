@@ -2,6 +2,37 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* [maintenance] Store more settings of rviz' PlanningFrame (`#1135 <https://github.com/ros-planning/moveit/issues/1135>`_)
+* [code] cleanup, improvements (`#1141 <https://github.com/ros-planning/moveit/issues/1141>`_)
+* Contributors: Alexander Gutenkunst, Jonathan Hechtbauer, Robert Haschke
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [fix] build issue in boost/thread/mutex.hpp (`#1055 <https://github.com/ros-planning/moveit/issues/1055>`_)
+* [fix] optional namespace args (`#929 <https://github.com/ros-planning/moveit/issues/929>`_)
+* [maintenance] Python3 support (`#1103 <https://github.com/ros-planning/moveit/issues/1103>`_, `#1054 <https://github.com/ros-planning/moveit/issues/1054>`_)
+* [maintenance] add minimum required pluginlib version (`#927 <https://github.com/ros-planning/moveit/issues/927>`_)
+* Contributors: Michael Görner, Mikael Arguedas, Mohmmad Ayman, Robert Haschke, Timon Engelke, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+* [maintenance] Reduce vertical size of Rviz MotionPlanning Window (`#891 <https://github.com/ros-planning/moveit/issues/891>`_)
+* [feature] rviz plugin: set start/goal RobotState from external (`#823 <https://github.com/ros-planning/moveit/issues/823>`_)
+  - /rviz/moveit/update_custom_start_state
+  - /rviz/moveit/update_custom_goal_state
+  stopping from external:
+  - /rviz/moveit/stop
+* [feature] namespace capabilities for moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+* [fix] consider shape transform for OcTree
+* [fix] realtime trajectory display (`#761 <https://github.com/ros-planning/moveit/issues/761>`_)
+* Contributors: Alexander Rössler, Dave Coleman, Ian McMahon, Mikael Arguedas, Pan Hy, Phy, Robert Haschke, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -41,8 +72,8 @@ Changelog for package moveit_ros_visualization
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)" 
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)"
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman, Isaac I.Y. Saito, Yannick Jonetzko
 
@@ -129,33 +160,16 @@ Changelog for package moveit_ros_visualization
 * fixing conflicts, renaming variable
 * Merge pull request `#612 <https://github.com/ros-planning/moveit_ros/issues/612>`_ from ubi-agni/interrupt-traj-vis
   interrupt trajectory visualization on arrival of new display trajectory
-* cherry-picked PR `#611 <https://github.com/ros-planning/moveit_ros/issues/611>`_
-  fix segfault when disabling and re-enabling TrajectoryVisualization
-* cherry-picked PR `#609 <https://github.com/ros-planning/moveit_ros/issues/609>`_
-  load / save rviz' workspace config
-  fixed tab order of rviz plugin widgets
-  use move_group/default_workspace_bounds as a fallback for workspace bounds
-* fixup! cleanup TrajectoryVisualization::update
-  only enter visualization loop when displaying_trajectory_message_ is defined
+* cherry-picked PR `#611 <https://github.com/ros-planning/moveit_ros/issues/611>`_: fix segfault when disabling and re-enabling TrajectoryVisualization
+* cherry-picked PR `#609 <https://github.com/ros-planning/moveit_ros/issues/609>`_: load / save rviz' workspace config
 * added missing initialization
 * correctly setAlpha for new trail
 * fixed race condition for trajectory-display interruption
-  - TrajectoryVisualization::update() switches to new trajectory
-  automatically when it has finished displaying the old one
-  - TrajectoryVisualization::interruptCurrentDisplay() might interrupt
-  this newly started trajectory
-  consequences:
-  - protect switching of trajectory with mutex
-  - interrupt only if trajectory display progressed past first waypoint
-  - removed obsolete signal timeToShowNewTrail:
-  update() automatically switches and updates trail in sync
 * cleanup TrajectoryVisualization::update
   simplified code to switch to new trajectory / start over animation in loop mode
 * new GUI property to allow immediate interruption of displayed trajectory
 * immediately show trajectory after planning (interrupting current display)
 * fix segfault when disabling and re-enabling TrajectoryVisualization
-  animating_path_ was still true causing update() to access
-  displaying_trajectory_message_, which was reset onDisable().
 * update pose of all markers when any marker moved
   Having several end-effector markers attached to a group (e.g. a multi-
   fingered hand having an end-effector per fingertip and an end-effector

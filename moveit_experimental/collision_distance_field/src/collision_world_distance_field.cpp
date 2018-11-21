@@ -71,8 +71,8 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world, 
                                                          double resolution, double collision_tolerance,
                                                          double max_propogation_distance)
   : CollisionWorld(world)
-  , size_(size_)
-  , origin_(origin_)
+  , size_(size)
+  , origin_(origin)
   , use_signed_distance_field_(use_signed_distance_field)
   , resolution_(resolution)
   , collision_tolerance_(collision_tolerance)
@@ -491,7 +491,8 @@ void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField
     self->distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
   }
 
-  logDebug("Modifying object %s took %lf s", obj->id_.c_str(), (ros::WallTime::now() - n).toSec());
+  ROS_DEBUG_NAMED("collision_distance_field", "Modifying object %s took %lf s", obj->id_.c_str(),
+                  (ros::WallTime::now() - n).toSec());
 }
 
 void CollisionWorldDistanceField::updateDistanceObject(const std::string& id, DistanceFieldCacheEntryPtr& dfce,

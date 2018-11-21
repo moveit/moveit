@@ -35,7 +35,8 @@
 from moveit_commander import MoveGroupCommander, MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
-import conversions
+from visualization_msgs.msg import MarkerArray
+import moveit_commander.conversions as conversions
 
 
 class RobotCommander(object):
@@ -144,8 +145,10 @@ class RobotCommander(object):
             """
             return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
 
-    def __init__(self, robot_description="robot_description"):
-        self._r = _moveit_robot_interface.RobotInterface(robot_description)
+    def __init__(self, robot_description="robot_description", ns=""):
+        self._robot_description = robot_description
+        self._ns = ns
+        self._r = _moveit_robot_interface.RobotInterface(robot_description, ns)
         self._groups = {}
         self._joint_owner_groups = {}
 
@@ -155,6 +158,32 @@ class RobotCommander(object):
         is maintained)
         """
         return self._r.get_planning_frame()
+
+    def get_robot_markers(self, *args):
+        """Get a MarkerArray of the markers that make up this robot
+
+        Usage:
+            (): get's all markers for current state
+            state (RobotState): gets markers for a particular state
+            values (dict): get markers with given values
+            values, links (dict, list): get markers with given values and these links
+            group (string):  get all markers for a group
+            group, values (string, dict): get all markers for a group with desired values
+        """
+        mrkr = MarkerArray()
+        if not args:
+            conversions.msg_from_string(mrkr, self._r.get_robot_markers())
+        else:
+            if isinstance(args[0], RobotState):
+                msg_str = conversions.msg_to_string(args[0])
+                conversions.msg_from_string(mrkr, self._r.get_robot_markers(msg_str))
+            elif isinstance(args[0], dict):
+                conversions.msg_from_string(mrkr, self._r.get_robot_markers(*args))
+            elif isinstance(args[0], str):
+                conversions.msg_from_string(mrkr, self._r.get_group_markers(*args))
+            else:
+                raise MoveItCommanderException("Unexpected type")
+        return mrkr
 
     def get_root_link(self):
         """Get the name of the root link of the robot model """
@@ -235,7 +264,7 @@ class RobotCommander(object):
         if not self._groups.has_key(name):
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
-            self._groups[name] = MoveGroupCommander(name)
+            self._groups[name] = MoveGroupCommander(name, self._robot_description, self._ns)
         return self._groups[name]
 
     def has_group(self, name):

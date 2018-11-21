@@ -129,7 +129,7 @@ void EnvironmentChain3D::PrintState(int stateID, bool bVerbose, FILE* fOut /*=NU
 
   // if(stateID == EnvChain.goalHashEntry->stateID && bVerbose)
   // {
-  //   //ROS_DEBUG_NAMED(fOut, "the state is a goal state\n");
+  //   //ROS_DEBUG_NAMED("environment_chain3d", fOut, "the state is a goal state\n");
   //   bGoal = true;
   // }
 

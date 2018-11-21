@@ -39,7 +39,7 @@
 
 #include <urdf_model/model.h>
 #include <urdf/model.h>
-#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <Eigen/LU>  // provides LU decomposition
 #include <kdl/chainiksolver.hpp>
 #include <moveit_msgs/GetPositionFK.h>
@@ -140,7 +140,7 @@ public:
      @param Input pose for end-effector
      @param Initial guess for shoulder pan angle
   */
-  void computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& shoulder_pan_initial_guess,
+  void computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& shoulder_pan_initial_guess,
                             std::vector<std::vector<double> >& solution) const;
 
   /**
@@ -148,7 +148,7 @@ public:
      h       @param Input pose for end-effector
      @param Initial guess for shoulder roll angle
   */
-  void computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& shoulder_roll_initial_guess,
+  void computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& shoulder_roll_initial_guess,
                              std::vector<std::vector<double> >& solution) const;
 
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
@@ -174,7 +174,7 @@ private:
 
   bool checkJointLimits(const double& joint_value, const int& joint_num) const;
 
-  Eigen::Matrix4f grhs_, gf_, home_inv_, home_;
+  Eigen::Affine3f grhs_, gf_, home_inv_;
 
   std::vector<double> angle_multipliers_;
 

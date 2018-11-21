@@ -149,6 +149,25 @@ struct CollisionData
   bool done_;
 };
 
+struct DistanceData
+{
+  DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
+  {
+  }
+  ~DistanceData()
+  {
+  }
+
+  /// Distance query request information
+  const DistanceRequest* req;
+
+  /// Distance query results information
+  DistanceResult* res;
+
+  /// Indicates if distance query is finished.
+  bool done;
+};
+
 MOVEIT_CLASS_FORWARD(FCLGeometry);
 
 struct FCLGeometry
@@ -228,7 +247,7 @@ void cleanCollisionGeometryCache();
 
 inline void transform2fcl(const Eigen::Affine3d& b, fcl::Transform3f& f)
 {
-  Eigen::Quaterniond q(b.rotation());
+  Eigen::Quaterniond q(b.linear());
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 }

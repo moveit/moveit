@@ -51,7 +51,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -60,7 +60,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -69,7 +69,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -79,7 +79,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -89,7 +89,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -100,7 +100,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -112,7 +112,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -125,7 +125,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 double collision_detection::CollisionRobotAllValid::distanceSelf(const robot_state::RobotState& state) const
@@ -137,6 +137,13 @@ double collision_detection::CollisionRobotAllValid::distanceSelf(const robot_sta
                                                                  const AllowedCollisionMatrix& acm) const
 {
   return 0.0;
+}
+
+void collision_detection::CollisionRobotAllValid::distanceSelf(const collision_detection::DistanceRequest& req,
+                                                               collision_detection::DistanceResult& res,
+                                                               const moveit::core::RobotState& state) const
+{
+  res.collision = false;
 }
 
 double collision_detection::CollisionRobotAllValid::distanceOther(const robot_state::RobotState& state,
@@ -152,4 +159,13 @@ double collision_detection::CollisionRobotAllValid::distanceOther(const robot_st
                                                                   const AllowedCollisionMatrix& acm) const
 {
   return 0.0;
+}
+
+void collision_detection::CollisionRobotAllValid::distanceOther(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const moveit::core::RobotState& state,
+                                                                const collision_detection::CollisionRobot& other_robot,
+                                                                const moveit::core::RobotState& other_state) const
+{
+  res.collision = false;
 }

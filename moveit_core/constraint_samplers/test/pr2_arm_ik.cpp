@@ -35,7 +35,6 @@
 /* Author: Sachin Chitta, E. Gil Jones */
 
 #include <angles/angles.h>
-#include <console_bridge/console.h>
 #include "pr2_arm_ik.h"
 
 /**** List of angles (for reference) *******
@@ -67,9 +66,9 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
     if (!joint)
     {
       if (link->parent_joint)
-        CONSOLE_BRIDGE_logError("Could not find joint: %s", link->parent_joint->name.c_str());
+        ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "Could not find joint: %s", link->parent_joint->name.c_str());
       else
-        CONSOLE_BRIDGE_logError("Link %s has no parent joint", link->name.c_str());
+        ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "Link %s has no parent joint", link->name.c_str());
       return false;
     }
     if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED)
@@ -77,8 +76,8 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
       link_offset.push_back(link->parent_joint->parent_to_joint_origin_transform);
       angle_multipliers_.push_back(joint->axis.x * fabs(joint->axis.x) + joint->axis.y * fabs(joint->axis.y) +
                                    joint->axis.z * fabs(joint->axis.z));
-      CONSOLE_BRIDGE_logDebug("Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x, joint->axis.y,
-                              joint->axis.z);
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x,
+                      joint->axis.y, joint->axis.z);
       if (joint->type != urdf::Joint::CONTINUOUS)
       {
         if (joint->safety)
@@ -97,7 +96,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
           {
             min_angles_.push_back(0.0);
             max_angles_.push_back(0.0);
-            CONSOLE_BRIDGE_logWarn("No joint limits or joint '%s'", joint->name.c_str());
+            ROS_WARN_NAMED("pr2_arm_kinematics_plugin", "No joint limits or joint '%s'", joint->name.c_str());
           }
         }
         continuous_joint_.push_back(false);
@@ -129,8 +128,8 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
 
   if (num_joints != 7)
   {
-    CONSOLE_BRIDGE_logError("PR2ArmIK:: Chain from %s to %s does not have 7 joints", root_name.c_str(),
-                            tip_name.c_str());
+    ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "PR2ArmIK:: Chain from %s to %s does not have 7 joints",
+                    root_name.c_str(), tip_name.c_str());
     return false;
   }
 
@@ -143,9 +142,9 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
   shoulder_elbow_offset_ = shoulder_upperarm_offset_ + upperarm_elbow_offset_;
   shoulder_wrist_offset_ = shoulder_upperarm_offset_ + upperarm_elbow_offset_ + elbow_wrist_offset_;
 
-  Eigen::Matrix4f home = Eigen::Matrix4f::Identity();
+  Eigen::Affine3f home = Eigen::Affine3f::Identity();
   home(0, 3) = shoulder_upperarm_offset_ + upperarm_elbow_offset_ + elbow_wrist_offset_;
-  home_inv_ = home.inverse();
+  home_inv_ = home.inverse(Eigen::Isometry);
   grhs_ = home;
   gf_ = home_inv_;
   solution_.resize(NUM_JOINTS_ARM7DOF);
@@ -195,15 +194,15 @@ void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo& info)
   info = solver_info_;
 }
 
-void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
+void PR2ArmIK::computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& t1_in,
                                     std::vector<std::vector<double> >& solution) const
 {
   // t1 = shoulder/turret pan is specified
   //  solution_ik_.resize(0);
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
-  Eigen::Matrix4f g = g_in;
-  Eigen::Matrix4f gf_local = home_inv_;
-  Eigen::Matrix4f grhs_local = home_inv_;
+  Eigen::Affine3f g = g_in;
+  Eigen::Affine3f gf_local = home_inv_;
+  Eigen::Affine3f grhs_local = home_inv_;
   // First bring everything into the arm frame
   g(0, 3) = g_in(0, 3) - torso_shoulder_offset_x_;
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;
@@ -462,7 +461,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   }
 }
 
-void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
+void PR2ArmIK::computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& t3,
                                      std::vector<std::vector<double> >& solution) const
 {
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
@@ -476,9 +475,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
   //  if(!solution_ik_.empty())
   //    solution_ik_.resize(0);
   // t3 = shoulder/turret roll is specified
-  Eigen::Matrix4f g = g_in;
-  Eigen::Matrix4f gf_local = home_inv_;
-  Eigen::Matrix4f grhs_local = home_inv_;
+  Eigen::Affine3f g = g_in;
+  Eigen::Affine3f gf_local = home_inv_;
+  Eigen::Affine3f grhs_local = home_inv_;
   // First bring everything into the arm frame
   g(0, 3) = g_in(0, 3) - torso_shoulder_offset_x_;
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;

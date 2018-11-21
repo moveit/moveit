@@ -431,7 +431,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   tf::poseMsgToEigen(table.pose, pose_table);
 
   // Point in table frame
-  point = pose_table.inverse() * point;
+  point = pose_table.inverse(Eigen::Isometry) * point;
   // Assuming Z axis points upwards for the table
   if (point.z() < -fabs(min_vertical_offset))
   {

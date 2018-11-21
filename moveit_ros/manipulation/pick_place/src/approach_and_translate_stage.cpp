@@ -171,6 +171,9 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
     }
     else
     {  // Do what was done before
+      ROS_INFO_STREAM("Adding default duration of " << PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
+                                                    << " seconds to the grasp closure time. Assign time_from_start to "
+                                                    << "your trajectory to avoid this.");
       ee_closed_traj->addPrefixWayPoint(ee_closed_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     }
 
@@ -212,10 +215,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)
     approach_direction =
-        planning_scene_->getFrameTransform(plan->approach_.direction.header.frame_id).rotation() * approach_direction;
+        planning_scene_->getFrameTransform(plan->approach_.direction.header.frame_id).linear() * approach_direction;
   if (retreat_direction_is_global_frame)
     retreat_direction =
-        planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
+        planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).linear() * retreat_direction;
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   robot_state::GroupStateValidityCallbackFn approach_validCallback =

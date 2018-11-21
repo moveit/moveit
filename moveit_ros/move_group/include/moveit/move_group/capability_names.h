@@ -41,23 +41,6 @@
 
 namespace move_group
 {
-// These capabilities are loaded unless listed in disable_capabilities
-// clang-format off
-static const char* DEFAULT_CAPABILITIES[] = {
-   "move_group/MoveGroupCartesianPathService",
-   "move_group/MoveGroupKinematicsService",
-   "move_group/MoveGroupExecuteTrajectoryAction",
-   "move_group/MoveGroupMoveAction",
-   "move_group/MoveGroupPickPlaceAction",
-   "move_group/MoveGroupPlanService",
-   "move_group/MoveGroupQueryPlannersService",
-   "move_group/MoveGroupStateValidationService",
-   "move_group/MoveGroupGetPlanningSceneService",
-   "move_group/ApplyPlanningSceneService",
-   "move_group/ClearOctomapService",
-};
-// clang-format on
-
 static const std::string PLANNER_SERVICE_NAME =
     "plan_kinematic_path";  // name of the advertised service (within the ~ namespace)
 static const std::string EXECUTE_SERVICE_NAME =

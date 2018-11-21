@@ -102,6 +102,24 @@ void planning_scene_monitor::CurrentStateMonitor::setToCurrentState(robot_state:
   boost::mutex::scoped_lock slock(state_update_lock_);
   const double* pos = robot_state_.getVariablePositions();
   upd.setVariablePositions(pos);
+  if (copy_dynamics_)
+  {
+    if (robot_state_.hasVelocities())
+    {
+      const double* vel = robot_state_.getVariableVelocities();
+      upd.setVariableVelocities(vel);
+    }
+    if (robot_state_.hasAccelerations())
+    {
+      const double* acc = robot_state_.getVariableAccelerations();
+      upd.setVariableAccelerations(acc);
+    }
+    if (robot_state_.hasEffort())
+    {
+      const double* eff = robot_state_.getVariableEffort();
+      upd.setVariableEffort(eff);
+    }
+  }
 }
 
 void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
@@ -288,7 +306,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wa
 }
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
-  waitForCompleteState(wait_time);
+  return waitForCompleteState(wait_time);
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
@@ -402,47 +420,36 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
   // read multi-dof joint states from TF, if needed
   const std::vector<const moveit::core::JointModel*>& multi_dof_joints = robot_model_->getMultiDOFJointModels();
 
-  ros::Time latest_updates[multi_dof_joints.size()];
-
-  for (size_t i = 0; i < multi_dof_joints.size(); i++)
-  {
-    const moveit::core::JointModel* joint = multi_dof_joints[i];
-    const std::string& child_frame = joint->getChildLinkModel()->getName();
-    const std::string& parent_frame =
-        joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
-
-    std::string err;
-    if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_updates[i], &err) != tf::NO_ERROR)
-    {
-      ROS_DEBUG_STREAM_THROTTLE(1, "Unable to update multi-dof joint '"
-                                       << joint->getName() << "': tf has no common time between '"
-                                       << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
-      latest_updates[i] = ros::Time(0);
-      continue;
-    }
-  }
-
   bool update = false;
   bool changes = false;
-
   {
     boost::mutex::scoped_lock _(state_update_lock_);
 
     for (size_t i = 0; i < multi_dof_joints.size(); i++)
     {
       const moveit::core::JointModel* joint = multi_dof_joints[i];
-
-      if (latest_updates[i] <= joint_time_[joint])
-        continue;
-
       const std::string& child_frame = joint->getChildLinkModel()->getName();
       const std::string& parent_frame =
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
 
+      ros::Time latest_common_time;
+      std::string err;
+      if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
+      {
+        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
+                             << joint->getName() << "': TF has no common time between '" << parent_frame.c_str()
+                             << "' and '" << child_frame.c_str() << "': " << err);
+        continue;
+      }
+
+      // allow update if time is more recent or if it is a static transform (time = 0)
+      if (latest_common_time <= joint_time_[joint] && latest_common_time > ros::Time(0))
+        continue;
+
       tf::StampedTransform transf;
       try
       {
-        tf_->lookupTransform(parent_frame, child_frame, latest_updates[i], transf);
+        tf_->lookupTransform(parent_frame, child_frame, latest_common_time, transf);
       }
       catch (tf::TransformException& ex)
       {
@@ -450,13 +457,18 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
                                                                           << "'. TF exception: " << ex.what());
         continue;
       }
-      joint_time_[joint] = latest_updates[i];
+      joint_time_[joint] = latest_common_time;
 
       Eigen::Affine3d eigen_transf;
       tf::transformTFToEigen(transf, eigen_transf);
 
       double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(eigen_transf, new_values);
+      const robot_model::LinkModel* link = joint->getChildLinkModel();
+      if (link->jointOriginTransformIsIdentity())
+        joint->computeVariablePositions(eigen_transf, new_values);
+      else
+        joint->computeVariablePositions(link->getJointOriginTransform().inverse(Eigen::Isometry) * eigen_transf,
+                                        new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {

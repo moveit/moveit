@@ -2,6 +2,49 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_, `#1108 <https://github.com/ros-planning/moveit/issues/1108>`_)
+* Contributors: Robert Haschke, Simon Schmeisser
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [fix] TFs in subgroups of rigidly-connected links (`#912 <https://github.com/ros-planning/moveit/issues/912>`_)
+* [fix] Chomp package handling issue `#1086 <https://github.com/ros-planning/moveit/issues/1086>`_ that was introduced in `ubi-agni/hotfix-#1012 <https://github.com/ubi-agni/hotfix-/issues/1012>`_
+* [fix] CurrentStateMonitor update callback for floating joints to handle non-identity joint origins `#984 <https://github.com/ros-planning/moveit/issues/984>`_
+* [fix] Eigen alignment issuses due to missing aligned allocation (`#1039 <https://github.com/ros-planning/moveit/issues/1039>`_)
+* [fix] illegal pointer access (`#989 <https://github.com/ros-planning/moveit/issues/989>`_)
+* [fix] reset moveit_msgs::RobotState.is_diff to false (`#968 <https://github.com/ros-planning/moveit/issues/968>`_) This fixes a regression introduced in `#939 <https://github.com/ros-planning/moveit/issues/939>`_.
+* [fix] continous joint limits are always satisfied (`#729 <https://github.com/ros-planning/moveit/issues/729>`_)
+* [maintenance] using LOGNAME variable rather than strings (`#1079 <https://github.com/ros-planning/moveit/issues/1079>`_)
+* [capability][chomp] Addition of CHOMP planning adapter for optimizing result of other planners (`#1012 <https://github.com/ros-planning/moveit/issues/1012>`_)
+* [enhancement] Add missing distance check functions to allValid collision checker (`#986 <https://github.com/ros-planning/moveit/issues/986>`_)
+* [enhancement] Allow chains to have only one active joint (`#983 <https://github.com/ros-planning/moveit/issues/983>`_)
+* [enhancement] collision_detection convenience (`#957 <https://github.com/ros-planning/moveit/issues/957>`_)
+* [doc] Document why to use only one IK attempt in computeCartesianPath (`#1076 <https://github.com/ros-planning/moveit/issues/1076>`_)
+* Contributors: Adrian Zwiener, Andrey Troitskiy, Dave Coleman, Jonathan Binney, Michael Görner, Mike Lautman, Mohmmad Ayman, Raghavender Sahdev, Robert Haschke, Simon Schmeisser, dcconner, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+* consider max linear+rotational eef step in computeCartesianPath() (`#884 <https://github.com/ros-planning/moveit/issues/884>`_)
+* clang-tidy moveit_core (`#880 <https://github.com/ros-planning/moveit/issues/880>`_) (`#911 <https://github.com/ros-planning/moveit/issues/911>`_)
+* Allow to retrieve Jacobian of a child link of a move group. (`#877 <https://github.com/ros-planning/moveit/issues/877>`_)
+* Switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* Add ability to request detailed distance information from fcl (`#662 <https://github.com/ros-planning/moveit/issues/662>`_)
+* allow checking for absolute joint-space jumps in Cartesian path (`#843 <https://github.com/ros-planning/moveit/issues/843>`_)
+* Simplify adding colored CollisionObjects (`#810 <https://github.com/ros-planning/moveit/issues/810>`_)
+* updateMimicJoint(group->getMimicJointModels()) -> updateMimicJoints(group)
+* improve RobotState::updateStateWithLinkAt() (`#765 <https://github.com/ros-planning/moveit/issues/765>`_)
+* fix computation of shape_extents\_ of links w/o shapes (`#766 <https://github.com/ros-planning/moveit/issues/766>`_)
+* RobotModel::getRigidlyConnectedParentLinkModel()
+  ... to compute earliest parent link that is rigidly connected to a given link
+* Iterative cubic spline interpolation (`#441 <https://github.com/ros-planning/moveit/issues/441>`_)
+* Contributors: Bryce Willey, Ian McMahon, Ken Anderson, Levi Armstrong, Maarten de Vries, Martin Pecka, Michael Görner, Mike Lautman, Patrick Holthaus, Robert Haschke, Victor Lamoine, Xiaojian Ma
+
 0.9.11 (2017-12-25)
 -------------------
 * [fix] #723; attached bodies are not shown in trajectory visualization anymore `#724 <https://github.com/ros-planning/moveit/issues/724>`_
@@ -17,7 +60,7 @@ Changelog for package moveit_core
 * [capability] Adds parameter lookup function for kinematics plugins (`#701 <https://github.com/ros-planning/moveit/issues/701>`_)
 * [improve] Make operator bool() explicit `#696 <https://github.com/ros-planning/moveit/pull/696>`_
 * [improve] Get msgs from Planning Scene `#663 <https://github.com/ros-planning/moveit/issues/663>`_
-* [improve] moveit_core: export DEPENDS on LIBFCL `#632 https://github.com/ros-planning/moveit/pull/632>`_
+* [improve] moveit_core: export DEPENDS on LIBFCL `#632 <https://github.com/ros-planning/moveit/pull/632>`_
 * [improve] RobotState: Changed multi-waypoint version of computeCartesianPath to test joint space jumps after all waypoints are generated. (`#576 <https://github.com/ros-planning/moveit/issues/576>`_)
 * [improve] Better debug output for IK tip frames (`#603 <https://github.com/ros-planning/moveit/issues/603>`_)
 * [improve] New debug console colors YELLOW PURPLE (`#604 <https://github.com/ros-planning/moveit/issues/604>`_)
@@ -26,7 +69,7 @@ Changelog for package moveit_core
 0.9.9 (2017-08-06)
 ------------------
 * [fix][moveit_core] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
-* [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_) 
+* [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
 * Contributors: Martin Pecka, henhenhen
 
 0.9.8 (2017-06-21)
@@ -44,7 +87,7 @@ Changelog for package moveit_core
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 
@@ -102,7 +145,7 @@ Changelog for package moveit_core
 * [fix] New getOnlyOneEndEffectorTip() function `#262 <https://github.com/ros-planning/moveit_core/issues/262>`_
 * [fix] issue `#258 <https://github.com/ros-planning/moveit_core/issues/258>`_ in jade-devel `#266 <https://github.com/ros-planning/moveit_core/issues/266>`_
 * [fix] Segfault in parenthesis operator `#254 <https://github.com/ros-planning/moveit_core/issues/254>`_
-* [fix] API Change of shape_tools `#242 <https://github.com/ros-planning/moveit_core/issues/242>`_  
+* [fix] API Change of shape_tools `#242 <https://github.com/ros-planning/moveit_core/issues/242>`_
 * [fix] Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints. `#250 <https://github.com/ros-planning/moveit_core/issues/250>`_
 * [fix] Prevent divide by zero `#246 <https://github.com/ros-planning/moveit_core/issues/246>`_
 * [fix] removed the 'f' float specifiers and corrected misspelled method name
@@ -635,7 +678,7 @@ Changelog for package moveit_core
 0.1.13 (2012-10-20 10:51)
 -------------------------
 * removing no longer needed deps
-* add moveit_ prefix for all generated libs
+* add ``moveit_`` prefix for all generated libs
 
 0.1.12 (2012-10-18)
 -------------------

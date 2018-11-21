@@ -2,6 +2,32 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* Contributors: Robert Haschke
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [capability] Added plan_only flags to pick and place (`#862 <https://github.com/ros-planning/moveit/issues/862>`_)
+* [maintenance] Python3 support (`#1103 <https://github.com/ros-planning/moveit/issues/1103>`_, `#1054 <https://github.com/ros-planning/moveit/issues/1054>`_)
+* [fix] optional namespace args (`#929 <https://github.com/ros-planning/moveit/issues/929>`_)
+* Contributors: David Watkins, Michael Görner, Mohmmad Ayman, Robert Haschke, mike lautman
+
+0.9.12 (2018-05-29)
+-------------------
+* [maintenance] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* [capability] namespace to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+* Constrained Cartesian planning using moveit commander (`#805 <https://github.com/ros-planning/moveit/issues/805>`_)
+* Simplify adding CollisionObjects with colors (`#810 <https://github.com/ros-planning/moveit/issues/810>`_)
+* support TrajectoryConstraints in MoveGroupInterface + MoveitCommander (`#793 <https://github.com/ros-planning/moveit/issues/793>`_)
+* Add API to get planner_id (`#788 <https://github.com/ros-planning/moveit/issues/788>`_)
+* Allow wait time to be specified for getCurrentState() (`#685 <https://github.com/ros-planning/moveit/issues/685>`_)
+* Contributors: 2scholz, Akiyoshi Ochiai, Bence Magyar, Dave Coleman, Ian McMahon, Robert Haschke, Will Baker, Xiaojian Ma, srsidd
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -28,7 +54,7 @@ Changelog for package moveit_ros_planning_interface
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
 * Contributors: Bence Magyar, Dave Coleman
@@ -45,7 +71,7 @@ Changelog for package moveit_ros_planning_interface
 * Contributors: Bastian Gaspers, Dave Coleman, Isaac I.Y. Saito, Jorge Santos Simon, Michael Goerner, Robert Haschke
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.6.6 (2016-06-08)
 ------------------
@@ -84,7 +110,7 @@ Changelog for package moveit_ros_planning_interface
 
 0.6.3 (2014-12-03)
 ------------------
-* include correct boost::*_ptr class for boost 1.57.
+* include correct ``boost::*_ptr`` class for boost 1.57.
 * Contributors: v4hn
 
 0.6.2 (2014-10-31)

@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import roslib
 import rospy
 import readline
 import sys
 import os
-import signal 
+import signal
 
 import argparse
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
+
+# python3 has renamed raw_input to input: https://www.python.org/dev/peps/pep-3111
+# Here, we use the new input(). Hence, for python2, we redirect raw_input to input
+try:
+    import __builtin__  # This is named builtin in python3
+    input = getattr(__builtin__, 'raw_input')
+except (ImportError, AttributeError):
+    pass
 
 class bcolors:
     HEADER = '\033[95m'
@@ -19,7 +29,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 class SimpleCompleter(object):
-    
+
     def __init__(self, options):
         self.options = options
 
@@ -39,11 +49,11 @@ class SimpleCompleter(object):
             # This is the first time for this text, so build a match list.
             if text:
                 if len(prefix) == 0:
-                    self.matches = sorted([s 
+                    self.matches = sorted([s
                                            for s in self.options.keys()
                                            if s and s.startswith(text)])
                 else:
-                    self.matches = sorted([s 
+                    self.matches = sorted([s
                                            for s in self.options[prefix]
                                            if s and s.startswith(text)])
             else:
@@ -51,7 +61,7 @@ class SimpleCompleter(object):
                     self.matches = sorted(self.options.keys())
                 else:
                     self.matches = self.options[prefix]
-        
+
         # Return the state'th item from the match list,
         # if we have that many.
         try:
@@ -62,18 +72,18 @@ class SimpleCompleter(object):
 
 def print_message(level, msg):
     if level == MoveGroupInfoLevel.FAIL:
-        print bcolors.FAIL + msg + bcolors.ENDC
+        print(bcolors.FAIL + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.WARN:
-        print bcolors.WARNING + msg + bcolors.ENDC
+        print(bcolors.WARNING + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.SUCCESS:
-        print bcolors.OKGREEN + msg + bcolors.ENDC
+        print(bcolors.OKGREEN + msg + bcolors.ENDC)
     elif level == MoveGroupInfoLevel.DEBUG:
-        print bcolors.OKBLUE + msg + bcolors.ENDC
+        print(bcolors.OKBLUE + msg + bcolors.ENDC)
     else:
-        print msg
+        print(msg)
 
 def get_context_keywords(interpreter):
-    kw = interpreter.get_keywords()            
+    kw = interpreter.get_keywords()
     kw["quit"] = []
     return kw
 
@@ -84,19 +94,19 @@ def run_interactive(group_name):
     completer = SimpleCompleter(get_context_keywords(c))
     readline.set_completer(completer.complete)
 
-    print
-    print bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC
-    print
+    print()
+    print(bcolors.HEADER + "Waiting for commands. Type 'help' to get a list of known commands." + bcolors.ENDC)
+    print()
     readline.parse_and_bind('tab: complete')
 
     while not rospy.is_shutdown():
         cmd = ""
-        try:  
+        try:
             name = ""
             ag = c.get_active_group()
             if ag != None:
                 name = ag.get_name()
-            cmd = raw_input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
+            cmd = input(bcolors.OKBLUE + name + '> ' + bcolors.ENDC)
         except:
             break
         cmdorig = cmd.strip()
@@ -114,13 +124,13 @@ def run_interactive(group_name):
         print_message(level, msg)
         # update the set of keywords
         completer.set_options(get_context_keywords(c))
-            
-def run_service(group_name): 
+
+def run_service(group_name):
     c = MoveGroupCommandInterpreter()
     if len(group_name) > 0:
         c.execute("use " + group_name)
     # add service stuff
-    print "Running ROS service"
+    print("Running ROS service")
     rospy.spin()
 
 def stop_ros(reason):
@@ -129,11 +139,11 @@ def stop_ros(reason):
 
 def sigint_handler(signal, frame):
     stop_ros("Ctrl+C pressed")
-    # this won't actually exit, but trigger an exception to terminate raw_input
+    # this won't actually exit, but trigger an exception to terminate input
     sys.exit(0)
 
 if __name__=='__main__':
-    
+
     signal.signal(signal.SIGINT, sigint_handler)
 
     roscpp_initialize(sys.argv)
@@ -147,7 +157,7 @@ if __name__=='__main__':
     parser.add_argument("-s", "--service", action="store_true", dest="service", default=False,
                         help="Run the command processing script as a ROS service")
     parser.add_argument("group_name", type=str, default="", nargs='?', help="Group name to initialize the CLI for.")
-    
+
     opt = parser.parse_args(rospy.myargv()[1:])
 
     if opt.service:
@@ -157,4 +167,4 @@ if __name__=='__main__':
 
     stop_ros("Done")
 
-    print "Bye bye!"
+    print("Bye bye!")

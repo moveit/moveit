@@ -55,7 +55,7 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -65,7 +65,7 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -75,7 +75,7 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionWorldAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -86,7 +86,7 @@ void collision_detection::CollisionWorldAllValid::checkRobotCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionWorldAllValid::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
@@ -94,7 +94,7 @@ void collision_detection::CollisionWorldAllValid::checkWorldCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionWorldAllValid::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
@@ -103,7 +103,7 @@ void collision_detection::CollisionWorldAllValid::checkWorldCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+    ROS_INFO_NAMED("collision_detection", "Using AllValid collision detection. No collision checking is performed.");
 }
 
 double collision_detection::CollisionWorldAllValid::distanceRobot(const CollisionRobot& robot,
@@ -119,6 +119,14 @@ double collision_detection::CollisionWorldAllValid::distanceRobot(const Collisio
   return 0.0;
 }
 
+void collision_detection::CollisionWorldAllValid::distanceRobot(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionRobot& robot,
+                                                                const moveit::core::RobotState& state) const
+{
+  res.collision = false;
+}
+
 double collision_detection::CollisionWorldAllValid::distanceWorld(const CollisionWorld& world) const
 {
   return 0.0;
@@ -128,6 +136,13 @@ double collision_detection::CollisionWorldAllValid::distanceWorld(const Collisio
                                                                   const AllowedCollisionMatrix& acm) const
 {
   return 0.0;
+}
+
+void collision_detection::CollisionWorldAllValid::distanceWorld(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionWorld& world) const
+{
+  res.collision = false;
 }
 
 #include <moveit/collision_detection/allvalid/collision_detector_allocator_allvalid.h>

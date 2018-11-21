@@ -48,8 +48,9 @@ namespace planning_interface
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  PlanningSceneInterfaceImpl()
+  explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
   {
+    node_handle_ = ros::NodeHandle(ns);
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
@@ -233,6 +234,15 @@ public:
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.object_colors = object_colors;
+
+    for (size_t i = 0; i < planning_scene.object_colors.size(); ++i)
+    {
+      if (planning_scene.object_colors[i].id.empty() && i < collision_objects.size())
+        planning_scene.object_colors[i].id = collision_objects[i].id;
+      else
+        break;
+    }
+
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
   }
@@ -259,9 +269,9 @@ private:
   robot_model::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface()
+PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)
 {
-  impl_ = new PlanningSceneInterfaceImpl();
+  impl_ = new PlanningSceneInterfaceImpl(ns);
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()
@@ -333,6 +343,15 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
   ps.is_diff = true;
   ps.world.collision_objects = collision_objects;
   ps.object_colors = object_colors;
+
+  for (size_t i = 0; i < ps.object_colors.size(); ++i)
+  {
+    if (ps.object_colors[i].id.empty() && i < collision_objects.size())
+      ps.object_colors[i].id = collision_objects[i].id;
+    else
+      break;
+  }
+
   return applyPlanningScene(ps);
 }
 

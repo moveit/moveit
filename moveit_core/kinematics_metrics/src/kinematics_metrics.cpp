@@ -35,6 +35,7 @@
 /* Author: Sachin Chitta */
 
 #include <moveit/kinematics_metrics/kinematics_metrics.h>
+#include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <boost/math/constants/constants.hpp>
 
@@ -122,7 +123,7 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& st
       manipulability_index = 1.0;
       for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
-        CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+        ROS_DEBUG_NAMED("kinematics_metrics", "Singular value: %d %f", i, singular_values(i, 0));
         manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
@@ -145,7 +146,7 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& st
       manipulability_index = 1.0;
       for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
-        CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+        ROS_DEBUG_NAMED("kinematics_metrics", "Singular value: %d %f", i, singular_values(i, 0));
         manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
@@ -218,7 +219,7 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3, jacobian.cols()));
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (int i = 0; i < singular_values.rows(); ++i)
-      CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+      ROS_DEBUG_NAMED("kinematics_metrics", "Singular value: %d %f", i, singular_values(i, 0));
     manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   else
@@ -227,10 +228,10 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (int i = 0; i < singular_values.rows(); ++i)
-      CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+      ROS_DEBUG_NAMED("kinematics_metrics", "Singular value: %d %f", i, singular_values(i, 0));
     manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   return true;
 }
 
-}  // namespace
+}  // end of namespace kinematics_metrics

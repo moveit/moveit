@@ -52,7 +52,7 @@
 #include <moveit/distance_field/distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <console_bridge/console.h>
+#include <ros/console.h>
 
 namespace collision_detection
 {
@@ -158,7 +158,7 @@ public:
   double getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z,
                              bool& in_bounds) const
   {
-    Eigen::Vector3d rel_pos = pose_.inverse() * Eigen::Vector3d(x, y, z);
+    Eigen::Vector3d rel_pos = pose_.inverse(Eigen::Isometry) * Eigen::Vector3d(x, y, z);
     double gx, gy, gz;
     double res = distance_field::PropagationDistanceField::getDistanceGradient(rel_pos.x(), rel_pos.y(), rel_pos.z(),
                                                                                gx, gy, gz, in_bounds);
@@ -406,7 +406,7 @@ public:
   {
     if (i >= decomp_vector_.size())
     {
-      logInform("No body decomposition");
+      ROS_INFO_NAMED("collision_distance_field", "No body decomposition");
       return empty_ptr_;
     }
     return decomp_vector_[i];
@@ -416,7 +416,7 @@ public:
   {
     if (ind >= decomp_vector_.size())
     {
-      logWarn("Can't update pose");
+      ROS_WARN_NAMED("collision_distance_field", "Can't update pose");
       return;
     }
     decomp_vector_[ind]->updatePose(pose);
@@ -469,7 +469,7 @@ public:
   {
     if (i >= decomp_vector_.size())
     {
-      logInform("No body decomposition");
+      ROS_INFO_NAMED("collision_distance_field", "No body decomposition");
       return empty_ptr_;
     }
     return decomp_vector_[i];
@@ -483,7 +483,7 @@ public:
     }
     else
     {
-      logWarn("Can't update pose");
+      ROS_WARN_NAMED("collision_distance_field", "Can't update pose");
       return;
     }
   }

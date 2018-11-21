@@ -117,28 +117,23 @@ const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNI
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string& robot_description,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
                                                                    const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf)
+  : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), robot_description, tf, name)
 {
-  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
-  initialize(planning_scene::PlanningScenePtr());
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
                                                                    const std::string& robot_description,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
                                                                    const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf)
+  : PlanningSceneMonitor(scene, std::make_shared<robot_model_loader::RobotModelLoader>(robot_description), tf, name)
 {
-  rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
-  initialize(scene);
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
     const robot_model_loader::RobotModelLoaderPtr& rm_loader, const boost::shared_ptr<tf::Transformer>& tf,
     const std::string& name)
-  : monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
+  : PlanningSceneMonitor(planning_scene::PlanningScenePtr(), rm_loader, tf, name)
 {
-  initialize(planning_scene::PlanningScenePtr());
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
@@ -146,6 +141,20 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
     const boost::shared_ptr<tf::Transformer>& tf, const std::string& name)
   : monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
 {
+  root_nh_.setCallbackQueue(&queue_);
+  nh_.setCallbackQueue(&queue_);
+  spinner_.reset(new ros::AsyncSpinner(1, &queue_));
+  spinner_->start();
+  initialize(scene);
+}
+
+planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(
+    const planning_scene::PlanningScenePtr& scene, const robot_model_loader::RobotModelLoaderPtr& rm_loader,
+    const ros::NodeHandle& nh, const boost::shared_ptr<tf::Transformer>& tf, const std::string& name)
+  : monitor_name_(name), nh_("~"), root_nh_(nh), tf_(tf), rm_loader_(rm_loader)
+{
+  // use same callback queue as root_nh_
+  nh_.setCallbackQueue(root_nh_.getCallbackQueue());
   initialize(scene);
 }
 
@@ -161,6 +170,7 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   stopWorldGeometryMonitor();
   stopSceneMonitor();
 
+  spinner_.reset();
   delete reconfigure_impl_;
   current_state_monitor_.reset();
   scene_const_.reset();
@@ -174,7 +184,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
-  enforce_next_state_update_ = false;
 
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
@@ -329,19 +338,22 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
 {
   ROS_DEBUG_NAMED(LOGNAME, "Started scene publishing thread ...");
 
-  // publish the full planning scene
-  moveit_msgs::PlanningScene msg;
+  // publish the full planning scene once
   {
-    occupancy_map_monitor::OccMapTree::ReadLock lock;
-    if (octomap_monitor_)
-      lock = octomap_monitor_->getOcTreePtr()->reading();
-    scene_->getPlanningSceneMsg(msg);
+    moveit_msgs::PlanningScene msg;
+    {
+      occupancy_map_monitor::OccMapTree::ReadLock lock;
+      if (octomap_monitor_)
+        lock = octomap_monitor_->getOcTreePtr()->reading();
+      scene_->getPlanningSceneMsg(msg);
+    }
+    planning_scene_publisher_.publish(msg);
+    ROS_DEBUG_NAMED(LOGNAME, "Published the full planning scene: '%s'", msg.name.c_str());
   }
-  planning_scene_publisher_.publish(msg);
-  ROS_DEBUG_NAMED(LOGNAME, "Published the full planning scene: '%s'", msg.name.c_str());
 
   do
   {
+    moveit_msgs::PlanningScene msg;
     bool publish_msg = false;
     bool is_full = false;
     ros::Rate rate(publish_planning_scene_frequency_);
@@ -871,17 +883,24 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
 
   if (current_state_monitor_)
   {
-    // Wait for next robot update in state monitor. Those updates are only passed to PSM when robot actually moved!
-    enforce_next_state_update_ = true;  // enforce potential updates to be directly applied
+    // Wait for next robot update in state monitor.
     bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
-    enforce_next_state_update_ =
-        false;  // back to normal throttling behavior, not applying incoming updates immediately
 
-    /* If the robot doesn't move, we will never receive an update from CSM in planning scene.
-       As we ensured that an update, if it is triggered by CSM, is directly passed to the scene,
-       we can early return true here (if we successfully received a CSM update). Otherwise return false. */
+    /* As robot updates are passed to the planning scene only in throttled fashion, there might
+       be still an update pending. If so, explicitly update the planning scene here.
+       If waitForCurrentState failed, we didn't get any new state updates within wait_time. */
     if (success)
+    {
+      boost::mutex::scoped_lock lock(state_pending_mutex_);
+      if (state_update_pending_)  // enforce state update
+      {
+        state_update_pending_ = false;
+        last_robot_state_update_wall_time_ = ros::WallTime::now();
+        lock.unlock();
+        updateSceneWithCurrentState();
+      }
       return true;
+    }
 
     ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
     return false;
@@ -1140,11 +1159,11 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(
   const ros::WallTime& n = ros::WallTime::now();
   ros::WallDuration dt = n - last_robot_state_update_wall_time_;
 
-  bool update = enforce_next_state_update_;
+  bool update = false;
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
 
-    if (dt < dt_state_update_ && !update)
+    if (dt < dt_state_update_)
     {
       state_update_pending_ = true;
     }

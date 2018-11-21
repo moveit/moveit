@@ -1,6 +1,6 @@
 <package>
   <name>moveit_commander</name>
-  <version>0.9.11</version>
+  <version>0.9.15</version>
   <description>Python interfaces to MoveIt</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
@@ -29,4 +29,7 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>shape_msgs</run_depend>
   <run_depend>tf</run_depend>
+
+  <test_depend>rostest</test_depend>
+  <test_depend>moveit_resources</test_depend>
 </package>

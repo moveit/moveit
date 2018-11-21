@@ -41,7 +41,11 @@
 #include <limits>
 #include <cmath>
 
-moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
+namespace moveit
+{
+namespace core
+{
+RevoluteJointModel::RevoluteJointModel(const std::string& name)
   : JointModel(name)
   , axis_(0.0, 0.0, 0.0)
   , continuous_(false)
@@ -62,12 +66,12 @@ moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
   computeVariableBoundsMsg();
 }
 
-unsigned int moveit::core::RevoluteJointModel::getStateSpaceDimension() const
+unsigned int RevoluteJointModel::getStateSpaceDimension() const
 {
   return 1;
 }
 
-void moveit::core::RevoluteJointModel::setAxis(const Eigen::Vector3d& axis)
+void RevoluteJointModel::setAxis(const Eigen::Vector3d& axis)
 {
   axis_ = axis.normalized();
   x2_ = axis_.x() * axis_.x();
@@ -78,7 +82,7 @@ void moveit::core::RevoluteJointModel::setAxis(const Eigen::Vector3d& axis)
   yz_ = axis_.y() * axis_.z();
 }
 
-void moveit::core::RevoluteJointModel::setContinuous(bool flag)
+void RevoluteJointModel::setContinuous(bool flag)
 {
   continuous_ = flag;
   if (flag)
@@ -92,12 +96,12 @@ void moveit::core::RevoluteJointModel::setContinuous(bool flag)
   computeVariableBoundsMsg();
 }
 
-double moveit::core::RevoluteJointModel::getMaximumExtent(const Bounds& other_bounds) const
+double RevoluteJointModel::getMaximumExtent(const Bounds& other_bounds) const
 {
   return variable_bounds_[0].max_position_ - variable_bounds_[0].min_position_;
 }
 
-void moveit::core::RevoluteJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+void RevoluteJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
 {
   // if zero is a valid value
   if (bounds[0].min_position_ <= 0.0 && bounds[0].max_position_ >= 0.0)
@@ -106,15 +110,15 @@ void moveit::core::RevoluteJointModel::getVariableDefaultPositions(double* value
     values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
-void moveit::core::RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
-                                                                  double* values, const Bounds& bounds) const
+void RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
+                                                    const Bounds& bounds) const
 {
   values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
-void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
-                                                                        double* values, const Bounds& bounds,
-                                                                        const double* near, const double distance) const
+void RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                                          const Bounds& bounds, const double* near,
+                                                          const double distance) const
 {
   if (continuous_)
   {
@@ -126,8 +130,7 @@ void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_n
                                 std::min(bounds[0].max_position_, near[0] + distance));
 }
 
-void moveit::core::RevoluteJointModel::interpolate(const double* from, const double* to, const double t,
-                                                   double* state) const
+void RevoluteJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
 {
   if (continuous_)
   {
@@ -152,7 +155,7 @@ void moveit::core::RevoluteJointModel::interpolate(const double* from, const dou
     state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
-double moveit::core::RevoluteJointModel::distance(const double* values1, const double* values2) const
+double RevoluteJointModel::distance(const double* values1, const double* values2) const
 {
   if (continuous_)
   {
@@ -163,15 +166,15 @@ double moveit::core::RevoluteJointModel::distance(const double* values1, const d
     return fabs(values1[0] - values2[0]);
 }
 
-bool moveit::core::RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
-                                                               double margin) const
+bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
 {
-  if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
-    return false;
-  return true;
+  if (continuous_)
+    return true;
+  else
+    return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
 }
 
-bool moveit::core::RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
 {
   if (continuous_)
   {
@@ -202,7 +205,7 @@ bool moveit::core::RevoluteJointModel::enforcePositionBounds(double* values, con
   return false;
 }
 
-void moveit::core::RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
 {
   const double c = cos(joint_values[0]);
   const double s = sin(joint_values[0]);
@@ -241,12 +244,14 @@ void moveit::core::RevoluteJointModel::computeTransform(const double* joint_valu
   //  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
-void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
-                                                                double* joint_values) const
+void RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
 {
-  Eigen::Quaterniond q(transf.rotation());
+  Eigen::Quaterniond q(transf.linear());
   q.normalize();
   size_t maxIdx;
   axis_.array().abs().maxCoeff(&maxIdx);
   joint_values[0] = 2. * atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
 }
+
+}  // end of namespace core
+}  // end of namespace moveit

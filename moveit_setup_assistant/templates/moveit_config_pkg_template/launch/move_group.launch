@@ -20,6 +20,24 @@
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
 
+  <arg name="capabilities" default=""/>
+  <arg name="disable_capabilities" default=""/>
+  <!-- load these non-default MoveGroup capabilities (space seperated) -->
+  <!--
+  <arg name="capabilities" value="
+                a_package/AwsomeMotionPlanningCapability
+                another_package/GraspPlanningPipeline
+                " />
+  -->
+
+  <!-- inhibit these default MoveGroup capabilities (space seperated) -->
+  <!--
+  <arg name="disable_capabilities" value="
+                move_group/MoveGroupKinematicsService
+                move_group/ClearOctomapService
+                " />
+  -->
+
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
@@ -45,22 +63,9 @@
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>
     <param name="jiggle_fraction" value="$(arg jiggle_fraction)" />
+    <param name="capabilities" value="$(arg capabilities)"/>
+    <param name="disable_capabilities" value="$(arg disable_capabilities)"/>
 
-    <!-- load these non-default MoveGroup capabilities -->
-    <!--
-    <param name="capabilities" value="
-                  a_package/AwsomeMotionPlanningCapability
-                  another_package/GraspPlanningPipeline
-                  " />
-    -->
-
-    <!-- inhibit these default MoveGroup capabilities -->
-    <!--
-    <param name="disable_capabilities" value="
-                  move_group/MoveGroupKinematicsService
-                  move_group/ClearOctomapService
-                  " />
-    -->
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
     <param name="planning_scene_monitor/publish_planning_scene" value="$(arg publish_monitored_planning_scene)" />
