@@ -522,17 +522,6 @@ public:
   }
 };
 
-class MoveGroupWrapper : public MoveGroupInterfaceWrapper
-{
-public:
-  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns = "")
-    : MoveGroupInterfaceWrapper(group_name, robot_description, ns)
-  {
-    ROS_WARN("The MoveGroup class is deprecated and will be removed in ROS lunar. Please use MoveGroupInterface "
-             "instead.");
-  }
-};
-
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
