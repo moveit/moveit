@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include <moveit/robot_model/robot_model.h>
 #include "pr2_arm_kinematics_plugin.h"
 
 using namespace KDL;
@@ -264,22 +265,17 @@ bool PR2ArmKinematicsPlugin::isActive()
   return active_;
 }
 
-void PR2ArmKinematicsPlugin::setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model)
-{
-  robot_model_ = robot_model;
-}
-
-bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
-                                        const std::string& base_name, const std::string& tip_name,
+bool PR2ArmKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                        const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                         double search_discretization)
 {
-  setValues(robot_description, group_name, base_name, tip_name, search_discretization);
+  storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
   const bool verbose = false;
   std::string xml_string;
   dimension_ = 7;
 
   ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "Loading KDL Tree");
-  if (!getKDLChain(*robot_model_, base_frame_, tip_frame_, kdl_chain_))
+  if (!getKDLChain(*robot_model.getURDF(), base_frame_, tip_frames_[0], kdl_chain_))
   {
     active_ = false;
     ROS_ERROR("Could not load kdl tree");
@@ -287,8 +283,8 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, co
   jnt_to_pose_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
   free_angle_ = 2;
 
-  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model_, base_frame_, tip_frame_,
-                                                                  search_discretization_, free_angle_));
+  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model.getURDF(), base_frame_, tip_frames_[0],
+                                                                  search_discretization, free_angle_));
   if (!pr2_arm_ik_solver_->active_)
   {
     ROS_ERROR("Could not load ik");
