@@ -50,8 +50,8 @@ namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::planButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this), "compute "
-                                                                                                         "plan");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this),
+                                      "compute plan");
 }
 
 void MotionPlanningFrame::executeButtonClicked()

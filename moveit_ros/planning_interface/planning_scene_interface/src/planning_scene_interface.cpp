@@ -197,8 +197,8 @@ public:
     request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get attached object "
-                                                 "geometries");
+      ROS_WARN_NAMED("planning_scene_interface",
+                     "Could not call planning scene service to get attached object geometries");
       return result;
     }
 
