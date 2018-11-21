@@ -39,9 +39,10 @@
 #include <moveit/constraint_samplers/union_constraint_sampler.h>
 #include <sstream>
 
-constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectSampler(
-    const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
-    const moveit_msgs::Constraints& constr) const
+constraint_samplers::ConstraintSamplerPtr
+constraint_samplers::ConstraintSamplerManager::selectSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                                             const std::string& group_name,
+                                                             const moveit_msgs::Constraints& constr) const
 {
   for (std::size_t i = 0; i < sampler_alloc_.size(); ++i)
     if (sampler_alloc_[i]->canService(scene, group_name, constr))
@@ -51,9 +52,10 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   return selectDefaultSampler(scene, group_name, constr);
 }
 
-constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(
-    const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
-    const moveit_msgs::Constraints& constr)
+constraint_samplers::ConstraintSamplerPtr
+constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                                                    const std::string& group_name,
+                                                                    const moveit_msgs::Constraints& constr)
 {
   const robot_model::JointModelGroup* jmg = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg)

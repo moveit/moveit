@@ -349,9 +349,10 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
-    moveit_msgs::MoveItErrorCodes& error_code) const
+ompl_interface::ModelBasedPlanningContextPtr
+ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                           const moveit_msgs::MotionPlanRequest& req,
+                                                           moveit_msgs::MoveItErrorCodes& error_code) const
 {
   if (req.group_name.empty())
   {

@@ -175,9 +175,10 @@ void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detec
   }
 }
 
-DistanceFieldCacheEntryConstPtr CollisionRobotDistanceField::getDistanceFieldCacheEntry(
-    const std::string& group_name, const moveit::core::RobotState& state,
-    const collision_detection::AllowedCollisionMatrix* acm) const
+DistanceFieldCacheEntryConstPtr
+CollisionRobotDistanceField::getDistanceFieldCacheEntry(const std::string& group_name,
+                                                        const moveit::core::RobotState& state,
+                                                        const collision_detection::AllowedCollisionMatrix* acm) const
 {
   DistanceFieldCacheEntryConstPtr ret;
   if (!distance_field_cache_entry_)
