@@ -100,6 +100,7 @@ class MotionPlanningFrame : public QWidget
   Q_OBJECT
 
 public:
+  MotionPlanningFrame(const MotionPlanningFrame&) = delete;
   MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = 0);
   ~MotionPlanningFrame() override;
 
