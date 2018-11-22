@@ -9,7 +9,10 @@ API changes in MoveIt! releases
 - Deprecated method ``CurrentStateMonitor::waitForCurrentState(double wait_time)`` was finally removed.
 - Renamed ``RobotState::getCollisionBodyTransforms`` to ``getCollisionBodyTransform`` as it returns a single transform only.
 - Removed deprecated class MoveGroup (was renamed to MoveGroupInterface).
-- KinematicsBase: Deprecate members tip_frame_, search_discretization_. Use tip_frames_ and redundant_joint_discretization_ instead.
+- KinematicsBase: Deprecated members `tip_frame_`, `search_discretization_`.
+  Use `tip_frames_` and `redundant_joint_discretization_` instead.
+- KinematicsBase: Deprecated `initialize(robot_description, ...)` in favour of `initialize(robot_model, ...)`.
+  Adapt your kinematics plugin to directly receive a `RobotModel`. See the [KDL plugin](https://github.com/ros-planning/moveit/tree/melodic-devel/moveit_kinematics/kdl_kinematics_plugin) for an example.
 
 ## ROS Kinetic
 
