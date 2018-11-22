@@ -139,30 +139,33 @@ void addErrorMarker(visualization_msgs::InteractiveMarker& im)
   im.controls.push_back(err_control);
 }
 
+// value for normalized quaternion: 1.0 / std::sqrt(2.0)
+static const double SQRT2INV = 0.707106781;
+
 void addPlanarXYControl(visualization_msgs::InteractiveMarker& int_marker, bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarkerControl control;
 
   if (orientation_fixed)
     control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-  control.orientation.w = 1;
-  control.orientation.x = 1;
+  control.orientation.w = SQRT2INV;
+  control.orientation.x = SQRT2INV;
   control.orientation.y = 0;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
-  control.orientation.y = 1;
+  control.orientation.y = SQRT2INV;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
   control.orientation.y = 0;
-  control.orientation.z = 1;
+  control.orientation.z = SQRT2INV;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
   int_marker.controls.push_back(control);
 }
@@ -179,24 +182,24 @@ void addOrientationControl(visualization_msgs::InteractiveMarker& int_marker, bo
 
   if (orientation_fixed)
     control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-  control.orientation.w = 1;
-  control.orientation.x = 1;
+  control.orientation.w = SQRT2INV;
+  control.orientation.x = SQRT2INV;
   control.orientation.y = 0;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
-  control.orientation.y = 1;
+  control.orientation.y = SQRT2INV;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
   control.orientation.y = 0;
-  control.orientation.z = 1;
+  control.orientation.z = SQRT2INV;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
   int_marker.controls.push_back(control);
 }
@@ -207,24 +210,24 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
 
   if (orientation_fixed)
     control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-  control.orientation.w = 1;
-  control.orientation.x = 1;
+  control.orientation.w = SQRT2INV;
+  control.orientation.x = SQRT2INV;
   control.orientation.y = 0;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
-  control.orientation.y = 1;
+  control.orientation.y = SQRT2INV;
   control.orientation.z = 0;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
   int_marker.controls.push_back(control);
 
-  control.orientation.w = 1;
+  control.orientation.w = SQRT2INV;
   control.orientation.x = 0;
   control.orientation.y = 0;
-  control.orientation.z = 1;
+  control.orientation.z = SQRT2INV;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
   int_marker.controls.push_back(control);
 }

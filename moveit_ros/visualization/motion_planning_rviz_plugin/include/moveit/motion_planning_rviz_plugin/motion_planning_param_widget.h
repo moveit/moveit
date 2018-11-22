@@ -53,6 +53,7 @@ class MotionPlanningParamWidget : public rviz::PropertyTreeWidget
 {
   Q_OBJECT
 public:
+  MotionPlanningParamWidget(const MotionPlanningParamWidget&) = delete;
   MotionPlanningParamWidget(QWidget* parent = 0);
   ~MotionPlanningParamWidget() override;
 

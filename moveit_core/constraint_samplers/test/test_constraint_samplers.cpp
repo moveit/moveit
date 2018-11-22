@@ -74,17 +74,14 @@ protected:
   void SetUp() override
   {
     robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
-    urdf::ModelInterfaceSharedPtr urdf = moveit::core::loadModelInterface("pr2_description");
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
-
-    pr2_kinematics_plugin_right_arm_->setRobotModel(urdf);
-    pr2_kinematics_plugin_right_arm_->initialize("", "right_arm", "torso_lift_link", "r_wrist_roll_link", .01);
+    pr2_kinematics_plugin_right_arm_->initialize(*robot_model_, "right_arm", "torso_lift_link", { "r_wrist_roll_link" },
+                                                 .01);
 
     pr2_kinematics_plugin_left_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
-
-    pr2_kinematics_plugin_left_arm_->setRobotModel(urdf);
-    pr2_kinematics_plugin_left_arm_->initialize("", "left_arm", "torso_lift_link", "l_wrist_roll_link", .01);
+    pr2_kinematics_plugin_left_arm_->initialize(*robot_model_, "left_arm", "torso_lift_link", { "l_wrist_roll_link" },
+                                                .01);
 
     func_right_arm_ = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
     func_left_arm_ = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1);

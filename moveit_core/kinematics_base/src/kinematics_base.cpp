@@ -37,42 +37,93 @@
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_model/joint_model_group.h>
 
+static const std::string LOGNAME = "kinematics_base";
+
 namespace kinematics
 {
 const double KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
-void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
-                               const std::string& base_frame, const std::string& tip_frame,
-                               double search_discretization)
+static void noDeleter(const moveit::core::RobotModel*)
 {
-  robot_description_ = robot_description;
+}
+
+void KinematicsBase::storeValues(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                 const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                 double search_discretization)
+{
+  // The RobotModel is passed in as a borrowed reference from the JointModelGroup belonging to this RobotModel.
+  // Hence, it is ensured that the RobotModel will not be destroyed before the JMG and its associated
+  // kinematics solvers. To keep RobotModelPtr API (instead of storing the reference here only), but break
+  // the circular reference (RM => JMG => KS -> RM), here we create a new shared_ptr that doesn't delete the RM.
+  robot_model_ = moveit::core::RobotModelConstPtr(&robot_model, &noDeleter);
+  robot_description_ = "";
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
-  tip_frame_ = removeSlash(tip_frame);  // for backwards compatibility
-  tip_frames_.push_back(removeSlash(tip_frame));
-  search_discretization_ = search_discretization;
+  tip_frames_.clear();
+  for (const std::string& name : tip_frames)
+    tip_frames_.push_back(removeSlash(name));
   setSearchDiscretization(search_discretization);
+  search_discretization_ = search_discretization;
 }
 
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                double search_discretization)
 {
+  robot_model_.reset();
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
-  search_discretization_ = search_discretization;
+  tip_frames_.clear();
+  for (const std::string& name : tip_frames)
+    tip_frames_.push_back(removeSlash(name));
   setSearchDiscretization(search_discretization);
 
-  // Copy tip frames to local vector after stripping slashes
-  tip_frames_.clear();
-  for (std::size_t i = 0; i < tip_frames.size(); ++i)
-    tip_frames_.push_back(removeSlash(tip_frames[i]));
+  // store deprecated values for backwards compatibility
+  search_discretization_ = search_discretization;
+  if (tip_frames_.size() == 1)
+    tip_frame_ = tip_frames_[0];
+  else
+    tip_frame_.clear();
+}
 
-  // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
+void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
+                               const std::string& base_frame, const std::string& tip_frame,
+                               double search_discretization)
+{
+  setValues(robot_description, group_name, base_frame, std::vector<std::string>({ tip_frame }), search_discretization);
+}
+
+bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
+                                const std::string& base_frame, const std::string& tip_frame,
+                                double search_discretization)
+{
+  return false;  // default implementation returns false
+}
+
+bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
+                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                double search_discretization)
+{
+  // For IK solvers that do not support multiple tip frames, fall back to single pose call
   if (tip_frames.size() == 1)
-    tip_frame_ = removeSlash(tip_frames[0]);
+  {
+    return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
+  }
+
+  ROS_ERROR_NAMED(LOGNAME, "This solver does not support multiple tip frames");
+  return false;
+}
+
+bool KinematicsBase::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                double search_discretization)
+{
+  ROS_WARN_NAMED(LOGNAME, "IK plugin for group '%s' relies on deprecated API. "
+                          "Please implement initialize(RobotModel, ...).",
+                 group_name.c_str());
+  return false;
 }
 
 bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
@@ -125,6 +176,20 @@ bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg, std
   return true;
 }
 
+KinematicsBase::KinematicsBase()
+  : tip_frame_("DEPRECATED")
+  // help users understand why this variable might not be set
+  // (if multiple tip frames provided, this variable will be unset)
+  , search_discretization_(DEFAULT_SEARCH_DISCRETIZATION)
+  , default_timeout_(DEFAULT_TIMEOUT)
+{
+  supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
+}
+
+KinematicsBase::~KinematicsBase()
+{
+}
+
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                    const std::vector<double>& ik_seed_state,
                                    std::vector<std::vector<double> >& solutions, KinematicsResult& result,
@@ -142,14 +207,14 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
 
   if (ik_poses.size() != 1)
   {
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support getPositionIK for multiple poses");
+    ROS_ERROR_NAMED(LOGNAME, "This kinematic solver does not support getPositionIK for multiple tips");
     result.kinematic_error = KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
 
   if (ik_poses.empty())
   {
-    ROS_ERROR_NAMED("kinematics_base", "Input ik_poses array is empty");
+    ROS_ERROR_NAMED(LOGNAME, "Input ik_poses array is empty");
     result.kinematic_error = KinematicErrors::EMPTY_TIP_POSES;
     return false;
   }

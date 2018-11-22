@@ -44,8 +44,6 @@
 #include <urdf_model/model.h>
 #include <srdfdom/model.h>
 
-#include <moveit/rdf_loader/rdf_loader.h>
-
 // register KDLKinematics as a KinematicsBase implementation
 CLASS_LOADER_REGISTER_CLASS(lma_kinematics_plugin::LMAKinematicsPlugin, kinematics::KinematicsBase)
 
@@ -124,25 +122,12 @@ bool LMAKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
   return true;
 }
 
-bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
-                                     const std::string& base_frame, const std::string& tip_frame,
+bool LMAKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                     const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                      double search_discretization)
 {
-  setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
-
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
-  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
-
-  if (!urdf_model || !srdf)
-  {
-    ROS_ERROR_NAMED("lma", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
-    return false;
-  }
-
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
-
-  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
+  storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (!joint_model_group)
     return false;
 
@@ -159,7 +144,7 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   KDL::Tree kdl_tree;
 
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
+  if (!kdl_parser::treeFromUrdfModel(*robot_model.getURDF(), kdl_tree))
   {
     ROS_ERROR_NAMED("lma", "Could not initialize tree object");
     return false;
@@ -272,7 +257,6 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
-  state_2_.reset(new robot_state::RobotState(robot_model_));
 
   // Store things for when the set of redundant joints may change
   position_ik_ = position_ik;

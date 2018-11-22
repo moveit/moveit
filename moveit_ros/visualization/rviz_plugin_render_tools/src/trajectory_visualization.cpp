@@ -182,6 +182,9 @@ void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr
   // Load rviz robot
   display_path_robot_->load(*robot_model_->getURDF());
   enabledRobotColor();  // force-refresh to account for saved display configuration
+  // perform post-poned subscription to trajectory topic
+  if (trajectory_topic_sub_.getTopic().empty())
+    changedTrajectoryTopic();
 }
 
 void TrajectoryVisualization::reset()
@@ -257,7 +260,8 @@ void TrajectoryVisualization::changedRobotPathAlpha()
 void TrajectoryVisualization::changedTrajectoryTopic()
 {
   trajectory_topic_sub_.shutdown();
-  if (!trajectory_topic_property_->getStdString().empty())
+  // post-pone subscription if robot_state_ is not yet defined, i.e. onRobotModelLoaded() not yet called
+  if (!trajectory_topic_property_->getStdString().empty() && robot_state_)
   {
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2,
                                                  &TrajectoryVisualization::incomingDisplayTrajectory, this);

@@ -77,9 +77,9 @@ public:
    *  @brief ROS/KDL based interface for the inverse kinematics of the PR2 arm
    *  @author Sachin Chitta <sachinc@willowgarage.com>
    *
-   *  This class provides a KDL based interface to the inverse kinematics of the PR2 arm. It inherits from the
-   *KDL::ChainIkSolverPos class
-   *  but also exposes additional functionality to return multiple solutions from an inverse kinematics computation.
+   *  This class provides a KDL based interface to the inverse kinematics of the PR2 arm.
+   *  It inherits from the KDL::ChainIkSolverPos class but also exposes additional functionality
+   *  to return multiple solutions from an inverse kinematics computation.
    */
   PR2ArmIKSolver(const urdf::ModelInterface& robot_model, const std::string& root_frame_name,
                  const std::string& tip_frame_name, const double& search_discretization_angle, const int& free_angle);
@@ -134,8 +134,6 @@ public:
    *  @brief Plugin-able interface to the PR2 arm kinematics
    */
   PR2ArmKinematicsPlugin();
-
-  void setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model);
 
   /**
    *  @brief Specifies if the node is active or not
@@ -225,8 +223,9 @@ public:
    * @brief  Initialization function for the kinematics
    * @return True if initialization was successful, false otherwise
    */
-  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_name,
-                  const std::string& tip_name, double search_discretization) override;
+  bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                  const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                  double search_discretization) override;
 
   /**
    * @brief  Return all the joint names in the order they are used internally
@@ -241,7 +240,6 @@ public:
 protected:
   bool active_;
   int free_angle_;
-  urdf::ModelInterfaceSharedPtr robot_model_;
   pr2_arm_kinematics::PR2ArmIKSolverPtr pr2_arm_ik_solver_;
   std::string root_name_;
   int dimension_;

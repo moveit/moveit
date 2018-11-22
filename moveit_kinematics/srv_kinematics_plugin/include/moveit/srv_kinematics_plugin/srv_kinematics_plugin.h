@@ -57,7 +57,6 @@
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
 namespace srv_kinematics_plugin
@@ -104,16 +103,9 @@ public:
   bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_angles,
                      std::vector<geometry_msgs::Pose>& poses) const override;
 
-  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_name,
-                  const std::string& tip_frame, double search_discretization) override
-  {
-    std::vector<std::string> tip_frames;
-    tip_frames.push_back(tip_frame);
-    return initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
-  }
-
-  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_name,
-                  const std::vector<std::string>& tip_frames, double search_discretization) override;
+  bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                  const std::string& base_name, const std::vector<std::string>& tip_frames,
+                  double search_discretization) override;
 
   /**
    * @brief  Return all the joint names in the order they are used internally
@@ -158,8 +150,7 @@ private:
 
   unsigned int dimension_; /** Dimension of the group */
 
-  robot_model::RobotModelPtr robot_model_;
-  robot_model::JointModelGroup* joint_model_group_;
+  const robot_model::JointModelGroup* joint_model_group_;
 
   robot_state::RobotStatePtr robot_state_;
 

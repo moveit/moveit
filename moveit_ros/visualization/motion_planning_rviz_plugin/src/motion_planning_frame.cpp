@@ -197,6 +197,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
 
 MotionPlanningFrame::~MotionPlanningFrame()
 {
+  delete ui_;
 }
 
 void MotionPlanningFrame::approximateIKChanged(int state)

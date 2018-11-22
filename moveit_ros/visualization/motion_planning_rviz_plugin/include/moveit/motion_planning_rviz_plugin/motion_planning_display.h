@@ -113,12 +113,12 @@ public:
     return robot_interaction_;
   }
 
-  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryStartStateHandler() const
+  const robot_interaction::InteractionHandlerPtr& getQueryStartStateHandler() const
   {
     return query_start_state_;
   }
 
-  const robot_interaction::RobotInteraction::InteractionHandlerPtr& getQueryGoalStateHandler() const
+  const robot_interaction::InteractionHandlerPtr& getQueryGoalStateHandler() const
   {
     return query_goal_state_;
   }
@@ -204,17 +204,15 @@ protected:
   void recomputeQueryGoalStateMetrics();
   void drawQueryStartState();
   void drawQueryGoalState();
-  void scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler* handler,
-                                   bool error_state_changed);
-  void scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler* handler,
-                                  bool error_state_changed);
+  void scheduleDrawQueryStartState(robot_interaction::InteractionHandler* handler, bool error_state_changed);
+  void scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* handler, bool error_state_changed);
 
   bool isIKSolutionCollisionFree(robot_state::RobotState* state, const robot_state::JointModelGroup* group,
                                  const double* ik_solution) const;
 
   void computeMetrics(bool start, const std::string& group, double payload);
   void computeMetricsInternal(std::map<std::string, double>& metrics,
-                              const robot_interaction::RobotInteraction::EndEffector& eef,
+                              const robot_interaction::EndEffectorInteraction& eef,
                               const robot_state::RobotState& state, double payload);
   void updateStateExceptModified(robot_state::RobotState& dest, const robot_state::RobotState& src);
   void updateBackgroundJobProgressBar();
@@ -250,8 +248,8 @@ protected:
 
   // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
-  robot_interaction::RobotInteraction::InteractionHandlerPtr query_start_state_;
-  robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
+  robot_interaction::InteractionHandlerPtr query_start_state_;
+  robot_interaction::InteractionHandlerPtr query_goal_state_;
   std::shared_ptr<interactive_markers::MenuHandler> menu_handler_start_;
   std::shared_ptr<interactive_markers::MenuHandler> menu_handler_goal_;
   std::map<std::string, LinkDisplayStatus> status_links_start_;

@@ -60,8 +60,8 @@ IKCache::~IKCache()
     saveCache();
 }
 
-void IKCache::initializeCache(const std::string& robot_description, const std::string& group_name,
-                              const std::string& cache_name, const unsigned int num_joints, Options opts)
+void IKCache::initializeCache(const std::string& robot_id, const std::string& group_name, const std::string& cache_name,
+                              const unsigned int num_joints, Options opts)
 {
   // read ROS parameters
   max_cache_size_ = opts.max_cache_size;
@@ -78,8 +78,8 @@ void IKCache::initializeCache(const std::string& robot_description, const std::s
   // create cache directory if necessary
   boost::filesystem::create_directories(prefix);
 
-  cache_file_name_ = prefix / (robot_description + group_name + "_" + cache_name + "_" +
-                               std::to_string(max_cache_size_) + "_" + std::to_string(min_pose_distance_) + "_" +
+  cache_file_name_ = prefix / (robot_id + group_name + "_" + cache_name + "_" + std::to_string(max_cache_size_) + "_" +
+                               std::to_string(min_pose_distance_) + "_" +
                                std::to_string(std::sqrt(min_config_distance2_)) + ".ikcache");
 
   ik_cache_.clear();

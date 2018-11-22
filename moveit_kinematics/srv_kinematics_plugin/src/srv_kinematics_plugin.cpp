@@ -42,7 +42,6 @@
 #include <srdfdom/model.h>
 
 #include <moveit/robot_state/conversions.h>
-#include <moveit/rdf_loader/rdf_loader.h>
 
 // Eigen
 #include <Eigen/Core>
@@ -57,7 +56,7 @@ SrvKinematicsPlugin::SrvKinematicsPlugin() : active_(false)
 {
 }
 
-bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
+bool SrvKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
                                      const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                      double search_discretization)
 {
@@ -65,20 +64,7 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
 
   ROS_INFO_STREAM_NAMED("srv", "SrvKinematicsPlugin initializing");
 
-  setValues(robot_description, group_name, base_frame, tip_frames, search_discretization);
-
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
-  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
-
-  if (!urdf_model || !srdf)
-  {
-    ROS_ERROR_NAMED("srv", "URDF and SRDF must be loaded for SRV kinematics solver to work.");  // TODO: is this true?
-    return false;
-  }
-
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
-
+  storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
   joint_model_group_ = robot_model_->getJointModelGroup(group_name);
   if (!joint_model_group_)
     return false;
