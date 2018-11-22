@@ -120,8 +120,7 @@ public:
   /// call this for each handler for which you want markers.
   /// The markers are not actually added until you call
   /// publishInteractiveMarkers().
-  void addInteractiveMarkers(const InteractionHandlerPtr& handler,
-                             const double marker_scale = 0.0);
+  void addInteractiveMarkers(const InteractionHandlerPtr& handler, const double marker_scale = 0.0);
 
   // Update pose of all interactive markers to match the handler's RobotState.
   // Call this when the handler's RobotState changes.
@@ -179,12 +178,11 @@ private:
                          const robot_state::RobotState& robot_state, geometry_msgs::Pose& pose,
                          geometry_msgs::Pose& control_to_eef_tf) const;
 
-  void addEndEffectorMarkers(const InteractionHandlerPtr& handler,
-                             const EndEffectorInteraction& eef, visualization_msgs::InteractiveMarker& im,
-                             bool position = true, bool orientation = true);
-  void addEndEffectorMarkers(const InteractionHandlerPtr& handler,
-                             const EndEffectorInteraction& eef, const geometry_msgs::Pose& offset,
+  void addEndEffectorMarkers(const InteractionHandlerPtr& handler, const EndEffectorInteraction& eef,
                              visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
+  void addEndEffectorMarkers(const InteractionHandlerPtr& handler, const EndEffectorInteraction& eef,
+                             const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im,
+                             bool position = true, bool orientation = true);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void subscribeMoveInteractiveMarker(const std::string marker_name, const std::string& name);
   void processingThread();

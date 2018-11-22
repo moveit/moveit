@@ -204,10 +204,8 @@ protected:
   void recomputeQueryGoalStateMetrics();
   void drawQueryStartState();
   void drawQueryGoalState();
-  void scheduleDrawQueryStartState(robot_interaction::InteractionHandler* handler,
-                                   bool error_state_changed);
-  void scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* handler,
-                                  bool error_state_changed);
+  void scheduleDrawQueryStartState(robot_interaction::InteractionHandler* handler, bool error_state_changed);
+  void scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* handler, bool error_state_changed);
 
   bool isIKSolutionCollisionFree(robot_state::RobotState* state, const robot_state::JointModelGroup* group,
                                  const double* ik_solution) const;
