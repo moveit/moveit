@@ -85,12 +85,7 @@ void RobotTrajectory::swap(RobotTrajectory& other)
 
 void RobotTrajectory::append(const RobotTrajectory& source, double dt)
 {
-  waypoints_.insert(waypoints_.end(), source.waypoints_.begin(), source.waypoints_.end());
-  std::size_t index = duration_from_previous_.size();
-  duration_from_previous_.insert(duration_from_previous_.end(), source.duration_from_previous_.begin(),
-                                 source.duration_from_previous_.end());
-  if (duration_from_previous_.size() > index)
-    duration_from_previous_[index] += dt;
+  append(source, dt, 0, source.waypoints_.size());
 }
 
 void RobotTrajectory::append(const RobotTrajectory& source, double dt, size_t start_index, size_t end_index)
