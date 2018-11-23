@@ -63,7 +63,7 @@ if(CATKIN_ENABLE_TESTING)
     test/chomp_moveit.test
     test/chomp_moveit_test.cpp)
   target_link_libraries(chomp_moveit_test
-    ${moveit_ros_planning_interface_LIBRARIES}
     ${catkin_LIBRARIES}
+    ${moveit_ros_planning_interface_LIBRARIES}
     ${rostest_LIBRARIES})
 endif()
