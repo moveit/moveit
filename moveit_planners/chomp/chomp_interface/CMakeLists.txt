@@ -3,12 +3,23 @@ project(moveit_planners_chomp)
 
 add_definitions(-std=c++11)
 
+find_package(catkin REQUIRED)
+
+if (CATKIN_ENABLE_TESTING)
+  set(CHOMP_TEST_DEPS
+    moveit_ros_planning_interface
+  )
+else()
+  set(CHOMP_TEST_DEPS)
+endif()
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core
   pluginlib
   chomp_motion_planner
   moveit_experimental
+  ${CHOMP_TEST_DEPS}
 )
 
 find_package(Eigen3 REQUIRED)
@@ -50,14 +61,11 @@ install(TARGETS ${PROJECT_NAME} chomp_planner_plugin
 
 if(CATKIN_ENABLE_TESTING)
   # additional test dependencies
-  find_package(moveit_ros_planning_interface REQUIRED)
   find_package(rostest REQUIRED)
-  include_directories(${moveit_ros_planning_interface_INCLUDE_DIRS})
   add_rostest_gtest(chomp_moveit_test
     test/chomp_moveit.test
     test/chomp_moveit_test.cpp)
   target_link_libraries(chomp_moveit_test
-    ${moveit_ros_planning_interface_LIBRARIES}
     ${catkin_LIBRARIES}
     ${rostest_LIBRARIES})
 endif()
