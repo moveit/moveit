@@ -329,9 +329,9 @@ public:
     return joint_model_group_;
   }
 
-  const std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > getMoveGroupClient() const
+  const actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const
   {
-    return move_action_client_;
+    return *move_action_client_;
   }
 
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc)
@@ -1312,7 +1312,7 @@ private:
   boost::shared_ptr<tf::Transformer> tf_;
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
-  std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
@@ -1505,7 +1505,7 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
   return impl_->move(false);
 }
 
-const std::shared_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> >
+const actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
 moveit::planning_interface::MoveGroupInterface::getMoveGroupClient()
 {
   return impl_->getMoveGroupClient();
