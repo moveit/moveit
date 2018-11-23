@@ -293,7 +293,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     constraints_are_ok = constraints_are_ok and jc.decide(last_state).satisfied;
     if (not constraints_are_ok)
     {
-      ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal constraints are violated.");
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal constraints are violated: " << constraint.joint_name);
       res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
       return false;
     }
