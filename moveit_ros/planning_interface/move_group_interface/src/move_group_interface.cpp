@@ -329,7 +329,7 @@ public:
     return joint_model_group_;
   }
 
-  const actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const
   {
     return *move_action_client_;
   }
@@ -1505,7 +1505,7 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
   return impl_->move(false);
 }
 
-const actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
+actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
 moveit::planning_interface::MoveGroupInterface::getMoveGroupClient()
 {
   return impl_->getMoveGroupClient();
