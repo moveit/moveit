@@ -26,6 +26,7 @@
 #ifndef KDL_CHAIN_IKSOLVERVEL_PINV_Mimic_HPP
 #define KDL_CHAIN_IKSOLVERVEL_PINV_Mimic_HPP
 
+#include "kdl/config.h"
 #include "kdl/chainiksolver.hpp"
 #include "kdl/chainjnttojacsolver.hpp"
 #include "kdl/utilities/svd_HH.hpp"
@@ -66,11 +67,14 @@ public:
   explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
                                        bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
-#ifdef KDL_MISSES_UPDATE_INTERNAL
+// TODO: simplify after kinetic support is dropped
+#define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
+#if KDL_VERSION_LESS(1, 4, 0)
   void updateInternalDataStructures();
 #else
   void updateInternalDataStructures() override;
 #endif
+#undef KDL_VERSION_LESS
 
   ~ChainIkSolverVel_pinv_mimic() override;
 
