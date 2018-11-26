@@ -61,6 +61,7 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
+    actionlib
     moveit_ros_planning
     moveit_ros_warehouse
     moveit_ros_manipulation

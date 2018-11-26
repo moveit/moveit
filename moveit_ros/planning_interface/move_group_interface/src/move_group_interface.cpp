@@ -50,7 +50,6 @@
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit_msgs/MoveGroupAction.h>
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/ExecuteTrajectoryAction.h>
 #include <moveit_msgs/PlaceAction.h>
@@ -61,7 +60,6 @@
 #include <moveit_msgs/GetPlannerParams.h>
 #include <moveit_msgs/SetPlannerParams.h>
 
-#include <actionlib/client/simple_action_client.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2/utils.h>
@@ -258,6 +256,11 @@ public:
   const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return joint_model_group_;
+  }
+
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const
+  {
+    return *move_action_client_;
   }
 
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc)
@@ -1411,6 +1414,12 @@ void moveit::planning_interface::MoveGroupInterface::setMaxAccelerationScalingFa
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::asyncMove()
 {
   return impl_->move(false);
+}
+
+actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
+moveit::planning_interface::MoveGroupInterface::getMoveGroupClient() const
+{
+  return impl_->getMoveGroupClient();
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::move()
