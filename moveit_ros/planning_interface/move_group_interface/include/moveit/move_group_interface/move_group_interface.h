@@ -48,7 +48,9 @@
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
 #include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/MoveGroupAction.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <actionlib/client/simple_action_client.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
 
@@ -682,6 +684,11 @@ public:
      target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
   MoveItErrorCode asyncMove();
+
+  /** \brief Get the move_group action client used by the \e MoveGroupInterface.
+      The client can be used for querying the execution state of the trajectory and abort trajectory execution
+      during asynchronous execution. */
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const;
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified
      target.
