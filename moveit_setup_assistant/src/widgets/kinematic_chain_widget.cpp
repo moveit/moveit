@@ -182,7 +182,7 @@ void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel* 
       }
     }
   }
-  for (size_t i = 0; i < link->getChildJointModels().size(); i++)
+  for (std::size_t i = 0; i < link->getChildJointModels().size(); i++)
   {
     addLinktoTreeRecursive(link->getChildJointModels()[i]->getChildLinkModel(), link);
   }
