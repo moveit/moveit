@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_perception)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 option(WITH_OPENGL "Build the parts that depend on OpenGL" ON)
 

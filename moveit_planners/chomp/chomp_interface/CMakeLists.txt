@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_planners_chomp)
 
-add_definitions(-std=c++11)
+add_definitions(-std=c++14)
 
 # find catkin in isolation so that CATKIN_ENABLE_TESTING is defined
 find_package(catkin REQUIRED)
