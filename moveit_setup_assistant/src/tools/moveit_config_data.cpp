@@ -467,6 +467,40 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
           urdf_document.RootElement()->InsertEndChild(transmission);
         }
+        }
+      }
+
+    // Add gazebo_ros_control plugin which reads the transmission tags
+    TiXmlElement gazebo("gazebo");
+    TiXmlElement plugin("plugin");
+    TiXmlElement robot_namespace("robotNamespace");
+
+    plugin.SetAttribute("name", "gazebo_ros_control");
+    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
+    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
+
+    plugin.InsertEndChild(robot_namespace);
+    gazebo.InsertEndChild(plugin);
+
+    urdf_document.RootElement()->InsertEndChild(gazebo);
+          transmission.SetAttribute("name", std::string("trans_") + joint_name);
+          joint.SetAttribute("name", joint_name);
+          actuator.SetAttribute("name", joint_name + std::string("_motor"));
+
+          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
+          transmission.InsertEndChild(type);
+
+          hardwareInterface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
+          joint.InsertEndChild(hardwareInterface);
+          transmission.InsertEndChild(joint);
+
+          mechanical_reduction.InsertEndChild(TiXmlText("1"));
+          actuator.InsertEndChild(hardwareInterface);
+          actuator.InsertEndChild(mechanical_reduction);
+          transmission.InsertEndChild(actuator);
+
+          urdf_document.RootElement()->InsertEndChild(transmission);
+        }
       }
     }
 
