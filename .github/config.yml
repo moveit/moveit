@@ -4,7 +4,7 @@
 
 # Comment to be posted to on first time issues
 newIssueWelcomeComment: >
-  Thanks for reporting an issue. We will have a look asap. 
+  Thanks for reporting an issue. We will have a look asap.
   If you can think of a fix, please consider providing it as a pull request.
 
 # Configuration for new-pr-welcome - https://github.com/behaviorbot/new-pr-welcome
@@ -17,6 +17,6 @@ newPRWelcomeComment: >
 
 # Comment to be posted to on pull requests merged by a first time user
 firstPRMergeComment: >
-  Congrats on merging your first pull request and contributing to open source robotics!
+  Congrats on getting your first MoveIt! pull request merged and improving open source robotics!
 
 # It is recommended to include as many gifs and emojis as possible!
