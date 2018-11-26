@@ -488,6 +488,24 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
+  // gazebo.launch ------------------------------------------------------------------
+  file.file_name_ = "gazebo.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, "gazebo.launch");
+  file.description_ = "Gazebo launch file which also launches ros_controllers and sends robot urdf to param server, "
+                      "then using gazebo_ros pkg the robot is spawned to Gazebo";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);
+
+  // demo_gazebo.launch ------------------------------------------------------------------
+  file.file_name_ = "demo_gazebo.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Run a demo of MoveIt with Gazebo and Rviz";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = 0;
+  gen_files_.push_back(file);
+
   // joystick_control.launch ------------------------------------------------------------------
   file.file_name_ = "joystick_control.launch";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
@@ -1097,7 +1115,9 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
          controller_it != config_data_->getROSControllers().end(); ++controller_it)
     {
-      controllers << controller_it->name_ << " ";
+      // Check if the controller belongs to controller_list namespace
+      if (controller_it->type_ != "FollowJointTrajectory")
+        controllers << controller_it->name_ << " ";
     }
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }

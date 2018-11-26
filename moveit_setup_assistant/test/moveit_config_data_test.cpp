@@ -122,7 +122,7 @@ TEST_F(MoveItConfigData, ReadingControllers)
   boost::filesystem::remove(test_file);
 }
 
-// This tests parsing of sensors_rgbd.yaml
+// This tests parsing of sensors_3d.yaml
 TEST_F(MoveItConfigData, ReadingSensorsConfig)
 {
   // Contains all the config data for the setup assistant
@@ -135,7 +135,8 @@ TEST_F(MoveItConfigData, ReadingSensorsConfig)
   EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0);
 
   // Read the file containing the default config parameters
-  config_data_->input3DSensorsYAML((setup_assistant_path / "resources/default_config/sensors_3d.yaml").string());
+  config_data_->input3DSensorsYAML(
+      (setup_assistant_path / "templates/moveit_config_pkg_template/config/sensors_3d.yaml").string());
 
   // Default config for the two available sensor plugins
   // Make sure both are parsed correctly

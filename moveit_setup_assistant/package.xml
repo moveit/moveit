@@ -30,6 +30,8 @@
   <run_depend>yaml-cpp</run_depend>
   <run_depend>xacro</run_depend>
   <run_depend version_gt="0.3.1">srdfdom</run_depend>
+  <!-- Optional: Gazebo integration. This is a heavy dependency so is disabled by default -->
+  <!-- run_depend>gazebo_ros</run_depend -->
 
   <test_depend>moveit_resources</test_depend>
 </package>

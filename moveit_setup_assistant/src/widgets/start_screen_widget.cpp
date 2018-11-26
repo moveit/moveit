@@ -677,7 +677,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
     if (fs::is_regular_file(package_path) || fs::is_regular_file(sub_path / "manifest.xml"))
     {
       // now generate the relative path
-      for (size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count)
+      for (std::size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count)
         relative_path /= path_parts[relative_count];
 
       // add the URDF filename at end of relative path
@@ -773,19 +773,19 @@ bool StartScreenWidget::createFullSRDFPath(const std::string& package_path)
 // ******************************************************************************************
 bool StartScreenWidget::load3DSensorsFile()
 {
-  // Loads sensors_3d yaml file if available --------------------------------------------------
+  // Loads parameters values from sensors_3d yaml file if available
   fs::path sensors_3d_yaml_path = config_data_->config_pkg_path_;
   sensors_3d_yaml_path /= "config/sensors_3d.yaml";
 
-  // If config was not available, load default configuration
+  // Default parameters values are always loaded but overridden by values existing in sensors_3d
+  fs::path default_sensors_3d_yaml_path = "templates/moveit_config_pkg_template/config/sensors_3d.yaml";
+
   if (!fs::is_regular_file(sensors_3d_yaml_path))
   {
-    sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
-    return config_data_->input3DSensorsYAML(sensors_3d_yaml_path.make_preferred().native().c_str());
+    return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().native().c_str());
   }
   else
   {
-    fs::path default_sensors_3d_yaml_path = "resources/default_config/sensors_3d.yaml";
     return config_data_->input3DSensorsYAML(default_sensors_3d_yaml_path.make_preferred().native().c_str(),
                                             sensors_3d_yaml_path.make_preferred().native().c_str());
   }
