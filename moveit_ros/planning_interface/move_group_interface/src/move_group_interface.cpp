@@ -1506,7 +1506,7 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 }
 
 actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
-moveit::planning_interface::MoveGroupInterface::getMoveGroupClient()
+moveit::planning_interface::MoveGroupInterface::getMoveGroupClient() const
 {
   return impl_->getMoveGroupClient();
 }

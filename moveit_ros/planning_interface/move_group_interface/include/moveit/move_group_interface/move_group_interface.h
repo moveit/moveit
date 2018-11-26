@@ -688,7 +688,7 @@ public:
   /** \brief Get the move_group action client used by the \e MoveGroupInterface.
       The client can be used for querying the execution state of the trajectory and abort trajectory execution
       during asynchronous execution. */
-  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient();
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const;
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified
      target.
