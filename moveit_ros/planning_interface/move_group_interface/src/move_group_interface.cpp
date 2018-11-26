@@ -1422,6 +1422,12 @@ moveit::planning_interface::MoveGroupInterface::getMoveGroupClient() const
   return impl_->getMoveGroupClient();
 }
 
+actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>&
+moveit::planning_interface::MoveGroupInterface::getMoveGroupClient() const
+{
+  return impl_->getMoveGroupClient();
+}
+
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::move()
 {
   return impl_->move(true);
