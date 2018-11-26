@@ -282,8 +282,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   // check that final state is within goal tolerances
   kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
-  robot_state::RobotState last_state(planning_scene->getRobotModel());
-  last_state.setVariablePositions(req.start_state.joint_state.position.data());
+  robot_state::RobotState last_state(start_state);
   last_state.setVariablePositions(res.trajectory[0].joint_trajectory.joint_names,
                                   res.trajectory[0].joint_trajectory.points.back().positions);
 
