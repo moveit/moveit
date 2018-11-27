@@ -29,12 +29,6 @@ if(CATKIN_ENABLE_TESTING)
   find_package(tf2_kdl REQUIRED)
   find_package(moveit_resources REQUIRED)
 
-# Does kdl provide updateInternalDataStructures()?
-# TODO: remove when Kinetic support is dropped
-if(orocos_kdl_VERSION VERSION_LESS 1.4.0)
-  add_definitions(-DKDL_MISSES_UPDATE_INTERNAL)
-endif()
-
 include_directories(${orocos_kdl_INCLUDE_DIRS} ${angles_INCLUDE_DIRS} ${tf2_kdl_INCLUDE_DIRS} ${moveit_resources_INCLUDE_DIRS})
 
   catkin_add_gtest(test_constraint_samplers
