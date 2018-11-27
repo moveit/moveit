@@ -43,6 +43,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 
+#include <moveit/robot_state/conversions.h>
 move_group::MoveGroupMoveAction::MoveGroupMoveAction()
   : MoveGroupCapability("MoveAction"), move_state_(IDLE), preempt_requested_{ false }
 {
@@ -64,13 +65,13 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
   context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
   // Update the goal's start state to the robot's current state using the latest data from the planning scene
-  moveit_msgs::MoveGroupGoal* goal_with_start_state = new moveit_msgs::MoveGroupGoal(*goal);
+  moveit_msgs::MoveGroupGoalPtr goal_with_start_state(new moveit_msgs::MoveGroupGoal(*goal));
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
     moveit::core::RobotState start_state(lscene->getCurrentState());
     if (!planning_scene::PlanningScene::isEmpty(goal->request.start_state))
     {
-      moveit::core::robotStateMsgToRobotState(req.start_state, start_state);
+      moveit::core::robotStateMsgToRobotState(goal->request.start_state, start_state);
     }
     robot_state::robotStateToRobotStateMsg(start_state, goal_with_start_state->request.start_state);
   }
