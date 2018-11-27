@@ -186,11 +186,17 @@ public:
   }
 
   /**
-   * \brief Add a trajectory to the end of the current trajectory
-   * \param source - the trajectory to append to the end of current trajectory
-   * \param dt - time step between last traj point in current traj, and first traj point of new traj
+   * \brief Add a specified part of a trajectory to the end of the current trajectory. The default (when \p start_index
+   * and \p end_index are omitted) is to add the whole trajectory.
+   * \param source - the trajectory containing the part to append to the end of current trajectory
+   * \param dt - time step between last traj point in current traj and first traj point of append traj
+   * \param start_index - index of first traj point of the part to append from the source traj, the default is to add
+   * from the start of the source traj
+   * \param end_index - index of last traj point of the part to append from the source traj, the default is to add until
+   * the end of the source traj
    */
-  void append(const RobotTrajectory& source, double dt);
+  void append(const RobotTrajectory& source, double dt, size_t start_index = 0,
+              size_t end_index = std::numeric_limits<std::size_t>::max());
 
   void swap(robot_trajectory::RobotTrajectory& other);
 
