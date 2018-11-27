@@ -41,7 +41,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 find_package(octomap REQUIRED)
 find_package(OpenCV)
 
