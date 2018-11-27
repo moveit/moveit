@@ -137,10 +137,12 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
 {
-  if (move_group_ && current_plan_)
+  // ensures the MoveGroupInterface is not destroyed while executing
+  moveit::planning_interface::MoveGroupInterfacePtr mgi(move_group_);
+  if (mgi && current_plan_)
   {
     ui_->stop_button->setEnabled(true);  // enable stopping
-    bool success = move_group_->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = mgi->execute(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
     onFinishedExecution(success);
   }
 }
@@ -176,36 +178,42 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   ui_->stop_button->setEnabled(false);
 
   // update query start state to current if neccessary
-  if (ui_->start_state_selection->currentText() == "<current>")
-    useStartStateButtonClicked();
+  if (ui_->start_state_combo_box->currentText() == "<current>")
+    startStateTextChanged(ui_->start_state_combo_box->currentText());
 }
 
-void MotionPlanningFrame::useStartStateButtonClicked()
+void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this),  //
-                                      "update start state");
+  planning_display_->addBackgroundJob(
+      boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this, start_state.toStdString()),
+      "update start state");
 }
 
-void MotionPlanningFrame::useStartStateButtonExec()
+void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_state)
 {
   robot_state::RobotState start = *planning_display_->getQueryStartState();
-  updateQueryStateHelper(start, ui_->start_state_selection->currentText().toStdString());
+  updateQueryStateHelper(start, start_state);
   planning_display_->setQueryStartState(start);
 }
 
-void MotionPlanningFrame::useGoalStateButtonClicked()
+void MotionPlanningFrame::goalStateTextChanged(const QString& goal_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this),  //
-                                      "update goal state");
+  planning_display_->addBackgroundJob(
+      boost::bind(&MotionPlanningFrame::goalStateTextChangedExec, this, goal_state.toStdString()), "update goal state");
 }
 
-void MotionPlanningFrame::useGoalStateButtonExec()
+void MotionPlanningFrame::goalStateTextChangedExec(const std::string& goal_state)
 {
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
-  updateQueryStateHelper(goal, ui_->goal_state_selection->currentText().toStdString());
+  updateQueryStateHelper(goal, goal_state);
   planning_display_->setQueryGoalState(goal);
+}
+
+void MotionPlanningFrame::planningGroupTextChanged(const QString& planning_group)
+{
+  planning_display_->changePlanningGroup(planning_group.toStdString());
 }
 
 void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state, const std::string& v)

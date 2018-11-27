@@ -1007,7 +1007,6 @@ void MotionPlanningDisplay::changePlanningGroup(const std::string& group)
   if (getRobotModel()->hasJointModelGroup(group))
   {
     planning_group_property_->setStdString(group);
-    changedPlanningGroup();
   }
   else
     ROS_ERROR("Group [%s] not found in the robot model.", group.c_str());
@@ -1171,6 +1170,9 @@ void MotionPlanningDisplay::onRobotModelLoaded()
     if (getRobotModel()->getJointModelGroup(groups[i])->isChain())
       dynamics_solver_[groups[i]].reset(
           new dynamics_solver::DynamicsSolver(getRobotModel(), groups[i], gravity_vector));
+
+  if (frame_)
+    frame_->fillPlanningGroupOptions();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
 }
 
