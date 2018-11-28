@@ -53,12 +53,12 @@ TEST(World, AddRemoveShape)
   EXPECT_FALSE(world.hasObject("ball"));
 
   // Add ball object
-  world.addToObject("ball", ball, Eigen::Affine3d::Identity());
+  world.addToObject("ball", ball, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(2, ball.use_count());
   EXPECT_TRUE(world.hasObject("ball"));
 
-  bool move_ok = world.moveShapeInObject("ball", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 9)));
+  bool move_ok = world.moveShapeInObject("ball", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 9)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ball.use_count());
@@ -81,7 +81,7 @@ TEST(World, AddRemoveShape)
   EXPECT_FALSE(world.hasObject("ball"));
 
   // add ball again
-  world.addToObject("ball", ball, Eigen::Affine3d::Identity());
+  world.addToObject("ball", ball, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(2, ball.use_count());
   EXPECT_TRUE(world.hasObject("ball"));
@@ -90,15 +90,15 @@ TEST(World, AddRemoveShape)
 
   {
     std::vector<shapes::ShapeConstPtr> shapes;
-    EigenSTL::vector_Affine3d poses;
+    EigenSTL::vector_Isometry3d poses;
 
     shapes.push_back(box);
     shapes.push_back(cyl);
     shapes.push_back(ball);
 
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 2)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 3)));
+    poses.push_back(Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
+    poses.push_back(Eigen::Isometry3d(Eigen::Translation3d(0, 0, 2)));
+    poses.push_back(Eigen::Isometry3d(Eigen::Translation3d(0, 0, 3)));
 
     EXPECT_FALSE(world.hasObject("mix1"));
 
@@ -113,7 +113,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(3, ball.use_count());
 
   // add ball2
-  world.addToObject("ball2", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 4)));
+  world.addToObject("ball2", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 4)));
 
   EXPECT_EQ(2, box.use_count());
   EXPECT_EQ(2, cyl.use_count());
@@ -148,7 +148,7 @@ TEST(World, AddRemoveShape)
     EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
     EXPECT_EQ(3.0, obj->shape_poses_[1](2, 3));
 
-    move_ok = world.moveShapeInObject("mix1", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 5)));
+    move_ok = world.moveShapeInObject("mix1", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 5)));
     EXPECT_TRUE(move_ok);
 
     collision_detection::World::ObjectConstPtr obj2 = world.getObject("mix1");
@@ -243,14 +243,14 @@ TEST(World, TrackChanges)
   shapes::ShapePtr box(new shapes::Box(1, 2, 3));
   shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
-  world.addToObject("obj1", ball, Eigen::Affine3d::Identity());
+  world.addToObject("obj1", ball, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(1, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
   EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
   ta.reset();
 
-  bool move_ok = world.moveShapeInObject("obj1", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
+  bool move_ok = world.moveShapeInObject("obj1", ball, Eigen::Isometry3d(Eigen::Translation3d(0, 0, 1)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ta.cnt_);
@@ -258,7 +258,7 @@ TEST(World, TrackChanges)
   EXPECT_EQ(collision_detection::World::MOVE_SHAPE, ta.action_);
   ta.reset();
 
-  world.addToObject("obj1", box, Eigen::Affine3d::Identity());
+  world.addToObject("obj1", box, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(3, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
@@ -269,7 +269,7 @@ TEST(World, TrackChanges)
   collision_detection::World::ObserverHandle observer_ta2;
   observer_ta2 = world.addObserver(boost::bind(TrackChangesNotify, &ta2, _1, _2));
 
-  world.addToObject("obj2", cyl, Eigen::Affine3d::Identity());
+  world.addToObject("obj2", cyl, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(4, ta.cnt_);
   EXPECT_EQ("obj2", ta.obj_.id_);
@@ -280,7 +280,7 @@ TEST(World, TrackChanges)
   EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta2.action_);
   ta2.reset();
 
-  world.addToObject("obj3", box, Eigen::Affine3d::Identity());
+  world.addToObject("obj3", box, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(5, ta.cnt_);
   EXPECT_EQ("obj3", ta.obj_.id_);
@@ -358,7 +358,7 @@ TEST(World, TrackChanges)
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ(4, ta3.cnt_);
 
-  world.addToObject("obj4", box, Eigen::Affine3d::Identity());
+  world.addToObject("obj4", box, Eigen::Isometry3d::Identity());
 
   EXPECT_EQ(9, ta.cnt_);
   EXPECT_EQ(3, ta2.cnt_);

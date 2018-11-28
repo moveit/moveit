@@ -438,18 +438,18 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& constraints,
                                                  const std::vector<double> offset)
 {
-  Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(offset[3], Eigen::Vector3d::UnitX()) *
-                            Eigen::AngleAxis<double>(offset[4], Eigen::Vector3d::UnitY()) *
-                            Eigen::AngleAxis<double>(offset[5], Eigen::Vector3d::UnitZ()));
+  Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(offset[3], Eigen::Vector3d::UnitX()) *
+                              Eigen::AngleAxis<double>(offset[4], Eigen::Vector3d::UnitY()) *
+                              Eigen::AngleAxis<double>(offset[5], Eigen::Vector3d::UnitZ()));
   offset_tf.translation() = Eigen::Vector3d(offset[0], offset[1], offset[2]);
 
   geometry_msgs::Pose constraint_pose_msg;
   constraint_pose_msg.position = constraints.position_constraints[0].constraint_region.primitive_poses[0].position;
   constraint_pose_msg.orientation = constraints.orientation_constraints[0].orientation;
-  Eigen::Affine3d constraint_pose;
+  Eigen::Isometry3d constraint_pose;
   tf2::fromMsg(constraint_pose_msg, constraint_pose);
 
-  Eigen::Affine3d new_pose = constraint_pose * offset_tf;
+  Eigen::Isometry3d new_pose = constraint_pose * offset_tf;
   geometry_msgs::Pose new_pose_msg;
   new_pose_msg = tf2::toMsg(new_pose);
 

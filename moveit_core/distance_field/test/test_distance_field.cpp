@@ -507,7 +507,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.y = .5;
   p.position.z = .5;
 
-  Eigen::Affine3d p_eigen;
+  Eigen::Isometry3d p_eigen;
   tf2::fromMsg(p, p_eigen);
 
   gradient_df.addShapeToField(&sphere, p_eigen);
@@ -608,8 +608,8 @@ TEST(TestSignedPropagationDistanceField, TestShape)
 
   shapes::Sphere sphere(.25);
 
-  Eigen::Affine3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
-  Eigen::Affine3d np = Eigen::Translation3d(0.7, 0.7, 0.7) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Isometry3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Isometry3d np = Eigen::Translation3d(0.7, 0.7, 0.7) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   df.addShapeToField(&sphere, p);
 
@@ -677,10 +677,10 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   shapes::Box big_table(2.0, 2.0, .5);
 
-  Eigen::Affine3d p = Eigen::Translation3d(PERF_WIDTH / 2.0, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
-                      Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
-  Eigen::Affine3d np = Eigen::Translation3d(PERF_WIDTH / 2.0 + .01, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
-                       Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Isometry3d p = Eigen::Translation3d(PERF_WIDTH / 2.0, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
+                        Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Isometry3d np = Eigen::Translation3d(PERF_WIDTH / 2.0 + .01, PERF_DEPTH / 2.0, PERF_HEIGHT / 2.0) *
+                         Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   unsigned int big_num_points = ceil(2.0 / PERF_RESOLUTION) * ceil(2.0 / PERF_RESOLUTION) * ceil(.5 / PERF_RESOLUTION);
 
@@ -877,7 +877,7 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
                                            PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
   df_test_shape_1.addOcTreeToField(tree_shape.get());
-  df_test_shape_2.addShapeToField(shape_oc.get(), Eigen::Affine3d());
+  df_test_shape_2.addShapeToField(shape_oc.get(), Eigen::Isometry3d());
   EXPECT_TRUE(areDistanceFieldsDistancesEqual(df_test_shape_1, df_test_shape_2));
 }
 
@@ -906,7 +906,7 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
 
   shapes::Sphere sphere(.5);
 
-  Eigen::Affine3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Isometry3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   df.addShapeToField(&sphere, p);
 

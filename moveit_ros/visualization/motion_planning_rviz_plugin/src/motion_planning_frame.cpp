@@ -403,7 +403,7 @@ void MotionPlanningFrame::importResource(const std::string& path)
       std::size_t slash = path.find_last_of("/\\");
       std::string name = path.substr(slash + 1);
       shapes::ShapeConstPtr shape(mesh);
-      Eigen::Affine3d pose;
+      Eigen::Isometry3d pose;
       pose.setIdentity();
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))

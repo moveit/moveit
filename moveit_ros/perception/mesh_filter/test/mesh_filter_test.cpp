@@ -93,7 +93,7 @@ public:
 
 private:
   shapes::Mesh createMesh(double z) const;
-  bool transform_callback(MeshHandle handle, Affine3d& transform) const;
+  bool transform_callback(MeshHandle handle, Isometry3d& transform) const;
   void getGroundTruth(unsigned int* labels, float* depth) const;
   const unsigned int width_;
   const unsigned int height_;
@@ -201,9 +201,9 @@ shapes::Mesh MeshFilterTest<Type>::createMesh(double z) const
 }
 
 template <typename Type>
-bool MeshFilterTest<Type>::transform_callback(MeshHandle handle, Affine3d& transform) const
+bool MeshFilterTest<Type>::transform_callback(MeshHandle handle, Isometry3d& transform) const
 {
-  transform = Affine3d::Identity();
+  transform = Isometry3d::Identity();
   if (handle == handle_)
     transform.translation() = Vector3d(0, 0, distance_);
   return true;

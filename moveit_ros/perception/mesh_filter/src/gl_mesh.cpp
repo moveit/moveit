@@ -78,7 +78,7 @@ mesh_filter::GLMesh::~GLMesh()
   glDeleteLists(list_, 1);
 }
 
-void mesh_filter::GLMesh::render(const Affine3d& transform) const
+void mesh_filter::GLMesh::render(const Isometry3d& transform) const
 {
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();

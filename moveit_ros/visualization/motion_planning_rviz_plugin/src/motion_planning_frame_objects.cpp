@@ -225,7 +225,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
     {
       ui_->scene_scale->setEnabled(true);
       bool update_scene_marker = false;
-      Eigen::Affine3d obj_pose;
+      Eigen::Isometry3d obj_pose;
       {
         const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
         const collision_detection::CollisionWorld::ObjectConstPtr& obj =
@@ -305,7 +305,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
     collision_detection::CollisionWorld::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
     if (obj && obj->shapes_.size() == 1)
     {
-      Eigen::Affine3d p;
+      Eigen::Isometry3d p;
       p.translation()[0] = ui_->object_x->value();
       p.translation()[1] = ui_->object_y->value();
       p.translation()[2] = ui_->object_z->value();
@@ -667,7 +667,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
 }
 
 void MotionPlanningFrame::addObject(const collision_detection::WorldPtr& world, const std::string& id,
-                                    const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+                                    const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
 {
   world->addToObject(id, shape, pose);
 

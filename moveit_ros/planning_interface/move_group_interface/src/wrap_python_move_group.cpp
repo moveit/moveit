@@ -286,17 +286,17 @@ public:
       std::vector<double> v = py_bindings_tools::doubleFromList(pose);
       if (v.size() == 6 || v.size() == 7)
       {
-        Eigen::Affine3d p;
+        Eigen::Isometry3d p;
         if (v.size() == 6)
         {
           tf2::Quaternion tq;
           tq.setRPY(v[3], v[4], v[5]);
           Eigen::Quaterniond eq;
           tf2::convert(tq, eq);
-          p = Eigen::Affine3d(eq);
+          p = Eigen::Isometry3d(eq);
         }
         else
-          p = Eigen::Affine3d(Eigen::Quaterniond(v[6], v[3], v[4], v[5]));
+          p = Eigen::Isometry3d(Eigen::Quaterniond(v[6], v[3], v[4], v[5]));
         p.translation() = Eigen::Vector3d(v[0], v[1], v[2]);
         geometry_msgs::Pose pm = tf2::toMsg(p);
         msg.push_back(pm);

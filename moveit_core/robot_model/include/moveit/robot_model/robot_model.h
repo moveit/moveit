@@ -437,7 +437,7 @@ public:
 
 protected:
   /** \brief Get the transforms between link and all its rigidly attached descendants */
-  void computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+  void computeFixedTransforms(const LinkModel* link, const Eigen::Isometry3d& transform,
                               LinkTransformMap& associated_transforms);
 
   /** \brief Given two joints, find their common root */

@@ -123,7 +123,7 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
       }
     }
     rviz::Color rcolor(color.r, color.g, color.b);
-    const EigenSTL::vector_Affine3d& ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+    const EigenSTL::vector_Isometry3d& ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
     const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_bodies[i]->getShapes();
     for (std::size_t j = 0; j < ab_shapes.size(); ++j)
     {

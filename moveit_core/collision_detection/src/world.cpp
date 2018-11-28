@@ -55,14 +55,14 @@ World::~World()
 }
 
 inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
-                                       const Eigen::Affine3d& pose)
+                                       const Eigen::Isometry3d& pose)
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
 void World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                        const EigenSTL::vector_Affine3d& poses)
+                        const EigenSTL::vector_Isometry3d& poses)
 {
   if (shapes.size() != poses.size())
   {
@@ -91,7 +91,7 @@ void World::addToObject(const std::string& id, const std::vector<shapes::ShapeCo
   notify(obj, Action(action));
 }
 
-void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
 {
   int action = ADD_SHAPE;
 
@@ -136,7 +136,7 @@ bool World::hasObject(const std::string& id) const
   return objects_.find(id) != objects_.end();
 }
 
-bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -155,12 +155,12 @@ bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr
   return false;
 }
 
-bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
+bool World::moveObject(const std::string& id, const Eigen::Isometry3d& transform)
 {
   auto it = objects_.find(id);
   if (it == objects_.end())
     return false;
-  if (transform.isApprox(Eigen::Affine3d::Identity()))
+  if (transform.isApprox(Eigen::Isometry3d::Identity()))
     return true;  // object already at correct location
   ensureUnique(it->second);
   for (size_t i = 0, n = it->second->shapes_.size(); i < n; ++i)

@@ -449,8 +449,8 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       if (link->jointOriginTransformIsIdentity())
         joint->computeVariablePositions(tf2::transformToEigen(transf), new_values);
       else
-        joint->computeVariablePositions(
-            link->getJointOriginTransform().inverse(Eigen::Isometry) * tf2::transformToEigen(transf), new_values);
+        joint->computeVariablePositions(link->getJointOriginTransform().inverse() * tf2::transformToEigen(transf),
+                                        new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {

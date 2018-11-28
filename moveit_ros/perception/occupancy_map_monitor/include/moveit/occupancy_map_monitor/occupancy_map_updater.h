@@ -46,8 +46,8 @@
 namespace occupancy_map_monitor
 {
 typedef unsigned int ShapeHandle;
-typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>,
-                 Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > >
+typedef std::map<ShapeHandle, Eigen::Isometry3d, std::less<ShapeHandle>,
+                 Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Isometry3d> > >
     ShapeTransformCache;
 typedef boost::function<bool(const std::string& target_frame, const ros::Time& target_time, ShapeTransformCache& cache)>
     TransformCacheProvider;

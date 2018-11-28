@@ -158,10 +158,10 @@ TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
   robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
-  Eigen::Affine3d offset = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
   offset.translation().x() = .01;
 
-  robot_state.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("base_link", Eigen::Isometry3d::Identity());
   robot_state.updateStateWithLinkAt("base_bellow_link", offset);
 
   acm_->setEntry("base_link", "base_bellow_link", false);
@@ -172,7 +172,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
   crobot_->checkSelfCollision(req, res2, robot_state, *acm_);
   ASSERT_FALSE(res2.collision);
 
-  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Isometry3d::Identity());
   robot_state.updateStateWithLinkAt("l_gripper_palm_link", offset);
 
   acm_->setEntry("r_gripper_palm_link", "l_gripper_palm_link", false);
@@ -190,13 +190,13 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
-  Eigen::Affine3d offset = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
   offset.translation().x() = .01;
 
-  robot_state.updateStateWithLinkAt("base_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("base_link", Eigen::Isometry3d::Identity());
   robot_state.updateStateWithLinkAt("base_bellow_link", offset);
 
-  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Affine3d::Identity());
+  robot_state.updateStateWithLinkAt("r_gripper_palm_link", Eigen::Isometry3d::Identity());
   robot_state.updateStateWithLinkAt("l_gripper_palm_link", offset);
 
   acm_->setEntry("base_link", "base_bellow_link", false);
@@ -239,8 +239,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
-  Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
-  Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
+  Eigen::Isometry3d pos2 = Eigen::Isometry3d::Identity();
 
   pos1.translation().x() = 5.0;
   pos2.translation().x() = 5.01;
@@ -262,8 +262,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
     EXPECT_NEAR(it->second[0].pos.x(), 5.0, .33);
   }
 
-  pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
-  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
+  pos1 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
+  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
 
   robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
   robot_state.updateStateWithLinkAt("l_gripper_palm_link", pos2);
@@ -280,8 +280,8 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
     EXPECT_NEAR(it->second[0].pos.x(), 3.0, 0.33);
   }
 
-  pos1 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
-  pos2 = Eigen::Affine3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(M_PI / 4.0, 0.0, M_PI / 4.0, 0.0));
+  pos1 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
+  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(M_PI / 4.0, 0.0, M_PI / 4.0, 0.0));
 
   robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
   robot_state.updateStateWithLinkAt("l_gripper_palm_link", pos2);
@@ -304,7 +304,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   robot_state.setToDefaultValues();
   robot_state.update();
 
-  Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
+  Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().x() = 1.0;
 
   robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
@@ -322,9 +322,9 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   cworld_->getWorld()->removeObject("box");
 
   std::vector<shapes::ShapeConstPtr> shapes;
-  EigenSTL::vector_Affine3d poses;
+  EigenSTL::vector_Isometry3d poses;
   shapes.push_back(shapes::ShapeConstPtr(new shapes::Box(.25, .25, .25)));
-  poses.push_back(Eigen::Affine3d::Identity());
+  poses.push_back(Eigen::Isometry3d::Identity());
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
   robot_state::AttachedBody* attached_body = new robot_state::AttachedBody(

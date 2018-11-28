@@ -53,11 +53,11 @@ namespace
 bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
                                 const robot_state::AttachedBody* attached_body, geometry_msgs::PoseStamped& place_pose)
 {
-  const EigenSTL::vector_Affine3d& fixed_transforms = attached_body->getFixedTransforms();
+  const EigenSTL::vector_Isometry3d& fixed_transforms = attached_body->getFixedTransforms();
   if (fixed_transforms.empty())
     return false;
 
-  Eigen::Affine3d end_effector_transform;
+  Eigen::Isometry3d end_effector_transform;
   tf2::fromMsg(goal_pose.pose, end_effector_transform);
   end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
   place_pose.header = goal_pose.header;

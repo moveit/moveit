@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     // perform first IK call to load the cache, so that the time for loading is not included in
     // average IK call time
     kinematic_state.setToDefaultValues();
-    EigenSTL::vector_Affine3d default_eef_states;
+    EigenSTL::vector_Isometry3d default_eef_states;
     for (const auto& end_effector : end_effectors)
       default_eef_states.push_back(kinematic_state.getGlobalLinkTransform(end_effector));
     if (end_effectors.size() == 1)
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 
     bool found_ik;
     unsigned int num_failed_calls = 0, num_self_collisions = 0;
-    EigenSTL::vector_Affine3d end_effector_states(end_effectors.size());
+    EigenSTL::vector_Isometry3d end_effector_states(end_effectors.size());
     unsigned int i = 0;
     while (i < num)
     {

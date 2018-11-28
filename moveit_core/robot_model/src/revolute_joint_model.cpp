@@ -205,7 +205,7 @@ bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bou
   return false;
 }
 
-void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Isometry3d& transf) const
 {
   const double c = cos(joint_values[0]);
   const double s = sin(joint_values[0]);
@@ -241,10 +241,10 @@ void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Aff
   d[14] = 0.0;
   d[15] = 1.0;
 
-  //  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
+  //  transf = Eigen::Isometry3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
-void RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
+void RevoluteJointModel::computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();

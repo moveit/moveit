@@ -5,6 +5,9 @@ API changes in MoveIt! releases
 ## ROS Melodic
 
 - Migration to ``tf2`` API.
+- Replaced Eigen::Affine3d with Eigen::Isometry3d, which is computationally more efficient.
+  Simply find-replace occurences of Affine3d:
+  ``find . -iname "*.[hc]*" -print0 | xargs -0 sed -i 's#Affine3#Isometry3#g'``
 - The move_group capability ``ExecuteTrajectoryServiceCapability`` has been removed in favor of the improved ``ExecuteTrajectoryActionCapability`` capability. Since Indigo, both capabilities were supported. If you still load default capabilities in your ``config/launch/move_group.launch``, you can just remove them from the capabilities parameter. The correct default capabilities will be loaded automatically.
 - Deprecated method ``CurrentStateMonitor::waitForCurrentState(double wait_time)`` was finally removed.
 - Renamed ``RobotState::getCollisionBodyTransforms`` to ``getCollisionBodyTransform`` as it returns a single transform only.

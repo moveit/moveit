@@ -523,7 +523,7 @@ protected:
                          of the IK solver */
   bool need_eef_to_ik_tip_transform_; /**< \brief True if the tip frame of the inverse kinematic is different than the
                                         frame of the end effector */
-  Eigen::Affine3d eef_to_ik_tip_transform_; /**< \brief Holds the transformation from end effector to IK tip frame */
+  Eigen::Isometry3d eef_to_ik_tip_transform_; /**< \brief Holds the transformation from end effector to IK tip frame */
 };
 }
 

@@ -373,15 +373,15 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             geometry_msgs::Pose wMc_msg;
             wMc_msg.position = constr->position_constraints[0].constraint_region.primitive_poses[0].position;
             wMc_msg.orientation = constr->orientation_constraints[0].orientation;
-            Eigen::Affine3d wMc;
+            Eigen::Isometry3d wMc;
             tf2::fromMsg(wMc_msg, wMc);
 
-            Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                      Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                      Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+            Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
+                                        Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                        Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
             offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
-            Eigen::Affine3d wMnc = wMc * offset_tf;
+            Eigen::Isometry3d wMnc = wMc * offset_tf;
             geometry_msgs::Pose wMnc_msg;
             wMnc_msg = tf2::toMsg(wMnc);
 
@@ -442,9 +442,9 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
           // set the workspace bounds
           req.motion_plan_request.workspace_parameters = options_.workspace_parameters;
 
-          Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
-                                    Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
-                                    Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
+          Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
+                                      Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
+                                      Eigen::AngleAxis<double>(options_.offsets[5], Eigen::Vector3d::UnitZ()));
           offset_tf.translation() = Eigen::Vector3d(options_.offsets[0], options_.offsets[1], options_.offsets[2]);
 
           // Apply waypoint offsets, check fields
@@ -464,10 +464,10 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
                                      .position;
               wMc_msg.orientation =
                   req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation;
-              Eigen::Affine3d wMc;
+              Eigen::Isometry3d wMc;
               tf2::fromMsg(wMc_msg, wMc);
 
-              Eigen::Affine3d wMnc = wMc * offset_tf;
+              Eigen::Isometry3d wMnc = wMc * offset_tf;
               geometry_msgs::Pose wMnc_msg = tf2::toMsg(wMnc);
 
               req.motion_plan_request.trajectory_constraints.constraints[tc]

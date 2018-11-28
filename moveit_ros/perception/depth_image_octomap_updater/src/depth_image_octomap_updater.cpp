@@ -181,7 +181,7 @@ void DepthImageOctomapUpdater::forgetShape(mesh_filter::MeshHandle handle)
     mesh_filter_->removeMesh(handle);
 }
 
-bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d& transform) const
+bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Isometry3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())

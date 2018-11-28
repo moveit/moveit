@@ -45,7 +45,7 @@ const static double RESOLUTION_SCALE = 1.0;
 const static double EPSILON = 0.0001;
 
 std::vector<collision_detection::CollisionSphere>
-collision_detection::determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relative_transform)
+collision_detection::determineCollisionSpheres(const bodies::Body* body, Eigen::Isometry3d& relative_transform)
 {
   std::vector<collision_detection::CollisionSphere> css;
 
@@ -261,21 +261,21 @@ collision_detection::BodyDecomposition::BodyDecomposition(const shapes::ShapeCon
                                                           double padding)
 {
   std::vector<shapes::ShapeConstPtr> shapes;
-  EigenSTL::vector_Affine3d poses(1, Eigen::Affine3d::Identity());
+  EigenSTL::vector_Isometry3d poses(1, Eigen::Isometry3d::Identity());
 
   shapes.push_back(shape);
   init(shapes, poses, resolution, padding);
 }
 
 collision_detection::BodyDecomposition::BodyDecomposition(const std::vector<shapes::ShapeConstPtr>& shapes,
-                                                          const EigenSTL::vector_Affine3d& poses, double resolution,
+                                                          const EigenSTL::vector_Isometry3d& poses, double resolution,
                                                           double padding)
 {
   init(shapes, poses, resolution, padding);
 }
 
 void collision_detection::BodyDecomposition::init(const std::vector<shapes::ShapeConstPtr>& shapes,
-                                                  const EigenSTL::vector_Affine3d& poses, double resolution,
+                                                  const EigenSTL::vector_Isometry3d& poses, double resolution,
                                                   double padding)
 {
   bodies_.clear();
@@ -333,7 +333,7 @@ collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
 }
 
 collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
-    const BodyDecompositionConstPtr& body_decomposition, const Eigen::Affine3d& trans)
+    const BodyDecompositionConstPtr& body_decomposition, const Eigen::Isometry3d& trans)
   : body_decomposition_(body_decomposition)
 {
   updatePose(trans);
@@ -352,7 +352,7 @@ collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
   }
 }
 
-void collision_detection::PosedBodyPointDecomposition::updatePose(const Eigen::Affine3d& trans)
+void collision_detection::PosedBodyPointDecomposition::updatePose(const Eigen::Isometry3d& trans)
 {
   if (body_decomposition_)
   {
@@ -371,10 +371,10 @@ collision_detection::PosedBodySphereDecomposition::PosedBodySphereDecomposition(
 {
   posed_bounding_sphere_center_ = body_decomposition_->getRelativeBoundingSphere().center;
   sphere_centers_.resize(body_decomposition_->getCollisionSpheres().size());
-  updatePose(Eigen::Affine3d::Identity());
+  updatePose(Eigen::Isometry3d::Identity());
 }
 
-void collision_detection::PosedBodySphereDecomposition::updatePose(const Eigen::Affine3d& trans)
+void collision_detection::PosedBodySphereDecomposition::updatePose(const Eigen::Isometry3d& trans)
 {
   // updating sphere centers
   posed_bounding_sphere_center_ = trans * body_decomposition_->getRelativeBoundingSphere().center;

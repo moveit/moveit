@@ -86,7 +86,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
       link_name = jmg->getLinkModelNames().back();
 
     bool ok = true;
-    EigenSTL::vector_Affine3d waypoints(req.waypoints.size());
+    EigenSTL::vector_Isometry3d waypoints(req.waypoints.size());
     const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
     bool no_transform = req.header.frame_id.empty() ||
                         robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) ||

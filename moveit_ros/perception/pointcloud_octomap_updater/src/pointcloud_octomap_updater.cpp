@@ -152,7 +152,7 @@ void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
     shape_mask_->removeShape(handle);
 }
 
-bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d& transform) const
+bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())

@@ -307,7 +307,7 @@ void InteractionHandler::updateStateEndEffector(robot_state::RobotState* state, 
 void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj,
                                           const geometry_msgs::Pose* feedback_pose, StateChangeCallbackFn* callback)
 {
-  Eigen::Affine3d pose;
+  Eigen::Isometry3d pose;
   tf2::fromMsg(*feedback_pose, pose);
 
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))

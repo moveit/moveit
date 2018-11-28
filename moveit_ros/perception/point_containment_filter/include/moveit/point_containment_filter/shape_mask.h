@@ -63,7 +63,7 @@ public:
     CLIP = 2
   };
 
-  typedef boost::function<bool(ShapeHandle, Eigen::Affine3d&)> TransformCallback;
+  typedef boost::function<bool(ShapeHandle, Eigen::Isometry3d&)> TransformCallback;
 
   /** \brief Construct the filter */
   ShapeMask(const TransformCallback& transform_callback = TransformCallback());
