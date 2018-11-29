@@ -112,10 +112,17 @@ void MotionPlanningFrame::onClearOctomapClicked()
 
 bool MotionPlanningFrame::computeCartesianPlan()
 {
-  // get start and goal points
+  // get goal pose
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
   std::vector<geometry_msgs::Pose> waypoints;
-  waypoints.push_back(tf2::toMsg(goal.getGlobalLinkTransform(move_group_->getEndEffectorLink())));
+  const std::string& link_name = move_group_->getEndEffectorLink();
+  const robot_model::LinkModel* link = move_group_->getRobotModel()->getLinkModel(link_name);
+  if (!link)
+  {
+    ROS_ERROR_STREAM("Failed to determine unique end-effector link: " << link_name);
+    return false;
+  }
+  waypoints.push_back(tf2::toMsg(goal.getGlobalLinkTransform(link)));
 
   // setup default params
   double cart_step_size = 0.01;
