@@ -112,6 +112,7 @@ void MotionPlanningFrame::onClearOctomapClicked()
 
 bool MotionPlanningFrame::computeCartesianPlan()
 {
+  ros::WallTime start = ros::WallTime::now();
   // get goal pose
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
   std::vector<geometry_msgs::Pose> waypoints;
@@ -150,6 +151,7 @@ bool MotionPlanningFrame::computeCartesianPlan()
     // Store trajectory in current_plan_
     current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
     rt.getRobotTrajectoryMsg(current_plan_->trajectory_);
+    current_plan_->planning_time_ = (ros::WallTime::now() - start).toSec();
     return success;
   }
   return false;
