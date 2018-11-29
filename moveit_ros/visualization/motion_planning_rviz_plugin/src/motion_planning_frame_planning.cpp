@@ -172,7 +172,8 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  bool success = ui_->use_cartesian_path->checkState() ? computeCartesianPlan() : computeJointSpacePlan();
+  bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
+      ? computeCartesianPlan() : computeJointSpacePlan();
 
   if (success)
   {
@@ -208,7 +209,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
   move_group_->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
-  if (ui_->use_cartesian_path->checkState())
+  if (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
   {
     if (computeCartesianPlan())
       computeExecuteButtonClicked();
