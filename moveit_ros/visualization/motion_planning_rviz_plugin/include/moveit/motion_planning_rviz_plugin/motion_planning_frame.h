@@ -159,7 +159,6 @@ private Q_SLOTS:
   void stopButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
-  void cartesianPathToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
   void startStateTextChanged(const QString& start_state);

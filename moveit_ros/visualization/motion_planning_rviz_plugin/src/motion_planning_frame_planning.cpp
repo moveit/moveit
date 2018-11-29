@@ -89,10 +89,6 @@ void MotionPlanningFrame::allowLookingToggled(bool checked)
     move_group_->allowLooking(checked);
 }
 
-void MotionPlanningFrame::cartesianPathToggled(bool checked)
-{
-}
-
 void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
 {
   if (move_group_)
