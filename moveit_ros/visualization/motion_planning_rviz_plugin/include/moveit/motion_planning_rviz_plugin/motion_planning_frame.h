@@ -231,7 +231,6 @@ private:
   void updateQueryStateHelper(robot_state::RobotState& state, const std::string& v);
   void fillStateSelectionOptions();
   void fillPlanningGroupOptions();
-  void setPlanningGroupText();
   void startStateTextChangedExec(const std::string& start_state);
   void goalStateTextChangedExec(const std::string& goal_state);
 

@@ -260,11 +260,6 @@ void MotionPlanningFrame::fillPlanningGroupOptions()
     ui_->planning_group_combo_box->addItem(QString::fromStdString(group_name));
 }
 
-void MotionPlanningFrame::setPlanningGroupText()
-{
-  ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(planning_display_->getCurrentPlanningGroup()));
-}
-
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
   const QSignalBlocker start_state_blocker(ui_->start_state_combo_box);
@@ -314,7 +309,6 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::setPlanningGroupText, this));
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
@@ -323,6 +317,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   std::string group = planning_display_->getCurrentPlanningGroup();
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
+  planning_display_->addMainLoopJob([=](){ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(group));});
 
   if (!group.empty() && robot_model)
   {
