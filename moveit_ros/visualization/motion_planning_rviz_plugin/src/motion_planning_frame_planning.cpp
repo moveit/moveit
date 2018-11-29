@@ -43,7 +43,7 @@
 
 #include <std_srvs/Empty.h>
 #include <moveit_msgs/RobotState.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
@@ -110,77 +110,51 @@ void MotionPlanningFrame::onClearOctomapClicked()
   clear_octomap_service_client_.call(srv);
 }
 
-void MotionPlanningFrame::computeCartesianPlan()
+bool MotionPlanningFrame::computeCartesianPlan()
 {
-  if (!move_group_)
-    return;
-
-  // Clear status
-  ui_->result_label->setText("Planning...");
-
   // get start and goal points
-  std::vector<geometry_msgs::Pose> waypoints;
-  robot_state::RobotState start = *planning_display_->getQueryStartState();
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
-  geometry_msgs::Pose start_msg;
-  geometry_msgs::Pose goal_msg;
-  tf::poseEigenToMsg(start.getGlobalLinkTransform(move_group_->getEndEffectorLink()), start_msg);
-  tf::poseEigenToMsg(goal.getGlobalLinkTransform(move_group_->getEndEffectorLink()), goal_msg);
-  waypoints.push_back(start_msg);
-  waypoints.push_back(goal_msg);
+  std::vector<geometry_msgs::Pose> waypoints;
+  waypoints.push_back(tf2::toMsg(goal.getGlobalLinkTransform(move_group_->getEndEffectorLink())));
 
   // setup default params
   double cart_step_size = 0.01;
   double cart_jump_thresh = 0.0;
-  bool avoid_collisions = false;
+  bool avoid_collisions = true;
 
   // compute trajectory
-  current_plan_.reset();
   moveit_msgs::RobotTrajectory trajectory;
   double fraction =
       move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
-  Q_EMIT planningFinished();
 
-  if (fraction > 0)
+  if (fraction >= 1.0)
   {
-    // Success
-    ui_->result_label->setText(QString::number(fraction * 100, 'f', 0).append(" % achieved"));
+    ROS_INFO("Achieved %f %% of Cartesian path", fraction * 100.);
 
-    moveit_msgs::RobotTrajectory scaled_trajectory = moveit_msgs::RobotTrajectory(trajectory);
-
-    // Scaling (https://groups.google.com/forum/#!topic/moveit-users/MOoFxy2exT4)
-
-    // The trajectory needs to be modified so it will include velocities as well.
-    // First to create a RobotTrajectory object
+    // Compute time parameterization to also provide velocities
+    // https://groups.google.com/forum/#!topic/moveit-users/MOoFxy2exT4
     robot_trajectory::RobotTrajectory rt(move_group_->getRobotModel(), move_group_->getName());
-
-    // Second get a RobotTrajectory from trajectory
-    rt.setRobotTrajectoryMsg(*move_group_->getCurrentState(), scaled_trajectory);
-
-    // Thrid create a IterativeParabolicTimeParameterization object
+    rt.setRobotTrajectoryMsg(*move_group_->getCurrentState(), trajectory);
     trajectory_processing::IterativeParabolicTimeParameterization iptp;
-
-    // Fourth compute computeTimeStamps
     bool success =
         iptp.computeTimeStamps(rt, ui_->velocity_scaling_factor->value(), ui_->acceleration_scaling_factor->value());
-    ROS_INFO("Computed time stamp %s", success ? "SUCCEDED" : "FAILED");
+    ROS_INFO("Computing time stamps %s", success ? "SUCCEDED" : "FAILED");
 
-    // Get RobotTrajectory_msg from RobotTrajectory
-    rt.getRobotTrajectoryMsg(scaled_trajectory);
-
-    // Fill in move_group_
+    // Store trajectory in current_plan_
     current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
-    current_plan_->trajectory_ = scaled_trajectory;
+    rt.getRobotTrajectoryMsg(current_plan_->trajectory_);
+    return success;
   }
-  else
-  {
-    // Failure
-    ui_->result_label->setText("Failed");
-    ROS_WARN("Failed to compute CartesianPath");
-  }
+  return false;
 }
 
-void MotionPlanningFrame::computeJointSpacePlan()
+bool MotionPlanningFrame::computeJointSpacePlan()
+{
+  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
+  return move_group_->plan(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+}
+
+void MotionPlanningFrame::computePlanButtonClicked()
 {
   if (!move_group_)
     return;
@@ -189,30 +163,19 @@ void MotionPlanningFrame::computeJointSpacePlan()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
-  if (move_group_->plan(*current_plan_))
+  bool success = ui_->use_cartesian_path->checkState() ? computeCartesianPlan() : computeJointSpacePlan();
+
+  if (success)
   {
     ui_->execute_button->setEnabled(true);
-
-    // Success
     ui_->result_label->setText(QString("Time: ").append(QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
   {
     current_plan_.reset();
-
-    // Failure
     ui_->result_label->setText("Failed");
   }
   Q_EMIT planningFinished();
-}
-
-void MotionPlanningFrame::computePlanButtonClicked()
-{
-  if (ui_->use_cartesian_path->checkState())
-    return computeCartesianPlan();
-  else
-    return computeJointSpacePlan();
 }
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
@@ -236,17 +199,16 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
   move_group_->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
-  bool success;
   if (ui_->use_cartesian_path->checkState())
   {
-    computeCartesianPlan();
-    computeExecuteButtonClicked();
+    if (computeCartesianPlan())
+      computeExecuteButtonClicked();
   }
   else
   {
-    success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    bool success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    onFinishedExecution(success);
   }
-  onFinishedExecution(success);
   ui_->plan_and_execute_button->setEnabled(true);
 }
 
