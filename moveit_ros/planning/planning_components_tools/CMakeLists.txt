@@ -2,6 +2,9 @@
 add_executable(moveit_print_planning_model_info src/print_planning_model_info.cpp)
 target_link_libraries(moveit_print_planning_model_info moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(moveit_print_planning_scene_info src/print_planning_scene_info.cpp)
+target_link_libraries(moveit_print_planning_scene_info moveit_planning_scene_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 add_executable(moveit_display_random_state src/display_random_state.cpp)
 target_link_libraries(moveit_display_random_state moveit_planning_scene_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
@@ -22,6 +25,7 @@ target_link_libraries(moveit_publish_scene_from_text moveit_planning_scene_monit
 
 install(TARGETS
   moveit_print_planning_model_info
+  moveit_print_planning_scene_info
   moveit_display_random_state
   moveit_visualize_robot_collision_volume
   moveit_evaluate_collision_checking_speed
@@ -29,4 +33,3 @@ install(TARGETS
   moveit_kinematics_speed_and_validity_evaluator
   moveit_publish_scene_from_text
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-

@@ -2303,18 +2303,24 @@ void PlanningScene::getCostSources(const robot_state::RobotState& state, std::si
 void PlanningScene::printKnownObjects(std::ostream& out) const
 {
   const std::vector<std::string>& objects = getWorld()->getObjectIds();
-
-  out << "Collision World Objects:\n\t ";
-  std::copy(objects.begin(), objects.end(), std::ostream_iterator<std::string>(out, "\n\t "));
-
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   getCurrentState().getAttachedBodies(attached_bodies);
 
-  out << "\nAttached Bodies:\n";
+  // Output
+  out << "-----------------------------------------\n";
+  out << "PlanningScene Known Objects:\n";
+  out << "  - Collision World Objects:\n ";
+  for (std::size_t i = 0; i < objects.size(); ++i)
+  {
+    out << "\t- " << objects[i] << "\n";
+  }
+
+  out << "  - Attached Bodies:\n";
   for (std::size_t i = 0; i < attached_bodies.size(); ++i)
   {
-    out << "\t " << attached_bodies[i]->getName() << "\n";
+    out << "\t- " << attached_bodies[i]->getName() << "\n";
   }
+  out << "-----------------------------------------\n";
 }
 
 }  // end of namespace planning_scene
