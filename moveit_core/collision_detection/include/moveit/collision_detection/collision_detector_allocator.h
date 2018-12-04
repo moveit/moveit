@@ -49,6 +49,10 @@ MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
 class CollisionDetectorAllocator
 {
 public:
+  virtual ~CollisionDetectorAllocator()
+  {
+  }
+
   /** A unique name identifying the CollisionWorld/CollisionRobot pairing. */
   virtual const std::string& getName() const = 0;
 

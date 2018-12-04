@@ -295,7 +295,7 @@ void RobotModel::buildJointInfo()
     }
   }
 
-  bool link_considered[link_model_vector_.size()] = { false };
+  std::vector<bool> link_considered(link_model_vector_.size(), false);
   for (const LinkModel* link : link_model_vector_)
   {
     if (link_considered[link->getLinkIndex()])
