@@ -79,6 +79,7 @@ MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& me
   , covariance_cholesky_(covariance_.llt().matrixL())
   , rng_()
   , normal_dist_(0.0, 1.0)
+  , rng_()
   , gaussian_(rng_, normal_dist_)
 {
   rng_.seed(rand());
