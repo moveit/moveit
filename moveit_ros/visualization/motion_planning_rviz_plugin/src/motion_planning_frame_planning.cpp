@@ -172,8 +172,9 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
-      ? computeCartesianPlan() : computeJointSpacePlan();
+  bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState()) ?
+                     computeCartesianPlan() :
+                     computeJointSpacePlan();
 
   if (success)
   {
