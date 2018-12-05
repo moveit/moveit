@@ -23,6 +23,10 @@ COMPONENTS
   rostime
   rosconsole
   pluginlib
+  # The following are needed by jog_arm:
+  moveit_ros_planning_interface
+  rosparam_shortcuts
+  tf
 )
 find_package(Eigen3 REQUIRED)
 
@@ -39,8 +43,20 @@ set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-    ${VERSION_FILE_PATH}
-    collision_distance_field/include
+  ${VERSION_FILE_PATH}
+  collision_distance_field/include
+  jog_arm/include
+)
+
+add_message_files(
+  FILES
+  JogJoint.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
 )
 
 catkin_package(
@@ -53,6 +69,7 @@ catkin_package(
     collision_detector_hybrid_plugin
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
+    message_runtime
     moveit_core
     geometric_shapes
     eigen_stl_containers
@@ -60,6 +77,10 @@ catkin_package(
     moveit_msgs
     kdl_parser
     pluginlib
+    # The following are needed by jog_arm:
+    moveit_ros_planning_interface
+    rosparam_shortcuts
+    tf
   DEPENDS
     EIGEN3
     Boost
@@ -81,6 +102,7 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
+add_subdirectory(jog_arm)
 
 install(FILES collision_detector_hybrid_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

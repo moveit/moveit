@@ -42,6 +42,11 @@
   <build_depend>rosconsole</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>moveit_core</build_depend>
+  <build_depend>message_generation</build_depend>
+  <!-- The following are required by jog_arm -->
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>rosparam_shortcuts</build_depend>
+  <build_depend>tf</build_depend>
 
   <run_depend version_gte="1.11.2">pluginlib</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
@@ -67,6 +72,11 @@
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <!-- The following are required by jog_arm -->
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>rosparam_shortcuts</run_depend>
+  <run_depend>tf</run_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
