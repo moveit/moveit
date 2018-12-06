@@ -260,7 +260,7 @@ void parseQueries(std::istream& in, planning_scene_monitor::PlanningSceneMonitor
         }
         else
         {
-          ROS_ERROR("Unknown query type: '%s'", start_type.c_str());
+          ROS_ERROR("Unknown start type: '%s'", start_type.c_str());
         }
 
         std::string goal_type;
@@ -280,7 +280,7 @@ void parseQueries(std::istream& in, planning_scene_monitor::PlanningSceneMonitor
         }
         else
         {
-          ROS_ERROR("Unknown query type: '%s'", goal_type.c_str());
+          ROS_ERROR("Unknown goal type: '%s'", goal_type.c_str());
         }
 
         if (goalState.joint_constraints.size() ||
