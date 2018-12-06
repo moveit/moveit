@@ -11,5 +11,7 @@ RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` 
 RUN apt-get -qq update && \
     apt-get -qq dist-upgrade && \
     #
+        clang \
+        ccache && \
     # Clear apt-cache to reduce image size
     rm -rf /var/lib/apt/lists/*
