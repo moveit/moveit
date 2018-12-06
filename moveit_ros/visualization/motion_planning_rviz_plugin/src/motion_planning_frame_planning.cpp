@@ -43,6 +43,8 @@
 
 #include <std_srvs/Empty.h>
 #include <moveit_msgs/RobotState.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
@@ -108,6 +110,59 @@ void MotionPlanningFrame::onClearOctomapClicked()
   clear_octomap_service_client_.call(srv);
 }
 
+bool MotionPlanningFrame::computeCartesianPlan()
+{
+  ros::WallTime start = ros::WallTime::now();
+  // get goal pose
+  robot_state::RobotState goal = *planning_display_->getQueryGoalState();
+  std::vector<geometry_msgs::Pose> waypoints;
+  const std::string& link_name = move_group_->getEndEffectorLink();
+  const robot_model::LinkModel* link = move_group_->getRobotModel()->getLinkModel(link_name);
+  if (!link)
+  {
+    ROS_ERROR_STREAM("Failed to determine unique end-effector link: " << link_name);
+    return false;
+  }
+  waypoints.push_back(tf2::toMsg(goal.getGlobalLinkTransform(link)));
+
+  // setup default params
+  double cart_step_size = 0.01;
+  double cart_jump_thresh = 0.0;
+  bool avoid_collisions = true;
+
+  // compute trajectory
+  moveit_msgs::RobotTrajectory trajectory;
+  double fraction =
+      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
+
+  if (fraction >= 1.0)
+  {
+    ROS_INFO("Achieved %f %% of Cartesian path", fraction * 100.);
+
+    // Compute time parameterization to also provide velocities
+    // https://groups.google.com/forum/#!topic/moveit-users/MOoFxy2exT4
+    robot_trajectory::RobotTrajectory rt(move_group_->getRobotModel(), move_group_->getName());
+    rt.setRobotTrajectoryMsg(*move_group_->getCurrentState(), trajectory);
+    trajectory_processing::IterativeParabolicTimeParameterization iptp;
+    bool success =
+        iptp.computeTimeStamps(rt, ui_->velocity_scaling_factor->value(), ui_->acceleration_scaling_factor->value());
+    ROS_INFO("Computing time stamps %s", success ? "SUCCEDED" : "FAILED");
+
+    // Store trajectory in current_plan_
+    current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
+    rt.getRobotTrajectoryMsg(current_plan_->trajectory_);
+    current_plan_->planning_time_ = (ros::WallTime::now() - start).toSec();
+    return success;
+  }
+  return false;
+}
+
+bool MotionPlanningFrame::computeJointSpacePlan()
+{
+  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
+  return move_group_->plan(*current_plan_) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+}
+
 void MotionPlanningFrame::computePlanButtonClicked()
 {
   if (!move_group_)
@@ -117,19 +172,18 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
-  if (move_group_->plan(*current_plan_))
+  bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState()) ?
+                     computeCartesianPlan() :
+                     computeJointSpacePlan();
+
+  if (success)
   {
     ui_->execute_button->setEnabled(true);
-
-    // Success
     ui_->result_label->setText(QString("Time: ").append(QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
   {
     current_plan_.reset();
-
-    // Failure
     ui_->result_label->setText("Failed");
   }
   Q_EMIT planningFinished();
@@ -156,8 +210,16 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
   move_group_->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
-  bool success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
-  onFinishedExecution(success);
+  if (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState())
+  {
+    if (computeCartesianPlan())
+      computeExecuteButtonClicked();
+  }
+  else
+  {
+    bool success = move_group_->move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+    onFinishedExecution(success);
+  }
   ui_->plan_and_execute_button->setEnabled(true);
 }
 

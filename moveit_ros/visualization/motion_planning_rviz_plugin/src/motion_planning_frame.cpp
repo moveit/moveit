@@ -317,7 +317,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   std::string group = planning_display_->getCurrentPlanningGroup();
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
-  planning_display_->addMainLoopJob([=](){ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(group));});
+  planning_display_->addMainLoopJob(
+      [=]() { ui_->planning_group_combo_box->setCurrentText(QString::fromStdString(group)); });
 
   if (!group.empty() && robot_model)
   {
@@ -351,6 +352,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
+      bool hasUniqueEndeffector = !move_group_->getEndEffectorLink().empty();
+      planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(hasUniqueEndeffector); });
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));

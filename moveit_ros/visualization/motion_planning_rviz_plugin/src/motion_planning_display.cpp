@@ -1313,6 +1313,8 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     if (config.mapGetFloat("MoveIt_Goal_Tolerance", &d))
       frame_->ui_->goal_tolerance->setValue(d);
     bool b;
+    if (config.mapGetBool("MoveIt_Use_Cartesian_Path", &b))
+      frame_->ui_->use_cartesian_path->setChecked(b);
     if (config.mapGetBool("MoveIt_Use_Constraint_Aware_IK", &b))
       frame_->ui_->collision_aware_ik->setChecked(b);
     if (config.mapGetBool("MoveIt_Allow_Approximate_IK", &b))
@@ -1384,6 +1386,7 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Allow_Replanning", frame_->ui_->allow_replanning->isChecked());
     config.mapSetValue("MoveIt_Allow_Sensor_Positioning", frame_->ui_->allow_looking->isChecked());
     config.mapSetValue("MoveIt_Allow_External_Program", frame_->ui_->allow_external_program->isChecked());
+    config.mapSetValue("MoveIt_Use_Cartesian_Path", frame_->ui_->use_cartesian_path->isChecked());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
     config.mapSetValue("MoveIt_Allow_Approximate_IK", frame_->ui_->approximate_ik->isChecked());
 
