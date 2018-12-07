@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   chomp_motion_planner
-  moveit_experimental
   ${CHOMP_TEST_DEPS}
 )
 
