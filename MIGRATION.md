@@ -4,6 +4,7 @@ API changes in MoveIt! releases
 
 ## ROS Melodic
 
+- in [PR #703](https://github.com/ros-planning/moveit/pull/703) computation of the axis-aligned bounding box in method `robot_state::RobotState::computeAABB` was fixed. The old behavior returned wrong results in case of rotations larger than 45 degrees. If you relied on the buggy behavior, you should re-check your code.
 - Migration to ``tf2`` API.
 - Replaced Eigen::Affine3d with Eigen::Isometry3d, which is computationally more efficient.
   Simply find-replace occurences of Affine3d:
