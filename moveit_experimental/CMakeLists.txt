@@ -36,23 +36,12 @@ find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
-set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
-file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
-
-set(THIS_PACKAGE_INCLUDE_DIRS
-    ${VERSION_FILE_PATH}
-    collision_distance_field/include
-)
+set(THIS_PACKAGE_INCLUDE_DIRS)
 
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
   LIBRARIES
-    moveit_collision_distance_field
-    collision_detector_hybrid_plugin
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core
     geometric_shapes
@@ -68,24 +57,17 @@ catkin_package(
   DEPENDS
     EIGEN3
     Boost
+    OCTOMAP
     urdfdom
     urdfdom_headers
 )
 
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
-                           )
-
-include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIR}
-                    ${catkin_INCLUDE_DIRS}
-                    ${urdfdom_INCLUDE_DIRS}
-                    ${urdfdom_headers_INCLUDE_DIRS}
-                    ${OCTOMAP_INCLUDE_DIRS}
-                    )
-
-add_subdirectory(collision_distance_field)
-
-install(FILES collision_detector_hybrid_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-# Generate and install version.h
+include_directories(
+  ${THIS_PACKAGE_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+  ${urdfdom_INCLUDE_DIRS}
+  ${urdfdom_headers_INCLUDE_DIRS}
+  ${OCTOMAP_INCLUDE_DIRS}
+  )
