@@ -185,7 +185,6 @@ public:
     chomp::ChompPlanner chompPlanner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
     moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
-    moveit_msgs::MotionPlanRequest req_moveit_msgs;
 
     // populate the trajectory to pass to CHOMPPlanner::solve() method. Obtain trajectory from OMPL's
     // planning_interface::MotionPlanResponse object and put / populate it in the

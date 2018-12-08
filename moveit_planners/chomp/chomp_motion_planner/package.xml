@@ -15,9 +15,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
-  <build_depend>moveit_experimental</build_depend>
   <build_depend>moveit_core</build_depend>
 
 </package>
-
-
