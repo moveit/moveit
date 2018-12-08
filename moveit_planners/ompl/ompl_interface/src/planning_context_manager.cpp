@@ -76,33 +76,6 @@ using namespace std::placeholders;
 
 namespace ompl_interface
 {
-class PlanningContextManager::LastPlanningContext
-{
-public:
-  ModelBasedPlanningContextPtr getContext()
-  {
-    std::unique_lock<std::mutex> slock(lock_);
-    return last_planning_context_solve_;
-  }
-
-  void setContext(const ModelBasedPlanningContextPtr& context)
-  {
-    std::unique_lock<std::mutex> slock(lock_);
-    last_planning_context_solve_ = context;
-  }
-
-  void clear()
-  {
-    std::unique_lock<std::mutex> slock(lock_);
-    last_planning_context_solve_.reset();
-  }
-
-private:
-  /* The planning group for which solve() was called last */
-  ModelBasedPlanningContextPtr last_planning_context_solve_;
-  std::mutex lock_;
-};
-
 struct PlanningContextManager::CachedContexts
 {
   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
@@ -122,7 +95,6 @@ ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::Robo
   , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(2)
 {
-  last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
   registerDefaultPlanners();
   registerDefaultStateSpaces();
@@ -348,7 +320,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   context->setSpecificationConfig(config.config);
 
-  last_planning_context_->setContext(context);
   return context;
 }
 
@@ -491,9 +462,4 @@ ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene:
   }
 
   return context;
-}
-
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
-{
-  return last_planning_context_->getContext();
 }
