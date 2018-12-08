@@ -8,23 +8,14 @@ set(SOURCE_FILES
   src/fix_workspace_bounds.cpp
   src/add_time_parameterization.cpp
   src/add_iterative_spline_parameterization.cpp
-  src/chomp_optimizer_adapter.cpp)
+  )
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core
   moveit_msgs
   pluginlib
-  chomp_motion_planner
   )
-
-find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED)
-
-include_directories(
-  ../../../moveit_planners/chomp/chomp_motion_planner/include/
-  ../../../moveit_experimental/collision_distance_field/include/)
-
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})

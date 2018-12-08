@@ -73,7 +73,6 @@
   <test_depend>angles</test_depend>
 
   <export>
-    <moveit_core plugin="${prefix}/collision_detector_hybrid_description.xml" />
   </export>
 
 </package>
