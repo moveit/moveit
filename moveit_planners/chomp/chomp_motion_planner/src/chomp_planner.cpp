@@ -179,7 +179,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   org_planning_time_limit = params.planning_time_limit_;
   org_max_iterations = params.max_iterations_;
 
-  ChompOptimizer* optimizer;
+  std::unique_ptr<ChompOptimizer> optimizer;
 
   // create a non_const_params variable which stores the non constant version of the const params variable
   ChompParameters params_nonconst = params_nonconst.getNonConstParams(params);
@@ -197,7 +197,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
     // initialize a ChompOptimizer object to load up the optimizer with default parameters or with updated parameters in
     // case of a recovery behaviour
-    optimizer = new ChompOptimizer(&trajectory, planning_scene, req.group_name, &params_nonconst, start_state);
+    optimizer.reset(new ChompOptimizer(&trajectory, planning_scene, req.group_name, &params_nonconst, start_state));
     if (!optimizer->isInitialized())
     {
       ROS_ERROR_STREAM_NAMED("chomp_planner", "Could not initialize optimizer");
@@ -224,8 +224,6 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       {
         replan_count++;
         replan_flag = true;
-        // delete ChompOptimizer object 'optimizer' to prevent a possible memory leak
-        delete optimizer;
       }
       else
       {
