@@ -208,27 +208,19 @@ public:
     return result;
   }
 
+  // cache solver between two consecutive calls
+  // first call in RobotModelLoader::loadKinematicsSolvers() is just to check suitability for jmg
+  // second call in JointModelGroup::setSolverAllocators() is to actually retrieve the instance for use
   kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const robot_model::JointModelGroup* jmg)
   {
-    {
-      boost::mutex::scoped_lock slock(lock_);
-      const std::vector<kinematics::KinematicsBasePtr>& vi = instances_[jmg];
-      for (std::size_t i = 0; i < vi.size(); ++i)
-        if (vi[i].unique())
-        {
-          ROS_DEBUG_NAMED(LOGNAME, "Reusing cached kinematics solver for group '%s'", jmg->getName().c_str());
-          return vi[i];  // this is safe since the shared_ptr is copied on stack BEFORE the destructors in scope get
-                         // called
-        }
-    }
+    boost::mutex::scoped_lock slock(cache_lock_);
+    kinematics::KinematicsBasePtr& cached = instances_[jmg];
+    if (cached.unique())
+      return std::move(cached);  // pass on unique instance
 
-    kinematics::KinematicsBasePtr res = allocKinematicsSolver(jmg);
-
-    {
-      boost::mutex::scoped_lock slock(lock_);
-      instances_[jmg].push_back(res);
-      return res;
-    }
+    // create a new instance and store in instances_
+    cached = allocKinematicsSolver(jmg);
+    return cached;
   }
 
   void status() const
@@ -247,8 +239,9 @@ private:
   std::map<std::string, std::vector<std::string> > iksolver_to_tip_links_;  // a map between each ik solver and a vector
                                                                             // of custom-specified tip link(s)
   std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-  std::map<const robot_model::JointModelGroup*, std::vector<kinematics::KinematicsBasePtr> > instances_;
+  std::map<const robot_model::JointModelGroup*, kinematics::KinematicsBasePtr> instances_;
   boost::mutex lock_;
+  boost::mutex cache_lock_;
 };
 
 void KinematicsPluginLoader::status() const

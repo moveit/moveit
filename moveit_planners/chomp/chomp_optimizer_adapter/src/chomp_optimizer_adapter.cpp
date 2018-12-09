@@ -53,14 +53,12 @@
 #include <vector>
 #include <eigen3/Eigen/Core>
 
-using namespace chomp;
-
-namespace default_planner_request_adapters
+namespace chomp
 {
-class CHOMPOptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
+class OptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  CHOMPOptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  OptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam("planning_time_limit", params_.planning_time_limit_))
     {
@@ -182,7 +180,6 @@ public:
     chomp::ChompPlanner chompPlanner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
     moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
-    moveit_msgs::MotionPlanRequest req_moveit_msgs;
 
     // populate the trajectory to pass to CHOMPPlanner::solve() method. Obtain trajectory from OMPL's
     // planning_interface::MotionPlanResponse object and put / populate it in the
@@ -228,5 +225,4 @@ private:
 };
 }
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::CHOMPOptimizerAdapter,
-                            planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(chomp::OptimizerAdapter, planning_request_adapter::PlanningRequestAdapter);

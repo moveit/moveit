@@ -39,11 +39,6 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <chomp_interface/chomp_interface.h>
-#include <chomp_interface/chomp_planning_context.h>
-#include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
-
-#include <moveit/robot_state/conversions.h>
 
 namespace chomp_interface
 {
