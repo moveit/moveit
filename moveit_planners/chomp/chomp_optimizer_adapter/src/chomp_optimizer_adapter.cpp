@@ -55,14 +55,12 @@
 #include <vector>
 #include <eigen3/Eigen/Core>
 
-using namespace chomp;
-
-namespace default_planner_request_adapters
+namespace chomp
 {
-class CHOMPOptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
+class OptimizerAdapter : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  CHOMPOptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  OptimizerAdapter() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
   {
     if (!nh_.getParam("planning_time_limit", params_.planning_time_limit_))
     {
@@ -230,5 +228,4 @@ private:
 };
 }
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::CHOMPOptimizerAdapter,
-                            planning_request_adapter::PlanningRequestAdapter);
+CLASS_LOADER_REGISTER_CLASS(chomp::OptimizerAdapter, planning_request_adapter::PlanningRequestAdapter);
