@@ -14,7 +14,6 @@
 
   <depend>moveit_core</depend>
   <depend>chomp_motion_planner</depend>
-  <depend>moveit_collision_distance_field</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
 
   <export>
