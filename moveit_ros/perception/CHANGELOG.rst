@@ -2,11 +2,13 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
+* [maintenance] Use createUniqueInstance() (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)
+* [maintenance] Enforce OpenMP support for perception (`#1234 <https://github.com/ros-planning/moveit/issues/1234>`_)
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* Contributors: Alex Moriarty, Michael Görner, Robert Haschke
 
 0.10.3 (2018-10-29)
 -------------------
@@ -31,22 +33,10 @@ Changelog for package moveit_ros_perception
 * [fix] make OpenGL parts optional (`#698 <https://github.com/ros-planning/moveit/issues/698>`_)
 * Contributors: Bence Magyar, Ian McMahon, Lukas Bulwahn, Michael Görner, Mikael Arguedas, Robert Haschke
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [improve] removed deprecated pluginlib macro (`#677 <https://github.com/ros-planning/moveit/issues/677>`_)
 * Contributors: Mikael Arguedas
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -64,9 +54,6 @@ Changelog for package moveit_ros_perception
 * [maintenance] Remove custom cmake modules (`#418 <https://github.com/ros-planning/moveit/issues/418>`_)
 * [maintenance] clang-format upgraded to 3.8 (`#367 <https://github.com/ros-planning/moveit/issues/367>`_)
 * Contributors: Dave Coleman, Jochen Sprickerhof
-
-0.9.3 (2016-11-16)
-------------------
 
 0.9.2 (2016-11-05)
 ------------------
@@ -100,18 +87,12 @@ Changelog for package moveit_ros_perception
 * moving lazy_free_space_updater into it's own library
 * Contributors: Jonathan Bohren, Michael Ferguson
 
-0.6.4 (2014-12-20)
-------------------
-
 0.6.3 (2014-12-03)
 ------------------
 * port `moveit_ros#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
 * disable test that needs display when no display defined
 * GL_TYPE() is a function in newer versions of OpenGL, this fixes tests on Ubuntu 14.04
 * Contributors: Michael Ferguson
-
-0.6.2 (2014-10-31)
-------------------
 
 0.6.1 (2014-10-31)
 ------------------
@@ -150,29 +131,11 @@ Changelog for package moveit_ros_perception
   http://stackoverflow.com/questions/14623958/breaking-change-in-c11-with-make-pair-ty1-val1-const-ty2-val2
 * Contributors: Adolfo Rodriguez Tsouroukdissian
 
-0.5.18 (2014-03-23)
--------------------
-
 0.5.17 (2014-03-22)
 -------------------
 * update build system for ROS indigo
 * update maintainer e-mail
 * Contributors: Ioan Sucan
-
-0.5.16 (2014-02-27)
--------------------
-
-0.5.14 (2014-02-06)
--------------------
-
-0.5.13 (2014-02-06)
--------------------
-
-0.5.12 (2014-01-03)
--------------------
-
-0.5.11 (2014-01-03)
--------------------
 
 0.5.10 (2013-12-08)
 -------------------
@@ -186,9 +149,6 @@ Changelog for package moveit_ros_perception
 0.5.8 (2013-10-11)
 ------------------
 * adds compliance for mesa versions <9.2
-
-0.5.7 (2013-10-01)
-------------------
 
 0.5.6 (2013-09-26)
 ------------------
@@ -204,9 +164,6 @@ Changelog for package moveit_ros_perception
 * add dependency on OpenCV2
 * Pointcloud_octomap_updater compilation flags fixed
 
-0.5.2 (2013-07-15)
-------------------
-
 0.5.1 (2013-07-14)
 ------------------
 * find PCL separately
@@ -215,9 +172,6 @@ Changelog for package moveit_ros_perception
 ------------------
 * use pcl_conversions instead of pcl_ros
 * white space fixes (tabs are now spaces)
-
-0.4.5 (2013-07-03)
-------------------
 
 0.4.4 (2013-06-26)
 ------------------

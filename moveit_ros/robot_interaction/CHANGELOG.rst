@@ -2,11 +2,17 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* [maintenance] Cleanup Robot Interaction (`#1194 <https://github.com/ros-planning/moveit/issues/1194>`_)
+  * Remove deprecated handling of own KinematicsOptionsMap
+  * Use normalized quaternions
+* [maintenance] Code Cleanup
+  * `#1179 <https://github.com/ros-planning/moveit/issues/1179>`_
+  * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
+* Contributors: Alex Moriarty, Dave Coleman, Michael Görner, Robert Haschke
 
 0.10.3 (2018-10-29)
 -------------------
@@ -26,21 +32,9 @@ Changelog for package moveit_ros_robot_interaction
 * [enhance] association of IK solvers to groups `#769 <https://github.com/ros-planning/moveit/issues/769>`_
 * Contributors: Bence Magyar, Ian McMahon, Michael Görner, Robert Haschke
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [package.xml] Add a release-maintainer. Cleanup `#649 <https://github.com/ros-planning/moveit/pull/649>`_
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -106,18 +100,6 @@ Changelog for package moveit_ros_robot_interaction
 ------------------
 * update maintainers
 * Contributors: Michael Ferguson
-
-0.6.4 (2014-12-20)
-------------------
-
-0.6.3 (2014-12-03)
-------------------
-
-0.6.2 (2014-10-31)
-------------------
-
-0.6.1 (2014-10-31)
-------------------
 
 0.6.0 (2014-10-27)
 ------------------
@@ -194,37 +176,16 @@ Changelog for package moveit_ros_robot_interaction
 * robot_interaction: fix comments
 * Contributors: Acorn Pooley
 
-0.5.14 (2014-02-06)
--------------------
-
-0.5.13 (2014-02-06)
--------------------
-
 0.5.12 (2014-01-03)
 -------------------
 * Fixed trailing underscores in CHANGELOGs.
 * Contributors: Dave Hershberger
-
-0.5.11 (2014-01-03)
--------------------
-
-0.5.10 (2013-12-08)
--------------------
 
 0.5.9 (2013-12-03)
 ------------------
 * adds KDL link directories to robot_interaction/CMakeLists.txt (fixes `#376 <https://github.com/ros-planning/moveit_ros/issues/376>`_)
 * fixed computation of dimension\_.
 * fixes for mimic joints and redundant joints
-
-0.5.8 (2013-10-11)
-------------------
-
-0.5.7 (2013-10-01)
-------------------
-
-0.5.6 (2013-09-26)
-------------------
 
 0.5.5 (2013-09-23)
 ------------------
@@ -236,20 +197,11 @@ Changelog for package moveit_ros_robot_interaction
 * make headers and author definitions aligned the same way; white space fixes
 * fix `#283 <https://github.com/ros-planning/moveit_ros/issues/283>`_
 
-0.5.2 (2013-07-15)
-------------------
-
-0.5.1 (2013-07-14)
-------------------
-
 0.5.0 (2013-07-12)
 ------------------
 * fix `#275 <https://github.com/ros-planning/moveit_ros/issues/275>`_
 * white space fixes (tabs are now spaces)
 * adding options struct to kinematics base
-
-0.4.5 (2013-07-03)
-------------------
 
 0.4.4 (2013-06-26)
 ------------------

@@ -2,14 +2,11 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
--------------------
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Code Cleanup (`#1196 <https://github.com/ros-planning/moveit/issues/1196>`_)
+* Contributors: Robert Haschke
 
 0.10.2 (2018-10-24)
 -------------------
@@ -23,22 +20,10 @@ Changelog for package moveit_ros_manipulation
 * [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Contributors: Ian McMahon
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [capability][kinetic onward][moveit_ros_planning_interface] Adapt pick pipeline to function without object (`#599 <https://github.com/ros-planning/moveit/issues/599>`_)
 * Contributors: 2scholz
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -64,9 +49,6 @@ Changelog for package moveit_ros_manipulation
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon, Michael Goerner
 
-0.9.2 (2016-11-05)
-------------------
-
 0.6.6 (2016-06-08)
 ------------------
 * replaced cmake_modules dependency with eigen
@@ -79,20 +61,11 @@ Changelog for package moveit_ros_manipulation
 * update maintainers
 * Contributors: Michael Ferguson
 
-0.6.4 (2014-12-20)
-------------------
-
 0.6.3 (2014-12-03)
 ------------------
 * trivial fixes for warnings
 * use named logging for manipulation components
 * Contributors: Michael Ferguson
-
-0.6.2 (2014-10-31)
-------------------
-
-0.6.1 (2014-10-31)
-------------------
 
 0.6.0 (2014-10-27)
 ------------------
@@ -107,9 +80,6 @@ Changelog for package moveit_ros_manipulation
   with the previous strategy of using a default time.
 * Contributors: Michael Ferguson, Sammy Pfeiffer
 
-0.5.18 (2014-03-23)
--------------------
-
 0.5.17 (2014-03-22)
 -------------------
 * update build system for ROS indigo
@@ -117,12 +87,6 @@ Changelog for package moveit_ros_manipulation
 * refactor how we use params for pick&place
 * set the pose frame so we don't get a crash in approach&translate
 * Contributors: Ioan Sucan
-
-0.5.16 (2014-02-27)
--------------------
-
-0.5.14 (2014-02-06)
--------------------
 
 0.5.13 (2014-02-06)
 -------------------
@@ -132,16 +96,10 @@ Changelog for package moveit_ros_manipulation
   the first NodeHandle.
 * Contributors: Dave Hershberger
 
-0.5.12 (2014-01-03)
--------------------
-
 0.5.11 (2014-01-03)
 -------------------
 * Fixed internal comment.
 * Contributors: Dave Hershberger
-
-0.5.10 (2013-12-08)
--------------------
 
 0.5.9 (2013-12-03)
 ------------------
@@ -175,18 +133,9 @@ Changelog for package moveit_ros_manipulation
 * make headers and author definitions aligned the same way; white space fixes
 * adding manipulation tab, fixed bugs in planning scene interface
 
-0.5.2 (2013-07-15)
-------------------
-
-0.5.1 (2013-07-14)
-------------------
-
 0.5.0 (2013-07-12)
 ------------------
 * white space fixes (tabs are now spaces)
-
-0.4.5 (2013-07-03)
-------------------
 
 0.4.4 (2013-06-26)
 ------------------

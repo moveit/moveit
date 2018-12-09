@@ -2,14 +2,15 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
--------------------
+* [fix] memory leak (ChompOptimizer)
+* [fix] Set last_state for active joints only (`#1222 <https://github.com/ros-planning/moveit/issues/1222>`_)
+* [maintenance] Rearranged CHOMP-related modules within moveit_planners/chomp (`#1251 <https://github.com/ros-planning/moveit/issues/1251>`_)
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Remove ChompParameters::getNonConstParams() (`#1196 <https://github.com/ros-planning/moveit/issues/1196>`_)
+* [maintenance] Code Cleanup (`#1179 <https://github.com/ros-planning/moveit/issues/1179>`_)
+* Contributors: Dave Coleman, Michael Görner, Robert Haschke, Shingo Kitagawa
 
 0.10.2 (2018-10-24)
 -------------------
@@ -28,34 +29,10 @@ Changelog for package chomp_motion_planner
 * [maintenance] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Contributors: Bence Magyar, Dave Coleman, Ian McMahon, Mike Lautman, Xiaojian Ma
 
-0.9.11 (2017-12-25)
--------------------
-
-0.9.10 (2017-12-09)
--------------------
-
 0.9.9 (2017-08-06)
 ------------------
 * [improve] Chomp use PlanningScene (`#546 <https://github.com/ros-planning/moveit/issues/546>`_) to partially address `#305 <https://github.com/ros-planning/moveit/issues/305>`_
 * Contributors: Simon Schmeisser
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
-
-0.9.6 (2017-04-12)
-------------------
-
-0.9.5 (2017-03-08)
-------------------
-
-0.9.4 (2017-02-06)
-------------------
-
-0.9.3 (2016-11-16)
-------------------
 
 0.9.2 (2016-11-05)
 ------------------
@@ -84,6 +61,3 @@ Changelog for package chomp_motion_planner
   * Port collision_distance_field test to indigo.
   * Remove one assertion that makes collision_distance_field test to fail.
 * Contributors: Chittaranjan Srinivas Swaminathan, Maarten de Vries
-
-0.8.3 (2016-08-21)
-------------------

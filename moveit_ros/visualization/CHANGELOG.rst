@@ -2,11 +2,26 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
+* [enhancement] Add check box for CartesianPath planning (`#1238 <https://github.com/ros-planning/moveit/issues/1238>`_)
+* [enhancement] Improve MotionPlanning panel (`#1198 <https://github.com/ros-planning/moveit/issues/1198>`_)
+  * Allow selection of planning group in planning panel
+  * Choose start and goal state directly from combobox
+* [fix] rviz crash when changing the planning group while executing (`#1198 <https://github.com/ros-planning/moveit/issues/1198>`_)
+* [fix] Fix several issues in rendering of attached bodies (`#1199 <https://github.com/ros-planning/moveit/issues/1199>`_)
+  * Show / hide attached body together with robot
+  * Force PlanningScene rendering on enable
+  * Link SceneDisplay's attached-body-color to TrajectoryVisualization's one
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* [maintenance] Cleanup Robot Interaction (`#1194 <https://github.com/ros-planning/moveit/issues/1194>`_)
+  * Postpone subscription to trajectory topic
+  * Fix memory leaks
+* [maintenance] Simplify shared tf2 buffer usage (`#1196 <https://github.com/ros-planning/moveit/issues/1196>`_)
+* [maintenance] Code Cleanup (`#1179 <https://github.com/ros-planning/moveit/issues/1179>`_)
+* Remove obsolete eigen_conversions dependency (`#1181 <https://github.com/ros-planning/moveit/issues/1181>`_)
+* Contributors: Alex Moriarty, Benjamin Scholz, Dave Coleman, Kei Okada, Michael Görner, Robert Haschke, Sven Krause
 
 0.10.3 (2018-10-29)
 -------------------
@@ -34,9 +49,6 @@ Changelog for package moveit_ros_visualization
 * [fix] consider shape transform for OcTree
 * [fix] realtime trajectory display (`#761 <https://github.com/ros-planning/moveit/issues/761>`_)
 * Contributors: Alexander Rössler, Dave Coleman, Ian McMahon, Mikael Arguedas, Pan Hy, Phy, Robert Haschke, Will Baker
-
-0.9.11 (2017-12-25)
--------------------
 
 0.9.10 (2017-12-09)
 -------------------

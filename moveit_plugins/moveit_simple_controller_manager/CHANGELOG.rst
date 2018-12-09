@@ -2,14 +2,10 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
--------------------
+* [maintenance] Code Cleanup (`#1196 <https://github.com/ros-planning/moveit/issues/1196>`_)
+* Contributors: Robert Haschke
 
 0.10.2 (2018-10-24)
 -------------------
@@ -22,27 +18,15 @@ Changelog for package moveit_simple_controller_manager
 * switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Contributors: Mikael Arguedas, Xiaojian Ma
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [capability][kinetic onward] optionally wait for controllers indefinitely (`#695 <https://github.com/ros-planning/moveit/issues/695>`_)
 * Contributors: Bruno Brito, Michael Görner
 
-0.9.9 (2017-08-06)
-------------------
-
 0.9.8 (2017-06-21)
 ------------------
 * [fix] include order (`#529 <https://github.com/ros-planning/moveit/issues/529>`_)
 * Contributors: Michael Goerner
-
-0.9.7 (2017-06-05)
-------------------
-
-0.9.6 (2017-04-12)
-------------------
 
 0.9.5 (2017-03-08)
 ------------------
@@ -55,9 +39,6 @@ Changelog for package moveit_simple_controller_manager
 * [fix] assertion error when result not returned (`#378 <https://github.com/ros-planning/moveit/issues/378>`_)
 * [maintenance] clang-format upgraded to 3.8 (`#367 <https://github.com/ros-planning/moveit/issues/367>`_)
 * Contributors: Dave Coleman, Michael Ferguson
-
-0.9.3 (2016-11-16)
-------------------
 
 0.5.7 (2016-01-30)
 ------------------
@@ -76,9 +57,6 @@ Changelog for package moveit_simple_controller_manager
 * properly fill in the gripper command effort
 * allow trajectories with >1 points, use the last point of any trajectory
 * added better error reporting for FollowJointTrajectoryControllers
-
-0.5.4 (2013-09-24)
-------------------
 
 0.5.3 (2013-09-23)
 ------------------

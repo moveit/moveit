@@ -2,8 +2,21 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
+* [fix] Fixed various memory leaks (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)
+  * KinematicsPluginLoader: only cache the latest instance
+  * Use createUniqueInstance()
+* [fix] Use correct trajectory_initialization_method parameter (`#1237 <https://github.com/ros-planning/moveit/issues/1237>`_)
+* [enhancement] Pass RobotModel to IK, avoiding multiple loading (`#1166 <https://github.com/ros-planning/moveit/issues/1166>`_)
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* [maintenance] Code Cleanup
+  * `#1179 <https://github.com/ros-planning/moveit/issues/1179>`_
+  * `#1180 <https://github.com/ros-planning/moveit/issues/1180>`_
+  * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
+* [maintenance] Change dynamic reconfigure limits for allowed_goal_duration_margin to 30s (`#993 <https://github.com/ros-planning/moveit/issues/993>`_)
+* Contributors: Alex Moriarty, Dave Coleman, Hamal Marino, Michael Görner, Robert Haschke, Stephan
 
 0.10.4 (2018-10-29)
 -------------------
@@ -42,9 +55,6 @@ Changelog for package moveit_ros_planning
 * validate multi-dof trajectories before execution (`#713 <https://github.com/ros-planning/moveit/issues/713>`_)
 * Contributors: Bruno Brito, Dave Coleman, Ian McMahon, Ken Anderson, Michael Görner, Mikael Arguedas, Robert Haschke
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [fix] Avoid segfault when validating a multidof-only trajectory (`#691 <https://github.com/ros-planning/moveit/issues/691>`_). Fixes `#539 <https://github.com/ros-planning/moveit/issues/539>`_
@@ -64,9 +74,6 @@ Changelog for package moveit_ros_planning
 ------------------
 * [fix] Include callback of execution status if trajectory is invalid. (`#524 <https://github.com/ros-planning/moveit/issues/524>`_)
 * Contributors: dougsm
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -176,9 +183,6 @@ Changelog for package moveit_ros_planning
 * Allow planning groups to have more than one tip
 * Contributors: Adolfo Rodriguez Tsouroukdissian, Dave Coleman, Dave Hershberger
 
-0.5.18 (2014-03-23)
--------------------
-
 0.5.17 (2014-03-22)
 -------------------
 * update build system for ROS indigo
@@ -191,9 +195,6 @@ Changelog for package moveit_ros_planning
 -------------------
 * Copy paste error fix
 * Contributors: fivef
-
-0.5.14 (2014-02-06)
--------------------
 
 0.5.13 (2014-02-06)
 -------------------
@@ -257,12 +258,6 @@ Changelog for package moveit_ros_planning
 * Made the goal duration margin and scaling optional rosparameters
 * bugfixes
 
-0.5.7 (2013-10-01)
-------------------
-
-0.5.6 (2013-09-26)
-------------------
-
 0.5.5 (2013-09-23)
 ------------------
 * fix the event triggered on updating attached objects
@@ -282,12 +277,6 @@ Changelog for package moveit_ros_planning
 * make headers and author definitions aligned the same way; white space fixes
 * move background_processing lib to core
 * add option to disable trajectory monitoring
-
-0.5.2 (2013-07-15)
-------------------
-
-0.5.1 (2013-07-14)
-------------------
 
 0.5.0 (2013-07-12)
 ------------------

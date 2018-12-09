@@ -2,8 +2,15 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
+* [enhancement] Create demo_gazebo.launch (`#1051 <https://github.com/ros-planning/moveit/issues/1051>`_)
+* [maintenance] Cleanup includes to speedup compiling (`#1205 <https://github.com/ros-planning/moveit/issues/1205>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* [maintenance] Code Cleanup
+  * `#1179 <https://github.com/ros-planning/moveit/issues/1179>`_
+  * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
+* Contributors: Alex Moriarty, Dave Coleman, Michael Görner, Robert Haschke
 
 0.10.4 (2018-10-29)
 -------------------
@@ -39,9 +46,6 @@ Changelog for package moveit_setup_assistant
 * [maintenance] cleanup yaml parsing, remove yaml-cpp 0.3 support (`#795 <https://github.com/ros-planning/moveit/issues/795>`_)
 * [feature] allow editing of xacro args (`#796 <https://github.com/ros-planning/moveit/issues/796>`_)
 * Contributors: Dave Coleman, Ian McMahon, Michael Görner, Mikael Arguedas, Robert Haschke, Will Baker
-
-0.9.11 (2017-12-25)
--------------------
 
 0.9.10 (2017-12-09)
 -------------------

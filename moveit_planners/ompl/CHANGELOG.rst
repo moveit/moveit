@@ -2,13 +2,20 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.6 (2018-12-09)
+-------------------
+* [fix] Fixed memory leak in OMPL planner (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)
+  * Resolve circular reference to ompl::geometric::SimpleSetupPtr
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* [maintenance] Code Cleanup
+  * `#1179 <https://github.com/ros-planning/moveit/issues/1179>`_
+  * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
+* Contributors: Alex Moriarty, Dave Coleman, Robert Haschke
+
 0.10.5 (2018-11-01)
 -------------------
 * [fix] Build regression (`#1174 <https://github.com/ros-planning/moveit/issues/1174>`_)
 * Contributors: Chris Lalancette
-
-0.10.4 (2018-10-29)
--------------------
 
 0.10.3 (2018-10-29)
 -------------------
@@ -27,9 +34,6 @@ Changelog for package moveit_planners_ompl
 * Make trajectory interpolation in MoveIt consistent to OMPL (`#869 <https://github.com/ros-planning/moveit/issues/869>`_)
 * Contributors: Bryce Willey, Ian McMahon, Mikael Arguedas, Robert Haschke, Xiaojian Ma
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [maintenance][kinetic onward] Remove OutputHandlerROS from ompl_interface (`#609 <https://github.com/ros-planning/moveit/issues/609>`_)
@@ -39,12 +43,6 @@ Changelog for package moveit_planners_ompl
 ------------------
 * [improve][moveit_planners_ompl] Optional forced use of JointModelStateSpaceFactory (`#541 <https://github.com/ros-planning/moveit/issues/541>`_)
 * Contributors: henhenhen
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -67,9 +65,6 @@ Changelog for package moveit_planners_ompl
 * [capability] Exposed planners from latest ompl release. (`#338 <https://github.com/ros-planning/moveit/issues/338>`_)
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon, Ruben Burger
-
-0.9.2 (2016-11-05)
-------------------
 
 0.7.0 (2016-01-30)
 ------------------

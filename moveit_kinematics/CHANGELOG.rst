@@ -2,14 +2,14 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
--------------------
+* [enhancement] Pass RobotModel to IK, avoiding multiple loading (`#1166 <https://github.com/ros-planning/moveit/issues/1166>`_)
+  See `MIGRATION notes <https://github.com/ros-planning/moveit/blob/melodic-devel/MIGRATION.md>`_ for API changes in IK plugins,
+  kdl, srv, or cached_ik for examples.
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
+* Contributors: Alex Moriarty, Michael Görner, Robert Haschke
 
 0.10.2 (2018-10-24)
 -------------------
@@ -63,9 +63,6 @@ Changelog for package moveit_kinematics
 * [fix][Indigo] moveit_kinematics Eigen3 dependency (`#470 <https://github.com/ros-planning/moveit/issues/470>`_)
 * Contributors: Martin Guenther, YuehChuan
 
-0.9.6 (2017-04-12)
-------------------
-
 0.9.5 (2017-03-08)
 ------------------
 * [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
@@ -93,6 +90,3 @@ Changelog for package moveit_kinematics
 * Move moveit_ikfast into moveit_kinematics
 * Moved kinematics plugins to new pkg moveit_kinematics
 * Contributors: Dave Coleman
-
-0.8.3 (2016-08-21)
-------------------

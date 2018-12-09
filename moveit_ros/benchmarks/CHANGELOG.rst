@@ -2,11 +2,10 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* Contributors: Robert Haschke
 
 0.10.3 (2018-10-29)
 -------------------
@@ -24,22 +23,10 @@ Changelog for package moveit_ros_benchmarks
 * migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Contributors: Ian McMahon
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [fix] benchmarks: always prefer local header over system installations `#630 <https://github.com/ros-planning/moveit/issues/630>`_
 * Contributors: Jorge Nicho, v4hn
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -100,16 +87,6 @@ Changelog for package moveit_ros_benchmarks
 * [Jade] Unify package version numbers (see https://github.com/davetcoleman/moveit_merge/issues/9). (`#79 <https://github.com/ros-planning/moveit/issues/79>`_)
 * Modifications for warehouse_ros refactor (`#699 <https://github.com/ros-planning/moveit/issues/699>`_)
 * Contributors: Dave Coleman, Isaac I.Y. Saito, Michael Ferguson
-
-0.7.6 (2016-12-30)
-------------------
-* changelog 0.7.6
-* Contributors: Isaac I.Y. Saito
-
-0.7.5 (2016-12-25)
-------------------
-* changelog 0.7.5
-* Contributors: Isaac I.Y. Saito
 
 0.7.4 (2016-12-22)
 ------------------

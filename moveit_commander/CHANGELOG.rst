@@ -2,13 +2,7 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
--------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
+0.10.6 (2018-12-09)
 -------------------
 
 0.10.2 (2018-10-24)
@@ -27,26 +21,11 @@ Changelog for package moveit_commander
 * API to get planner_id (`#788 <https://github.com/ros-planning/moveit/issues/788>`_)
 * Contributors: Akiyoshi Ochiai, Bence Magyar, Bryce Willey, Dave Coleman, Michael Görner, Ryan Keating, Will Baker
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [fix] Bugs in moveit_commander/robot.py (`#621 <https://github.com/ros-planning/moveit/issues/621>`_)
 * [fix] pyassimp regression workaround  (`#581 <https://github.com/ros-planning/moveit/issues/581>`_)
 * Contributors: Kei Okada, Konstantin Selyunin
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
-
-0.9.6 (2017-04-12)
-------------------
 
 0.9.5 (2017-03-08)
 ------------------
@@ -64,9 +43,6 @@ Changelog for package moveit_commander
 ------------------
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon
-
-0.9.2 (2016-11-05)
-------------------
 
 0.6.1 (2016-04-28)
 ------------------

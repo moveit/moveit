@@ -2,11 +2,10 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
+* [maintenance] Rearranged CHOMP-related modules within moveit_planners/chomp (`#1251 <https://github.com/ros-planning/moveit/issues/1251>`_)
+* Contributors: Robert Haschke
 
 0.10.3 (2018-10-29)
 -------------------
@@ -30,9 +29,6 @@ Changelog for package chomp_interface
 * [maintenance] MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Contributors: Bence Magyar, Dave Coleman, Ian McMahon, Mikael Arguedas, Robert Haschke, Stephan, Will Baker
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [package.xml] Update maintainers (Add a release-maintainer etc.)
@@ -43,18 +39,6 @@ Changelog for package chomp_interface
 ------------------
 * [improve] Chomp use PlanningScene (`#546 <https://github.com/ros-planning/moveit/issues/546>`_) to partially address `#305 <https://github.com/ros-planning/moveit/issues/305>`_
 * Contributors: Simon Schmeisser
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
-
-0.9.6 (2017-04-12)
-------------------
-
-0.9.5 (2017-03-08)
-------------------
 
 0.9.4 (2017-02-06)
 ------------------
@@ -96,6 +80,3 @@ Changelog for package chomp_interface
   * Port collision_distance_field test to indigo.
   * Remove one assertion that makes collision_distance_field test to fail.
 * Contributors: Chittaranjan Srinivas Swaminathan, Dave Coleman, Maarten de Vries
-
-0.8.3 (2016-08-21)
-------------------

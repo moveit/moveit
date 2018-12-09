@@ -2,14 +2,14 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.5 (2018-11-01)
+0.10.6 (2018-12-09)
 -------------------
-
-0.10.4 (2018-10-29)
--------------------
-
-0.10.3 (2018-10-29)
--------------------
+* [fix] Fixed various memory leaks (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)
+* [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
+* [maintenance] Code Cleanup
+  * `#1180 <https://github.com/ros-planning/moveit/issues/1180>`_
+  * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
+* Contributors: Dave Coleman, Robert Haschke
 
 0.10.2 (2018-10-24)
 -------------------
@@ -26,26 +26,11 @@ Changelog for package moveit_ros_move_group
 * [fix] MoveAction capability can drop cancel request if it is sent shortly after goal is sent (`#756 <https://github.com/ros-planning/moveit/issues/756>`_)
 * Contributors: Dave Coleman, Ian McMahon, Mikael Arguedas, Robert Haschke, Will Baker
 
-0.9.11 (2017-12-25)
--------------------
-
 0.9.10 (2017-12-09)
 -------------------
 * [fix] always return true in MoveGroupPlanService callback `#674 <https://github.com/ros-planning/moveit/pull/674>`_
 * [improve] adding swp's to gitignore and removing redundant capabilites from capability_names.h (`#704 <https://github.com/ros-planning/moveit/issues/704>`_)
 * Contributors: Mike Lautman, Shingo Kitagawa
-
-0.9.9 (2017-08-06)
-------------------
-
-0.9.8 (2017-06-21)
-------------------
-
-0.9.7 (2017-06-05)
-------------------
-
-0.9.6 (2017-04-12)
-------------------
 
 0.9.5 (2017-03-08)
 ------------------
@@ -64,9 +49,6 @@ Changelog for package moveit_ros_move_group
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon
 
-0.9.2 (2016-11-05)
-------------------
-
 0.6.6 (2016-06-08)
 ------------------
 * added missing validity check
@@ -82,20 +64,11 @@ Changelog for package moveit_ros_move_group
 * update maintainers
 * Contributors: Michael Ferguson
 
-0.6.4 (2014-12-20)
-------------------
-
-0.6.3 (2014-12-03)
-------------------
-
 0.6.2 (2014-10-31)
 ------------------
 * Merge pull request `#522 <https://github.com/ros-planning/moveit_ros/issues/522>`_ from mikeferguson/indigo-devel
   add dependency on std_srvs (part of octomap clearing service)
 * Contributors: Ioan A Sucan, Michael Ferguson
-
-0.6.1 (2014-10-31)
-------------------
 
 0.6.0 (2014-10-27)
 ------------------
@@ -108,9 +81,6 @@ Changelog for package moveit_ros_move_group
   The same condition was being checked twice, and the same action was being taken.
 * Contributors: Adolfo Rodriguez Tsouroukdissian
 
-0.5.18 (2014-03-23)
--------------------
-
 0.5.17 (2014-03-22)
 -------------------
 * update maintainer e-mail
@@ -121,35 +91,11 @@ Changelog for package moveit_ros_move_group
 * empty state should be a diff state, otherwise attached objects are deleted
 * Contributors: sachinc
 
-0.5.14 (2014-02-06)
--------------------
-
-0.5.13 (2014-02-06)
--------------------
-
-0.5.12 (2014-01-03)
--------------------
-
-0.5.11 (2014-01-03)
--------------------
-
-0.5.10 (2013-12-08)
--------------------
-
 0.5.9 (2013-12-03)
 ------------------
 * Re-ordered movegroup's initialization, so capabilities start after monitors.
 * correcting maintainer email
 * Added planning feedback to gui, refactored states tab
-
-0.5.8 (2013-10-11)
-------------------
-
-0.5.7 (2013-10-01)
-------------------
-
-0.5.6 (2013-09-26)
-------------------
 
 0.5.5 (2013-09-23)
 ------------------
@@ -161,12 +107,6 @@ Changelog for package moveit_ros_move_group
 
 * make headers and author definitions aligned the same way; white space fixes
 * Dependency for move_group_capabilities_base fixed.
-
-0.5.2 (2013-07-15)
-------------------
-
-0.5.1 (2013-07-14)
-------------------
 
 0.5.0 (2013-07-12)
 ------------------
