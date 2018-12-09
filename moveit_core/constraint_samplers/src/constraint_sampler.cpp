@@ -38,9 +38,8 @@
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                           const std::string& group_name)
-  : is_valid_(false), scene_(scene), verbose_(false)
+  : is_valid_(false), scene_(scene), jmg_(scene->getRobotModel()->getJointModelGroup(group_name)), verbose_(false)
 {
-  jmg_ = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg_)
   {
     ROS_ERROR_NAMED("constraint_samplers", "A JointModelGroup should have been specified for the constraint sampler");

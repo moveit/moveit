@@ -283,15 +283,17 @@ protected:
    */
   virtual void clear();
 
-  bool is_valid_; /**< \brief  Holds the value for validity */
+  bool is_valid_;  ///< Holds the value for validity
 
-  planning_scene::PlanningSceneConstPtr scene_; /**< \brief Holds the planning scene */
-  const robot_model::JointModelGroup* jmg_; /**< \brief Holds the joint model group associated with this constraint */
-  /** \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
+  /// Holds the planning scene
+  planning_scene::PlanningSceneConstPtr scene_;
+  /// Holds the joint model group associated with this constraint
+  const robot_model::JointModelGroup* const jmg_;
+  /// Holds the set of frames that must exist in the reference state to allow samples to be drawn
   std::vector<std::string> frame_depends_;
-  robot_state::GroupStateValidityCallbackFn group_state_validity_callback_; /**< \brief Holds the callback for state
-                                                                               validity */
-  bool verbose_;                                                            /**< \brief True if verbosity is on */
+  /// Holds the callback for state validity
+  robot_state::GroupStateValidityCallbackFn group_state_validity_callback_;
+  bool verbose_;  ///< True if verbosity is on
 };
 }
 
