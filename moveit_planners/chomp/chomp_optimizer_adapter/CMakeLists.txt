@@ -6,7 +6,6 @@ add_compile_options(-std=c++14)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   chomp_motion_planner
-  moveit_collision_distance_field
   pluginlib
   )
 

@@ -15,12 +15,12 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::s
 {
   chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
 
-  collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
-      collision_detection::CollisionDetectorAllocatorHybrid::create());
-
   if (!this->getPlanningScene())
   {
     ROS_INFO_STREAM("Configuring New Planning Scene.");
+    collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
+        collision_detection::CollisionDetectorAllocatorHybrid::create());
+
     planning_scene::PlanningScenePtr planning_scene_ptr(new planning_scene::PlanningScene(model));
     planning_scene_ptr->setActiveCollisionDetector(hybrid_cd, true);
     setPlanningScene(planning_scene_ptr);
