@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   tf
   roscpp
+  pluginlib
 )
 
 set(MOVEIT_LIB_NAME moveit_robot_interaction)
