@@ -45,6 +45,7 @@ install(TARGETS ${MOVEIT_LIB_NAME} moveit_ompl_planner moveit_ompl_planner_plugi
 install(DIRECTORY include/ DESTINATION include)
 
 if(CATKIN_ENABLE_TESTING)
+  find_package(rosunit REQUIRED)
   find_package(moveit_resources REQUIRED)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
