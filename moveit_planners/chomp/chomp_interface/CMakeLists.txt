@@ -7,6 +7,8 @@ add_definitions(-std=c++14)
 find_package(catkin REQUIRED)
 if (CATKIN_ENABLE_TESTING)
   set(CHOMP_TEST_DEPS moveit_ros_planning_interface)
+else()
+  set(CHOMP_TEST_DEPS)
 endif()
 
 find_package(catkin REQUIRED COMPONENTS
