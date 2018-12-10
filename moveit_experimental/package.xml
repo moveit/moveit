@@ -68,6 +68,7 @@
   <run_depend>visualization_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
 
+  <test_depend>rosunit</test_depend>
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>angles</test_depend>

@@ -10,19 +10,21 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED
 COMPONENTS
+  cmake_modules
+  eigen_conversions
+  eigen_stl_containers
+  geometric_shapes
+  geometry_msgs
+  kdl_parser
   moveit_core
   moveit_msgs
-  resource_retriever
-  kdl_parser
-  geometric_shapes
-  eigen_stl_containers
-  eigen_conversions
-  random_numbers
-  visualization_msgs
+  pluginlib
+  rosconsole
   roslib
   rostime
-  rosconsole
-  pluginlib
+  std_msgs
+  trajectory_msgs
+  visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
 
