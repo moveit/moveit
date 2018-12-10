@@ -26,7 +26,7 @@ set_target_properties(collision_detector_hybrid_plugin PROPERTIES VERSION ${${PR
 target_link_libraries(collision_detector_hybrid_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})
 
 install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_hybrid_plugin
-  LIBRARY DESTINATION lib)
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
 
 install(DIRECTORY include/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
