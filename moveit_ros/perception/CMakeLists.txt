@@ -25,6 +25,7 @@ if(APPLE)
 endif(APPLE)
 
 find_package(catkin REQUIRED COMPONENTS
+  cv_bridge
   moveit_core
   roscpp
   rosconsole
@@ -69,6 +70,7 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     image_transport
+    sensor_msgs
     moveit_msgs
   DEPENDS
     EIGEN3
