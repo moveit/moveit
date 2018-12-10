@@ -116,29 +116,6 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& urdf_string, const std::stri
   }
 }
 
-rdf_loader::RDFLoader::RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
-{
-  moveit::tools::Profiler::ScopedStart prof_start;
-  moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(XML)");
-
-  urdf::Model* umodel = new urdf::Model();
-  urdf_.reset(umodel);
-  if (umodel->initXml(urdf_doc))
-  {
-    srdf_.reset(new srdf::Model());
-    if (!srdf_->initXml(*urdf_, srdf_doc))
-    {
-      ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF");
-      srdf_.reset();
-    }
-  }
-  else
-  {
-    ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF");
-    urdf_.reset();
-  }
-}
-
 bool rdf_loader::RDFLoader::isXacroFile(const std::string& path)
 {
   std::string lower_path = path;
