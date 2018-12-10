@@ -53,6 +53,7 @@ COMPONENTS
   srdfdom
   std_msgs
   trajectory_msgs
+  urdf
   visualization_msgs
 )
 
