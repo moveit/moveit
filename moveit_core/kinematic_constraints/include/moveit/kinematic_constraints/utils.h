@@ -44,6 +44,11 @@
 #include <moveit/robot_state/robot_state.h>
 #include <limits>
 
+namespace XmlRpc
+{
+class XmlRpcValue;
+}
+
 namespace kinematic_constraints
 {
 /**
@@ -183,6 +188,19 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
 moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
                                                   const geometry_msgs::PointStamped& goal_point,
                                                   double tolerance = 1e-3);
+
+/**
+ * \brief extract constraint message from XmlRpc node.
+ *
+ * This can be used to construct a Constraints message from
+ * specifications uploaded on the parameter server.
+ *
+ * @param [in] params XmlRpc node of the parameter specification
+ * @param [out] constraints The constructed constraints message
+ *
+ * @return was the construction successful?
+ */
+bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints);
 }
 
 #endif
