@@ -19,8 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+find_package(Eigen3 REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     kdl_kinematics_plugin/include
