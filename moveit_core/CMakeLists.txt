@@ -164,6 +164,10 @@ message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources REQUIRED)
+endif()
+
 add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(backtrace)
