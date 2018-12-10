@@ -37,8 +37,10 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 
-moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints& first,
-                                                                 const moveit_msgs::Constraints& second)
+namespace kinematic_constraints
+{
+
+moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first, const moveit_msgs::Constraints& second)
 {
   moveit_msgs::Constraints r;
 
@@ -107,28 +109,27 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   return r;
 }
 
-bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints& constr)
+bool isEmpty(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.empty() && constr.orientation_constraints.empty() &&
          constr.visibility_constraints.empty() && constr.joint_constraints.empty();
 }
 
-std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints& constr)
+std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.size() + constr.orientation_constraints.size() +
          constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
-                                                                         const robot_model::JointModelGroup* jmg,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
+                                                  const robot_model::JointModelGroup* jmg, double tolerance)
 {
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
-                                                                         const robot_model::JointModelGroup* jmg,
-                                                                         double tolerance_below, double tolerance_above)
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
+                                                  const robot_model::JointModelGroup* jmg, double tolerance_below,
+                                                  double tolerance_above)
 {
   moveit_msgs::Constraints goal;
   std::vector<double> vals;
@@ -146,9 +147,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const r
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PoseStamped& pose,
-                                                                         double tolerance_pos, double tolerance_angle)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, const geometry_msgs::PoseStamped& pose,
+                                                  double tolerance_pos, double tolerance_angle)
 {
   moveit_msgs::Constraints goal;
 
@@ -188,10 +188,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PoseStamped& pose,
-                                                                         const std::vector<double>& tolerance_pos,
-                                                                         const std::vector<double>& tolerance_angle)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, const geometry_msgs::PoseStamped& pose,
+                                                  const std::vector<double>& tolerance_pos,
+                                                  const std::vector<double>& tolerance_angle)
 {
   moveit_msgs::Constraints goal = constructGoalConstraints(link_name, pose);
   if (tolerance_pos.size() == 3)
@@ -213,9 +212,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::QuaternionStamped& quat,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::QuaternionStamped& quat, double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.orientation_constraints.resize(1);
@@ -230,9 +228,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PointStamped& goal_point,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::PointStamped& goal_point, double tolerance)
 {
   geometry_msgs::Point p;
   p.x = 0;
@@ -241,10 +238,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return constructGoalConstraints(link_name, p, goal_point, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::Point& reference_point,
-                                                                         const geometry_msgs::PointStamped& goal_point,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::Point& reference_point,
+                                                  const geometry_msgs::PointStamped& goal_point, double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.position_constraints.resize(1);
@@ -271,4 +267,5 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   pcm.weight = 1.0;
 
   return goal;
+}
 }
