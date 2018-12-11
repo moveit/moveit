@@ -75,6 +75,7 @@ SharedStorage& getSharedStorage()
 #endif
 }
 
+// Deleter that, additionally to T*, deletes another object too
 template <typename T, typename O>
 struct CoupledDeleter
 {
@@ -85,9 +86,9 @@ struct CoupledDeleter
 
   void operator()(const T* p)
   {
-    delete p;
     if (other_)
       delete other_;
+    delete p;
   }
 };
 }
