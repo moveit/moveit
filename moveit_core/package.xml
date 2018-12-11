@@ -72,6 +72,7 @@
   <run_depend>tf2_kdl</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
+  <run_depend>moveit_experimental</run_depend>
 
   <test_depend>angles</test_depend>
   <test_depend>moveit_resources</test_depend>
