@@ -25,7 +25,7 @@ matrix: # Add a separate config to the matrix, using clang as compiler
       compiler: clang
 
 before_script:
-  - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
+  - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
 
 script:
   - .moveit_ci/travis.sh
