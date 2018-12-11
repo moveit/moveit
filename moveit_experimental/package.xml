@@ -1,14 +1,7 @@
 <package>
   <name>moveit_experimental</name>
   <version>0.10.6</version>
-  <description>Experimental packages for moveit.</description>
-  <author email="isucan@google.com">Ioan Sucan</author>
-  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
-  <author email="acorn.pooley@sri.com">Acorn Pooley</author>
-  <author email="jnicho@swri.org">Jorge Nicho</author>
-
-  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
-  <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
+  <description>Experimental packages for MoveIt!</description>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>
@@ -16,6 +9,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <!--
   <build_depend version_gte="1.11.2">pluginlib</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
   <build_depend>liburdfdom-dev</build_depend>
@@ -71,6 +65,7 @@
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>angles</test_depend>
+  -->
 
   <export>
   </export>
