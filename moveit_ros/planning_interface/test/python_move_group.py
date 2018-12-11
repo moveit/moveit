@@ -62,6 +62,3 @@ if __name__ == '__main__':
     NODENAME = 'moveit_test_python_move_group'
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveGroupTest)
-
-    # suppress cleanup segfault
-    os._exit(0)
