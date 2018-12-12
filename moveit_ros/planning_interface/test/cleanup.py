@@ -21,13 +21,18 @@ class CleanupTest(unittest.TestCase):
         super(CleanupTest, self).__init__(*args, **kwargs)
         self._rospack = rospkg.RosPack()
 
+    def run_cmd(self, cmd, num = 5):
+        failures = 0
+        for i in range(num):
+            if subprocess.call(cmd) != 0:
+                failures += 1
+        self.assertEqual(failures, 0, "%d of %d runs failed" % (failures, num))
+
     def test_py(self):
-        cmd = roslib.packages.find_node(PKGNAME, "movegroup_interface.py", self._rospack)
-        self.assertTrue(subprocess.call(cmd) == 0)
+        self.run_cmd(roslib.packages.find_node(PKGNAME, "test_cleanup.py", self._rospack))
 
     def test_cpp(self):
-        cmd = roslib.packages.find_node(PKGNAME, "test_cleanup", self._rospack)
-        self.assertTrue(subprocess.call(cmd) == 0)
+        self.run_cmd(roslib.packages.find_node(PKGNAME, "test_cleanup", self._rospack))
 
 if __name__ == '__main__':
     rostest.rosrun(PKGNAME, NODENAME, CleanupTest)
