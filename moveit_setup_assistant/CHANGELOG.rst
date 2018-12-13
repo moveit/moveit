@@ -2,6 +2,9 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [enhancement] Create demo_gazebo.launch (`#1051 <https://github.com/ros-planning/moveit/issues/1051>`_)

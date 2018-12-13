@@ -2,6 +2,9 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [enhancement] Pass RobotModel to IK, avoiding multiple loading (`#1166 <https://github.com/ros-planning/moveit/issues/1166>`_)

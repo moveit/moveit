@@ -2,6 +2,9 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [enhancement] Rearranged CHOMP-related modules within moveit_planners/chomp (`#1251 <https://github.com/ros-planning/moveit/issues/1251>`_)

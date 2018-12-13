@@ -1,6 +1,6 @@
 <package>
   <name>moveit_experimental</name>
-  <version>0.10.6</version>
+  <version>0.10.7</version>
   <description>Experimental packages for MoveIt!</description>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 

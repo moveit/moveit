@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [enhancement] Add check box for CartesianPath planning (`#1238 <https://github.com/ros-planning/moveit/issues/1238>`_)

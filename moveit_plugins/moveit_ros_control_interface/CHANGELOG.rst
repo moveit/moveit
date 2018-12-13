@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [maintenance] Code Cleanup (`#1196 <https://github.com/ros-planning/moveit/issues/1196>`_)

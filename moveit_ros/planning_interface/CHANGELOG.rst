@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+* [fix] Fixed destruction order of shared tf2::Buffer / tf2::TransformListener (`#1261 <https://github.com/ros-planning/moveit/pull/1261>`_)
+* Contributors: Robert Haschke
+
 0.10.6 (2018-12-09)
 -------------------
 * [fix] Fixed various memory leaks (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)

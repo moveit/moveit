@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2018-12-13)
+-------------------
+
 0.10.6 (2018-12-09)
 -------------------
 * [fix] Fixed memory leak in OMPL planner (`#1104 <https://github.com/ros-planning/moveit/issues/1104>`_)
