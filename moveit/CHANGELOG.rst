@@ -65,6 +65,9 @@ Changelog for package moveit
 * [maintenance] add minimum required pluginlib version (`#927 <https://github.com/ros-planning/moveit/issues/927>`_)
 2scholz, Adrian Zwiener, Alexander Guten kunst, Andrey Troitskiy, Chris Lalancette, d-walsh, Dave Coleman, David Watkins, dcconner, dg-shadow, Felix von Drigalski, Isaac Saito, Jonathan Binney, Kei Okada, Martin Guenther, Michael Goerner, Mikael Arguedas, Mike Lautman, Mohmmad Ayman, Raghavender Sahdev, Ridhwan Luthra, Robert Haschke, Simon Schmeisser, Sohieb Abdelrahman, srsidd, Timon Engelke, Xaver Kroischke
 
+0.10.1 (2018-05-25)
+-------------------
+
 0.9.11 (2017-12-25)
 -------------------
 * [fix][moveit_core] #723; attached bodies are not shown in trajectory visualization anymore `#724 <https://github.com/ros-planning/moveit/issues/724>`_
@@ -184,10 +187,16 @@ Changelog for package moveit
 * [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_) 
 * Contributors: Adam Allevato, Dave Coleman, Bence Magyar, Dave Coleman, Isaac I.Y. Saito, Yannick Jonetzko, Ravi Prakash Joshi
 
+0.9.4 (2017-02-06)
+------------------
+
 0.9.3 (2016-11-16)
 ------------------
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon
+
+0.9.2 (2016-11-05)
+------------------
 
 0.9.0 (2016-10-19)
 ------------------

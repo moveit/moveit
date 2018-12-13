@@ -22,6 +22,12 @@ Changelog for package moveit_core
 * [maintenance] RobotModelBuilder to facilitate testing (`#1176 <https://github.com/ros-planning/moveit/issues/1176>`_)
 * Contributors: Robert Haschke, 2scholz, Alex Moriarty, Bryce Willey, Dave Coleman, Immanuel Martini, Michael Görner, Milutin Nikolic
 
+0.10.5 (2018-11-01)
+-------------------
+
+0.10.4 (2018-10-29)
+-------------------
+
 0.10.3 (2018-10-29)
 -------------------
 * [fix] compiler warnings (`#1089 <https://github.com/ros-planning/moveit/issues/1089>`_)
@@ -89,6 +95,9 @@ Changelog for package moveit_core
 * [fix][moveit_core] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
 * [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_) 
 * Contributors: Martin Pecka, henhenhen
+
+0.9.8 (2017-06-21)
+------------------
 
 0.9.7 (2017-06-05)
 ------------------

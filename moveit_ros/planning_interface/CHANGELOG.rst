@@ -15,6 +15,12 @@ Changelog for package moveit_ros_planning_interface
   * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
 * Contributors: Alex Moriarty, Dave Coleman, Martin Günther, Michael Görner, Robert Haschke
 
+0.10.5 (2018-11-01)
+-------------------
+
+0.10.4 (2018-10-29)
+-------------------
+
 0.10.3 (2018-10-29)
 -------------------
 * [capability] Get available planning group names from MoveGroup C++ (`#1159 <https://github.com/ros-planning/moveit/issues/1159>`_)
@@ -40,12 +46,24 @@ Changelog for package moveit_ros_planning_interface
 * Allow wait time to be specified for getCurrentState() (`#685 <https://github.com/ros-planning/moveit/issues/685>`_)
 * Contributors: 2scholz, Akiyoshi Ochiai, Bence Magyar, Dave Coleman, Ian McMahon, Robert Haschke, Will Baker, Xiaojian Ma, srsidd
 
+0.9.11 (2017-12-25)
+-------------------
+
 0.9.10 (2017-12-09)
 -------------------
 * [fix] MoveGroupInterface: Fixed computeCartesianPath to use selected end-effector. (`#580 <https://github.com/ros-planning/moveit/issues/580>`_)
 * [capability][kinetic onward] Adapt pick pipeline to function without object (`#599 <https://github.com/ros-planning/moveit/issues/599>`_)
 * [improve] Disabled copy constructors and added a move constructor to MoveGroupInterface (`#664 <https://github.com/ros-planning/moveit/issues/664>`_)
 * Contributors: 2scholz, Dennis Hartmann, Jonathan Meyer, Simon Schmeisser
+
+0.9.9 (2017-08-06)
+------------------
+
+0.9.8 (2017-06-21)
+------------------
+
+0.9.7 (2017-06-05)
+------------------
 
 0.9.6 (2017-04-12)
 ------------------
@@ -69,6 +87,9 @@ Changelog for package moveit_ros_planning_interface
 * [maintenance] Fix test file issues (`#415 <https://github.com/ros-planning/moveit/pull/415>`_, `#412 <https://github.com/ros-planning/moveit/issues/412>`_)
 * [maintenance] clang-format upgraded to 3.8 (`#367 <https://github.com/ros-planning/moveit/issues/367>`_)
 * Contributors: Bastian Gaspers, Dave Coleman, Isaac I.Y. Saito, Jorge Santos Simon, Michael Goerner, Robert Haschke
+
+0.9.3 (2016-11-16)
+------------------
 
 0.6.6 (2016-06-08)
 ------------------
@@ -102,10 +123,19 @@ Changelog for package moveit_ros_planning_interface
 * Add time factor support for iterative_time_parametrization
 * Contributors: Michael Ferguson, kohlbrecher
 
+0.6.4 (2014-12-20)
+------------------
+
 0.6.3 (2014-12-03)
 ------------------
 * include correct ``boost::*_ptr`` class for boost 1.57.
 * Contributors: v4hn
+
+0.6.2 (2014-10-31)
+------------------
+
+0.6.1 (2014-10-31)
+------------------
 
 0.6.0 (2014-10-27)
 ------------------

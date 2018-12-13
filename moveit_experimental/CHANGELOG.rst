@@ -8,6 +8,12 @@ Changelog for package moveit_experimental
 * [maintenance] Replaced Eigen::Affine3d -> Eigen::Isometry3d (`#1096 <https://github.com/ros-planning/moveit/issues/1096>`_)
 * Contributors: Dave Coleman, Michael Görner, Robert Haschke
 
+0.10.5 (2018-11-01)
+-------------------
+
+0.10.4 (2018-10-29)
+-------------------
+
 0.10.3 (2018-10-29)
 -------------------
 * [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_)
@@ -27,10 +33,25 @@ Changelog for package moveit_experimental
 * switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Contributors: Bence Magyar, Ian McMahon, Levi Armstrong, Mikael Arguedas, Robert Haschke, Xiaojian Ma
 
+0.9.11 (2017-12-25)
+-------------------
+
 0.9.10 (2017-12-09)
 -------------------
 * [fix] remove explicit fcl depends `#632 <https://github.com/ros-planning/moveit/pull/632>`_
 * Contributors: v4hn
+
+0.9.9 (2017-08-06)
+------------------
+
+0.9.8 (2017-06-21)
+------------------
+
+0.9.7 (2017-06-05)
+------------------
+
+0.9.6 (2017-04-12)
+------------------
 
 0.9.5 (2017-03-08)
 ------------------
@@ -46,6 +67,9 @@ Changelog for package moveit_experimental
 ------------------
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Ian McMahon
+
+0.9.2 (2016-11-05)
+------------------
 
 0.9.0 (2016-10-19)
 ------------------

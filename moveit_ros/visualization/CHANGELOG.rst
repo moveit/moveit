@@ -23,6 +23,12 @@ Changelog for package moveit_ros_visualization
 * Remove obsolete eigen_conversions dependency (`#1181 <https://github.com/ros-planning/moveit/issues/1181>`_)
 * Contributors: Alex Moriarty, Benjamin Scholz, Dave Coleman, Kei Okada, Michael Görner, Robert Haschke, Sven Krause
 
+0.10.5 (2018-11-01)
+-------------------
+
+0.10.4 (2018-10-29)
+-------------------
+
 0.10.3 (2018-10-29)
 -------------------
 * [maintenance] Store more settings of rviz' PlanningFrame (`#1135 <https://github.com/ros-planning/moveit/issues/1135>`_)
@@ -49,6 +55,9 @@ Changelog for package moveit_ros_visualization
 * [fix] consider shape transform for OcTree
 * [fix] realtime trajectory display (`#761 <https://github.com/ros-planning/moveit/issues/761>`_)
 * Contributors: Alexander Rössler, Dave Coleman, Ian McMahon, Mikael Arguedas, Pan Hy, Phy, Robert Haschke, Will Baker
+
+0.9.11 (2017-12-25)
+-------------------
 
 0.9.10 (2017-12-09)
 -------------------

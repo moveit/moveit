@@ -11,6 +11,15 @@ Changelog for package moveit_kinematics
 * [maintenance] Use C++14 (`#1146 <https://github.com/ros-planning/moveit/issues/1146>`_)
 * Contributors: Alex Moriarty, Michael Görner, Robert Haschke
 
+0.10.5 (2018-11-01)
+-------------------
+
+0.10.4 (2018-10-29)
+-------------------
+
+0.10.3 (2018-10-29)
+-------------------
+
 0.10.2 (2018-10-24)
 -------------------
 * [capability] add IKP_Translation{X,Y,Z}AxisAngle4D to the cpp template, see https://github.com/ros-planning/moveit/issues/548#issuecomment-316298918
@@ -63,6 +72,9 @@ Changelog for package moveit_kinematics
 * [fix][Indigo] moveit_kinematics Eigen3 dependency (`#470 <https://github.com/ros-planning/moveit/issues/470>`_)
 * Contributors: Martin Guenther, YuehChuan
 
+0.9.6 (2017-04-12)
+------------------
+
 0.9.5 (2017-03-08)
 ------------------
 * [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
@@ -90,3 +102,6 @@ Changelog for package moveit_kinematics
 * Move moveit_ikfast into moveit_kinematics
 * Moved kinematics plugins to new pkg moveit_kinematics
 * Contributors: Dave Coleman
+
+0.8.3 (2016-08-21)
+------------------

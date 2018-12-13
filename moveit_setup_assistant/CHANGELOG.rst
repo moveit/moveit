@@ -12,6 +12,9 @@ Changelog for package moveit_setup_assistant
   * `#1196 <https://github.com/ros-planning/moveit/issues/1196>`_
 * Contributors: Alex Moriarty, Dave Coleman, Michael Görner, Robert Haschke
 
+0.10.5 (2018-11-01)
+-------------------
+
 0.10.4 (2018-10-29)
 -------------------
 * [fix] Build regression (`#1170 <https://github.com/ros-planning/moveit/issues/1170>`_)
@@ -46,6 +49,9 @@ Changelog for package moveit_setup_assistant
 * [maintenance] cleanup yaml parsing, remove yaml-cpp 0.3 support (`#795 <https://github.com/ros-planning/moveit/issues/795>`_)
 * [feature] allow editing of xacro args (`#796 <https://github.com/ros-planning/moveit/issues/796>`_)
 * Contributors: Dave Coleman, Ian McMahon, Michael Görner, Mikael Arguedas, Robert Haschke, Will Baker
+
+0.9.11 (2017-12-25)
+-------------------
 
 0.9.10 (2017-12-09)
 -------------------
