@@ -9,14 +9,17 @@ Currently we support ROS Indigo, Kinetic, and Melodic.
 - [Documentation](http://moveit.ros.org/documentation/)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
 
-## Travis - Continuous Integration
+## Continuous Integration Status
 
-Indigo | Kinetic | Melodic
------- | ---- | -------
-[![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit) |
+service    | Indigo | Kinetic | Melodic
+---------- | ------ | ------- | -------
+Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit) |
+build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__moveit__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__moveit__ubuntu_trusty_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) |
+
 
 ## Docker Containers
 
+[![Docker Build](https://img.shields.io/docker/build/moveit/moveit.svg)](https://hub.docker.com/r/moveit/moveit/builds)
 [![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit/)
 ## ROS Buildfarm
 
