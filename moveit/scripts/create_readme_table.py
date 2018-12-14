@@ -4,6 +4,7 @@
 from __future__ import print_function
 import os
 import sys
+import requests
 import catkin_pkg
 from catkin_pkg.packages import find_packages
 
@@ -19,34 +20,31 @@ def create_header(ros_ubuntu_dict):
       header_lines = ' | '.join([header_lines, '-'*len(source), '-'*len(debian)])
   return '\n'.join([section_header, header, header_lines])
 
-def create_table_line_template(ros_ubuntu_dict):
-    ros_distros =  sorted(ros_ubuntu_dict.keys())
-    line = "{package_name}"
+def define_urls(target, params):
+    if target == 'src':
+        params['job'] = "{R}src_u{U}__{package}__ubuntu_{ubuntu}__source".format(**params)
+        params['url'] = "{base_url}/view/{R}src_u{U}/job/{job}".format(**params)
+    elif target == 'bin':
+        params['job'] = "{R}bin_u{U}64__{package}__ubuntu_{ubuntu}_amd64__binary".format(**params)
+        params['url'] = "{base_url}/view/{R}bin_u{U}64/job/{job}".format(**params)
+
+def create_line(package, ros_ubuntu_dict):
+    ros_distros = sorted(ros_ubuntu_dict.keys())
+    line = '\n' + package
+    print(package, file=sys.stderr)
     for ros in ros_distros:
         ubuntu = ros_ubuntu_dict[ros]
-        source_badge_url = ''.join(["http://build.ros.org/buildStatus/icon?job=",
-                                    ros[0].upper(), "src_u", ubuntu[0].upper(),
-                                    "__", "{package_name}", "__ubuntu_",
-                                    ubuntu.lower(), "__source"])
-        source_build_url = ''.join(["http://build.ros.org/view/", ros[0].upper(),
-                                    "src_u", ubuntu[0].upper(), "/job/",
-                                    ros[0].upper(), "src_u", ubuntu[0].upper(),
-                                    "__", "{package_name}", "__ubuntu_",
-                                    ubuntu.lower(), "__source/"])
-        source_str = ''.join(["[![Build Status](", source_badge_url,
-                             ")](", source_build_url,")"])
-        debian_badge_url = ''.join(["http://build.ros.org/buildStatus/icon?job=",
-                                    ros[0].upper(), "bin_u", ubuntu[0].upper(),
-                                    "64__", "{package_name}", "__ubuntu_",
-                                    ubuntu.lower(), "_amd64__binary"])
-        debian_build_url = ''.join(["http://build.ros.org/view/", ros[0].upper(),
-                                    "bin_u", ubuntu[0].upper(), "64/job/",
-                                    ros[0].upper(), "bin_u", ubuntu[0].upper(),
-                                    "64__", "{package_name}", "__ubuntu_",
-                                    ubuntu.lower(), "_amd64__binary/"])
-        debian_str = ''.join(["[![Build Status](", debian_badge_url,
-                              ")](", debian_build_url,")"])
-        line = ' | '.join([line, source_str, debian_str])
+        params = dict(R=ros[0].upper(), U=ubuntu[0].upper(), ubuntu=ubuntu.lower(),
+                      package=package, base_url="http://build.ros.org")
+        for target in ['src', 'bin']:
+            define_urls(target, params)
+            response = requests.get(params['url']).status_code
+            if response < 400:  # success
+                line += ' | [![Build Status]({base_url}/buildStatus/icon?job={job})]({url})'.format(**params)
+            else:  # error
+                line += ' | '
+                print('  {}: {} {}'.format(ros, response, params['url']), file=sys.stderr)
+
     return line
 
 def create_moveit_buildfarm_table():
@@ -69,10 +67,9 @@ def create_moveit_buildfarm_table():
             other_packages.append(package)
     moveit_packages.extend(other_packages)
 
-    line_template = create_table_line_template(supported_distro_ubuntu_dict)
     buildfarm_table = create_header(supported_distro_ubuntu_dict)
     for package in moveit_packages:
-      buildfarm_table = '\n'.join([buildfarm_table, line_template.format(package_name=package)])
+      buildfarm_table += create_line(package, supported_distro_ubuntu_dict)
     print(buildfarm_table)
 
 if __name__ == "__main__":
