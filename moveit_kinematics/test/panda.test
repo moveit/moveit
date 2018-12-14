@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+	<group ns="panda">
+		<include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch">
+			<arg name="load_robot_description" value="true"/>
+		</include>
+
+		<param name="root_link" value="panda_link0"/>
+		<param name="tip_link" value="panda_link8"/>
+		<param name="group" value="panda_arm"/>
+		<rosparam param="joint_names">[panda_joint1, panda_joint2, panda_joint3, panda_joint4, panda_joint5, panda_joint6, panda_joint7]</rosparam>
+
+		<param name="num_fk_tests" value="20"/>
+		<param name="num_ik_tests" value="20"/>
+		<param name="num_ik_cb_tests" value="20"/>
+		<param name="num_ik_multiple_tests" value="20"/>
+		<param name="num_nearest_ik_tests" value="0"/>
+
+		<test test-name="panda_kdl" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
+			<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+		</test>
+	</group>
+</launch>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+	<group ns="fanuc">
+		<include file="$(find moveit_resources)/fanuc_moveit_config/launch/planning_context.launch">
+			<arg name="load_robot_description" value="true"/>
+		</include>
+
+		<param name="tip_link" value="tool0"/>
+		<param name="root_link" value="base_link"/>
+		<param name="group" value="manipulator"/>
+		<param name="num_fk_tests" value="20"/>
+		<param name="num_ik_tests" value="20"/>
+		<param name="num_ik_cb_tests" value="20"/>
+		<param name="num_ik_multiple_tests" value="20"/>
+		<param name="num_nearest_ik_tests" value="0"/>
+		<rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6]</rosparam>
+
+		<test test-name="fanuc_kdl" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
+			<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+		</test>
+	</group>
+</launch>
