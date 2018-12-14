@@ -13,7 +13,7 @@ Currently we support ROS Indigo, Kinetic, and Melodic.
 
 service    | Indigo | Kinetic | Melodic
 ---------- | ------ | ------- | -------
-Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit) |
+Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit/branches) |
 build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__moveit__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__moveit__ubuntu_trusty_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) |
 
 
