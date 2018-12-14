@@ -66,8 +66,8 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_r
 
   robot_state_topic_property_ = new rviz::RosTopicProperty(
       "Robot State Topic", "display_robot_state", ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
-      "The topic on which the moveit_msgs::RobotState messages are received", this, SLOT(changedRobotStateTopic()),
-      this);
+      "The topic on which the moveit_msgs::DisplayRobotState messages are received", this,
+      SLOT(changedRobotStateTopic()), this);
 
   // Planning scene category -------------------------------------------------------------------------------------------
   root_link_name_property_ =
