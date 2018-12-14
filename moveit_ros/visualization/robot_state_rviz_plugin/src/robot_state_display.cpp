@@ -310,7 +310,10 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   }
   catch (const moveit::Exception& e)
   {
+    setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     ROS_WARN_ONCE("moveit::Exception %s", e.what());
+    update_state_ = false;
+    return;
   }
   setRobotHighlights(state_msg->highlight_links);
   update_state_ = true;
