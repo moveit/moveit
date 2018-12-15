@@ -40,6 +40,7 @@
 #include <boost/thread/mutex.hpp>
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
@@ -179,6 +180,7 @@ protected:
 
     // Validate chain information
     ASSERT_EQ(root_link_, kinematics_solver_->getBaseFrame());
+    ASSERT_FALSE(kinematics_solver_->getTipFrames().empty());
     ASSERT_EQ(tip_link_, kinematics_solver_->getTipFrame());
     ASSERT_EQ(joints_, kinematics_solver_->getJointNames());
   }
@@ -235,30 +237,29 @@ public:
 
 TEST_F(KinematicsTest, getFK)
 {
-  std::vector<double> seed, fk_values, solution;
-  seed.resize(kinematics_solver_->getJointNames().size(), 0.0);
-  fk_values.resize(kinematics_solver_->getJointNames().size(), 0.0);
-  solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
-
-  const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
-  ASSERT_FALSE(fk_names.empty());
+  std::vector<double> joints(kinematics_solver_->getJointNames().size(), 0.0);
+  const std::vector<std::string>& tip_frames = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
 
-  int success = 0;
-  ros::WallTime start_time = ros::WallTime::now();
   for (unsigned int i = 0; i < num_fk_tests_; ++i)
   {
     robot_state.setToRandomPositions(jmg_);
-    robot_state.copyJointGroupPositions(jmg_, fk_values);
+    robot_state.copyJointGroupPositions(jmg_, joints);
     std::vector<geometry_msgs::Pose> poses;
-    bool succeeded = kinematics_solver_->getPositionFK(fk_names, fk_values, poses);
-    if (succeeded && (poses.size() == fk_names.size()))
-      success++;
-  }
+    EXPECT_TRUE(kinematics_solver_->getPositionFK(tip_frames, joints, poses));
+    EXPECT_EQ(poses.size(), tip_frames.size());
+    if (poses.size() != tip_frames.size())
+      continue;
 
-  ROS_INFO_STREAM("Success Rate: " << (double)success / num_fk_tests_);
-  EXPECT_GE(success, num_fk_tests_);
-  ROS_INFO_STREAM("Elapsed time: " << (ros::WallTime::now() - start_time).toSec());
+    robot_state.updateLinkTransforms();
+    for (size_t j = 0; j < poses.size(); ++j)
+    {
+      const Eigen::Isometry3d model_pose = robot_state.getGlobalLinkTransform(tip_frames[j]);
+      Eigen::Isometry3d fk_pose;
+      tf2::fromMsg(poses[j], fk_pose);
+      EXPECT_TRUE(fk_pose.isApprox(model_pose)) << fk_pose.matrix() << std::endl << model_pose.matrix();
+    }
+  }
 }
 
 TEST_F(KinematicsTest, searchIK)
