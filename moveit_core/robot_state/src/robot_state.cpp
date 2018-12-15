@@ -66,11 +66,7 @@ RobotState::RobotState(const RobotModelConstPtr& robot_model)
   , rng_(nullptr)
 {
   allocMemory();
-
-  // all transforms are dirty initially
-  const int nr_doubles_for_dirty_joint_transforms =
-      1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
-  memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
+  initTransforms();
 }
 
 RobotState::RobotState(const RobotState& other) : rng_(nullptr)
@@ -111,6 +107,20 @@ void RobotState::allocMemory()
   effort_ = acceleration_ = velocity_ + robot_model_->getVariableCount();
 }
 
+void RobotState::initTransforms()
+{
+  // mark all transforms as dirty
+  const int nr_doubles_for_dirty_joint_transforms =
+      1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
+  memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
+
+  // initialize last row of transformation matrices, which will not be modified by transform updates anymore
+  for (size_t i = 0, end = robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
+                           robot_model_->getLinkGeometryCount();
+       i != end; ++i)
+    variable_joint_transforms_[i].makeAffine();
+}
+
 RobotState& RobotState::operator=(const RobotState& other)
 {
   if (this != &other)
@@ -133,11 +143,8 @@ void RobotState::copyFrom(const RobotState& other)
     memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) *
                                            (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
                                             ((has_acceleration_ || has_effort_) ? 1 : 0)));
-
-    // mark all transforms as dirty
-    const int nr_doubles_for_dirty_joint_transforms =
-        1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
-    memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
+    // and just initialize transforms
+    initTransforms();
   }
   else
   {
