@@ -40,7 +40,6 @@
 #include <moveit/constraint_samplers/union_constraint_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
-#include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
