@@ -301,18 +301,18 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
 {
   if (!robot_model_)
     return;
-  if (!robot_state_)
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
+
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
   try
   {
-    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
+    auto robot_state = std::make_shared<robot_state::RobotState>(robot_model_);
+    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state);
+    robot_state_.swap(robot_state);
   }
   catch (const moveit::Exception& e)
   {
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
-    ROS_WARN_ONCE("moveit::Exception %s", e.what());
-    update_state_ = false;
+    ROS_WARN_STREAM_THROTTLE_NAMED(1, "RobotStateDisplay", e.what());
     return;
   }
   setRobotHighlights(state_msg->highlight_links);
