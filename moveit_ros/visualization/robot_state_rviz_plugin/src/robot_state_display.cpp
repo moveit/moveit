@@ -313,7 +313,6 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   catch (const moveit::Exception& e)
   {
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
-    ROS_WARN_STREAM_THROTTLE_NAMED(1, "RobotStateDisplay", e.what());
     return;
   }
   setRobotHighlights(state_msg->highlight_links);
