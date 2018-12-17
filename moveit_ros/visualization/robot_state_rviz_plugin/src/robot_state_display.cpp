@@ -308,6 +308,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
     auto robot_state = std::make_shared<robot_state::RobotState>(robot_model_);
     robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state);
     robot_state_.swap(robot_state);
+    setStatus(rviz::StatusProperty::Ok, "RobotState", "");
   }
   catch (const moveit::Exception& e)
   {
