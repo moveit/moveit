@@ -1102,7 +1102,8 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
 
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_period", ros_parameters_.publish_period);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_delay", ros_parameters_.publish_delay);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
+  error +=
+      !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/linear", ros_parameters_.linear_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/rotational", ros_parameters_.rotational_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/joint", ros_parameters_.joint_scale);
@@ -1222,7 +1223,7 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   if (ros_parameters_.collision_check_rate < 0)
   {
     ROS_WARN_NAMED(NODE_NAME, "Parameter 'collision_check_rate' should be "
-                               "greater than zero. Check yaml file.");
+                              "greater than zero. Check yaml file.");
     return 0;
   }
 
