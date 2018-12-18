@@ -11,8 +11,8 @@ command_frame:  base_link  # TF frame that incoming cmds are given in
 incoming_command_timeout:  5  # Stop jogging if X seconds elapse without a new cmd
 joint_topic:  joint_states
 move_group_name:  arm  # Often 'manipulator' or 'arm'
-lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity
-hard_stop_singularity_threshold: 45 # Stop when the condition number hits this. Larger --> closer to singularity
+lower_singularity_threshold:  15  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity
+hard_stop_singularity_threshold: 30 # Stop when the condition number hits this. Larger --> closer to singularity
 lower_collision_proximity_threshold: 0.1 # Start decelerating when a collision is this far [m]
 hard_stop_collision_proximity_threshold: 0.005 # Stop when a collision is this far [m]
 planning_frame: base_link  # The MoveIt! planning frame. Often 'base_link'
