@@ -10,14 +10,26 @@
 		<param name="group" value="panda_arm"/>
 		<rosparam param="joint_names">[panda_joint1, panda_joint2, panda_joint3, panda_joint4, panda_joint5, panda_joint6, panda_joint7]</rosparam>
 
-		<param name="num_fk_tests" value="100"/>
-		<param name="num_ik_tests" value="100"/>
-		<param name="num_ik_cb_tests" value="20"/>
-		<param name="num_ik_multiple_tests" value="20"/>
+		<!-- KDL-specific solver parameters -->
+		<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+		<param name="robot_description_kinematics/panda_arm/max_solver_iterations" value="100"/>
+
+		<!-- by default disable all tests: enable selectively with private parameters -->
+		<param name="num_fk_tests" value="0"/>
+		<param name="num_ik_tests" value="0"/>
+		<param name="num_ik_cb_tests" value="0"/>
+		<param name="num_ik_multiple_tests" value="0"/>
 		<param name="num_nearest_ik_tests" value="0"/>
 
 		<test test-name="panda_kdl" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
-			<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+			<!-- enable basic FK and IK tests -->
+			<param name="num_fk_tests" value="100"/>
+			<param name="num_ik_tests" value="100"/>
+			<param name="num_ik_cb_tests" value="20"/>
+			<param name="num_ik_multiple_tests" value="20"/>
+			<!-- use a non-singular seed -->
+			<rosparam param="seed">[-0.5, -0.5, 0.3, -2, 0.8, 1.8, 1.9]</rosparam>
+			<rosparam param="consistency_limits">[0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]</rosparam>
 		</test>
 	</group>
 </launch>

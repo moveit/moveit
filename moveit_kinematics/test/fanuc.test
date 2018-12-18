@@ -8,15 +8,55 @@
 		<param name="tip_link" value="tool0"/>
 		<param name="root_link" value="base_link"/>
 		<param name="group" value="manipulator"/>
-		<param name="num_fk_tests" value="100"/>
-		<param name="num_ik_tests" value="100"/>
-		<param name="num_ik_cb_tests" value="20"/>
-		<param name="num_ik_multiple_tests" value="20"/>
-		<param name="num_nearest_ik_tests" value="0"/>
 		<rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6]</rosparam>
 
+		<!-- KDL-specific solver parameters -->
+		<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+		<param name="robot_description_kinematics/manipulator/max_solver_iterations" value="100"/>
+		<!-- by default disable all tests: enable selectively with private parameters -->
+		<param name="num_fk_tests" value="0"/>
+		<param name="num_ik_tests" value="0"/>
+		<param name="num_ik_cb_tests" value="0"/>
+		<param name="num_ik_multiple_tests" value="0"/>
+		<param name="num_nearest_ik_tests" value="0"/>
+
 		<test test-name="fanuc_kdl" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
-			<param name="ik_plugin_name" value="kdl_kinematics_plugin/KDLKinematicsPlugin"/>
+			<!-- enable basic FK and IK tests -->
+			<param name="num_fk_tests" value="100"/>
+			<param name="num_ik_tests" value="100"/>
+			<param name="num_ik_cb_tests" value="20"/>
+			<param name="num_ik_multiple_tests" value="20"/>
+			<!-- use a non-singular seed -->
+			<rosparam param="seed">[0, -0.32, -0.5, 0, -0.5, 0]</rosparam>
+			<rosparam param="consistency_limits">[0.4, 0.4, 0.4, 0.4, 0.4, 0.4]</rosparam>
+			<!-- List of unit tests to apply, starting from the seed, applying the specified transforms,
+			     and expecting the given joints as solution.
+			     If the result is not deterministic, it's possible to drop "joints". -->
+			<rosparam param="unit_tests">
+- pos.x: 0.1
+  joints: [0, -0.152627, -0.367847, 0, -0.46478, 0]
+- pos.y: 0.1
+  joints: [0.1582256, -0.3066389, -0.490349, 0.250946, -0.5159858, -0.319381]
+- pos.z: 0.1
+  joints: [0, -0.287588, -0.324304, 0, -0.643285, 0]
+
+- rot.x: 0.1
+  joints: [-0.0159181, -0.319276, -0.499953, -0.231014, -0.511806, 0.212341]
+- rot.y: 0.1
+  joints: [0, -0.331586, -0.520375, 0, -0.391211, 0]
+- rot.z: 0.1
+  joints: [0, -0.32, -0.5, 0, -0.5, -0.1]
+</rosparam>
+		</test>
+
+		<test test-name="fanuc_kdl_singular" pkg="moveit_kinematics" type="test_kinematics_plugin" time-limit="180">
+			<rosparam param="seed">[0, 0, 0, 0, 0, 0]</rosparam> <!-- zero pose is singular -->
+			<rosparam param="unit_tests">
+- pose:
+    position: [0.889898, -0.201372, 1.09478]
+    orientation: [0.70730173938410212, -0.00017737593464318564, 0.7069117395278034, 0.00010256596220803817]
+  joints: [-0.24956209125170759, -0.0064534268911693839, -0.24240439884057174, 0.82892859428707288, 0.34106727668811626, -0.7992823163375341]
+</rosparam>
 		</test>
 	</group>
 </launch>
