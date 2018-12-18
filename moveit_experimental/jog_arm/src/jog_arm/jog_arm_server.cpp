@@ -410,7 +410,6 @@ JogCalcs::JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_
     else if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_joint_traj_flag)
     {
       joint_deltas = shared_variables.joint_command_deltas;
-      ;
 
       if (!jointJogCalcs(joint_deltas, shared_variables))
         continue;
@@ -1026,7 +1025,10 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
 {
   pthread_mutex_lock(&shared_variables_.command_deltas_mutex);
 
+  // Copy everything but the frame name. The frame name is set by yaml file at startup.
+  // (so it doesn't need to be copied over and over)
   shared_variables_.command_deltas.twist = msg->twist;
+  shared_variables_.command_deltas.header.stamp = msg->header.stamp;
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
   pthread_mutex_lock(&shared_variables_.zero_cartesian_cmd_flag_mutex);
