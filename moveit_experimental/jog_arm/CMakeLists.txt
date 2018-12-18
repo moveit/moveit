@@ -6,11 +6,7 @@ add_executable(spacenav_to_twist src/jog_arm/teleop_examples/spacenav_to_twist.c
 add_dependencies(spacenav_to_twist ${catkin_EXPORTED_TARGETS})
 target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 
-add_executable(xbox_to_twist src/jog_arm/teleop_examples/xbox_to_twist.cpp)
-add_dependencies(xbox_to_twist ${catkin_EXPORTED_TARGETS})
-target_link_libraries(xbox_to_twist ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
-
-install(TARGETS jog_arm_server spacenav_to_twist xbox_to_twist
+install(TARGETS jog_arm_server spacenav_to_twist
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

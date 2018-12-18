@@ -80,6 +80,7 @@ catkin_package(
     # The following are needed by jog_arm:
     moveit_ros_planning_interface
     rosparam_shortcuts
+    joy_teleop
     tf
   DEPENDS
     EIGEN3

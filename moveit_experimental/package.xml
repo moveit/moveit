@@ -76,6 +76,7 @@
   <!-- The following are required by jog_arm -->
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>rosparam_shortcuts</run_depend>
+  <run_depend>joy_teleop</run_depend>
   <run_depend>tf</run_depend>
 
   <test_depend>moveit_resources</test_depend>
