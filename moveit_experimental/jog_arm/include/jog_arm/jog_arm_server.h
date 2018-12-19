@@ -99,7 +99,7 @@ struct jog_arm_shared
 };
 
 // ROS params to be read
-struct jog_arm_parameters
+struct JogArmParameters
 {
   std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
       planning_frame, warning_topic, joint_command_in_topic, command_in_type, command_out_type;
@@ -119,7 +119,7 @@ public:
   JogROSInterface();
 
   // Store the parameters that were read from ROS server
-  static struct jog_arm_parameters ros_parameters_;
+  static struct JogArmParameters ros_parameters_;
 
 private:
   // ROS subscriber callbacks
@@ -133,7 +133,7 @@ private:
   static void* jogCalcThread(void* thread_id);
 
   // Collision checking thread
-  static void* CollisionCheckThread(void* thread_id);
+  static void* collisionCheckThread(void* thread_id);
 
   // Variables to share between threads
   static struct jog_arm_shared shared_variables_;
@@ -149,13 +149,13 @@ class LowPassFilter
 {
 public:
   explicit LowPassFilter(double low_pass_filter_coeff);
-  double filter(double new_msrmt);
+  double filter(double new_measurement_);
   void reset(double data);
   double filter_coeff_ = 10.;
 
 private:
-  double prev_msrmts_[3] = { 0., 0., 0. };
-  double prev_filtered_msrmts_[2] = { 0., 0. };
+  double previous_measurements_[3] = { 0., 0., 0. };
+  double previous_filtered_measurements_[2] = { 0., 0. };
 };
 
 LowPassFilter::LowPassFilter(const double low_pass_filter_coeff)
@@ -163,31 +163,31 @@ LowPassFilter::LowPassFilter(const double low_pass_filter_coeff)
   filter_coeff_ = low_pass_filter_coeff;
 }
 
-void LowPassFilter::reset(const double data)
+void LowPassFilter::reset(double data)
 {
-  prev_msrmts_[0] = data;
-  prev_msrmts_[1] = data;
-  prev_msrmts_[2] = data;
+  previous_measurements_[0] = data;
+  previous_measurements_[1] = data;
+  previous_measurements_[2] = data;
 
-  prev_filtered_msrmts_[0] = data;
-  prev_filtered_msrmts_[1] = data;
+  previous_filtered_measurements_[0] = data;
+  previous_filtered_measurements_[1] = data;
 }
 
-double LowPassFilter::filter(const double new_msrmt)
+double LowPassFilter::filter(const double new_measurement_)
 {
   // Push in the new measurement
-  prev_msrmts_[2] = prev_msrmts_[1];
-  prev_msrmts_[1] = prev_msrmts_[0];
-  prev_msrmts_[0] = new_msrmt;
+  previous_measurements_[2] = previous_measurements_[1];
+  previous_measurements_[1] = previous_measurements_[0];
+  previous_measurements_[0] = new_measurement_;
 
-  double new_filtered_msrmt = (1 / (1 + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
-                              (prev_msrmts_[2] + 2 * prev_msrmts_[1] + prev_msrmts_[0] -
-                               (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1) * prev_filtered_msrmts_[1] -
-                               (-2 * filter_coeff_ * filter_coeff_ + 2) * prev_filtered_msrmts_[0]);
+  double new_filtered_msrmt = (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
+                              (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
+                               (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
+                               (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
 
   // Store the new filtered measurement
-  prev_filtered_msrmts_[1] = prev_filtered_msrmts_[0];
-  prev_filtered_msrmts_[0] = new_filtered_msrmt;
+  previous_filtered_measurements_[1] = previous_filtered_measurements_[0];
+  previous_filtered_measurements_[0] = new_filtered_msrmt;
 
   return new_filtered_msrmt;
 }
@@ -198,7 +198,7 @@ double LowPassFilter::filter(const double new_msrmt)
 class JogCalcs
 {
 public:
-  JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables,
+  JogCalcs(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
            const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
 
 protected:
@@ -266,13 +266,13 @@ protected:
 
   ros::Publisher warning_pub_;
 
-  jog_arm_parameters parameters_;
+  JogArmParameters parameters_;
 };
 
-class CollisionCheckThread
+class collisionCheckThread
 {
 public:
-  CollisionCheckThread(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables,
+  collisionCheckThread(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
                        const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
 };
 

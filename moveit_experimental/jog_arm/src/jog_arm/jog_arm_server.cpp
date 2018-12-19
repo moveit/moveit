@@ -44,7 +44,7 @@
 
 // Initialize these static struct to hold ROS parameters.
 // They must be static because they are used as arguments in thread creation.
-jog_arm::jog_arm_parameters jog_arm::JogROSInterface::ros_parameters_;
+jog_arm::JogArmParameters jog_arm::JogROSInterface::ros_parameters_;
 jog_arm::jog_arm_shared jog_arm::JogROSInterface::shared_variables_;
 std::unique_ptr<robot_model_loader::RobotModelLoader> jog_arm::JogROSInterface::model_loader_ptr_ = NULL;
 
@@ -93,7 +93,7 @@ JogROSInterface::JogROSInterface()
 
   // Check collisions in this thread
   pthread_t collisionThread;
-  rc = pthread_create(&collisionThread, nullptr, jog_arm::JogROSInterface::CollisionCheckThread, this);
+  rc = pthread_create(&collisionThread, nullptr, jog_arm::JogROSInterface::collisionCheckThread, this);
   if (rc)
   {
     ROS_FATAL_STREAM_NAMED(NODE_NAME, "Creating collision check thread failed");
@@ -193,15 +193,15 @@ void* JogROSInterface::jogCalcThread(void*)
 }
 
 // A separate thread for collision checking.
-void* JogROSInterface::CollisionCheckThread(void*)
+void* JogROSInterface::collisionCheckThread(void*)
 {
-  jog_arm::CollisionCheckThread cc(ros_parameters_, shared_variables_, model_loader_ptr_);
+  jog_arm::collisionCheckThread cc(ros_parameters_, shared_variables_, model_loader_ptr_);
   return nullptr;
 }
 
 // Constructor for the class that handles collision checking
-CollisionCheckThread::CollisionCheckThread(
-    const jog_arm_parameters& parameters, jog_arm_shared& shared_variables,
+collisionCheckThread::collisionCheckThread(
+    const JogArmParameters& parameters, jog_arm_shared& shared_variables,
     const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr)
 {
   // If user specified true in yaml file
@@ -301,7 +301,7 @@ CollisionCheckThread::CollisionCheckThread(
 }
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables,
+JogCalcs::JogCalcs(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
                    const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr)
   : move_group_(parameters.move_group_name)
 {

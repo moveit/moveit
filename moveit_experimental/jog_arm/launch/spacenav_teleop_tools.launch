@@ -6,7 +6,7 @@
   <!-- This node does the jogging calculations -->
   <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" >
     <param name="parameter_ns" type="string" value="jog_arm_server" />
-    <rosparam command="load" file="$(find moveit_experimental)/jog_arm/config/jog_server_settings.yaml" />
+    <rosparam command="load" file="$(find moveit_experimental)/jog_arm/config/sia5_simulated_config.yaml" />
   </node>
 
   <!-- teleop_tools translates a joystick command into a twist message -->
