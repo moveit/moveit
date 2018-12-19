@@ -303,7 +303,7 @@ collisionCheckThread::collisionCheckThread(
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
                    const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr)
-  : move_group_(parameters.move_group_name)
+  : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_)
 {
   parameters_ = parameters;
 
@@ -510,40 +510,38 @@ bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm
     }
   }
 
-  // Convert the cmd to the MoveGroup planning frame.
+  // Transform the command to the MoveGroup planning frame.
+  geometry_msgs::TransformStamped command_frame_to_planning_frame;
   try
   {
-    listener_.waitForTransform(cmd.header.frame_id, parameters_.planning_frame, ros::Time::now(), ros::Duration(0.2));
+    command_frame_to_planning_frame =
+        tf_buffer_.lookupTransform(parameters_.planning_frame, cmd.header.frame_id, ros::Time(0), ros::Duration(1.0));
   }
-  catch (const tf::TransformException& ex)
-  {
-    ROS_ERROR_STREAM_NAMED(NODE_NAME, ros::this_node::getName() << ": " << ex.what());
-    return 0;
-  }
-  // To transform, these vectors need to be stamped. See answers.ros.org
-  // Q#199376
-  // Transform the linear component of the cmd message
-  geometry_msgs::Vector3Stamped lin_vector;
-  lin_vector.vector = cmd.twist.linear;
-  lin_vector.header.frame_id = cmd.header.frame_id;
-  try
-  {
-    listener_.transformVector(parameters_.planning_frame, lin_vector, lin_vector);
-  }
-  catch (const tf::TransformException& ex)
+  catch (tf2::TransformException& ex)
   {
     ROS_ERROR_STREAM_NAMED(NODE_NAME, ros::this_node::getName() << ": " << ex.what());
     return 0;
   }
 
-  geometry_msgs::Vector3Stamped rot_vector;
-  rot_vector.vector = cmd.twist.angular;
-  rot_vector.header.frame_id = cmd.header.frame_id;
+  geometry_msgs::Vector3 lin_vector;
+  lin_vector = cmd.twist.linear;
   try
   {
-    listener_.transformVector(parameters_.planning_frame, rot_vector, rot_vector);
+    tf2::doTransform(lin_vector, lin_vector, command_frame_to_planning_frame);
   }
-  catch (const tf::TransformException& ex)
+  catch (const tf2::TransformException& ex)
+  {
+    ROS_ERROR_STREAM_NAMED(NODE_NAME, ros::this_node::getName() << ": " << ex.what());
+    return 0;
+  }
+
+  geometry_msgs::Vector3 rot_vector;
+  rot_vector = cmd.twist.angular;
+  try
+  {
+    tf2::doTransform(rot_vector, rot_vector, command_frame_to_planning_frame);
+  }
+  catch (const tf2::TransformException& ex)
   {
     ROS_ERROR_STREAM_NAMED(NODE_NAME, ros::this_node::getName() << ": " << ex.what());
     return 0;
@@ -553,8 +551,8 @@ bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm
   geometry_msgs::TwistStamped twist_cmd;
   twist_cmd.header.stamp = cmd.header.stamp;
   twist_cmd.header.frame_id = parameters_.planning_frame;
-  twist_cmd.twist.linear = lin_vector.vector;
-  twist_cmd.twist.angular = rot_vector.vector;
+  twist_cmd.twist.linear = lin_vector;
+  twist_cmd.twist.angular = rot_vector;
 
   const Eigen::VectorXd delta_x = scaleCartesianCommand(twist_cmd);
 

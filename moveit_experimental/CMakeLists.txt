@@ -26,7 +26,7 @@ COMPONENTS
   # The following are needed by jog_arm:
   moveit_ros_planning_interface
   rosparam_shortcuts
-  tf
+  tf2_ros
 )
 find_package(Eigen3 REQUIRED)
 
@@ -81,7 +81,7 @@ catkin_package(
     moveit_ros_planning_interface
     rosparam_shortcuts
     joy_teleop
-    tf
+    tf2_ros
   DEPENDS
     EIGEN3
     Boost

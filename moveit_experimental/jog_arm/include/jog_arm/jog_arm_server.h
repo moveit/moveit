@@ -54,7 +54,8 @@
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
-#include <tf/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 namespace jog_arm
@@ -180,10 +181,11 @@ double LowPassFilter::filter(const double new_measurement_)
   previous_measurements_[1] = previous_measurements_[0];
   previous_measurements_[0] = new_measurement_;
 
-  double new_filtered_msrmt = (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
-                              (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
-                               (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
-                               (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
+  double new_filtered_msrmt =
+      (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
+      (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
+       (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
+       (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
 
   // Store the new filtered measurement
   previous_filtered_measurements_[1] = previous_filtered_measurements_[0];
@@ -259,7 +261,8 @@ protected:
   sensor_msgs::JointState jt_state_, original_jts_;
   trajectory_msgs::JointTrajectory new_traj_;
 
-  tf::TransformListener listener_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
 
   std::vector<jog_arm::LowPassFilter> velocity_filters_;
   std::vector<jog_arm::LowPassFilter> position_filters_;

@@ -46,7 +46,7 @@
   <!-- The following are required by jog_arm -->
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>rosparam_shortcuts</build_depend>
-  <build_depend>tf</build_depend>
+  <build_depend>tf2_ros</build_depend>
 
   <run_depend version_gte="1.11.2">pluginlib</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
@@ -77,7 +77,7 @@
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>rosparam_shortcuts</run_depend>
   <run_depend>joy_teleop</run_depend>
-  <run_depend>tf</run_depend>
+  <run_depend>tf2_ros</run_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
