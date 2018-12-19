@@ -210,7 +210,7 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  bool cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables);
 
   bool jointJogCalcs(const moveit_experimental::JogJoint& cmd, jog_arm_shared& shared_variables);
 

@@ -489,7 +489,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, jog_arm_shared& shared_va
 }
 
 // Perform the jogging calculations
-bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables)
+bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -523,8 +523,7 @@ bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm
     return 0;
   }
 
-  geometry_msgs::Vector3 lin_vector;
-  lin_vector = cmd.twist.linear;
+  geometry_msgs::Vector3 lin_vector = cmd.twist.linear;
   try
   {
     tf2::doTransform(lin_vector, lin_vector, command_frame_to_planning_frame);
@@ -535,8 +534,7 @@ bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm
     return 0;
   }
 
-  geometry_msgs::Vector3 rot_vector;
-  rot_vector = cmd.twist.angular;
+  geometry_msgs::Vector3 rot_vector = cmd.twist.angular;
   try
   {
     tf2::doTransform(rot_vector, rot_vector, command_frame_to_planning_frame);
@@ -548,13 +546,11 @@ bool JogCalcs::cartesianJogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm
   }
 
   // Put these components back into a TwistStamped
-  geometry_msgs::TwistStamped twist_cmd;
-  twist_cmd.header.stamp = cmd.header.stamp;
-  twist_cmd.header.frame_id = parameters_.planning_frame;
-  twist_cmd.twist.linear = lin_vector;
-  twist_cmd.twist.angular = rot_vector;
+  cmd.header.frame_id = parameters_.planning_frame;
+  cmd.twist.linear = lin_vector;
+  cmd.twist.angular = rot_vector;
 
-  const Eigen::VectorXd delta_x = scaleCartesianCommand(twist_cmd);
+  const Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
 
   kinematic_state_->setVariableValues(jt_state_);
   original_jts_ = jt_state_;
