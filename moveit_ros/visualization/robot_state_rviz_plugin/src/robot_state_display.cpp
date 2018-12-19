@@ -66,8 +66,8 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_r
 
   robot_state_topic_property_ = new rviz::RosTopicProperty(
       "Robot State Topic", "display_robot_state", ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
-      "The topic on which the moveit_msgs::RobotState messages are received", this, SLOT(changedRobotStateTopic()),
-      this);
+      "The topic on which the moveit_msgs::DisplayRobotState messages are received", this,
+      SLOT(changedRobotStateTopic()), this);
 
   // Planning scene category -------------------------------------------------------------------------------------------
   root_link_name_property_ =
@@ -303,9 +303,20 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
     return;
   if (!robot_state_)
     robot_state_.reset(new robot_state::RobotState(robot_model_));
-  // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion functio?
-  robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
-  setRobotHighlights(state_msg->highlight_links);
+  // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
+  try
+  {
+    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
+    setRobotHighlights(state_msg->highlight_links);
+    setStatus(rviz::StatusProperty::Ok, "RobotState", "");
+  }
+  catch (const moveit::Exception& e)
+  {
+    robot_state_->setToDefaultValues();
+    setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
+    setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
+    return;
+  }
   update_state_ = true;
 }
 

@@ -476,18 +476,27 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
   trajectory_message_to_display_.reset();
 
   robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(robot_model_, ""));
-  for (std::size_t i = 0; i < msg->trajectory.size(); ++i)
+  try
   {
-    if (t->empty())
+    for (std::size_t i = 0; i < msg->trajectory.size(); ++i)
     {
-      t->setRobotTrajectoryMsg(*robot_state_, msg->trajectory_start, msg->trajectory[i]);
+      if (t->empty())
+      {
+        t->setRobotTrajectoryMsg(*robot_state_, msg->trajectory_start, msg->trajectory[i]);
+      }
+      else
+      {
+        robot_trajectory::RobotTrajectory tmp(robot_model_, "");
+        tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
+        t->append(tmp, 0.0);
+      }
     }
-    else
-    {
-      robot_trajectory::RobotTrajectory tmp(robot_model_, "");
-      tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
-      t->append(tmp, 0.0);
-    }
+    display_->setStatus(rviz::StatusProperty::Ok, "Trajectory", "");
+  }
+  catch (const moveit::Exception& e)
+  {
+    display_->setStatus(rviz::StatusProperty::Error, "Trajectory", e.what());
+    return;
   }
 
   if (!t->empty())
