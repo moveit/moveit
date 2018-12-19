@@ -301,22 +301,22 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
 {
   if (!robot_model_)
     return;
-
+  if (!robot_state_)
+    robot_state_.reset(new robot_state::RobotState(robot_model_));
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
   try
   {
-    auto robot_state = std::make_shared<robot_state::RobotState>(robot_model_);
-    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state);
-    robot_state_.swap(robot_state);
+    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
     setStatus(rviz::StatusProperty::Ok, "RobotState", "");
+    setRobotHighlights(state_msg->highlight_links);
+    update_state_ = true;
   }
   catch (const moveit::Exception& e)
   {
+    robot_state_->setToDefaultValues();
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     return;
   }
-  setRobotHighlights(state_msg->highlight_links);
-  update_state_ = true;
 }
 
 void RobotStateDisplay::setLinkColor(const std::string& link_name, const QColor& color)
