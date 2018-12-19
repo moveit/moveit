@@ -1739,7 +1739,7 @@ as the new values that correspond to the group */
 
 private:
   void allocMemory();
-
+  void initTransforms();
   void copyFrom(const RobotState& other);
 
   void markDirtyJointTransforms(const JointModel* joint)

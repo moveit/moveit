@@ -37,69 +37,124 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
+#include <eigen_stl_containers/eigen_stl_containers.h>
 #include <gtest/gtest.h>
-#include <ctime>
+#include <chrono>
 
-class PR2 : public testing::Test
+// Helper class to measure time within a scoped block and output the result
+class ScopedTimer
+{
+  const char* const msg_;
+  double* const gold_standard_;
+  const std::chrono::time_point<std::chrono::steady_clock> start_;
+
+public:
+  // if gold_standard is provided, a relative increase/decrease is shown too
+  ScopedTimer(const char* msg = "", double* gold_standard = nullptr)
+    : msg_(msg), gold_standard_(gold_standard), start_(std::chrono::steady_clock::now())
+  {
+  }
+
+  ~ScopedTimer()
+  {
+    std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start_;
+    std::cerr << msg_ << elapsed.count() * 1000. << "ms ";
+
+    if (gold_standard_)
+    {
+      if (*gold_standard_ == 0)
+        *gold_standard_ = elapsed.count();
+      std::cerr << 100 * elapsed.count() / *gold_standard_ << "%";
+    }
+    std::cerr << std::endl;
+  }
+};
+
+class Timing : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    model_ = moveit::core::loadTestingRobotModel("pr2_description");
-  };
+    Eigen::Isometry3d iso = Eigen::Translation3d(1, 2, 3) * Eigen::AngleAxisd(0.13 * M_PI, Eigen::Vector3d::UnitX()) *
+                            Eigen::AngleAxisd(0.29 * M_PI, Eigen::Vector3d::UnitY()) *
+                            Eigen::AngleAxisd(0.42 * M_PI, Eigen::Vector3d::UnitZ());
+    transforms_.push_back(Eigen::Isometry3d::Identity());  // result
+    transforms_.push_back(iso);                            // input
+  }
 
   void TearDown() override
   {
   }
 
-  robot_model::RobotModelPtr model_;
+public:
+  const Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
+  // put transforms into a vector to avoid compiler optimization on variables
+  EigenSTL::vector_Isometry3d transforms_;
+  volatile size_t result_idx_ = 0;
+  volatile size_t input_idx_ = 1;
 };
 
-TEST_F(PR2, StateUpdateTiming)
+TEST_F(Timing, stateUpdate)
 {
-  ASSERT_TRUE(bool(model_));
-  robot_state::RobotState state(model_);
-  clock_t begin = clock();
-  for (unsigned i = 0; i < 10000; ++i)
+  robot_model::RobotModelPtr model = moveit::core::loadTestingRobotModel("pr2_description");
+  ASSERT_TRUE(bool(model));
+  robot_state::RobotState state(model);
+  ScopedTimer t("RobotState updates: ");
+  for (unsigned i = 0; i < 1e5; ++i)
   {
     state.setToRandomPositions();
     state.update();
   }
-  clock_t end = clock();
-  double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-  std::cerr << "time for 10,000 random RobotState updates: " << elapsed_secs << "s" << std::endl;
 }
 
-TEST(EigenTransform, Timing)
+TEST_F(Timing, multiply)
 {
-  Eigen::Isometry3d iso = Eigen::Translation3d(1, 2, 3) * Eigen::AngleAxisd(0.13 * M_PI, Eigen::Vector3d::UnitX()) *
-                          Eigen::AngleAxisd(0.29 * M_PI, Eigen::Vector3d::UnitY()) *
-                          Eigen::AngleAxisd(0.42 * M_PI, Eigen::Vector3d::UnitZ());
-  Eigen::Affine3d affine(iso.matrix());
-  Eigen::Matrix4d result;
-  Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
+  size_t RUNS = 1e7;
+  double gold_standard = 0;
+  {
+    ScopedTimer t("Eigen::Affine * Eigen::Matrix: ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_].affine().noalias() = transforms_[input_idx_].affine() * transforms_[input_idx_].matrix();
+  }
+  {
+    ScopedTimer t("Eigen::Matrix * Eigen::Matrix: ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_].matrix().noalias() = transforms_[input_idx_].matrix() * transforms_[input_idx_].matrix();
+  }
+  {
+    ScopedTimer t("Eigen::Isometry * Eigen::Isometry: ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_] = transforms_[input_idx_] * transforms_[input_idx_];
+  }
+}
 
-  size_t runs = 1e6;
-  clock_t begin = clock();
-  for (size_t i = 0; i < runs; ++i)
-    EXPECT_TRUE((iso.inverse() * iso).isApprox(id));
-  clock_t end = clock();
-  double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-  std::cerr << "Isometry3d::inverse(): " << elapsed_secs << "s" << std::endl;
-
-  begin = clock();
-  for (size_t i = 0; i < runs; ++i)
-    EXPECT_TRUE((affine.inverse(Eigen::Isometry) * affine).isApprox(id));
-  end = clock();
-  elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-  std::cerr << "Affine3d::inverse(Eigen::Isometry): " << elapsed_secs << "s" << std::endl;
-
-  begin = clock();
-  for (size_t i = 0; i < runs; ++i)
-    EXPECT_TRUE((affine.inverse() * affine).isApprox(id));
-  end = clock();
-  elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-  std::cerr << "Affine3d::inverse(): " << elapsed_secs << "s" << std::endl;
+TEST_F(Timing, inverse)
+{
+  EigenSTL::vector_Affine3d affine(1);
+  affine[0].matrix() = transforms_[input_idx_].matrix();
+  size_t RUNS = 1e7;
+  double gold_standard = 0;
+  {
+    ScopedTimer t("Isometry3d::inverse(): ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_] = transforms_[input_idx_].inverse();
+  }
+  volatile size_t inp = 0;
+  {
+    ScopedTimer t("Affine3d::inverse(Eigen::Isometry): ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_].affine().noalias() = affine[input_idx_].inverse(Eigen::Isometry).affine();
+  }
+  {
+    ScopedTimer t("Affine3d::inverse(): ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_].affine().noalias() = affine[input_idx_].inverse().affine();
+  }
+  {
+    ScopedTimer t("Matrix4d::inverse(): ", &gold_standard);
+    for (size_t i = 0; i < RUNS; ++i)
+      transforms_[result_idx_].matrix().noalias() = affine[input_idx_].matrix().inverse();
+  }
 }
 
 int main(int argc, char** argv)
