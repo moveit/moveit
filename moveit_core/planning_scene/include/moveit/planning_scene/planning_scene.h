@@ -948,7 +948,7 @@ public:
                       std::set<collision_detection::CostSource>& costs) const;
 
   /** \brief Outputs debug information about the planning scene contents */
-  void printKnownObjects(std::ostream& out) const;
+  void printKnownObjects(std::ostream& out = std::cout) const;
 
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message.
    */
