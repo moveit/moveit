@@ -307,16 +307,17 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   try
   {
     robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
-    setStatus(rviz::StatusProperty::Ok, "RobotState", "");
     setRobotHighlights(state_msg->highlight_links);
-    update_state_ = true;
+    setStatus(rviz::StatusProperty::Ok, "RobotState", "");
   }
   catch (const moveit::Exception& e)
   {
     robot_state_->setToDefaultValues();
+    setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     return;
   }
+  update_state_ = true;
 }
 
 void RobotStateDisplay::setLinkColor(const std::string& link_name, const QColor& color)
