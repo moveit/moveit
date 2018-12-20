@@ -494,26 +494,30 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       ik_solver_vel.unlockRedundantJoints();
       return false;
     }
+    if (counter > 1)
+      ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration (" << counter << "): " << jnt_pos_in);
+
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
     ROS_DEBUG_NAMED("kdl", "IK valid: %d", ik_valid);
     if (!consistency_limits.empty())
     {
-      getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
       if ((ik_valid < 0 && !options.return_approximate_solution) ||
           !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
       {
-        ROS_DEBUG_NAMED("kdl", "Could not find IK solution: does not match consistency limits");
+        ROS_DEBUG_STREAM_NAMED("kdl", "Could not find IK solution"
+                                          << ((ik_valid < 0 && !options.return_approximate_solution) ?
+                                                  "" :
+                                                  ": does not match consistency limits"));
+        getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
         continue;
       }
     }
     else
     {
-      getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
-      ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration: " << jnt_pos_in);
-
       if (ik_valid < 0 && !options.return_approximate_solution)
       {
         ROS_DEBUG_NAMED("kdl", "Could not find IK solution");
+        getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
         continue;
       }
     }
