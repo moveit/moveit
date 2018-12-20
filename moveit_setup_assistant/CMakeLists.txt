@@ -14,22 +14,20 @@ include_directories(include)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin REQUIRED COMPONENTS
+  moveit_core
   moveit_ros_planning
   moveit_ros_visualization
   rviz
   urdf
-  rosconsole
   roscpp
   srdfdom
 )
 include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 # Qt Stuff
-if(rviz_QT_VERSION VERSION_LESS "5")
+if("${rviz_QT_VERSION}" VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
   include(${QT_USE_FILE})
 else()
@@ -44,7 +42,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 find_package(PkgConfig)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp>=0.5)
 include_directories(${YAMLCPP_INCLUDE_DIRS})
-link_directories(${YAMLCPP_LIBRARY_DIRS})
 
 catkin_package(
   INCLUDE_DIRS
@@ -52,8 +49,13 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}_tools
   CATKIN_DEPENDS
+    moveit_core
     moveit_ros_planning
     moveit_ros_visualization
+    roscpp
+    srdfdom
+    rviz
+    urdf
 )
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
@@ -142,9 +144,10 @@ set_target_properties(${PROJECT_NAME}_updater
                       PREFIX "")
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${PROJECT_NAME}_updater
-  LIBRARY DESTINATION lib
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

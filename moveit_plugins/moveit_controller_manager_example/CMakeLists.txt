@@ -9,25 +9,21 @@ endif()
 
 find_package(Boost REQUIRED thread)
 include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
+  sensor_msgs
   pluginlib
   roscpp
   REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
-  LIBRARIES
-  INCLUDE_DIRS
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_core
+    sensor_msgs
     )
-
-include_directories(include)
 
 add_library(${PROJECT_NAME} src/moveit_controller_manager_example.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})

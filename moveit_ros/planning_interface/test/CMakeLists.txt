@@ -1,6 +1,6 @@
 if (CATKIN_ENABLE_TESTING)
-  find_package(moveit_resources)
-  find_package(rostest)
+  find_package(moveit_resources REQUIRED)
+  find_package(rostest REQUIRED)
 
   add_rostest_gtest(test_cleanup cleanup.test cleanup.cpp)
   target_link_libraries(test_cleanup moveit_move_group_interface)

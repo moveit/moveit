@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   tf
   roscpp
+  pluginlib
 )
 
 set(MOVEIT_LIB_NAME moveit_robot_interaction)
@@ -53,7 +54,7 @@ if (CATKIN_ENABLE_TESTING)
     ${Boost_LIBRARIES})
 endif()
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

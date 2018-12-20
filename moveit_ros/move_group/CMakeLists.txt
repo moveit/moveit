@@ -24,6 +24,7 @@ catkin_package(
   INCLUDE_DIRS
     include
   CATKIN_DEPENDS
+    roscpp
     moveit_core
     moveit_ros_planning
 )
@@ -31,9 +32,6 @@ catkin_package(
 include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
-
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 add_library(moveit_move_group_capabilities_base
   src/move_group_context.cpp
@@ -72,7 +70,7 @@ install(TARGETS move_group list_move_group_capabilities moveit_move_group_capabi
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(PROGRAMS
   scripts/load_map scripts/save_map DESTINATION

@@ -9,4 +9,4 @@ target_link_libraries(${MOVEIT_LIB_NAME} moveit_occupancy_map_monitor ${catkin_L
 add_dependencies(${MOVEIT_LIB_NAME} ${sensor_msgs_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

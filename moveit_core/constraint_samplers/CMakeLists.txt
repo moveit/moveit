@@ -27,7 +27,6 @@ if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl REQUIRED)
   find_package(angles REQUIRED)
   find_package(tf_conversions REQUIRED)
-  find_package(moveit_resources REQUIRED)
 
   include_directories(${orocos_kdl_INCLUDE_DIRS} ${angles_INCLUDE_DIRS} ${tf_conversions_INCLUDE_DIRS} ${moveit_resources_INCLUDE_DIRS})
 

@@ -64,16 +64,16 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
   LIBRARIES
-    moveit_motion_planning_rviz_plugin_core
-    moveit_planning_scene_rviz_plugin_core
-    moveit_robot_state_rviz_plugin_core
     moveit_rviz_plugin_render_tools
+    moveit_robot_state_rviz_plugin_core
+    moveit_motion_planning_rviz_plugin_core
     moveit_trajectory_rviz_plugin_core
+    moveit_planning_scene_rviz_plugin_core
   INCLUDE_DIRS
-    motion_planning_rviz_plugin/include
-    planning_scene_rviz_plugin/include
-    robot_state_rviz_plugin/include
     rviz_plugin_render_tools/include
+    robot_state_rviz_plugin/include
+    planning_scene_rviz_plugin/include
+    motion_planning_rviz_plugin/include
     trajectory_rviz_plugin/include
   CATKIN_DEPENDS
     moveit_ros_planning_interface

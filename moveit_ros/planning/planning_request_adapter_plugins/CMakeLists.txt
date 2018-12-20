@@ -10,17 +10,6 @@ set(SOURCE_FILES
   src/add_iterative_spline_parameterization.cpp
   src/chomp_optimizer_adapter.cpp)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  moveit_core
-  moveit_msgs
-  pluginlib
-  chomp_motion_planner
-  )
-
-find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED)
-
 include_directories(
   ../../../moveit_planners/chomp/chomp_motion_planner/include/
   ../../../moveit_experimental/collision_distance_field/include/)

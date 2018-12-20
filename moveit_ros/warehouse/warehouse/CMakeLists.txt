@@ -38,6 +38,7 @@ install(
     moveit_warehouse_save_as_text
     moveit_init_demo_warehouse
     moveit_warehouse_services
-  LIBRARY DESTINATION lib
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

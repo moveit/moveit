@@ -14,6 +14,7 @@ find_package(Boost REQUIRED filesystem)
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
+  pluginlib
   roscpp
 )
 
@@ -28,7 +29,6 @@ catkin_package(
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} )
-link_directories(${catkin_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME} src/BenchmarkOptions.cpp
                                src/BenchmarkExecutor.cpp)
