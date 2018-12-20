@@ -41,6 +41,7 @@
 #include <tf2/transform_datatypes.h>
 
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl/kinfam_io.hpp>
 
 // URDF, SRDF
 #include <urdf_model/model.h>
@@ -420,7 +421,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            const std::vector<double>& consistency_limits,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
+  ros::WallTime start_time = ros::WallTime::now();
   if (!active_)
   {
     ROS_ERROR_NAMED("kdl", "kinematics not active");
@@ -472,7 +473,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::Frame pose_desired;
   tf2::fromMsg(ik_pose, pose_desired);
 
-  ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK2: Position request pose is "
+  ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK: Position request pose is "
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
                                     << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
                                     << ik_pose.orientation.z << " " << ik_pose.orientation.w);
@@ -484,12 +485,11 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   unsigned int counter(0);
   while (1)
   {
-    //    ROS_DEBUG_NAMED("kdl","Iteration: %d, time: %f, Timeout:
-    //    %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);
     counter++;
-    if (timedOut(n1, timeout))
+    if (timedOut(start_time, timeout))
     {
-      ROS_DEBUG_NAMED("kdl", "IK timed out");
+      ROS_DEBUG_STREAM_NAMED("kdl", "IK timed out after " << (ros::WallTime::now() - start_time).toSec() << " > "
+                                                          << timeout << "s and " << counter - 1 << " attempts");
       error_code.val = error_code.TIMED_OUT;
       ik_solver_vel.unlockRedundantJoints();
       return false;
@@ -509,9 +509,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
     else
     {
       getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
-      ROS_DEBUG_NAMED("kdl", "New random configuration");
-      for (unsigned int j = 0; j < dimension_; j++)
-        ROS_DEBUG_NAMED("kdl", "%d %f", j, jnt_pos_in(j));
+      ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration: " << jnt_pos_in);
 
       if (ik_valid < 0 && !options.return_approximate_solution)
       {
@@ -529,7 +527,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
     if (error_code.val == error_code.SUCCESS)
     {
-      ROS_DEBUG_STREAM_NAMED("kdl", "Solved after " << counter << " iterations");
+      ROS_DEBUG_STREAM_NAMED("kdl", "Solved after " << (ros::WallTime::now() - start_time).toSec() << " < " << timeout
+                                                    << "s and " << counter << " attempts");
       ik_solver_vel.unlockRedundantJoints();
       return true;
     }
