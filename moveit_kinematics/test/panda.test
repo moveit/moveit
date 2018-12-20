@@ -26,8 +26,6 @@
 			<!-- enable basic FK and IK tests -->
 			<param name="num_fk_tests" value="100"/>
 			<param name="num_ik_tests" value="100"/>
-			<param name="num_ik_cb_tests" value="20"/>
-			<param name="num_ik_multiple_tests" value="20"/>
 			<!-- use a non-singular seed -->
 			<rosparam param="seed">[-0.5, -0.5, 0.3, -2, 0.8, 1.8, 1.9]</rosparam>
 			<rosparam param="consistency_limits">[0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]</rosparam>

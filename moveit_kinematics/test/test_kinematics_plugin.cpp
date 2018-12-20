@@ -562,7 +562,7 @@ TEST_F(KinematicsTest, searchIK)
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
-  EXPECT_GT(success, EXPECTED_SUCCESS_RATE * num_ik_tests_);
+  EXPECT_GE(success, EXPECTED_SUCCESS_RATE * num_ik_tests_);
 }
 
 TEST_F(KinematicsTest, searchIKWithCallback)
@@ -598,7 +598,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_cb_tests_);
-  EXPECT_GT(success, EXPECTED_SUCCESS_RATE * num_ik_cb_tests_);
+  EXPECT_GE(success, EXPECTED_SUCCESS_RATE * num_ik_cb_tests_);
 }
 
 TEST_F(KinematicsTest, getIK)
@@ -631,7 +631,7 @@ TEST_F(KinematicsTest, getIK)
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
-  EXPECT_GT(success, EXPECTED_SUCCESS_RATE * num_ik_tests_);
+  EXPECT_GE(success, EXPECTED_SUCCESS_RATE * num_ik_tests_);
 }
 
 TEST_F(KinematicsTest, getIKMultipleSolutions)
@@ -671,7 +671,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_multiple_tests_);
-  EXPECT_GT(success, EXPECTED_SUCCESS_RATE * num_ik_multiple_tests_);
+  EXPECT_GE(success, EXPECTED_SUCCESS_RATE * num_ik_multiple_tests_);
 }
 
 // validate that getPositionIK() retrieves closest solution to seed
