@@ -37,9 +37,16 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <tf/transform_datatypes.h>
+#include <xmlrpcpp/XmlRpcValue.h>
 
-moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints& first,
-                                                                 const moveit_msgs::Constraints& second)
+#include <boost/algorithm/string/join.hpp>
+
+namespace kinematic_constraints
+{
+const std::string LOGNAME = "kinematic_constraint_utils";
+
+moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first, const moveit_msgs::Constraints& second)
 {
   moveit_msgs::Constraints r;
 
@@ -108,28 +115,27 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   return r;
 }
 
-bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints& constr)
+bool isEmpty(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.empty() && constr.orientation_constraints.empty() &&
          constr.visibility_constraints.empty() && constr.joint_constraints.empty();
 }
 
-std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints& constr)
+std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.size() + constr.orientation_constraints.size() +
          constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
-                                                                         const robot_model::JointModelGroup* jmg,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
+                                                  const robot_model::JointModelGroup* jmg, double tolerance)
 {
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
-                                                                         const robot_model::JointModelGroup* jmg,
-                                                                         double tolerance_below, double tolerance_above)
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
+                                                  const robot_model::JointModelGroup* jmg, double tolerance_below,
+                                                  double tolerance_above)
 {
   moveit_msgs::Constraints goal;
   std::vector<double> vals;
@@ -147,9 +153,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const r
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PoseStamped& pose,
-                                                                         double tolerance_pos, double tolerance_angle)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, const geometry_msgs::PoseStamped& pose,
+                                                  double tolerance_pos, double tolerance_angle)
 {
   moveit_msgs::Constraints goal;
 
@@ -189,10 +194,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PoseStamped& pose,
-                                                                         const std::vector<double>& tolerance_pos,
-                                                                         const std::vector<double>& tolerance_angle)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name, const geometry_msgs::PoseStamped& pose,
+                                                  const std::vector<double>& tolerance_pos,
+                                                  const std::vector<double>& tolerance_angle)
 {
   moveit_msgs::Constraints goal = constructGoalConstraints(link_name, pose);
   if (tolerance_pos.size() == 3)
@@ -214,9 +218,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::QuaternionStamped& quat,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::QuaternionStamped& quat, double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.orientation_constraints.resize(1);
@@ -231,9 +234,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::PointStamped& goal_point,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::PointStamped& goal_point, double tolerance)
 {
   geometry_msgs::Point p;
   p.x = 0;
@@ -242,10 +244,9 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return constructGoalConstraints(link_name, p, goal_point, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
-                                                                         const geometry_msgs::Point& reference_point,
-                                                                         const geometry_msgs::PointStamped& goal_point,
-                                                                         double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
+                                                  const geometry_msgs::Point& reference_point,
+                                                  const geometry_msgs::PointStamped& goal_point, double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.position_constraints.resize(1);
@@ -272,4 +273,300 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   pcm.weight = 1.0;
 
   return goal;
+}
+
+static double parseDouble(XmlRpc::XmlRpcValue& v)
+{
+  if (v.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+    return static_cast<double>(v);
+  else if (v.getType() == XmlRpc::XmlRpcValue::TypeInt)
+    return static_cast<int>(v);
+  else
+    return 0.0;
+}
+
+static bool isArray(XmlRpc::XmlRpcValue& v, size_t size, const std::string& name = "",
+                    const std::string& description = "")
+{
+  if (v.getType() != XmlRpc::XmlRpcValue::TypeArray || v.size() != size)
+  {
+    if (!name.empty())
+      ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not an array[" << size << "] of " << description);
+    return false;
+  }
+  return true;
+}
+
+static bool isStruct(XmlRpc::XmlRpcValue& v, const std::set<std::string>& keys, const std::string& name = "")
+{
+  if (v.getType() != XmlRpc::XmlRpcValue::TypeStruct)
+  {
+    if (!name.empty())
+      ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not a struct with keys " << boost::join(keys, ","));
+    return false;
+  }
+
+  for (const std::string& key : keys)
+    if (!v.hasMember(key))
+    {
+      if (!name.empty())
+        ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not a struct with keys " << boost::join(keys, ",") << " (misses "
+                                            << key << ")");
+      return false;
+    }
+
+  return true;
+}
+
+static bool constructPoseStamped(XmlRpc::XmlRpcValue::iterator& it, geometry_msgs::PoseStamped& pose)
+{
+  if (!isStruct(it->second, { "frame_id", "position", "orientation" }, it->first))
+    return false;
+  pose.header.frame_id = static_cast<std::string>(it->second["frame_id"]);
+
+  if (!isArray(it->second["orientation"], 3, "orientation", "RPY values"))
+    return false;
+  pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(parseDouble(it->second["orientation"][0]),
+                                                                  parseDouble(it->second["orientation"][1]),
+                                                                  parseDouble(it->second["orientation"][2]));
+
+  if (!isArray(it->second["position"], 3, "position", "xyz position"))
+    return false;
+  pose.pose.position.x = parseDouble(it->second["position"][0]);
+  pose.pose.position.y = parseDouble(it->second["position"][1]);
+  pose.pose.position.z = parseDouble(it->second["position"][2]);
+
+  return true;
+}
+
+static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::JointConstraint& constraint)
+{
+  for (XmlRpc::XmlRpcValue::iterator it = params.begin(); it != params.end(); ++it)
+  {
+    if (it->first == "type")
+      continue;
+    else if (it->first == "joint_name")
+      constraint.joint_name = static_cast<std::string>(it->second);
+    else if (it->first == "weight")
+      constraint.weight = parseDouble(it->second);
+    else if (it->first == "position")
+    {
+      constraint.position = parseDouble(it->second);
+    }
+    else if (it->first == "tolerance")
+    {
+      constraint.tolerance_below = parseDouble(it->second);
+      constraint.tolerance_above = parseDouble(it->second);
+    }
+    else if (it->first == "tolerances")
+    {
+      if (!isArray(it->second, 2, it->first, "lower/upper tolerances"))
+        return false;
+
+      constraint.tolerance_below = parseDouble(it->second[0]);
+      constraint.tolerance_above = parseDouble(it->second[1]);
+    }
+    else if (it->first == "bounds")
+    {
+      if (!isArray(it->second, 2, it->first, "lower/upper bound"))
+        return false;
+
+      const double lower_bound = parseDouble(it->second[0]);
+      const double upper_bound = parseDouble(it->second[1]);
+
+      constraint.position = (lower_bound + upper_bound) / 2;
+      constraint.tolerance_below = constraint.position - lower_bound;
+      constraint.tolerance_above = upper_bound - constraint.position;
+    }
+    else
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "joint constraint contains unknown entity '" << it->first << "'");
+    }
+  }
+  return true;
+}
+
+static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::PositionConstraint& constraint)
+{
+  for (XmlRpc::XmlRpcValue::iterator it = params.begin(); it != params.end(); ++it)
+  {
+    if (it->first == "type")
+      continue;
+    else if (it->first == "frame_id")
+      constraint.header.frame_id = static_cast<std::string>(it->second);
+    else if (it->first == "weight")
+      constraint.weight = parseDouble(it->second);
+    else if (it->first == "link_name")
+      constraint.link_name = static_cast<std::string>(it->second);
+    else if (it->first == "target_offset")
+    {
+      if (!isArray(it->second, 3, it->first, "x/y/z position"))
+        return false;
+
+      constraint.target_point_offset.x = parseDouble(it->second[0]);
+      constraint.target_point_offset.y = parseDouble(it->second[1]);
+      constraint.target_point_offset.z = parseDouble(it->second[2]);
+    }
+    else if (it->first == "region")
+    {
+      if (!isStruct(it->second, { "x", "y", "z" }, "region"))
+        return false;
+
+      constraint.constraint_region.primitive_poses.emplace_back();
+      constraint.constraint_region.primitives.emplace_back();
+
+      geometry_msgs::Pose& region_pose = constraint.constraint_region.primitive_poses.back();
+      shape_msgs::SolidPrimitive& region_primitive = constraint.constraint_region.primitives.back();
+
+      region_primitive.type = shape_msgs::SolidPrimitive::BOX;
+      region_primitive.dimensions.resize(3);
+
+      std::function<void(XmlRpc::XmlRpcValue&, double&, double&)> parse_dimension =
+          [](XmlRpc::XmlRpcValue& it, double& center, double& dimension) {
+            center = (parseDouble(it[0]) + parseDouble(it[1])) / 2;
+            dimension = parseDouble(it[1]) - parseDouble(it[0]);
+          };
+
+      parse_dimension(it->second["x"], region_pose.position.x,
+                      region_primitive.dimensions[shape_msgs::SolidPrimitive::BOX_X]);
+      parse_dimension(it->second["y"], region_pose.position.y,
+                      region_primitive.dimensions[shape_msgs::SolidPrimitive::BOX_Y]);
+      parse_dimension(it->second["z"], region_pose.position.z,
+                      region_primitive.dimensions[shape_msgs::SolidPrimitive::BOX_Z]);
+
+      region_pose.orientation.w = 1.0;
+    }
+    else
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "position constraint contains unknown entity '" << it->first << "'");
+    }
+  }
+  return true;
+}
+
+static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::OrientationConstraint& constraint)
+{
+  for (XmlRpc::XmlRpcValue::iterator it = params.begin(); it != params.end(); ++it)
+  {
+    if (it->first == "type")
+      continue;
+    else if (it->first == "frame_id")
+      constraint.header.frame_id = static_cast<std::string>(it->second);
+    else if (it->first == "weight")
+      constraint.weight = parseDouble(it->second);
+    else if (it->first == "link_name")
+      constraint.link_name = static_cast<std::string>(it->second);
+    else if (it->first == "orientation")
+    {
+      if (!isArray(it->second, 3, it->first, "RPY values"))
+        return false;
+
+      constraint.orientation = tf::createQuaternionMsgFromRollPitchYaw(
+          parseDouble(it->second[0]), parseDouble(it->second[1]), parseDouble(it->second[2]));
+    }
+    else if (it->first == "tolerances")
+    {
+      if (!isArray(it->second, 3, it->first, "xyz tolerances"))
+        return false;
+
+      constraint.absolute_x_axis_tolerance = parseDouble(it->second[0]);
+      constraint.absolute_y_axis_tolerance = parseDouble(it->second[1]);
+      constraint.absolute_z_axis_tolerance = parseDouble(it->second[2]);
+    }
+    else
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "orientation constraint contains unknown entity '" << it->first << "'");
+    }
+  }
+  return true;
+}
+
+static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::VisibilityConstraint& constraint)
+{
+  for (XmlRpc::XmlRpcValue::iterator it = params.begin(); it != params.end(); ++it)
+  {
+    if (it->first == "type")
+      continue;
+    else if (it->first == "weight")
+      constraint.weight = parseDouble(it->second);
+    else if (it->first == "target_radius")
+      constraint.target_radius = parseDouble(it->second);
+    else if (it->first == "target_pose")
+    {
+      if (!constructPoseStamped(it, constraint.target_pose))
+        return false;
+    }
+    else if (it->first == "cone_sides")
+      constraint.cone_sides = static_cast<int>(it->second);
+    else if (it->first == "sensor_pose")
+    {
+      if (!constructPoseStamped(it, constraint.sensor_pose))
+        return false;
+    }
+    else if (it->first == "max_view_angle")
+      constraint.max_view_angle = parseDouble(it->second);
+    else if (it->first == "max_range_angle")
+      constraint.max_range_angle = parseDouble(it->second);
+    else
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "orientation constraint contains unknown entity '" << it->first << "'");
+    }
+  }
+
+  constraint.sensor_view_direction = moveit_msgs::VisibilityConstraint::SENSOR_X;
+
+  return true;
+}
+
+static bool collectConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints)
+{
+  if (params.getType() != XmlRpc::XmlRpcValue::TypeArray)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "expected constraints as array");
+    return false;
+  }
+
+  for (int i = 0; i < params.size(); ++i)
+  {
+    if (!params[i].hasMember("type"))
+    {
+      ROS_ERROR_NAMED(LOGNAME, "constraint parameter does not specify its type");
+    }
+    else if (params[i]["type"] == "joint")
+    {
+      constraints.joint_constraints.emplace_back();
+      if (!constructConstraint(params[i], constraints.joint_constraints.back()))
+        return false;
+    }
+    else if (params[i]["type"] == "position")
+    {
+      constraints.position_constraints.emplace_back();
+      if (!constructConstraint(params[i], constraints.position_constraints.back()))
+        return false;
+    }
+    else if (params[i]["type"] == "orientation")
+    {
+      constraints.orientation_constraints.emplace_back();
+      if (!constructConstraint(params[i], constraints.orientation_constraints.back()))
+        return false;
+    }
+    else if (params[i]["type"] == "visibility")
+    {
+      constraints.visibility_constraints.emplace_back();
+      if (!constructConstraint(params[i], constraints.visibility_constraints.back()))
+        return false;
+    }
+  }
+
+  return true;
+}
+
+bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints)
+{
+  if (!isStruct(params, { "name", "constraints" }, "Parameter"))
+    return false;
+
+  constraints.name = static_cast<std::string>(params["name"]);
+  return collectConstraints(params["constraints"], constraints);
+}
 }

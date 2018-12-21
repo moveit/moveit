@@ -55,6 +55,7 @@ COMPONENTS
   trajectory_msgs
   urdf
   visualization_msgs
+  xmlrpcpp
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
