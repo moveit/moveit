@@ -38,7 +38,6 @@
 #include <tf/transform_listener.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/move_group/move_group_capability.h>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/tokenizer.hpp>
 #include <moveit/macros/console_colors.h>
 #include <moveit/move_group/node_name.h>
@@ -158,10 +157,7 @@ private:
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_ERROR_STREAM("Exception while loading move_group capability '"
-                         << *plugin << "': " << ex.what() << std::endl
-                         << "Available capabilities: "
-                         << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
+        ROS_ERROR_STREAM("Exception while loading move_group capability '" << *plugin << "': " << ex.what());
       }
     }
 

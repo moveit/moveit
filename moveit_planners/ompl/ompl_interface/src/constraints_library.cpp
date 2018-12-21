@@ -185,9 +185,10 @@ ompl_interface::InterpolationFunction ompl_interface::ConstraintApproximation::g
   return InterpolationFunction();
 }
 
-ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(
-    const ob::StateSpace* space, const std::vector<int>& expected_signature,
-    const ConstraintApproximationStateStorage* state_storage, std::size_t milestones)
+ompl::base::StateSamplerPtr
+allocConstraintApproximationStateSampler(const ob::StateSpace* space, const std::vector<int>& expected_signature,
+                                         const ConstraintApproximationStateStorage* state_storage,
+                                         std::size_t milestones)
 {
   std::vector<int> sig;
   space->computeSignature(sig);

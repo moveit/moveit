@@ -175,9 +175,10 @@ void CollisionRobotDistanceField::checkSelfCollisionHelper(const collision_detec
   }
 }
 
-DistanceFieldCacheEntryConstPtr CollisionRobotDistanceField::getDistanceFieldCacheEntry(
-    const std::string& group_name, const moveit::core::RobotState& state,
-    const collision_detection::AllowedCollisionMatrix* acm) const
+DistanceFieldCacheEntryConstPtr
+CollisionRobotDistanceField::getDistanceFieldCacheEntry(const std::string& group_name,
+                                                        const moveit::core::RobotState& state,
+                                                        const collision_detection::AllowedCollisionMatrix* acm) const
 {
   DistanceFieldCacheEntryConstPtr ret;
   if (!distance_field_cache_entry_)
@@ -1046,8 +1047,8 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
   {
     if (link_models[i]->getShapes().empty())
     {
-      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName() << " since it contains no "
-                                                                                            "geometries");
+      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName()
+                                                            << " since it contains no geometries");
       continue;
     }
 

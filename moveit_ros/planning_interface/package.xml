@@ -22,6 +22,7 @@
   <build_depend>moveit_ros_warehouse</build_depend>
   <build_depend>moveit_ros_move_group</build_depend>
   <build_depend>moveit_ros_manipulation</build_depend>
+  <build_depend>moveit_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>rosconsole</build_depend>
@@ -36,6 +37,7 @@
   <run_depend>moveit_ros_warehouse</run_depend>
   <run_depend>moveit_ros_move_group</run_depend>
   <run_depend>moveit_ros_manipulation</run_depend>
+  <run_depend>moveit_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rosconsole</run_depend>

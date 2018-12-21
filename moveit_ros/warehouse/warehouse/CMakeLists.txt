@@ -42,6 +42,7 @@ install(
     moveit_init_demo_warehouse
     moveit_warehouse_services
     moveit_warehouse_generate_random_queries
-  LIBRARY DESTINATION lib
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

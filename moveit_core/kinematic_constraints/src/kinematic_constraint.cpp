@@ -670,8 +670,8 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
   target_radius_ = fabs(vc.target_radius);
 
   if (vc.target_radius <= std::numeric_limits<double>::epsilon())
-    ROS_WARN_NAMED("kinematic_constraints", "The radius of the target disc that must be visible should be strictly "
-                                            "positive");
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "The radius of the target disc that must be visible should be strictly positive");
 
   if (vc.cone_sides < 3)
   {

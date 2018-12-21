@@ -375,6 +375,30 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Helper function to get the controller that is controlling the joint
+// ******************************************************************************************
+std::string MoveItConfigData::getJointHardwareInterface(const std::string& joint_name)
+{
+  for (std::size_t i = 0; i < ros_controllers_config_.size(); ++i)
+  {
+    std::vector<std::string>::iterator joint_it =
+        std::find(ros_controllers_config_[i].joints_.begin(), ros_controllers_config_[i].joints_.end(), joint_name);
+    if (joint_it != ros_controllers_config_[i].joints_.end())
+    {
+      if (ros_controllers_config_[i].type_.substr(0, 8) == "position")
+        return "hardware_interface/PositionJointInterface";
+      else if (ros_controllers_config_[i].type_.substr(0, 8) == "velocity")
+        return "hardware_interface/VelocityJointInterface";
+      // As of writing this, available joint command interfaces are position, velocity and effort.
+      else
+        return "hardware_interface/EffortJointInterface";
+    }
+  }
+  // If the joint was not found in any controller return EffortJointInterface
+  return "hardware_interface/EffortJointInterface";
+}
+
+// ******************************************************************************************
 // Writes a Gazebo compatible robot URDF to gazebo_compatible_urdf_string_
 // ******************************************************************************************
 std::string MoveItConfigData::getGazeboCompatibleURDF()
@@ -387,34 +411,82 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
   urdf_document.Parse((const char*)urdf_string_.c_str(), 0, TIXML_ENCODING_UTF8);
   try
   {
-    for (TiXmlElement* link_element = urdf_document.RootElement()->FirstChildElement(); link_element != NULL;
-         link_element = link_element->NextSiblingElement())
+    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != NULL;
+         doc_element = doc_element->NextSiblingElement())
     {
-      if (((std::string)link_element->Value()).find("link") == std::string::npos)
-        continue;
-      // Before adding inertial elements, make sure there is none and the link has collision element
-      if (link_element->FirstChildElement("inertial") == NULL && link_element->FirstChildElement("collision") != NULL)
+      if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
       {
-        new_urdf_needed = true;
-        TiXmlElement inertia_link("inertial");
-        TiXmlElement mass("mass");
-        TiXmlElement inertia_joint("inertia");
+        // Before adding inertial elements, make sure there is none and the link has collision element
+        if (doc_element->FirstChildElement("inertial") == NULL && doc_element->FirstChildElement("collision") != NULL)
+        {
+          new_urdf_needed = true;
+          TiXmlElement inertia_link("inertial");
+          TiXmlElement mass("mass");
+          TiXmlElement inertia_joint("inertia");
 
-        mass.SetAttribute("value", "0.1");
+          mass.SetAttribute("value", "0.1");
 
-        inertia_joint.SetAttribute("ixx", "0.03");
-        inertia_joint.SetAttribute("iyy", "0.03");
-        inertia_joint.SetAttribute("izz", "0.03");
-        inertia_joint.SetAttribute("ixy", "0.0");
-        inertia_joint.SetAttribute("ixz", "0.0");
-        inertia_joint.SetAttribute("iyz", "0.0");
+          inertia_joint.SetAttribute("ixx", "0.03");
+          inertia_joint.SetAttribute("iyy", "0.03");
+          inertia_joint.SetAttribute("izz", "0.03");
+          inertia_joint.SetAttribute("ixy", "0.0");
+          inertia_joint.SetAttribute("ixz", "0.0");
+          inertia_joint.SetAttribute("iyz", "0.0");
 
-        inertia_link.InsertEndChild(mass);
-        inertia_link.InsertEndChild(inertia_joint);
+          inertia_link.InsertEndChild(mass);
+          inertia_link.InsertEndChild(inertia_joint);
 
-        link_element->InsertEndChild(inertia_link);
+          doc_element->InsertEndChild(inertia_link);
+        }
+      }
+      else if (static_cast<std::string>(doc_element->Value()).find("joint") != std::string::npos)
+      {
+        // Before adding a transmission element, make sure there the joint is not fixed
+        if (static_cast<std::string>(doc_element->Attribute("type")) != "fixed")
+        {
+          new_urdf_needed = true;
+          std::string joint_name = static_cast<std::string>(doc_element->Attribute("name"));
+          TiXmlElement transmission("transmission");
+          TiXmlElement type("type");
+          TiXmlElement joint("joint");
+          TiXmlElement hardwareInterface("hardwareInterface");
+          TiXmlElement actuator("actuator");
+          TiXmlElement mechanical_reduction("mechanicalReduction");
+
+          transmission.SetAttribute("name", std::string("trans_") + joint_name);
+          joint.SetAttribute("name", joint_name);
+          actuator.SetAttribute("name", joint_name + std::string("_motor"));
+
+          type.InsertEndChild(TiXmlText("transmission_interface/SimpleTransmission"));
+          transmission.InsertEndChild(type);
+
+          hardwareInterface.InsertEndChild(TiXmlText(getJointHardwareInterface(joint_name).c_str()));
+          joint.InsertEndChild(hardwareInterface);
+          transmission.InsertEndChild(joint);
+
+          mechanical_reduction.InsertEndChild(TiXmlText("1"));
+          actuator.InsertEndChild(hardwareInterface);
+          actuator.InsertEndChild(mechanical_reduction);
+          transmission.InsertEndChild(actuator);
+
+          urdf_document.RootElement()->InsertEndChild(transmission);
+        }
       }
     }
+
+    // Add gazebo_ros_control plugin which reads the transmission tags
+    TiXmlElement gazebo("gazebo");
+    TiXmlElement plugin("plugin");
+    TiXmlElement robot_namespace("robotNamespace");
+
+    plugin.SetAttribute("name", "gazebo_ros_control");
+    plugin.SetAttribute("filename", "libgazebo_ros_control.so");
+    robot_namespace.InsertEndChild(TiXmlText(std::string("/")));
+
+    plugin.InsertEndChild(robot_namespace);
+    gazebo.InsertEndChild(plugin);
+
+    urdf_document.RootElement()->InsertEndChild(gazebo);
   }
   catch (YAML::ParserException& e)  // Catch errors
   {
@@ -760,10 +832,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
 
-  // Start with the robot name  ---------------------------------------------------
-  emitter << YAML::Key << srdf_->srdf_model_->getName();
-  emitter << YAML::Value << YAML::BeginMap;
-
   {
     emitter << YAML::Comment("MoveIt-specific simulation settings");
     emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
@@ -892,7 +960,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::EndMap;
     }
   }
-  emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
   if (!output_stream.good())
@@ -1050,7 +1117,7 @@ public:
     : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
   {
   }
-  operator const srdf::Model::DisabledCollision() const
+  operator const srdf::Model::DisabledCollision&() const
   {
     return dc_;
   }
@@ -1276,10 +1343,11 @@ bool MoveItConfigData::parseROSController(const YAML::Node& controller)
 // ******************************************************************************************
 // Helper function for parsing ROSControllers from ros_controllers yaml file
 // ******************************************************************************************
-bool MoveItConfigData::processROSControllers(const YAML::Node& controllers)
+bool MoveItConfigData::processROSControllers(std::ifstream& input_stream)
 {
   // Used in parsing ROS controllers
   ROSControlConfig control_setting;
+  YAML::Node controllers = YAML::Load(input_stream);
 
   // Loop through all controllers
   for (YAML::const_iterator controller_it = controllers.begin(); controller_it != controllers.end(); ++controller_it)
@@ -1337,20 +1405,14 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
   std::ifstream input_stream(file_path.c_str());
   if (!input_stream.good())
   {
-    ROS_WARN_STREAM_NAMED("ros_controller.yaml", "Does not exist " << file_path);
+    ROS_WARN_STREAM_NAMED("ros_controllers.yaml", "Does not exist " << file_path);
     return false;
   }
 
   // Begin parsing
   try
   {
-    YAML::Node doc = YAML::Load(input_stream);
-
-    for (YAML::const_iterator doc_map_it = doc.begin(); doc_map_it != doc.end(); ++doc_map_it)
-    {
-      if (const YAML::Node& controllers = doc_map_it->second)
-        processROSControllers(controllers);
-    }
+    processROSControllers(input_stream);
   }
   catch (YAML::ParserException& e)  // Catch errors
   {
@@ -1358,7 +1420,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
     return false;
   }
 
-  return true;  // file created successfully
+  return true;  // file read successfully
 }
 
 // ******************************************************************************************
@@ -1602,7 +1664,6 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
   try
   {
     const YAML::Node& doc = YAML::Load(input_stream);
-
     // Get sensors node
     const YAML::Node& sensors_node = doc["sensors"];
 
@@ -1767,7 +1828,7 @@ std::vector<std::map<std::string, GenericParameter>> MoveItConfigData::getSensor
 // ******************************************************************************************
 void MoveItConfigData::clearSensorPluginConfig()
 {
-  for (size_t param_id = 0; param_id < sensors_plugin_config_parameter_list_.size(); ++param_id)
+  for (std::size_t param_id = 0; param_id < sensors_plugin_config_parameter_list_.size(); ++param_id)
   {
     sensors_plugin_config_parameter_list_[param_id].clear();
   }

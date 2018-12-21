@@ -22,6 +22,7 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
   <build_depend>tf</build_depend>
   <build_depend version_gte="1.11.2">pluginlib</build_depend>
 
@@ -34,6 +35,7 @@
   <run_depend>tf</run_depend>
   <run_depend version_gte="1.11.2">pluginlib</run_depend>
 
+  <test_depend>rosunit</test_depend>
   <test_depend>moveit_resources</test_depend>
 
   <export>

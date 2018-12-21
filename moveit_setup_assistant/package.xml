@@ -22,14 +22,23 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ros_visualization</build_depend>
   <build_depend>yaml-cpp</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rviz</build_depend>
   <build_depend version_gt="0.3.1">srdfdom</build_depend>
+  <build_depend>urdf</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>yaml-cpp</run_depend>
   <run_depend>xacro</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rviz</run_depend>
   <run_depend version_gt="0.3.1">srdfdom</run_depend>
+  <run_depend>urdf</run_depend>
+  <!-- Optional: Gazebo integration. This is a heavy dependency so is disabled by default -->
+  <!-- run_depend>gazebo_ros</run_depend -->
 
   <test_depend>moveit_resources</test_depend>
+  <test_depend>rosunit</test_depend>
 </package>

@@ -64,10 +64,12 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
+    actionlib
     moveit_ros_planning
     moveit_ros_warehouse
     moveit_ros_manipulation
     moveit_ros_move_group
+    moveit_msgs
   DEPENDS
     EIGEN3
 )
@@ -80,8 +82,6 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(py_bindings_tools)
 add_subdirectory(common_planning_interface_objects)

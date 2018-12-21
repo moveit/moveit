@@ -123,8 +123,10 @@ void SimulationWidget::generateURDFClick()
 {
   simulation_text_->setVisible(true);
   std::string gazebo_compatible_urdf_string = config_data_->getGazeboCompatibleURDF();
+  std::size_t urdf_length = gazebo_compatible_urdf_string.length();
+
   // Check if the urdf do need new elements to be added
-  if (gazebo_compatible_urdf_string.length() > 0)
+  if (urdf_length > 0)
   {
     // Split the added elements from the original urdf to view them in different colors
     std::smatch start_match;
@@ -135,8 +137,6 @@ void SimulationWidget::generateURDFClick()
     // Search for inertial elemnts using regex
     std::regex_search(gazebo_compatible_urdf_string, start_match, start_reg_ex);
     std::regex_search(gazebo_compatible_urdf_string, end_match, end_reg_ex);
-
-    std::string urdf_sub_string;
 
     // Used to cache the positions of the opening and closing of the inertial elements
     std::vector<int> inertial_opening_matches;
@@ -152,7 +152,7 @@ void SimulationWidget::generateURDFClick()
       inertial_opening_matches.push_back(it->position());
     }
 
-    inertial_opening_matches.push_back(gazebo_compatible_urdf_string.length());
+    inertial_opening_matches.push_back(urdf_length);
 
     // Cache the positions of the closings of the inertial elements
     for (auto it = std::sregex_iterator(gazebo_compatible_urdf_string.begin(), gazebo_compatible_urdf_string.end(),
@@ -162,22 +162,47 @@ void SimulationWidget::generateURDFClick()
       inertial_closing_matches.push_back(it->position());
     }
 
-    for (std::size_t match_number = 0; match_number < inertial_opening_matches.size(); match_number++)
+    for (std::size_t match_number = 0; match_number < inertial_opening_matches.size() - 1; match_number++)
     {
       // Show the unmodified elements in black
       simulation_text_->setTextColor(QColor("black"));
-      urdf_sub_string = gazebo_compatible_urdf_string.substr(inertial_closing_matches[match_number],
-                                                             inertial_opening_matches[match_number] -
-                                                                 inertial_closing_matches[match_number]);
-      simulation_text_->append(QString(urdf_sub_string.c_str()));
+      simulation_text_->append(
+          QString(gazebo_compatible_urdf_string
+                      .substr(inertial_closing_matches[match_number],
+                              inertial_opening_matches[match_number] - inertial_closing_matches[match_number])
+                      .c_str()));
 
       // Show the added elements in green
       simulation_text_->setTextColor(QColor("green"));
-      urdf_sub_string = gazebo_compatible_urdf_string.substr(inertial_opening_matches[match_number],
-                                                             inertial_closing_matches[match_number + 1] -
-                                                                 inertial_opening_matches[match_number] + 11);
-      simulation_text_->append(QString(urdf_sub_string.c_str()));
+
+      simulation_text_->append(
+          QString(gazebo_compatible_urdf_string
+                      .substr(inertial_opening_matches[match_number],
+                              inertial_closing_matches[match_number + 1] - inertial_opening_matches[match_number] + 11)
+                      .c_str()));
       inertial_closing_matches[match_number + 1] += 11;
+    }
+
+    // Position of the first transmission element in the urdf
+    std::size_t first_transmission = gazebo_compatible_urdf_string.find("<transmission");
+
+    // Position of the last inertial element in the urdf
+    std::size_t last_inertial = inertial_closing_matches[inertial_opening_matches.size() - 1];
+
+    if (first_transmission != std::string::npos)
+    {
+      simulation_text_->setTextColor(QColor("black"));
+      simulation_text_->append(
+          QString(gazebo_compatible_urdf_string.substr(last_inertial, first_transmission - last_inertial).c_str()));
+
+      // Write from the first transmission element until the closing robot element in green
+      simulation_text_->setTextColor(QColor("green"));
+      simulation_text_->append(QString(
+          gazebo_compatible_urdf_string.substr(first_transmission, urdf_length - first_transmission - 10).c_str()));
+
+      // Write the closing robot element in black
+      simulation_text_->setTextColor(QColor("black"));
+      simulation_text_->append(QString("</robot>"));
     }
 
     // Copy link appears after the text is ready

@@ -7,7 +7,7 @@
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git
-    version: jade-devel
+    version: kinetic-devel
 - git:
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git

@@ -124,7 +124,7 @@ void IKCache::initializeCache(const std::string& robot_description, const std::s
       ik_cache_.push_back(entry);
     }
     ROS_INFO_NAMED("cached_ik", "freeing buffer");
-    delete buffer;
+    delete[] buffer;
     ROS_INFO_NAMED("cached_ik", "freed buffer");
     std::vector<IKEntry*> ik_entry_ptrs(last_saved_cache_size_);
     for (unsigned int i = 0; i < last_saved_cache_size_; ++i)
@@ -246,7 +246,7 @@ void IKCache::saveCache() const
     memcpy(buffer + offset_conf, &entry.second[0], config_size);
     cache_file.write(buffer, bufsize);
   }
-  delete buffer;
+  delete[] buffer;
 }
 
 void IKCache::verifyCache(kdl_kinematics_plugin::KDLKinematicsPlugin& fk) const

@@ -12,17 +12,14 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
   pluginlib
-  actionlib
   roscpp
-  rosconsole
   srdfdom
   urdf
   tf
   tf_conversions
 )
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+find_package(Eigen3 REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     kdl_kinematics_plugin/include
@@ -36,6 +33,7 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
+    roscpp
     pluginlib
     moveit_core
     moveit_ros_planning

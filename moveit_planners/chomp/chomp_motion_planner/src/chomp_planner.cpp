@@ -150,8 +150,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   {
     if (!(trajectory.fillInFromTrajectory(res)))
     {
-      ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, trajectory must contain "
-                                              "atleast start and goal state");
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Input trajectory has less than 2 points, "
+                                              "trajectory must contain at least start and goal state");
       return false;
     }
   }
@@ -276,14 +276,16 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   // report planning failure if path has collisions
   if (not optimizer->isCollisionFree())
   {
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Motion plan is invalid.");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }
 
   // check that final state is within goal tolerances
   kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
-  robot_state::RobotState last_state(planning_scene->getRobotModel());
-  last_state.setVariablePositions(res.trajectory[0].joint_trajectory.points.back().positions.data());
+  robot_state::RobotState last_state(start_state);
+  last_state.setVariablePositions(res.trajectory[0].joint_trajectory.joint_names,
+                                  res.trajectory[0].joint_trajectory.points.back().positions);
 
   bool constraints_are_ok = true;
   for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
@@ -292,6 +294,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     constraints_are_ok = constraints_are_ok and jc.decide(last_state).satisfied;
     if (not constraints_are_ok)
     {
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal constraints are violated: " << constraint.joint_name);
       res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
       return false;
     }
