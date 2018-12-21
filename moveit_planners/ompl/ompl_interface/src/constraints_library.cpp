@@ -185,9 +185,10 @@ ompl_interface::InterpolationFunction ompl_interface::ConstraintApproximation::g
   return InterpolationFunction();
 }
 
-ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(
-    const ob::StateSpace* space, const std::vector<int>& expected_signature,
-    const ConstraintApproximationStateStorage* state_storage, std::size_t milestones)
+ompl::base::StateSamplerPtr
+allocConstraintApproximationStateSampler(const ob::StateSpace* space, const std::vector<int>& expected_signature,
+                                         const ConstraintApproximationStateStorage* state_storage,
+                                         std::size_t milestones)
 {
   std::vector<int> sig;
   space->computeSignature(sig);
@@ -560,7 +561,6 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
         unsigned int isteps =
             std::min<unsigned int>(options.max_explicit_points, d / options.explicit_points_resolution);
         double step = 1.0 / (double)isteps;
-        double remain = 1.0;
         bool ok = true;
         space->interpolate(sstor->getState(i), sj, step, int_states[0]);
         for (unsigned int k = 1; k < isteps; ++k)
@@ -606,4 +606,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
     return sstor;
   }
+
+  // TODO(davetcoleman): this function did not originally return a value, causing compiler warnings in ROS Melodic
+  // Update with more intelligent logic as needed
+  ROS_ERROR_NAMED("constraints_library", "No StateStoragePtr found - implement better solution here.");
+  return sstor;
 }

@@ -53,7 +53,7 @@ collision_detection::determineCollisionSpheres(const bodies::Body* body, Eigen::
   body->computeBoundingCylinder(cyl);
   unsigned int num_points = ceil(cyl.length / (cyl.radius / 2.0));
   double spacing = cyl.length / ((num_points * 1.0) - 1.0);
-  relative_transform = body->getPose().inverse() * cyl.pose;
+  relative_transform = body->getPose().inverse(Eigen::Isometry) * cyl.pose;
 
   for (unsigned int i = 1; i < num_points - 1; i++)
   {
@@ -289,7 +289,6 @@ void collision_detection::BodyDecomposition::init(const std::vector<shapes::Shap
   relative_collision_points_.clear();
   std::vector<CollisionSphere> body_spheres;
   EigenSTL::vector_Vector3d body_collision_points;
-  double radius = RESOLUTION_SCALE * resolution;
   for (unsigned int i = 0; i < bodies_.getCount(); i++)
   {
     body_spheres.clear();

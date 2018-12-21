@@ -10,20 +10,20 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED
 COMPONENTS
+  eigen_conversions
+  eigen_stl_containers
+  geometric_shapes
+  geometry_msgs
+  kdl_parser
   moveit_core
   moveit_msgs
-  resource_retriever
-  kdl_parser
-  geometric_shapes
-  eigen_stl_containers
-  eigen_conversions
-  random_numbers
-  visualization_msgs
+  pluginlib
+  rosconsole
   roslib
   rostime
-  rosconsole
-  pluginlib
-  cmake_modules
+  std_msgs
+  trajectory_msgs
+  visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
 
@@ -61,6 +61,10 @@ catkin_package(
     moveit_msgs
     kdl_parser
     pluginlib
+    std_msgs
+    trajectory_msgs
+    geometry_msgs
+    visualization_msgs
   DEPENDS
     EIGEN3
     Boost
@@ -79,8 +83,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
 
 install(FILES collision_detector_hybrid_description.xml

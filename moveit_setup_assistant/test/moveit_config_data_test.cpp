@@ -55,7 +55,7 @@ protected:
 
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
+    std::fstream xml_file((res_path / "panda_description/urdf/panda.urdf").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while (xml_file.good())
@@ -67,7 +67,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
+    srdf_model->initFile(*urdf_model, (res_path / "panda_moveit_config/config/panda.srdf").string());
     robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   };
 
@@ -100,8 +100,11 @@ TEST_F(MoveItConfigData, ReadingControllers)
   // Test that addDefaultControllers() did accually add a controller for the new_group
   EXPECT_EQ(config_data_->getROSControllers().size(), group_count);
 
+  // Temporary file used during the test and is deleted when the test is finished
+  char test_file[] = "/tmp/msa_unittest_ros_controller.yaml";
+
   // ros_controller.yaml written correctly
-  EXPECT_EQ(config_data_->outputROSControllersYAML((res_path / "ros_controller.yaml").string()), true);
+  EXPECT_EQ(config_data_->outputROSControllersYAML(test_file), true);
 
   // Reset moveit config MoveItConfigData
   config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
@@ -110,16 +113,16 @@ TEST_F(MoveItConfigData, ReadingControllers)
   EXPECT_EQ(config_data_->getROSControllers().size(), 0);
 
   // ros_controllers.yaml read correctly
-  EXPECT_EQ(config_data_->inputROSControllersYAML((res_path / "ros_controller.yaml").string()), true);
+  EXPECT_EQ(config_data_->inputROSControllersYAML(test_file), true);
 
   // ros_controllers.yaml parsed correctly
   EXPECT_EQ(config_data_->getROSControllers().size(), group_count);
 
   // Remove ros_controllers.yaml temp file which was used in testing
-  boost::filesystem::remove((res_path / "ros_controller.yaml").string());
+  boost::filesystem::remove(test_file);
 }
 
-// This tests parsing of sensors_rgbd.yaml
+// This tests parsing of sensors_3d.yaml
 TEST_F(MoveItConfigData, ReadingSensorsConfig)
 {
   // Contains all the config data for the setup assistant
@@ -132,7 +135,8 @@ TEST_F(MoveItConfigData, ReadingSensorsConfig)
   EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0);
 
   // Read the file containing the default config parameters
-  config_data_->input3DSensorsYAML((setup_assistant_path / "resources/default_config/sensors_3d.yaml").string());
+  config_data_->input3DSensorsYAML(
+      (setup_assistant_path / "templates/moveit_config_pkg_template/config/sensors_3d.yaml").string());
 
   // Default config for the two available sensor plugins
   // Make sure both are parsed correctly

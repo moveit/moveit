@@ -350,7 +350,7 @@ EigenSTL::vector_Affine3d KinematicsConstraintAware::transformPoses(
     if (!target_frame_is_root_frame)
     {
       eigen_pose_2 = planning_scene->getTransforms()->getTransform(kinematic_state, target_frame);
-      eigen_pose = eigen_pose_2.inverse() * eigen_pose;
+      eigen_pose = eigen_pose_2.inverse(Eigen::Isometry) * eigen_pose;
     }
     result[i] = eigen_pose;
   }
@@ -368,7 +368,7 @@ geometry_msgs::Pose KinematicsConstraintAware::getTipFramePose(
   tf::poseMsgToEigen(pose, eigen_pose_in);
   eigen_pose_link = planning_scene->getTransforms()->getTransform(kinematic_state, link_name);
   eigen_pose_tip = planning_scene->getTransforms()->getTransform(kinematic_state, tip_name);
-  eigen_pose_in = eigen_pose_in * (eigen_pose_link.inverse() * eigen_pose_tip);
+  eigen_pose_in = eigen_pose_in * (eigen_pose_link.inverse(Eigen::Isometry) * eigen_pose_tip);
   tf::poseEigenToMsg(eigen_pose_in, result);
   return result;
 }

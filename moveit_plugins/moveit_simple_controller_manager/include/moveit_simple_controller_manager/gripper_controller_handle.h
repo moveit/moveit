@@ -89,7 +89,7 @@ public:
       return false;
     }
 
-    std::vector<int> gripper_joint_indexes;
+    std::vector<std::size_t> gripper_joint_indexes;
     for (std::size_t i = 0; i < trajectory.joint_trajectory.joint_names.size(); ++i)
     {
       if (command_joints_.find(trajectory.joint_trajectory.joint_names[i]) != command_joints_.end())
@@ -102,7 +102,7 @@ public:
 
     if (gripper_joint_indexes.empty())
     {
-      ROS_WARN_NAMED("GripperController", "No command_joint was specified for the MoveIt controller gripper handle. \
+      ROS_WARN_NAMED("GripperController", "No command_joint was specified for the MoveIt! controller gripper handle. \
                       Please see GripperControllerHandle::addCommandJoint() and \
                       GripperControllerHandle::setCommandJoint(). Assuming index 0.");
       gripper_joint_indexes.push_back(0);
@@ -120,7 +120,7 @@ public:
     // fill in goal from last point
     for (std::size_t i = 0; i < gripper_joint_indexes.size(); ++i)
     {
-      int idx = gripper_joint_indexes[i];
+      std::size_t idx = gripper_joint_indexes[i];
 
       if (trajectory.joint_trajectory.points[tpoint].positions.size() <= idx)
       {

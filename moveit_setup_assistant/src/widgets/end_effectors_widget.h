@@ -71,7 +71,7 @@ public:
 
   EndEffectorsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
-  /// Recieved when this widget is chosen from the navigation menu
+  /// Received when this widget is chosen from the navigation menu
   virtual void focusGiven();
 
   // ******************************************************************************************

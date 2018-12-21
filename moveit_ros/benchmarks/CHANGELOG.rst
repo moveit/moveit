@@ -2,6 +2,20 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
+* Contributors: Simon Schmeisser
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [capability] Benchmarking with different Motion Planners (STOMP, CHOMP, OMPL) (`#992 <https://github.com/ros-planning/moveit/issues/992>`_)
+* [maintenance] various compiler warnings (`#1038 <https://github.com/ros-planning/moveit/issues/1038>`_)
+* Contributors: Mohmmad Ayman, Raghavender Sahdev, Robert Haschke, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 

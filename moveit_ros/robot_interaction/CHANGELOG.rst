@@ -2,6 +2,19 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* Contributors: Robert Haschke
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* Contributors: Mohmmad Ayman, Robert Haschke, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * [fix] interaction with planar joints (`#767 <https://github.com/ros-planning/moveit/issues/767>`_)

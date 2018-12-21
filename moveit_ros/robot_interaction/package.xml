@@ -1,7 +1,7 @@
 <package>
   <name>moveit_ros_robot_interaction</name>
-  <version>0.9.12</version>
-  <description>Components of MoveIt that offer interaction via interactive markers</description>
+  <version>0.9.15</version>
+  <description>Components of MoveIt! that offer interaction via interactive markers</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
 
@@ -20,6 +20,7 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>interactive_markers</build_depend>
   <build_depend version_gte="1.10.4">pluginlib</build_depend>
@@ -27,8 +28,11 @@
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend>interactive_markers</run_depend>
   <run_depend version_gte="1.10.4">pluginlib</run_depend>
+
+  <test_depend>rosunit</test_depend>
 
 </package>

@@ -228,10 +228,11 @@ SemanticWorld::generatePlacePoses(const std::string& table_name, const shapes::S
   return place_poses;
 }
 
-std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(
-    const object_recognition_msgs::Table& chosen_table, const shapes::ShapeConstPtr& object_shape,
-    const geometry_msgs::Quaternion& object_orientation, double resolution, double delta_height,
-    unsigned int num_heights) const
+std::vector<geometry_msgs::PoseStamped>
+SemanticWorld::generatePlacePoses(const object_recognition_msgs::Table& chosen_table,
+                                  const shapes::ShapeConstPtr& object_shape,
+                                  const geometry_msgs::Quaternion& object_orientation, double resolution,
+                                  double delta_height, unsigned int num_heights) const
 {
   std::vector<geometry_msgs::PoseStamped> place_poses;
   if (object_shape->type != shapes::MESH && object_shape->type != shapes::SPHERE && object_shape->type != shapes::BOX &&
@@ -431,7 +432,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   tf::poseMsgToEigen(table.pose, pose_table);
 
   // Point in table frame
-  point = pose_table.inverse() * point;
+  point = pose_table.inverse(Eigen::Isometry) * point;
   // Assuming Z axis points upwards for the table
   if (point.z() < -fabs(min_vertical_offset))
   {

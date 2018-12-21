@@ -116,7 +116,7 @@ private:
   std::string root_frame_name_;
 };
 
-Eigen::Matrix4f KDLToEigenMatrix(const KDL::Frame& p);
+Eigen::Affine3f KDLToEigenMatrix(const KDL::Frame& p);
 double computeEuclideanDistance(const std::vector<double>& array_1, const KDL::JntArray& array_2);
 void getKDLChainInfo(const KDL::Chain& chain, moveit_msgs::KinematicSolverInfo& chain_info);
 
@@ -185,10 +185,11 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
    */
-  virtual bool searchPositionIK(
-      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-      std::vector<double>& solution, const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
-      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                   moveit_msgs::MoveItErrorCodes& error_code,
+                   const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.

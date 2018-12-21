@@ -53,7 +53,7 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d& transform, 
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
-  p = transform.rotation() * p;
+  p = transform.linear() * p;
 
   geometry_msgs::Vector3 result;
   result.x = p.x();
@@ -245,7 +245,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
   state_->setJointGroupPositions(joint_model_group_, joint_angles);
   const Eigen::Affine3d& base_frame = state_->getFrameTransform(base_name_);
   const Eigen::Affine3d& tip_frame = state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
+  Eigen::Affine3d transform = tip_frame.inverse(Eigen::Isometry) * base_frame;
   wrenches.back().force.z = 1.0;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
@@ -301,7 +301,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
 
   const Eigen::Affine3d& base_frame = state_->getFrameTransform(base_name_);
   const Eigen::Affine3d& tip_frame = state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
+  Eigen::Affine3d transform = tip_frame.inverse(Eigen::Isometry) * base_frame;
   wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);

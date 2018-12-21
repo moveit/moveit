@@ -154,7 +154,6 @@ bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d&
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())
   {
-    ROS_ERROR("Internal error. Shape filter handle %u not found", h);
     return false;
   }
   transform = it->second;

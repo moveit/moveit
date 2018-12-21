@@ -48,7 +48,7 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(CollisionGeometryData);
+MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 
 struct CollisionGeometryData
 {
@@ -168,7 +168,7 @@ struct DistanceData
   bool done;
 };
 
-MOVEIT_CLASS_FORWARD(FCLGeometry);
+MOVEIT_STRUCT_FORWARD(FCLGeometry);
 
 struct FCLGeometry
 {
@@ -247,7 +247,7 @@ void cleanCollisionGeometryCache();
 
 inline void transform2fcl(const Eigen::Affine3d& b, fcl::Transform3f& f)
 {
-  Eigen::Quaterniond q(b.rotation());
+  Eigen::Quaterniond q(b.linear());
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 }

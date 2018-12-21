@@ -32,8 +32,10 @@ RUN wstool init . && \
         sudo \
         # Required for installing dependencies
         python-rosdep \
-        # Preferred build tool
-        python-catkin-tools && \
+        # Preferred build tools
+        python-catkin-tools \
+        clang \
+        ccache && \
     # Download all dependencies of MoveIt!
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \

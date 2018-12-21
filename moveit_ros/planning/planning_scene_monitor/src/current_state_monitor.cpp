@@ -306,7 +306,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wa
 }
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
-  waitForCompleteState(wait_time);
+  return waitForCompleteState(wait_time);
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
@@ -463,7 +463,12 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       tf::transformTFToEigen(transf, eigen_transf);
 
       double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(eigen_transf, new_values);
+      const robot_model::LinkModel* link = joint->getChildLinkModel();
+      if (link->jointOriginTransformIsIdentity())
+        joint->computeVariablePositions(eigen_transf, new_values);
+      else
+        joint->computeVariablePositions(link->getJointOriginTransform().inverse(Eigen::Isometry) * eigen_transf,
+                                        new_values);
 
       if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {

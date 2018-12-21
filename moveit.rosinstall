@@ -7,7 +7,7 @@
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git
-    version: jade-devel
+    version: kinetic-devel
 - git:
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git
@@ -15,6 +15,10 @@
 - git:
     local-name: moveit_visual_tools
     uri: https://github.com/ros-planning/moveit_visual_tools.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_tutorials
+    uri: https://github.com/ros-planning/moveit_tutorials.git
     version: kinetic-devel
 - git:
     local-name: geometric_shapes

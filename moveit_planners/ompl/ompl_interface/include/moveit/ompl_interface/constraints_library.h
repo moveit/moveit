@@ -170,14 +170,16 @@ public:
 
   void saveConstraintApproximations(const std::string& path);
 
-  ConstraintApproximationConstructionResults addConstraintApproximation(
-      const moveit_msgs::Constraints& constr_sampling, const moveit_msgs::Constraints& constr_hard,
-      const std::string& group, const planning_scene::PlanningSceneConstPtr& scene,
-      const ConstraintApproximationConstructionOptions& options);
+  ConstraintApproximationConstructionResults
+  addConstraintApproximation(const moveit_msgs::Constraints& constr_sampling,
+                             const moveit_msgs::Constraints& constr_hard, const std::string& group,
+                             const planning_scene::PlanningSceneConstPtr& scene,
+                             const ConstraintApproximationConstructionOptions& options);
 
-  ConstraintApproximationConstructionResults addConstraintApproximation(
-      const moveit_msgs::Constraints& constr, const std::string& group,
-      const planning_scene::PlanningSceneConstPtr& scene, const ConstraintApproximationConstructionOptions& options);
+  ConstraintApproximationConstructionResults
+  addConstraintApproximation(const moveit_msgs::Constraints& constr, const std::string& group,
+                             const planning_scene::PlanningSceneConstPtr& scene,
+                             const ConstraintApproximationConstructionOptions& options);
 
   void printConstraintApproximations(std::ostream& out = std::cout) const;
   void clearConstraintApproximations();

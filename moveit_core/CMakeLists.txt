@@ -53,7 +53,9 @@ COMPONENTS
   srdfdom
   std_msgs
   trajectory_msgs
+  urdf
   visualization_msgs
+  xmlrpcpp
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
@@ -89,6 +91,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     profiler/include
     sensor_manager/include
     trajectory_processing/include
+    utils/include
 )
 
 catkin_package(
@@ -114,6 +117,7 @@ catkin_package(
     moveit_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
+    moveit_utils
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     eigen_conversions
@@ -161,6 +165,10 @@ message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources REQUIRED)
+endif()
+
 add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(backtrace)
@@ -185,3 +193,4 @@ add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+add_subdirectory(utils)

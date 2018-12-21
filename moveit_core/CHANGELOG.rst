@@ -2,6 +2,32 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.15 (2018-10-29)
+-------------------
+* [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_
+* [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_, `#1108 <https://github.com/ros-planning/moveit/issues/1108>`_)
+* Contributors: Robert Haschke, Simon Schmeisser
+
+0.9.14 (2018-10-24)
+-------------------
+
+0.9.13 (2018-10-24)
+-------------------
+* [fix] TFs in subgroups of rigidly-connected links (`#912 <https://github.com/ros-planning/moveit/issues/912>`_)
+* [fix] Chomp package handling issue `#1086 <https://github.com/ros-planning/moveit/issues/1086>`_ that was introduced in `ubi-agni/hotfix-#1012 <https://github.com/ubi-agni/hotfix-/issues/1012>`_
+* [fix] CurrentStateMonitor update callback for floating joints to handle non-identity joint origins `#984 <https://github.com/ros-planning/moveit/issues/984>`_
+* [fix] Eigen alignment issuses due to missing aligned allocation (`#1039 <https://github.com/ros-planning/moveit/issues/1039>`_)
+* [fix] illegal pointer access (`#989 <https://github.com/ros-planning/moveit/issues/989>`_)
+* [fix] reset moveit_msgs::RobotState.is_diff to false (`#968 <https://github.com/ros-planning/moveit/issues/968>`_) This fixes a regression introduced in `#939 <https://github.com/ros-planning/moveit/issues/939>`_.
+* [fix] continous joint limits are always satisfied (`#729 <https://github.com/ros-planning/moveit/issues/729>`_)
+* [maintenance] using LOGNAME variable rather than strings (`#1079 <https://github.com/ros-planning/moveit/issues/1079>`_)
+* [capability][chomp] Addition of CHOMP planning adapter for optimizing result of other planners (`#1012 <https://github.com/ros-planning/moveit/issues/1012>`_)
+* [enhancement] Add missing distance check functions to allValid collision checker (`#986 <https://github.com/ros-planning/moveit/issues/986>`_)
+* [enhancement] Allow chains to have only one active joint (`#983 <https://github.com/ros-planning/moveit/issues/983>`_)
+* [enhancement] collision_detection convenience (`#957 <https://github.com/ros-planning/moveit/issues/957>`_)
+* [doc] Document why to use only one IK attempt in computeCartesianPath (`#1076 <https://github.com/ros-planning/moveit/issues/1076>`_)
+* Contributors: Adrian Zwiener, Andrey Troitskiy, Dave Coleman, Jonathan Binney, Michael Görner, Mike Lautman, Mohmmad Ayman, Raghavender Sahdev, Robert Haschke, Simon Schmeisser, dcconner, mike lautman
+
 0.9.12 (2018-05-29)
 -------------------
 * consider max linear+rotational eef step in computeCartesianPath() (`#884 <https://github.com/ros-planning/moveit/issues/884>`_)

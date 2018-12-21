@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Dave Coleman, Masaki Murooka
-   Desc:   Connects MoveIt to any inverse kinematics solver via a ROS service call
+   Desc:   Connects MoveIt! to any inverse kinematics solver via a ROS service call
            Supports planning groups with multiple tip frames
            \todo: better support for mimic joints
            \todo: better support for redundant joints
@@ -90,10 +90,11 @@ public:
                    moveit_msgs::MoveItErrorCodes& error_code,
                    const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
-  virtual bool searchPositionIK(
-      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-      std::vector<double>& solution, const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
-      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                   moveit_msgs::MoveItErrorCodes& error_code,
+                   const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   virtual bool
   searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,

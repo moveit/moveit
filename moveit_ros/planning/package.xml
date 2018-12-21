@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package>
   <name>moveit_ros_planning</name>
-  <version>0.9.12</version>
-  <description>Planning components of MoveIt that use ROS</description>
+  <version>0.9.15</version>
+  <description>Planning components of MoveIt! that use ROS</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
@@ -18,22 +18,35 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_perception</build_depend>
-  <build_depend version_gte="1.10.4">pluginlib</build_depend>
   <build_depend>actionlib</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>chomp_motion_planner</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>angles</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>eigen_conversions</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>moveit_ros_perception</build_depend>
+  <build_depend version_gte="1.10.4">pluginlib</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>srdfdom</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
 
+  <run_depend>actionlib</run_depend>
+  <run_depend>chomp_motion_planner</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>message_filters</run_depend>
   <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_msgs</run_depend>
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend version_gte="1.10.4">pluginlib</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>angles</run_depend>
-  <run_depend>eigen_conversions</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+
 
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>

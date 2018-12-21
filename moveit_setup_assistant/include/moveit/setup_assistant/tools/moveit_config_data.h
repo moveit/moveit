@@ -180,7 +180,7 @@ private:
 MOVEIT_CLASS_FORWARD(MoveItConfigData);
 
 /** \brief This class is shared with all widgets and contains the common configuration data
-    needed for generating each robot's MoveIt configuration package.
+    needed for generating each robot's MoveIt! configuration package.
 
     All SRDF data is contained in a subclass of this class -
     srdf_writer.cpp. This class also contains the functions for writing
@@ -208,7 +208,7 @@ public:
   };
   unsigned long changes;  // bitfield of changes (composed of InformationFields)
 
-  // All of the data needed for creating a MoveIt Configuration Files
+  // All of the data needed for creating a MoveIt! Configuration Files
 
   // ******************************************************************************************
   // URDF Data
@@ -328,6 +328,12 @@ public:
   bool output3DSensorPluginYAML(const std::string& file_path);
 
   /**
+   * \brief Helper function to get the controller that is controlling the joint
+   * \return controller type
+   */
+  std::string getJointHardwareInterface(const std::string& joint_name);
+
+  /**
    * \brief Parses the existing urdf and constructs a string from it with the elements required by gazebo simulator
    * added
    * \return gazebo compatible urdf or empty if error encountered
@@ -371,10 +377,10 @@ public:
 
   /**
    * Helper function for parsing ros_controllers.yaml file
-   * @param YAML::Node - controllers to be parsed
+   * @param std::ifstream of ros_controller.yaml
    * @return true if the file was read correctly
    */
-  bool processROSControllers(const YAML::Node& controllers);
+  bool processROSControllers(std::ifstream& input_stream);
 
   /**
    * Input ros_controllers.yaml file for editing its values
@@ -410,7 +416,7 @@ public:
   bool createFullSRDFPath(const std::string& package_path);
 
   /**
-   * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
+   * Input .setup_assistant file - contains data used for the MoveIt! Setup Assistant
    *
    * @param file_path path to .setup_assistant file
    * @return true if the file was read correctly

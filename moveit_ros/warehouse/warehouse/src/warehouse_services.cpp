@@ -48,14 +48,13 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 bool storeState(moveit_msgs::SaveRobotStateToWarehouse::Request& request,
                 moveit_msgs::SaveRobotStateToWarehouse::Response& response, moveit_warehouse::RobotStateStorage* rs)
 {
-  const moveit_msgs::RobotState& state = request.state;
   if (request.name.empty())
   {
     ROS_ERROR("You must specify a name to store a state");
-    return response.success = false;
+    return (response.success = false);
   }
   rs->addRobotState(request.state, request.name, request.robot);
-  return response.success = true;
+  return (response.success = true);
 }
 
 bool listStates(moveit_msgs::ListRobotStatesInWarehouse::Request& request,
@@ -130,21 +129,34 @@ int main(int argc, char** argv)
 
   ros::NodeHandle node;
   std::string host;
+
   int port;
+  float connection_timeout;
+  int connection_retries;
+
   node.param<std::string>("warehouse_host", host, "localhost");
   node.param<int>("warehouse_port", port, 33829);
+  node.param<float>("warehouse_db_connection_timeout", connection_timeout, 5.0);
+  node.param<int>("warehouse_db_connection_retries", connection_retries, 5);
+
   warehouse_ros::DatabaseConnection::Ptr conn;
 
   try
   {
     conn = moveit_warehouse::loadDatabase();
-    conn->setParams(host, port, 5.0);
+    conn->setParams(host, port, connection_timeout);
 
     ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
-    if (!conn->connect())
+    int tries = 0;
+    while (!conn->connect())
     {
-      ROS_ERROR("Failed to connect to DB on %s:%d", host.c_str(), port);
-      return 1;
+      ++tries;
+      ROS_WARN("Failed to connect to DB on %s:%d (try %d/%d).", host.c_str(), port, tries, connection_retries);
+      if (tries == connection_retries)
+      {
+        ROS_FATAL("Failed to connect too many times, giving up");
+        return 1;
+      }
     }
   }
   catch (std::exception& ex)

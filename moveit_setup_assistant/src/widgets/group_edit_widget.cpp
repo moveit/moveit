@@ -114,7 +114,6 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   layout->setAlignment(Qt::AlignTop);
 
   // New Group Options  ---------------------------------------------------------
-  QWidget* labels_widget = new QWidget();
   new_buttons_widget_ = new QWidget();
 
   QVBoxLayout* new_buttons_layout_container = new QVBoxLayout();
@@ -265,7 +264,7 @@ void GroupEditWidget::setSelected(const std::string& group_name)
                          QString("Unable to find the kinematic solver '")
                              .append(kin_solver.c_str())
                              .append("'. Trying running rosmake for this package. Until fixed, this setting will be "
-                                     "lost the next time the MoveIt configuration files are generated"));
+                                     "lost the next time the MoveIt! configuration files are generated"));
     return;
   }
   else
@@ -346,7 +345,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
-  for (int i = 0; i < planners.size(); ++i)
+  for (std::size_t i = 0; i < planners.size(); ++i)
   {
     std::string planner_name = planners[i].name_;
     default_planner_field_->addItem(planner_name.c_str());

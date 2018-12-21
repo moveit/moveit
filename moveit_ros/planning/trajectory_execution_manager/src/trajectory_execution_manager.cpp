@@ -71,6 +71,7 @@ private:
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
+    owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -212,6 +213,11 @@ void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
 {
   allowed_start_tolerance_ = tolerance;
+}
+
+void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
+{
+  wait_for_trajectory_completion_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -1016,7 +1022,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         tf::transformMsgToEigen(transforms[i], start_transform);
         Eigen::Vector3d offset = cur_transform.translation() - start_transform.translation();
         Eigen::AngleAxisd rotation;
-        rotation.fromRotationMatrix(cur_transform.rotation().inverse() * start_transform.rotation());
+        rotation.fromRotationMatrix(cur_transform.linear().transpose() * start_transform.linear());
         if ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_)
         {
           ROS_ERROR_STREAM_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than "
@@ -1291,8 +1297,9 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
     }
   }
 
-  // only report that execution finished when the robot stopped moving
-  waitForRobotToStop(*trajectories_[i - 1]);
+  // only report that execution finished successfully when the robot actually stopped moving
+  if (last_execution_status_ == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
+    waitForRobotToStop(*trajectories_[i - 1]);
 
   ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
 
@@ -1528,8 +1535,12 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
-  if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
+  // skip waiting for convergence?
+  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_)
+  {
+    ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
     return true;
+  }
 
   ros::WallTime start = ros::WallTime::now();
   double time_remaining = wait_time;

@@ -38,7 +38,6 @@
 #include <tf/transform_listener.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/move_group/move_group_capability.h>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/tokenizer.hpp>
 #include <moveit/macros/console_colors.h>
 #include <moveit/move_group/node_name.h>
@@ -50,6 +49,23 @@ static const std::string ROBOT_DESCRIPTION =
 
 namespace move_group
 {
+// These capabilities are loaded unless listed in disable_capabilities
+// clang-format off
+static const char* DEFAULT_CAPABILITIES[] = {
+   "move_group/MoveGroupCartesianPathService",
+   "move_group/MoveGroupKinematicsService",
+   "move_group/MoveGroupExecuteTrajectoryAction",
+   "move_group/MoveGroupMoveAction",
+   "move_group/MoveGroupPickPlaceAction",
+   "move_group/MoveGroupPlanService",
+   "move_group/MoveGroupQueryPlannersService",
+   "move_group/MoveGroupStateValidationService",
+   "move_group/MoveGroupGetPlanningSceneService",
+   "move_group/ApplyPlanningSceneService",
+   "move_group/ClearOctomapService",
+};
+// clang-format on
+
 class MoveGroupExe
 {
 public:
@@ -141,10 +157,7 @@ private:
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_ERROR_STREAM("Exception while loading move_group capability '"
-                         << *plugin << "': " << ex.what() << std::endl
-                         << "Available capabilities: "
-                         << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
+        ROS_ERROR_STREAM("Exception while loading move_group capability '" << *plugin << "': " << ex.what());
       }
     }
 

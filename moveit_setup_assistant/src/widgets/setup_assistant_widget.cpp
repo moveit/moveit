@@ -59,7 +59,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt Configuration Assistant
+// Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_options::variables_map args)
   : QWidget(parent)
@@ -73,6 +73,11 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   // Set debug mode flag if necessary
   if (args.count("debug"))
     config_data_->debug_ = true;
+
+  // Setting the window icon
+  std::string moveit_ros_visualization_package_path = ros::package::getPath("moveit_ros_visualization");
+  moveit_ros_visualization_package_path += "/icons/classes/MotionPlanning.png";
+  this->setWindowIcon(QIcon(moveit_ros_visualization_package_path.c_str()));
 
   // Basic widget container -----------------------------------------
   QHBoxLayout* layout = new QHBoxLayout();
@@ -126,9 +131,9 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
-  nav_name_list_ << "3D Perception";
-  nav_name_list_ << "Simulation";
   nav_name_list_ << "ROS Control";
+  nav_name_list_ << "Simulation";
+  nav_name_list_ << "3D Perception";
   nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
 
@@ -160,7 +165,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   this->setLayout(layout);
 
   // Title
-  this->setWindowTitle("MoveIt Setup Assistant");  // title of window
+  this->setWindowTitle("MoveIt! Setup Assistant");  // title of window
 
   // Show screen before message
   QApplication::processEvents();
@@ -298,15 +303,15 @@ void SetupAssistantWidget::progressPastStartScreen()
           SLOT(highlightGroup(const std::string&)));
   connect(passive_joints_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
-  // Perception
-  perception_widget_ = new PerceptionWidget(this, config_data_);
-  main_content_->addWidget(perception_widget_);
-  connect(perception_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(perception_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+  // ROS Controllers
+  controllers_widget_ = new moveit_ros_control::ROSControllersWidget(this, config_data_);
+  main_content_->addWidget(controllers_widget_);
+  connect(controllers_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+  connect(controllers_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
           SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(perception_widget_, SIGNAL(highlightGroup(const std::string&)), this,
+  connect(controllers_widget_, SIGNAL(highlightGroup(const std::string&)), this,
           SLOT(highlightGroup(const std::string&)));
-  connect(perception_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  connect(controllers_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
   // Simulation Screen
   simulation_widget_ = new SimulationWidget(this, config_data_);
@@ -318,15 +323,15 @@ void SetupAssistantWidget::progressPastStartScreen()
           SLOT(highlightGroup(const std::string&)));
   connect(simulation_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
-  // ROS Controllers
-  controllers_widget_ = new moveit_ros_control::ROSControllersWidget(this, config_data_);
-  main_content_->addWidget(controllers_widget_);
-  connect(controllers_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(controllers_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+  // Perception
+  perception_widget_ = new PerceptionWidget(this, config_data_);
+  main_content_->addWidget(perception_widget_);
+  connect(perception_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+  connect(perception_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
           SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(controllers_widget_, SIGNAL(highlightGroup(const std::string&)), this,
+  connect(perception_widget_, SIGNAL(highlightGroup(const std::string&)), this,
           SLOT(highlightGroup(const std::string&)));
-  connect(controllers_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  connect(perception_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
 
   // Author Information
   author_information_widget_ = new AuthorInformationWidget(this, config_data_);
@@ -387,13 +392,13 @@ void SetupAssistantWidget::loadRviz()
   // Set the fixed and target frame
   rviz_manager_->setFixedFrame(QString::fromStdString(config_data_->getRobotModel()->getModelFrame()));
 
-  // Create the MoveIt Rviz Plugin and attach to display
+  // Create the MoveIt! Rviz Plugin and attach to display
   robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
   robot_state_display_->setName("Robot State");
 
   rviz_manager_->addDisplay(robot_state_display_, true);
 
-  // Set the topic on which the moveit_msgs::PlanningScene messages are recieved
+  // Set the topic on which the moveit_msgs::PlanningScene messages are received
   robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
 
   // Set robot description
@@ -480,7 +485,7 @@ void SetupAssistantWidget::closeEvent(QCloseEvent* event)
   if (!config_data_->debug_)
   {
     if (QMessageBox::question(this, "Exit Setup Assistant",
-                              QString("Are you sure you want to exit the MoveIt Setup Assistant?"),
+                              QString("Are you sure you want to exit the MoveIt! Setup Assistant?"),
                               QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
     {
       event->ignore();

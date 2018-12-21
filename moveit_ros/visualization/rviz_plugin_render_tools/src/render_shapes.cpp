@@ -78,7 +78,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   rviz::Shape* ogre_shape = NULL;
   Eigen::Vector3d translation = p.translation();
   Ogre::Vector3 position(translation.x(), translation.y(), translation.z());
-  Eigen::Quaterniond q(p.rotation());
+  Eigen::Quaterniond q(p.linear());
   Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
   // we don't know how to render cones directly, but we can convert them to a mesh
