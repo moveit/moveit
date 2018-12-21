@@ -141,8 +141,6 @@ public:
     return robot_model_;
   }
 
-  ModelBasedPlanningContextPtr getLastPlanningContext() const;
-
   ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
                                                   const std::string& factory_type = "") const;
 
@@ -227,9 +225,6 @@ protected:
   unsigned int minimum_waypoint_count_;
 
 private:
-  MOVEIT_CLASS_FORWARD(LastPlanningContext);
-  LastPlanningContextPtr last_planning_context_;
-
   MOVEIT_CLASS_FORWARD(CachedContexts);
   CachedContextsPtr cached_contexts_;
 };

@@ -90,11 +90,6 @@ public:
   ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
                                                   const std::string& factory_type = "") const;
 
-  ModelBasedPlanningContextPtr getLastPlanningContext() const
-  {
-    return context_manager_.getLastPlanningContext();
-  }
-
   const PlanningContextManager& getPlanningContextManager() const
   {
     return context_manager_;
