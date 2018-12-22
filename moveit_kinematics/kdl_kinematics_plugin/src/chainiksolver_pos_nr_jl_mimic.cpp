@@ -113,12 +113,6 @@ void ChainIkSolverPos_NR_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_resu
 
 int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
-  return CartToJntAdvanced(q_init, p_in, q_out, false);
-}
-
-int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
-                                                    bool lock_redundant_joints)
-{
   q_temp = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
 
