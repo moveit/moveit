@@ -52,6 +52,7 @@ COMPONENTS
   std_msgs
   trajectory_msgs
   visualization_msgs
+  xmlrpcpp
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
