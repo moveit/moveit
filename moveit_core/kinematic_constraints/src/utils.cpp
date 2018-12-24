@@ -36,8 +36,7 @@
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
 #include <boost/algorithm/string/join.hpp>
@@ -326,9 +325,10 @@ static bool constructPoseStamped(XmlRpc::XmlRpcValue::iterator& it, geometry_msg
 
   if (!isArray(it->second["orientation"], 3, "orientation", "RPY values"))
     return false;
-  pose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(parseDouble(it->second["orientation"][0]),
-                                                                  parseDouble(it->second["orientation"][1]),
-                                                                  parseDouble(it->second["orientation"][2]));
+  auto& rpy = it->second["orientation"];
+  tf2::Quaternion q;
+  q.setRPY(parseDouble(rpy[0]), parseDouble(rpy[1]), parseDouble(rpy[2]));
+  pose.pose.orientation = toMsg(q);
 
   if (!isArray(it->second["position"], 3, "position", "xyz position"))
     return false;
@@ -461,8 +461,9 @@ static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::Orient
       if (!isArray(it->second, 3, it->first, "RPY values"))
         return false;
 
-      constraint.orientation = tf::createQuaternionMsgFromRollPitchYaw(
-          parseDouble(it->second[0]), parseDouble(it->second[1]), parseDouble(it->second[2]));
+      tf2::Quaternion q;
+      q.setRPY(parseDouble(it->second[0]), parseDouble(it->second[1]), parseDouble(it->second[2]));
+      constraint.orientation = toMsg(q);
     }
     else if (it->first == "tolerances")
     {
