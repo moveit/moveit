@@ -41,8 +41,6 @@
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 
-class TiXmlDocument;
-
 namespace rdf_loader
 {
 MOVEIT_CLASS_FORWARD(RDFLoader);
@@ -60,9 +58,6 @@ public:
 
   /** \brief Initialize the robot model from a string representation of the URDF and SRDF documents */
   RDFLoader(const std::string& urdf_string, const std::string& srdf_string);
-
-  /** \brief Initialize the robot model from a parsed XML representation of the URDF and SRDF */
-  RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc);
 
   /** @brief Get the resolved parameter name for the robot description */
   const std::string& getRobotDescription() const
