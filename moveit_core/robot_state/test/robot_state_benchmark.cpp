@@ -139,21 +139,21 @@ TEST_F(Timing, inverse)
     for (size_t i = 0; i < RUNS; ++i)
       transforms_[result_idx_] = transforms_[input_idx_].inverse();
   }
-  volatile size_t inp = 0;
+  volatile size_t input_idx = 0;
   {
     ScopedTimer t("Affine3d::inverse(Eigen::Isometry): ", &gold_standard);
     for (size_t i = 0; i < RUNS; ++i)
-      transforms_[result_idx_].affine().noalias() = affine[input_idx_].inverse(Eigen::Isometry).affine();
+      transforms_[result_idx_].affine().noalias() = affine[input_idx].inverse(Eigen::Isometry).affine();
   }
   {
     ScopedTimer t("Affine3d::inverse(): ", &gold_standard);
     for (size_t i = 0; i < RUNS; ++i)
-      transforms_[result_idx_].affine().noalias() = affine[input_idx_].inverse().affine();
+      transforms_[result_idx_].affine().noalias() = affine[input_idx].inverse().affine();
   }
   {
     ScopedTimer t("Matrix4d::inverse(): ", &gold_standard);
     for (size_t i = 0; i < RUNS; ++i)
-      transforms_[result_idx_].matrix().noalias() = affine[input_idx_].matrix().inverse();
+      transforms_[result_idx_].matrix().noalias() = affine[input_idx].matrix().inverse();
   }
 }
 

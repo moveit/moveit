@@ -287,7 +287,7 @@ static double parseDouble(XmlRpc::XmlRpcValue& v)
 static bool isArray(XmlRpc::XmlRpcValue& v, size_t size, const std::string& name = "",
                     const std::string& description = "")
 {
-  if (v.getType() != XmlRpc::XmlRpcValue::TypeArray || v.size() != size)
+  if (v.getType() != XmlRpc::XmlRpcValue::TypeArray || static_cast<size_t>(v.size()) != size)
   {
     if (!name.empty())
       ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not an array[" << size << "] of " << description);
