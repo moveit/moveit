@@ -48,6 +48,10 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+
 const double IK_NEAR = 1e-5;
 
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
@@ -262,6 +266,78 @@ TEST_F(KinematicsTest, getFK)
   }
 }
 
+#define PUBLISH_TRAJECTORY 0
+// perform random walk in joint-space, reaching poses via IK
+TEST_F(KinematicsTest, randomWalkIK)
+{
+  std::vector<double> seed, goal, solution;
+  const std::vector<std::string>& tip_frames = kinematics_solver_->getTipFrames();
+  robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
+
+#if PUBLISH_TRAJECTORY
+  moveit_msgs::DisplayTrajectory msg;
+  msg.model_id = robot_model_->getName();
+  moveit::core::robotStateToRobotStateMsg(robot_state, msg.trajectory_start);
+  msg.trajectory.resize(1);
+  robot_trajectory::RobotTrajectory traj(robot_model_, jmg_);
+#endif
+
+  unsigned int failures = 0;
+  constexpr double NEAR_JOINT = 0.1;
+  const std::vector<double> consistency_limits(jmg_->getVariableCount(), 1.05 * NEAR_JOINT);
+  for (unsigned int i = 0; i < num_ik_tests_; ++i)
+  {
+    // remember previous pose
+    robot_state.copyJointGroupPositions(jmg_, seed);
+    // sample a new pose nearby
+    robot_state.setToRandomPositionsNearBy(jmg_, robot_state, NEAR_JOINT);
+    // get joints of new pose
+    robot_state.copyJointGroupPositions(jmg_, goal);
+    // compute target tip_frames
+    std::vector<geometry_msgs::Pose> poses;
+    ASSERT_TRUE(kinematics_solver_->getPositionFK(tip_frames, goal, poses));
+
+    // compute IK
+    moveit_msgs::MoveItErrorCodes error_code;
+    kinematics_solver_->searchPositionIK(poses[0], seed, 0.1, consistency_limits, solution, error_code);
+    if (error_code.val != error_code.SUCCESS)
+    {
+      ++failures;
+      continue;
+    }
+
+    // on success: validate reached poses
+    std::vector<geometry_msgs::Pose> reached_poses;
+    kinematics_solver_->getPositionFK(tip_frames, solution, reached_poses);
+    expectNear(poses, reached_poses);
+
+    // validate closeness of solution pose to goal
+    auto diff = Eigen::Map<Eigen::ArrayXd>(solution.data(), solution.size()) -
+                Eigen::Map<Eigen::ArrayXd>(goal.data(), goal.size());
+    if (!diff.isZero(1.05 * NEAR_JOINT))
+    {
+      ++failures;
+      ROS_WARN_STREAM("jump in [" << i << "]: " << diff.transpose());
+    }
+
+    // update robot state to found pose
+    robot_state.setJointGroupPositions(jmg_, solution);
+#if PUBLISH_TRAJECTORY
+    traj.addSuffixWayPoint(robot_state, 0.1);
+#endif
+  }
+  EXPECT_LE(failures, (1.0 - EXPECTED_SUCCESS_RATE) * num_ik_tests_);
+
+#if PUBLISH_TRAJECTORY
+  ros::NodeHandle nh;
+  ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("display_random_walk", 1, true);
+  traj.getRobotTrajectoryMsg(msg.trajectory[0]);
+  pub.publish(msg);
+  ros::spin();
+#endif
+}
+
 TEST_F(KinematicsTest, searchIK)
 {
   std::vector<double> seed, fk_values, solution;
@@ -466,6 +542,7 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "kinematics_plugin_test");
+  ros::NodeHandle nh;
   int result = RUN_ALL_TESTS();
   SharedData::release();  // avoid class_loader::LibraryUnloadException
   return result;

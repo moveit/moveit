@@ -10,8 +10,8 @@
 		<param name="group" value="panda_arm"/>
 		<rosparam param="joint_names">[panda_joint1, panda_joint2, panda_joint3, panda_joint4, panda_joint5, panda_joint6, panda_joint7]</rosparam>
 
-		<param name="num_fk_tests" value="20"/>
-		<param name="num_ik_tests" value="20"/>
+		<param name="num_fk_tests" value="100"/>
+		<param name="num_ik_tests" value="100"/>
 		<param name="num_ik_cb_tests" value="20"/>
 		<param name="num_ik_multiple_tests" value="20"/>
 		<param name="num_nearest_ik_tests" value="0"/>
