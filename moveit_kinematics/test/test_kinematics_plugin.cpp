@@ -203,21 +203,62 @@ protected:
   }
 
 public:
-  void expectNear(const std::vector<geometry_msgs::Pose>& first, const std::vector<geometry_msgs::Pose>& second,
-                  double near = IK_NEAR)
+  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* abs_error_expr,
+                                  const geometry_msgs::Point& val1, const geometry_msgs::Point& val2, double abs_error)
   {
-    EXPECT_EQ(first.size(), second.size());
-    for (size_t i = 0; i < first.size(); ++i)
+    // clang-format off
+    if (std::fabs(val1.x - val2.x) <= abs_error &&
+        std::fabs(val1.y - val2.y) <= abs_error &&
+        std::fabs(val1.z - val2.z) <= abs_error)
+      return testing::AssertionSuccess();
+
+    return testing::AssertionFailure()
+        << std::setprecision(std::numeric_limits<double>::digits10 + 2)
+        << "Expected: " << expr1 << " [" << val1.x << ", " << val1.y << ", " << val1.z << "]\n"
+        << "Actual: " << expr2 << " [" << val2.x << ", " << val2.y << ", " << val2.z << "]";
+    // clang-format on
+  }
+  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* abs_error_expr,
+                                  const geometry_msgs::Quaternion& val1, const geometry_msgs::Quaternion& val2,
+                                  double abs_error)
+  {
+    if ((std::fabs(val1.x - val2.x) <= abs_error && std::fabs(val1.y - val2.y) <= abs_error &&
+         std::fabs(val1.z - val2.z) <= abs_error && std::fabs(val1.w - val2.w) <= abs_error) ||
+        (std::fabs(val1.x + val2.x) <= abs_error && std::fabs(val1.y + val2.y) <= abs_error &&
+         std::fabs(val1.z + val2.z) <= abs_error && std::fabs(val1.w + val2.w) <= abs_error))
+      return testing::AssertionSuccess();
+
+    // clang-format off
+    return testing::AssertionFailure()
+        << std::setprecision(std::numeric_limits<double>::digits10 + 2)
+        << "Expected: " << expr1 << " [" << val1.w << ", " << val1.x << ", " << val1.y << ", " << val1.z << "]\n"
+        << "Actual: " << expr2 << " [" << val2.w << ", " << val2.x << ", " << val2.y << ", " << val2.z << "]";
+    // clang-format on
+  }
+  testing::AssertionResult expectNearHelper(const char* expr1, const char* expr2, const char* abs_error_expr,
+                                            const std::vector<geometry_msgs::Pose>& val1,
+                                            const std::vector<geometry_msgs::Pose>& val2, double abs_error)
+  {
+    if (val1.size() != val2.size())
+      return testing::AssertionFailure() << "Different vector sizes"
+                                         << "\nExpected: " << expr1 << " (" << val1.size() << ")"
+                                         << "\nActual: " << expr2 << " (" << val2.size() << ")";
+
+    for (size_t i = 0; i < val1.size(); ++i)
     {
-      EXPECT_NEAR(first[i].position.x, second[i].position.x, near);
-      EXPECT_NEAR(first[i].position.y, second[i].position.y, near);
-      EXPECT_NEAR(first[i].position.z, second[i].position.z, near);
-      Eigen::Isometry3d eig_first, eig_second;
-      tf2::fromMsg(first[i], eig_first);
-      tf2::fromMsg(second[i], eig_second);
-      Eigen::AngleAxisd diff_rotation(eig_first.linear() * eig_second.linear().transpose());
-      EXPECT_NEAR(diff_rotation.angle(), 0.0, 2.0 * near);
+      ::std::stringstream ss;
+      ss << "[" << i << "].position";
+      GTEST_ASSERT_(isNear((expr1 + ss.str()).c_str(), (expr2 + ss.str()).c_str(), abs_error_expr, val1[i].position,
+                           val2[i].position, abs_error),
+                    GTEST_NONFATAL_FAILURE_);
+
+      ss.str("");
+      ss << "[" << i << "].orientation";
+      GTEST_ASSERT_(isNear((expr1 + ss.str()).c_str(), (expr2 + ss.str()).c_str(), abs_error_expr, val1[i].orientation,
+                           val2[i].orientation, abs_error),
+                    GTEST_NONFATAL_FAILURE_);
     }
+    return testing::AssertionSuccess();
   }
 
   void searchIKCallback(const geometry_msgs::Pose& ik_pose, const std::vector<double>& joint_state,
@@ -255,6 +296,10 @@ public:
   int num_ik_multiple_tests_;
   int num_nearest_ik_tests_;
 };
+
+#define EXPECT_NEAR_POSES(lhs, rhs, near)                                                                              \
+  SCOPED_TRACE("EXPECT_NEAR_POSES(" #lhs ", " #rhs ")");                                                               \
+  GTEST_ASSERT_(expectNearHelper(#lhs, #rhs, #near, lhs, rhs, near), GTEST_NONFATAL_FAILURE_);
 
 TEST_F(KinematicsTest, getFK)
 {
@@ -329,7 +374,7 @@ TEST_F(KinematicsTest, randomWalkIK)
     // on success: validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(tip_frames, solution, reached_poses);
-    expectNear(poses, reached_poses);
+    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
 
     // validate closeness of solution pose to goal
     auto diff = Eigen::Map<Eigen::ArrayXd>(solution.data(), solution.size()) -
@@ -444,7 +489,7 @@ TEST_F(KinematicsTest, unitIK)
     // validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(tip_frames, sol, reached_poses);
-    expectNear({ goal }, reached_poses);
+    EXPECT_NEAR_POSES({ goal }, reached_poses, IK_NEAR);
 
     // validate ground truth
     if (!truth.empty())
@@ -513,7 +558,7 @@ TEST_F(KinematicsTest, searchIK)
 
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    expectNear(poses, reached_poses);
+    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
@@ -549,7 +594,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
 
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    expectNear(poses, reached_poses);
+    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_cb_tests_);
@@ -582,7 +627,7 @@ TEST_F(KinematicsTest, getIK)
 
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    expectNear(poses, reached_poses);
+    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
@@ -621,7 +666,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
     for (const auto& s : solutions)
     {
       kinematics_solver_->getPositionFK(fk_names, s, reached_poses);
-      expectNear(poses, reached_poses);
+      EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
     }
   }
 
