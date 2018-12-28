@@ -159,8 +159,6 @@ private:
 
   int getJointIndex(const std::string& name) const;
 
-  int getKDLSegmentIndex(const std::string& name) const;
-
   void getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const;
 
   /** @brief Get a random configuration within joint limits close to the seed state

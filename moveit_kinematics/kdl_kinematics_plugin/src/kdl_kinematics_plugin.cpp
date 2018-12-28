@@ -330,20 +330,6 @@ int KDLKinematicsPlugin::getJointIndex(const std::string& name) const
   return -1;
 }
 
-int KDLKinematicsPlugin::getKDLSegmentIndex(const std::string& name) const
-{
-  int i = 0;
-  while (i < (int)kdl_chain_.getNrOfSegments())
-  {
-    if (kdl_chain_.getSegment(i).getName() == name)
-    {
-      return i + 1;
-    }
-    i++;
-  }
-  return -1;
-}
-
 bool KDLKinematicsPlugin::timedOut(const ros::WallTime& start_time, double duration) const
 {
   return ((ros::WallTime::now() - start_time).toSec() >= duration);
@@ -560,8 +546,7 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   bool valid = true;
   for (unsigned int i = 0; i < poses.size(); i++)
   {
-    ROS_DEBUG_NAMED("kdl", "End effector index: %d", getKDLSegmentIndex(link_names[i]));
-    if (fk_solver.JntToCart(jnt_pos_in, p_out, getKDLSegmentIndex(link_names[i])) >= 0)
+    if (fk_solver.JntToCart(jnt_pos_in, p_out) >= 0)
     {
       poses[i] = tf2::toMsg(p_out);
     }
