@@ -485,26 +485,26 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
       visualization_msgs::InteractiveMarker im = makeEmptyInteractiveMarker(marker_name, pose, mscale);
       if (handler && handler->getControlsVisible())
       {
-        if (active_eef_[i].interaction & EEF_POSITION_ARROWS)
-          addPositionControl(im, active_eef_[i].interaction & EEF_FIXED);
-        if (active_eef_[i].interaction & EEF_ORIENTATION_CIRCLES)
-          addOrientationControl(im, active_eef_[i].interaction & EEF_FIXED);
-        if (active_eef_[i].interaction & (EEF_POSITION_SPHERE | EEF_ORIENTATION_SPHERE))
+        if (active_eef_[i].interaction & InteractionStyle::POSITION_ARROWS)
+          addPositionControl(im, active_eef_[i].interaction & InteractionStyle::FIXED);
+        if (active_eef_[i].interaction & InteractionStyle::ORIENTATION_CIRCLES)
+          addOrientationControl(im, active_eef_[i].interaction & InteractionStyle::FIXED);
+        if (active_eef_[i].interaction & (InteractionStyle::POSITION_SPHERE | InteractionStyle::ORIENTATION_SPHERE))
         {
           std_msgs::ColorRGBA color;
           color.r = 0;
           color.g = 1;
           color.b = 1;
           color.a = 0.5;
-          addViewPlaneControl(im, mscale * 0.25, color, active_eef_[i].interaction & EEF_POSITION_SPHERE,
-                              active_eef_[i].interaction & EEF_ORIENTATION_SPHERE);
+          addViewPlaneControl(im, mscale * 0.25, color, active_eef_[i].interaction & InteractionStyle::POSITION_SPHERE,
+                              active_eef_[i].interaction & InteractionStyle::ORIENTATION_SPHERE);
         }
       }
       if (handler && handler->getMeshesVisible() &&
-          (active_eef_[i].interaction & (EEF_POSITION_EEF | EEF_ORIENTATION_EEF)))
+          (active_eef_[i].interaction & (InteractionStyle::POSITION_EEF | InteractionStyle::ORIENTATION_EEF)))
         addEndEffectorMarkers(handler, active_eef_[i], control_to_eef_tf, im,
-                              active_eef_[i].interaction & EEF_POSITION_EEF,
-                              active_eef_[i].interaction & EEF_ORIENTATION_EEF);
+                              active_eef_[i].interaction & InteractionStyle::POSITION_EEF,
+                              active_eef_[i].interaction & InteractionStyle::ORIENTATION_EEF);
       ims.push_back(im);
       registerMoveInteractiveMarkerTopic(marker_name, handler->getName() + "_" + active_eef_[i].parent_link);
       ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(),
@@ -678,22 +678,6 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr& handler)
   return true;
 }
 
-// TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
-bool RobotInteraction::updateState(robot_state::RobotState& state, const EndEffectorInteraction& eef,
-                                   const geometry_msgs::Pose& pose, unsigned int attempts, double ik_timeout,
-                                   const robot_state::GroupStateValidityCallbackFn& validity_callback,
-                                   const kinematics::KinematicsQueryOptions& kinematics_query_options)
-{
-  if (state.setFromIK(state.getJointModelGroup(eef.parent_group), pose, eef.parent_link,
-                      kinematics_query_options.lock_redundant_joints ? 1 : attempts, ik_timeout, validity_callback,
-                      kinematics_query_options))
-  {
-    state.update();
-    return true;
-  }
-  return false;
-}
-
 void RobotInteraction::moveInteractiveMarker(const std::string name, const geometry_msgs::PoseStampedConstPtr& msg)
 {
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
@@ -835,17 +819,5 @@ void RobotInteraction::processingThread()
       }
     }
   }
-}
-
-// DEPRECATED FUNCTIONALITY for backwards compatibility
-void RobotInteraction::decideActiveComponents(const std::string& group, EndEffectorInteractionStyle style)
-{
-  decideActiveComponents(group, (InteractionStyle::InteractionStyle)(int)style);
-}
-
-// DEPRECATED FUNCTIONALITY for backwards compatibility
-void RobotInteraction::decideActiveEndEffectors(const std::string& group, EndEffectorInteractionStyle style)
-{
-  decideActiveEndEffectors(group, (InteractionStyle::InteractionStyle)(int)style);
 }
 }
