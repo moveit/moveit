@@ -603,16 +603,14 @@ TEST_F(KinematicsTest, searchIKWithCallback)
 
 TEST_F(KinematicsTest, getIK)
 {
-  std::vector<double> seed, fk_values, solution;
+  std::vector<double> fk_values, solution;
   moveit_msgs::MoveItErrorCodes error_code;
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
 
-  unsigned int success = 0;
   for (unsigned int i = 0; i < num_ik_tests_; ++i)
   {
-    seed.resize(kinematics_solver_->getJointNames().size(), 0.0);
     fk_values.resize(kinematics_solver_->getJointNames().size(), 0.0);
     robot_state.setToRandomPositions(jmg_);
     robot_state.copyJointGroupPositions(jmg_, fk_values);
@@ -620,18 +618,13 @@ TEST_F(KinematicsTest, getIK)
 
     ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
     kinematics_solver_->getPositionIK(poses[0], fk_values, solution, error_code);
-    if (error_code.val == error_code.SUCCESS)
-      success++;
-    else
-      continue;
+    // starting from the correct solution, should yield the same pose
+    EXPECT_EQ(error_code.val, error_code.SUCCESS);
 
-    std::vector<geometry_msgs::Pose> reached_poses;
-    kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
+    Eigen::Map<Eigen::ArrayXd> sol(solution.data(), solution.size());
+    Eigen::Map<Eigen::ArrayXd> truth(fk_values.data(), fk_values.size());
+    EXPECT_TRUE(sol.isApprox(truth, IK_NEAR)) << sol.transpose() << std::endl << truth.transpose() << std::endl;
   }
-
-  ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
-  EXPECT_GE(success, EXPECTED_SUCCESS_RATE * num_ik_tests_);
 }
 
 TEST_F(KinematicsTest, getIKMultipleSolutions)
