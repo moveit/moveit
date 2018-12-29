@@ -40,7 +40,6 @@
 
 robot_interaction::KinematicOptions::KinematicOptions()
   : timeout_seconds_(0.0)  // 0.0 = use default timeout
-  , max_attempts_(0)       // 0 = use default max attempts
 {
 }
 
@@ -55,7 +54,7 @@ bool robot_interaction::KinematicOptions::setStateFromIK(robot_state::RobotState
     ROS_ERROR("No getJointModelGroup('%s') found", group.c_str());
     return false;
   }
-  bool result = state.setFromIK(jmg, pose, tip, max_attempts_,
+  bool result = state.setFromIK(jmg, pose, tip,
                                 // limit timeout to 0.1s if set from JMG's default, i.e. when timeout_seconds_ == 0
                                 timeout_seconds_ > 0.0 ? timeout_seconds_ : std::min(0.1, jmg->getDefaultIKTimeout()),
                                 state_validity_callback_, options_);
@@ -74,7 +73,6 @@ void robot_interaction::KinematicOptions::setOptions(const KinematicOptions& sou
 // robot_interaction::KinematicOptions except options_
 #define O_FIELDS(F)                                                                                                    \
   F(double, timeout_seconds_, TIMEOUT)                                                                                 \
-  F(unsigned int, max_attempts_, MAX_ATTEMPTS)                                                                         \
   F(robot_state::GroupStateValidityCallbackFn, state_validity_callback_, STATE_VALIDITY_CALLBACK)
 
 // This needs to represent all the fields in

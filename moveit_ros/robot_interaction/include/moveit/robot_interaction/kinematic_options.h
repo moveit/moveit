@@ -57,11 +57,10 @@ struct KinematicOptions
   enum OptionBitmask
   {
     TIMEOUT = 0x00000001,                      // timeout_seconds_
-    MAX_ATTEMPTS = 0x00000002,                 // max_attempts_
-    STATE_VALIDITY_CALLBACK = 0x00000004,      // state_validity_callback_
-    LOCK_REDUNDANT_JOINTS = 0x00000008,        // options_.lock_redundant_joints
-    RETURN_APPROXIMATE_SOLUTION = 0x00000010,  // options_.return_approximate_solution
-    DISCRETIZATION_METHOD = 0x00000020,
+    STATE_VALIDITY_CALLBACK = 0x00000002,      // state_validity_callback_
+    LOCK_REDUNDANT_JOINTS = 0x00000004,        // options_.lock_redundant_joints
+    RETURN_APPROXIMATE_SOLUTION = 0x00000008,  // options_.return_approximate_solution
+    DISCRETIZATION_METHOD = 0x00000010,
     ALL_QUERY_OPTIONS = LOCK_REDUNDANT_JOINTS | RETURN_APPROXIMATE_SOLUTION | DISCRETIZATION_METHOD,
     ALL = 0x7fffffff
   };
@@ -82,9 +81,6 @@ struct KinematicOptions
 
   /// max time an IK attempt can take before we give up.
   double timeout_seconds_;
-
-  /// how many attempts before we give up.
-  unsigned int max_attempts_;
 
   /// This is called to determine if the state is valid
   robot_state::GroupStateValidityCallbackFn state_validity_callback_;
