@@ -75,7 +75,6 @@ public:
     , default_search_resolution_(default_search_resolution)
     , default_solver_plugin_(solver_plugin)
     , default_solver_timeout_(solve_timeout)
-    , default_ik_attempts_(ik_attempts)
   {
   }
 
@@ -99,12 +98,6 @@ public:
     return ik_timeout_;
   }
 
-  /** \brief Get a map from group name to default IK attempts */
-  const std::map<std::string, unsigned int>& getIKAttempts() const
-  {
-    return ik_attempts_;
-  }
-
   void status() const;
 
 private:
@@ -116,12 +109,10 @@ private:
 
   std::vector<std::string> groups_;
   std::map<std::string, double> ik_timeout_;
-  std::map<std::string, unsigned int> ik_attempts_;
 
   // default configuration
   std::string default_solver_plugin_;
   double default_solver_timeout_;
-  unsigned int default_ik_attempts_;
 };
 }
 
