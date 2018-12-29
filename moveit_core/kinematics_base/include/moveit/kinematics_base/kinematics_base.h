@@ -117,8 +117,8 @@ struct KinematicsQueryOptions
 
   bool lock_redundant_joints;                 /**<  KinematicsQueryOptions#lock_redundant_joints. */
   bool return_approximate_solution;           /**<  KinematicsQueryOptions#return_approximate_solution. */
-  DiscretizationMethod discretization_method; /**< Enumeration value that indicates the method for discretizing the
-                                                 redundant. joints KinematicsQueryOptions#discretization_method. */
+  DiscretizationMethod discretization_method; /**<  Enumeration value that indicates the method for discretizing the
+                                                    redundant. joints KinematicsQueryOptions#discretization_method. */
 };
 
 /*
@@ -127,7 +127,7 @@ struct KinematicsQueryOptions
  *
  * This struct is used as an output argument of the getPositionIK(...) method that returns multiple joint solutions.
  * It contains the type of error that led to a failure or KinematicErrors::OK when a set of joint solutions is found.
- * The solution percentage shall provide a ration of solutions found over solutions searched.
+ * The solution percentage shall provide a ratio of solutions found over solutions searched.
  *
  */
 struct KinematicsResult
@@ -149,19 +149,21 @@ public:
   static const double DEFAULT_SEARCH_DISCRETIZATION; /* = 0.1 */
   static const double DEFAULT_TIMEOUT;               /* = 1.0 */
 
-  /** @brief The signature for a callback that can compute IK */
+  /** @brief Signature for a callback to validate an IK solution. Typically used for collision checking. */
   typedef boost::function<void(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_solution,
                                moveit_msgs::MoveItErrorCodes& error_code)>
       IKCallbackFn;
 
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it
+   *
+   * In contrast to the searchPositionIK methods, this one is expected to return the solution
+   * closest to the seed state. Randomly re-seeding is explicitly not allowed.
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as
-   * redundant the same as in the seed
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
@@ -190,15 +192,14 @@ public:
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
-   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * This particular method is intended for "searching" for a solution by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as
-   * redundant the same as in the seed
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
@@ -208,7 +209,7 @@ public:
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
-   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * This particular method is intended for "searching" for a solution by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
@@ -217,8 +218,7 @@ public:
    * current seed state
    * @param solution the solution vector
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as
-   * redundant the same as in the seed
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
@@ -229,16 +229,15 @@ public:
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
-   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * This particular method is intended for "searching" for a solution by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
    * @param solution the solution vector
-   * @param solution_callback A callback solution for the IK solution
+   * @param solution_callback A callback to validate an IK solution
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as
-   * redundant the same as in the seed
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
@@ -249,7 +248,7 @@ public:
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
-   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * This particular method is intended for "searching" for a solution by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_pose the desired pose of the link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
@@ -257,10 +256,9 @@ public:
    * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the
    * current seed state
    * @param solution the solution vector
-   * @param solution_callback A callback solution for the IK solution
+   * @param solution_callback A callback to validate an IK solution
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as
-   * redundant the same as in the seed
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
@@ -273,7 +271,7 @@ public:
    * @brief Given a set of desired poses for a planning group with multiple end-effectors, search for the joint angles
    * required to reach them. This is useful for e.g. biped robots that need to perform whole-body IK.
    * Not necessary for most robots that have kinematic chains.
-   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * This particular method is intended for "searching" for a solution by stepping through the redundancy
    * (or other numerical routines).
    * @param ik_poses the desired pose of each tip link, in the same order as the getTipFrames() vector
    * @param ik_seed_state an initial guess solution for the inverse kinematics
@@ -281,17 +279,13 @@ public:
    * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the
    * current seed state
    * @param solution the solution vector
-   * @param solution_callback A callback solution for the IK solution
+   * @param solution_callback A callback to validate an IK solution
    * @param error_code an error code that encodes the reason for failure or success
-   * @param options container for other IK options
-   * @param context_state (optional) the context in which this request
-   *        is being made.  The position values corresponding to
-   *        joints in the current group may not match those in
-   *        ik_seed_state.  The values in ik_seed_state are the ones
-   *        to use.  This is passed just to provide the \em other
-   *        joint values, in case they are needed for context, like
-   *        with an IK solver that computes a balanced result for a
-   *        biped.
+   * @param options container for other IK options. See definition of KinematicsQueryOptions for details.
+   * @param context_state (optional) the context in which this request is being made.
+   *        The position values corresponding to joints in the current group may not match those in ik_seed_state.
+   *        The values in ik_seed_state are the ones to use. The state is passed to provide the \em other joint values,
+   *        in case they are needed for context, like with an IK solver that computes a balanced result for a biped.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool
