@@ -1449,7 +1449,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
     if (poses_in.size() > 1)
     {
       // Forward to setFromIKSubgroups() to allow different subgroup IK solvers to work together
-      return setFromIKSubgroups(jmg, poses_in, tips_in, consistency_limit_sets, attempts, timeout, constraint, options);
+      return setFromIKSubgroups(jmg, poses_in, tips_in, consistency_limit_sets, timeout, constraint, options);
     }
     else
     {
@@ -1947,7 +1947,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
     // Explicitly use a single IK attempt only: We want a smooth trajectory.
     // Random seeding (of additional attempts) would probably create IK jumps.
-    if (setFromIK(group, pose, link->getName(), consistency_limits, 1, 0.0, validCallback, options))
+    if (setFromIK(group, pose, link->getName(), consistency_limits, 0.0, validCallback, options))
       traj.push_back(RobotStatePtr(new RobotState(*this)));
     else
       break;

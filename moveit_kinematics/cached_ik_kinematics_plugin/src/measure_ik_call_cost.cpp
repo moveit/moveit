@@ -107,9 +107,9 @@ int main(int argc, char* argv[])
     for (const auto& end_effector : end_effectors)
       default_eef_states.push_back(kinematic_state.getGlobalLinkTransform(end_effector));
     if (end_effectors.size() == 1)
-      kinematic_state.setFromIK(group, default_eef_states[0], end_effectors[0], 1, 0.1);
+      kinematic_state.setFromIK(group, default_eef_states[0], end_effectors[0], 0.1);
     else
-      kinematic_state.setFromIK(group, default_eef_states, end_effectors, 1, 0.1);
+      kinematic_state.setFromIK(group, default_eef_states, end_effectors, 0.1);
 
     bool found_ik;
     unsigned int num_failed_calls = 0, num_self_collisions = 0;
@@ -131,9 +131,9 @@ int main(int argc, char* argv[])
         kinematic_state.setToDefaultValues();
       start = std::chrono::system_clock::now();
       if (end_effectors.size() == 1)
-        found_ik = kinematic_state.setFromIK(group, end_effector_states[0], end_effectors[0], 10, 0.1);
+        found_ik = kinematic_state.setFromIK(group, end_effector_states[0], end_effectors[0], 0.1);
       else
-        found_ik = kinematic_state.setFromIK(group, end_effector_states, end_effectors, 10, 0.1);
+        found_ik = kinematic_state.setFromIK(group, end_effector_states, end_effectors, 0.1);
       ik_time += std::chrono::system_clock::now() - start;
       if (!found_ik)
         num_failed_calls++;
