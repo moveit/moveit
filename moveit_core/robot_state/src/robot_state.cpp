@@ -1782,28 +1782,55 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   // if no timeout has been specified, use the default one
   if (timeout < std::numeric_limits<double>::epsilon())
     timeout = jmg->getDefaultIKTimeout();
+  ros::WallTime start = ros::WallTime::now();
 
+  bool first_seed = true;
+  unsigned int attempts = 0;
+  do {
+    ++attempts;
+    ROS_DEBUG_NAMED(LOGNAME, "IK attempt: %d", attempts);
+    bool found_solution = true;
     for (std::size_t sg = 0; sg < sub_groups.size(); ++sg)
     {
       const std::vector<unsigned int>& bij = sub_groups[sg]->getKinematicsSolverJointBijection();
       std::vector<double> seed(bij.size());
+      // the first seed is the initial state
+      if (first_seed)
+      {
         std::vector<double> initial_values;
         copyJointGroupPositions(sub_groups[sg], initial_values);
         for (std::size_t i = 0; i < bij.size(); ++i)
           seed[i] = initial_values[bij[i]];
+      }
+      else
+      {
+        // sample a random seed
+        random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();
+        std::vector<double> random_values;
+        sub_groups[sg]->getVariableRandomPositions(rng, random_values);
+        for (std::size_t i = 0; i < bij.size(); ++i)
+          seed[i] = random_values[bij[i]];
+      }
 
       // compute the IK solution
       std::vector<double> ik_sol;
       moveit_msgs::MoveItErrorCodes error;
       const std::vector<double>& climits = consistency_limits.empty() ? std::vector<double>() : consistency_limits[sg];
-      if (!solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout, climits, ik_sol, error))
-        return false;
-
+      if (solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout / sub_groups.size(), climits, ik_sol, error))
+      {
         std::vector<double> solution(bij.size());
         for (std::size_t i = 0; i < bij.size(); ++i)
           solution[bij[i]] = ik_sol[i];
         setJointGroupPositions(sub_groups[sg], solution);
+      }
+      else
+      {
+        found_solution = false;
+        break;
+      }
     }
+    if (found_solution)
+    {
       std::vector<double> full_solution;
       copyJointGroupPositions(jmg, full_solution);
       if (constraint ? constraint(this, jmg, &full_solution[0]) : true)
@@ -1811,6 +1838,9 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
         ROS_DEBUG_NAMED(LOGNAME, "Found IK solution");
         return true;
       }
+    }
+  } while ((ros::WallTime::now() - start).toSec() > timeout);
+  return false;
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
