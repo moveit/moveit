@@ -71,7 +71,7 @@ class JointModelGroup
 public:
   struct KinematicsSolver
   {
-    KinematicsSolver() : default_ik_timeout_(0.5), default_ik_attempts_(2)
+    KinematicsSolver() : default_ik_timeout_(0.5)
     {
     }
 
@@ -100,8 +100,6 @@ public:
     kinematics::KinematicsBasePtr solver_instance_;
 
     double default_ik_timeout_;
-
-    unsigned int default_ik_attempts_;
   };
 
   /// Map from group instances to allocator functions & bijections
@@ -556,15 +554,6 @@ public:
 
   /** \brief Set the default IK timeout */
   void setDefaultIKTimeout(double ik_timeout);
-
-  /** \brief Get the default IK attempts */
-  unsigned int getDefaultIKAttempts() const
-  {
-    return group_kinematics_.first.default_ik_attempts_;
-  }
-
-  /** \brief Set the default IK attempts */
-  void setDefaultIKAttempts(unsigned int ik_attempts);
 
   /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the
      kinematics solver.
