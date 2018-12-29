@@ -947,10 +947,9 @@ as the new values that correspond to the group */
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -959,11 +958,9 @@ as the new values that correspond to the group */
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the \e tip  link in the chain needs to achieve
       @param tip The name of the link the pose is specified for
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
-                 unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -972,9 +969,8 @@ as the new values that correspond to the group */
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve
       @param tip The name of the link the pose is specified for
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -982,11 +978,9 @@ as the new values that correspond to the group */
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
-                 unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -996,11 +990,10 @@ as the new values that correspond to the group */
       @param pose The pose the last link in the chain needs to achieve
       @param tip The name of the frame for which IK is attempted.
       @param consistency_limits This specifies the desired distance between the solution and the seed state
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
-                 const std::vector<double>& consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
+                 const std::vector<double>& consistency_limits, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1011,11 +1004,10 @@ as the new values that correspond to the group */
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
       @param poses The poses the last link in each chain needs to achieve
       @param tips The names of the frames for which IK is attempted.
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                 const std::vector<std::string>& tips, unsigned int attempts = 0, double timeout = 0.0,
+                 const std::vector<std::string>& tips, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1027,12 +1019,10 @@ as the new values that correspond to the group */
       @param poses The poses the last link in each chain needs to achieve
       @param tips The names of the frames for which IK is attempted.
       @param consistency_limits This specifies the desired distance between the solution and the seed state
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
-                 unsigned int attempts = 0, double timeout = 0.0,
+                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1042,12 +1032,11 @@ as the new values that correspond to the group */
       @param poses The poses the last link in each chain needs to achieve
       @param tips The names of the frames for which IK is attempted.
       @param consistency_limits This specifies the desired distance between the solution and the seed state
-      @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
                           const std::vector<std::string>& tips,
-                          const std::vector<std::vector<double> >& consistency_limits, unsigned int attempts = 0,
+                          const std::vector<std::vector<double> >& consistency_limits,
                           double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
