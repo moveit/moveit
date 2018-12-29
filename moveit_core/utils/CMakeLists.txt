@@ -15,6 +15,8 @@ if(CATKIN_ENABLE_TESTING)
   add_library(${MOVEIT_TEST_LIB_NAME}
     src/robot_model_test_utils.cpp)
 
+  add_dependencies(${MOVEIT_TEST_LIB_NAME} ${catkin_EXPORTED_TARGETS})
+
   find_package(moveit_resources REQUIRED)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
