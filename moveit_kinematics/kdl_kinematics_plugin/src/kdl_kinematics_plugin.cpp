@@ -342,8 +342,9 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, cons
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
 
-  return searchPositionIK(ik_pose, ik_seed_state, default_timeout_, solution, solution_callback, error_code,
-                          consistency_limits, options);
+  // limit search to a single attempt by setting a timeout of zero
+  return searchPositionIK(ik_pose, ik_seed_state, 0.0, solution, solution_callback, error_code, consistency_limits,
+                          options);
 }
 
 bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
@@ -460,8 +461,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   unsigned int counter(0);
   while (1)
   {
-    counter++;
-    if (timedOut(start_time, timeout))
+    ++counter;
+    if (counter > 1 && timedOut(start_time, timeout))  // timeout after first attempt only
     {
       ROS_DEBUG_STREAM_NAMED("kdl", "IK timed out after " << (ros::WallTime::now() - start_time).toSec() << " > "
                                                           << timeout << "s and " << counter - 1 << " attempts");
