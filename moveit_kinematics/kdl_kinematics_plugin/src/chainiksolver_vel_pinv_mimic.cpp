@@ -28,20 +28,16 @@
 
 namespace KDL
 {
-ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints,
-                                                         int _num_redundant_joints, bool _position_ik, double _eps,
-                                                         int _maxiter)
+ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints, bool _position_ik,
+                                                         double _eps, int _maxiter)
   : chain(_chain)
   , jnt2jac(chain)
   , jac(chain.getNrOfJoints())
   , jac_reduced(chain.getNrOfJoints() - _num_mimic_joints)
-  , jac_locked(chain.getNrOfJoints() - _num_redundant_joints - _num_mimic_joints)
   , eps(_eps)
   , maxiter(_maxiter)
   , num_mimic_joints(_num_mimic_joints)
   , position_ik(_position_ik)
-  , num_redundant_joints(_num_redundant_joints)
-  , redundant_joints_locked(false)
 {
   mimic_joints_.resize(chain.getNrOfJoints());
   for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
@@ -72,27 +68,6 @@ bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<kdl_kinematic
   return true;
 }
 
-bool ChainIkSolverVel_pinv_mimic::setRedundantJointsMapIndex(
-    const std::vector<unsigned int>& redundant_joints_map_index)
-{
-  if (redundant_joints_map_index.size() != chain.getNrOfJoints() - num_mimic_joints - num_redundant_joints)
-  {
-    ROS_ERROR("Map index size: %d does not match expected size. "
-              "No. of joints: %d, num_mimic_joints: %d, num_redundant_joints: %d",
-              (int)redundant_joints_map_index.size(), (int)chain.getNrOfJoints(), (int)num_mimic_joints,
-              (int)num_redundant_joints);
-    return false;
-  }
-
-  for (std::size_t i = 0; i < redundant_joints_map_index.size(); ++i)
-  {
-    if (redundant_joints_map_index[i] >= chain.getNrOfJoints() - num_mimic_joints)
-      return false;
-  }
-  locked_joints_map_index = redundant_joints_map_index;
-  return true;
-}
-
 bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced_l)
 {
   jac_reduced_l.data.setZero();
@@ -102,16 +77,6 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian&
     Twist vel2 = jac.getColumn(i);
     Twist result = vel1 + (mimic_joints_[i].multiplier * vel2);
     jac_reduced_l.setColumn(mimic_joints_[i].map_index, result);
-  }
-  return true;
-}
-
-bool ChainIkSolverVel_pinv_mimic::jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked)
-{
-  jac_locked.data.setZero();
-  for (std::size_t i = 0; i < chain.getNrOfJoints() - num_mimic_joints - num_redundant_joints; ++i)
-  {
-    jac_locked.setColumn(i, jac.getColumn(locked_joints_map_index[i]));
   }
   return true;
 }
@@ -134,14 +99,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   vin.topRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.vel.data, 3);
   vin.bottomRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.rot.data, 3);
 
-  // Remove columns of locked redundant joints from Jacobian
-  bool locked = (redundant_joints_locked && num_redundant_joints > 0);
-  if (locked)
-    jacToJacLocked(jac_reduced, jac_locked);
-
-  // use jac_reduced or jac_locked in the following
-  const Eigen::MatrixXd& J = locked ? jac_locked.data : jac_reduced.data;
-
+  const Eigen::MatrixXd& J = jac_reduced.data;
   unsigned int columns = J.cols();
   unsigned int rows = position_ik ? 3 : J.rows();
 

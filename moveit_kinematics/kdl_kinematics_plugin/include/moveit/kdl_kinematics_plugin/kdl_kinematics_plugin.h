@@ -138,8 +138,6 @@ protected:
                         moveit_msgs::MoveItErrorCodes& error_code, const std::vector<double>& consistency_limits,
                         const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
-  bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices) override;
-
 private:
   bool timedOut(const ros::WallTime& start_time, double duration) const;
 
@@ -154,7 +152,7 @@ private:
 
   int getJointIndex(const std::string& name) const;
 
-  void getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const;
+  void getRandomConfiguration(KDL::JntArray& jnt_array) const;
 
   /** @brief Get a random configuration within consistency limits close to the seed state
    *  @param seed_state Seed state
@@ -162,9 +160,7 @@ private:
    *  @param jnt_array Returned random configuration
    */
   void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
-                              KDL::JntArray& jnt_array, bool lock_redundancy) const;
-
-  bool isRedundantJoint(unsigned int index) const;
+                              KDL::JntArray& jnt_array) const;
 
   bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
@@ -182,10 +178,6 @@ private:
 
   robot_state::RobotStatePtr state_;
 
-  int num_possible_redundant_joints_;
-  std::vector<unsigned int> redundant_joints_map_index_;
-
-  // Storage required for when the set of redundant joints is reset
   bool position_ik_;  // whether this solver is only being used for position ik
   const robot_model::JointModelGroup* joint_model_group_;
   int max_solver_iterations_;

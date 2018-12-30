@@ -51,21 +51,15 @@ public:
   /**
    * Constructor of the solver
    *
-   * @param chain the chain to calculate the inverse velocity
-   * kinematics for
-   * @param num_mimic_joints The number of joints that are setup to
-   * follow other joints
-   * @param num_redundant_joints The number of redundant dofs
-   * @param position_ik false if you want to solve for the full 6 dof
-   * end-effector pose, true if you want to solve only for the 3 dof
-   * end-effector position.
-   * @param eps if a singular value is below this value, its
-   * inverse is set to zero, default: 0.00001
-   * @param maxiter maximum iterations for the svd calculation,
-   * default: 150
+   * @param chain the chain to calculate the inverse velocity kinematics for
+   * @param num_mimic_joints The number of joints that are setup to follow other joints
+   * @param position_ik false if you want to solve for the full 6 dof end-effector pose,
+   *        true if you want to solve only for the 3 dof end-effector position.
+   * @param eps if a singular value is below this value, its inverse is set to zero, default: 0.00001
+   * @param maxiter maximum iterations for the svd calculation, default: 150
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
-                                       bool position_ik = false, double eps = 0.00001, int maxiter = 150);
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, bool position_ik = false,
+                                       double eps = 0.00001, int maxiter = 150);
 
 // TODO: simplify after kinetic support is dropped
 #define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
@@ -99,29 +93,8 @@ public:
    */
   bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints);
 
-  /**
-   * @brief Set a mapping between a reduced set of joints (numbering either 6 or 3) and the full set of active (i.e
-   * excluding the mimic joints) DOFs in the robot.
-   * As an example, consider an arm with 7 joints: j0 to j6. If j2 represents the redundancy, then
-   * redundant_joints_map_index
-   * will be a 6 dimensional vector - [0 1 3 4 5 6],
-   * i.e. joint_value_full(redundant_joints_map_index[i]) = joint_value_reduced(i), for i=0,...5
-   */
-  bool setRedundantJointsMapIndex(const std::vector<unsigned int>& redundant_joints_map_index);
-
-  void lockRedundantJoints()
-  {
-    redundant_joints_locked = true;
-  }
-
-  void unlockRedundantJoints()
-  {
-    redundant_joints_locked = false;
-  }
-
 private:
   bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_mimic);
-  bool jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked);
 
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
@@ -134,7 +107,6 @@ private:
 
   Jacobian jac;          // full Jacobian
   Jacobian jac_reduced;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
-  Jacobian jac_locked;  // (further) reduced Jacobian with "locked" redundant joints removed
 
   double eps;
   int maxiter;
@@ -144,11 +116,6 @@ private:
   int num_mimic_joints;
 
   bool position_ik;
-
-  // Internal storage for a map from the "locked" state to the full active state
-  std::vector<unsigned int> locked_joints_map_index;
-  unsigned int num_redundant_joints;
-  bool redundant_joints_locked;
 };
 }
 #endif
