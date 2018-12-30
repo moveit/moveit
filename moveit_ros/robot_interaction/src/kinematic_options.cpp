@@ -38,8 +38,7 @@
 #include <boost/static_assert.hpp>
 #include <ros/console.h>
 
-robot_interaction::KinematicOptions::KinematicOptions()
-  : timeout_seconds_(0.0)  // 0.0 = use default timeout
+robot_interaction::KinematicOptions::KinematicOptions() : timeout_seconds_(0.0)  // 0.0 = use default timeout
 {
 }
 

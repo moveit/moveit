@@ -1298,8 +1298,8 @@ bool RobotState::integrateVariableVelocity(const JointModelGroup* jmg, const Eig
     return true;
 }
 
-bool RobotState::setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose,
-                           double timeout, const GroupStateValidityCallbackFn& constraint,
+bool RobotState::setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose, double timeout,
+                           const GroupStateValidityCallbackFn& constraint,
                            const kinematics::KinematicsQueryOptions& options)
 {
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
@@ -1321,8 +1321,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose
   return setFromIK(jmg, mat, tip, consistency_limits, timeout, constraint, options);
 }
 
-bool RobotState::setFromIK(const JointModelGroup* jmg, const Eigen::Isometry3d& pose,
-                           double timeout, const GroupStateValidityCallbackFn& constraint,
+bool RobotState::setFromIK(const JointModelGroup* jmg, const Eigen::Isometry3d& pose, double timeout,
+                           const GroupStateValidityCallbackFn& constraint,
                            const kinematics::KinematicsQueryOptions& options)
 {
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
@@ -1411,8 +1411,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
 
 bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Isometry3d& poses_in,
                            const std::vector<std::string>& tips_in,
-                           const std::vector<std::vector<double> >& consistency_limit_sets,
-                           double timeout, const GroupStateValidityCallbackFn& constraint,
+                           const std::vector<std::vector<double> >& consistency_limit_sets, double timeout,
+                           const GroupStateValidityCallbackFn& constraint,
                            const kinematics::KinematicsQueryOptions& options)
 {
   // Error check
@@ -1624,30 +1624,31 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();
 
   std::vector<double> initial_values;
-      copyJointGroupPositions(jmg, initial_values);
-      std::vector<double> seed(bij.size());
-      for (std::size_t i = 0; i < bij.size(); ++i)
-        seed[i] = initial_values[bij[i]];
+  copyJointGroupPositions(jmg, initial_values);
+  std::vector<double> seed(bij.size());
+  for (std::size_t i = 0; i < bij.size(); ++i)
+    seed[i] = initial_values[bij[i]];
 
-    // compute the IK solution
-    std::vector<double> ik_sol;
-    moveit_msgs::MoveItErrorCodes error;
+  // compute the IK solution
+  std::vector<double> ik_sol;
+  moveit_msgs::MoveItErrorCodes error;
 
-    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options, this))
-    {
-      std::vector<double> solution(bij.size());
-      for (std::size_t i = 0; i < bij.size(); ++i)
-        solution[bij[i]] = ik_sol[i];
-      setJointGroupPositions(jmg, solution);
-      return true;
-    }
+  if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options,
+                               this))
+  {
+    std::vector<double> solution(bij.size());
+    for (std::size_t i = 0; i < bij.size(); ++i)
+      solution[bij[i]] = ik_sol[i];
+    setJointGroupPositions(jmg, solution);
+    return true;
+  }
   return false;
 }
 
 bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::vector_Isometry3d& poses_in,
                                     const std::vector<std::string>& tips_in,
-                                    const std::vector<std::vector<double> >& consistency_limits,
-                                    double timeout, const GroupStateValidityCallbackFn& constraint,
+                                    const std::vector<std::vector<double> >& consistency_limits, double timeout,
+                                    const GroupStateValidityCallbackFn& constraint,
                                     const kinematics::KinematicsQueryOptions& options)
 {
   // Assume we have already ran setFromIK() and those checks
@@ -1786,7 +1787,8 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
 
   bool first_seed = true;
   unsigned int attempts = 0;
-  do {
+  do
+  {
     ++attempts;
     ROS_DEBUG_NAMED(LOGNAME, "IK attempt: %d", attempts);
     bool found_solution = true;
