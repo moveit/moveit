@@ -53,7 +53,9 @@ COMPONENTS
   srdfdom
   std_msgs
   trajectory_msgs
+  urdf
   visualization_msgs
+  xmlrpcpp
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
@@ -162,6 +164,10 @@ set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VER
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources REQUIRED)
+endif()
 
 add_subdirectory(version)
 add_subdirectory(macros)

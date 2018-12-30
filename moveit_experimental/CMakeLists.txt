@@ -10,19 +10,20 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED
 COMPONENTS
+  eigen_conversions
+  eigen_stl_containers
+  geometric_shapes
+  geometry_msgs
+  kdl_parser
   moveit_core
   moveit_msgs
-  resource_retriever
-  kdl_parser
-  geometric_shapes
-  eigen_stl_containers
-  eigen_conversions
-  random_numbers
-  visualization_msgs
+  pluginlib
+  rosconsole
   roslib
   rostime
-  rosconsole
-  pluginlib
+  std_msgs
+  trajectory_msgs
+  visualization_msgs
   # The following are needed by jog_arm:
   moveit_ros_planning_interface
   rosparam_shortcuts
@@ -69,18 +70,22 @@ catkin_package(
     collision_detector_hybrid_plugin
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
+    eigen_conversions
+    eigen_stl_containers
+    geometry_msgs
+    geometric_shapes
+    kdl_parser
     message_runtime
     moveit_core
-    geometric_shapes
-    eigen_stl_containers
-    eigen_conversions
     moveit_msgs
-    kdl_parser
     pluginlib
+    std_msgs
+    trajectory_msgs
+    visualization_msgs
     # The following are needed by jog_arm:
+    joy_teleop
     moveit_ros_planning_interface
     rosparam_shortcuts
-    joy_teleop
     tf2_ros
   DEPENDS
     EIGEN3
@@ -100,8 +105,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
 add_subdirectory(jog_arm)
 

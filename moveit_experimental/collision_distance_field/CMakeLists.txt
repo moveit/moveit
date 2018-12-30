@@ -13,6 +13,7 @@ set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VE
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
+  find_package(rosunit REQUIRED)
   find_package(moveit_resources REQUIRED)
   include_directories(${moveit_resources_INCLUDE_DIRS})
 
@@ -25,7 +26,7 @@ set_target_properties(collision_detector_hybrid_plugin PROPERTIES VERSION ${${PR
 target_link_libraries(collision_detector_hybrid_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})
 
 install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_hybrid_plugin
-  LIBRARY DESTINATION lib)
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
 
 install(DIRECTORY include/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
