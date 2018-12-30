@@ -88,11 +88,6 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_timeout_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Search Timeout (sec):", kinematics_timeout_field_);
 
-  // number of IK attempts
-  kinematics_attempts_field_ = new QLineEdit(this);
-  kinematics_attempts_field_->setMaximumWidth(400);
-  form_layout->addRow("Kin. Solver Attempts:", kinematics_attempts_field_);
-
   group1->setLayout(form_layout);
 
   // OMPL Planner form --------------------------------------------
@@ -237,15 +232,6 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     *timeout = DEFAULT_KIN_SOLVER_TIMEOUT_;
   }
   kinematics_timeout_field_->setText(QString::number(*timeout));
-
-  // Load attempts
-  int* attempts = &config_data_->group_meta_data_[group_name].kinematics_solver_attempts_;
-  if (*attempts == 0)
-  {
-    // Set default value
-    *attempts = DEFAULT_KIN_SOLVER_ATTEMPTS_;
-  }
-  kinematics_attempts_field_->setText(QString::number(*attempts));
 
   // Set kin solver
   std::string kin_solver = config_data_->group_meta_data_[group_name].kinematics_solver_;
