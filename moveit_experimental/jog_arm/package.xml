@@ -3,7 +3,7 @@
   <name>jog_arm</name>
   <version>0.0.3</version>
 
-  <description>Provides real-time manipulator cartesian jogging.</description>
+  <description>Provides real-time manipulator Cartesian jogging.</description>
 
   <maintainer email="blakeanderson@utexas.edu">Blake Anderson</maintainer>
   <maintainer email="andyz@utexas.edu">Andy Zelenak</maintainer>

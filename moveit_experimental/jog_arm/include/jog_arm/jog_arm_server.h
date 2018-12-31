@@ -39,8 +39,8 @@
 
 // Server node for arm jogging with MoveIt.
 
-#ifndef JOG_ARM_SERVER_H
-#define JOG_ARM_SERVER_H
+#ifndef JOG_ARM_JOG_ARM_SERVER_H
+#define JOG_ARM_JOG_ARM_SERVER_H
 
 #include <Eigen/Eigenvalues>
 #include <moveit_experimental/JogJoint.h>
@@ -61,7 +61,7 @@
 namespace jog_arm
 {
 // Variables to share between threads, and their mutexes
-struct jog_arm_shared
+struct JogArmShared
 {
   geometry_msgs::TwistStamped command_deltas;
   pthread_mutex_t command_deltas_mutex;
@@ -99,7 +99,8 @@ struct jog_arm_shared
   pthread_mutex_t ok_to_publish_mutex;
 };
 
-// ROS params to be read
+// ROS params to be read.
+// See the yaml file in /config for a description of each.
 struct JogArmParameters
 {
   std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
@@ -107,7 +108,7 @@ struct JogArmParameters
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
       lower_collision_proximity_threshold, hard_stop_collision_proximity_threshold, low_pass_filter_coeff,
       publish_period, publish_delay, incoming_command_timeout, joint_limit_margin, collision_check_rate;
-  bool gazebo, collision_check, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
+  bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 
 /**
@@ -131,20 +132,21 @@ private:
   bool readParameters(ros::NodeHandle& n);
 
   // Jogging calculation thread
-  static void* jogCalcThread(void* thread_id);
+  static void* jogCalcThread(void*);
 
   // Collision checking thread
-  static void* collisionCheckThread(void* thread_id);
+  static void* collisionCheckThread(void*);
 
   // Variables to share between threads
-  static struct jog_arm_shared shared_variables_;
+  static struct JogArmShared shared_variables_;
 
-  // static robot_model_loader::RobotModelLoader *model_loader_ptr_;
   static std::unique_ptr<robot_model_loader::RobotModelLoader> model_loader_ptr_;
 };
 
 /**
  * Class LowPassFilter - Filter the joint velocities to avoid jerky motion.
+ * This is a second-order Butterworth low-pass filter.
+ * See https://ccrma.stanford.edu/~jos/filters/Example_Second_Order_Butterworth_Lowpass.html
  */
 class LowPassFilter
 {
@@ -152,11 +154,14 @@ public:
   explicit LowPassFilter(double low_pass_filter_coeff);
   double filter(double new_measurement_);
   void reset(double data);
-  double filter_coeff_ = 10.;
 
 private:
   double previous_measurements_[3] = { 0., 0., 0. };
   double previous_filtered_measurements_[2] = { 0., 0. };
+  // Larger-> more smoothing of jog commands, but more lag.
+  // Rough plot, with cutoff frequency on the y-axis:
+  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
+  double filter_coeff_ = 10.;
 };
 
 LowPassFilter::LowPassFilter(const double low_pass_filter_coeff)
@@ -174,7 +179,7 @@ void LowPassFilter::reset(double data)
   previous_filtered_measurements_[1] = data;
 }
 
-double LowPassFilter::filter(const double new_measurement_)
+double LowPassFilter::filter(double new_measurement_)
 {
   // Push in the new measurement
   previous_measurements_[2] = previous_measurements_[1];
@@ -200,7 +205,7 @@ double LowPassFilter::filter(const double new_measurement_)
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
+  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables,
            const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
 
 protected:
@@ -210,9 +215,9 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
-  bool jointJogCalcs(const moveit_experimental::JogJoint& cmd, jog_arm_shared& shared_variables);
+  bool jointJogCalcs(const moveit_experimental::JogJoint& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints();
@@ -230,7 +235,7 @@ protected:
   void resetVelocityFilters();
 
   // Avoid a singularity or other issue.
-  // Needs to be handled differently for position vs. velocity control
+  // Is handled differently for position vs. velocity control.
   void halt(trajectory_msgs::JointTrajectory& jt_traj);
 
   void publishWarning(bool active) const;
@@ -242,7 +247,7 @@ protected:
   double decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity);
 
   // Apply velocity scaling for proximity of collisions and singularities
-  bool applyVelocityScaling(jog_arm_shared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
+  bool applyVelocityScaling(JogArmShared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
                             const Eigen::VectorXd& delta_theta, double singularity_scale);
 
   trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state,
@@ -258,7 +263,7 @@ protected:
 
   robot_state::RobotStatePtr kinematic_state_;
 
-  sensor_msgs::JointState jt_state_, original_jts_;
+  sensor_msgs::JointState jt_state_, original_jt_state_;
   trajectory_msgs::JointTrajectory new_traj_;
 
   tf2_ros::Buffer tf_buffer_;
@@ -275,7 +280,7 @@ protected:
 class collisionCheckThread
 {
 public:
-  collisionCheckThread(const JogArmParameters& parameters, jog_arm_shared& shared_variables,
+  collisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
                        const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
 };
 

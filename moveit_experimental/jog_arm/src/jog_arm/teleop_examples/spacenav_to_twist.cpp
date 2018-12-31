@@ -3,14 +3,14 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 
-namespace to_twist
+namespace jog_arm
 {
-class spaceNavToTwist
+class SpaceNavToTwist
 {
 public:
-  spaceNavToTwist() : spinner_(1)
+  SpaceNavToTwist() : spinner_(1)
   {
-    joy_sub_ = n_.subscribe("spacenav/joy", 1, &spaceNavToTwist::joyCallback, this);
+    joy_sub_ = n_.subscribe("spacenav/joy", 1, &SpaceNavToTwist::joyCallback, this);
     twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_arm_server/delta_jog_cmds", 1);
     joint_delta_pub_ = n_.advertise<moveit_experimental::JogJoint>("jog_arm_server/joint_delta_jog_cmds", 1);
 
@@ -54,13 +54,13 @@ private:
     joint_delta_pub_.publish(joint_deltas);
   }
 };
-}  // end to_twist namespace
+}  // end jog_arm namespace
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spacenav_to_twist");
 
-  to_twist::spaceNavToTwist to_twist;
+  jog_arm::SpaceNavToTwist to_twist;
 
   return 0;
 }

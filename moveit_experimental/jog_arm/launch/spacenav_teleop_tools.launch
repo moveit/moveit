@@ -1,4 +1,8 @@
 <launch>
+  <!-- The package has 2 examples of converting controller commands to jog commands.
+  This is the higher-latency, Python-based teleop_tools example. You can modify
+  it in your own package for your own type of gamepad or joystick.
+  We do plan to accept pull requests of config files for other controller types using this method.-->
 
   <!-- This node publishes commands from the controller -->
   <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node" />
