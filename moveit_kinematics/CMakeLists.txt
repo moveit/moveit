@@ -48,9 +48,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
 )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(lma_kinematics_plugin)
 add_subdirectory(srv_kinematics_plugin)
