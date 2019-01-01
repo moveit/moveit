@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_server.h
+//      Title     : jog_ros_interface.h
 //      Project   : jog_arm
 //      Created   : 3/9/2017
 //      Author    : Brian O'Neil, Blake Anderson, Andy Zelenak
@@ -39,10 +39,11 @@
 
 // Server node for arm jogging with MoveIt.
 
-#ifndef JOG_ARM_JOG_ARM_SERVER_H
-#define JOG_ARM_JOG_ARM_SERVER_H
+#ifndef JOG_ARM_JOG_ROS_INTERFACE_H
+#define JOG_ARM_JOG_ROS_INTERFACE_H
 
 #include <Eigen/Eigenvalues>
+#include <memory>
 #include <moveit_experimental/JogJoint.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -164,41 +165,6 @@ private:
   double filter_coeff_ = 10.;
 };
 
-LowPassFilter::LowPassFilter(const double low_pass_filter_coeff)
-{
-  filter_coeff_ = low_pass_filter_coeff;
-}
-
-void LowPassFilter::reset(double data)
-{
-  previous_measurements_[0] = data;
-  previous_measurements_[1] = data;
-  previous_measurements_[2] = data;
-
-  previous_filtered_measurements_[0] = data;
-  previous_filtered_measurements_[1] = data;
-}
-
-double LowPassFilter::filter(double new_measurement_)
-{
-  // Push in the new measurement
-  previous_measurements_[2] = previous_measurements_[1];
-  previous_measurements_[1] = previous_measurements_[0];
-  previous_measurements_[0] = new_measurement_;
-
-  double new_filtered_msrmt =
-      (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
-      (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
-       (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
-       (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
-
-  // Store the new filtered measurement
-  previous_filtered_measurements_[1] = previous_filtered_measurements_[0];
-  previous_filtered_measurements_[0] = new_filtered_msrmt;
-
-  return new_filtered_msrmt;
-}
-
 /**
  * Class JogCalcs - Perform the Jacobian calculations.
  */
@@ -286,4 +252,6 @@ public:
 
 }  // namespace jog_arm
 
-#endif  // JOG_ARM_SERVER_H
+static const std::string LOGNAME = "jog_arm_server";
+
+#endif  // JOG_ARM_JOG_ROS_INTERFACE_H
