@@ -47,7 +47,7 @@ namespace jog_arm
 // They must be static because they are used as arguments in thread creation.
 JogArmParameters JogROSInterface::ros_parameters_;
 JogArmShared JogROSInterface::shared_variables_;
-std::unique_ptr<robot_model_loader::RobotModelLoader> JogROSInterface::model_loader_ptr_ = NULL;
+robot_model_loader::RobotModelLoaderPtr JogROSInterface::model_loader_ptr_ = NULL;
 
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
@@ -190,7 +190,7 @@ void* JogROSInterface::collisionCheckThread(void*)
 // Constructor for the class that handles collision checking
 collisionCheckThread::collisionCheckThread(
     const JogArmParameters& parameters, JogArmShared& shared_variables,
-    const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr)
+    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
   // If user specified true in yaml file
   if (parameters.check_collisions)
@@ -209,7 +209,23 @@ collisionCheckThread::collisionCheckThread(
     collision_request.distance = true;
     collision_detection::CollisionResult collision_result;
     robot_state::RobotState& current_state = planning_scene.getCurrentStateNonConst();
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+
+    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
+    planning_scene_monitor.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
+    planning_scene_monitor->startSceneMonitor();
+    planning_scene_monitor->startStateMonitor();
+
+    if(planning_scene_monitor->getPlanningScene())
+    {
+      planning_scene_monitor->startSceneMonitor("/planning_scene");
+      planning_scene_monitor->startWorldGeometryMonitor();
+      planning_scene_monitor->startStateMonitor();
+    }
+    else
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+      exit(EXIT_FAILURE);
+    }
 
     // Wait for initial messages
     ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
@@ -238,15 +254,8 @@ collisionCheckThread::collisionCheckThread(
       for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
-      // process collision objects in scene
-      std::map<std::string, moveit_msgs::CollisionObject> c_objects_map = planning_scene_interface.getObjects();
-      for (auto& kv : c_objects_map)
-      {
-        planning_scene.processCollisionObjectMsg(kv.second);
-      }
-
       collision_result.clear();
-      planning_scene.checkCollision(collision_request, collision_result);
+      planning_scene_monitor->getPlanningScene()->checkCollision(collision_request, collision_result, current_state);
 
       // Scale robot velocity according to collision proximity and user-defined
       // thresholds.
@@ -293,7 +302,7 @@ collisionCheckThread::collisionCheckThread(
 
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                   const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr)
+                   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
   : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_), parameters_(parameters)
 {
   // Publish collision status

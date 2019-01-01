@@ -46,8 +46,9 @@
 #include <memory>
 #include <moveit_experimental/JogJoint.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
+// TODO: remove planning_scene_interface?
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -141,7 +142,7 @@ private:
   // Variables to share between threads
   static struct JogArmShared shared_variables_;
 
-  static std::unique_ptr<robot_model_loader::RobotModelLoader> model_loader_ptr_;
+  static robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
 };
 
 /**
@@ -172,7 +173,7 @@ class JogCalcs
 {
 public:
   JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables,
-           const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
+           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
 protected:
   ros::NodeHandle nh_;
@@ -247,7 +248,7 @@ class collisionCheckThread
 {
 public:
   collisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                       const std::unique_ptr<robot_model_loader::RobotModelLoader>& model_loader_ptr);
+                       const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 };
 
 }  // namespace jog_arm
