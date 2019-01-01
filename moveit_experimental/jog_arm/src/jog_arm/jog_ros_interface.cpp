@@ -41,11 +41,13 @@
 
 #include <jog_arm/jog_ros_interface.h>
 
+namespace jog_arm
+{
 // Initialize these static struct to hold ROS parameters.
 // They must be static because they are used as arguments in thread creation.
-jog_arm::JogArmParameters jog_arm::JogROSInterface::ros_parameters_;
-jog_arm::JogArmShared jog_arm::JogROSInterface::shared_variables_;
-std::unique_ptr<robot_model_loader::RobotModelLoader> jog_arm::JogROSInterface::model_loader_ptr_ = NULL;
+JogArmParameters JogROSInterface::ros_parameters_;
+JogArmShared JogROSInterface::shared_variables_;
+std::unique_ptr<robot_model_loader::RobotModelLoader> JogROSInterface::model_loader_ptr_ = NULL;
 
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
@@ -57,8 +59,6 @@ std::unique_ptr<robot_model_loader::RobotModelLoader> jog_arm::JogROSInterface::
 static const int GAZEBO_REDUNTANT_MESSAGE_COUNT = 30;
 static const double WHILE_LOOP_WAIT = 0.001;
 
-namespace jog_arm
-{
 // Constructor for the main ROS interface node
 JogROSInterface::JogROSInterface()
 {
@@ -277,7 +277,10 @@ collisionCheckThread::collisionCheckThread(
 
       // Very slow if actually in collision
       if (collision_result.collision)
+      {
+        ROS_WARN_NAMED(LOGNAME, "Very close to collision. Slowing way down.");
         velocity_scale = 0.02;
+      }
 
       pthread_mutex_lock(&shared_variables.collision_velocity_scale_mutex);
       shared_variables.collision_velocity_scale = velocity_scale;
@@ -308,9 +311,6 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
-
-  std::vector<double> dummy_joint_values;
-  kinematic_state_->copyJointGroupPositions(joint_model_group_, dummy_joint_values);
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
