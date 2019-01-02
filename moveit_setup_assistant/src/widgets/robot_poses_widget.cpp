@@ -696,6 +696,7 @@ void RobotPosesWidget::doneEditing()
   if (isNew)
   {
     config_data_->srdf_->group_states_.push_back(*searched_data);
+    delete searched_data;
   }
 
   // Finish up ------------------------------------------------------
