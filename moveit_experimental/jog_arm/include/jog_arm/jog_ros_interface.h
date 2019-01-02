@@ -43,7 +43,6 @@
 #define JOG_ARM_JOG_ROS_INTERFACE_H
 
 #include <Eigen/Eigenvalues>
-#include <memory>
 #include <moveit_msgs/JogJoint.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -56,6 +55,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
+#include <thread>
 #include <trajectory_msgs/JointTrajectory.h>
 
 namespace jog_arm
@@ -132,10 +132,12 @@ private:
   bool readParameters(ros::NodeHandle& n);
 
   // Jogging calculation thread
-  static void* jogCalcThread(void*);
+  static bool startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
   // Collision checking thread
-  static void* collisionCheckThread(void*);
+  static  bool startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
   // Variables to share between threads
   static struct JogArmShared shared_variables_;
