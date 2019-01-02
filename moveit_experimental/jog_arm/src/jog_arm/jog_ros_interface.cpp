@@ -47,7 +47,6 @@ namespace jog_arm
 // Initialize these static struct to hold ROS parameters.
 // They must be static because they are used as arguments in thread creation.
 JogArmShared JogROSInterface::shared_variables_;
-robot_model_loader::RobotModelLoaderPtr JogROSInterface::model_loader_ptr_ = NULL;
 
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
@@ -67,12 +66,12 @@ JogROSInterface::JogROSInterface()
   if (!readParameters(nh))
     exit(EXIT_FAILURE);
 
-  // Load the robot model. This is needed by the worker threads.
-  model_loader_ptr_ = std::unique_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
+  // Load the robot model. This is used by the worker threads.
+  model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
   // Crunch the numbers in this thread
   std::thread jogging_thread (JogROSInterface::startJogCalcThread,
-    ros_parameters_, std::ref(shared_variables_), std::ref(model_loader_ptr_));
+    ros_parameters_, std::ref(shared_variables_), model_loader_ptr_);
 
   // Check collisions in this thread
   std::thread collision_thread (JogROSInterface::startCollisionCheckThread, 
@@ -164,7 +163,7 @@ JogROSInterface::JogROSInterface()
 
 // A separate thread for the heavy jogging calculations.
 bool JogROSInterface::startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-  const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+  const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
 {
   JogCalcs ja(parameters, shared_variables, model_loader_ptr);
   return true;
@@ -180,7 +179,7 @@ bool JogROSInterface::startCollisionCheckThread(const JogArmParameters& paramete
 
 // Constructor for the class that handles collision checking
 collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, JogArmShared& shared_variables,
-                                           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+                                           const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
 {
   // If user specified true in yaml file
   if (parameters.check_collisions)
@@ -292,7 +291,7 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
 
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables,
-                   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+                   const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
   : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_), parameters_(parameters)
 {
   // Publish collision status

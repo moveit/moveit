@@ -130,7 +130,7 @@ private:
 
   // Jogging calculation thread
   static bool startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+    const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 
   // Collision checking thread
   static  bool startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
@@ -139,7 +139,7 @@ private:
   // Variables to share between threads
   static struct JogArmShared shared_variables_;
 
-  static robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
+  robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
 
   // Store the parameters that were read from ROS server
   struct JogArmParameters ros_parameters_;
@@ -173,7 +173,7 @@ class JogCalcs
 {
 public:
   JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables,
-           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+           const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 
 protected:
   ros::NodeHandle nh_;
@@ -250,7 +250,7 @@ class collisionCheckThread
 {
 public:
   collisionCheckThread(const JogArmParameters parameters, JogArmShared& shared_variables,
-                       const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+                       const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 };
 
 }  // namespace jog_arm
