@@ -25,6 +25,7 @@ COMPONENTS
   trajectory_msgs
   visualization_msgs
   # The following are needed by jog_arm:
+  moveit_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
   tf2_ros
@@ -47,17 +48,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
   ${VERSION_FILE_PATH}
   collision_distance_field/include
   jog_arm/include
-)
-
-add_message_files(
-  FILES
-  JogJoint.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
 )
 
 catkin_package(
@@ -84,6 +74,7 @@ catkin_package(
     visualization_msgs
     # The following are needed by jog_arm:
     joy_teleop
+    moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
     tf2_ros

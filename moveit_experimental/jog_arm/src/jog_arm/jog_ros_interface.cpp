@@ -188,9 +188,8 @@ void* JogROSInterface::collisionCheckThread(void*)
 }
 
 // Constructor for the class that handles collision checking
-collisionCheckThread::collisionCheckThread(
-    const JogArmParameters& parameters, JogArmShared& shared_variables,
-    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+collisionCheckThread::collisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+                                           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
   // If user specified true in yaml file
   if (parameters.check_collisions)
@@ -215,7 +214,7 @@ collisionCheckThread::collisionCheckThread(
     planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startStateMonitor();
 
-    if(planning_scene_monitor->getPlanningScene())
+    if (planning_scene_monitor->getPlanningScene())
     {
       planning_scene_monitor->startSceneMonitor("/planning_scene");
       planning_scene_monitor->startWorldGeometryMonitor();
@@ -359,7 +358,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   // Store it in a class member for further calcs.
   // Then free up the shared variable again.
   geometry_msgs::TwistStamped cartesian_deltas;
-  moveit_experimental::JogJoint joint_deltas;
+  moveit_msgs::JogJoint joint_deltas;
   while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
   {
     ros::Duration(WHILE_LOOP_WAIT).sleep();
@@ -586,7 +585,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   return true;
 }
 
-bool JogCalcs::jointJogCalcs(const moveit_experimental::JogJoint& cmd, JogArmShared& shared_variables)
+bool JogCalcs::jointJogCalcs(const moveit_msgs::JogJoint& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (std::size_t i = 0; i < cmd.deltas.size(); ++i)
@@ -975,7 +974,7 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
   return result;
 }
 
-Eigen::VectorXd JogCalcs::scaleJointCommand(const moveit_experimental::JogJoint& command) const
+Eigen::VectorXd JogCalcs::scaleJointCommand(const moveit_msgs::JogJoint& command) const
 {
   Eigen::VectorXd result(jt_state_.name.size());
 
@@ -1064,7 +1063,7 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
 
 // Listen to joint delta commands.
 // Store them in a shared variable.
-void JogROSInterface::deltaJointCmdCB(const moveit_experimental::JogJointConstPtr& msg)
+void JogROSInterface::deltaJointCmdCB(const moveit_msgs::JogJointConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.joint_command_deltas_mutex);
   shared_variables_.joint_command_deltas = *msg;
