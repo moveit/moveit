@@ -120,9 +120,6 @@ class JogROSInterface
 public:
   JogROSInterface();
 
-  // Store the parameters that were read from ROS server
-  static struct JogArmParameters ros_parameters_;
-
 private:
   // ROS subscriber callbacks
   void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
@@ -143,6 +140,9 @@ private:
   static struct JogArmShared shared_variables_;
 
   static robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
+
+  // Store the parameters that were read from ROS server
+  struct JogArmParameters ros_parameters_;
 };
 
 /**
@@ -172,7 +172,7 @@ private:
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables,
+  JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables,
            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
 protected:
@@ -242,12 +242,14 @@ protected:
   ros::Publisher warning_pub_;
 
   JogArmParameters parameters_;
+
+  const int gazebo_redundant_message_count_ = 30;
 };
 
 class collisionCheckThread
 {
 public:
-  collisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+  collisionCheckThread(const JogArmParameters parameters, JogArmShared& shared_variables,
                        const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 };
 

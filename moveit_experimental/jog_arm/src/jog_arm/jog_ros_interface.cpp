@@ -46,10 +46,8 @@ namespace jog_arm
 
 // Initialize these static struct to hold ROS parameters.
 // They must be static because they are used as arguments in thread creation.
-JogArmParameters JogROSInterface::ros_parameters_;
 JogArmShared JogROSInterface::shared_variables_;
 robot_model_loader::RobotModelLoaderPtr JogROSInterface::model_loader_ptr_ = NULL;
-
 
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
@@ -58,7 +56,6 @@ robot_model_loader::RobotModelLoaderPtr JogROSInterface::model_loader_ptr_ = NUL
 // Another worker thread does collision checking.
 /////////////////////////////////////////////////////////////////////////////////
 
-static const int GAZEBO_REDUNTANT_MESSAGE_COUNT = 30;
 static const double WHILE_LOOP_WAIT = 0.001;
 
 // Constructor for the main ROS interface node
@@ -75,11 +72,11 @@ JogROSInterface::JogROSInterface()
 
   // Crunch the numbers in this thread
   std::thread jogging_thread (JogROSInterface::startJogCalcThread,
-    std::ref(ros_parameters_), std::ref(shared_variables_), std::ref(model_loader_ptr_));
+    ros_parameters_, std::ref(shared_variables_), std::ref(model_loader_ptr_));
 
   // Check collisions in this thread
   std::thread collision_thread (JogROSInterface::startCollisionCheckThread, 
-    std::ref(ros_parameters_), std::ref(shared_variables_), std::ref(model_loader_ptr_));  
+    ros_parameters_, std::ref(shared_variables_), std::ref(model_loader_ptr_));  
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber cmd_sub =
@@ -182,7 +179,7 @@ bool JogROSInterface::startCollisionCheckThread(const JogArmParameters& paramete
 }
 
 // Constructor for the class that handles collision checking
-collisionCheckThread::collisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, JogArmShared& shared_variables,
                                            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
   // If user specified true in yaml file
@@ -294,7 +291,7 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters& parameters, J
 }
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables,
+JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables,
                    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
   : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_), parameters_(parameters)
 {
@@ -573,7 +570,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // If using Gazebo simulator, insert redundant points
   if (parameters_.use_gazebo)
   {
-    insertRedundantPointsIntoTrajectory(new_traj_, GAZEBO_REDUNTANT_MESSAGE_COUNT);
+    insertRedundantPointsIntoTrajectory(new_traj_, gazebo_redundant_message_count_);
   }
 
   return true;
@@ -626,7 +623,7 @@ bool JogCalcs::jointJogCalcs(const moveit_msgs::JogJoint& cmd, JogArmShared& sha
   // done with calculations
   if (parameters_.use_gazebo)
   {
-    insertRedundantPointsIntoTrajectory(new_traj_, GAZEBO_REDUNTANT_MESSAGE_COUNT);
+    insertRedundantPointsIntoTrajectory(new_traj_, gazebo_redundant_message_count_);
   }
 
   return true;
@@ -851,7 +848,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
     }
 
     if (!kinematic_state_->satisfiesPositionBounds(joint,
-                                                   -JogROSInterface::ros_parameters_.joint_limit_margin))
+                                                   -parameters_.joint_limit_margin))
     {
       const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
 
@@ -859,9 +856,9 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
       if (limits.size() > 0)
       {
         if ((kinematic_state_->getJointVelocities(joint)[0] < 0 &&
-             (joint_angle < (limits[0].min_position + JogROSInterface::ros_parameters_.joint_limit_margin))) ||
+             (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
             (kinematic_state_->getJointVelocities(joint)[0] > 0 &&
-             (joint_angle > (limits[0].max_position - JogROSInterface::ros_parameters_.joint_limit_margin))))
+             (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
           ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName()
                                                                                << " close to a "
