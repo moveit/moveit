@@ -36,7 +36,6 @@
 
 #include "navigation_widget.h"
 #include <QApplication>
-#include <QDebug>
 #include <iostream>
 
 namespace moveit_setup_assistant

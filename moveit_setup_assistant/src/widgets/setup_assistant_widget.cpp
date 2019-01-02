@@ -41,7 +41,6 @@
 #include <QStackedLayout>
 #include <QListWidget>
 #include <QListWidgetItem>
-#include <QDebug>
 #include <QFont>
 #include <QLabel>
 #include <QPushButton>
