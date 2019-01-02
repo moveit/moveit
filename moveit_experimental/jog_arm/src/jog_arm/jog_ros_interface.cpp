@@ -105,13 +105,10 @@ JogROSInterface::JogROSInterface()
   {
     ros::spinOnce();
 
-    pthread_mutex_lock(&shared_variables_.new_traj_mutex);
+    pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
     trajectory_msgs::JointTrajectory new_traj = shared_variables_.new_traj;
-    pthread_mutex_unlock(&shared_variables_.new_traj_mutex);
 
     // Check for stale cmds
-    pthread_mutex_lock(&shared_variables_.incoming_cmd_stamp_mutex);
-    pthread_mutex_lock(&shared_variables_.command_is_stale_mutex);
     if ((ros::Time::now() - shared_variables_.incoming_cmd_stamp) <
         ros::Duration(ros_parameters_.incoming_command_timeout))
     {
@@ -122,12 +119,9 @@ JogROSInterface::JogROSInterface()
     {
       shared_variables_.command_is_stale = true;
     }
-    pthread_mutex_unlock(&shared_variables_.command_is_stale_mutex);
-    pthread_mutex_unlock(&shared_variables_.incoming_cmd_stamp_mutex);
 
     // Publish the most recent trajectory, unless the jogging calculation thread
     // tells not to
-    pthread_mutex_lock(&shared_variables_.ok_to_publish_mutex);
     if (shared_variables_.ok_to_publish)
     {
       // Put the outgoing msg in the right format
@@ -152,7 +146,7 @@ JogROSInterface::JogROSInterface()
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale or zero command. "
                                                  "Try a larger 'incoming_command_timeout' parameter?");
     }
-    pthread_mutex_unlock(&shared_variables_.ok_to_publish_mutex);
+    pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 
     main_rate.sleep();
   }
@@ -236,9 +230,9 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
     /////////////////////////////////////////////////
     while (ros::ok())
     {
-      pthread_mutex_lock(&shared_variables.joints_mutex);
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       sensor_msgs::JointState jts = shared_variables.joints;
-      pthread_mutex_unlock(&shared_variables.joints_mutex);
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
       for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
@@ -280,9 +274,9 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
         velocity_scale = 0.02;
       }
 
-      pthread_mutex_lock(&shared_variables.collision_velocity_scale_mutex);
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       shared_variables.collision_velocity_scale = velocity_scale;
-      pthread_mutex_unlock(&shared_variables.collision_velocity_scale_mutex);
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
       collision_rate.sleep();
     }
@@ -336,9 +330,9 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Initialize the position filters to initial robot joints
   while (!updateJoints() && ros::ok())
   {
-    pthread_mutex_lock(&shared_variables.joints_mutex);
+    pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     incoming_jts_ = shared_variables.joints;
-    pthread_mutex_unlock(&shared_variables.joints_mutex);
+    pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
     ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
@@ -353,12 +347,10 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   {
     ros::Duration(WHILE_LOOP_WAIT).sleep();
 
-    pthread_mutex_lock(&shared_variables.command_deltas_mutex);
-    pthread_mutex_lock(&shared_variables.joint_command_deltas_mutex);
+    pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     cartesian_deltas = shared_variables.command_deltas;
     joint_deltas = shared_variables.joint_command_deltas;
-    pthread_mutex_unlock(&shared_variables.command_deltas_mutex);
-    pthread_mutex_unlock(&shared_variables.joint_command_deltas_mutex);
+    pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
   }
 
   // Track the number of cycles during which motion has not occurred.
@@ -371,28 +363,26 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   {
     // If user commands are all zero, reset the low-pass filters
     // when commands resume
-    pthread_mutex_lock(&shared_variables.zero_cartesian_cmd_flag_mutex);
-    pthread_mutex_lock(&shared_variables.zero_joint_cmd_flag_mutex);
+    pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     bool zero_cartesian_traj_flag = shared_variables.zero_cartesian_cmd_flag;
     bool zero_joint_traj_flag = shared_variables.zero_joint_cmd_flag;
-    pthread_mutex_unlock(&shared_variables.zero_cartesian_cmd_flag_mutex);
-    pthread_mutex_unlock(&shared_variables.zero_joint_cmd_flag_mutex);
+    pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
     if (zero_cartesian_traj_flag && zero_joint_traj_flag)
       // Reset low-pass filters
       resetVelocityFilters();
 
     // Pull data from the shared variables.
-    pthread_mutex_lock(&shared_variables.joints_mutex);
+    pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     incoming_jts_ = shared_variables.joints;
-    pthread_mutex_unlock(&shared_variables.joints_mutex);
+    pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
     // Initialize the position filters to initial robot joints
     while (!updateJoints() && ros::ok())
     {
-      pthread_mutex_lock(&shared_variables.joints_mutex);
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       incoming_jts_ = shared_variables.joints;
-      pthread_mutex_unlock(&shared_variables.joints_mutex);
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
       ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
 
@@ -400,9 +390,9 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     // jogging commands are empty
     if ((zero_velocity_count <= num_zero_cycles_to_publish) && zero_joint_traj_flag)
     {
-      pthread_mutex_lock(&shared_variables.command_deltas_mutex);
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       cartesian_deltas = shared_variables.command_deltas;
-      pthread_mutex_unlock(&shared_variables.command_deltas_mutex);
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
       if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
         continue;
@@ -411,9 +401,9 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     // jogging commands are not empty
     else if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_joint_traj_flag)
     {
-      pthread_mutex_lock(&shared_variables.joint_command_deltas_mutex);
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       joint_deltas = shared_variables.joint_command_deltas;
-      pthread_mutex_unlock(&shared_variables.joint_command_deltas_mutex);
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
       if (!jointJogCalcs(joint_deltas, shared_variables))
         continue;
@@ -421,9 +411,9 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
     // Halt if the command is stale or inputs are all zero, or commands were
     // zero
-    pthread_mutex_lock(&shared_variables.command_is_stale_mutex);
+    pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     bool stale_command = shared_variables.command_is_stale;
-    pthread_mutex_unlock(&shared_variables.command_is_stale_mutex);
+    pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
     if (stale_command || (zero_cartesian_traj_flag && zero_joint_traj_flag))
     {
@@ -440,24 +430,20 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     // Send the newest target joints
     if (!new_traj_.joint_names.empty())
     {
+      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       // If everything normal, share the new traj to be published
       if (valid_nonzero_trajectory)
       {
-        pthread_mutex_lock(&shared_variables.new_traj_mutex);
-        pthread_mutex_lock(&shared_variables.ok_to_publish_mutex);
         shared_variables.new_traj = new_traj_;
         shared_variables.ok_to_publish = true;
-        pthread_mutex_unlock(&shared_variables.new_traj_mutex);
-        pthread_mutex_unlock(&shared_variables.ok_to_publish_mutex);
       }
       // Skip the jogging publication if all inputs have been zero for several
       // cycles in a row
       else if (zero_velocity_count > num_zero_cycles_to_publish)
       {
-        pthread_mutex_lock(&shared_variables.ok_to_publish_mutex);
         shared_variables.ok_to_publish = false;
-        pthread_mutex_unlock(&shared_variables.ok_to_publish_mutex);
       }
+      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
       // Store last zero-velocity message flag to prevent superfluous warnings.
       // Cartesian and joint commands must both be zero.
@@ -711,9 +697,9 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
 bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
                                     const Eigen::VectorXd& delta_theta, double singularity_scale)
 {
-  pthread_mutex_lock(&shared_variables.collision_velocity_scale_mutex);
+  pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
   double collision_scale = shared_variables.collision_velocity_scale;
-  pthread_mutex_unlock(&shared_variables.collision_velocity_scale_mutex);
+  pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
   for (size_t i = 0; i < jt_state_.velocity.size(); ++i)
   {
@@ -1027,7 +1013,7 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 // Store them in a shared variable.
 void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.command_deltas_mutex);
+  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
 
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
   // (so it doesn't need to be copied over and over)
@@ -1035,27 +1021,22 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   shared_variables_.command_deltas.header.stamp = msg->header.stamp;
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
-  pthread_mutex_lock(&shared_variables_.zero_cartesian_cmd_flag_mutex);
   shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.y == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.z == 0.0 &&
                                               shared_variables_.command_deltas.twist.angular.x == 0.0 &&
                                               shared_variables_.command_deltas.twist.angular.y == 0.0 &&
                                               shared_variables_.command_deltas.twist.angular.z == 0.0;
-  pthread_mutex_unlock(&shared_variables_.zero_cartesian_cmd_flag_mutex);
 
-  pthread_mutex_unlock(&shared_variables_.command_deltas_mutex);
-
-  pthread_mutex_lock(&shared_variables_.incoming_cmd_stamp_mutex);
   shared_variables_.incoming_cmd_stamp = msg->header.stamp;
-  pthread_mutex_unlock(&shared_variables_.incoming_cmd_stamp_mutex);
+  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 }
 
 // Listen to joint delta commands.
 // Store them in a shared variable.
 void JogROSInterface::deltaJointCmdCB(const moveit_msgs::JogJointConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.joint_command_deltas_mutex);
+  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
   shared_variables_.joint_command_deltas = *msg;
 
   // Input frame determined by YAML file
@@ -1068,24 +1049,19 @@ void JogROSInterface::deltaJointCmdCB(const moveit_msgs::JogJointConstPtr& msg)
   {
     all_zeros &= (delta == 0.0);
   };
-  pthread_mutex_unlock(&shared_variables_.joint_command_deltas_mutex);
-
-  pthread_mutex_lock(&shared_variables_.zero_joint_cmd_flag_mutex);
   shared_variables_.zero_joint_cmd_flag = all_zeros;
-  pthread_mutex_unlock(&shared_variables_.zero_joint_cmd_flag_mutex);
 
-  pthread_mutex_lock(&shared_variables_.incoming_cmd_stamp_mutex);
   shared_variables_.incoming_cmd_stamp = msg->header.stamp;
-  pthread_mutex_unlock(&shared_variables_.incoming_cmd_stamp_mutex);
+  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 }
 
 // Listen to joint angles.
 // Store them in a shared variable.
 void JogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.joints_mutex);
+  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
   shared_variables_.joints = *msg;
-  pthread_mutex_unlock(&shared_variables_.joints_mutex);
+  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -1150,9 +1126,9 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Set the input frame, as determined by YAML file:
-  pthread_mutex_lock(&shared_variables_.command_deltas_mutex);
+  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
   shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
-  pthread_mutex_unlock(&shared_variables_.command_deltas_mutex);
+  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 
   // Input checking
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)

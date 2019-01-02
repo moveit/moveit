@@ -63,40 +63,32 @@ namespace jog_arm
 // Variables to share between threads, and their mutexes
 struct JogArmShared
 {
+  pthread_mutex_t shared_variables_mutex;
+
   geometry_msgs::TwistStamped command_deltas;
-  pthread_mutex_t command_deltas_mutex;
 
   moveit_msgs::JogJoint joint_command_deltas;
-  pthread_mutex_t joint_command_deltas_mutex;
 
   sensor_msgs::JointState joints;
-  pthread_mutex_t joints_mutex;
 
   double collision_velocity_scale = 1;
-  pthread_mutex_t collision_velocity_scale_mutex;
 
   // Indicates that an incoming Cartesian command is all zero velocities
   bool zero_cartesian_cmd_flag = true;
-  pthread_mutex_t zero_cartesian_cmd_flag_mutex;
 
   // Indicates that an incoming joint angle command is all zero velocities
   bool zero_joint_cmd_flag = true;
-  pthread_mutex_t zero_joint_cmd_flag_mutex;
 
   // Indicates that we have not received a new command in some time
   bool command_is_stale = false;
-  pthread_mutex_t command_is_stale_mutex;
 
   // The new trajectory which is calculated
   trajectory_msgs::JointTrajectory new_traj;
-  pthread_mutex_t new_traj_mutex;
 
   // Timestamp of incoming commands
   ros::Time incoming_cmd_stamp = ros::Time(0.);
-  pthread_mutex_t incoming_cmd_stamp_mutex;
 
   bool ok_to_publish = false;
-  pthread_mutex_t ok_to_publish_mutex;
 };
 
 // ROS params to be read.
