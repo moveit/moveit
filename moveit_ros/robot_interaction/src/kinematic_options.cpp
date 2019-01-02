@@ -55,7 +55,10 @@ bool robot_interaction::KinematicOptions::setStateFromIK(robot_state::RobotState
     ROS_ERROR("No getJointModelGroup('%s') found", group.c_str());
     return false;
   }
-  bool result = state.setFromIK(jmg, pose, tip, max_attempts_, timeout_seconds_, state_validity_callback_, options_);
+  bool result = state.setFromIK(jmg, pose, tip, max_attempts_,
+                                // limit timeout to 0.1s if set from JMG's default, i.e. when timeout_seconds_ == 0
+                                timeout_seconds_ > 0.0 ? timeout_seconds_ : std::min(0.1, jmg->getDefaultIKTimeout()),
+                                state_validity_callback_, options_);
   state.update();
   return result;
 }
