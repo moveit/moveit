@@ -306,6 +306,7 @@ TEST_F(KinematicsTest, getFK)
   std::vector<double> joints(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& tip_frames = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   for (unsigned int i = 0; i < num_fk_tests_; ++i)
   {
@@ -334,9 +335,9 @@ TEST_F(KinematicsTest, randomWalkIK)
   std::vector<double> seed, goal, solution;
   const std::vector<std::string>& tip_frames = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
-  if (seed_.empty())
-    robot_state.setToDefaultValues();
-  else
+  robot_state.setToDefaultValues();
+
+  if (!seed_.empty())
     robot_state.setJointGroupPositions(jmg_, seed_);
 
   bool publish_trajectory = false;
@@ -465,11 +466,10 @@ TEST_F(KinematicsTest, unitIK)
   std::vector<double> seed, sol;
   const std::vector<std::string>& tip_frames = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   // initial joint pose from seed_ or defaults
-  if (seed_.empty())
-    robot_state.setToDefaultValues();
-  else
+  if (!seed_.empty())
     robot_state.setJointGroupPositions(jmg_, seed_);
   robot_state.copyJointGroupPositions(jmg_, seed);
 
@@ -539,6 +539,7 @@ TEST_F(KinematicsTest, searchIK)
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   unsigned int success = 0;
   for (unsigned int i = 0; i < num_ik_tests_; ++i)
@@ -572,6 +573,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   unsigned int success = 0;
   for (unsigned int i = 0; i < num_ik_cb_tests_; ++i)
@@ -608,6 +610,7 @@ TEST_F(KinematicsTest, getIK)
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   for (unsigned int i = 0; i < num_ik_tests_; ++i)
   {
@@ -636,6 +639,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
 
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   unsigned int success = 0;
   for (unsigned int i = 0; i < num_ik_multiple_tests_; ++i)
@@ -678,6 +682,7 @@ TEST_F(KinematicsTest, getNearestIKSolution)
   moveit_msgs::MoveItErrorCodes error_code;
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
   robot_state::RobotState robot_state(robot_model_);
+  robot_state.setToDefaultValues();
 
   for (unsigned int i = 0; i < num_nearest_ik_tests_; ++i)
   {
