@@ -43,7 +43,6 @@
 
 namespace jog_arm
 {
-
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
 // threads.
