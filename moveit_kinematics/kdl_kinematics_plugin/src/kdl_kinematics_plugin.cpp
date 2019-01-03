@@ -58,22 +58,14 @@ KDLKinematicsPlugin::KDLKinematicsPlugin() : active_(false)
 
 void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray& jnt_array) const
 {
-  std::vector<double> jnt_array_vector(dimension_, 0.0);
   state_->setToRandomPositions(joint_model_group_);
-  state_->copyJointGroupPositions(joint_model_group_, &jnt_array_vector[0]);
-  for (std::size_t i = 0; i < dimension_; ++i)
-    jnt_array(i) = jnt_array_vector[i];
+  state_->copyJointGroupPositions(joint_model_group_, &jnt_array.data[0]);
 }
 
 void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state,
                                                  const std::vector<double>& consistency_limits,
                                                  KDL::JntArray& jnt_array) const
 {
-  std::vector<double> values(dimension_, 0.0);
-  std::vector<double> near(dimension_, 0.0);
-  for (std::size_t i = 0; i < dimension_; ++i)
-    near[i] = seed_state(i);
-
   // Need to resize the consistency limits to remove mimic joints
   std::vector<double> consistency_limits_mimic;
   for (std::size_t i = 0; i < dimension_; ++i)
@@ -83,11 +75,8 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state
     consistency_limits_mimic.push_back(consistency_limits[i]);
   }
 
-  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near,
-                                                       consistency_limits_mimic);
-
-  for (std::size_t i = 0; i < dimension_; ++i)
-    jnt_array(i) = values[i];
+  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), &jnt_array.data[0],
+                                                       &seed_state.data[0], consistency_limits_mimic);
 }
 
 bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
