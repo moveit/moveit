@@ -150,8 +150,8 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
     painter->setPen(palette.color(QPalette::Button));
     painter->drawLine(option.rect.topLeft(), option.rect.topRight());
     painter->setPen(palette.color(QPalette::Light));
-    const QPoint offset(0,1);
-    painter->drawLine(option.rect.topLeft()+offset, option.rect.topRight()+offset);
+    const QPoint offset(0, 1);
+    painter->drawLine(option.rect.topLeft() + offset, option.rect.topRight() + offset);
   }
 
   QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
