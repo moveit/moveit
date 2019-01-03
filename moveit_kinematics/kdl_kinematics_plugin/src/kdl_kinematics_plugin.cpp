@@ -55,7 +55,7 @@ CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinemati
 
 namespace kdl_kinematics_plugin
 {
-KDLKinematicsPlugin::KDLKinematicsPlugin() : active_(false)
+KDLKinematicsPlugin::KDLKinematicsPlugin() : initialized_(false)
 {
 }
 
@@ -204,7 +204,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
 
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
-  active_ = true;
+  initialized_ = true;
   ROS_DEBUG_NAMED("kdl", "KDL solver initialized");
   return true;
 }
@@ -274,9 +274,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            const kinematics::KinematicsQueryOptions& options) const
 {
   ros::WallTime start_time = ros::WallTime::now();
-  if (!active_)
+  if (!initialized_)
   {
-    ROS_ERROR_NAMED("kdl", "kinematics not active");
+    ROS_ERROR_NAMED("kdl", "kinematics solver not initialized");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -443,9 +443,9 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  if (!active_)
+  if (!initialized_)
   {
-    ROS_ERROR_NAMED("kdl", "kinematics not active");
+    ROS_ERROR_NAMED("kdl", "kinematics solver not initialized");
     return false;
   }
   poses.resize(link_names.size());

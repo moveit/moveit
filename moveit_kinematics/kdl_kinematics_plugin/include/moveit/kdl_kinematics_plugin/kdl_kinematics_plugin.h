@@ -161,7 +161,7 @@ private:
   void getRandomConfiguration(const Eigen::VectorXd& seed_state, const std::vector<double>& consistency_limits,
                               Eigen::VectorXd& jnt_array) const;
 
-  bool active_;  ///< Internal variable that indicates whether solver is configured and ready
+  bool initialized_;  ///< Internal variable that indicates whether solver is configured and ready
 
   unsigned int dimension_;                        ///< Dimension of the group
   moveit_msgs::KinematicSolverInfo solver_info_;  ///< Stores information for the inverse kinematics solver
