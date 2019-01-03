@@ -266,7 +266,6 @@ TEST_F(KinematicsTest, getFK)
   }
 }
 
-#define PUBLISH_TRAJECTORY 0
 // perform random walk in joint-space, reaching poses via IK
 TEST_F(KinematicsTest, randomWalkIK)
 {
@@ -275,13 +274,13 @@ TEST_F(KinematicsTest, randomWalkIK)
   robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
-#if PUBLISH_TRAJECTORY
+  bool publish_trajectory = false;
+  getParam<bool>("publish_trajectory", publish_trajectory);
   moveit_msgs::DisplayTrajectory msg;
   msg.model_id = robot_model_->getName();
   moveit::core::robotStateToRobotStateMsg(robot_state, msg.trajectory_start);
   msg.trajectory.resize(1);
   robot_trajectory::RobotTrajectory traj(robot_model_, jmg_);
-#endif
 
   unsigned int failures = 0;
   constexpr double NEAR_JOINT = 0.1;
@@ -323,19 +322,20 @@ TEST_F(KinematicsTest, randomWalkIK)
 
     // update robot state to found pose
     robot_state.setJointGroupPositions(jmg_, solution);
-#if PUBLISH_TRAJECTORY
     traj.addSuffixWayPoint(robot_state, 0.1);
-#endif
   }
   EXPECT_LE(failures, (1.0 - EXPECTED_SUCCESS_RATE) * num_ik_tests_);
 
-#if PUBLISH_TRAJECTORY
-  ros::NodeHandle nh;
-  ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("display_random_walk", 1, true);
-  traj.getRobotTrajectoryMsg(msg.trajectory[0]);
-  pub.publish(msg);
-  ros::spin();
-#endif
+  if (publish_trajectory)
+  {
+    ros::NodeHandle nh;
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    ros::Publisher pub = nh.advertise<moveit_msgs::DisplayTrajectory>("display_random_walk", 1, true);
+    traj.getRobotTrajectoryMsg(msg.trajectory[0]);
+    pub.publish(msg);
+    ros::WallDuration(0.1).sleep();
+  }
 }
 
 TEST_F(KinematicsTest, searchIK)
