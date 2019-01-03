@@ -122,14 +122,14 @@ private:
 
   // Jogging calculation thread
   static bool startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-    const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
+                                 const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 
   // Collision checking thread
-  static  bool startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  static bool startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
+                                        const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
   // Variables to share between threads
-  static struct JogArmShared shared_variables_;
+  struct JogArmShared shared_variables_;
 
   robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
 
@@ -152,7 +152,7 @@ public:
 private:
   double previous_measurements_[3] = { 0., 0., 0. };
   double previous_filtered_measurements_[2] = { 0., 0. };
-  // Larger-> more smoothing of jog commands, but more lag.
+  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
   double filter_coeff_ = 10.;

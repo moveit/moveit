@@ -44,10 +44,6 @@
 namespace jog_arm
 {
 
-// Initialize these static struct to hold ROS parameters.
-// They must be static because they are used as arguments in thread creation.
-JogArmShared JogROSInterface::shared_variables_;
-
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker
 // threads.
@@ -55,7 +51,7 @@ JogArmShared JogROSInterface::shared_variables_;
 // Another worker thread does collision checking.
 /////////////////////////////////////////////////////////////////////////////////
 
-static const double WHILE_LOOP_WAIT = 0.001;
+static const double g_while_loop_wait = 0.001;
 
 // Constructor for the main ROS interface node
 JogROSInterface::JogROSInterface()
@@ -70,12 +66,12 @@ JogROSInterface::JogROSInterface()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
   // Crunch the numbers in this thread
-  std::thread jogging_thread (JogROSInterface::startJogCalcThread,
-    ros_parameters_, std::ref(shared_variables_), model_loader_ptr_);
+  std::thread jogging_thread(JogROSInterface::startJogCalcThread, ros_parameters_, std::ref(shared_variables_),
+                             model_loader_ptr_);
 
   // Check collisions in this thread
-  std::thread collision_thread (JogROSInterface::startCollisionCheckThread, 
-    ros_parameters_, std::ref(shared_variables_), std::ref(model_loader_ptr_));  
+  std::thread collision_thread(JogROSInterface::startCollisionCheckThread, ros_parameters_, std::ref(shared_variables_),
+                               std::ref(model_loader_ptr_));
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber cmd_sub =
@@ -157,7 +153,7 @@ JogROSInterface::JogROSInterface()
 
 // A separate thread for the heavy jogging calculations.
 bool JogROSInterface::startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-  const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
+                                         const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
 {
   JogCalcs ja(parameters, shared_variables, model_loader_ptr);
   return true;
@@ -165,7 +161,7 @@ bool JogROSInterface::startJogCalcThread(const JogArmParameters& parameters, Jog
 
 // A separate thread for collision checking.
 bool JogROSInterface::startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-  const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+                                                const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
   collisionCheckThread cc(parameters, shared_variables, model_loader_ptr);
   return true;
@@ -183,7 +179,7 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
     while (ros::ok() && !model_loader_ptr)
     {
       ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-      ros::Duration(WHILE_LOOP_WAIT).sleep();
+      ros::Duration(g_while_loop_wait).sleep();
     }
     const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
     planning_scene::PlanningScene planning_scene(kinematic_model);
@@ -296,7 +292,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   while (ros::ok() && !model_loader_ptr)
   {
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    ros::Duration(g_while_loop_wait).sleep();
   }
   const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
   kinematic_state_ = std::make_shared<robot_state::RobotState>(kinematic_model);
@@ -333,7 +329,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     incoming_jts_ = shared_variables.joints;
     pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    ros::Duration(g_while_loop_wait).sleep();
   }
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
     position_filters_[i].reset(jt_state_.position[i]);
@@ -345,7 +341,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   moveit_msgs::JogJoint joint_deltas;
   while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
   {
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    ros::Duration(g_while_loop_wait).sleep();
 
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     cartesian_deltas = shared_variables.command_deltas;
@@ -383,7 +379,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       incoming_jts_ = shared_variables.joints;
       pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-      ros::Duration(WHILE_LOOP_WAIT).sleep();
+      ros::Duration(g_while_loop_wait).sleep();
     }
 
     // If there have not been several consecutive cycles of all zeros and joint
@@ -454,7 +450,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     }
 
     // Add a small sleep to avoid 100% CPU usage
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    ros::Duration(g_while_loop_wait).sleep();
   }
 }
 
@@ -832,8 +828,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
       }
     }
 
-    if (!kinematic_state_->satisfiesPositionBounds(joint,
-                                                   -parameters_.joint_limit_margin))
+    if (!kinematic_state_->satisfiesPositionBounds(joint, -parameters_.joint_limit_margin))
     {
       const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
 
