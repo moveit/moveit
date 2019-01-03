@@ -142,7 +142,7 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
   else
   {
     backgroundGradient.setColorAt(0, palette.color(QPalette::Light));
-    backgroundGradient.setColorAt(1, palette.color(QPalette::Button));
+    backgroundGradient.setColorAt(1, palette.color(QPalette::Light).darker(125));
     painter->fillRect(option.rect, QBrush(backgroundGradient));
   }
 
