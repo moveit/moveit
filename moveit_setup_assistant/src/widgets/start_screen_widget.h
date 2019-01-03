@@ -187,7 +187,7 @@ public:
   // Load file button
   QPushButton* btn_new_;
   QPushButton* btn_exist_;
-  QTextEdit* widget_instructions_;
+  QLabel* widget_instructions_;
 };
 }
 
