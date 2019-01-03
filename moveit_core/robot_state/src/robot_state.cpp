@@ -1947,6 +1947,28 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   if (jump_threshold.factor > 0 && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
+  // To limit absolute joint-space jumps, we pass consistency limits to the IK solver
+  std::vector<double> consistency_limits;
+  if (jump_threshold.prismatic > 0 || jump_threshold.revolute > 0)
+    for (const JointModel* jm : group->getActiveJointModels())
+    {
+      double limit;
+      switch (jm->getType())
+      {
+        case JointModel::REVOLUTE:
+          limit = jump_threshold.revolute;
+          break;
+        case JointModel::PRISMATIC:
+          limit = jump_threshold.prismatic;
+          break;
+        default:
+          limit = 0.0;
+      }
+      if (limit == 0.0)
+        limit = jm->getMaximumExtent();
+      consistency_limits.push_back(limit);
+    }
+
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
 
@@ -1960,7 +1982,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
     // Explicitly use a single IK attempt only: We want a smooth trajectory.
     // Random seeding (of additional attempts) would probably create IK jumps.
-    if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
+    if (setFromIK(group, pose, link->getName(), consistency_limits, 1, 0.0, validCallback, options))
       traj.push_back(RobotStatePtr(new RobotState(*this)));
     else
       break;
