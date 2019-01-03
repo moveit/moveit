@@ -139,31 +139,27 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     if (joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE ||
         joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
     {
-      ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
+      solver_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
       const std::vector<moveit_msgs::JointLimits>& jvec =
           joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
-      ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
+      solver_info_.limits.insert(solver_info_.limits.end(), jvec.begin(), jvec.end());
     }
   }
-
-  fk_chain_info_.joint_names = ik_chain_info_.joint_names;
-  fk_chain_info_.limits = ik_chain_info_.limits;
 
   if (!joint_model_group->hasLinkModel(getTipFrame()))
   {
     ROS_ERROR_NAMED("kdl", "Could not find tip name in joint group '%s'", group_name.c_str());
     return false;
   }
-  ik_chain_info_.link_names.push_back(getTipFrame());
-  fk_chain_info_.link_names = joint_model_group->getLinkModelNames();
+  solver_info_.link_names.push_back(getTipFrame());
 
-  joint_min_.resize(ik_chain_info_.limits.size());
-  joint_max_.resize(ik_chain_info_.limits.size());
+  joint_min_.resize(solver_info_.limits.size());
+  joint_max_.resize(solver_info_.limits.size());
 
-  for (unsigned int i = 0; i < ik_chain_info_.limits.size(); i++)
+  for (unsigned int i = 0; i < solver_info_.limits.size(); i++)
   {
-    joint_min_(i) = ik_chain_info_.limits[i].min_position;
-    joint_max_(i) = ik_chain_info_.limits[i].max_position;
+    joint_min_(i) = solver_info_.limits[i].min_position;
+    joint_max_(i) = solver_info_.limits[i].max_position;
   }
 
   // Get Solver Parameters
@@ -229,16 +225,6 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   active_ = true;
   ROS_DEBUG_NAMED("kdl", "KDL solver initialized");
   return true;
-}
-
-int KDLKinematicsPlugin::getJointIndex(const std::string& name) const
-{
-  for (unsigned int i = 0; i < ik_chain_info_.joint_names.size(); i++)
-  {
-    if (ik_chain_info_.joint_names[i] == name)
-      return i;
-  }
-  return -1;
 }
 
 bool KDLKinematicsPlugin::timedOut(const ros::WallTime& start_time, double duration) const
@@ -455,12 +441,12 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
 
 const std::vector<std::string>& KDLKinematicsPlugin::getJointNames() const
 {
-  return ik_chain_info_.joint_names;
+  return solver_info_.joint_names;
 }
 
 const std::vector<std::string>& KDLKinematicsPlugin::getLinkNames() const
 {
-  return ik_chain_info_.link_names;
+  return solver_info_.link_names;
 }
 
 }  // namespace

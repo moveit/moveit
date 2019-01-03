@@ -98,9 +98,6 @@ private:
   unsigned int maxiter;
   double eps;
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
-  void qToqMimic(const JntArray& q,
-                 JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state
-  void qMimicToq(const JntArray& q, JntArray& q_result);  // Convert from the "full" state to the "reduced" state
   bool position_ik;
 };
 }

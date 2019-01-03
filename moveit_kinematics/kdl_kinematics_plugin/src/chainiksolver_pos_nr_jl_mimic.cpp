@@ -92,25 +92,6 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   return true;
 }
 
-void ChainIkSolverPos_NR_JL_Mimic::qToqMimic(const JntArray& q, JntArray& q_result)
-{
-  for (std::size_t i = 0; i < chain.getNrOfJoints(); ++i)
-  {
-    q_result(i) = mimic_joints[i].offset + mimic_joints[i].multiplier * q(mimic_joints[i].map_index);
-  }
-}
-
-void ChainIkSolverPos_NR_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_result)
-{
-  for (std::size_t i = 0; i < chain.getNrOfJoints(); ++i)
-  {
-    if (mimic_joints[i].active)  // This is not a mimic joint
-    {
-      q_result(mimic_joints[i].map_index) = q(i);
-    }
-  }
-}
-
 int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
   q_temp = q_init;

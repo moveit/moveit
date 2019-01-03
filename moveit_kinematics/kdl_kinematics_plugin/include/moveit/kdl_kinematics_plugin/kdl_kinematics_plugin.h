@@ -150,8 +150,6 @@ private:
   bool checkConsistency(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
                         const KDL::JntArray& solution) const;
 
-  int getJointIndex(const std::string& name) const;
-
   void getRandomConfiguration(KDL::JntArray& jnt_array) const;
 
   /** @brief Get a random configuration within consistency limits close to the seed state
@@ -162,19 +160,15 @@ private:
   void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
                               KDL::JntArray& jnt_array) const;
 
-  bool active_; /** Internal variable that indicates whether solvers are configured and ready */
+  bool active_; /** Internal variable that indicates whether solver is configured and ready */
 
-  moveit_msgs::KinematicSolverInfo ik_chain_info_; /** Stores information for the inverse kinematics solver */
-
-  moveit_msgs::KinematicSolverInfo fk_chain_info_; /** Store information for the forward kinematics solver */
+  moveit_msgs::KinematicSolverInfo solver_info_; /** Stores information for the inverse kinematics solver */
 
   KDL::Chain kdl_chain_;
 
   unsigned int dimension_; /** Dimension of the group */
 
   KDL::JntArray joint_min_, joint_max_; /** Joint limits */
-
-  mutable random_numbers::RandomNumberGenerator random_number_generator_;
 
   robot_state::RobotStatePtr state_;
 
