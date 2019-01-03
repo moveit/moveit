@@ -35,12 +35,14 @@
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <class_loader/class_loader.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
 
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2/transform_datatypes.h>
 
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 
 // URDF, SRDF
@@ -48,6 +50,7 @@
 #include <srdfdom/model.h>
 
 // register KDLKinematics as a KinematicsBase implementation
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)
 
 namespace kdl_kinematics_plugin
@@ -56,32 +59,23 @@ KDLKinematicsPlugin::KDLKinematicsPlugin() : active_(false)
 {
 }
 
-void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray& jnt_array) const
+void KDLKinematicsPlugin::getRandomConfiguration(Eigen::VectorXd& jnt_array) const
 {
   state_->setToRandomPositions(joint_model_group_);
-  state_->copyJointGroupPositions(joint_model_group_, &jnt_array.data[0]);
+  state_->copyJointGroupPositions(joint_model_group_, &jnt_array[0]);
 }
 
-void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state,
+void KDLKinematicsPlugin::getRandomConfiguration(const Eigen::VectorXd& seed_state,
                                                  const std::vector<double>& consistency_limits,
-                                                 KDL::JntArray& jnt_array) const
+                                                 Eigen::VectorXd& jnt_array) const
 {
-  // Need to resize the consistency limits to remove mimic joints
-  std::vector<double> consistency_limits_mimic;
-  for (std::size_t i = 0; i < dimension_; ++i)
-  {
-    if (!mimic_joints_[i].active)
-      continue;
-    consistency_limits_mimic.push_back(consistency_limits[i]);
-  }
-
-  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), &jnt_array.data[0],
-                                                       &seed_state.data[0], consistency_limits_mimic);
+  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), &jnt_array[0],
+                                                       &seed_state[0], consistency_limits);
 }
 
-bool KDLKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
+bool KDLKinematicsPlugin::checkConsistency(const Eigen::VectorXd& seed_state,
                                            const std::vector<double>& consistency_limits,
-                                           const KDL::JntArray& solution) const
+                                           const Eigen::VectorXd& solution) const
 {
   for (std::size_t i = 0; i < dimension_; ++i)
     if (fabs(seed_state(i) - solution(i)) > consistency_limits[i])
@@ -94,16 +88,16 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
                                      double search_discretization)
 {
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
-  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
-  if (!joint_model_group)
+  joint_model_group_ = robot_model_->getJointModelGroup(group_name);
+  if (!joint_model_group_)
     return false;
 
-  if (!joint_model_group->isChain())
+  if (!joint_model_group_->isChain())
   {
     ROS_ERROR_NAMED("kdl", "Group '%s' is not a chain", group_name.c_str());
     return false;
   }
-  if (!joint_model_group->isSingleDOFJoints())
+  if (!joint_model_group_->isSingleDOFJoints())
   {
     ROS_ERROR_NAMED("kdl", "Group '%s' includes joints that have more than 1 DOF", group_name.c_str());
     return false;
@@ -122,20 +116,20 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     return false;
   }
 
-  dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
-  for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
+  dimension_ = joint_model_group_->getActiveJointModels().size() + joint_model_group_->getMimicJointModels().size();
+  for (std::size_t i = 0; i < joint_model_group_->getJointModels().size(); ++i)
   {
-    if (joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE ||
-        joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
+    if (joint_model_group_->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE ||
+        joint_model_group_->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
     {
-      solver_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
+      solver_info_.joint_names.push_back(joint_model_group_->getJointModelNames()[i]);
       const std::vector<moveit_msgs::JointLimits>& jvec =
-          joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
+          joint_model_group_->getJointModels()[i]->getVariableBoundsMsg();
       solver_info_.limits.insert(solver_info_.limits.end(), jvec.begin(), jvec.end());
     }
   }
 
-  if (!joint_model_group->hasLinkModel(getTipFrame()))
+  if (!joint_model_group_->hasLinkModel(getTipFrame()))
   {
     ROS_ERROR_NAMED("kdl", "Could not find tip name in joint group '%s'", group_name.c_str());
     return false;
@@ -160,7 +154,6 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     ROS_INFO_NAMED("kdl", "Using position only ik");
 
   // Check for mimic joints
-  std::vector<JointMimic> mimic_joints;
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
@@ -173,43 +166,43 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
       mimic_joint.reset(joint_counter);
       mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
       mimic_joint.active = true;
-      mimic_joints.push_back(mimic_joint);
+      mimic_joints_.push_back(mimic_joint);
       ++joint_counter;
       continue;
     }
-    if (joint_model_group->hasJointModel(jm->getName()))
+    if (joint_model_group_->hasJointModel(jm->getName()))
     {
-      if (jm->getMimic() && joint_model_group->hasJointModel(jm->getMimic()->getName()))
+      if (jm->getMimic() && joint_model_group_->hasJointModel(jm->getMimic()->getName()))
       {
         JointMimic mimic_joint;
         mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
         mimic_joint.offset = jm->getMimicOffset();
         mimic_joint.multiplier = jm->getMimicFactor();
-        mimic_joints.push_back(mimic_joint);
+        mimic_joints_.push_back(mimic_joint);
         continue;
       }
     }
   }
-  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
+  for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
   {
-    if (!mimic_joints[i].active)
+    if (!mimic_joints_[i].active)
     {
       const robot_model::JointModel* joint_model =
-          joint_model_group->getJointModel(mimic_joints[i].joint_name)->getMimic();
-      for (std::size_t j = 0; j < mimic_joints.size(); ++j)
+          joint_model_group_->getJointModel(mimic_joints_[i].joint_name)->getMimic();
+      for (std::size_t j = 0; j < mimic_joints_.size(); ++j)
       {
-        if (mimic_joints[j].joint_name == joint_model->getName())
+        if (mimic_joints_[j].joint_name == joint_model->getName())
         {
-          mimic_joints[i].map_index = mimic_joints[j].map_index;
+          mimic_joints_[i].map_index = mimic_joints_[j].map_index;
         }
       }
     }
   }
-  mimic_joints_ = mimic_joints;
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
-  joint_model_group_ = joint_model_group;
+
+  fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
   active_ = true;
   ROS_DEBUG_NAMED("kdl", "KDL solver initialized");
@@ -303,18 +296,27 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
+  // Resize consistency limits to remove mimic joints
+  std::vector<double> consistency_limits_mimic;
+  if (!consistency_limits.empty())
+  {
+    for (std::size_t i = 0; i < dimension_; ++i)
+    {
+      if (!mimic_joints_[i].active)
+        continue;
+      consistency_limits_mimic.push_back(consistency_limits[i]);
+    }
+  }
 
   KDL::JntArray jnt_seed_state(dimension_);
   KDL::JntArray jnt_pos_in(dimension_);
   KDL::JntArray jnt_pos_out(dimension_);
+  jnt_seed_state.data = Eigen::Map<const Eigen::VectorXd>(ik_seed_state.data(), ik_seed_state.size());
+  jnt_pos_in = jnt_seed_state;
 
-  KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
   KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, joint_model_group_->getMimicJointModels().size(),
                                                  position_ik_);
-  KDL::ChainIkSolverPos_NR_JL_Mimic ik_solver_pos(kdl_chain_, joint_min_, joint_max_, fk_solver, ik_solver_vel,
-                                                  max_solver_iterations_, epsilon_, position_ik_);
   ik_solver_vel.setMimicJoints(mimic_joints_);
-  ik_solver_pos.setMimicJoints(mimic_joints_);
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
@@ -324,13 +326,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
                                     << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
                                     << ik_pose.orientation.z << " " << ik_pose.orientation.w);
-  // Do the IK
-  for (unsigned int i = 0; i < dimension_; i++)
-    jnt_seed_state(i) = ik_seed_state[i];
-  jnt_pos_in = jnt_seed_state;
 
   unsigned int counter(0);
-  while (1)
+  while (true)
   {
     ++counter;
     if (counter > 1 && timedOut(start_time, timeout))  // timeout after first attempt only
@@ -343,18 +341,18 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
     if (counter > 1)
       ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration (" << counter << "): " << jnt_pos_in);
 
-    int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
+    int ik_valid = CartToJnt(ik_solver_vel, jnt_pos_in, pose_desired, jnt_pos_out, max_solver_iterations_);
     ROS_DEBUG_NAMED("kdl", "IK valid: %d", ik_valid);
-    if (!consistency_limits.empty())
+    if (!consistency_limits_mimic.empty())
     {
       if ((ik_valid < 0 && !options.return_approximate_solution) ||
-          !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
+          !checkConsistency(jnt_seed_state.data, consistency_limits_mimic, jnt_pos_out.data))
       {
         ROS_DEBUG_STREAM_NAMED("kdl", "Could not find IK solution"
                                           << ((ik_valid < 0 && !options.return_approximate_solution) ?
                                                   "" :
                                                   ": does not match consistency limits"));
-        getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in);
+        getRandomConfiguration(jnt_seed_state.data, consistency_limits_mimic, jnt_pos_in.data);
         continue;
       }
     }
@@ -363,7 +361,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       if (ik_valid < 0 && !options.return_approximate_solution)
       {
         ROS_DEBUG_NAMED("kdl", "Could not find IK solution");
-        getRandomConfiguration(jnt_pos_in);
+        getRandomConfiguration(jnt_pos_in.data);
         continue;
       }
     }
@@ -387,6 +385,60 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   return false;
 }
 
+int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::JntArray& q_init,
+                                   const KDL::Frame& p_in, KDL::JntArray& q_out, const unsigned int max_iter) const
+{
+  KDL::Frame f;
+  KDL::Twist delta_twist;
+  KDL::JntArray delta_q(q_out.rows());
+
+  q_out = q_init;
+  ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
+
+  unsigned int i;
+  for (i = 0; i < max_iter; ++i)
+  {
+    fk_solver_->JntToCart(q_out, f);
+    delta_twist = diff(f, p_in);
+    ROS_DEBUG_STREAM_NAMED("kdl", "delta_twist: " << delta_twist);
+
+    if (position_ik_)
+    {
+      if (fabs(delta_twist(0)) < epsilon_ && fabs(delta_twist(1)) < epsilon_ && fabs(delta_twist(2)) < epsilon_)
+        break;
+    }
+    else
+    {
+      if (KDL::Equal(delta_twist, KDL::Twist::Zero(), epsilon_))
+        break;
+    }
+
+    ik_solver.CartToJnt(q_out, delta_twist, delta_q);
+    KDL::Add(q_out, delta_q, q_out);
+
+    ROS_DEBUG_STREAM_NAMED("kdl", "delta_q: " << delta_q);
+    ROS_DEBUG_STREAM_NAMED("kdl", "q: " << q_out);
+
+    for (std::size_t j = 0; j < joint_min_.rows(); ++j)
+    {
+      if (q_out(j) < joint_min_(j))
+        q_out(j) = joint_min_(j);
+    }
+    for (std::size_t j = 0; j < joint_max_.rows(); ++j)
+    {
+      if (q_out(j) > joint_max_(j))
+        q_out(j) = joint_max_(j);
+    }
+  }
+
+  ROS_DEBUG_STREAM_NAMED("kdl", "Actual Solution (" << i << "): " << q_out);
+
+  if (i != max_iter)
+    return 0;
+  else
+    return -3;
+}
+
 bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
@@ -405,17 +457,12 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
 
   KDL::Frame p_out;
   KDL::JntArray jnt_pos_in(dimension_);
-  for (unsigned int i = 0; i < dimension_; i++)
-  {
-    jnt_pos_in(i) = joint_angles[i];
-  }
-
-  KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
+  jnt_pos_in.data = Eigen::Map<const Eigen::VectorXd>(joint_angles.data(), joint_angles.size());
 
   bool valid = true;
   for (unsigned int i = 0; i < poses.size(); i++)
   {
-    if (fk_solver.JntToCart(jnt_pos_in, p_out) >= 0)
+    if (fk_solver_->JntToCart(jnt_pos_in, p_out) >= 0)
     {
       poses[i] = tf2::toMsg(p_out);
     }

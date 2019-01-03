@@ -49,16 +49,13 @@
 #include <moveit_msgs/MoveItErrorCodes.h>
 
 // KDL
-#include <kdl/jntarray.hpp>
-#include <kdl/chainiksolvervel_pinv.hpp>
-#include <kdl/chainiksolverpos_nr_jl.hpp>
-#include <kdl/chainfksolverpos_recursive.hpp>
-#include <moveit/kdl_kinematics_plugin/chainiksolver_pos_nr_jl_mimic.hpp>
-#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
-#include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
+#include <kdl/config.h>
+#include <kdl/chainfksolver.hpp>
+#include <kdl/chainiksolver.hpp>
 
 // MoveIt!
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
@@ -138,6 +135,10 @@ protected:
                         moveit_msgs::MoveItErrorCodes& error_code, const std::vector<double>& consistency_limits,
                         const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
+  /// Solve position IK given initial joint values
+  int CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
+                KDL::JntArray& q_out, const unsigned int max_iter) const;
+
 private:
   bool timedOut(const ros::WallTime& start_time, double duration) const;
 
@@ -147,36 +148,34 @@ private:
    *  @param solution solution configuration
    *  @return true if check succeeds
    */
-  bool checkConsistency(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
-                        const KDL::JntArray& solution) const;
+  bool checkConsistency(const Eigen::VectorXd& seed_state, const std::vector<double>& consistency_limits,
+                        const Eigen::VectorXd& solution) const;
 
-  void getRandomConfiguration(KDL::JntArray& jnt_array) const;
+  void getRandomConfiguration(Eigen::VectorXd& jnt_array) const;
 
   /** @brief Get a random configuration within consistency limits close to the seed state
    *  @param seed_state Seed state
    *  @param consistency_limits
    *  @param jnt_array Returned random configuration
    */
-  void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
-                              KDL::JntArray& jnt_array) const;
+  void getRandomConfiguration(const Eigen::VectorXd& seed_state, const std::vector<double>& consistency_limits,
+                              Eigen::VectorXd& jnt_array) const;
 
-  bool active_; /** Internal variable that indicates whether solver is configured and ready */
+  bool active_;  ///< Internal variable that indicates whether solver is configured and ready
 
-  moveit_msgs::KinematicSolverInfo solver_info_; /** Stores information for the inverse kinematics solver */
+  unsigned int dimension_;                        ///< Dimension of the group
+  moveit_msgs::KinematicSolverInfo solver_info_;  ///< Stores information for the inverse kinematics solver
 
-  KDL::Chain kdl_chain_;
-
-  unsigned int dimension_; /** Dimension of the group */
-
-  KDL::JntArray joint_min_, joint_max_; /** Joint limits */
-
-  robot_state::RobotStatePtr state_;
-
-  bool position_ik_;  // whether this solver is only being used for position ik
   const robot_model::JointModelGroup* joint_model_group_;
+  robot_state::RobotStatePtr state_;
+  KDL::Chain kdl_chain_;
+  std::unique_ptr<KDL::ChainFkSolverPos> fk_solver_;
+  std::vector<JointMimic> mimic_joints_;
+  Eigen::VectorXd joint_min_, joint_max_;  ///< joint limits
+
+  bool position_ik_;  ///< whether this solver is only being used for position ik
   int max_solver_iterations_;
   double epsilon_;
-  std::vector<JointMimic> mimic_joints_;
 };
 }
 
