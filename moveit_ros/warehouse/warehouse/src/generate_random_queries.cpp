@@ -46,8 +46,6 @@
 #include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
 
-#include <moveit/move_group_interface/move_group_interface.h>
-
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 
@@ -158,8 +156,10 @@ int main(int argc, char** argv)
     srand(static_cast<unsigned>(time(0)));
     robot_model_loader::RobotModelLoader rml;
     robot_model::RobotModelConstPtr robot_model = rml.getModel();
-    planning_scene::PlanningScene planning_scene(robot_model);
 
+    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+    psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
+    planning_scene::PlanningScenePtr planning_scene = psm.getPlanningScene();
     while (cur_queries_number < tot_queries_number && fail_queries_cur < fail_queries_bound)
     {
       moveit::core::RobotState coll_start_state(robot_model);
@@ -206,16 +206,16 @@ int main(int argc, char** argv)
       moveit_msgs::Constraints msg_goal_state;
 
       // check start state collision
-      planning_scene.checkCollision(collision_request, collision_result_start, coll_start_state);
+      planning_scene->checkCollision(collision_request, collision_result_start, coll_start_state);
       if (!collision_result_start.collision)
       {
-        robot_state::RobotState st = planning_scene.getCurrentState();
+	    robot_state::RobotState st = planning_scene->getCurrentState();
         st.setVariablePositions(var_start);
         robot_state::robotStateToRobotStateMsg(st, msg_start_state);
       }
 
       // check goal state collision
-      planning_scene.checkCollision(collision_request, collision_result_goal, coll_goal_state);
+      planning_scene->checkCollision(collision_request, collision_result_goal, coll_goal_state);
       if (!collision_result_goal.collision)
       {
         std::vector<moveit_msgs::JointConstraint> joint_constraints;
