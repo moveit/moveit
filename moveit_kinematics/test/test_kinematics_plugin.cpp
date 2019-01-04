@@ -89,6 +89,7 @@ class SharedData
   std::vector<std::string> joints_;
   std::vector<double> seed_;
   std::vector<double> consistency_limits_;
+  double timeout_;
   int num_fk_tests_;
   int num_ik_cb_tests_;
   int num_ik_tests_;
@@ -121,6 +122,8 @@ class SharedData
     getParam("seed", seed_);
     ASSERT_TRUE(seed_.empty() || seed_.size() == joints_.size());
     getParam("consistency_limits", consistency_limits_);
+    if (!getParam("ik_timeout", timeout_) || timeout_ < 0.0)
+      timeout_ = 1.0;
     ASSERT_TRUE(consistency_limits_.empty() || consistency_limits_.size() == joints_.size());
     ASSERT_TRUE(getParam("num_fk_tests", num_fk_tests_));
     ASSERT_TRUE(getParam("num_ik_cb_tests", num_ik_cb_tests_));
@@ -164,6 +167,7 @@ protected:
     joints_ = data.joints_;
     seed_ = data.seed_;
     consistency_limits_ = data.consistency_limits_;
+    timeout_ = data.timeout_;
     num_fk_tests_ = data.num_fk_tests_;
     num_ik_cb_tests_ = data.num_ik_cb_tests_;
     num_ik_tests_ = data.num_ik_tests_;
@@ -244,6 +248,7 @@ public:
   std::vector<std::string> joints_;
   std::vector<double> seed_;
   std::vector<double> consistency_limits_;
+  double timeout_;
   int num_fk_tests_;
   int num_ik_cb_tests_;
   int num_ik_tests_;
@@ -432,7 +437,7 @@ TEST_F(KinematicsTest, unitIK)
   auto validateIK = [&](const geometry_msgs::Pose& goal, std::vector<double>& truth) {
     // compute IK
     moveit_msgs::MoveItErrorCodes error_code;
-    kinematics_solver_->searchPositionIK(goal, seed, 0.01 /* timeout */,
+    kinematics_solver_->searchPositionIK(goal, seed, timeout_,
                                          const_cast<const std::vector<double>&>(consistency_limits_), sol, error_code);
     ASSERT_EQ(error_code.val, error_code.SUCCESS);
 
@@ -485,7 +490,6 @@ TEST_F(KinematicsTest, unitIK)
 TEST_F(KinematicsTest, searchIK)
 {
   std::vector<double> seed, fk_values, solution;
-  double timeout = 5.0;
   moveit_msgs::MoveItErrorCodes error_code;
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
@@ -501,7 +505,7 @@ TEST_F(KinematicsTest, searchIK)
     std::vector<geometry_msgs::Pose> poses;
     ASSERT_TRUE(kinematics_solver_->getPositionFK(fk_names, fk_values, poses));
 
-    kinematics_solver_->searchPositionIK(poses[0], seed, timeout, solution, error_code);
+    kinematics_solver_->searchPositionIK(poses[0], seed, timeout_, solution, error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;
     else
@@ -519,7 +523,6 @@ TEST_F(KinematicsTest, searchIK)
 TEST_F(KinematicsTest, searchIKWithCallback)
 {
   std::vector<double> seed, fk_values, solution;
-  double timeout = 5.0;
   moveit_msgs::MoveItErrorCodes error_code;
   solution.resize(kinematics_solver_->getJointNames().size(), 0.0);
   const std::vector<std::string>& fk_names = kinematics_solver_->getTipFrames();
@@ -537,7 +540,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
     if (poses[0].position.z <= 0.0f)
       continue;
 
-    kinematics_solver_->searchPositionIK(poses[0], fk_values, timeout, solution,
+    kinematics_solver_->searchPositionIK(poses[0], fk_values, timeout_, solution,
                                          boost::bind(&KinematicsTest::searchIKCallback, this, _1, _2, _3), error_code);
     if (error_code.val == error_code.SUCCESS)
       success++;

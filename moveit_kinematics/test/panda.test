@@ -8,6 +8,7 @@
 		<param name="root_link" value="panda_link0"/>
 		<param name="tip_link" value="panda_link8"/>
 		<param name="group" value="panda_arm"/>
+		<param name="ik_timeout" value="0.2"/>
 		<rosparam param="joint_names">[panda_joint1, panda_joint2, panda_joint3, panda_joint4, panda_joint5, panda_joint6, panda_joint7]</rosparam>
 
 		<!-- KDL-specific solver parameters -->
