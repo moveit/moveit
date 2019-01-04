@@ -16,6 +16,8 @@ API changes in MoveIt! releases
   Use `tip_frames_` and `redundant_joint_discretization_` instead.
 - KinematicsBase: Deprecated `initialize(robot_description, ...)` in favour of `initialize(robot_model, ...)`.
   Adapt your kinematics plugin to directly receive a `RobotModel`. See the [KDL plugin](https://github.com/ros-planning/moveit/tree/melodic-devel/moveit_kinematics/kdl_kinematics_plugin) for an example.
+- IK: Removed notion of IK attempts and redundant random seeding in RobotState::setFromIK(). Number of attempts is limited by timeout only. ([#1288](https://github.com/ros-planning/moveit/pull/1288))
+  Remove parameters `kinematics_solver_attempts` from your `kinematics.yaml` config files.
 - ``RDFLoader`` / ``RobotModelLoader``: removed TinyXML-based API (https://github.com/ros-planning/moveit/pull/1254)
 - Deprecated `EndEffectorInteractionStyle` got removed from `RobotInteraction` (https://github.com/ros-planning/moveit/pull/1287)
   Use [the corresponding `InteractionStyle` definitions](https://github.com/ros-planning/moveit/pull/1287/files#diff-24e57a8ea7f2f2d8a63cfc31580d09ddL240) instead
