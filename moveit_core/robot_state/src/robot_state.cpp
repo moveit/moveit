@@ -1784,6 +1784,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   if (timeout < std::numeric_limits<double>::epsilon())
     timeout = jmg->getDefaultIKTimeout();
   ros::WallTime start = ros::WallTime::now();
+  double elapsed = 0;
 
   bool first_seed = true;
   unsigned int attempts = 0;
@@ -1818,7 +1819,8 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
       std::vector<double> ik_sol;
       moveit_msgs::MoveItErrorCodes error;
       const std::vector<double>& climits = consistency_limits.empty() ? std::vector<double>() : consistency_limits[sg];
-      if (solvers[sg]->searchPositionIK(ik_queries[sg], seed, timeout / sub_groups.size(), climits, ik_sol, error))
+      if (solvers[sg]->searchPositionIK(ik_queries[sg], seed, (timeout - elapsed) / sub_groups.size(), climits, ik_sol,
+                                        error))
       {
         std::vector<double> solution(bij.size());
         for (std::size_t i = 0; i < bij.size(); ++i)
@@ -1841,7 +1843,9 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
         return true;
       }
     }
-  } while ((ros::WallTime::now() - start).toSec() > timeout);
+    elapsed = (ros::WallTime::now() - start).toSec();
+    first_seed = false;
+  } while (elapsed < timeout);
   return false;
 }
 
