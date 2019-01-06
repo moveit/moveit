@@ -26,13 +26,12 @@
 #ifndef KDL_CHAIN_IKSOLVERVEL_PINV_Mimic_HPP
 #define KDL_CHAIN_IKSOLVERVEL_PINV_Mimic_HPP
 
-#include "kdl/config.h"
-#include "kdl/chainiksolver.hpp"
-#include "kdl/chainjnttojacsolver.hpp"
-#include "kdl/utilities/svd_HH.hpp"
-#include "kdl/utilities/svd_eigen_HH.hpp"
+#include <kdl/config.h>
+#include <kdl/chainiksolver.hpp>
+#include <kdl/chainjnttojacsolver.hpp>
 
 #include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
+#include <Eigen/SVD>
 
 namespace KDL
 {
@@ -56,10 +55,9 @@ public:
    * @param position_ik false if you want to solve for the full 6 dof end-effector pose,
    *        true if you want to solve only for the 3 dof end-effector position.
    * @param eps if a singular value is below this value, its inverse is set to zero, default: 0.00001
-   * @param maxiter maximum iterations for the svd calculation, default: 150
    */
   explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, bool position_ik = false,
-                                       double eps = 0.00001, int maxiter = 150);
+                                       double eps = 0.00001);
 
 // TODO: simplify after kinetic support is dropped
 #define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
@@ -99,17 +97,11 @@ private:
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
 
-  Eigen::MatrixXd U;
-  Eigen::VectorXd S;
-  Eigen::MatrixXd V;
-  Eigen::VectorXd tmp;
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd;
   Eigen::VectorXd qdot_out_reduced;
 
   Jacobian jac;          // full Jacobian
   Jacobian jac_reduced;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
-
-  double eps;
-  int maxiter;
 
   // Mimic joint specific
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
