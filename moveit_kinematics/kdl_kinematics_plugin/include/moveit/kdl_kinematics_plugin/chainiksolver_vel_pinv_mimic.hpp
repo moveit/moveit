@@ -51,13 +51,17 @@ public:
    * Constructor of the solver
    *
    * @param chain the chain to calculate the inverse velocity kinematics for
+   * @param mimic_joints A vector of indices that map each (and every) joint onto the corresponding joint in a
+   * reduced set of joints that do not include the mimic joints. This vector must be of size chain.getNrOfJoints().
+   * E.g. if an arm has 7 joints: j0 to j6. Say j2 mimics (follows) j0. Then, mimic_joints should be: [0 1 0 3 4 5 6]
    * @param num_mimic_joints The number of joints that are setup to follow other joints
    * @param position_ik false if you want to solve for the full 6 dof end-effector pose,
    *        true if you want to solve only for the 3 dof end-effector position.
-   * @param eps if a singular value is below this value, its inverse is set to zero, default: 0.00001
+   * @param threshold if a singular value is below this value, its inverse is set to zero, default: 0.00001
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, bool position_ik = false,
-                                       double eps = 0.00001);
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain_,
+                                       const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints,
+                                       bool position_ik = false, double threshold = 0.00001);
 
 // TODO: simplify after kinetic support is dropped
 #define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
@@ -72,42 +76,27 @@ public:
 
   int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override;
 
-  /**
-   * not (yet) implemented.
-   *
-   */
+  /// not implemented.
   int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out) override
   {
     return -1;
-  };
-
-  /**
-   * @brief Set a vector of indices that map each (and every) joint in the chain onto the corresponding joint in a
-   * reduced set of joints that do not include the mimic joints. This vector must be of size chain.getNrOfJoints().
-   * E.g. if an arm has 7 joints: j0 to j6. Say j2 mimics (follows) j0. Then, mimic_joints should be:
-   * [0 1 0 3 4 5 6]
-   * @param mimic_joints Vector of size chain.getNrOfJoints() that maps every joint in the chain onto (a) itself
-   * if its not a mimic joint or (b) onto the active dof that it is mimicking
-   */
-  bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints);
+  }
 
 private:
-  bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_mimic);
-
-  const Chain chain;
-  ChainJntToJacSolver jnt2jac;
-
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd;
-  Eigen::VectorXd qdot_out_reduced;
-
-  Jacobian jac;          // full Jacobian
-  Jacobian jac_reduced;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
+  bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced);
 
   // Mimic joint specific
-  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
-  int num_mimic_joints;
+  const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints_;
+  int num_mimic_joints_;
 
-  bool position_ik;
+  const Chain& chain_;
+  ChainJntToJacSolver jnt2jac_;
+
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
+  Eigen::VectorXd qdot_out_reduced_;
+
+  Jacobian jac_;          // full Jacobian
+  Jacobian jac_reduced_;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
 };
 }
 #endif

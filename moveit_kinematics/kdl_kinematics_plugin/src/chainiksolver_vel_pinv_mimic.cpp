@@ -26,24 +26,42 @@
 #include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
 #include <ros/console.h>
 
+namespace
+{
+unsigned int countMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints)
+{
+  unsigned int num_mimic = 0;
+  unsigned int index = 0;
+  for (const auto& item : mimic_joints)
+  {
+    if (item.map_index != index)
+      ++num_mimic;
+    ++index;
+  }
+  return num_mimic;
+}
+}
+
 namespace KDL
 {
-ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints, bool _position_ik,
-                                                         double _eps)
-  : chain(_chain)
-  , jnt2jac(chain)
+ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(
+    const Chain& chain, const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints, bool position_ik,
+    double threshold)
+  : mimic_joints_(mimic_joints)
+  , num_mimic_joints_(countMimicJoints(mimic_joints))
+  , chain_(chain)
+  , jnt2jac_(chain)
   // Performing a position-only IK, we just need to consider the first 3 rows of the Jacobian for SVD
   // SVD doesn't consider mimic joints, but only their driving joints
-  , svd(_position_ik ? 3 : 6, chain.getNrOfJoints() - _num_mimic_joints, Eigen::ComputeThinU | Eigen::ComputeThinV)
-  , jac(chain.getNrOfJoints())
-  , jac_reduced(chain.getNrOfJoints() - _num_mimic_joints)
-  , num_mimic_joints(_num_mimic_joints)
-  , position_ik(_position_ik)
+  , svd_(position_ik ? 3 : 6, chain_.getNrOfJoints() - num_mimic_joints_, Eigen::ComputeThinU | Eigen::ComputeThinV)
+  , jac_(chain_.getNrOfJoints())
+  , jac_reduced_(svd_.cols())
 {
-  svd.setThreshold(_eps);
-  mimic_joints_.resize(chain.getNrOfJoints());
-  for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
-    mimic_joints_[i].reset(i);
+  assert(mimic_joints_.size() == chain.getNrOfJoints());
+  for (const auto& item : mimic_joints)
+    assert(item.map_index < chain_.getNrOfJoints());
+
+  svd_.setThreshold(threshold);
 }
 
 void ChainIkSolverVel_pinv_mimic::updateInternalDataStructures()
@@ -56,29 +74,15 @@ ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
 {
 }
 
-bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints)
+bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced)
 {
-  if (mimic_joints.size() != chain.getNrOfJoints())
-    return false;
-
-  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
+  jac_reduced.data.setZero();
+  for (std::size_t i = 0; i < chain_.getNrOfJoints(); ++i)
   {
-    if (mimic_joints[i].map_index >= chain.getNrOfJoints())
-      return false;
-  }
-  mimic_joints_ = mimic_joints;
-  return true;
-}
-
-bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced_l)
-{
-  jac_reduced_l.data.setZero();
-  for (std::size_t i = 0; i < chain.getNrOfJoints(); ++i)
-  {
-    Twist vel1 = jac_reduced_l.getColumn(mimic_joints_[i].map_index);
+    Twist vel1 = jac_reduced.getColumn(mimic_joints_[i].map_index);
     Twist vel2 = jac.getColumn(i);
     Twist result = vel1 + (mimic_joints_[i].multiplier * vel2);
-    jac_reduced_l.setColumn(mimic_joints_[i].map_index, result);
+    jac_reduced.setColumn(mimic_joints_[i].map_index, result);
   }
   return true;
 }
@@ -86,33 +90,33 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian&
 int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   // Let the ChainJntToJacSolver calculate the Jacobian for the current joint positions q_in.
-  if (num_mimic_joints > 0)
+  if (num_mimic_joints_ > 0)
   {
-    jnt2jac.JntToJac(q_in, jac);
+    jnt2jac_.JntToJac(q_in, jac_);
     // Now compute the actual jacobian that involves only the active DOFs
-    jacToJacReduced(jac, jac_reduced);
+    jacToJacReduced(jac_, jac_reduced_);
   }
   else
-    jnt2jac.JntToJac(q_in, jac_reduced);
+    jnt2jac_.JntToJac(q_in, jac_reduced_);
 
   // transform v_in to 6D Eigen::Vector
   Eigen::Matrix<double, 6, 1> vin;
   vin.topRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.vel.data, 3);
   vin.bottomRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.rot.data, 3);
 
-  const Eigen::MatrixXd& J = jac_reduced.data;
+  const Eigen::MatrixXd& J = jac_reduced_.data;
 
   // Do a singular value decomposition: J = U*S*V^t
-  svd.compute(J.topRows(svd.rows()));
+  svd_.compute(J.topRows(svd_.rows()));
 
-  if (num_mimic_joints > 0)
+  if (num_mimic_joints_ > 0)
   {
-    qdot_out_reduced.noalias() = svd.solve(vin.topRows(svd.rows()));
-    for (unsigned int i = 0; i < chain.getNrOfJoints(); ++i)
-      qdot_out(i) = qdot_out_reduced[mimic_joints_[i].map_index] * mimic_joints_[i].multiplier;
+    qdot_out_reduced_.noalias() = svd_.solve(vin.topRows(svd_.rows()));
+    for (unsigned int i = 0; i < chain_.getNrOfJoints(); ++i)
+      qdot_out(i) = qdot_out_reduced_[mimic_joints_[i].map_index] * mimic_joints_[i].multiplier;
   }
   else
-    qdot_out.data.noalias() = svd.solve(vin.topRows(svd.rows()));
+    qdot_out.data.noalias() = svd_.solve(vin.topRows(svd_.rows()));
 
   return 0;
 }
