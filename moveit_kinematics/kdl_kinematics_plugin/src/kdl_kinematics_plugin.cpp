@@ -420,7 +420,14 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::
                    delta_q_norm);
 
     if (delta_q_norm < epsilon_)  // stuck in singularity
-      break;
+    {
+      if (step_size < 0.005)  // cannot reach target
+        break;
+      // wiggle joints
+      last_delta_twist_norm = DBL_MAX;
+      delta_q.data.setRandom();
+      delta_q.data *= std::min(0.1, delta_twist_norm);
+    }
 
     KDL::Add(q_out, delta_q, q_out);
 
