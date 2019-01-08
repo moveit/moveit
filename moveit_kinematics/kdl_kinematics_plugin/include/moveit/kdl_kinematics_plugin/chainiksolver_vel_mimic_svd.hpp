@@ -44,7 +44,7 @@ namespace KDL
  *
  * @ingroup KinematicFamily
  */
-class ChainIkSolverVel_pinv_mimic : public ChainIkSolverVel
+class ChainIkSolverVelMimicSVD : public ChainIkSolverVel
 {
 public:
   /**
@@ -59,9 +59,9 @@ public:
    *        true if you want to solve only for the 3 dof end-effector position.
    * @param threshold if a singular value is below this value, its inverse is set to zero, default: 0.00001
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain_,
-                                       const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints,
-                                       bool position_ik = false, double threshold = 0.00001);
+  explicit ChainIkSolverVelMimicSVD(const Chain& chain_,
+                                    const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints,
+                                    bool position_ik = false, double threshold = 0.00001);
 
 // TODO: simplify after kinetic support is dropped
 #define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
@@ -72,7 +72,7 @@ public:
 #endif
 #undef KDL_VERSION_LESS
 
-  ~ChainIkSolverVel_pinv_mimic() override;
+  ~ChainIkSolverVelMimicSVD() override;
 
   int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override;
 

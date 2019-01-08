@@ -35,7 +35,7 @@
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
 
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2/transform_datatypes.h>
@@ -314,7 +314,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   jnt_seed_state.data = Eigen::Map<const Eigen::VectorXd>(ik_seed_state.data(), ik_seed_state.size());
   jnt_pos_in = jnt_seed_state;
 
-  KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, mimic_joints_, position_ik_);
+  KDL::ChainIkSolverVelMimicSVD ik_solver_vel(kdl_chain_, mimic_joints_, position_ik_);
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;

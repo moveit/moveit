@@ -23,7 +23,7 @@
 // linear relationship to that of another joint.
 // Copyright  (C)  2013  Sachin Chitta, Willow Garage
 
-#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_pinv_mimic.hpp>
+#include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
 #include <ros/console.h>
 
 namespace
@@ -44,9 +44,9 @@ unsigned int countMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimi
 
 namespace KDL
 {
-ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(
-    const Chain& chain, const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints, bool position_ik,
-    double threshold)
+ChainIkSolverVelMimicSVD::ChainIkSolverVelMimicSVD(const Chain& chain,
+                                                   const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints,
+                                                   bool position_ik, double threshold)
   : mimic_joints_(mimic_joints)
   , num_mimic_joints_(countMimicJoints(mimic_joints))
   , chain_(chain)
@@ -64,17 +64,17 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(
   svd_.setThreshold(threshold);
 }
 
-void ChainIkSolverVel_pinv_mimic::updateInternalDataStructures()
+void ChainIkSolverVelMimicSVD::updateInternalDataStructures()
 {
   // TODO: move (re)allocation of any internal data structures here
   // to react to changes in chain
 }
 
-ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
+ChainIkSolverVelMimicSVD::~ChainIkSolverVelMimicSVD()
 {
 }
 
-bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced)
+bool ChainIkSolverVelMimicSVD::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced)
 {
   jac_reduced.data.setZero();
   for (std::size_t i = 0; i < chain_.getNrOfJoints(); ++i)
@@ -87,7 +87,7 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian&
   return true;
 }
 
-int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
+int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   // Let the ChainJntToJacSolver calculate the Jacobian for the current joint positions q_in.
   if (num_mimic_joints_ > 0)
