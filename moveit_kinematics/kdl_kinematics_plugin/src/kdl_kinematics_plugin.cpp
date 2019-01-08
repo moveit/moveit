@@ -398,7 +398,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::
   {
     fk_solver_->JntToCart(q_out, f);
     delta_twist = diff(f, p_in);
-    ROS_DEBUG_STREAM_NAMED("kdl", "delta_twist: " << delta_twist);
+    ROS_DEBUG_STREAM_NAMED("kdl", "[" << std::setw(3) << i << "] delta_twist: " << delta_twist);
 
     if (position_ik_)
     {
@@ -414,8 +414,8 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::
     ik_solver.CartToJnt(q_out, delta_twist, delta_q);
     KDL::Add(q_out, delta_q, q_out);
 
-    ROS_DEBUG_STREAM_NAMED("kdl", "delta_q: " << delta_q);
-    ROS_DEBUG_STREAM_NAMED("kdl", "q: " << q_out);
+    ROS_DEBUG_STREAM_NAMED("kdl", "      delta_q: " << delta_q);
+    ROS_DEBUG_STREAM_NAMED("kdl", "      q: " << q_out);
 
     for (std::size_t j = 0; j < joint_min_.rows(); ++j)
     {
@@ -429,7 +429,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::
     }
   }
 
-  ROS_DEBUG_STREAM_NAMED("kdl", "Actual Solution (" << i << "): " << q_out);
+  ROS_DEBUG_STREAM_NAMED("kdl", "[" << std::setw(3) << i << "] Solution : " << q_out);
 
   if (i != max_iter)
     return 0;
