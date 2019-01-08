@@ -289,22 +289,22 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
     return false;
   }
 
-  if (!consistency_limits.empty() && consistency_limits.size() != dimension_)
-  {
-    ROS_ERROR_STREAM_NAMED("kdl", "Consistency limits be empty or must have size " << dimension_ << " instead of size "
-                                                                                   << consistency_limits.size());
-    error_code.val = error_code.NO_IK_SOLUTION;
-    return false;
-  }
   // Resize consistency limits to remove mimic joints
   std::vector<double> consistency_limits_mimic;
   if (!consistency_limits.empty())
   {
+    if (consistency_limits.size() != dimension_)
+    {
+      ROS_ERROR_STREAM_NAMED("kdl", "Consistency limits must be empty or have size "
+                                        << dimension_ << " instead of size " << consistency_limits.size());
+      error_code.val = error_code.NO_IK_SOLUTION;
+      return false;
+    }
+
     for (std::size_t i = 0; i < dimension_; ++i)
     {
-      if (!mimic_joints_[i].active)
-        continue;
-      consistency_limits_mimic.push_back(consistency_limits[i]);
+      if (mimic_joints_[i].active)
+        consistency_limits_mimic.push_back(consistency_limits[i]);
     }
   }
 
@@ -325,61 +325,45 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                     << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
                                     << ik_pose.orientation.z << " " << ik_pose.orientation.w);
 
-  unsigned int counter(0);
-  while (true)
+  unsigned int attempt = 0;
+  do
   {
-    ++counter;
-    if (counter > 1 && timedOut(start_time, timeout))  // timeout after first attempt only
+    ++attempt;
+    if (attempt > 1)  // randomly re-seed after first attempt
     {
-      ROS_DEBUG_STREAM_NAMED("kdl", "IK timed out after " << (ros::WallTime::now() - start_time).toSec() << " > "
-                                                          << timeout << "s and " << counter - 1 << " attempts");
-      error_code.val = error_code.TIMED_OUT;
-      return false;
+      if (!consistency_limits_mimic.empty())
+        getRandomConfiguration(jnt_seed_state.data, consistency_limits_mimic, jnt_pos_in.data);
+      else
+        getRandomConfiguration(jnt_pos_in.data);
+      ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration (" << attempt << "): " << jnt_pos_in);
     }
-    if (counter > 1)
-      ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration (" << counter << "): " << jnt_pos_in);
 
     int ik_valid = CartToJnt(ik_solver_vel, jnt_pos_in, pose_desired, jnt_pos_out, max_solver_iterations_);
-    ROS_DEBUG_NAMED("kdl", "IK valid: %d", ik_valid);
-    if (!consistency_limits_mimic.empty())
+    if (ik_valid == 0 || options.return_approximate_solution)  // found acceptable solution
     {
-      if ((ik_valid < 0 && !options.return_approximate_solution) ||
+      if (!consistency_limits_mimic.empty() &&
           !checkConsistency(jnt_seed_state.data, consistency_limits_mimic, jnt_pos_out.data))
-      {
-        ROS_DEBUG_STREAM_NAMED("kdl", "Could not find IK solution"
-                                          << ((ik_valid < 0 && !options.return_approximate_solution) ?
-                                                  "" :
-                                                  ": does not match consistency limits"));
-        getRandomConfiguration(jnt_seed_state.data, consistency_limits_mimic, jnt_pos_in.data);
         continue;
-      }
-    }
-    else
-    {
-      if (ik_valid < 0 && !options.return_approximate_solution)
-      {
-        ROS_DEBUG_NAMED("kdl", "Could not find IK solution");
-        getRandomConfiguration(jnt_pos_in.data);
-        continue;
-      }
-    }
-    ROS_DEBUG_NAMED("kdl", "Found IK solution");
-    for (unsigned int j = 0; j < dimension_; j++)
-      solution[j] = jnt_pos_out(j);
-    if (!solution_callback.empty())
-      solution_callback(ik_pose, solution, error_code);
-    else
-      error_code.val = error_code.SUCCESS;
 
-    if (error_code.val == error_code.SUCCESS)
-    {
+      Eigen::Map<Eigen::VectorXd>(solution.data(), solution.size()) = jnt_pos_out.data;
+      if (!solution_callback.empty())
+      {
+        solution_callback(ik_pose, solution, error_code);
+        if (error_code.val != error_code.SUCCESS)
+          continue;
+      }
+
+      // solution passed consistency check and solution callback
+      error_code.val = error_code.SUCCESS;
       ROS_DEBUG_STREAM_NAMED("kdl", "Solved after " << (ros::WallTime::now() - start_time).toSec() << " < " << timeout
-                                                    << "s and " << counter << " attempts");
+                                                    << "s and " << attempt << " attempts");
       return true;
     }
-  }
-  ROS_DEBUG_NAMED("kdl", "An IK that satisifes the constraints and is collision free could not be found");
-  error_code.val = error_code.NO_IK_SOLUTION;
+  } while (!timedOut(start_time, timeout));
+
+  ROS_DEBUG_STREAM_NAMED("kdl", "IK timed out after " << (ros::WallTime::now() - start_time).toSec() << " > " << timeout
+                                                      << "s and " << attempt << " attempts");
+  error_code.val = error_code.TIMED_OUT;
   return false;
 }
 
