@@ -4,7 +4,7 @@
   <description>Components of MoveIt! that offer visualization</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
-  <author email="dave@dav.ee">Dave Coleman</author>
+  <author email="dave@picknik.ai">Dave Coleman</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
   <maintainer email="jon.binney@gmail.com">Jon Binney</maintainer>
