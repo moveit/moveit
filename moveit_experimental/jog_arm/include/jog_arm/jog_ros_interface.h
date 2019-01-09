@@ -43,7 +43,7 @@
 #define JOG_ARM_JOG_ROS_INTERFACE_H
 
 #include <Eigen/Eigenvalues>
-#include <moveit_msgs/JogJoint.h>
+#include <control_msgs/JointJog.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -67,7 +67,7 @@ struct JogArmShared
 
   geometry_msgs::TwistStamped command_deltas;
 
-  moveit_msgs::JogJoint joint_command_deltas;
+  control_msgs::JointJog joint_command_deltas;
 
   sensor_msgs::JointState joints;
 
@@ -115,7 +115,7 @@ public:
 private:
   // ROS subscriber callbacks
   void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void deltaJointCmdCB(const moveit_msgs::JogJointConstPtr& msg);
+  void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
   bool readParameters(ros::NodeHandle& n);
@@ -176,14 +176,14 @@ protected:
 
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
-  bool jointJogCalcs(const moveit_msgs::JogJoint& cmd, JogArmShared& shared_variables);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints();
 
   Eigen::VectorXd scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const;
 
-  Eigen::VectorXd scaleJointCommand(const moveit_msgs::JogJoint& command) const;
+  Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
   Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd& J) const;
 

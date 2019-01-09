@@ -1,5 +1,5 @@
 #include "geometry_msgs/TwistStamped.h"
-#include "moveit_msgs/JogJoint.h"
+#include "control_msgs/JointJog.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 
@@ -12,7 +12,7 @@ public:
   {
     joy_sub_ = n_.subscribe("spacenav/joy", 1, &SpaceNavToTwist::joyCallback, this);
     twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_arm_server/delta_jog_cmds", 1);
-    joint_delta_pub_ = n_.advertise<moveit_msgs::JogJoint>("jog_arm_server/joint_delta_jog_cmds", 1);
+    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("jog_arm_server/joint_delta_jog_cmds", 1);
 
     spinner_.start();
     ros::waitForShutdown();
@@ -41,7 +41,7 @@ private:
     twist.twist.angular.z = msg->axes[5];
 
     // Joint jogging with the buttons
-    moveit_msgs::JogJoint joint_deltas;
+    control_msgs::JointJog joint_deltas;
     // This example is for a Motoman SIA5. joint_s is the base joint.
     joint_deltas.joint_names.push_back("joint_s");
 

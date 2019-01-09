@@ -25,7 +25,7 @@ COMPONENTS
   trajectory_msgs
   visualization_msgs
   # The following are needed by jog_arm:
-  moveit_msgs
+  control_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
   tf2_ros
@@ -73,8 +73,8 @@ catkin_package(
     trajectory_msgs
     visualization_msgs
     # The following are needed by jog_arm:
+    control_msgs
     joy_teleop
-    moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
     tf2_ros

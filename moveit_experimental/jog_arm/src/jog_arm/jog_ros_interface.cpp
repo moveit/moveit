@@ -337,7 +337,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Store it in a class member for further calcs.
   // Then free up the shared variable again.
   geometry_msgs::TwistStamped cartesian_deltas;
-  moveit_msgs::JogJoint joint_deltas;
+  control_msgs::JointJog joint_deltas;
   while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
   {
     ros::Duration(g_while_loop_wait).sleep();
@@ -556,7 +556,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   return true;
 }
 
-bool JogCalcs::jointJogCalcs(const moveit_msgs::JogJoint& cmd, JogArmShared& shared_variables)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (std::size_t i = 0; i < cmd.deltas.size(); ++i)
@@ -944,7 +944,7 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
   return result;
 }
 
-Eigen::VectorXd JogCalcs::scaleJointCommand(const moveit_msgs::JogJoint& command) const
+Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
 {
   Eigen::VectorXd result(jt_state_.name.size());
 
@@ -1028,7 +1028,7 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
 
 // Listen to joint delta commands.
 // Store them in a shared variable.
-void JogROSInterface::deltaJointCmdCB(const moveit_msgs::JogJointConstPtr& msg)
+void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
   shared_variables_.joint_command_deltas = *msg;
