@@ -442,6 +442,8 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
   KDL::Frame f;
   KDL::Twist delta_twist;
   KDL::JntArray delta_q(q_out.rows()), q_backup(q_out.rows());
+  Eigen::ArrayXd extra_joint_weights;
+  extra_joint_weights.setOnes(joint_weights.rows());
 
   q_out = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
@@ -480,12 +482,14 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
       step_size = 1.0;   // reset step size
       last_delta_twist_norm = delta_twist_norm;
 
-      ik_solver.CartToJnt(q_out, delta_twist, delta_q, joint_weights, cartesian_weights);
+      ik_solver.CartToJnt(q_out, delta_twist, delta_q, extra_joint_weights * joint_weights.array(), cartesian_weights);
     }
+
+    clipToJointLimits(q_out, delta_q, extra_joint_weights);
+
     const double delta_q_norm = delta_q.data.lpNorm<1>();
     ROS_INFO_NAMED("kdl", "[%3d] pos err: %f  rot err: %f  delta_q: %f", i, position_error, orientation_error,
                    delta_q_norm);
-
     if (delta_q_norm < epsilon_)  // stuck in singularity
     {
       if (step_size < 0.005)  // cannot reach target
@@ -500,23 +504,31 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
 
     ROS_DEBUG_STREAM_NAMED("kdl", "      delta_q: " << delta_q);
     ROS_DEBUG_STREAM_NAMED("kdl", "      q: " << q_out);
-
-    for (std::size_t j = 0; j < joint_min_.rows(); ++j)
-    {
-      if (q_out(j) < joint_min_(j))
-        q_out(j) = joint_min_(j);
-    }
-    for (std::size_t j = 0; j < joint_max_.rows(); ++j)
-    {
-      if (q_out(j) > joint_max_(j))
-        q_out(j) = joint_max_(j);
-    }
   }
 
   int result = (i == max_iter) ? -3 : (success ? 0 : -2);
   ROS_INFO_STREAM_NAMED("kdl", "Result " << result << " after " << i << " iterations: " << q_out);
 
   return result;
+}
+
+void KDLKinematicsPlugin::clipToJointLimits(const KDL::JntArray& q, KDL::JntArray& q_delta,
+                                            Eigen::ArrayXd& weighting) const
+{
+  weighting.setOnes(q_delta.rows());
+  for (std::size_t i = 0; i < q.rows(); ++i)
+  {
+    const double delta_max = joint_max_(i) - q(i);
+    const double delta_min = joint_min_(i) - q(i);
+    if (q_delta(i) > delta_max)
+      q_delta(i) = delta_max;
+    else if (q_delta(i) < delta_min)
+      q_delta(i) = delta_min;
+    else
+      continue;
+
+    weighting[mimic_joints_[i].map_index] = 0.01;
+  }
 }
 
 bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
