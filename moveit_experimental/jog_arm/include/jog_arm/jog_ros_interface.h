@@ -91,8 +91,7 @@ struct JogArmShared
   bool ok_to_publish = false;
 };
 
-// ROS params to be read.
-// See the yaml file in /config for a description of each.
+// ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {
   std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
@@ -104,8 +103,7 @@ struct JogArmParameters
 };
 
 /**
- * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and
- * creates the worker threads.
+ * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and creates the worker threads.
  */
 class JogROSInterface
 {
@@ -189,12 +187,10 @@ protected:
 
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
-  // Reset the data stored in low-pass filters so the trajectory won't jump when
-  // jogging is resumed.
+  // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
   void resetVelocityFilters();
 
-  // Avoid a singularity or other issue.
-  // Is handled differently for position vs. velocity control.
+  // Avoid a singularity or other issue. Is handled differently for position vs. velocity control.
   void halt(trajectory_msgs::JointTrajectory& jt_traj);
 
   void publishWarning(bool active) const;

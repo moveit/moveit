@@ -65,8 +65,6 @@
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <!-- The following are required by jog_arm -->
   <run_depend>control_msgs</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>rosparam_shortcuts</run_depend>

@@ -44,13 +44,12 @@
 namespace jog_arm
 {
 /////////////////////////////////////////////////////////////////////////////////
-// JogROSInterface handles ROS subscriptions and instantiates the worker
-// threads.
+// JogROSInterface handles ROS subscriptions and instantiates the worker threads.
 // One worker thread does the jogging calculations.
 // Another worker thread does collision checking.
 /////////////////////////////////////////////////////////////////////////////////
 
-static const double g_while_loop_wait = 0.001;
+static const double WHILE_LOOP_WAIT = 0.001;
 
 // Constructor for the main ROS interface node
 JogROSInterface::JogROSInterface()
@@ -81,9 +80,8 @@ JogROSInterface::JogROSInterface()
   ros::topic::waitForMessage<sensor_msgs::JointState>(ros_parameters_.joint_topic);
   ros::topic::waitForMessage<geometry_msgs::TwistStamped>(ros_parameters_.cartesian_command_in_topic);
 
-  // Publish freshly-calculated joints to the robot
-  // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory
-  // or std_msgs/Float64MultiArray).
+  // Publish freshly-calculated joints to the robot.
+  // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
   ros::Publisher outgoing_cmd_pub;
   if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     outgoing_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>(ros_parameters_.command_out_topic, 1);
@@ -115,8 +113,7 @@ JogROSInterface::JogROSInterface()
       shared_variables_.command_is_stale = true;
     }
 
-    // Publish the most recent trajectory, unless the jogging calculation thread
-    // tells not to
+    // Publish the most recent trajectory, unless the jogging calculation thread tells not to
     if (shared_variables_.ok_to_publish)
     {
       // Put the outgoing msg in the right format
@@ -173,12 +170,11 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
   // If user specified true in yaml file
   if (parameters.check_collisions)
   {
-    // MoveIt Setup
-    // Wait for model_loader_ptr to be non-null.
+    // MoveIt! Setup
     while (ros::ok() && !model_loader_ptr)
     {
       ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-      ros::Duration(g_while_loop_wait).sleep();
+      ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
     const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
     planning_scene::PlanningScene planning_scene(kinematic_model);
@@ -235,15 +231,12 @@ collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, Jo
       collision_result.clear();
       planning_scene_monitor->getPlanningScene()->checkCollision(collision_request, collision_result, current_state);
 
-      // Scale robot velocity according to collision proximity and user-defined
-      // thresholds.
-      // I scaled exponentially (cubic power) so velocity drops off quickly
-      // after the threshold.
+      // Scale robot velocity according to collision proximity and user-defined thresholds.
+      // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
       // Proximity decreasing --> decelerate
       double velocity_scale = 1;
 
-      // Ramp velocity down linearly when collision proximity is between
-      // lower_collision_proximity_threshold and
+      // Ramp velocity down linearly when collision proximity is between lower_collision_proximity_threshold and
       // hard_stop_collision_proximity_threshold
       if ((collision_result.distance > parameters.hard_stop_collision_proximity_threshold) &&
           (collision_result.distance < parameters.lower_collision_proximity_threshold))
@@ -286,12 +279,11 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Publish collision status
   warning_pub_ = nh_.advertise<std_msgs::Bool>(parameters_.warning_topic, 1);
 
-  // MoveIt Setup
-  // Wait for model_loader_ptr to be non-null.
+  // MoveIt! Setup
   while (ros::ok() && !model_loader_ptr)
   {
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-    ros::Duration(g_while_loop_wait).sleep();
+    ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
   const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
   kinematic_state_ = std::make_shared<robot_state::RobotState>(kinematic_model);
@@ -328,19 +320,18 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     incoming_jts_ = shared_variables.joints;
     pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-    ros::Duration(g_while_loop_wait).sleep();
+    ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
     position_filters_[i].reset(jt_state_.position[i]);
 
   // Wait for the first jogging cmd.
-  // Store it in a class member for further calcs.
-  // Then free up the shared variable again.
+  // Store it in a class member for further calcs, then free up the shared variable again.
   geometry_msgs::TwistStamped cartesian_deltas;
   control_msgs::JointJog joint_deltas;
   while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
   {
-    ros::Duration(g_while_loop_wait).sleep();
+    ros::Duration(WHILE_LOOP_WAIT).sleep();
 
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     cartesian_deltas = shared_variables.command_deltas;
@@ -356,8 +347,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Now do jogging calcs
   while (ros::ok())
   {
-    // If user commands are all zero, reset the low-pass filters
-    // when commands resume
+    // If user commands are all zero, reset the low-pass filters when commands resume
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     bool zero_cartesian_traj_flag = shared_variables.zero_cartesian_cmd_flag;
     bool zero_joint_traj_flag = shared_variables.zero_joint_cmd_flag;
@@ -378,7 +368,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       pthread_mutex_lock(&shared_variables.shared_variables_mutex);
       incoming_jts_ = shared_variables.joints;
       pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-      ros::Duration(g_while_loop_wait).sleep();
+      ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
 
     // If there have not been several consecutive cycles of all zeros and joint
@@ -404,8 +394,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
         continue;
     }
 
-    // Halt if the command is stale or inputs are all zero, or commands were
-    // zero
+    // Halt if the command is stale or inputs are all zero, or commands were zero
     pthread_mutex_lock(&shared_variables.shared_variables_mutex);
     bool stale_command = shared_variables.command_is_stale;
     pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
@@ -432,8 +421,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
         shared_variables.new_traj = new_traj_;
         shared_variables.ok_to_publish = true;
       }
-      // Skip the jogging publication if all inputs have been zero for several
-      // cycles in a row
+      // Skip the jogging publication if all inputs have been zero for several cycles in a row
       else if (zero_velocity_count > num_zero_cycles_to_publish)
       {
         shared_variables.ok_to_publish = false;
@@ -449,7 +437,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     }
 
     // Add a small sleep to avoid 100% CPU usage
-    ros::Duration(g_while_loop_wait).sleep();
+    ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
 }
 
@@ -609,17 +597,13 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   return true;
 }
 
-// Spam several redundant points into the trajectory. The first few may be
-// skipped if the
-// time stamp is in the past when it reaches the client. Needed for gazebo
-// simulation.
-// Start from 2 because the first point's timestamp is already
-// 1*parameters_.publish_period
+// Spam several redundant points into the trajectory. The first few may be skipped if the
+// time stamp is in the past when it reaches the client. Needed for gazebo simulation.
+// Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
 void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const
 {
   auto point = trajectory.points[0];
-  // Start from 2 because we already have the first point. End at count+1 so
-  // total # == count
+  // Start from 2 because we already have the first point. End at count+1 so (total #) == count
   for (int i = 2; i < count + 1; ++i)
   {
     point.time_from_start = ros::Duration(i * parameters_.publish_period);
@@ -687,8 +671,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
 
 // Apply velocity scaling for proximity of collisions and singularities.
 // Scale for collisions is read from a shared variable.
-// Key equation: new_velocity =
-// collision_scale*singularity_scale*previous_velocity
+// Key equation: new_velocity = collision_scale*singularity_scale*previous_velocity
 bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
                                     const Eigen::VectorXd& delta_theta, double singularity_scale)
 {
@@ -700,8 +683,7 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_m
   {
     if (parameters_.publish_joint_positions)
     {
-      // If close to a singularity or joint limit, undo any change to the joint
-      // angles
+      // If close to a singularity or joint limit, undo any change to the joint angles
       new_jt_traj.points[0].positions[i] =
           new_jt_traj.points[0].positions[i] -
           (1. - singularity_scale * collision_scale) * delta_theta[static_cast<long>(i)];
@@ -713,26 +695,22 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_m
   return true;
 }
 
-// Possibly calculate a velocity scaling factor, due to proximity of singularity
-// and direction of motion
+// Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
 double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity)
 {
   double velocity_scale = 1;
 
   // Find the direction away from nearest singularity.
-  // The last column of U from the SVD of the Jacobian points away from the
-  // singularity
+  // The last column of U from the SVD of the Jacobian points away from the singularity
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian, Eigen::ComputeThinU);
   Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(5);
 
   double ini_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
 
   // This singular vector tends to flip direction unpredictably. See R. Bro,
-  // "Resolving the Sign Ambiguity
-  // in the Singular Value Decomposition"
+  // "Resolving the Sign Ambiguity in the Singular Value Decomposition".
   // Look ahead to see if the Jacobian's condition will decrease in this
-  // direction.
-  // Start with a scaled version of the singular vector
+  // direction. Start with a scaled version of the singular vector
   Eigen::VectorXd delta_x(6);
   double scale = 100;
   delta_x[0] = vector_toward_singularity[0] / scale;
@@ -755,8 +733,7 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
   svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian);
   double new_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
   // If new_condition < ini_condition, the singular vector does point towards a
-  // singularity.
-  //  Otherwise, flip its direction.
+  // singularity. Otherwise, flip its direction.
   if (ini_condition >= new_condition)
   {
     vector_toward_singularity[0] *= -1;
@@ -767,13 +744,11 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
     vector_toward_singularity[5] *= -1;
   }
 
-  // If this dot product is positive, we're moving toward singularity ==>
-  // decelerate
+  // If this dot product is positive, we're moving toward singularity ==> decelerate
   double dot = vector_toward_singularity.dot(commanded_velocity);
   if (dot > 0)
   {
-    // Ramp velocity down linearly when the Jacobian condition is between
-    // lower_singularity_threshold and
+    // Ramp velocity down linearly when the Jacobian condition is between lower_singularity_threshold and
     // hard_stop_singularity_threshold, and we're moving towards the singularity
     if ((ini_condition > parameters_.lower_singularity_threshold) &&
         (ini_condition < parameters_.hard_stop_singularity_threshold))
@@ -815,8 +790,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
       }
     }
 
-    // Halt if we're past a joint margin and joint velocity is moving even
-    // farther past
+    // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
     for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
     {
@@ -858,14 +832,12 @@ void JogCalcs::publishWarning(const bool active) const
   warning_pub_.publish(status);
 }
 
-// Avoid a singularity or other issue.
-// Needs to be handled differently for position vs. velocity control
+// Avoid a singularity or other issue. Needs to be handled differently for position vs. velocity control
 void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 {
   for (std::size_t i = 0; i < jt_state_.velocity.size(); ++i)
   {
-    // For position-controlled robots, can reset the joints to a known, good
-    // state
+    // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
       jt_traj.points[0].positions[i] = original_jt_state_.position[i];
 
@@ -875,8 +847,7 @@ void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
   }
 }
 
-// Reset the data stored in filters so the trajectory won't jump when jogging is
-// resumed.
+// Reset the data stored in filters so the trajectory won't jump when jogging is resumed.
 void JogCalcs::resetVelocityFilters()
 {
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
@@ -1003,14 +974,13 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   return true;
 }
 
-// Listen to cartesian delta commands.
-// Store them in a shared variable.
+// Listen to cartesian delta commands. Store them in a shared variable.
 void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
 
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
-  // (so it doesn't need to be copied over and over)
+  // (so it isn't copied over and over)
   shared_variables_.command_deltas.twist = msg->twist;
   shared_variables_.command_deltas.header.stamp = msg->header.stamp;
 
@@ -1026,8 +996,7 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 }
 
-// Listen to joint delta commands.
-// Store them in a shared variable.
+// Listen to joint delta commands. Store them in a shared variable.
 void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
@@ -1036,8 +1005,7 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
   // Input frame determined by YAML file
   shared_variables_.joint_command_deltas.header.frame_id = ros_parameters_.command_frame;
 
-  // Check if joint inputs is all zeros. Flag it if so to skip
-  // calculations/publication
+  // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
   bool all_zeros = true;
   for (double delta : shared_variables_.joint_command_deltas.deltas)
   {
@@ -1049,8 +1017,7 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
   pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
 }
 
-// Listen to joint angles.
-// Store them in a shared variable.
+// Listen to joint angles. Store them in a shared variable.
 void JogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
@@ -1063,8 +1030,7 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
 {
   std::size_t error = 0;
 
-  // Specified in the launch file. All other parameters will be read
-  // from this namespace.
+  // Specified in the launch file. All other parameters will be read from this namespace.
   std::string parameter_ns;
   ros::param::get("~parameter_ns", parameter_ns);
   if (parameter_ns == "")

@@ -10,6 +10,7 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED
 COMPONENTS
+  control_msgs
   eigen_conversions
   eigen_stl_containers
   geometric_shapes
@@ -17,18 +18,16 @@ COMPONENTS
   kdl_parser
   moveit_core
   moveit_msgs
+  moveit_ros_planning_interface
   pluginlib
   rosconsole
   roslib
+  rosparam_shortcuts
   rostime
   std_msgs
+  tf2_ros
   trajectory_msgs
   visualization_msgs
-  # The following are needed by jog_arm:
-  control_msgs
-  moveit_ros_planning_interface
-  rosparam_shortcuts
-  tf2_ros
 )
 find_package(Eigen3 REQUIRED)
 
@@ -60,24 +59,22 @@ catkin_package(
     collision_detector_hybrid_plugin
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
+    control_msgs
     eigen_conversions
     eigen_stl_containers
     geometry_msgs
     geometric_shapes
+    joy_teleop
     kdl_parser
-    message_runtime
     moveit_core
     moveit_msgs
+    moveit_ros_planning_interface
     pluginlib
+    rosparam_shortcuts
     std_msgs
+    tf2_ros
     trajectory_msgs
     visualization_msgs
-    # The following are needed by jog_arm:
-    control_msgs
-    joy_teleop
-    moveit_ros_planning_interface
-    rosparam_shortcuts
-    tf2_ros
   DEPENDS
     EIGEN3
     Boost
