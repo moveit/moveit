@@ -59,6 +59,11 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
+namespace KDL
+{
+class ChainIkSolverVelMimicSVD;
+}
+
 namespace kdl_kinematics_plugin
 {
 /**
@@ -135,11 +140,15 @@ protected:
                         moveit_msgs::MoveItErrorCodes& error_code, const std::vector<double>& consistency_limits,
                         const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
+  typedef Eigen::Matrix<double, 6, 1> Twist;
+
   /// Solve position IK given initial joint values
-  int CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
-                KDL::JntArray& q_out, const unsigned int max_iter) const;
+  int CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
+                KDL::JntArray& q_out, const unsigned int max_iter, const Eigen::VectorXd& joint_weights,
+                const Twist& cartesian_weights) const;
 
 private:
+  void getJointWeights();
   bool timedOut(const ros::WallTime& start_time, double duration) const;
 
   /** @brief Check whether the solution lies within the consistency limits of the seed state
@@ -171,11 +180,17 @@ private:
   KDL::Chain kdl_chain_;
   std::unique_ptr<KDL::ChainFkSolverPos> fk_solver_;
   std::vector<JointMimic> mimic_joints_;
+  std::vector<double> joint_weights_;
   Eigen::VectorXd joint_min_, joint_max_;  ///< joint limits
 
-  bool position_ik_;  ///< whether this solver is only being used for position ik
   int max_solver_iterations_;
   double epsilon_;
+  /** weight of orientation error vs position error
+   *
+   * < 1.0: orientation has less importance than position
+   * > 1.0: orientation has more importance than position
+   * = 0.0: perform position-only IK */
+  double orientation_vs_position_weight_;
 };
 }
 

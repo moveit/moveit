@@ -49,7 +49,7 @@ public:
   JointMimic()
   {
     this->reset(0);
-  };
+  }
 
   /** \brief Offset for this joint value from the joint that it mimics */
   double offset;
@@ -68,7 +68,7 @@ public:
     multiplier = 1.0;
     map_index = index;
     active = false;
-  };
+  }
 };
 }
 
