@@ -344,6 +344,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       trajectory.getWayPointPtr(i)->setVariableVelocity(idx[j], t2[j].velocities[i]);
       trajectory.getWayPointPtr(i)->setVariableAcceleration(idx[j], t2[j].accelerations[i]);
     }
+    trajectory.getWayPointPtr(i)->update();
   }
 
   return true;
