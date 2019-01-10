@@ -67,14 +67,38 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
     return QVariant();
 
   int idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
-  int col = index.column();
-  switch (role)
+  switch (index.column())
   {
-    case Qt::DisplayRole:
-      if (col == 0)
-        return QString::fromStdString(robot_state_.getVariableNames()[idx]);
-      else
-        return robot_state_.getVariablePosition(idx);
+    case 0:  // joint name column
+      switch (role)
+      {
+        case Qt::DisplayRole:
+          return QString::fromStdString(robot_state_.getVariableNames()[idx]);
+        case Qt::TextAlignmentRole:
+          return Qt::AlignLeft;
+      }
+      break;
+    case 1:  // joint value column
+    {
+      double value = robot_state_.getVariablePosition(idx);
+      switch (role)
+      {
+        case Qt::DisplayRole:
+          return value;
+        case ProgressBarDelegate::JointTypeRole:
+          if (const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx))
+            return jm->getType();
+          break;
+        case ProgressBarDelegate::PercentageRole:
+          if (const moveit::core::VariableBounds* bounds = getVariableBounds(index))
+            if (bounds->position_bounded_)
+              return static_cast<int>(100. * (value - bounds->min_position_) /
+                                      (bounds->max_position_ - bounds->min_position_));
+          break;
+        case Qt::TextAlignmentRole:
+          return Qt::AlignRight;
+      }
+    }
   }
   return QVariant();
 }
@@ -84,6 +108,23 @@ QVariant JMGItemModel::headerData(int section, Qt::Orientation orientation, int 
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     return section == 0 ? "Joint Name" : "Value";
   return QAbstractTableModel::headerData(section, orientation, role);
+}
+
+const moveit::core::JointModel* JMGItemModel::getJointModel(const QModelIndex& index) const
+{
+  if (!index.isValid())
+    return nullptr;
+  int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
+  return robot_state_.getRobotModel()->getJointOfVariable(var_idx);
+}
+
+const moveit::core::VariableBounds* JMGItemModel::getVariableBounds(const QModelIndex& index) const
+{
+  const moveit::core::JointModel* jm = getJointModel(index);
+  if (!jm)
+    return nullptr;
+  int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
+  return &jm->getVariableBounds()[var_idx - jm->getFirstVariableIndex()];
 }
 
 void JMGItemModel::stateChanged(const moveit::core::RobotState& state)
@@ -113,6 +154,7 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(QWidget* parent
   : QWidget(parent), ui_(new Ui::MotionPlanningFrameJointsUI())
 {
   ui_->setupUi(this);
+  ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
 }
 
 MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
@@ -153,6 +195,39 @@ void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
   goal_state_model_->stateChanged(*goal_state_handler_->getState());
   ui_->joints_view_->setModel(goal_state_model_.get());
   ui_->joints_view_label_->setText("Group joints of goal state");
+}
+
+void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+  // copied from QStyledItemDelegate::paint
+  QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+  QStyleOptionViewItem style_option = option;
+  initStyleOption(&style_option, index);
+
+  if (index.column() == 1)
+  {
+    QVariant joint_type = index.data(JointTypeRole);
+    double value = index.data().toDouble();
+    bool is_revolute = joint_type.isValid() && joint_type.toInt() == moveit::core::JointModel::REVOLUTE;
+    style_option.text = option.locale.toString(is_revolute ? value * 180 / M_PI : value, 'f', is_revolute ? 0 : 3);
+
+    QVariant percentage = index.data(PercentageRole);
+    if (percentage.isValid())
+    {
+      QStyleOptionProgressBar opt;
+      opt.rect = option.rect;
+      opt.minimum = 0;
+      opt.maximum = 100;
+      opt.progress = percentage.toInt();
+      opt.text = style_option.text;
+      opt.textAlignment = style_option.displayAlignment;
+      opt.textVisible = true;
+      style->drawControl(QStyle::CE_ProgressBar, &opt, painter);
+      return;
+    }
+  }
+
+  style->drawControl(QStyle::CE_ItemViewItem, &style_option, painter, option.widget);
 }
 
 }  // namespace

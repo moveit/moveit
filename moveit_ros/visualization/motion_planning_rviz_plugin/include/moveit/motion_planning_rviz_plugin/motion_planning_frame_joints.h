@@ -40,6 +40,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <QAbstractItemModel>
 #include <QWidget>
+#include <QStyledItemDelegate>
 #include <memory>
 
 namespace Ui
@@ -77,6 +78,10 @@ public:
   {
     return robot_state_;
   }
+  /// retrieve the JointModel corresponding to the variable referenced by index
+  const moveit::core::JointModel* getJointModel(const QModelIndex& index) const;
+  /// retrieve the variable bounds referenced by variable index
+  const moveit::core::VariableBounds* getVariableBounds(const QModelIndex& index) const;
   /// call this on any change of the RobotState
   void stateChanged(const moveit::core::RobotState& state);
 };
@@ -104,5 +109,24 @@ private:
   robot_interaction::InteractionHandlerPtr goal_state_handler_;
   std::unique_ptr<JMGItemModel> start_state_model_;
   std::unique_ptr<JMGItemModel> goal_state_model_;
+};
+
+/// Delegate to show the joint value as with a progress bar indicator between min and max.
+class ProgressBarDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+  enum CustomRole
+  {
+    JointTypeRole = Qt::UserRole,
+    PercentageRole
+  };
+
+  ProgressBarDelegate(QWidget* parent = 0) : QStyledItemDelegate(parent)
+  {
+  }
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 };
 }
