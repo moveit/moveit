@@ -152,6 +152,11 @@ public:
 
   void toggleSelectPlanningGroupSubscription(bool enable);
 
+Q_SIGNALS:
+  // signals issued when start/goal states of a query changed
+  void queryStartStateChanged();
+  void queryGoalStateChanged();
+
 private Q_SLOTS:
 
   // ******************************************************************************************

@@ -1,9 +1,13 @@
 set(HEADERS
   include/moveit/motion_planning_rviz_plugin/motion_planning_display.h
   include/moveit/motion_planning_rviz_plugin/motion_planning_frame.h
+  include/moveit/motion_planning_rviz_plugin/motion_planning_frame_joints.h
   include/moveit/motion_planning_rviz_plugin/motion_planning_param_widget.h
 )
-qt_wrap_ui(UIC_FILES src/ui/motion_planning_rviz_plugin_frame.ui)
+qt_wrap_ui(UIC_FILES
+  src/ui/motion_planning_rviz_plugin_frame.ui
+  src/ui/motion_planning_rviz_plugin_frame_joints.ui
+)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -15,6 +19,7 @@ set(SOURCE_FILES
   src/motion_planning_frame_objects.cpp
   src/motion_planning_frame_scenes.cpp
   src/motion_planning_frame_states.cpp
+  src/motion_planning_frame_joints.cpp
   src/motion_planning_display.cpp
   src/motion_planning_frame_manipulation.cpp
   src/motion_planning_param_widget.cpp
