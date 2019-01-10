@@ -35,82 +35,41 @@
 /* Author: Francisco Suarez-Ruiz */
 
 #include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
-#include <class_loader/class_loader.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolverpos_lma.hpp>
 
 #include <tf2_kdl/tf2_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>
+#include <kdl/frames_io.hpp>
+#include <kdl/kinfam_io.hpp>
 
-// register KDLKinematics as a KinematicsBase implementation
+// register as a KinematicsBase implementation
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(lma_kinematics_plugin::LMAKinematicsPlugin, kinematics::KinematicsBase)
 
 namespace lma_kinematics_plugin
 {
-LMAKinematicsPlugin::LMAKinematicsPlugin() : active_(false)
+LMAKinematicsPlugin::LMAKinematicsPlugin() : initialized_(false)
 {
 }
 
-void LMAKinematicsPlugin::getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const
+void LMAKinematicsPlugin::getRandomConfiguration(Eigen::VectorXd& jnt_array) const
 {
-  std::vector<double> jnt_array_vector(dimension_, 0.0);
   state_->setToRandomPositions(joint_model_group_);
-  state_->copyJointGroupPositions(joint_model_group_, &jnt_array_vector[0]);
-  for (std::size_t i = 0; i < dimension_; ++i)
-  {
-    if (lock_redundancy)
-      if (isRedundantJoint(i))
-        continue;
-    jnt_array(i) = jnt_array_vector[i];
-  }
+  state_->copyJointGroupPositions(joint_model_group_, &jnt_array[0]);
 }
 
-bool LMAKinematicsPlugin::isRedundantJoint(unsigned int index) const
-{
-  for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
-    if (redundant_joint_indices_[j] == index)
-      return true;
-  return false;
-}
-
-void LMAKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state,
+void LMAKinematicsPlugin::getRandomConfiguration(const Eigen::VectorXd& seed_state,
                                                  const std::vector<double>& consistency_limits,
-                                                 KDL::JntArray& jnt_array, bool lock_redundancy) const
+                                                 Eigen::VectorXd& jnt_array) const
 {
-  std::vector<double> values(dimension_, 0.0);
-  std::vector<double> near(dimension_, 0.0);
-  for (std::size_t i = 0; i < dimension_; ++i)
-    near[i] = seed_state(i);
-
-  // Need to resize the consistency limits to remove mimic joints
-  std::vector<double> consistency_limits_mimic;
-  for (std::size_t i = 0; i < dimension_; ++i)
-  {
-    if (!mimic_joints_[i].active)
-      continue;
-    consistency_limits_mimic.push_back(consistency_limits[i]);
-  }
-
-  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near,
-                                                       consistency_limits_mimic);
-
-  for (std::size_t i = 0; i < dimension_; ++i)
-  {
-    bool skip = false;
-    if (lock_redundancy)
-      for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
-        if (redundant_joint_indices_[j] == i)
-        {
-          skip = true;
-          break;
-        }
-    if (skip)
-      continue;
-    jnt_array(i) = values[i];
-  }
+  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), &jnt_array[0],
+                                                       &seed_state[0], consistency_limits);
 }
 
-bool LMAKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
+bool LMAKinematicsPlugin::checkConsistency(const Eigen::VectorXd& seed_state,
                                            const std::vector<double>& consistency_limits,
-                                           const KDL::JntArray& solution) const
+                                           const Eigen::VectorXd& solution) const
 {
   for (std::size_t i = 0; i < dimension_; ++i)
     if (fabs(seed_state(i) - solution(i)) > consistency_limits[i])
@@ -123,16 +82,16 @@ bool LMAKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
                                      double search_discretization)
 {
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
-  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
-  if (!joint_model_group)
+  joint_model_group_ = robot_model_->getJointModelGroup(group_name);
+  if (!joint_model_group_)
     return false;
 
-  if (!joint_model_group->isChain())
+  if (!joint_model_group_->isChain())
   {
     ROS_ERROR_NAMED("lma", "Group '%s' is not a chain", group_name.c_str());
     return false;
   }
-  if (!joint_model_group->isSingleDOFJoints())
+  if (!joint_model_group_->isSingleDOFJoints())
   {
     ROS_ERROR_NAMED("lma", "Group '%s' includes joints that have more than 1 DOF", group_name.c_str());
     return false;
@@ -151,201 +110,36 @@ bool LMAKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     return false;
   }
 
-  dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
-  for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
+  for (const robot_model::JointModel* jm : joint_model_group_->getJointModels())
   {
-    if (joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE ||
-        joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
+    if (jm->getType() == moveit::core::JointModel::REVOLUTE || jm->getType() == moveit::core::JointModel::PRISMATIC)
     {
-      ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
-      const std::vector<moveit_msgs::JointLimits>& jvec =
-          joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
-      ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
+      joints_.push_back(jm);
+      joint_names_.push_back(jm->getName());
     }
   }
-
-  fk_chain_info_.joint_names = ik_chain_info_.joint_names;
-  fk_chain_info_.limits = ik_chain_info_.limits;
-
-  if (!joint_model_group->hasLinkModel(getTipFrame()))
-  {
-    ROS_ERROR_NAMED("lma", "Could not find tip name in joint group '%s'", group_name.c_str());
-    return false;
-  }
-  ik_chain_info_.link_names.push_back(getTipFrame());
-  fk_chain_info_.link_names = joint_model_group->getLinkModelNames();
-
-  joint_min_.resize(ik_chain_info_.limits.size());
-  joint_max_.resize(ik_chain_info_.limits.size());
-
-  for (unsigned int i = 0; i < ik_chain_info_.limits.size(); i++)
-  {
-    joint_min_(i) = ik_chain_info_.limits[i].min_position;
-    joint_max_(i) = ik_chain_info_.limits[i].max_position;
-  }
+  dimension_ = joints_.size();
 
   // Get Solver Parameters
-  int max_solver_iterations;
-  double epsilon;
+  lookupParam("max_solver_iterations", max_solver_iterations_, 500);
+  lookupParam("epsilon", epsilon_, 1e-5);
+  lookupParam("orientation_vs_position", orientation_vs_position_weight_, 0.01);
+
   bool position_ik;
-
-  lookupParam("max_solver_iterations", max_solver_iterations, 500);
-  lookupParam("epsilon", epsilon, 1e-5);
   lookupParam("position_only_ik", position_ik, false);
-  ROS_DEBUG_NAMED("lma", "Looking for param name: position_only_ik");
-
-  if (position_ik)
+  if (position_ik)  // position_only_ik overrules orientation_vs_position
+    orientation_vs_position_weight_ = 0.0;
+  if (orientation_vs_position_weight_ == 0.0)
     ROS_INFO_NAMED("lma", "Using position only ik");
-
-  num_possible_redundant_joints_ =
-      kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik ? 3 : 6);
-
-  // Check for mimic joints
-  std::vector<unsigned int> redundant_joints_map_index;
-
-  std::vector<JointMimic> mimic_joints;
-  unsigned int joint_counter = 0;
-  for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
-  {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
-
-    // first check whether it belongs to the set of active joints in the group
-    if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
-    {
-      JointMimic mimic_joint;
-      mimic_joint.reset(joint_counter);
-      mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
-      mimic_joint.active = true;
-      mimic_joints.push_back(mimic_joint);
-      ++joint_counter;
-      continue;
-    }
-    if (joint_model_group->hasJointModel(jm->getName()))
-    {
-      if (jm->getMimic() && joint_model_group->hasJointModel(jm->getMimic()->getName()))
-      {
-        JointMimic mimic_joint;
-        mimic_joint.reset(joint_counter);
-        mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
-        mimic_joint.offset = jm->getMimicOffset();
-        mimic_joint.multiplier = jm->getMimicFactor();
-        mimic_joints.push_back(mimic_joint);
-        continue;
-      }
-    }
-  }
-  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
-  {
-    if (!mimic_joints[i].active)
-    {
-      const robot_model::JointModel* joint_model =
-          joint_model_group->getJointModel(mimic_joints[i].joint_name)->getMimic();
-      for (std::size_t j = 0; j < mimic_joints.size(); ++j)
-      {
-        if (mimic_joints[j].joint_name == joint_model->getName())
-        {
-          mimic_joints[i].map_index = mimic_joints[j].map_index;
-        }
-      }
-    }
-  }
-  mimic_joints_ = mimic_joints;
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
 
-  // Store things for when the set of redundant joints may change
-  position_ik_ = position_ik;
-  joint_model_group_ = joint_model_group;
-  max_solver_iterations_ = max_solver_iterations;
-  epsilon_ = epsilon;
+  fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
-  active_ = true;
-  ROS_DEBUG_NAMED("lma", "KDL solver initialized");
+  initialized_ = true;
+  ROS_DEBUG_NAMED("lma", "LMA solver initialized");
   return true;
-}
-
-bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joints)
-{
-  if (num_possible_redundant_joints_ < 0)
-  {
-    ROS_ERROR_NAMED("lma", "This group cannot have redundant joints");
-    return false;
-  }
-  if (int(redundant_joints.size()) > num_possible_redundant_joints_)
-  {
-    ROS_ERROR_NAMED("lma", "This group can only have %d redundant joints", num_possible_redundant_joints_);
-    return false;
-  }
-  /*
-    XmlRpc::XmlRpcValue joint_list;
-    if(private_handle.getParam(group_name+"/redundant_joints", joint_list))
-    {
-      ROS_ASSERT(joint_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-      std::vector<std::string> redundant_joints;
-      for (std::size_t i = 0; i < joint_list.size(); ++i)
-      {
-        ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-        redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
-        ROS_INFO_NAMED("lma","Designated joint: %s as redundant joint",
-    redundant_joints.back().c_str());
-      }
-    }
-  */
-  std::vector<unsigned int> redundant_joints_map_index;
-  unsigned int counter = 0;
-  for (std::size_t i = 0; i < dimension_; ++i)
-  {
-    bool is_redundant_joint = false;
-    for (std::size_t j = 0; j < redundant_joints.size(); ++j)
-    {
-      if (i == redundant_joints[j])
-      {
-        is_redundant_joint = true;
-        counter++;
-        break;
-      }
-    }
-    if (!is_redundant_joint)
-    {
-      // check for mimic
-      if (mimic_joints_[i].active)
-      {
-        redundant_joints_map_index.push_back(counter);
-        counter++;
-      }
-    }
-  }
-  for (std::size_t i = 0; i < redundant_joints_map_index.size(); ++i)
-    ROS_DEBUG_NAMED("lma", "Redundant joint map index: %d %d", (int)i, (int)redundant_joints_map_index[i]);
-
-  redundant_joints_map_index_ = redundant_joints_map_index;
-  redundant_joint_indices_ = redundant_joints;
-  return true;
-}
-
-int LMAKinematicsPlugin::getJointIndex(const std::string& name) const
-{
-  for (unsigned int i = 0; i < ik_chain_info_.joint_names.size(); i++)
-  {
-    if (ik_chain_info_.joint_names[i] == name)
-      return i;
-  }
-  return -1;
-}
-
-int LMAKinematicsPlugin::getKDLSegmentIndex(const std::string& name) const
-{
-  int i = 0;
-  while (i < (int)kdl_chain_.getNrOfSegments())
-  {
-    if (kdl_chain_.getSegment(i).getName() == name)
-    {
-      return i + 1;
-    }
-    i++;
-  }
-  return -1;
 }
 
 bool LMAKinematicsPlugin::timedOut(const ros::WallTime& start_time, double duration) const
@@ -357,11 +151,11 @@ bool LMAKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, cons
                                         std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                         const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
 
-  return searchPositionIK(ik_pose, ik_seed_state, default_timeout_, solution, solution_callback, error_code,
-                          consistency_limits, options);
+  // limit search to a single attempt by setting a timeout of zero
+  return searchPositionIK(ik_pose, ik_seed_state, 0.0, solution, IKCallbackFn(), error_code, consistency_limits,
+                          options);
 }
 
 bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
@@ -369,10 +163,9 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
 
-  return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
+  return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, IKCallbackFn(), error_code, consistency_limits,
                           options);
 }
 
@@ -381,8 +174,7 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
-  return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
+  return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, IKCallbackFn(), error_code, consistency_limits,
                           options);
 }
 
@@ -407,6 +199,22 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                           options);
 }
 
+void LMAKinematicsPlugin::harmonize(Eigen::VectorXd& values) const
+{
+  size_t i = 0;
+  for (auto* jm : joints_)
+    jm->harmonizePosition(&values[i++]);
+}
+
+bool LMAKinematicsPlugin::obeysLimits(const Eigen::VectorXd& values) const
+{
+  size_t i = 0;
+  for (const auto& jm : joints_)
+    if (!jm->satisfiesPositionBounds(&values[i++]))
+      return false;
+  return true;
+}
+
 bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                                            double timeout, std::vector<double>& solution,
                                            const IKCallbackFn& solution_callback,
@@ -414,10 +222,10 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            const std::vector<double>& consistency_limits,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  ros::WallTime n1 = ros::WallTime::now();
-  if (!active_)
+  ros::WallTime start_time = ros::WallTime::now();
+  if (!initialized_)
   {
-    ROS_ERROR_NAMED("lma", "kinematics not active");
+    ROS_ERROR_NAMED("lma", "kinematics solver not initialized");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -438,39 +246,21 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
     return false;
   }
 
+  Eigen::Matrix<double, 6, 1> cartesian_weights;
+  cartesian_weights(0) = 1;
+  cartesian_weights(1) = 1;
+  cartesian_weights(2) = 1;
+  cartesian_weights(3) = orientation_vs_position_weight_;
+  cartesian_weights(4) = orientation_vs_position_weight_;
+  cartesian_weights(5) = orientation_vs_position_weight_;
+
   KDL::JntArray jnt_seed_state(dimension_);
   KDL::JntArray jnt_pos_in(dimension_);
   KDL::JntArray jnt_pos_out(dimension_);
+  jnt_seed_state.data = Eigen::Map<const Eigen::VectorXd>(ik_seed_state.data(), ik_seed_state.size());
+  jnt_pos_in = jnt_seed_state;
 
-  // Build Solvers
-  Eigen::Matrix<double, 6, 1> L;
-  L(0) = 1;
-  L(1) = 1;
-  L(2) = 1;
-  L(3) = 0.01;
-  L(4) = 0.01;
-  L(5) = 0.01;
-
-  KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
-  KDL::ChainIkSolverPos_LMA ik_solver(kdl_chain_, L, epsilon_, max_solver_iterations_);
-  KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, joint_model_group_->getMimicJointModels().size(),
-                                                 redundant_joint_indices_.size(), position_ik_);
-  KDL::ChainIkSolverPos_LMA_JL_Mimic ik_solver_pos(kdl_chain_, joint_min_, joint_max_, fk_solver, ik_solver,
-                                                   max_solver_iterations_, epsilon_, position_ik_);
-  ik_solver_vel.setMimicJoints(mimic_joints_);
-  ik_solver_pos.setMimicJoints(mimic_joints_);
-
-  if ((redundant_joint_indices_.size() > 0) && !ik_solver_vel.setRedundantJointsMapIndex(redundant_joints_map_index_))
-  {
-    ROS_ERROR_NAMED("lma", "Could not set redundant joints");
-    return false;
-  }
-
-  if (options.lock_redundant_joints)
-  {
-    ik_solver_vel.lockRedundantJoints();
-  }
-
+  KDL::ChainIkSolverPos_LMA ik_solver_pos(kdl_chain_, cartesian_weights, epsilon_, max_solver_iterations_);
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
@@ -480,67 +270,47 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
                                     << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
                                     << ik_pose.orientation.z << " " << ik_pose.orientation.w);
-  // Do the IK
-  for (unsigned int i = 0; i < dimension_; i++)
-    jnt_seed_state(i) = ik_seed_state[i];
-  jnt_pos_in = jnt_seed_state;
-
-  unsigned int counter(0);
-  while (1)
+  unsigned int attempt = 0;
+  do
   {
-    //    ROS_DEBUG_NAMED("lma","Iteration: %d, time: %f, Timeout:
-    //    %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);
-    counter++;
-    if (timedOut(n1, timeout))
+    ++attempt;
+    if (attempt > 1)  // randomly re-seed after first attempt
     {
-      ROS_DEBUG_NAMED("lma", "IK timed out");
-      error_code.val = error_code.TIMED_OUT;
-      ik_solver_vel.unlockRedundantJoints();
-      return false;
+      if (!consistency_limits.empty())
+        getRandomConfiguration(jnt_seed_state.data, consistency_limits, jnt_pos_in.data);
+      else
+        getRandomConfiguration(jnt_pos_in.data);
+      ROS_DEBUG_STREAM_NAMED("lma", "New random configuration (" << attempt << "): " << jnt_pos_in);
     }
+
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
-    ROS_DEBUG_NAMED("lma", "IK valid: %d", ik_valid);
-    if (!consistency_limits.empty())
+    if (ik_valid == 0 || options.return_approximate_solution)  // found acceptable solution
     {
-      getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
-      if ((ik_valid < 0 && !options.return_approximate_solution) ||
-          !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
-      {
-        ROS_DEBUG_NAMED("lma", "Could not find IK solution: does not match consistency limits");
+      harmonize(jnt_pos_out.data);
+      if (!consistency_limits.empty() && !checkConsistency(jnt_seed_state.data, consistency_limits, jnt_pos_out.data))
         continue;
-      }
-    }
-    else
-    {
-      getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
-      ROS_DEBUG_NAMED("lma", "New random configuration");
-      for (unsigned int j = 0; j < dimension_; j++)
-        ROS_DEBUG_NAMED("lma", "%d %f", j, jnt_pos_in(j));
+      if (!obeysLimits(jnt_pos_out.data))
+        continue;
 
-      if (ik_valid < 0 && !options.return_approximate_solution)
+      Eigen::Map<Eigen::VectorXd>(solution.data(), solution.size()) = jnt_pos_out.data;
+      if (!solution_callback.empty())
       {
-        ROS_DEBUG_NAMED("lma", "Could not find IK solution");
-        continue;
+        solution_callback(ik_pose, solution, error_code);
+        if (error_code.val != error_code.SUCCESS)
+          continue;
       }
-    }
-    ROS_DEBUG_NAMED("lma", "Found IK solution");
-    for (unsigned int j = 0; j < dimension_; j++)
-      solution[j] = jnt_pos_out(j);
-    if (!solution_callback.empty())
-      solution_callback(ik_pose, solution, error_code);
-    else
+
+      // solution passed consistency check and solution callback
       error_code.val = error_code.SUCCESS;
-
-    if (error_code.val == error_code.SUCCESS)
-    {
-      ROS_DEBUG_STREAM_NAMED("lma", "Solved after " << counter << " iterations");
-      ik_solver_vel.unlockRedundantJoints();
+      ROS_DEBUG_STREAM_NAMED("lma", "Solved after " << (ros::WallTime::now() - start_time).toSec() << " < " << timeout
+                                                    << "s and " << attempt << " attempts");
       return true;
     }
-  }
-  ROS_DEBUG_NAMED("lma", "An IK that satisifes the constraints and is collision free could not be found");
-  error_code.val = error_code.NO_IK_SOLUTION;
-  ik_solver_vel.unlockRedundantJoints();
+  } while (!timedOut(start_time, timeout));
+
+  ROS_DEBUG_STREAM_NAMED("lma", "IK timed out after " << (ros::WallTime::now() - start_time).toSec() << " > " << timeout
+                                                      << "s and " << attempt << " attempts");
+  error_code.val = error_code.TIMED_OUT;
   return false;
 }
 
@@ -548,9 +318,9 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
                                         const std::vector<double>& joint_angles,
                                         std::vector<geometry_msgs::Pose>& poses) const
 {
-  if (!active_)
+  if (!initialized_)
   {
-    ROS_ERROR_NAMED("lma", "kinematics not active");
+    ROS_ERROR_NAMED("lma", "kinematics solver not initialized");
     return false;
   }
   poses.resize(link_names.size());
@@ -562,18 +332,12 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
 
   KDL::Frame p_out;
   KDL::JntArray jnt_pos_in(dimension_);
-  for (unsigned int i = 0; i < dimension_; i++)
-  {
-    jnt_pos_in(i) = joint_angles[i];
-  }
-
-  KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
+  jnt_pos_in.data = Eigen::Map<const Eigen::VectorXd>(joint_angles.data(), joint_angles.size());
 
   bool valid = true;
   for (unsigned int i = 0; i < poses.size(); i++)
   {
-    ROS_DEBUG_NAMED("lma", "End effector index: %d", getKDLSegmentIndex(link_names[i]));
-    if (fk_solver.JntToCart(jnt_pos_in, p_out, getKDLSegmentIndex(link_names[i])) >= 0)
+    if (fk_solver_->JntToCart(jnt_pos_in, p_out) >= 0)
     {
       poses[i] = tf2::toMsg(p_out);
     }
@@ -588,12 +352,12 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
 
 const std::vector<std::string>& LMAKinematicsPlugin::getJointNames() const
 {
-  return ik_chain_info_.joint_names;
+  return joint_names_;
 }
 
 const std::vector<std::string>& LMAKinematicsPlugin::getLinkNames() const
 {
-  return ik_chain_info_.link_names;
+  return getTipFrames();
 }
 
 }  // namespace
