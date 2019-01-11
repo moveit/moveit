@@ -297,6 +297,14 @@ public:
       Return true if changes were made. */
   virtual bool enforcePositionBounds(double* values, const Bounds& other_bounds) const = 0;
 
+  /** Harmonize position of revolute joints, adding/subtracting multiples of 2*Pi to bring them back into bounds.
+   *  Return true if changes were made. */
+  virtual bool harmonizePosition(double* values, const Bounds& other_bounds) const;
+  bool harmonizePosition(double* values) const
+  {
+    return harmonizePosition(values, variable_bounds_);
+  }
+
   /** \brief Check if the set of velocities for the variables of this joint are within bounds. */
   bool satisfiesVelocityBounds(const double* values, double margin = 0.0) const
   {

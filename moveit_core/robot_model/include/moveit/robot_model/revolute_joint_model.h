@@ -58,6 +58,7 @@ public:
                                         const double distance) const override;
   bool enforcePositionBounds(double* values, const Bounds& other_bounds) const override;
   bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const override;
+  bool harmonizePosition(double* values, const Bounds& other_bounds) const override;
 
   void interpolate(const double* from, const double* to, const double t, double* state) const override;
   unsigned int getStateSpaceDimension() const override;
