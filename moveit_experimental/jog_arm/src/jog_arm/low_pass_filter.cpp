@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_server.cpp
+//      Title     : low_pass_filter.cpp
 //      Project   : jog_arm
-//      Created   : 12/31/2018
+//      Created   : 1/11/2019
 //      Author    : Andy Zelenak
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2018, Los Alamos National Security, LLC
+// Copyright (c) 2019, Los Alamos National Security, LLC
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,42 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/jog_ros_interface.h>
+#include <jog_arm/low_pass_filter.h>
 
-int main(int argc, char** argv)
+namespace jog_arm
 {
-  ros::init(argc, argv, jog_arm::LOGNAME);
+LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
+{
+  filter_coeff_ = low_pass_filter_coeff;
+}
 
-  jog_arm::JogROSInterface ros_interface;
+void LowPassFilter::reset(double data)
+{
+  previous_measurements_[0] = data;
+  previous_measurements_[1] = data;
+  previous_measurements_[2] = data;
 
-  return false;
+  previous_filtered_measurements_[0] = data;
+  previous_filtered_measurements_[1] = data;
+}
+
+double LowPassFilter::filter(double new_measurement)
+{
+  // Push in the new measurement
+  previous_measurements_[2] = previous_measurements_[1];
+  previous_measurements_[1] = previous_measurements_[0];
+  previous_measurements_[0] = new_measurement;
+
+  double new_filtered_msrmt =
+      (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
+      (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
+       (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
+       (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
+
+  // Store the new filtered measurement
+  previous_filtered_measurements_[1] = previous_filtered_measurements_[0];
+  previous_filtered_measurements_[0] = new_filtered_msrmt;
+
+  return new_filtered_msrmt;
+}
 }

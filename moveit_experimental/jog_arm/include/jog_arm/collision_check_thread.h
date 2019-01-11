@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_server.cpp
+//      Title     : collision_check_thread.h
 //      Project   : jog_arm
-//      Created   : 12/31/2018
-//      Author    : Andy Zelenak
+//      Created   : 1/11/2019
+//      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2018, Los Alamos National Security, LLC
+// Copyright (c) 2019, Los Alamos National Security, LLC
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,24 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/jog_ros_interface.h>
+#ifndef JOG_ARM_COLLISION_CHECK_THREAD_H
+#define JOG_ARM_COLLISION_CHECK_THREAD_H
 
-int main(int argc, char** argv)
+#include <jog_arm/jog_arm_datastructures.h>
+#include <jog_arm/low_pass_filter.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+
+namespace jog_arm
 {
-  ros::init(argc, argv, jog_arm::LOGNAME);
+class CollisionCheckThread
+{
+public:
+  CollisionCheckThread(const jog_arm::JogArmParameters parameters, jog_arm::JogArmShared& shared_variables,
+                       const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
+};
 
-  jog_arm::JogROSInterface ros_interface;
-
-  return false;
+static const std::string LOGNAME = "jog_arm_server";
 }
+
+#endif  // JOG_ARM_COLLISION_CHECK_THREAD_H

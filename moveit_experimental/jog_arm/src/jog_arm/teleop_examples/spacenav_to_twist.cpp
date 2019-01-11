@@ -5,25 +5,24 @@
 
 namespace jog_arm
 {
+
+static const int NUM_SPINNERS = 1;
+static const int QUEUE_LENGTH = 1;
+
 class SpaceNavToTwist
 {
 public:
-  SpaceNavToTwist() : spinner_(1)
+  SpaceNavToTwist() : spinner_(NUM_SPINNERS)
   {
-    joy_sub_ = n_.subscribe("spacenav/joy", 1, &SpaceNavToTwist::joyCallback, this);
-    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_arm_server/delta_jog_cmds", 1);
-    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("jog_arm_server/joint_delta_jog_cmds", 1);
+    joy_sub_ = n_.subscribe("spacenav/joy", QUEUE_LENGTH, &SpaceNavToTwist::joyCallback, this);
+    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_arm_server/delta_jog_cmds", QUEUE_LENGTH);
+    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("jog_arm_server/joint_delta_jog_cmds", QUEUE_LENGTH);
 
     spinner_.start();
     ros::waitForShutdown();
   };
 
 private:
-  ros::NodeHandle n_;
-  ros::Subscriber joy_sub_;
-  ros::Publisher twist_pub_, joint_delta_pub_;
-  ros::AsyncSpinner spinner_;
-
   // Convert incoming joy commands to TwistStamped commands for jogging.
   // The TwistStamped component goes to jogging, while buttons 0 & 1 control
   // joints directly.
@@ -53,6 +52,11 @@ private:
     twist_pub_.publish(twist);
     joint_delta_pub_.publish(joint_deltas);
   }
+
+  ros::NodeHandle n_;
+  ros::Subscriber joy_sub_;
+  ros::Publisher twist_pub_, joint_delta_pub_;
+  ros::AsyncSpinner spinner_;
 };
 }  // end jog_arm namespace
 

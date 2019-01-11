@@ -159,116 +159,8 @@ bool JogROSInterface::startJogCalcThread(const JogArmParameters& parameters, Jog
 bool JogROSInterface::startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
                                                 const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
-  collisionCheckThread cc(parameters, shared_variables, model_loader_ptr);
+  CollisionCheckThread cc(parameters, shared_variables, model_loader_ptr);
   return true;
-}
-
-// Constructor for the class that handles collision checking
-collisionCheckThread::collisionCheckThread(const JogArmParameters parameters, JogArmShared& shared_variables,
-                                           const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
-{
-  // If user specified true in yaml file
-  if (parameters.check_collisions)
-  {
-    // MoveIt! Setup
-    while (ros::ok() && !model_loader_ptr)
-    {
-      ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-      ros::Duration(WHILE_LOOP_WAIT).sleep();
-    }
-    const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
-    planning_scene::PlanningScene planning_scene(kinematic_model);
-    collision_detection::CollisionRequest collision_request;
-    collision_request.group_name = parameters.move_group_name;
-    collision_request.distance = true;
-    collision_detection::CollisionResult collision_result;
-    robot_state::RobotState& current_state = planning_scene.getCurrentStateNonConst();
-
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
-    planning_scene_monitor.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
-    planning_scene_monitor->startSceneMonitor();
-    planning_scene_monitor->startStateMonitor();
-
-    if (planning_scene_monitor->getPlanningScene())
-    {
-      planning_scene_monitor->startSceneMonitor("/planning_scene");
-      planning_scene_monitor->startWorldGeometryMonitor();
-      planning_scene_monitor->startStateMonitor();
-    }
-    else
-    {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
-      exit(EXIT_FAILURE);
-    }
-
-    // Wait for initial messages
-    ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
-    ros::topic::waitForMessage<sensor_msgs::JointState>(parameters.joint_topic);
-    ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
-
-    ROS_INFO_NAMED(LOGNAME, "Waiting for first command msg.");
-    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic);
-    ROS_INFO_NAMED(LOGNAME, "Received first command msg.");
-
-    // A very low cutoff frequency
-    LowPassFilter velocity_scale_filter(20);
-    // Assume no scaling, initially
-    velocity_scale_filter.reset(1);
-    ros::Rate collision_rate(parameters.collision_check_rate);
-
-    /////////////////////////////////////////////////
-    // Spin while checking collisions
-    /////////////////////////////////////////////////
-    while (ros::ok())
-    {
-      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
-      sensor_msgs::JointState jts = shared_variables.joints;
-      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-
-      for (std::size_t i = 0; i < jts.position.size(); ++i)
-        current_state.setJointPositions(jts.name[i], &jts.position[i]);
-
-      collision_result.clear();
-      planning_scene_monitor->getPlanningScene()->checkCollision(collision_request, collision_result, current_state);
-
-      // Scale robot velocity according to collision proximity and user-defined thresholds.
-      // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
-      // Proximity decreasing --> decelerate
-      double velocity_scale = 1;
-
-      // Ramp velocity down linearly when collision proximity is between lower_collision_proximity_threshold and
-      // hard_stop_collision_proximity_threshold
-      if ((collision_result.distance > parameters.hard_stop_collision_proximity_threshold) &&
-          (collision_result.distance < parameters.lower_collision_proximity_threshold))
-      {
-        // scale = k*(proximity-hard_stop_threshold)^3
-        velocity_scale =
-            64000. * pow(collision_result.distance - parameters.hard_stop_collision_proximity_threshold, 3);
-      }
-      else if (collision_result.distance < parameters.hard_stop_collision_proximity_threshold)
-        velocity_scale = 0;
-
-      velocity_scale = velocity_scale_filter.filter(velocity_scale);
-      // Put a ceiling and a floor on velocity_scale
-      if (velocity_scale > 1)
-        velocity_scale = 1;
-      else if (velocity_scale < 0.05)
-        velocity_scale = 0.05;
-
-      // Very slow if actually in collision
-      if (collision_result.collision)
-      {
-        ROS_WARN_NAMED(LOGNAME, "Very close to collision. Slowing way down.");
-        velocity_scale = 0.02;
-      }
-
-      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
-      shared_variables.collision_velocity_scale = velocity_scale;
-      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
-
-      collision_rate.sleep();
-    }
-  }
 }
 
 // Constructor for the class that handles jogging calculations
@@ -825,7 +717,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
   return !halting;
 }
 
-void JogCalcs::publishWarning(const bool active) const
+void JogCalcs::publishWarning(bool active) const
 {
   std_msgs::Bool status;
   status.data = static_cast<std_msgs::Bool::_data_type>(active);
@@ -1170,40 +1062,5 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   }
 
   return true;
-}
-
-LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
-{
-  filter_coeff_ = low_pass_filter_coeff;
-}
-
-void LowPassFilter::reset(double data)
-{
-  previous_measurements_[0] = data;
-  previous_measurements_[1] = data;
-  previous_measurements_[2] = data;
-
-  previous_filtered_measurements_[0] = data;
-  previous_filtered_measurements_[1] = data;
-}
-
-double LowPassFilter::filter(double new_measurement_)
-{
-  // Push in the new measurement
-  previous_measurements_[2] = previous_measurements_[1];
-  previous_measurements_[1] = previous_measurements_[0];
-  previous_measurements_[0] = new_measurement_;
-
-  double new_filtered_msrmt =
-      (1. / (1. + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
-      (previous_measurements_[2] + 2. * previous_measurements_[1] + previous_measurements_[0] -
-       (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1.) * previous_filtered_measurements_[1] -
-       (-2. * filter_coeff_ * filter_coeff_ + 2.) * previous_filtered_measurements_[0]);
-
-  // Store the new filtered measurement
-  previous_filtered_measurements_[1] = previous_filtered_measurements_[0];
-  previous_filtered_measurements_[0] = new_filtered_msrmt;
-
-  return new_filtered_msrmt;
 }
 }  // namespace jog_arm

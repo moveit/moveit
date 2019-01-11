@@ -38,7 +38,6 @@
   <build_depend>rosconsole</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>moveit_core</build_depend>
-  <build_depend>message_generation</build_depend>
   <!-- The following are required by jog_arm -->
   <build_depend>control_msgs</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
