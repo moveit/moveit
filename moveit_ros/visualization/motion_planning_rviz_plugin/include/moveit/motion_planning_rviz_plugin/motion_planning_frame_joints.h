@@ -69,15 +69,27 @@ class JMGItemModel : public QAbstractTableModel
 public:
   JMGItemModel(const moveit::core::RobotState& robot_state, const std::string group_name, QObject* parent = nullptr);
 
+  // QAbstractItemModel interface
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+  Qt::ItemFlags flags(const QModelIndex& index) const override;
   QVariant data(const QModelIndex& index, int role) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
+  moveit::core::RobotState& getRobotState()
+  {
+    return robot_state_;
+  }
   const moveit::core::RobotState& getRobotState() const
   {
     return robot_state_;
   }
+  const moveit::core::JointModelGroup* getJointModelGroup() const
+  {
+    return jmg_;
+  }
+
   /// retrieve the JointModel corresponding to the variable referenced by index
   const moveit::core::JointModel* getJointModel(const QModelIndex& index) const;
   /// retrieve the variable bounds referenced by variable index
@@ -86,13 +98,14 @@ public:
   void stateChanged(const moveit::core::RobotState& state);
 };
 
+class MotionPlanningDisplay;
 class MotionPlanningFrameJointsWidget : public QWidget
 {
   Q_OBJECT
 
 public:
   MotionPlanningFrameJointsWidget(const MotionPlanningFrameJointsWidget&) = delete;
-  MotionPlanningFrameJointsWidget(QWidget* parent = nullptr);
+  MotionPlanningFrameJointsWidget(MotionPlanningDisplay* display, QWidget* parent = nullptr);
   ~MotionPlanningFrameJointsWidget();
 
   void changePlanningGroup(const std::string& group_name,
@@ -103,12 +116,19 @@ public Q_SLOTS:
   void queryStartStateChanged();
   void queryGoalStateChanged();
 
+protected:
+  void setActiveModel(JMGItemModel* model);
+  void triggerUpdate(JMGItemModel* model);
+
 private:
   Ui::MotionPlanningFrameJointsUI* ui_;
+  MotionPlanningDisplay* planning_display_;
   robot_interaction::InteractionHandlerPtr start_state_handler_;
   robot_interaction::InteractionHandlerPtr goal_state_handler_;
   std::unique_ptr<JMGItemModel> start_state_model_;
   std::unique_ptr<JMGItemModel> goal_state_model_;
+  // break circular loop of stateChanged() -> dataChanged() |-> PlanningDisplay::setQuery*State()
+  bool ignore_state_changes_ = false;
 };
 
 /// Delegate to show the joint value as with a progress bar indicator between min and max.
@@ -128,5 +148,41 @@ public:
   }
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
+  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
+
+private Q_SLOTS:
+  void commitAndCloseEditor();
+};
+
+/// Number editor via progress bar dragging
+class ProgressBarEditor : public QWidget
+{
+  Q_OBJECT
+
+public:
+  ProgressBarEditor(QWidget* parent = 0);
+
+  void setPercentage(int p)
+  {
+    percentage_ = p;
+  }
+  int percentage()
+  {
+    return percentage_;
+  }
+
+Q_SIGNALS:
+  void valueChanged(int percentage);
+  void editingFinished();
+
+protected:
+  void paintEvent(QPaintEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+
+private:
+  int percentage_;
 };
 }

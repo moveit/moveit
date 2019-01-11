@@ -38,6 +38,7 @@
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 
 #include "ui_motion_planning_rviz_plugin_frame_joints.h"
+#include <QPainter>
 
 namespace moveit_rviz_plugin
 {
@@ -59,6 +60,21 @@ int JMGItemModel::rowCount(const QModelIndex& parent) const
 int JMGItemModel::columnCount(const QModelIndex& parent) const
 {
   return 2;
+}
+
+Qt::ItemFlags JMGItemModel::flags(const QModelIndex& index) const
+{
+  if (!index.isValid())
+    return 0;
+
+  Qt::ItemFlags f = QAbstractTableModel::flags(index);
+  if (index.column() == 1)
+  {
+    const moveit::core::JointModel* jm = getJointModel(index);
+    if (!jm->isPassive() && !jm->getMimic())  // these are not editable
+      f |= Qt::ItemIsEditable;
+  }
+  return f;
 }
 
 QVariant JMGItemModel::data(const QModelIndex& index, int role) const
@@ -85,6 +101,10 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
       {
         case Qt::DisplayRole:
           return value;
+        case Qt::EditRole:
+          if (const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx))
+            return jm->getType() == moveit::core::JointModel::REVOLUTE ? value * 180 / M_PI : value;
+          break;
         case ProgressBarDelegate::JointTypeRole:
           if (const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx))
             return jm->getType();
@@ -110,6 +130,34 @@ QVariant JMGItemModel::headerData(int section, Qt::Orientation orientation, int 
   return QAbstractTableModel::headerData(section, orientation, role);
 }
 
+bool JMGItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (index.column() != 1 || role != Qt::EditRole)
+    return false;
+
+  int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
+  const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(var_idx);
+  const moveit::core::VariableBounds* bounds = getVariableBounds(index);
+  double v;
+  if (bounds && value.userType() == QVariant::Int)  // int is interpreted as percentage between bounds
+    v = bounds->min_position_ + value.toInt() / 100. * (bounds->max_position_ - bounds->min_position_);
+  else if (value.userType() == QVariant::Double)
+  {
+    v = value.toDouble();
+    // for revolute joints, we convert degrees to radians
+    if (jm)
+      if (jm->getType() == moveit::core::JointModel::REVOLUTE)
+        v *= M_PI / 180;
+  }
+  else  // cannot handle this value
+    return false;
+
+  robot_state_.setVariablePosition(var_idx, v);
+  jm->enforcePositionBounds(robot_state_.getVariablePositions() + jm->getFirstVariableIndex());
+  dataChanged(index, index);
+  return true;
+}
+
 const moveit::core::JointModel* JMGItemModel::getJointModel(const QModelIndex& index) const
 {
   if (!index.isValid())
@@ -127,31 +175,18 @@ const moveit::core::VariableBounds* JMGItemModel::getVariableBounds(const QModel
   return &jm->getVariableBounds()[var_idx - jm->getFirstVariableIndex()];
 }
 
+// copy positions from new_state and notify about these changes
 void JMGItemModel::stateChanged(const moveit::core::RobotState& state)
 {
   if (robot_state_.getRobotModel() != state.getRobotModel())
     return;
   robot_state_.setVariablePositions(state.getVariablePositions());
 
-  if (!jmg_)  // update whole value column
-    dataChanged(index(0, 1), index(rowCount() - 1, 1));
-
-  // for JMG only update affected variables
-  int first = -1, last = -2;
-  for (int idx : jmg_->getVariableIndexList())
-  {
-    if (++last == idx)
-      continue;  // extend continuous range
-    if (first >= 0)
-      dataChanged(index(first, 1), index(last - 1, 1));
-    first = last = idx;
-  }
-  if (first >= 0)
-    dataChanged(index(first, 1), index(last - 1, 1));
+  dataChanged(index(0, 1), index(rowCount() - 1, 1));
 }
 
-MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(QWidget* parent)
-  : QWidget(parent), ui_(new Ui::MotionPlanningFrameJointsUI())
+MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningDisplay* display, QWidget* parent)
+  : QWidget(parent), ui_(new Ui::MotionPlanningFrameJointsUI()), planning_display_(display)
 {
   ui_->setupUi(this);
   ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
@@ -176,25 +211,54 @@ void MotionPlanningFrameJointsWidget::changePlanningGroup(
   goal_state_handler_ = goal_state_handler;
   start_state_model_.reset(new JMGItemModel(*start_state_handler_->getState(), group_name, this));
   goal_state_model_.reset(new JMGItemModel(*goal_state_handler_->getState(), group_name, this));
-  ui_->joints_view_->setModel(goal_state_model_.get());
+
+  // forward model updates to the PlanningDisplay
+  connect(start_state_model_.get(), &JMGItemModel::dataChanged, this, [this]() {
+    if (!ignore_state_changes_)
+      planning_display_->setQueryStartState(start_state_model_->getRobotState());
+  });
+  connect(goal_state_model_.get(), &JMGItemModel::dataChanged, this, [this]() {
+    if (!ignore_state_changes_)
+      planning_display_->setQueryGoalState(goal_state_model_->getRobotState());
+  });
+
+  // show the goal state by default
+  setActiveModel(goal_state_model_.get());
 }
 
 void MotionPlanningFrameJointsWidget::queryStartStateChanged()
 {
   if (!start_state_model_ || !start_state_handler_)
     return;
+  ignore_state_changes_ = true;
   start_state_model_->stateChanged(*start_state_handler_->getState());
-  ui_->joints_view_->setModel(start_state_model_.get());
-  ui_->joints_view_label_->setText("Group joints of start state");
+  ignore_state_changes_ = false;
+  setActiveModel(start_state_model_.get());
 }
 
 void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
 {
   if (!goal_state_model_ || !goal_state_handler_)
     return;
+  ignore_state_changes_ = true;
   goal_state_model_->stateChanged(*goal_state_handler_->getState());
-  ui_->joints_view_->setModel(goal_state_model_.get());
-  ui_->joints_view_label_->setText("Group joints of goal state");
+  ignore_state_changes_ = false;
+  setActiveModel(goal_state_model_.get());
+}
+
+void MotionPlanningFrameJointsWidget::setActiveModel(JMGItemModel* model)
+{
+  ui_->joints_view_->setModel(model);
+  ui_->joints_view_label_->setText(
+      QString("Group joints of %1 state").arg(model == start_state_model_.get() ? "start" : "goal"));
+}
+
+void MotionPlanningFrameJointsWidget::triggerUpdate(JMGItemModel* model)
+{
+  if (model == start_state_model_.get())
+    planning_display_->setQueryStartState(model->getRobotState());
+  else
+    planning_display_->setQueryGoalState(model->getRobotState());
 }
 
 void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -230,4 +294,89 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
   style->drawControl(QStyle::CE_ItemViewItem, &style_option, painter, option.widget);
 }
 
+QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option,
+                                           const QModelIndex& index) const
+
+{
+  if (index.column() == 1)
+  {
+    QVariant percentage = index.data(PercentageRole);
+    if (percentage.isValid())
+    {
+      auto* editor = new ProgressBarEditor(parent);
+      connect(editor, &ProgressBarEditor::editingFinished, this, &ProgressBarDelegate::commitAndCloseEditor);
+      connect(editor, &ProgressBarEditor::valueChanged, this, [=](int value) {
+        JMGItemModel* model = dynamic_cast<JMGItemModel*>(const_cast<QAbstractItemModel*>(index.model()));
+        model->setData(index, QVariant(value), Qt::EditRole);
+      });
+      return editor;
+    }
+  }
+  return QStyledItemDelegate::createEditor(parent, option, index);
+}
+
+void ProgressBarDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
+{
+  if (ProgressBarEditor* pb_editor = qobject_cast<ProgressBarEditor*>(editor))
+    pb_editor->setPercentage(index.data(PercentageRole).toInt());
+  else
+    QStyledItemDelegate::setEditorData(editor, index);
+}
+
+void ProgressBarDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
+{
+  if (ProgressBarEditor* pb_editor = qobject_cast<ProgressBarEditor*>(editor))
+    model->setData(index, pb_editor->percentage());
+  else
+    QStyledItemDelegate::setModelData(editor, model, index);
+}
+
+void ProgressBarDelegate::commitAndCloseEditor()
+{
+  ProgressBarEditor* editor = qobject_cast<ProgressBarEditor*>(sender());
+  commitData(editor);
+  closeEditor(editor);
+}
+
+ProgressBarEditor::ProgressBarEditor(QWidget* parent) : QWidget(parent)
+{
+  setMouseTracking(true);
+}
+
+void ProgressBarEditor::paintEvent(QPaintEvent*)
+{
+  QPainter painter(this);
+
+  QStyleOptionProgressBar opt;
+  opt.rect = rect();
+  opt.palette = this->palette();
+  opt.minimum = 0;
+  opt.maximum = 100;
+  opt.progress = percentage_;
+  opt.textVisible = false;
+  style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
+}
+
+void ProgressBarEditor::mouseMoveEvent(QMouseEvent* event)
+{
+  int p = 100 * event->x() / width();
+  if (p < 0)
+    p = 0;
+  if (p > 100)
+    p = 100;
+
+  if (percentage_ != p)
+  {
+    percentage_ = p;
+    valueChanged(p);
+    update();
+  }
+  event->accept();
+}
+
+void ProgressBarEditor::mouseReleaseEvent(QMouseEvent* event)
+{
+  event->accept();
+  editingFinished();
+}
 }  // namespace

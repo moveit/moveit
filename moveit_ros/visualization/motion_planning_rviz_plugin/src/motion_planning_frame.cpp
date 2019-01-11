@@ -68,7 +68,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   // set up the GUI
   ui_->setupUi(this);
   // add more tabs
-  joints_tab_ = new MotionPlanningFrameJointsWidget(ui_->tabWidget);
+  joints_tab_ = new MotionPlanningFrameJointsWidget(planning_display_, ui_->tabWidget);
   ui_->tabWidget->addTab(joints_tab_, "Joints");
   connect(planning_display_, SIGNAL(queryStartStateChanged()), joints_tab_, SLOT(queryStartStateChanged()));
   connect(planning_display_, SIGNAL(queryGoalStateChanged()), joints_tab_, SLOT(queryGoalStateChanged()));
