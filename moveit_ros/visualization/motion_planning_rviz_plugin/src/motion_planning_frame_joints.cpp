@@ -39,6 +39,7 @@
 
 #include "ui_motion_planning_rviz_plugin_frame_joints.h"
 #include <QPainter>
+#include <QSlider>
 
 namespace moveit_rviz_plugin
 {
@@ -190,6 +191,7 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
 {
   ui_->setupUi(this);
   ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
+  svd_.setThreshold(0.001);
 }
 
 MotionPlanningFrameJointsWidget::~MotionPlanningFrameJointsWidget()
@@ -224,6 +226,7 @@ void MotionPlanningFrameJointsWidget::changePlanningGroup(
 
   // show the goal state by default
   setActiveModel(goal_state_model_.get());
+  updateNullspaceSliders();
 }
 
 void MotionPlanningFrameJointsWidget::queryStartStateChanged()
@@ -234,6 +237,7 @@ void MotionPlanningFrameJointsWidget::queryStartStateChanged()
   start_state_model_->stateChanged(*start_state_handler_->getState());
   ignore_state_changes_ = false;
   setActiveModel(start_state_model_.get());
+  updateNullspaceSliders();
 }
 
 void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
@@ -244,6 +248,7 @@ void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
   goal_state_model_->stateChanged(*goal_state_handler_->getState());
   ignore_state_changes_ = false;
   setActiveModel(goal_state_model_.get());
+  updateNullspaceSliders();
 }
 
 void MotionPlanningFrameJointsWidget::setActiveModel(JMGItemModel* model)
@@ -259,6 +264,112 @@ void MotionPlanningFrameJointsWidget::triggerUpdate(JMGItemModel* model)
     planning_display_->setQueryStartState(model->getRobotState());
   else
     planning_display_->setQueryGoalState(model->getRobotState());
+}
+
+// Find matching key vector in columns of haystack and return the best-aligned column index.
+// Only consider available indexes (> 0). If no match is found, return largest available index.
+// sign becomes -1 if key has changed sign compared to the matching haystack column.
+static Eigen::Index findMatching(const Eigen::VectorXd& key, const Eigen::MatrixXd& haystack,
+                                 const Eigen::VectorXi& available, double& sign)
+{
+  Eigen::Index result = available.array().maxCoeff();
+  double best_match = 0.0;
+  for (unsigned int i = 0; i < available.rows(); ++i)
+  {
+    int index = available[i];
+    if (index < 0)  // index already taken
+      continue;
+    if (index >= haystack.cols())
+      return result;
+    double match = haystack.col(available[i]).transpose() * key;
+    double abs_match = std::abs(match);
+    if (abs_match > 0.5 && abs_match > best_match)
+    {
+      best_match = abs_match;
+      result = index;
+      sign = match > 0 ? 1.0 : -1.0;
+    }
+  }
+  return result;
+}
+
+void MotionPlanningFrameJointsWidget::updateNullspaceSliders()
+{
+  JMGItemModel* model = dynamic_cast<JMGItemModel*>(ui_->joints_view_->model());
+  int i = 0;
+  if (model && model->getJointModelGroup() && model->getJointModelGroup()->isChain())
+  {
+    model->getRobotState().updateLinkTransforms();
+    Eigen::MatrixXd J;
+    if (!model->getRobotState().getJacobian(model->getJointModelGroup(),
+                                            model->getJointModelGroup()->getLinkModels().back(),
+                                            Eigen::Vector3d::Zero(), J, false))
+      goto cleanup;
+
+    svd_.compute(J, Eigen::ComputeFullV);
+    Eigen::Index rank = svd_.rank();
+    Eigen::Index ns_dim = svd_.cols() - rank;
+    Eigen::MatrixXd ns(svd_.cols(), ns_dim);
+    Eigen::VectorXi available(ns_dim);
+    for (int j = 0; j < ns_dim; ++j)
+      available[j] = j;
+
+    ns_sliders_.reserve(ns_dim);
+    // create/unhide sliders
+    for (; i < ns_dim; ++i)
+    {
+      if (i >= ns_sliders_.size())
+        ns_sliders_.push_back(createNSSlider(i + 1));
+      ns_sliders_[i]->show();
+
+      // Find matching null-space basis vector in previous nullspace_
+      double sign = 1.0;
+      const Eigen::VectorXd& current = svd_.matrixV().col(rank + i);
+      Eigen::Index index = findMatching(current, nullspace_, available, sign);
+      ns.col(index).noalias() = sign * current;
+      available[index] = -1;  // mark index as taken
+    }
+    nullspace_ = ns;
+  }
+
+cleanup:
+  if (i == 0)
+    nullspace_.resize(0, 0);
+
+  // hide remaining sliders
+  for (; i < ns_sliders_.size(); ++i)
+    ns_sliders_[i]->hide();
+}
+
+QSlider* MotionPlanningFrameJointsWidget::createNSSlider(int i)
+{
+  JogSlider* slider = new JogSlider(this);
+  slider->setOrientation(Qt::Horizontal);
+  slider->setMaximum(0.1);
+  slider->setToolTip(QString("Nullspace dim #%1").arg(i));
+  ui_->nullspace_layout_->addWidget(slider);
+  connect(slider, SIGNAL(triggered(double)), this, SLOT(jogNullspace(double)));
+  return slider;
+}
+
+void MotionPlanningFrameJointsWidget::jogNullspace(double value)
+{
+  if (value == 0)
+    return;
+
+  std::size_t index = std::find(ns_sliders_.begin(), ns_sliders_.end(), sender()) - ns_sliders_.begin();
+  if (index >= nullspace_.cols())
+    return;
+
+  JMGItemModel* model = dynamic_cast<JMGItemModel*>(ui_->joints_view_->model());
+  if (!model)
+    return;
+
+  Eigen::VectorXd values;
+  model->getRobotState().copyJointGroupPositions(model->getJointModelGroup(), values);
+  values += value * nullspace_.col(index);
+  model->getRobotState().setJointGroupPositions(model->getJointModelGroup(), values);
+  triggerUpdate(model);
 }
 
 void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -379,4 +490,47 @@ void ProgressBarEditor::mouseReleaseEvent(QMouseEvent* event)
   event->accept();
   editingFinished();
 }
+
+JogSlider::JogSlider(QWidget* parent) : QSlider(parent)
+{
+  setTimerInterval(50);
+  setResolution(1000);
+  setMaximum(1.0);
+}
+
+void JogSlider::setTimerInterval(int ms)
+{
+  timer_interval_ = ms;
+}
+
+void JogSlider::setResolution(unsigned int resolution)
+{
+  QSlider::setRange(-resolution, +resolution);
+}
+
+void JogSlider::setMaximum(double value)
+{
+  maximum_ = value;
+}
+
+void JogSlider::timerEvent(QTimerEvent* event)
+{
+  QSlider::timerEvent(event);
+  if (event->timerId() == timer_id_)
+    triggered(value());
+}
+
+void JogSlider::mousePressEvent(QMouseEvent* event)
+{
+  QSlider::mousePressEvent(event);
+  timer_id_ = startTimer(timer_interval_);
+}
+
+void JogSlider::mouseReleaseEvent(QMouseEvent* event)
+{
+  killTimer(timer_id_);
+  QSlider::mouseReleaseEvent(event);
+  setValue(0);
+}
+
 }  // namespace

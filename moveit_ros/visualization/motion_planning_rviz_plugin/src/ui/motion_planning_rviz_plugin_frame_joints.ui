@@ -13,16 +13,30 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QLabel" name="joints_view_label_">
-     <property name="text">
-      <string>Group Joints:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTreeView" name="joints_view_"/>
+    <layout class="QVBoxLayout" name="joints_layout_">
+     <item>
+      <widget class="QLabel" name="joints_view_label_">
+       <property name="text">
+        <string>Group joints:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTreeView" name="joints_view_"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Nullspace exploration:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="nullspace_layout_"/>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

@@ -38,10 +38,14 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
+#include <Eigen/SVD>
 #include <QAbstractItemModel>
 #include <QWidget>
 #include <QStyledItemDelegate>
+#include <vector>
 #include <memory>
+
+class QSlider;
 
 namespace Ui
 {
@@ -115,10 +119,13 @@ public:
 public Q_SLOTS:
   void queryStartStateChanged();
   void queryGoalStateChanged();
+  void jogNullspace(double value);
 
 protected:
   void setActiveModel(JMGItemModel* model);
   void triggerUpdate(JMGItemModel* model);
+  void updateNullspaceSliders();
+  QSlider* createNSSlider(int i);
 
 private:
   Ui::MotionPlanningFrameJointsUI* ui_;
@@ -129,6 +136,10 @@ private:
   std::unique_ptr<JMGItemModel> goal_state_model_;
   // break circular loop of stateChanged() -> dataChanged() |-> PlanningDisplay::setQuery*State()
   bool ignore_state_changes_ = false;
+
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
+  Eigen::MatrixXd nullspace_;
+  std::vector<QSlider*> ns_sliders_;
 };
 
 /// Delegate to show the joint value as with a progress bar indicator between min and max.
@@ -184,5 +195,42 @@ protected:
 
 private:
   int percentage_;
+};
+
+/// Slider that jumps back to zero
+class JogSlider : public QSlider
+{
+  Q_OBJECT
+  int timer_id_;
+  int timer_interval_;  // ms
+  double maximum_;
+
+public:
+  JogSlider(QWidget* parent = nullptr);
+
+  int timerInterval() const
+  {
+    return timer_interval_;
+  }
+  void setTimerInterval(int ms);
+  void setResolution(unsigned int resolution);
+  void setMaximum(double value);
+  double value() const
+  {
+    return QSlider::value() * maximum_ / QSlider::maximum();
+  }
+
+protected:
+  void timerEvent(QTimerEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+
+private:
+  using QSlider::setMinimum;
+  using QSlider::setMaximum;
+  using QSlider::setRange;
+
+Q_SIGNALS:
+  void triggered(double value);
 };
 }
