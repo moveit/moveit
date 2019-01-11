@@ -369,6 +369,7 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
   model->getRobotState().copyJointGroupPositions(model->getJointModelGroup(), values);
   values += value * nullspace_.col(index);
   model->getRobotState().setJointGroupPositions(model->getJointModelGroup(), values);
+  model->getRobotState().harmonizePositions(model->getJointModelGroup());
   triggerUpdate(model);
 }
 
