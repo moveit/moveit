@@ -6,11 +6,7 @@ add_definitions(-std=c++11)
 # find catkin in isolation so that CATKIN_ENABLE_TESTING is defined
 find_package(catkin REQUIRED)
 if (CATKIN_ENABLE_TESTING)
-  set(CHOMP_TEST_DEPS
-    moveit_ros_planning_interface
-  )
-else()
-  set(CHOMP_TEST_DEPS)
+  set(CHOMP_TEST_DEPS moveit_ros_planning_interface)
 endif()
 
 find_package(catkin REQUIRED COMPONENTS
@@ -18,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   chomp_motion_planner
-  moveit_experimental
   ${CHOMP_TEST_DEPS}
 )
 
