@@ -114,12 +114,14 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
       // Proximity decreasing --> decelerate
       double velocity_scale = 1;
 
-      // Ramp velocity down linearly when collision proximity is between lower_collision_proximity_threshold and
-      // hard_stop_collision_proximity_threshold
+      // If we are far from a collision, velocity_scale should be 1.
+      // If we are close to a collision, velocity_scale should be a small constant.
+      // As hard_stop_collision_proximity_threshold is approached, decelerate exponentially.
       if ((collision_result.distance > parameters.hard_stop_collision_proximity_threshold) &&
           (collision_result.distance < parameters.lower_collision_proximity_threshold))
       {
-        // scale = k*(proximity-hard_stop_threshold)^3
+        // scale = k*(proximity-hard_stop_threshold)^3, k > 0.
+        // The value of k is rather arbitrary, but it shoudl be large or the deceleration is noticeable too soon.
         velocity_scale =
             64000. * pow(collision_result.distance - parameters.hard_stop_collision_proximity_threshold, 3);
       }
