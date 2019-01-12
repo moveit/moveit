@@ -5,7 +5,6 @@
 
 namespace jog_arm
 {
-
 static const int NUM_SPINNERS = 1;
 static const int QUEUE_LENGTH = 1;
 

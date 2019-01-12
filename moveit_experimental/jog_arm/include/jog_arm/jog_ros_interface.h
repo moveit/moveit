@@ -44,16 +44,13 @@
 
 #include <Eigen/Eigenvalues>
 #include <jog_arm/collision_check_thread.h>
-#include <jog_arm/jog_arm_datastructures.h>
+#include <jog_arm/jog_arm_data.h>
+#include <jog_arm/jog_calcs.h>
 #include <jog_arm/low_pass_filter.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/robot_state/robot_state.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/Joy.h>
-#include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 
 namespace jog_arm
 {
@@ -89,85 +86,6 @@ private:
   // Store the parameters that were read from ROS server
   JogArmParameters ros_parameters_;
 };
-
-/**
- * Class JogCalcs - Perform the Jacobian calculations.
- */
-class JogCalcs
-{
-public:
-  JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables,
-           const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
-
-protected:
-  ros::NodeHandle nh_;
-
-  moveit::planning_interface::MoveGroupInterface move_group_;
-
-  sensor_msgs::JointState incoming_jts_;
-
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
-
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
-
-  // Parse the incoming joint msg for the joints of our MoveGroup
-  bool updateJoints();
-
-  Eigen::VectorXd scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const;
-
-  Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
-
-  Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd& J) const;
-
-  bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
-
-  // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
-  void resetVelocityFilters();
-
-  // Avoid a singularity or other issue. Is handled differently for position vs. velocity control.
-  void halt(trajectory_msgs::JointTrajectory& jt_traj);
-
-  void publishWarning(bool active) const;
-
-  bool checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_jt_traj);
-
-  // Possibly calculate a velocity scaling factor, due to proximity of
-  // singularity and direction of motion
-  double decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity);
-
-  // Apply velocity scaling for proximity of collisions and singularities
-  bool applyVelocityScaling(JogArmShared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
-                            const Eigen::VectorXd& delta_theta, double singularity_scale);
-
-  trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state,
-                                                          const ros::Time& stamp) const;
-
-  void lowPassFilterVelocities(const Eigen::VectorXd& joint_vel);
-
-  void lowPassFilterPositions();
-
-  void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
-
-  const robot_state::JointModelGroup* joint_model_group_;
-
-  robot_state::RobotStatePtr kinematic_state_;
-
-  sensor_msgs::JointState jt_state_, original_jt_state_;
-  trajectory_msgs::JointTrajectory new_traj_;
-
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
-
-  std::vector<LowPassFilter> velocity_filters_;
-  std::vector<LowPassFilter> position_filters_;
-
-  ros::Publisher warning_pub_;
-
-  JogArmParameters parameters_;
-
-  const int gazebo_redundant_message_count_ = 30;
-};
-
 }  // namespace jog_arm
 
 #endif  // JOG_ARM_JOG_ROS_INTERFACE_H

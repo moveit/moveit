@@ -1,22 +1,22 @@
-add_executable(jog_arm_server
+set(JOG_ARM_NAME jog_arm)
+
+add_executable(${JOG_ARM_NAME}_server
   src/jog_arm/collision_check_thread.cpp
   src/jog_arm/jog_arm_server.cpp
+  src/jog_arm/jog_calcs.cpp
   src/jog_arm/jog_ros_interface.cpp
   src/jog_arm/low_pass_filter.cpp
 )
-add_dependencies(jog_arm_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+add_dependencies(${JOG_ARM_NAME}_server ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${JOG_ARM_NAME}_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 
-add_executable(spacenav_to_twist
-  src/jog_arm/collision_check_thread.cpp
-  src/jog_arm/jog_ros_interface.cpp
-  src/jog_arm/low_pass_filter.cpp
+add_executable(${JOG_ARM_NAME}_spacenav_to_twist
   src/jog_arm/teleop_examples/spacenav_to_twist.cpp
 )
-add_dependencies(spacenav_to_twist ${catkin_EXPORTED_TARGETS})
-target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+add_dependencies(${JOG_ARM_NAME}_spacenav_to_twist ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${JOG_ARM_NAME}_spacenav_to_twist ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 
-install(TARGETS jog_arm_server spacenav_to_twist
+install(TARGETS ${JOG_ARM_NAME}_server ${JOG_ARM_NAME}_spacenav_to_twist
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

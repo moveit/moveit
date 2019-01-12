@@ -40,7 +40,7 @@
 #ifndef JOG_ARM_COLLISION_CHECK_THREAD_H
 #define JOG_ARM_COLLISION_CHECK_THREAD_H
 
-#include <jog_arm/jog_arm_datastructures.h>
+#include <jog_arm/jog_arm_data.h>
 #include <jog_arm/low_pass_filter.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -53,8 +53,6 @@ public:
   CollisionCheckThread(const jog_arm::JogArmParameters parameters, jog_arm::JogArmShared& shared_variables,
                        const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 };
-
-static const std::string LOGNAME = "jog_arm_server";
 }
 
 #endif  // JOG_ARM_COLLISION_CHECK_THREAD_H

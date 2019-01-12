@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_datastructures.h
+//      Title     : jog_arm_data.h
 //      Project   : jog_arm
 //      Created   : 1/11/2019
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -37,8 +37,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_JOG_ARM_DATASTRUCTURES_H
-#define JOG_ARM_JOG_ARM_DATASTRUCTURES_H
+#ifndef JOG_ARM_JOG_ARM_DATA_H
+#define JOG_ARM_JOG_ARM_DATA_H
 
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -48,6 +48,9 @@
 
 namespace jog_arm
 {
+static const std::string LOGNAME = "jog_arm_server";
+static const double WHILE_LOOP_WAIT = 0.001;
+
 // Variables to share between threads, and their mutexes
 struct JogArmShared
 {
@@ -91,4 +94,4 @@ struct JogArmParameters
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 }
-#endif  // JOG_ARM_DATASTRUCTURES_H
+#endif  // JOG_ARM_DATA_H

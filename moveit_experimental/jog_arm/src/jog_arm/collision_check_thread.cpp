@@ -41,9 +41,6 @@
 
 namespace jog_arm
 {
-
-static const double WHILE_LOOP_WAIT = 0.001;
-
 // Constructor for the class that handles collision checking
 CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters parameters, JogArmShared& shared_variables,
                                            const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)

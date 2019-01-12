@@ -62,5 +62,5 @@ private:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
   double filter_coeff_ = 10.;
 };
-} // namespace jog_arm
+}  // namespace jog_arm
 #endif  // JOG_ARM_LOW_PASS_FILTER_H
