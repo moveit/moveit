@@ -73,12 +73,13 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   resetVelocityFilters();
 
   jt_state_.name = move_group_.getJointNames();
-  jt_state_.position.resize(jt_state_.name.size());
-  jt_state_.velocity.resize(jt_state_.name.size());
-  jt_state_.effort.resize(jt_state_.name.size());
+  num_joints_ = jt_state_.name.size();
+  jt_state_.position.resize(num_joints_);
+  jt_state_.velocity.resize(num_joints_);
+  jt_state_.effort.resize(num_joints_);
 
   // Low-pass filters for the joint positions & velocities
-  for (size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (size_t i = 0; i < num_joints_; ++i)
   {
     velocity_filters_.emplace_back(parameters_.low_pass_filter_coeff);
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
@@ -92,7 +93,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
     ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < num_joints_; ++i)
     position_filters_[i].reset(jt_state_.position[i]);
 
   // Wait for the first jogging cmd.
@@ -383,7 +384,7 @@ void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraject
 
 void JogCalcs::lowPassFilterPositions()
 {
-  for (size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (size_t i = 0; i < num_joints_; ++i)
   {
     jt_state_.position[i] = position_filters_[i].filter(jt_state_.position[i]);
 
@@ -398,7 +399,7 @@ void JogCalcs::lowPassFilterPositions()
 
 void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
 {
-  for (size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (size_t i = 0; i < num_joints_; ++i)
   {
     jt_state_.velocity[i] = velocity_filters_[i].filter(joint_vel[static_cast<long>(i)]);
 
@@ -431,7 +432,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
     // I do not know of a robot that takes acceleration commands.
     // However, some controllers check that this data is non-empty.
     // Send all zeros, for now.
-    std::vector<double> acceleration(joint_state.velocity.size());
+    std::vector<double> acceleration(num_joints_);
     point.accelerations = acceleration;
   }
   new_jt_traj.points.push_back(point);
@@ -449,7 +450,7 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_m
   double collision_scale = shared_variables.collision_velocity_scale;
   pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
 
-  for (size_t i = 0; i < jt_state_.velocity.size(); ++i)
+  for (size_t i = 0; i < num_joints_; ++i)
   {
     if (parameters_.publish_joint_positions)
     {
@@ -495,7 +496,7 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
 
   double theta[6];
   const double* prev_joints = kinematic_state_->getVariablePositions();
-  for (std::size_t i = 0, size = static_cast<std::size_t>(delta_theta.size()); i < size; ++i)
+  for (std::size_t i = 0, size = static_cast<std::size_t>(num_joints_); i < size; ++i)
     theta[i] = prev_joints[i] + delta_theta(i);
 
   kinematic_state_->setVariablePositions(theta);
@@ -550,7 +551,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
                                                                            << " close to a "
                                                                               " velocity limit. Enforcing limit.");
       kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
+      for (std::size_t c = 0; c < num_joints_; ++c)
       {
         if (new_jt_traj.joint_names[c] == joint->getName())
         {
@@ -562,7 +563,7 @@ bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_j
 
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
-    for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
+    for (std::size_t c = 0; c < num_joints_; ++c)
     {
       if (original_jt_state_.name[c] == joint->getName())
       {
@@ -605,7 +606,7 @@ void JogCalcs::publishWarning(bool active) const
 // Avoid a singularity or other issue. Needs to be handled differently for position vs. velocity control
 void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 {
-  for (std::size_t i = 0; i < jt_state_.velocity.size(); ++i)
+  for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
@@ -620,7 +621,7 @@ void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 // Reset the data stored in filters so the trajectory won't jump when jogging is resumed.
 void JogCalcs::resetVelocityFilters()
 {
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < num_joints_; ++i)
     velocity_filters_[i].reset(0);  // Zero velocity
 }
 
@@ -631,13 +632,13 @@ bool JogCalcs::updateJoints()
   bool all_zeros = true;
 
   // Check that the msg contains enough joints
-  if (incoming_jts_.name.size() < jt_state_.name.size())
+  if (incoming_jts_.name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_jts_.name.size(); ++m)
+  for (std::size_t m = 0; m < num_joints_; ++m)
   {
-    for (std::size_t c = 0; c < jt_state_.name.size(); ++c)
+    for (std::size_t c = 0; c < num_joints_; ++c)
     {
       if (incoming_jts_.name[m] == jt_state_.name[c])
       {
@@ -687,17 +688,17 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
 
 Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
 {
-  Eigen::VectorXd result(jt_state_.name.size());
+  Eigen::VectorXd result(num_joints_);
 
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < num_joints_; ++i)
   {
     result[i] = 0.0;
   }
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < command.joint_names.size(); ++m)
+  for (std::size_t m = 0; m < num_joints_; ++m)
   {
-    for (std::size_t c = 0; c < jt_state_.name.size(); ++c)
+    for (std::size_t c = 0; c < num_joints_; ++c)
     {
       if (command.joint_names[m] == jt_state_.name[c])
       {
