@@ -121,8 +121,8 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
         // k = - ln(0.001) / collision_proximity_threshold
         // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
         // velocity_scale should equal 0.001 when collision_distance is at zero.
-        velocity_scale = exp(velocity_scale_coefficient *
-                             (collision_result.distance - parameters.collision_proximity_threshold));
+        velocity_scale =
+            exp(velocity_scale_coefficient * (collision_result.distance - parameters.collision_proximity_threshold));
       }
 
       pthread_mutex_lock(&shared_variables.shared_variables_mutex);

@@ -281,7 +281,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   // Convert from cartesian commands to joint commands
   Eigen::MatrixXd jacobian = kinematic_state_->getJacobian(joint_model_group_);
-  Eigen::VectorXd delta_theta = pseudoInverse(jacobian) * delta_x;
+  pseudo_inverse_ = jacobian.transpose() * (jacobian * jacobian.transpose()).inverse();
+  Eigen::VectorXd delta_theta = pseudo_inverse_ * delta_x;
 
   if (!addJointIncrements(jt_state_, delta_theta))
     return false;
@@ -494,7 +495,7 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
   delta_x[5] = vector_toward_singularity[5] / scale;
 
   // Calculate a small change in joints
-  Eigen::VectorXd delta_theta = pseudoInverse(jacobian) * delta_x;
+  Eigen::VectorXd delta_theta = pseudo_inverse_ * delta_x;
 
   double theta[6];
   const double* prev_joints = kinematic_state_->getVariablePositions();
@@ -719,12 +720,6 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
   }
 
   return result;
-}
-
-// Calculate a pseudo-inverse.
-Eigen::MatrixXd JogCalcs::pseudoInverse(const Eigen::MatrixXd& J) const
-{
-  return J.transpose() * (J * J.transpose()).inverse();
 }
 
 // Add the deltas to each joint

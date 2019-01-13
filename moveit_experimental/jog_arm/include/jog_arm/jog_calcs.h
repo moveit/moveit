@@ -75,8 +75,6 @@ protected:
 
   Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
-  Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd& J) const;
-
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
   // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
@@ -122,6 +120,8 @@ protected:
   ros::Publisher warning_pub_;
 
   JogArmParameters parameters_;
+
+  Eigen::MatrixXd pseudo_inverse_;
 
   const int gazebo_redundant_message_count_ = 30;
 
