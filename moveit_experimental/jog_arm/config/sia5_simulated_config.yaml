@@ -13,8 +13,7 @@ joint_topic:  joint_states
 move_group_name:  arm  # Often 'manipulator' or 'arm'
 lower_singularity_threshold:  15  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity
 hard_stop_singularity_threshold: 30 # Stop when the condition number hits this. Larger --> closer to singularity
-lower_collision_proximity_threshold: 0.1 # Start decelerating when a collision is this far [m]
-hard_stop_collision_proximity_threshold: 0.005 # Stop when a collision is this far [m]
+collision_proximity_threshold: 0.03 # Start decelerating when a collision is this far [m]
 planning_frame: base_link  # The MoveIt! planning frame. Often 'base_link'
 low_pass_filter_coeff: 2.  # Larger-> more smoothing of jog commands, but more lag.
 publish_period: 0.008  # 1/Nominal publish rate [seconds]

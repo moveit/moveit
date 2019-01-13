@@ -88,10 +88,6 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
     ros::topic::waitForMessage<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic);
     ROS_INFO_NAMED(LOGNAME, "Received first command msg.");
 
-    // A very low cutoff frequency
-    LowPassFilter velocity_scale_filter(20);
-    // Assume no scaling, initially
-    velocity_scale_filter.reset(1);
     ros::Rate collision_rate(parameters.collision_check_rate);
 
     /////////////////////////////////////////////////
@@ -115,25 +111,17 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
       double velocity_scale = 1;
 
       // If we are far from a collision, velocity_scale should be 1.
-      // If we are close to a collision, velocity_scale should be a small constant.
-      // As hard_stop_collision_proximity_threshold is approached, decelerate exponentially.
-      if ((collision_result.distance > parameters.hard_stop_collision_proximity_threshold) &&
-          (collision_result.distance < parameters.lower_collision_proximity_threshold))
+      // If we are very close to a collision, velocity_scale should be ~zero.
+      // When collision_proximity_threshold is breached, start decelerating exponentially.
+      if (collision_result.distance < parameters.collision_proximity_threshold)
       {
-        // scale = k*(proximity-hard_stop_threshold)^3, k > 0.
-        // The value of k is rather arbitrary, but it shoudl be large or the deceleration is noticeable too soon.
-        velocity_scale =
-            64000. * pow(collision_result.distance - parameters.hard_stop_collision_proximity_threshold, 3);
+        // velocity_scale = e ^ k * (collision_distance - threshold)
+        // k = - ln(0.001) / collision_proximity_threshold
+        // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
+        // velocity_scale should equal 0.001 when collision_distance is at zero.
+        velocity_scale = exp((-log(0.001) / parameters.collision_proximity_threshold) *
+                             (collision_result.distance - parameters.collision_proximity_threshold));
       }
-      else if (collision_result.distance < parameters.hard_stop_collision_proximity_threshold)
-        velocity_scale = 0;
-
-      velocity_scale = velocity_scale_filter.filter(velocity_scale);
-      // Put a ceiling and a floor on velocity_scale
-      if (velocity_scale > 1)
-        velocity_scale = 1;
-      else if (velocity_scale < 0.05)
-        velocity_scale = 0.05;
 
       // Very slow if actually in collision
       if (collision_result.collision)
