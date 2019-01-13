@@ -472,7 +472,9 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
   double velocity_scale = 1;
 
   // Find the direction away from nearest singularity.
-  // The last column of U from the SVD of the Jacobian points away from the singularity
+  // The last column of U from the SVD of the Jacobian points directly toward or away from the singularity.
+  // The sign can flip at any time, so we have to do some extra checking.
+  // Look ahead to see if the Jacobian's condition will decrease.
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian, Eigen::ComputeThinU);
   Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(5);
 

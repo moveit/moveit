@@ -79,6 +79,8 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
       exit(EXIT_FAILURE);
     }
 
+    double velocity_scale_coefficient = -log(0.001) / parameters.collision_proximity_threshold;
+
     // Wait for initial messages
     ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
     ros::topic::waitForMessage<sensor_msgs::JointState>(parameters.joint_topic);
@@ -119,15 +121,8 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
         // k = - ln(0.001) / collision_proximity_threshold
         // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
         // velocity_scale should equal 0.001 when collision_distance is at zero.
-        velocity_scale = exp((-log(0.001) / parameters.collision_proximity_threshold) *
+        velocity_scale = exp(velocity_scale_coefficient *
                              (collision_result.distance - parameters.collision_proximity_threshold));
-      }
-
-      // Very slow if actually in collision
-      if (collision_result.collision)
-      {
-        ROS_WARN_NAMED(LOGNAME, "Very close to collision. Slowing way down.");
-        velocity_scale = 0.02;
       }
 
       pthread_mutex_lock(&shared_variables.shared_variables_mutex);
