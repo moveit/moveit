@@ -952,6 +952,13 @@ as the new values that correspond to the group */
   bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, pose, timeout, constraint, options);
+  }
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
@@ -963,6 +970,14 @@ as the new values that correspond to the group */
   bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
+            unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, pose, tip, timeout, constraint, options);
+  }
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
@@ -973,6 +988,13 @@ as the new values that correspond to the group */
   bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, pose, timeout, constraint, options);
+  }
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
@@ -983,6 +1005,13 @@ as the new values that correspond to the group */
   bool setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip, unsigned int attempts,
+            double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, pose, tip, timeout, constraint, options);
+  }
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
@@ -996,6 +1025,14 @@ as the new values that correspond to the group */
                  const std::vector<double>& consistency_limits, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
+            const std::vector<double>& consistency_limits, unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, pose, tip, consistency_limits, timeout, constraint, options);
+  }
 
   /** \brief  Warning: This function inefficiently copies all transforms around.
       If the group consists of a set of sub-groups that are each a chain and a solver
@@ -1010,6 +1047,14 @@ as the new values that correspond to the group */
                  const std::vector<std::string>& tips, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
+            const std::vector<std::string>& tips, unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, poses, tips, timeout, constraint, options);
+  }
 
   /** \brief Warning: This function inefficiently copies all transforms around.
       If the group consists of a set of sub-groups that are each a chain and a solver
@@ -1025,6 +1070,15 @@ as the new values that correspond to the group */
                  const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
+            const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+            unsigned int attempts, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIK(group, poses, tips, consistency_limits, timeout, constraint, options);
+  }
 
   /**
       \brief setFromIK for multiple poses and tips (end effectors) when no solver exists for the jmg that can solver for
@@ -1039,6 +1093,15 @@ as the new values that correspond to the group */
                           const std::vector<std::vector<double> >& consistency_limits, double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+  [[deprecated("The attempts argument is not supported anymore.")]] bool
+  setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
+                     const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+                     unsigned int attempts, double timeout = 0.0,
+                     const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+                     const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
+  {
+    return setFromIKSubgroups(group, poses, tips, consistency_limits, timeout, constraint, options);
+  }
 
   /** \brief Set the joint values from a Cartesian velocity applied during a time dt
    * @param group the group of joints this function operates on
