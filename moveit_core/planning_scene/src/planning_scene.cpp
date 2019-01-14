@@ -1846,9 +1846,10 @@ bool PlanningScene::knowsFrameTransform(const robot_state::RobotState& state, co
     return knowsFrameTransform(id.substr(1));
   if (state.knowsFrameTransform(id))
     return true;
-  if (getWorld()->hasObject(id))
+
+  collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
+  if (obj)
   {
-    collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
     return obj->shape_poses_.size() == 1;
   }
   return getTransforms().Transforms::canTransform(id);
