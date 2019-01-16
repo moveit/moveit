@@ -455,7 +455,7 @@ bool StartScreenWidget::loadNewFiles()
   // Check that box is filled out
   if (config_data_->urdf_path_.empty())
   {
-    QMessageBox::warning(this, "Error Loading Files", "No robot model file specefied");
+    QMessageBox::warning(this, "Error Loading Files", "No robot model file specified");
     return false;
   }
 
@@ -822,24 +822,15 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   layout->setAlignment(widget_title, Qt::AlignTop);
 
   // Widget Instructions
-  widget_instructions_ = new QTextEdit(this);
+  widget_instructions_ = new QLabel(this);
+  widget_instructions_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  widget_instructions_->setWordWrap(true);
+  widget_instructions_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   widget_instructions_->setText(
       "All settings for MoveIt! are stored in the MoveIt! configuration package. Here you have "
       "the option to create a new configuration package or load an existing one. Note: "
       "changes to a MoveIt! configuration package outside this Setup Assistant are likely to be "
       "overwritten by this tool.");
-
-  // Change color of TextEdit
-  QPalette p = widget_instructions_->palette();
-  p.setColor(QPalette::Active, QPalette::Base, this->palette().color(QWidget::backgroundRole()));
-  p.setColor(QPalette::Inactive, QPalette::Base, this->palette().color(QWidget::backgroundRole()));
-  widget_instructions_->setPalette(p);
-
-  // Make TextEdit behave like QLabel
-  widget_instructions_->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-  widget_instructions_->setReadOnly(true);
-  widget_instructions_->setFrameShape(QFrame::NoFrame);
-  widget_instructions_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   layout->addWidget(widget_instructions_);
   layout->setAlignment(widget_instructions_, Qt::AlignTop);

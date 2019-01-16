@@ -943,7 +943,7 @@ void PlanningGroupsWidget::saveChainScreen()
 
     for (std::vector<std::string>::const_iterator link_it = links.begin(); link_it != links.end(); ++link_it)
     {
-      // Check if string matches either of user specefied links
+      // Check if string matches either of user specified links
       if (link_it->compare(tip) == 0)  // they are same
         found_tip = true;
       else if (link_it->compare(base) == 0)  // they are same
