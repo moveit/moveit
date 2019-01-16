@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<include file="$(find moveit_kinematics)/test/fanuc.test"/>
-	<include file="$(find moveit_kinematics)/test/panda.test"/>
-</launch>
