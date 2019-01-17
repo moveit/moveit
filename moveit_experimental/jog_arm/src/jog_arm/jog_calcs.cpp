@@ -642,20 +642,24 @@ bool JogCalcs::updateJoints()
     return false;
 
   // Store joints in a member variable
+  bool done = false;
   for (std::size_t m = 0; m < num_joints_; ++m)
   {
     for (std::size_t c = 0; c < num_joints_; ++c)
     {
+      done = false;
       if (incoming_jts_.name[m] == jt_state_.name[c])
       {
         jt_state_.position[c] = incoming_jts_.position[m];
         // Make sure there was at least one nonzero value
         if (incoming_jts_.position[m] != 0.)
           all_zeros = false;
-        goto NEXT_JOINT;
+        done = true;
+        break;
       }
+      if (done == true)
+        break;
     }
-  NEXT_JOINT:;
   }
 
   return !all_zeros;
@@ -702,8 +706,10 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
   }
 
   // Store joints in a member variable
+  bool done = false;
   for (std::size_t m = 0; m < num_joints_; ++m)
   {
+    done = false;
     for (std::size_t c = 0; c < num_joints_; ++c)
     {
       if (command.joint_names[m] == jt_state_.name[c])
@@ -716,10 +722,12 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
           result[c] = command.deltas[m] * parameters_.publish_period;
         else
           ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type");
-        goto NEXT_JOINT;
+        done = true;
+        break;
       }
+      if (done == false)
+        break;
     }
-  NEXT_JOINT:;
   }
 
   return result;
