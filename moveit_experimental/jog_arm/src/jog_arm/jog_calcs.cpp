@@ -281,7 +281,10 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   // Convert from cartesian commands to joint commands
   Eigen::MatrixXd jacobian = kinematic_state_->getJacobian(joint_model_group_);
-  pseudo_inverse_ = jacobian.transpose() * (jacobian * jacobian.transpose()).inverse();
+  svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::MatrixXd matrixS = svd_.singularValues().asDiagonal();
+  pseudo_inverse_ = svd_.matrixV() * matrixS.inverse() * svd_.matrixU().transpose();
+  // pseudo_inverse_ = jacobian.transpose() * (jacobian * jacobian.transpose()).inverse();
   Eigen::VectorXd delta_theta = pseudo_inverse_ * delta_x;
 
   if (!addJointIncrements(jt_state_, delta_theta))
@@ -297,7 +300,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   new_traj_ = composeOutgoingMessage(jt_state_, next_time);
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, new_traj_, delta_theta, decelerateForSingularity(jacobian, delta_x));
+  applyVelocityScaling(shared_variables, new_traj_, delta_theta, decelerateForSingularity(jacobian, delta_x, svd_));
 
   if (!checkIfJointsWithinBounds(new_traj_))
   {
@@ -468,7 +471,8 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, trajectory_m
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity)
+double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity,
+                                          const Eigen::JacobiSVD<Eigen::MatrixXd>& svd)
 {
   double velocity_scale = 1;
 
@@ -476,7 +480,6 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
   // The last column of U from the SVD of the Jacobian points directly toward or away from the singularity.
   // The sign can flip at any time, so we have to do some extra checking.
   // Look ahead to see if the Jacobian's condition will decrease.
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian, Eigen::ComputeThinU);
   Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(5);
 
   double ini_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
@@ -504,8 +507,8 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
 
   kinematic_state_->setVariablePositions(theta);
   jacobian = kinematic_state_->getJacobian(joint_model_group_);
-  svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian);
-  double new_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian);
+  double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
   // If new_condition < ini_condition, the singular vector does point towards a
   // singularity. Otherwise, flip its direction.
   if (ini_condition >= new_condition)

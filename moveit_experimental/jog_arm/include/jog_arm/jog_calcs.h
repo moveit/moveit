@@ -89,7 +89,8 @@ protected:
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
-  double decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity);
+  double decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen::VectorXd commanded_velocity,
+                                  const Eigen::JacobiSVD<Eigen::MatrixXd>& svd);
 
   // Apply velocity scaling for proximity of collisions and singularities
   bool applyVelocityScaling(JogArmShared& shared_variables, trajectory_msgs::JointTrajectory& new_jt_traj,
@@ -122,6 +123,8 @@ protected:
   JogArmParameters parameters_;
 
   Eigen::MatrixXd pseudo_inverse_;
+
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
 
   const int gazebo_redundant_message_count_ = 30;
 
