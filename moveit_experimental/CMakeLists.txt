@@ -7,96 +7,82 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+#find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED
 COMPONENTS
   control_msgs
-  eigen_conversions
-  eigen_stl_containers
-  geometric_shapes
   geometry_msgs
-  kdl_parser
-  moveit_core
-  moveit_msgs
   moveit_ros_planning_interface
-  pluginlib
-  rosconsole
-  roslib
   rosparam_shortcuts
-  rostime
-  std_msgs
   tf2_ros
-  trajectory_msgs
-  visualization_msgs
+#  eigen_conversions
+#  eigen_stl_containers
+#  geometric_shapes
+#  kdl_parser
+#  moveit_core
+#  moveit_msgs
+#  pluginlib
+#  rosconsole
+#  roslib
+#  rostime
+#  std_msgs
+#  trajectory_msgs
+#  visualization_msgs
 )
 find_package(Eigen3 REQUIRED)
-
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
 if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
-find_package(octomap REQUIRED)
-find_package(urdfdom REQUIRED)
-find_package(urdfdom_headers REQUIRED)
-
-set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
-file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
+#find_package(octomap REQUIRED)
+#find_package(urdfdom REQUIRED)
+#find_package(urdfdom_headers REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-  ${VERSION_FILE_PATH}
-  collision_distance_field/include
   jog_arm/include
 )
 
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
   LIBRARIES
-    moveit_collision_distance_field
-    collision_detector_hybrid_plugin
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     control_msgs
-    eigen_conversions
-    eigen_stl_containers
     geometry_msgs
-    geometric_shapes
     joy_teleop
-    kdl_parser
-    moveit_core
-    moveit_msgs
     moveit_ros_planning_interface
-    pluginlib
     rosparam_shortcuts
-    std_msgs
     tf2_ros
-    trajectory_msgs
-    visualization_msgs
+#    eigen_conversions
+#    eigen_stl_containers
+#    geometric_shapes
+#    kdl_parser
+#    moveit_core
+#    moveit_msgs
+#    pluginlib
+#    std_msgs
+#    trajectory_msgs
+#    visualization_msgs
   DEPENDS
     EIGEN3
-    Boost
-    urdfdom
-    urdfdom_headers
+#    Boost
+#    urdfdom
+#    urdfdom_headers
 )
 
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
-                           )
+#include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
+#                           )
 
-include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIR}
-                    ${catkin_INCLUDE_DIRS}
-                    ${urdfdom_INCLUDE_DIRS}
-                    ${urdfdom_headers_INCLUDE_DIRS}
-                    ${OCTOMAP_INCLUDE_DIRS}
-                    )
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${THIS_PACKAGE_INCLUDE_DIRS}
+#  ${Boost_INCLUDE_DIR}
+#  ${urdfdom_INCLUDE_DIRS}
+#  ${urdfdom_headers_INCLUDE_DIRS}
+#  ${OCTOMAP_INCLUDE_DIRS}
+)
 
-add_subdirectory(collision_distance_field)
 add_subdirectory(jog_arm)
-
-install(FILES collision_detector_hybrid_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-# Generate and install version.h

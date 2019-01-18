@@ -14,7 +14,7 @@ add_executable(${JOG_ARM_NAME}_spacenav_to_twist
   src/jog_arm/teleop_examples/spacenav_to_twist.cpp
 )
 add_dependencies(${JOG_ARM_NAME}_spacenav_to_twist ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${JOG_ARM_NAME}_spacenav_to_twist ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+target_link_libraries(${JOG_ARM_NAME}_spacenav_to_twist ${catkin_LIBRARIES})
 
 install(TARGETS ${JOG_ARM_NAME}_server ${JOG_ARM_NAME}_spacenav_to_twist
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
