@@ -62,12 +62,10 @@ JogROSInterface::JogROSInterface()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
   // Crunch the numbers in this thread
-  std::thread jogging_thread(JogROSInterface::startJogCalcThread, ros_parameters_, std::ref(shared_variables_),
-                             model_loader_ptr_);
+  std::thread jogging_thread(&JogROSInterface::startJogCalcThread, this);
 
   // Check collisions in this thread
-  std::thread collision_thread(JogROSInterface::startCollisionCheckThread, ros_parameters_, std::ref(shared_variables_),
-                               std::ref(model_loader_ptr_));
+  std::thread collision_thread(&JogROSInterface::startCollisionCheckThread, this);
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber cmd_sub =
@@ -146,18 +144,16 @@ JogROSInterface::JogROSInterface()
 }
 
 // A separate thread for the heavy jogging calculations.
-bool JogROSInterface::startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                                         const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
+bool JogROSInterface::startJogCalcThread()
 {
-  JogCalcs ja(parameters, shared_variables, model_loader_ptr);
+  JogCalcs ja(ros_parameters_, shared_variables_, model_loader_ptr_);
   return true;
 }
 
 // A separate thread for collision checking.
-bool JogROSInterface::startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                                                const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+bool JogROSInterface::startCollisionCheckThread()
 {
-  CollisionCheckThread cc(parameters, shared_variables, model_loader_ptr);
+  CollisionCheckThread cc(ros_parameters_, shared_variables_, model_loader_ptr_);
   return true;
 }
 

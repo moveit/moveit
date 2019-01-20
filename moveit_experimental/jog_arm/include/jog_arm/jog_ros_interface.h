@@ -71,12 +71,10 @@ private:
   bool readParameters(ros::NodeHandle& n);
 
   // Jogging calculation thread
-  static bool startJogCalcThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                                 const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
+  bool startJogCalcThread();
 
   // Collision checking thread
-  static bool startCollisionCheckThread(const JogArmParameters& parameters, JogArmShared& shared_variables,
-                                        const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  bool startCollisionCheckThread();
 
   // Variables to share between threads
   JogArmShared shared_variables_;
