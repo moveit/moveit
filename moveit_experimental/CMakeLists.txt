@@ -72,9 +72,6 @@ catkin_package(
 #    urdfdom_headers
 )
 
-#include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
-#                           )
-
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}

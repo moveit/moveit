@@ -61,6 +61,7 @@ class JogROSInterface
 {
 public:
   JogROSInterface();
+  ~JogROSInterface();
 
 private:
   // ROS subscriber callbacks

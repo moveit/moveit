@@ -54,6 +54,8 @@ JogROSInterface::JogROSInterface()
 {
   ros::NodeHandle nh;
 
+  pthread_mutex_init(&shared_variables_mutex_, NULL);
+
   // Read ROS parameters, typically from YAML file
   if (!readParameters(nh))
     exit(EXIT_FAILURE);
@@ -141,6 +143,11 @@ JogROSInterface::JogROSInterface()
 
   jogging_thread.join();
   collision_thread.join();
+}
+
+JogROSInterface::~JogROSInterface()
+{
+  pthread_mutex_destroy(&shared_variables_mutex_);
 }
 
 // A separate thread for the heavy jogging calculations.
@@ -267,9 +274,7 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Set the input frame, as determined by YAML file:
-  pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
-  pthread_mutex_unlock(&shared_variables_mutex_);
 
   // Input checking
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)
