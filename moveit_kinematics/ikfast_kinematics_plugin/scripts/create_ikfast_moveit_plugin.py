@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 '''
 IKFast Plugin Generator for MoveIt!
 
@@ -44,7 +45,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 '''
 
-import glob
 import sys
 import roslib
 import re
@@ -126,14 +126,14 @@ def update_package(args):
     moveit_config_pkg_path = roslib.packages.get_pkg_dir(
         args.moveit_config_pkg)
   except roslib.packages.InvalidROSPkgException:
-    print("Failed to find package: %s", args.moveit_config_pkg)
+    print("Failed to find package:", args.moveit_config_pkg)
     sys.exit(-1)
 
   try:
     kinematic_plugin_pkg_path = roslib.packages.get_pkg_dir(
         args.kinematic_plugin_pkg)
   except roslib.packages.InvalidROSPkgException:
-    print("Failed to find package: %s" % args.kinematic_plugin_pkg)
+    print("Failed to find package:", args.kinematic_plugin_pkg)
     sys.exit(-1)
 
   try:
@@ -141,10 +141,10 @@ def update_package(args):
     srdf = etree.parse(srdf_file_name).getroot()
     raise IOError
   except IOError:
-    print("Failed to find SRDF file: %s" % srdf_file_name)
+    print("Failed to find SRDF file:", srdf_file_name)
     sys.exit(-1)
   except etree.XMLSyntaxError as err:
-    print("Failed to parse xml in file %s" % srdf_file_name)
+    print("Failed to parse xml in file:", srdf_file_name)
     print(err.msg)
     sys.exit(-1)
 
