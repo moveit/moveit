@@ -509,7 +509,6 @@ void VirtualJointsWidget::doneEditing()
   if (searched_data == NULL)  // create new
   {
     isNew = true;
-
     searched_data = new srdf::Model::VirtualJoint();
   }
 
@@ -528,6 +527,7 @@ void VirtualJointsWidget::doneEditing()
       emit_frame_notice = true;
     config_data_->srdf_->virtual_joints_.push_back(*searched_data);
     config_data_->updateRobotModel();
+    delete searched_data;
   }
 
   // Finish up ------------------------------------------------------

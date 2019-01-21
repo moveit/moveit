@@ -292,6 +292,9 @@ void DefaultCollisionsWidget::loadCollisionTable()
     SortFilterProxyModel* sorted_model = new SortFilterProxyModel();
     model = sorted_model;
     sorted_model->setSourceModel(linear_model);
+    // ensure deletion of underlying models with model
+    linear_model->setParent(sorted_model);
+    matrix_model->setParent(linear_model);
   }
   connect(link_name_filter_, SIGNAL(textChanged(QString)), model, SLOT(setFilterRegExp(QString)));
   QMetaObject::invokeMethod(model, "setFilterRegExp", Q_ARG(QString, link_name_filter_->text()));
