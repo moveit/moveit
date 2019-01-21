@@ -54,8 +54,6 @@ static const double WHILE_LOOP_WAIT = 0.001;
 // Variables to share between threads, and their mutexes
 struct JogArmShared
 {
-  pthread_mutex_t shared_variables_mutex;
-
   geometry_msgs::TwistStamped command_deltas;
 
   control_msgs::JointJog joint_command_deltas;

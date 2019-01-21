@@ -76,8 +76,9 @@ private:
   // Collision checking thread
   bool startCollisionCheckThread();
 
-  // Variables to share between threads
+  // Share data between threads
   JogArmShared shared_variables_;
+  pthread_mutex_t shared_variables_mutex_;
 
   robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
 

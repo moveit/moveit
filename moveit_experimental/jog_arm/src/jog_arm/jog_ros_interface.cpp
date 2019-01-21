@@ -94,7 +94,7 @@ JogROSInterface::JogROSInterface()
   {
     ros::spinOnce();
 
-    pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
+    pthread_mutex_lock(&shared_variables_mutex_);
     trajectory_msgs::JointTrajectory new_traj = shared_variables_.new_traj;
 
     // Check for stale cmds
@@ -134,7 +134,7 @@ JogROSInterface::JogROSInterface()
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale or zero command. "
                                                  "Try a larger 'incoming_command_timeout' parameter?");
     }
-    pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
+    pthread_mutex_unlock(&shared_variables_mutex_);
 
     main_rate.sleep();
   }
@@ -146,21 +146,21 @@ JogROSInterface::JogROSInterface()
 // A separate thread for the heavy jogging calculations.
 bool JogROSInterface::startJogCalcThread()
 {
-  JogCalcs ja(ros_parameters_, shared_variables_, model_loader_ptr_);
+  JogCalcs ja(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
   return true;
 }
 
 // A separate thread for collision checking.
 bool JogROSInterface::startCollisionCheckThread()
 {
-  CollisionCheckThread cc(ros_parameters_, shared_variables_, model_loader_ptr_);
+  CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
   return true;
 }
 
 // Listen to cartesian delta commands. Store them in a shared variable.
 void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_lock(&shared_variables_mutex_);
 
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
   // (so it isn't copied over and over)
@@ -176,13 +176,13 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
                                               shared_variables_.command_deltas.twist.angular.z == 0.0;
 
   shared_variables_.incoming_cmd_stamp = msg->header.stamp;
-  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_unlock(&shared_variables_mutex_);
 }
 
 // Listen to joint delta commands. Store them in a shared variable.
 void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.joint_command_deltas = *msg;
 
   // Input frame determined by YAML file
@@ -197,15 +197,15 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
   shared_variables_.zero_joint_cmd_flag = all_zeros;
 
   shared_variables_.incoming_cmd_stamp = msg->header.stamp;
-  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_unlock(&shared_variables_mutex_);
 }
 
 // Listen to joint angles. Store them in a shared variable.
 void JogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.joints = *msg;
-  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_unlock(&shared_variables_mutex_);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -267,9 +267,9 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Set the input frame, as determined by YAML file:
-  pthread_mutex_lock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
-  pthread_mutex_unlock(&shared_variables_.shared_variables_mutex);
+  pthread_mutex_unlock(&shared_variables_mutex_);
 
   // Input checking
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)

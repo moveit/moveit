@@ -51,7 +51,7 @@ class CollisionCheckThread
 {
 public:
   CollisionCheckThread(const jog_arm::JogArmParameters parameters, jog_arm::JogArmShared& shared_variables,
-                       const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
+                       pthread_mutex_t& mutex, const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
 };
 }
 

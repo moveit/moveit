@@ -43,6 +43,7 @@ namespace jog_arm
 {
 // Constructor for the class that handles collision checking
 CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters parameters, JogArmShared& shared_variables,
+                                           pthread_mutex_t& mutex,
                                            const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
 {
   // If user specified true in yaml file
@@ -97,9 +98,9 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
     /////////////////////////////////////////////////
     while (ros::ok())
     {
-      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
+      pthread_mutex_lock(&mutex);
       sensor_msgs::JointState jts = shared_variables.joints;
-      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
+      pthread_mutex_unlock(&mutex);
 
       for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
@@ -125,9 +126,9 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
             exp(velocity_scale_coefficient * (collision_result.distance - parameters.collision_proximity_threshold));
       }
 
-      pthread_mutex_lock(&shared_variables.shared_variables_mutex);
+      pthread_mutex_lock(&mutex);
       shared_variables.collision_velocity_scale = velocity_scale;
-      pthread_mutex_unlock(&shared_variables.shared_variables_mutex);
+      pthread_mutex_unlock(&mutex);
 
       collision_rate.sleep();
     }
