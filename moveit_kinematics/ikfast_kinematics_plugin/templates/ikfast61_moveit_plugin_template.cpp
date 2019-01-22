@@ -359,6 +359,9 @@ private:
   */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
+  /// Validate that we can compute a fixed transform between from and to links.
+  bool computeRelativeTransform(const RobotStatePtr& robot_state, const std::string& from, const std::string& to,
+                                Eigen::Isometry3d& transform, bool& differs_from_identity);
   /**
   * @brief  Transforms the input pose to the correct frame for the solver. This assumes that the group includes the
   * entire solver chain and that any joints outside of the solver chain within the group are are fixed.
@@ -366,8 +369,32 @@ private:
   * @param  ik_pose_chain       The ik_pose to be populated with the apropriate pose for the solver
   */
   void transformToChainFrame(const geometry_msgs::Pose& ik_pose, KDL::Frame& ik_pose_chain) const;
-
 };  // end class
+
+bool IKFastKinematicsPlugin::computeRelativeTransform(const RobotStatePtr& robot_state, const std::string& from,
+                                                      const std::string& to, Eigen::Isometry3d& transform,
+                                                      bool& differs_from_identity)
+{
+  auto* from_link = robot_state->getLinkModel(from);
+  auto* to_link = robot_state->getLinkModel(to);
+  if (!from_link)
+    ROS_ERROR_STREAM_NAMED(name_, "Could not find frame " << from);
+  if (!to_link)
+    ROS_ERROR_STREAM_NAMED(name_, "Could not find frame " << to);
+  if (!from_link || !to_link)
+    return false;
+
+  if (robot_state->getRobotModel()->getRigidlyConnectedParentLinkModel(from_link) !=
+      robot_state->getRobotModel()->getRigidlyConnectedParentLinkModel(to_link))
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Link frames " << from << " and " << to << " are not rigidly connected.");
+    return false;
+  }
+
+  transform = robot_state->getGlobalLinkTransform(from_link).inverse() * robot_state->getGlobalLinkTransform(to_link);
+  differs_from_identity = !transform.matrix().isIdentity();
+  return true;
+}
 
 bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
                                         const std::string& base_name, const std::string& tip_name,
@@ -393,53 +420,12 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
   // To support these use cases, we store the transform from the IKFAST_BASE_FRAME_ to the
-  // base_frame_ and ikfast_tip_frame_to the tip_frame_ and transform to the input pose accordingly
-  tip_transform_required_ = !Transforms::sameFrame(IKFAST_TIP_FRAME_, tip_frame_);
-  base_transform_required_ = !Transforms::sameFrame(IKFAST_BASE_FRAME_, base_frame_);
-
-  // TODO(mlautman): Check for non-fixed joints between the ikfast tip and base frames and the group tip
-  //                 and base frames. If any are found, we should throw an error and return.
-  if (tip_frame_ != IKFAST_TIP_FRAME_)
-    ROS_WARN_NAMED(name_, "This IKFastKinematicsPlugin was generated with a tip frame of %s, but is being "
-                          "used with tip frame %s. There must not be any active joints between these "
-                          "links. Please double check that this is the case",
-                   IKFAST_TIP_FRAME_.c_str(), tip_frame_.c_str());
-
-  if (base_frame_ != IKFAST_BASE_FRAME_)
-    ROS_WARN_NAMED(name_, "This IKFastKinematicsPlugin was generated with a base frame of %s, but is being "
-                          "initialized with base frame %s. There must not be any active joints between these "
-                          "links. Please double check that this is the case",
-                   IKFAST_BASE_FRAME_.c_str(), base_name.c_str());
-
-  if (base_transform_required_)
-  {
-    if (!robot_state->knowsFrameTransform(base_frame_) || !robot_state->knowsFrameTransform(IKFAST_BASE_FRAME_))
-    {
-      ROS_ERROR_NAMED(name_, "Could not find either the base frame: '%s' or the IKFAST_BASE_FRAME_: '%s'",
-                      base_frame_.c_str(), IKFAST_BASE_FRAME_.c_str());
-      return false;
-    }
-    else
-    {
-      chain_base_to_group_base_ =
-          robot_state->getFrameTransform(IKFAST_BASE_FRAME_).inverse() * robot_state->getFrameTransform(base_frame_);
-    }
-  }
-
-  if (tip_transform_required_)
-  {
-    if (!robot_state->knowsFrameTransform(tip_frame_) || !robot_state->knowsFrameTransform(IKFAST_TIP_FRAME_))
-    {
-      ROS_ERROR_NAMED(name_, "Could not find tip_frame_: '%s' or the IKFAST_TIP_FRAME_: '%s'", tip_frame_.c_str(),
-                      IKFAST_TIP_FRAME_.c_str());
-      return false;
-    }
-    else
-    {
-      group_tip_to_chain_tip_ =
-          robot_state->getFrameTransform(tip_frame_).inverse() * robot_state->getFrameTransform(IKFAST_TIP_FRAME_);
-    }
-  }
+  // base_frame_ and IKFAST_TIP_FRAME_ the tip_frame_ and transform to the input pose accordingly
+  if (!computeRelativeTransform(robot_state, tip_frame_, IKFAST_TIP_FRAME_, group_tip_to_chain_tip_,
+                                tip_transform_required_) ||
+      !computeRelativeTransform(robot_state, IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_,
+                                base_transform_required_))
+    return false;
 
   // IKFast56/61
   fillFreeParams(GetNumFreeParameters(), GetFreeParameters());
