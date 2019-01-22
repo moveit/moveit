@@ -344,10 +344,6 @@ private:
    */
   double enforceLimits(double val, double min, double max) const;
 
-  double harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const;
-  // void getOrderedSolutions(const std::vector<double> &ik_seed_state, std::vector<std::vector<double> >& solslist);
-  void getClosestSolution(const IkSolutionList<IkReal>& solutions, const std::vector<double>& ik_seed_state,
-                          std::vector<double>& solution) const;
   void fillFreeParams(int count, int* array);
   bool getCount(int& count, const int& max_count, const int& min_count) const;
 
@@ -719,63 +715,6 @@ double IKFastKinematicsPlugin::enforceLimits(double joint_value, double min, dou
     joint_value += 2 * M_PI;
   }
   return joint_value;
-}
-
-double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
-{
-  // TODO (mlautman): Go through the IKFastKinematicsPlugin code and remove this assumption that the user wants
-  //                  results centered around 0
-  double dist_sqr = 0;
-  std::vector<double> ss = ik_seed_state;
-  for (size_t i = 0; i < ik_seed_state.size(); ++i)
-  {
-    while (ss[i] > 2 * M_PI)
-    {
-      ss[i] -= 2 * M_PI;
-    }
-    while (ss[i] < 2 * M_PI)
-    {
-      ss[i] += 2 * M_PI;
-    }
-    while (solution[i] > 2 * M_PI)
-    {
-      solution[i] -= 2 * M_PI;
-    }
-    while (solution[i] < 2 * M_PI)
-    {
-      solution[i] += 2 * M_PI;
-    }
-    dist_sqr += fabs(ik_seed_state[i] - solution[i]);
-  }
-  return dist_sqr;
-}
-
-void IKFastKinematicsPlugin::getClosestSolution(const IkSolutionList<IkReal>& solutions,
-                                                const std::vector<double>& ik_seed_state,
-                                                std::vector<double>& solution) const
-{
-  double mindist = DBL_MAX;
-  int minindex = -1;
-  std::vector<double> sol;
-
-  // IKFast56/61
-  for (size_t i = 0; i < solutions.GetNumSolutions(); ++i)
-  {
-    getSolution(solutions, i, sol);
-    double dist = harmonize(ik_seed_state, sol);
-    ROS_INFO_STREAM_NAMED(name_, "Dist " << i << " dist " << dist);
-    // std::cout << "dist[" << i << "]= " << dist << std::endl;
-    if (minindex == -1 || dist < mindist)
-    {
-      minindex = i;
-      mindist = dist;
-    }
-  }
-  if (minindex >= 0)
-  {
-    getSolution(solutions, minindex, solution);
-    harmonize(ik_seed_state, solution);
-  }
 }
 
 void IKFastKinematicsPlugin::fillFreeParams(int count, int* array)
