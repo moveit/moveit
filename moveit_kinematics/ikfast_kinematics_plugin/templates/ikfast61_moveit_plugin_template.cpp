@@ -44,8 +44,6 @@
 #include <ros/ros.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/transforms/transforms.h>
-#include <moveit/rdf_loader/rdf_loader.h>
 #include <Eigen/Geometry>
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -180,7 +178,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   Eigen::Isometry3d chain_base_to_group_base_;
   Eigen::Isometry3d group_tip_to_chain_tip_;
 
-  bool active_;  // Internal variable that indicates whether solvers are configured and ready
+  bool initialized_;  // Internal variable that indicates whether solvers are configured and ready
   const std::string name_{ "ikfast" };
 
   const std::vector<std::string>& getJointNames() const
@@ -196,7 +194,7 @@ public:
   /** @class
    *  @brief Interface for an IKFast kinematics plugin
    */
-  IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), active_(false)
+  IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), initialized_(false)
   {
     srand(time(NULL));
     supported_methods_.push_back(kinematics::DiscretizationMethods::NO_DISCRETIZATION);
@@ -319,8 +317,9 @@ public:
   bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices);
 
 private:
-  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_name,
-                  const std::string& tip_name, double search_discretization);
+  bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                  const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                  double search_discretization) override;
 
   /**
    * @brief Calls the IK solver from IKFast
@@ -356,8 +355,8 @@ private:
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
   /// Validate that we can compute a fixed transform between from and to links.
-  bool computeRelativeTransform(const RobotStatePtr& robot_state, const std::string& from, const std::string& to,
-                                Eigen::Isometry3d& transform, bool& differs_from_identity);
+  bool computeRelativeTransform(const std::string& from, const std::string& to, Eigen::Isometry3d& transform,
+                                bool& differs_from_identity);
   /**
   * @brief  Transforms the input pose to the correct frame for the solver. This assumes that the group includes the
   * entire solver chain and that any joints outside of the solver chain within the group are are fixed.
@@ -367,10 +366,12 @@ private:
   void transformToChainFrame(const geometry_msgs::Pose& ik_pose, KDL::Frame& ik_pose_chain) const;
 };  // end class
 
-bool IKFastKinematicsPlugin::computeRelativeTransform(const RobotStatePtr& robot_state, const std::string& from,
-                                                      const std::string& to, Eigen::Isometry3d& transform,
-                                                      bool& differs_from_identity)
+bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, const std::string& to,
+                                                      Eigen::Isometry3d& transform, bool& differs_from_identity)
 {
+  RobotStatePtr robot_state;
+  robot_state.reset(new RobotState(robot_model_));
+
   auto* from_link = robot_state->getLinkModel(from);
   auto* to_link = robot_state->getLinkModel(to);
   if (!from_link)
@@ -392,35 +393,25 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const RobotStatePtr& robot
   return true;
 }
 
-bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
-                                        const std::string& base_name, const std::string& tip_name,
+bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
+                                        const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                         double search_discretization)
 {
-  setValues(robot_description, group_name, base_name, tip_name, search_discretization);
-
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
-
-  if (!urdf_model || !rdf_loader.getSRDF())
+  if (tip_frames.size() != 1)
   {
-    ROS_ERROR_NAMED(name_, "URDF and SRDF must be loaded for the ikfast solver to work.");
+    ROS_ERROR_NAMED(name_, "Expecting exactly one tip frame.");
     return false;
   }
 
-  RobotModelPtr robot_model;
-  robot_model.reset(new RobotModel(urdf_model, rdf_loader.getSRDF()));
-  RobotStatePtr robot_state;
-  robot_state.reset(new RobotState(robot_model));
+  storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
 
   // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
   // To support these use cases, we store the transform from the IKFAST_BASE_FRAME_ to the
   // base_frame_ and IKFAST_TIP_FRAME_ the tip_frame_ and transform to the input pose accordingly
-  if (!computeRelativeTransform(robot_state, tip_frame_, IKFAST_TIP_FRAME_, group_tip_to_chain_tip_,
-                                tip_transform_required_) ||
-      !computeRelativeTransform(robot_state, IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_,
-                                base_transform_required_))
+  if (!computeRelativeTransform(tip_frames_[0], IKFAST_TIP_FRAME_, group_tip_to_chain_tip_, tip_transform_required_) ||
+      !computeRelativeTransform(IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_, base_transform_required_))
     return false;
 
   // IKFast56/61
@@ -428,68 +419,48 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
 
   if (free_params_.size() > 1)
   {
-    ROS_FATAL_NAMED(name_, "Only one free joint parameter supported!");
+    ROS_ERROR_NAMED(name_, "Only one free joint parameter supported!");
     return false;
   }
   else if (free_params_.size() == 1)
   {
     redundant_joint_indices_.clear();
     redundant_joint_indices_.push_back(free_params_[0]);
-    KinematicsBase::setSearchDiscretization(DEFAULT_SEARCH_DISCRETIZATION);
+    KinematicsBase::setSearchDiscretization(search_discretization);
   }
 
-  ROS_DEBUG_STREAM_NAMED(name_, "Reading joints and links from URDF");
-  urdf::LinkConstSharedPtr link = urdf_model->getLink(getTipFrame());
-  while (link->name != base_frame_ && joint_names_.size() <= num_joints_)
+  const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group_name);
+  if (!jmg)
   {
-    ROS_DEBUG_NAMED(name_, "Link %s", link->name.c_str());
-    link_names_.push_back(link->name);
-    urdf::JointSharedPtr joint = link->parent_joint;
-    if (joint)
-    {
-      if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED)
-      {
-        ROS_DEBUG_STREAM_NAMED(name_, "Adding joint " << joint->name);
+    ROS_ERROR_STREAM_NAMED(name_, "Unknown planning group: " << group_name);
+    return false;
+  }
 
-        joint_names_.push_back(joint->name);
-        float lower, upper;
-        bool hasLimits;
-        if (joint->type != urdf::Joint::CONTINUOUS)
-        {
-          if (joint->safety)
-          {
-            lower = joint->safety->soft_lower_limit;
-            upper = joint->safety->soft_upper_limit;
-          }
-          else
-          {
-            lower = joint->limits->lower;
-            upper = joint->limits->upper;
-          }
-          hasLimits = true;
-        }
-        else
-        {
-          lower = -M_PI;
-          upper = M_PI;
-          hasLimits = false;
-        }
-        joint_has_limits_vector_.push_back(hasLimits);
-        joint_min_vector_.push_back(lower);
-        joint_max_vector_.push_back(upper);
-      }
-    }
-    else
+  ROS_DEBUG_STREAM_NAMED(name_, "Registering joints and links");
+  const moveit::core::LinkModel* link = robot_model_->getLinkModel(tip_frames_[0]);
+  const moveit::core::LinkModel* base_link = robot_model_->getLinkModel(base_frame_);
+  while (link && link != base_link)
+  {
+    ROS_DEBUG_STREAM_NAMED(name_, "Link " << link->getName());
+    link_names_.push_back(link->getName());
+    const moveit::core::JointModel* joint = link->getParentJointModel();
+    if (joint->getType() != joint->UNKNOWN && joint->getType() != joint->FIXED && joint->getVariableCount() == 1)
     {
-      ROS_WARN_NAMED(name_, "no joint corresponding to %s", link->name.c_str());
+      ROS_DEBUG_STREAM_NAMED(name_, "Adding joint " << joint->getName());
+
+      joint_names_.push_back(joint->getName());
+      const moveit::core::VariableBounds& bounds = joint->getVariableBounds()[0];
+      joint_has_limits_vector_.push_back(bounds.position_bounded_);
+      joint_min_vector_.push_back(bounds.min_position_);
+      joint_max_vector_.push_back(bounds.max_position_);
     }
-    link = link->getParent();
+    link = link->getParentLinkModel();
   }
 
   if (joint_names_.size() != num_joints_)
   {
-    ROS_FATAL_STREAM_NAMED(name_, "Joint numbers mismatch: URDF has " << joint_names_.size() << " and IKFast has "
-                                                                      << num_joints_);
+    ROS_FATAL_NAMED(name_, "Joint numbers of RobotModel (%zd) and IKFast solver (%zd) do not match",
+                    joint_names_.size(), num_joints_);
     return false;
   }
 
@@ -504,7 +475,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
                                                          << joint_max_vector_[joint_id] << " "
                                                          << joint_has_limits_vector_[joint_id]);
 
-  active_ = true;
+  initialized_ = true;
   return true;
 }
 
@@ -868,7 +839,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     std::vector<geometry_msgs::Pose> ik_poses(1, ik_pose);
     std::vector<std::vector<double>> solutions;
     kinematics::KinematicsResult kinematic_result;
-    // Find all IK solution within joint limits
+    // Find all IK solutions within joint limits
     if (!getPositionIK(ik_poses, ik_seed_state, solutions, kinematic_result, options))
     {
       ROS_DEBUG_STREAM_NAMED(name_, "No solution whatsoever");
@@ -917,7 +888,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   // -------------------------------------------------------------------------------------------------
   // Error Checking
-  if (!active_)
+  if (!initialized_)
   {
     ROS_ERROR_STREAM_NAMED(name_, "Kinematics not active");
     error_code.val = error_code.NO_IK_SOLUTION;
@@ -958,6 +929,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
   // Handle consitency limits if needed
   int num_positive_increments;
   int num_negative_increments;
+  double search_discretization = redundant_joint_discretization_.at(free_params_[0]);
 
   if (!consistency_limits.empty())
   {
@@ -966,13 +938,13 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     double max_limit = fmin(joint_max_vector_[free_params_[0]], initial_guess + consistency_limits[free_params_[0]]);
     double min_limit = fmax(joint_min_vector_[free_params_[0]], initial_guess - consistency_limits[free_params_[0]]);
 
-    num_positive_increments = static_cast<int>((max_limit - initial_guess) / search_discretization_);
-    num_negative_increments = static_cast<int>((initial_guess - min_limit) / search_discretization_);
+    num_positive_increments = static_cast<int>((max_limit - initial_guess) / search_discretization);
+    num_negative_increments = static_cast<int>((initial_guess - min_limit) / search_discretization);
   }
-  else  // no consitency limits provided
+  else  // no consistency limits provided
   {
-    num_positive_increments = (joint_max_vector_[free_params_[0]] - initial_guess) / search_discretization_;
-    num_negative_increments = (initial_guess - joint_min_vector_[free_params_[0]]) / search_discretization_;
+    num_positive_increments = (joint_max_vector_[free_params_[0]] - initial_guess) / search_discretization;
+    num_negative_increments = (initial_guess - joint_min_vector_[free_params_[0]]) / search_discretization;
   }
 
   // -------------------------------------------------------------------------------------------------
@@ -1062,7 +1034,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
       break;
     }
 
-    vfree[0] = initial_guess + search_discretization_ * counter;
+    vfree[0] = initial_guess + search_discretization * counter;
     // ROS_DEBUG_STREAM_NAMED(name_,"Attempt " << counter << " with 0th free joint having value " << vfree[0]);
   }
 
@@ -1087,7 +1059,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
 {
   ROS_DEBUG_STREAM_NAMED(name_, "getPositionIK");
 
-  if (!active_)
+  if (!initialized_)
   {
     ROS_ERROR_NAMED(name_, "kinematics not active");
     return false;
@@ -1198,7 +1170,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
 {
   ROS_DEBUG_STREAM_NAMED(name_, "getPositionIK with multiple solutions");
 
-  if (!active_)
+  if (!initialized_)
   {
     ROS_ERROR_NAMED(name_, "kinematics not active");
     result.kinematic_error = kinematics::KinematicErrors::SOLVER_NOT_ACTIVE;
@@ -1336,16 +1308,10 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
 bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMethod method,
                                                   std::vector<double>& sampled_joint_vals) const
 {
-  double joint_min = -M_PI;
-  double joint_max = M_PI;
   int index = redundant_joint_indices_.front();
   double joint_dscrt = redundant_joint_discretization_.at(index);
-
-  if (joint_has_limits_vector_[redundant_joint_indices_.front()])
-  {
-    joint_min = joint_min_vector_[index];
-    joint_max = joint_max_vector_[index];
-  }
+  double joint_min = joint_min_vector_[index];
+  double joint_max = joint_max_vector_[index];
 
   switch (method)
   {

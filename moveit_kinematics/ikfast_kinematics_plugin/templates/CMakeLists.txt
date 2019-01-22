@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_kdl
   tf2_eigen
   eigen_conversions
-  moveit_ros_planning
 )
 
 include_directories(${catkin_INCLUDE_DIRS} include)

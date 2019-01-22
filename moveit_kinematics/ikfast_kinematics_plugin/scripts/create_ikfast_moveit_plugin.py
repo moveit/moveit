@@ -315,8 +315,8 @@ def update_package(args):
   package_xml = etree.parse(package_file_name, parser)
 
   # Make sure at least all required dependencies are in the depends lists
-  build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl", "tf2_eigen", "eigen_conversions", "moveit_ros_planning"]
-  run_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "eigen_conversions", "moveit_ros_planning"]
+  build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl", "tf2_eigen", "eigen_conversions"]
+  run_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "eigen_conversions"]
 
   update_deps(build_deps, "build_depend", package_xml.getroot())
   update_deps(run_deps, "exec_depend", package_xml.getroot())
