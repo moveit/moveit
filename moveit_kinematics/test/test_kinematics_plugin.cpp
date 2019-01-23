@@ -53,11 +53,10 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 
-const double IK_NEAR = 1e-5;
-
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
 const double DEFAULT_SEARCH_DISCRETIZATION = 0.01f;
 const double EXPECTED_SUCCESS_RATE = 0.8;
+const double DEFAULT_TOLERANCE = 1e-5;
 
 template <typename T>
 inline bool getParam(const std::string& param, T& val)
@@ -90,6 +89,7 @@ class SharedData
   std::vector<double> seed_;
   std::vector<double> consistency_limits_;
   double timeout_;
+  double tolerance_;
   int num_fk_tests_;
   int num_ik_cb_tests_;
   int num_ik_tests_;
@@ -124,6 +124,8 @@ class SharedData
     getParam("consistency_limits", consistency_limits_);
     if (!getParam("ik_timeout", timeout_) || timeout_ < 0.0)
       timeout_ = 1.0;
+    if (!getParam("tolerance", tolerance_) || tolerance_ < 0.0)
+      tolerance_ = DEFAULT_TOLERANCE;
     ASSERT_TRUE(consistency_limits_.empty() || consistency_limits_.size() == joints_.size());
     ASSERT_TRUE(getParam("num_fk_tests", num_fk_tests_));
     ASSERT_TRUE(getParam("num_ik_cb_tests", num_ik_cb_tests_));
@@ -168,6 +170,7 @@ protected:
     seed_ = data.seed_;
     consistency_limits_ = data.consistency_limits_;
     timeout_ = data.timeout_;
+    tolerance_ = data.tolerance_;
     num_fk_tests_ = data.num_fk_tests_;
     num_ik_cb_tests_ = data.num_ik_cb_tests_;
     num_ik_tests_ = data.num_ik_tests_;
@@ -290,6 +293,7 @@ public:
   std::vector<double> seed_;
   std::vector<double> consistency_limits_;
   double timeout_;
+  double tolerance_;
   int num_fk_tests_;
   int num_ik_cb_tests_;
   int num_ik_tests_;
@@ -312,20 +316,14 @@ TEST_F(KinematicsTest, getFK)
   {
     robot_state.setToRandomPositions(jmg_);
     robot_state.copyJointGroupPositions(jmg_, joints);
-    std::vector<geometry_msgs::Pose> poses;
-    EXPECT_TRUE(kinematics_solver_->getPositionFK(tip_frames, joints, poses));
-    EXPECT_EQ(poses.size(), tip_frames.size());
-    if (poses.size() != tip_frames.size())
-      continue;
+    std::vector<geometry_msgs::Pose> fk_poses;
+    EXPECT_TRUE(kinematics_solver_->getPositionFK(tip_frames, joints, fk_poses));
 
     robot_state.updateLinkTransforms();
-    for (size_t j = 0; j < poses.size(); ++j)
-    {
-      const Eigen::Isometry3d model_pose = robot_state.getGlobalLinkTransform(tip_frames[j]);
-      Eigen::Isometry3d fk_pose;
-      tf2::fromMsg(poses[j], fk_pose);
-      EXPECT_TRUE(fk_pose.isApprox(model_pose)) << fk_pose.matrix() << std::endl << model_pose.matrix();
-    }
+    std::vector<geometry_msgs::Pose> model_poses;
+    for (const auto& tip : tip_frames)
+      model_poses.emplace_back(tf2::toMsg(robot_state.getGlobalLinkTransform(tip)));
+    EXPECT_NEAR_POSES(model_poses, fk_poses, tolerance_);
   }
 }
 
@@ -375,7 +373,7 @@ TEST_F(KinematicsTest, randomWalkIK)
     // on success: validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(tip_frames, solution, reached_poses);
-    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
+    EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
 
     // validate closeness of solution pose to goal
     auto diff = Eigen::Map<Eigen::ArrayXd>(solution.data(), solution.size()) -
@@ -445,12 +443,14 @@ static bool parseGoal(const std::string& name, XmlRpc::XmlRpcValue& value, Eigen
     if (name == (std::string("pos.") + axis_char))
     {
       goal.translation()[axis] += parseDouble(value);
+      desc = name + " " + std::to_string(parseDouble(value));
       return true;
     }
     // rotation offset
     else if (name == (std::string("rot.") + axis_char))
     {
       goal *= Eigen::AngleAxisd(parseDouble(value), Eigen::Vector3d::Unit(axis));
+      desc = name + " " + std::to_string(parseDouble(value));
       return true;
     }
   }
@@ -489,7 +489,7 @@ TEST_F(KinematicsTest, unitIK)
     // validate reached poses
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(tip_frames, sol, reached_poses);
-    EXPECT_NEAR_POSES({ goal }, reached_poses, IK_NEAR);
+    EXPECT_NEAR_POSES({ goal }, reached_poses, tolerance_);
 
     // validate ground truth
     if (!truth.empty())
@@ -497,8 +497,8 @@ TEST_F(KinematicsTest, unitIK)
       ASSERT_EQ(truth.size(), sol.size()) << "Invalid size of ground truth joints vector";
       Eigen::Map<Eigen::ArrayXd> solution(sol.data(), sol.size());
       Eigen::Map<Eigen::ArrayXd> ground_truth(truth.data(), truth.size());
-      EXPECT_TRUE(solution.isApprox(ground_truth, 10 * IK_NEAR)) << solution.transpose() << std::endl
-                                                                 << ground_truth.transpose() << std::endl;
+      EXPECT_TRUE(solution.isApprox(ground_truth, 10 * tolerance_)) << solution.transpose() << std::endl
+                                                                    << ground_truth.transpose() << std::endl;
     }
   };
 
@@ -559,7 +559,7 @@ TEST_F(KinematicsTest, searchIK)
 
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
+    EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_tests_);
@@ -596,7 +596,7 @@ TEST_F(KinematicsTest, searchIKWithCallback)
 
     std::vector<geometry_msgs::Pose> reached_poses;
     kinematics_solver_->getPositionFK(fk_names, solution, reached_poses);
-    EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
+    EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
   }
 
   ROS_INFO_STREAM("Success Rate: " << (double)success / num_ik_cb_tests_);
@@ -626,7 +626,7 @@ TEST_F(KinematicsTest, getIK)
 
     Eigen::Map<Eigen::ArrayXd> sol(solution.data(), solution.size());
     Eigen::Map<Eigen::ArrayXd> truth(fk_values.data(), fk_values.size());
-    EXPECT_TRUE(sol.isApprox(truth, IK_NEAR)) << sol.transpose() << std::endl << truth.transpose() << std::endl;
+    EXPECT_TRUE(sol.isApprox(truth, tolerance_)) << sol.transpose() << std::endl << truth.transpose() << std::endl;
   }
 }
 
@@ -663,7 +663,7 @@ TEST_F(KinematicsTest, getIKMultipleSolutions)
     for (const auto& s : solutions)
     {
       kinematics_solver_->getPositionFK(fk_names, s, reached_poses);
-      EXPECT_NEAR_POSES(poses, reached_poses, IK_NEAR);
+      EXPECT_NEAR_POSES(poses, reached_poses, tolerance_);
     }
   }
 
@@ -724,7 +724,7 @@ TEST_F(KinematicsTest, getNearestIKSolution)
       if (error_multipleIK <= smallest_error_multipleIK)
         smallest_error_multipleIK = error_multipleIK;
     }
-    EXPECT_NEAR(smallest_error_multipleIK, error_getIK, IK_NEAR);
+    EXPECT_NEAR(smallest_error_multipleIK, error_getIK, tolerance_);
   }
 }
 
