@@ -309,7 +309,7 @@ public:
    *
    * @param discretization a map of joint indices and discretization value pairs.
    */
-  void setSearchDiscretization(const std::map<int, double>& discretization);
+  void setSearchDiscretization(const std::map<unsigned int, double>& discretization);
 
   /**
    * @brief Overrides the default method to prevent changing the redundant joints
@@ -325,7 +325,7 @@ private:
    * @brief Calls the IK solver from IKFast
    * @return The number of solutions found
    */
-  int solve(KDL::Frame& pose_frame, const std::vector<double>& vfree, IkSolutionList<IkReal>& solutions) const;
+  size_t solve(KDL::Frame& pose_frame, const std::vector<double>& vfree, IkSolutionList<IkReal>& solutions) const;
 
   /**
    * @brief Gets a specific solution from the set
@@ -479,7 +479,7 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
   return true;
 }
 
-void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int, double>& discretization)
+void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<unsigned int, double>& discretization)
 {
   if (discretization.empty())
   {
@@ -518,8 +518,8 @@ bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>&
   return false;
 }
 
-int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<double>& vfree,
-                                  IkSolutionList<IkReal>& solutions) const
+size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<double>& vfree,
+                                     IkSolutionList<IkReal>& solutions) const
 {
   // IKFast56/61
   solutions.Clear();
@@ -919,7 +919,6 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   std::vector<double> vfree(free_params_.size());
 
-  ros::Time maxTime = ros::Time::now() + ros::Duration(timeout);
   int counter = 0;
 
   double initial_guess = ik_seed_state[free_params_[0]];
@@ -963,20 +962,20 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
   while (true)
   {
     IkSolutionList<IkReal> solutions;
-    int numsol = solve(frame, vfree, solutions);
+    size_t numsol = solve(frame, vfree, solutions);
 
     ROS_DEBUG_STREAM_NAMED(name_, "Found " << numsol << " solutions from IKFast");
 
     if (numsol > 0)
     {
-      for (int s = 0; s < numsol; ++s)
+      for (size_t s = 0; s < numsol; ++s)
       {
         nattempts++;
         std::vector<double> sol;
         getSolution(solutions, ik_seed_state, s, sol);
 
         bool obeys_limits = true;
-        for (unsigned int i = 0; i < sol.size(); i++)
+        for (size_t i = 0; i < sol.size(); i++)
         {
           if (joint_has_limits_vector_[i] && (sol[i] < joint_min_vector_[i] || sol[i] > joint_max_vector_[i]))
           {
@@ -1099,7 +1098,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
   transformToChainFrame(ik_pose, frame);
 
   IkSolutionList<IkReal> solutions;
-  int numsol = solve(frame, vfree, solutions);
+  size_t numsol = solve(frame, vfree, solutions);
   ROS_DEBUG_STREAM_NAMED(name_, "Found " << numsol << " solutions from IKFast");
 
   std::vector<LimitObeyingSol> solutions_obey_limits;
@@ -1317,8 +1316,8 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
   {
     case kinematics::DiscretizationMethods::ALL_DISCRETIZED:
     {
-      int steps = std::ceil((joint_max - joint_min) / joint_dscrt);
-      for (unsigned int i = 0; i < steps; i++)
+      size_t steps = std::ceil((joint_max - joint_min) / joint_dscrt);
+      for (size_t i = 0; i < steps; i++)
       {
         sampled_joint_vals.push_back(joint_min + joint_dscrt * i);
       }
