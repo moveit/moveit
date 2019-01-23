@@ -214,12 +214,16 @@ def update_ikfast_package(args):
   # Get template folder location
   template_dir = find_template_dir()
 
+  # namespace for the plugin
+  setattr(args, 'namespace', args.robot_name + "_" + args.planning_group_name)
   replacements = dict(_ROBOT_NAME_= args.robot_name,
                       _GROUP_NAME_ = args.planning_group_name,
                       _SEARCH_MODE_ = args.search_mode,
                       _EEF_LINK_ = args.eef_link_name,
                       _BASE_LINK_ = args.base_link_name,
-                      _PACKAGE_NAME_ = args.ikfast_plugin_pkg)
+                      _PACKAGE_NAME_ = args.ikfast_plugin_pkg,
+                      _NAMESPACE_ = args.namespace
+  )
 
   # Copy ikfast header file
   copy_file(template_dir + '/ikfast.h', args.ikfast_plugin_pkg_path + "/include/ikfast.h",
@@ -230,11 +234,11 @@ def update_ikfast_package(args):
             "ikfast plugin file", replacements)
 
   # Create plugin definition .xml file
-  ik_library_name = args.robot_name + "_" + args.planning_group_name + "_moveit_ikfast_plugin"
-  setattr(args, 'plugin_name', args.robot_name + '_' + args.planning_group_name + '_kinematics/IKFastKinematicsPlugin')
+  ik_library_name = args.namespace + "_moveit_ikfast_plugin"
   plugin_def = etree.Element("library", path="lib/lib" + ik_library_name)
+  setattr(args, 'plugin_name', args.namespace + '/IKFastKinematicsPlugin')
   cl = etree.SubElement(plugin_def, "class", name=args.plugin_name,
-                        type="ikfast_kinematics_plugin::IKFastKinematicsPlugin",
+                        type=args.namespace + "::IKFastKinematicsPlugin",
                         base_class_type="kinematics::KinematicsBase")
   desc = etree.SubElement(cl, "description")
   desc.text = 'IKFast{template} plugin for closed-form kinematics of {robot} {group}' \

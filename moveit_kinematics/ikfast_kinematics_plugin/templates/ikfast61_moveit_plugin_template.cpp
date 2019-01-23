@@ -60,7 +60,7 @@ enum SEARCH_MODE
   OPTIMIZE_MAX_JOINT = 2
 };
 
-namespace ikfast_kinematics_plugin
+namespace _NAMESPACE_
 {
 #define IKFAST_NO_MAIN  // Don't include main() from IKFast
 
@@ -1371,4 +1371,4 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
 
 // register IKFastKinematicsPlugin as a KinematicsBase implementation
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS(ikfast_kinematics_plugin::IKFastKinematicsPlugin, kinematics::KinematicsBase);
+PLUGINLIB_EXPORT_CLASS(_NAMESPACE_::IKFastKinematicsPlugin, kinematics::KinematicsBase);
