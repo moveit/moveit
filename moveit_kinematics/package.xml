@@ -37,6 +37,8 @@
   <run_depend>tf2_kdl</run_depend>
   <run_depend>orocos_kdl</run_depend>
 
+  <test_depend>xmlrpcpp</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
     <moveit_core plugin="${prefix}/lma_kinematics_plugin_description.xml"/>
