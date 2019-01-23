@@ -392,7 +392,6 @@ struct FCLShapeCache
                                                     // executed (this is only removal of expired entries)
   ShapeMap map_;
   unsigned int clean_count_;
-  boost::mutex lock_;
 };
 
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
@@ -629,7 +628,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 template <typename BV, typename T>
 FCLShapeCache& GetShapeCache()
 {
-  static FCLShapeCache cache;
+  static thread_local FCLShapeCache cache;
   return cache;
 }
 
@@ -661,7 +660,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
   shapes::ShapeConstWeakPtr wptr(shape);
   {
-    boost::mutex::scoped_lock slock(cache.lock_);
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
@@ -693,7 +691,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     FCLShapeCache& othercache = GetShapeCache<BV, World::Object>();
 
     // attached bodies could be just moved from the environment.
-    othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
     auto cache_it = othercache.map_.find(wptr);
     if (cache_it != othercache.map_.end())
     {
@@ -702,8 +699,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // remove from old cache
         FCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
-        othercache.lock_.unlock();
-
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
@@ -713,13 +708,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         //        obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
-        boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
         cache.bumpUseCount();
         return obj_cache;
       }
     }
-    othercache.lock_.unlock();
   }
   else
       // world objects could have previously been attached objects; we try to move them
@@ -731,7 +724,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     FCLShapeCache& othercache = GetShapeCache<BV, robot_state::AttachedBody>();
 
     // attached bodies could be just moved from the environment.
-    othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
     auto cache_it = othercache.map_.find(wptr);
     if (cache_it != othercache.map_.end())
     {
@@ -740,7 +732,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // remove from old cache
         FCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
-        othercache.lock_.unlock();
 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
@@ -752,13 +743,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         //                   obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
-        boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
         cache.bumpUseCount();
         return obj_cache;
       }
     }
-    othercache.lock_.unlock();
   }
 
   fcl::CollisionGeometryd* cg_g = nullptr;
@@ -844,7 +833,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   {
     cg_g->computeLocalAABB();
     FCLGeometryConstPtr res(new FCLGeometry(cg_g, data, shape_index));
-    boost::mutex::scoped_lock slock(cache.lock_);
     cache.map_[wptr] = res;
     cache.bumpUseCount();
     return res;
@@ -907,12 +895,10 @@ void cleanCollisionGeometryCache()
 {
   FCLShapeCache& cache1 = GetShapeCache<fcl::OBBRSSd, World::Object>();
   {
-    boost::mutex::scoped_lock slock(cache1.lock_);
     cache1.bumpUseCount(true);
   }
   FCLShapeCache& cache2 = GetShapeCache<fcl::OBBRSSd, robot_state::AttachedBody>();
   {
-    boost::mutex::scoped_lock slock(cache2.lock_);
     cache2.bumpUseCount(true);
   }
 }
