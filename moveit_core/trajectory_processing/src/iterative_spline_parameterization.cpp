@@ -344,7 +344,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       trajectory.getWayPointPtr(i)->setVariableAcceleration(idx[j], t2[j].accelerations[i]);
     }
 
-    // Only update position of additional points
+    // Only update position of additionally inserted points (at second and next-to-last position)
     if (add_points_ && (i == 1 || i == num_points-2))
     {
       for (unsigned int j = 0; j < num_joints; j++)
