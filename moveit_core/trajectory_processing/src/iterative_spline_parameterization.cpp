@@ -345,7 +345,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     }
 
     // Only update position of additionally inserted points (at second and next-to-last position)
-    if (add_points_ && (i == 1 || i == num_points-2))
+    if (add_points_ && (i == 1 || i == num_points - 2))
     {
       for (unsigned int j = 0; j < num_joints; j++)
       {
