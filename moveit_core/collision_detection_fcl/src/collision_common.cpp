@@ -768,6 +768,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
       cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
     }
+    break;
     case shapes::SPHERE:
     {
       const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
