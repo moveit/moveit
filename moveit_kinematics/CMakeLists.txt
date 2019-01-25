@@ -12,6 +12,7 @@ find_package(Eigen3 REQUIRED)
 find_package(orocos_kdl REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
+  moveit_ros_planning
   pluginlib
   roscpp
   rosconsole
@@ -35,6 +36,7 @@ catkin_package(
   CATKIN_DEPENDS
     pluginlib
     moveit_core
+    moveit_ros_planning
   DEPENDS
     EIGEN3
 )
