@@ -628,6 +628,15 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 template <typename BV, typename T>
 FCLShapeCache& GetShapeCache()
 {
+  /* The cache is created thread_local, that is each thread calling
+   * this quasi-singleton function will get its own instance. Once
+   * the thread joins/exits, the cache gets deleted.
+   * Reasoning is that multi-threaded planners (eg OMPL) or user-code
+   * will often need to do collision checks with the same object
+   * simultaneously (especially true for attached objects). Having only
+   * one global cache leads to many cache misses. Also as the cache can
+   * only be accessed by one thread we don't need any locking.
+   */
   static thread_local FCLShapeCache cache;
   return cache;
 }
