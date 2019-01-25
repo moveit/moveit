@@ -36,11 +36,6 @@
 
 #include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
 #include <class_loader/class_loader.hpp>
-
-// URDF, SRDF
-#include <urdf_model/model.h>
-#include <srdfdom/model.h>
-
 #include <moveit/robot_state/conversions.h>
 
 // Eigen

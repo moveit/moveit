@@ -45,10 +45,6 @@
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 
-// URDF, SRDF
-#include <urdf_model/model.h>
-#include <srdfdom/model.h>
-
 // register KDLKinematics as a KinematicsBase implementation
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinematics::KinematicsBase)

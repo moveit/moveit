@@ -40,10 +40,6 @@
 #include <tf2_kdl/tf2_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>
 
-// URDF, SRDF
-#include <urdf_model/model.h>
-#include <srdfdom/model.h>
-
 // register KDLKinematics as a KinematicsBase implementation
 CLASS_LOADER_REGISTER_CLASS(lma_kinematics_plugin::LMAKinematicsPlugin, kinematics::KinematicsBase)
 
