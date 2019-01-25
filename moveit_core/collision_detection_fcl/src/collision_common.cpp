@@ -760,84 +760,73 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   }
 
   fcl::CollisionGeometryd* cg_g = nullptr;
-  if (shape->type == shapes::PLANE)  // shapes that directly produce CollisionGeometry
+  // handle cases individually
+  switch (shape->type)
   {
-    // handle cases individually
-    switch (shape->type)
+    case shapes::PLANE:
     {
-      case shapes::PLANE:
-      {
-        const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
-        cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
-      }
-      break;
-      default:
-        break;
+      const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
+      cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
     }
-  }
-  else
-  {
-    switch (shape->type)
+    case shapes::SPHERE:
     {
-      case shapes::SPHERE:
-      {
-        const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
-        cg_g = new fcl::Sphered(s->radius);
-      }
-      break;
-      case shapes::BOX:
-      {
-        const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
-        const double* size = s->size;
-        cg_g = new fcl::Boxd(size[0], size[1], size[2]);
-      }
-      break;
-      case shapes::CYLINDER:
-      {
-        const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
-        cg_g = new fcl::Cylinderd(s->radius, s->length);
-      }
-      break;
-      case shapes::CONE:
-      {
-        const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
-        cg_g = new fcl::Coned(s->radius, s->length);
-      }
-      break;
-      case shapes::MESH:
-      {
-        auto g = new fcl::BVHModel<BV>();
-        const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
-        if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
-        {
-          std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
-          for (unsigned int i = 0; i < mesh->triangle_count; ++i)
-            tri_indices[i] =
-                fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
-
-          std::vector<fcl::Vector3d> points(mesh->vertex_count);
-          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-            points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
-
-          g->beginModel();
-          g->addSubModel(points, tri_indices);
-          g->endModel();
-        }
-        cg_g = g;
-      }
-      break;
-      case shapes::OCTREE:
-      {
-        const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
-        cg_g = new fcl::OcTreed(g->octree);
-      }
-      break;
-      default:
-        ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
-                        (int)shape->type);
-        cg_g = nullptr;
+      const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
+      cg_g = new fcl::Sphered(s->radius);
     }
+    break;
+    case shapes::BOX:
+    {
+      const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
+      const double* size = s->size;
+      cg_g = new fcl::Boxd(size[0], size[1], size[2]);
+    }
+    break;
+    case shapes::CYLINDER:
+    {
+      const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
+      cg_g = new fcl::Cylinderd(s->radius, s->length);
+    }
+    break;
+    case shapes::CONE:
+    {
+      const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
+      cg_g = new fcl::Coned(s->radius, s->length);
+    }
+    break;
+    case shapes::MESH:
+    {
+      auto g = new fcl::BVHModel<BV>();
+      const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
+      if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
+      {
+        std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+        for (unsigned int i = 0; i < mesh->triangle_count; ++i)
+          tri_indices[i] =
+              fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
+
+        std::vector<fcl::Vector3d> points(mesh->vertex_count);
+        for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+          points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
+
+        g->beginModel();
+        g->addSubModel(points, tri_indices);
+        g->endModel();
+      }
+      cg_g = g;
+    }
+    break;
+    case shapes::OCTREE:
+    {
+      const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
+      cg_g = new fcl::OcTreed(g->octree);
+    }
+    break;
+    default:
+      ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
+                      (int)shape->type);
+      cg_g = nullptr;
   }
+
   if (cg_g)
   {
     cg_g->computeLocalAABB();
