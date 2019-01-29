@@ -84,7 +84,7 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
     joint_model_ = robot_model_->getJointModel(joint_variable_name_);
   else
   {
-    std::size_t pos = jc.joint_name.find_last_of("/");
+    std::size_t pos = jc.joint_name.find_last_of('/');
     if (pos != std::string::npos)
     {
       joint_model_ = robot_model_->getJointModel(jc.joint_name.substr(0, pos));
