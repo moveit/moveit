@@ -6,6 +6,8 @@
  */
 
 #include <chomp_interface/chomp_planning_context.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/robot_state/conversions.h>
 
 namespace chomp_interface
 {
@@ -14,17 +16,6 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::s
   : planning_interface::PlanningContext(name, group), robot_model_(model)
 {
   chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
-
-  collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
-      collision_detection::CollisionDetectorAllocatorHybrid::create());
-
-  if (!this->getPlanningScene())
-  {
-    ROS_INFO_STREAM("Configuring New Planning Scene.");
-    planning_scene::PlanningScenePtr planning_scene_ptr(new planning_scene::PlanningScene(model));
-    planning_scene_ptr->setActiveCollisionDetector(hybrid_cd, true);
-    setPlanningScene(planning_scene_ptr);
-  }
 }
 
 CHOMPPlanningContext::~CHOMPPlanningContext()

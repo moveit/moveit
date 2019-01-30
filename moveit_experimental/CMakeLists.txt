@@ -68,6 +68,7 @@ catkin_package(
   DEPENDS
     EIGEN3
 #    Boost
+#   OCTOMAP
 #    urdfdom
 #    urdfdom_headers
 )

@@ -50,9 +50,6 @@ class CollisionDetectorAllocatorHybrid
 {
 public:
   static const std::string NAME_;  // defined in collision_world_hybrid.cpp
-  virtual ~CollisionDetectorAllocatorHybrid()
-  {
-  }
 };
 }
 

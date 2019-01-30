@@ -316,10 +316,18 @@ class MoveGroupCommander(object):
         """ Set a random joint configuration target """
         self._g.set_random_target()
 
+    def get_named_targets(self):
+        """ Get a list of all the names of joint configurations."""
+        return self._g.get_named_targets()
+
     def set_named_target(self, name):
         """ Set a joint configuration by name. The name can be a name previlusy remembered with remember_joint_values() or a configuration specified in the SRDF. """
         if not self._g.set_named_target(name):
             raise MoveItCommanderException("Unable to set target %s. Is the target within bounds?" % name)
+
+    def get_named_target_values(self, target):
+        """Get a dictionary of joint values of a named target"""
+        return self._g.get_named_target_values(target)
 
     def remember_joint_values(self, name, values = None):
         """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """

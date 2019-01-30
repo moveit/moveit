@@ -76,6 +76,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     constraint_samplers/include
     controller_manager/include
     distance_field/include
+    collision_distance_field/include
     dynamics_solver/include
     kinematics_base/include
     kinematics_metrics/include
@@ -115,6 +116,7 @@ catkin_package(
     moveit_profiler
     moveit_trajectory_processing
     moveit_distance_field
+    moveit_collision_distance_field
     moveit_kinematics_metrics
     moveit_dynamics_solver
     moveit_utils
@@ -141,6 +143,18 @@ catkin_package(
     urdfdom
     urdfdom_headers
     )
+
+
+# to run: catkin_make -DENABLE_COVERAGE_TESTING=ON package_name_coverage
+if(ENABLE_COVERAGE_TESTING)
+  find_package(code_coverage REQUIRED)   # catkin package ros-*-code-coverage
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+  set(COVERAGE_EXCLUDES "*/test/*")
+  add_code_coverage(
+    NAME ${PROJECT_NAME}_coverage
+  )
+endif()
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
@@ -191,6 +205,7 @@ add_subdirectory(planning_interface)
 add_subdirectory(planning_request_adapter)
 add_subdirectory(trajectory_processing)
 add_subdirectory(distance_field)
+add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
 add_subdirectory(utils)
