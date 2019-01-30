@@ -874,7 +874,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
     }
   }
 
-  const std::vector<std::string> state_variable_names = state.getVariableNames();
+  const std::vector<std::string>& state_variable_names = state.getVariableNames();
   for (std::vector<std::string>::const_iterator name_iter = state_variable_names.begin();
        name_iter != state_variable_names.end(); name_iter++)
   {

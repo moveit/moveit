@@ -1243,9 +1243,9 @@ void RobotState::computeVariableVelocity(const JointModelGroup* jmg, Eigen::Vect
 
   // Do the Jacobian moore-penrose pseudo-inverse
   Eigen::JacobiSVD<Eigen::MatrixXd> svdOfJ(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  const Eigen::MatrixXd U = svdOfJ.matrixU();
-  const Eigen::MatrixXd V = svdOfJ.matrixV();
-  const Eigen::VectorXd S = svdOfJ.singularValues();
+  const Eigen::MatrixXd& U = svdOfJ.matrixU();
+  const Eigen::MatrixXd& V = svdOfJ.matrixV();
+  const Eigen::VectorXd& S = svdOfJ.singularValues();
 
   Eigen::VectorXd Sinv = S;
   static const double pinvtoler = std::numeric_limits<float>::epsilon();
