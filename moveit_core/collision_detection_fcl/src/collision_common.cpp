@@ -392,7 +392,6 @@ struct FCLShapeCache
                                                     // executed (this is only removal of expired entries)
   ShapeMap map_;
   unsigned int clean_count_;
-  boost::mutex lock_;
 };
 
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist)
@@ -629,7 +628,16 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 template <typename BV, typename T>
 FCLShapeCache& GetShapeCache()
 {
-  static FCLShapeCache cache;
+  /* The cache is created thread_local, that is each thread calling
+   * this quasi-singleton function will get its own instance. Once
+   * the thread joins/exits, the cache gets deleted.
+   * Reasoning is that multi-threaded planners (eg OMPL) or user-code
+   * will often need to do collision checks with the same object
+   * simultaneously (especially true for attached objects). Having only
+   * one global cache leads to many cache misses. Also as the cache can
+   * only be accessed by one thread we don't need any locking.
+   */
+  static thread_local FCLShapeCache cache;
   return cache;
 }
 
@@ -661,7 +669,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
   shapes::ShapeConstWeakPtr wptr(shape);
   {
-    boost::mutex::scoped_lock slock(cache.lock_);
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
@@ -693,7 +700,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     FCLShapeCache& othercache = GetShapeCache<BV, World::Object>();
 
     // attached bodies could be just moved from the environment.
-    othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
     auto cache_it = othercache.map_.find(wptr);
     if (cache_it != othercache.map_.end())
     {
@@ -702,8 +708,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // remove from old cache
         FCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
-        othercache.lock_.unlock();
-
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
@@ -713,13 +717,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         //        obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
-        boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
         cache.bumpUseCount();
         return obj_cache;
       }
     }
-    othercache.lock_.unlock();
   }
   else
       // world objects could have previously been attached objects; we try to move them
@@ -731,7 +733,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     FCLShapeCache& othercache = GetShapeCache<BV, robot_state::AttachedBody>();
 
     // attached bodies could be just moved from the environment.
-    othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
     auto cache_it = othercache.map_.find(wptr);
     if (cache_it != othercache.map_.end())
     {
@@ -740,7 +741,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // remove from old cache
         FCLGeometryConstPtr obj_cache = cache_it->second;
         othercache.map_.erase(cache_it);
-        othercache.lock_.unlock();
 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
@@ -752,99 +752,86 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         //                   obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
-        boost::mutex::scoped_lock slock(cache.lock_);
         cache.map_[wptr] = obj_cache;
         cache.bumpUseCount();
         return obj_cache;
       }
     }
-    othercache.lock_.unlock();
   }
 
   fcl::CollisionGeometryd* cg_g = nullptr;
-  if (shape->type == shapes::PLANE)  // shapes that directly produce CollisionGeometry
+  // handle cases individually
+  switch (shape->type)
   {
-    // handle cases individually
-    switch (shape->type)
+    case shapes::PLANE:
     {
-      case shapes::PLANE:
-      {
-        const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
-        cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
-      }
-      break;
-      default:
-        break;
+      const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
+      cg_g = new fcl::Planed(p->a, p->b, p->c, p->d);
     }
-  }
-  else
-  {
-    switch (shape->type)
+    break;
+    case shapes::SPHERE:
     {
-      case shapes::SPHERE:
-      {
-        const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
-        cg_g = new fcl::Sphered(s->radius);
-      }
-      break;
-      case shapes::BOX:
-      {
-        const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
-        const double* size = s->size;
-        cg_g = new fcl::Boxd(size[0], size[1], size[2]);
-      }
-      break;
-      case shapes::CYLINDER:
-      {
-        const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
-        cg_g = new fcl::Cylinderd(s->radius, s->length);
-      }
-      break;
-      case shapes::CONE:
-      {
-        const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
-        cg_g = new fcl::Coned(s->radius, s->length);
-      }
-      break;
-      case shapes::MESH:
-      {
-        auto g = new fcl::BVHModel<BV>();
-        const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
-        if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
-        {
-          std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
-          for (unsigned int i = 0; i < mesh->triangle_count; ++i)
-            tri_indices[i] =
-                fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
-
-          std::vector<fcl::Vector3d> points(mesh->vertex_count);
-          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-            points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
-
-          g->beginModel();
-          g->addSubModel(points, tri_indices);
-          g->endModel();
-        }
-        cg_g = g;
-      }
-      break;
-      case shapes::OCTREE:
-      {
-        const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
-        cg_g = new fcl::OcTreed(g->octree);
-      }
-      break;
-      default:
-        ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
-                        (int)shape->type);
-        cg_g = nullptr;
+      const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
+      cg_g = new fcl::Sphered(s->radius);
     }
+    break;
+    case shapes::BOX:
+    {
+      const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
+      const double* size = s->size;
+      cg_g = new fcl::Boxd(size[0], size[1], size[2]);
+    }
+    break;
+    case shapes::CYLINDER:
+    {
+      const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
+      cg_g = new fcl::Cylinderd(s->radius, s->length);
+    }
+    break;
+    case shapes::CONE:
+    {
+      const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
+      cg_g = new fcl::Coned(s->radius, s->length);
+    }
+    break;
+    case shapes::MESH:
+    {
+      auto g = new fcl::BVHModel<BV>();
+      const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
+      if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
+      {
+        std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+        for (unsigned int i = 0; i < mesh->triangle_count; ++i)
+          tri_indices[i] =
+              fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
+
+        std::vector<fcl::Vector3d> points(mesh->vertex_count);
+        for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+          points[i] = fcl::Vector3d(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
+
+        g->beginModel();
+        g->addSubModel(points, tri_indices);
+        g->endModel();
+      }
+      cg_g = g;
+    }
+    break;
+    case shapes::OCTREE:
+    {
+      const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
+      cg_g = new fcl::OcTreed(g->octree);
+    }
+    break;
+    default:
+      ROS_ERROR_NAMED("collision_detection.fcl", "This shape type (%d) is not supported using FCL yet",
+                      (int)shape->type);
+      cg_g = nullptr;
   }
+
   if (cg_g)
   {
     cg_g->computeLocalAABB();
     FCLGeometryConstPtr res(new FCLGeometry(cg_g, data, shape_index));
-    boost::mutex::scoped_lock slock(cache.lock_);
     cache.map_[wptr] = res;
     cache.bumpUseCount();
     return res;
@@ -907,12 +894,10 @@ void cleanCollisionGeometryCache()
 {
   FCLShapeCache& cache1 = GetShapeCache<fcl::OBBRSSd, World::Object>();
   {
-    boost::mutex::scoped_lock slock(cache1.lock_);
     cache1.bumpUseCount(true);
   }
   FCLShapeCache& cache2 = GetShapeCache<fcl::OBBRSSd, robot_state::AttachedBody>();
   {
-    boost::mutex::scoped_lock slock(cache2.lock_);
     cache2.bumpUseCount(true);
   }
 }
