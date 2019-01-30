@@ -51,7 +51,7 @@ public:
    * @param params equates the returned chomp parameters to this argument
    * @return the non constant version of ChompParameters
    */
-  ChompParameters getNonConstParams(ChompParameters params);
+  ChompParameters getNonConstParams(const ChompParameters& params);
 
   /**
    * sets the recovery parameters which can be changed in case CHOMP is not able to find a solution with the parameters

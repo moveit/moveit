@@ -36,6 +36,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 
@@ -132,7 +133,7 @@ TrajectoryVisualization::~TrajectoryVisualization()
 }
 
 void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context,
-                                           ros::NodeHandle update_nh)
+                                           const ros::NodeHandle& update_nh)
 {
   // Save pointers for later use
   scene_node_ = scene_node;
@@ -166,7 +167,7 @@ void TrajectoryVisualization::setName(const QString& name)
 
 void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model)
 {
-  robot_model_ = robot_model;
+  robot_model_ = std::move(robot_model);
 
   // Error check
   if (!robot_model_)

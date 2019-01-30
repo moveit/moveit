@@ -39,6 +39,7 @@
 #include <boost/thread/mutex.hpp>
 #include <eigen_conversions/eigen_msg.h>
 #include <memory>
+#include <utility>
 
 namespace collision_detection
 {
@@ -150,7 +151,7 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
 
   // creating sphere marker
   visualization_msgs::Marker sphere_marker;
-  sphere_marker.header.frame_id = reference_frame;
+  sphere_marker.header.frame_id = std::move(reference_frame);
   sphere_marker.header.stamp = ros::Time(0);
   sphere_marker.ns = robot_ns;
   sphere_marker.id = 0;

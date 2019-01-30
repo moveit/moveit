@@ -57,7 +57,7 @@
 class TestAABB : public testing::Test
 {
 protected:
-  std::string readFileToString(boost::filesystem::path path) const
+  std::string readFileToString(const boost::filesystem::path& path) const
   {
     std::string file_string;
     std::fstream file(path.string().c_str(), std::fstream::in);
@@ -76,7 +76,7 @@ protected:
 
   void SetUp() override{};
 
-  robot_state::RobotState loadModel(const std::string urdf, const std::string srdf)
+  robot_state::RobotState loadModel(const std::string& urdf, const std::string& srdf)
   {
     urdf::ModelInterfaceSharedPtr parsed_urdf(urdf::parseURDF(urdf));
     if (!parsed_urdf)

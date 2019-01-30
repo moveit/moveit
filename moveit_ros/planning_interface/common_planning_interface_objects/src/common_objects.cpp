@@ -110,7 +110,7 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
 
 planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& kmodel,
                                                                      const boost::shared_ptr<tf::Transformer>& tf,
-                                                                     ros::NodeHandle nh)
+                                                                     const ros::NodeHandle& nh)
 {
   SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);

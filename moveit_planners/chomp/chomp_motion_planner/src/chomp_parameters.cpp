@@ -74,7 +74,7 @@ ChompParameters::~ChompParameters()
 {
 }
 
-ChompParameters ChompParameters::getNonConstParams(ChompParameters params)
+ChompParameters ChompParameters::getNonConstParams(const ChompParameters& params)
 {
   ChompParameters non_const;
   non_const = params;
