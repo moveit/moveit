@@ -52,13 +52,13 @@ moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(
   createCollections();
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::createCollections(void)
+void moveit_warehouse::TrajectoryConstraintsStorage::createCollections()
 {
   constraints_collection_ =
       conn_->openCollectionPtr<moveit_msgs::TrajectoryConstraints>(DATABASE_NAME, "trajectory_constraints");
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::reset(void)
+void moveit_warehouse::TrajectoryConstraintsStorage::reset()
 {
   constraints_collection_.reset();
   conn_->dropDatabase(DATABASE_NAME);

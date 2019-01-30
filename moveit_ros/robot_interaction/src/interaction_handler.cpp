@@ -366,7 +366,7 @@ bool InteractionHandler::inError(const JointInteraction& vj) const
   return false;
 }
 
-void InteractionHandler::clearError(void)
+void InteractionHandler::clearError()
 {
   boost::mutex::scoped_lock lock(state_lock_);
   error_state_.clear();
