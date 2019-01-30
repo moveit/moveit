@@ -181,11 +181,11 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   bool initialized_;  // Internal variable that indicates whether solvers are configured and ready
   const std::string name_{ "ikfast" };
 
-  const std::vector<std::string>& getJointNames() const
+  const std::vector<std::string>& getJointNames() const override
   {
     return joint_names_;
   }
-  const std::vector<std::string>& getLinkNames() const
+  const std::vector<std::string>& getLinkNames() const override
   {
     return link_names_;
   }
@@ -196,7 +196,7 @@ public:
    */
   IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), initialized_(false)
   {
-    srand(time(NULL));
+    srand(time(nullptr));
     supported_methods_.push_back(kinematics::DiscretizationMethods::NO_DISCRETIZATION);
     supported_methods_.push_back(kinematics::DiscretizationMethods::ALL_DISCRETIZED);
     supported_methods_.push_back(kinematics::DiscretizationMethods::ALL_RANDOM_SAMPLED);
@@ -212,9 +212,10 @@ public:
    */
 
   // Returns the IK solution that is within joint limits closest to ik_seed_state
-  bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
-                     std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
-                     const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  bool getPositionIK(
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, std::vector<double>& solution,
+      moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.
@@ -233,7 +234,7 @@ public:
    */
   bool getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses, const std::vector<double>& ik_seed_state,
                      std::vector<std::vector<double>>& solutions, kinematics::KinematicsResult& result,
-                     const kinematics::KinematicsQueryOptions& options) const;
+                     const kinematics::KinematicsQueryOptions& options) const override;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -243,9 +244,10 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-                        std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
-                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+      std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -256,10 +258,11 @@ public:
    * @param the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-                        const std::vector<double>& consistency_limits, std::vector<double>& solution,
-                        moveit_msgs::MoveItErrorCodes& error_code,
-                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+      const std::vector<double>& consistency_limits, std::vector<double>& solution,
+      moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -269,10 +272,10 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-                        std::vector<double>& solution, const IKCallbackFn& solution_callback,
-                        moveit_msgs::MoveItErrorCodes& error_code,
-                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+      std::vector<double>& solution, const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -284,10 +287,11 @@ public:
    * @param consistency_limit the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-                        const std::vector<double>& consistency_limits, std::vector<double>& solution,
-                        const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
-                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+      const std::vector<double>& consistency_limits, std::vector<double>& solution,
+      const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const override;
 
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
@@ -298,7 +302,7 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
   bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_angles,
-                     std::vector<geometry_msgs::Pose>& poses) const;
+                     std::vector<geometry_msgs::Pose>& poses) const override;
 
   /**
    * @brief Sets the discretization value for the redundant joint.
@@ -314,7 +318,7 @@ public:
   /**
    * @brief Overrides the default method to prevent changing the redundant joints
    */
-  bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices);
+  bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices) override;
 
 private:
   bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
@@ -552,7 +556,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       vals[8] = mult(2, 2);
 
       // IKFast56/61
-      ComputeIk(trans, vals, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      ComputeIk(trans, vals, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
     case IKP_Direction3D:
@@ -562,7 +566,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // direction.
 
       direction = pose_frame.M * KDL::Vector(0, 0, 1);
-      ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
     case IKP_TranslationXAxisAngle4D:
@@ -593,7 +597,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // direction needs to be orthogonal to z axis and be rotated at a certain angle starting from the x axis (defined
       // in the manipulator base link’s coordinate system)
       pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
     case IKP_TranslationYAxisAngleXNorm4D:
@@ -601,7 +605,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // direction needs to be orthogonal to x axis and be rotated at a certain angle starting from the y axis (defined
       // in the manipulator base link’s coordinate system)
       pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
     case IKP_TranslationZAxisAngleYNorm4D:
@@ -609,7 +613,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       // direction needs to be orthogonal to y axis and be rotated at a certain angle starting from the z axis (defined
       // in the manipulator base link’s coordinate system)
       pose_frame.M.GetRPY(roll, pitch, yaw);
-      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
     default:
@@ -628,7 +632,7 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   // IKFast56/61
   const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
   std::vector<IkReal> vsolfree(sol.GetFree().size());
-  sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
+  sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : nullptr);
 
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
@@ -649,7 +653,7 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   // IKFast56/61
   const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
   std::vector<IkReal> vsolfree(sol.GetFree().size());
-  sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
+  sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : nullptr);
 
   // rotate joints by +/-360° where it is possible and useful
   for (std::size_t i = 0; i < num_joints_; ++i)
@@ -792,10 +796,8 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
                                               std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                               const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
-
-  return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, solution_callback, error_code,
+  return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, IKCallbackFn(), error_code,
                           options);
 }
 
@@ -805,8 +807,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
                                               std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                               const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
-  return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, solution_callback, error_code,
+  return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, IKCallbackFn(), error_code,
                           options);
 }
 
