@@ -1092,7 +1092,6 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
-  const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
 
   // Used for editing existing groups
   srdf::Model::Group* searched_group = NULL;
@@ -1150,18 +1149,6 @@ bool PlanningGroupsWidget::saveGroupScreen()
     return false;
   }
 
-  // Check that the attempts is an int number
-  int kinematics_attempts_int;
-  try
-  {
-    kinematics_attempts_int = boost::lexical_cast<int>(kinematics_attempts);
-  }
-  catch (boost::bad_lexical_cast&)
-  {
-    QMessageBox::warning(this, "Error Saving", "Unable to convert kinematics solver attempts to an int number.");
-    return false;
-  }
-
   // Check that all numbers are >0
   if (kinematics_resolution_double <= 0)
   {
@@ -1171,11 +1158,6 @@ bool PlanningGroupsWidget::saveGroupScreen()
   if (kinematics_timeout_double <= 0)
   {
     QMessageBox::warning(this, "Error Saving", "Kinematics solver search timeout must be greater than 0.");
-    return false;
-  }
-  if (kinematics_attempts_int <= 0)
-  {
-    QMessageBox::warning(this, "Error Saving", "Kinematics solver attempts must be greater than 0.");
     return false;
   }
 
@@ -1262,7 +1244,6 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_ = kinematics_solver;
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
-  config_data_->group_meta_data_[group_name].kinematics_solver_attempts_ = kinematics_attempts_int;
   config_data_->group_meta_data_[group_name].default_planner_ = default_planner;
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 

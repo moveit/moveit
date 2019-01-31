@@ -398,7 +398,7 @@ public:
 
       // if no frame transforms are needed, call IK directly
       if (frame.empty() || moveit::core::Transforms::sameFrame(frame, getRobotModel()->getModelFrame()))
-        return getJointStateTarget().setFromIK(getJointModelGroup(), eef_pose, eef, 0, 0.0,
+        return getJointStateTarget().setFromIK(getJointModelGroup(), eef_pose, eef, 0.0,
                                                moveit::core::GroupStateValidityCallbackFn(), o);
       else
       {
@@ -408,7 +408,7 @@ public:
           const Eigen::Isometry3d& t = getJointStateTarget().getFrameTransform(frame);
           Eigen::Isometry3d p;
           tf2::fromMsg(eef_pose, p);
-          return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0, 0.0,
+          return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0.0,
                                                  moveit::core::GroupStateValidityCallbackFn(), o);
         }
         else

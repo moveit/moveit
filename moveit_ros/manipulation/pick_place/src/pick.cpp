@@ -130,7 +130,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene,
   plan_data->path_constraints_ = goal.path_constraints;
   plan_data->planner_id_ = goal.planner_id;
   plan_data->minimize_object_distance_ = goal.minimize_object_distance;
-  plan_data->max_goal_sampling_attempts_ = std::max(2u, plan_data->planning_group_->getDefaultIKAttempts());
+  plan_data->max_goal_sampling_attempts_ = 2;
   moveit_msgs::AttachedCollisionObject& attach_object_msg = plan_data->diff_attached_object_;
 
   // construct the attached object message that will change the world to what it would become after a pick

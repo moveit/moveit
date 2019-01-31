@@ -344,12 +344,13 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
             }
           }
 
+          // TODO: Remove in future release (deprecated in PR #1288, Jan-2019, Melodic)
           std::string ksolver_attempts_param_name;
           if (nh.searchParam(base_param_name + "/kinematics_solver_attempts", ksolver_attempts_param_name))
           {
-            int ksolver_attempts;
-            if (nh.getParam(ksolver_attempts_param_name, ksolver_attempts))
-              ik_attempts_[known_groups[i].name_] = ksolver_attempts;
+            ROS_WARN_ONCE_NAMED(LOGNAME, "Kinematics solver doesn't support #attempts anymore, but only a timeout.\n"
+                                         "Please remove the parameter '%s' from your configuration.",
+                                ksolver_attempts_param_name.c_str());
           }
 
           std::string ksolver_res_param_name;
@@ -434,7 +435,6 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
           possible_kinematics_solvers[known_groups[i].name_].resize(1, default_solver_plugin_);
           search_res[known_groups[i].name_].resize(1, default_search_resolution_);
           ik_timeout_[known_groups[i].name_] = default_solver_timeout_;
-          ik_attempts_[known_groups[i].name_] = default_ik_attempts_;
           groups_.push_back(known_groups[i].name_);
         }
       }
