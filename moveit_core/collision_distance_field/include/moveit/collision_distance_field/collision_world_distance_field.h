@@ -51,7 +51,7 @@ class CollisionWorldDistanceField : public CollisionWorld
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry)
+  MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntry)
   struct DistanceFieldCacheEntry
   {
     std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;

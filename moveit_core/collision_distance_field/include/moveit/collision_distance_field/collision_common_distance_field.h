@@ -45,8 +45,8 @@
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(GroupStateRepresentation);
-MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry);
+MOVEIT_STRUCT_FORWARD(GroupStateRepresentation)
+MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntry)
 
 /** collision volume representation for a particular pose and link group
  *
