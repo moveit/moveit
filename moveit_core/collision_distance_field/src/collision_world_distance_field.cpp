@@ -121,7 +121,7 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest& req, Co
     const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if (!gsr)
     {
-      cdr.generateCollisionCheckingStructures(req.group_name, state, NULL, gsr, true);
+      cdr.generateCollisionCheckingStructures(req.group_name, state, nullptr, gsr, true);
     }
     else
     {
@@ -208,7 +208,7 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest& re
     DistanceFieldCacheEntryConstPtr dfce;
     if (!gsr)
     {
-      cdr.generateCollisionCheckingStructures(req.group_name, state, NULL, gsr, false);
+      cdr.generateCollisionCheckingStructures(req.group_name, state, nullptr, gsr, false);
     }
     else
     {
