@@ -13,16 +13,21 @@ notifications:
       - 130s@2000.jukuin.keio.ac.jp
 env:
   global:
-    - TEST_BLACKLIST=moveit,moveit_ros,moveit_runtime,moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
+    - ROS_DISTRO=melodic
+    - ROS_REPO=ros
+    - UPSTREAM_WORKSPACE=moveit.rosinstall
+    - TEST_BLACKLIST=moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
   matrix:
-    - ROS_DISTRO=kinetic ROS_REPO=ros              TEST=clang-format
-    - ROS_DISTRO=melodic ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
-    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
+    - TEST=clang-format
+    - ROS_DISTRO=melodic
+    - ROS_DISTRO=kinetic
 
 matrix: # Add a separate config to the matrix, using clang as compiler
   include:
-    - env: ROS_DISTRO=melodic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
-      compiler: clang
+    # add a config to the matrix using clang as compiler and also test ikfast plugin creation
+    - compiler: clang
+      env: ROS_REPO=ros-shadow-fixed
+           BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci

@@ -156,7 +156,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     // first check whether it belongs to the set of active joints in the group
-    if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
+    if (jm->getMimic() == nullptr && jm->getVariableCount() > 0)
     {
       JointMimic mimic_joint;
       mimic_joint.reset(joint_counter);
