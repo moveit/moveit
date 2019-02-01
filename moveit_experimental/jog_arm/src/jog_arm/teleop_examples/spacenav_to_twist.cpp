@@ -45,7 +45,7 @@ private:
 
     // Button 0: positive on the wrist joint
     // Button 1: negative on the wrist joint
-    joint_deltas.deltas.push_back(msg->buttons[0] - msg->buttons[1]);
+    joint_deltas.position_deltas.push_back(msg->buttons[0] - msg->buttons[1]);
     joint_deltas.header.stamp = ros::Time::now();
 
     twist_pub_.publish(twist);

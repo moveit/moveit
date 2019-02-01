@@ -324,9 +324,9 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
-  for (std::size_t i = 0; i < cmd.deltas.size(); ++i)
+  for (std::size_t i = 0; i < cmd.position_deltas.size(); ++i)
   {
-    if (std::isnan(cmd.deltas[i]) || (fabs(cmd.deltas[i]) > 1))
+    if (std::isnan(cmd.position_deltas[i]) || (fabs(cmd.position_deltas[i]) > 1))
     {
       ROS_WARN_STREAM_NAMED(LOGNAME, "nan in incoming command. Skipping this datapoint.");
       return false;
@@ -719,10 +719,10 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
       {
         // Apply user-defined scaling if inputs are unitless [-1:1]
         if (parameters_.command_in_type == "unitless")
-          result[c] = command.deltas[m] * parameters_.joint_scale;
+          result[c] = command.position_deltas[m] * parameters_.joint_scale;
         // Otherwise, commands are in m/s and rad/s
         else if (parameters_.command_in_type == "speed_units")
-          result[c] = command.deltas[m] * parameters_.publish_period;
+          result[c] = command.position_deltas[m] * parameters_.publish_period;
         else
           ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type");
         done = true;
