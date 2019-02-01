@@ -470,7 +470,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
     {
       // if the error increased, we are close to a singularity -> reduce step size
       double old_step_size = step_size;
-      step_size *= std::min(0.5, last_delta_twist_norm / delta_twist_norm);  // reduce scale;
+      step_size *= std::min(0.2, last_delta_twist_norm / delta_twist_norm);  // reduce scale;
       KDL::Multiply(delta_q, step_size / old_step_size, delta_q);
       ROS_WARN_NAMED("kdl", "      error increased: %f -> %f, scale: %f", last_delta_twist_norm, delta_twist_norm,
                      step_size);
