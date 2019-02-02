@@ -263,7 +263,7 @@ void PlanningGroupsWidget::loadGroupsTree()
   for (std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
        group_it != config_data_->srdf_->groups_.end(); ++group_it)
   {
-    loadGroupsTreeRecursive(*group_it, NULL);
+    loadGroupsTreeRecursive(*group_it, nullptr);
   }
 
   // Reenable Tree
@@ -297,7 +297,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   QTreeWidgetItem* group;
 
   // Allow a subgroup to open into a whole new group
-  if (parent == NULL)
+  if (parent == nullptr)
   {
     group = new QTreeWidgetItem(groups_tree_);
     group->setText(0, group_it.name_.c_str());
@@ -406,7 +406,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   {
     // Find group with this subgroups' name
 
-    srdf::Model::Group* searched_group = NULL;  // used for holding our search results
+    srdf::Model::Group* searched_group = nullptr;  // used for holding our search results
 
     for (std::vector<srdf::Model::Group>::iterator group2_it = config_data_->srdf_->groups_.begin();
          group2_it != config_data_->srdf_->groups_.end(); ++group2_it)
@@ -419,7 +419,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
     }
 
     // Check if subgroup was found
-    if (searched_group == NULL)  // not found
+    if (searched_group == nullptr)  // not found
     {
       QMessageBox::critical(this, "Error Loading SRDF", QString("Subgroup '")
                                                             .append(subgroup_it->c_str())
@@ -444,7 +444,7 @@ void PlanningGroupsWidget::previewSelected()
   QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   // Get the user custom properties of the currently selected row
@@ -465,7 +465,7 @@ void PlanningGroupsWidget::editSelected()
   QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   adding_new_group_ = false;
@@ -657,7 +657,7 @@ void PlanningGroupsWidget::loadGroupScreen(srdf::Model::Group* this_group)
   // Load the avail kin solvers. This function only runs once
   group_edit_widget_->loadKinematicPlannersComboBox();
 
-  if (this_group == NULL)  // this is a new screen
+  if (this_group == nullptr)  // this is a new screen
   {
     current_edit_group_.clear();  // provide a blank group name
     group_edit_widget_->title_->setText("Create New Planning Group");
@@ -692,7 +692,7 @@ void PlanningGroupsWidget::deleteGroup()
   {
     QTreeWidgetItem* item = groups_tree_->currentItem();
     // Check that something was actually selected
-    if (item == NULL)
+    if (item == nullptr)
       return;
     // Get the user custom properties of the currently selected row
     PlanGroupType plan_group = item->data(0, Qt::UserRole).value<PlanGroupType>();
@@ -847,7 +847,7 @@ void PlanningGroupsWidget::addGroup()
   adding_new_group_ = true;
 
   // Load the data
-  loadGroupScreen(NULL);  // NULL indicates this is a new group, not an existing one
+  loadGroupScreen(nullptr);  // nullptr indicates this is a new group, not an existing one
 
   // Switch to screen
   changeScreen(5);
@@ -1098,7 +1098,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::Group* searched_group = NULL;
+  srdf::Model::Group* searched_group = nullptr;
 
   // Check that a valid group name has been given
   if (group_name.empty())
@@ -1185,7 +1185,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   adding_new_group_ = false;
 
   // Save the new group name or create the new group
-  if (searched_group == NULL)  // create new
+  if (searched_group == nullptr)  // create new
   {
     srdf::Model::Group new_group;
     new_group.name_ = group_name;

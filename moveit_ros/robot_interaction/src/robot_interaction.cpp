@@ -133,7 +133,7 @@ double RobotInteraction::computeLinkMarkerSize(const std::string& link)
     if (lm->getParentJointModel()->getType() == robot_model::JointModel::FIXED)
       lm = lm->getParentLinkModel();
     else
-      lm = 0;
+      lm = nullptr;
   }
   if (!lm)
     return DEFAULT_SCALE;  // no link with non-zero shape extends found

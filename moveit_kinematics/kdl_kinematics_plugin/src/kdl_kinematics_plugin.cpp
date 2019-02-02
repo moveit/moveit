@@ -230,7 +230,7 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
     const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     // first check whether it belongs to the set of active joints in the group
-    if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
+    if (jm->getMimic() == nullptr && jm->getVariableCount() > 0)
     {
       JointMimic mimic_joint;
       mimic_joint.reset(joint_counter);
@@ -378,7 +378,7 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, cons
                                         std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                         const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
+  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
   std::vector<double> consistency_limits;
 
   return searchPositionIK(ik_pose, ik_seed_state, default_timeout_, solution, solution_callback, error_code,
@@ -390,7 +390,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
+  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
   std::vector<double> consistency_limits;
 
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
@@ -402,7 +402,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0;
+  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }

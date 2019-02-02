@@ -64,8 +64,8 @@ namespace moveit_setup_assistant
 SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_options::variables_map args)
   : QWidget(parent)
 {
-  rviz_manager_ = NULL;
-  rviz_render_panel_ = NULL;
+  rviz_manager_ = nullptr;
+  rviz_render_panel_ = nullptr;
 
   // Create object to hold all moveit configuration data
   config_data_.reset(new MoveItConfigData());
@@ -176,11 +176,11 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
 // ******************************************************************************************
 SetupAssistantWidget::~SetupAssistantWidget()
 {
-  if (rviz_manager_ != NULL)
+  if (rviz_manager_ != nullptr)
     rviz_manager_->removeAllDisplays();
-  if (rviz_render_panel_ != NULL)
+  if (rviz_render_panel_ != nullptr)
     delete rviz_render_panel_;
-  if (rviz_manager_ != NULL)
+  if (rviz_manager_ != nullptr)
     delete rviz_manager_;
 }
 

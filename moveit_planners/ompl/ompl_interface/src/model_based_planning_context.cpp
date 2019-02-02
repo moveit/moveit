@@ -68,7 +68,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , ompl_simple_setup_(spec.ompl_simple_setup_)
   , ompl_benchmark_(*ompl_simple_setup_)
   , ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition())
-  , ptc_(NULL)
+  , ptc_(nullptr)
   , last_plan_time_(0.0)
   , last_simplify_time_(0.0)
   , max_goal_samples_(0)
@@ -732,7 +732,7 @@ void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(con
 void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
 {
   boost::mutex::scoped_lock slock(ptc_lock_);
-  ptc_ = NULL;
+  ptc_ = nullptr;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::terminate()

@@ -463,7 +463,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
   robot_state::RobotState kstate(default_state); // NOLINT(performance-unnecessary-copy-initialization)
   const constraint_samplers::ConstraintSamplerManagerPtr& csmng = pcontext->getConstraintSamplerManager();
-  ConstrainedSampler* csmp = NULL;
+  ConstrainedSampler* csmp = nullptr;
   if (csmng)
   {
     constraint_samplers::ConstraintSamplerPtr cs =

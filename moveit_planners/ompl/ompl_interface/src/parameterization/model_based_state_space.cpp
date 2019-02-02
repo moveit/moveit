@@ -221,7 +221,7 @@ double* ompl_interface::ModelBasedStateSpace::getValueAddressAtIndex(ompl::base:
                                                                      const unsigned int index) const
 {
   if (index >= variable_count_)
-    return NULL;
+    return nullptr;
   return state->as<StateType>()->values + index;
 }
 

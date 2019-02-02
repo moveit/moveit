@@ -155,8 +155,8 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
     computeIK(req.ik_request, res.solution, res.error_code, rs,
               boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
                                                   static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
-                                                  NULL,
-                          kset.empty() ? NULL : &kset, _1, _2, _3));
+                                                  nullptr,
+                          kset.empty() ? nullptr : &kset, _1, _2, _3));
   }
   else
   {

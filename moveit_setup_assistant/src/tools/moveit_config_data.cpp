@@ -181,7 +181,7 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "author_name" << YAML::Value << author_name_;
   emitter << YAML::Key << "author_email" << YAML::Value << author_email_;
-  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(NULL);  // TODO: is this cross-platform?
+  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(nullptr);  // TODO: is this cross-platform?
   emitter << YAML::EndMap;
 
   emitter << YAML::EndMap;
@@ -409,16 +409,16 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
 
   // Used to convert XmlDocument to std string
   TiXmlPrinter printer;
-  urdf_document.Parse((const char*)urdf_string_.c_str(), 0, TIXML_ENCODING_UTF8);
+  urdf_document.Parse((const char*)urdf_string_.c_str(), nullptr, TIXML_ENCODING_UTF8);
   try
   {
-    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != NULL;
+    for (TiXmlElement* doc_element = urdf_document.RootElement()->FirstChildElement(); doc_element != nullptr;
          doc_element = doc_element->NextSiblingElement())
     {
       if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == NULL && doc_element->FirstChildElement("collision") != NULL)
+        if (doc_element->FirstChildElement("inertial") == nullptr && doc_element->FirstChildElement("collision") != nullptr)
         {
           new_urdf_needed = true;
           TiXmlElement inertia_link("inertial");
@@ -528,7 +528,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     // Iterate through the joints
     for (const robot_model::JointModel* joint : joint_models)
     {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
+      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == robot_model::JointModel::FIXED)
         continue;
       emitter << joint->getName();
     }
@@ -820,7 +820,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     // Iterate through the joints and push into group_joints vector.
     for (const robot_model::JointModel* joint : joint_models)
     {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
+      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == robot_model::JointModel::FIXED)
         continue;
       else
         group_joints.push_back(joint->getName());
@@ -872,7 +872,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
           for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
                joint_it < joint_models.end(); ++joint_it)
           {
-            if ((*joint_it)->isPassive() || (*joint_it)->getMimic() != NULL ||
+            if ((*joint_it)->isPassive() || (*joint_it)->getMimic() != nullptr ||
                 (*joint_it)->getType() == robot_model::JointModel::FIXED)
               continue;
             else
@@ -1443,7 +1443,7 @@ bool MoveItConfigData::addDefaultControllers()
     // Iterate through the joints
     for (const robot_model::JointModel* joint : joint_models)
     {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
+      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == robot_model::JointModel::FIXED)
         continue;
       group_controller.joints_.push_back(joint->getName());
     }
@@ -1718,7 +1718,7 @@ std::string MoveItConfigData::appendPaths(const std::string& path1, const std::s
 srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group* searched_group = NULL;  // used for holding our search results
+  srdf::Model::Group* searched_group = nullptr;  // used for holding our search results
 
   for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
        ++group_it)
@@ -1731,7 +1731,7 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
   }
 
   // Check if subgroup was found
-  if (searched_group == NULL)  // not found
+  if (searched_group == nullptr)  // not found
     ROS_FATAL_STREAM("An internal error has occured while searching for groups. Group '" << name << "' was not found "
                                                                                                     "in the SRDF.");
 
@@ -1744,7 +1744,7 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 ROSControlConfig* MoveItConfigData::findROSControllerByName(const std::string& controller_name)
 {
   // Find the ROSController we are editing based on the ROSController name string
-  ROSControlConfig* searched_ros_controller = NULL;  // used for holding our search results
+  ROSControlConfig* searched_ros_controller = nullptr;  // used for holding our search results
 
   for (std::vector<ROSControlConfig>::iterator controller_it = ros_controllers_config_.begin();
        controller_it != ros_controllers_config_.end(); ++controller_it)
@@ -1783,7 +1783,7 @@ bool MoveItConfigData::deleteROSController(const std::string& controller_name)
 bool MoveItConfigData::addROSController(const ROSControlConfig& new_controller)
 {
   // Used for holding our search results
-  ROSControlConfig* searched_ros_controller = NULL;
+  ROSControlConfig* searched_ros_controller = nullptr;
 
   // Find if there is an existing controller with the same name
   searched_ros_controller = findROSControllerByName(new_controller.name_);

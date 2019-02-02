@@ -65,8 +65,8 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   , current_state_(-1)
   , display_(display)
   , widget_(widget)
-  , trajectory_slider_panel_(NULL)
-  , trajectory_slider_dock_panel_(NULL)
+  , trajectory_slider_panel_(nullptr)
+  , trajectory_slider_dock_panel_(nullptr)
 {
   trajectory_topic_property_ =
       new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
@@ -229,7 +229,7 @@ void TrajectoryVisualization::changedShowTrail()
   for (std::size_t i = 0; i < trajectory_trail_.size(); i++)
   {
     int waypoint_i = std::min(i * stepsize, t->getWayPointCount() - 1);  // limit to last trajectory point
-    rviz::Robot* r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
+    rviz::Robot* r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), nullptr);
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());

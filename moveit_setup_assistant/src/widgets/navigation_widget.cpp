@@ -71,7 +71,7 @@ NavigationWidget::NavigationWidget(QWidget* parent) : QListView(parent)
 
 void NavigationWidget::setNavs(const QList<QString>& navs)
 {
-  setModel(NULL);
+  setModel(nullptr);
   model_->clear();
 
   for (int i = 0; i < navs.size(); i++)

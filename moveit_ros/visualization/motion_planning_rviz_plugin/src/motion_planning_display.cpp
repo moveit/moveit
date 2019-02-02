@@ -80,13 +80,13 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 MotionPlanningDisplay::MotionPlanningDisplay()
   : PlanningSceneDisplay()
-  , text_to_display_(NULL)
+  , text_to_display_(nullptr)
   , private_handle_("~")
-  , frame_(NULL)
-  , frame_dock_(NULL)
+  , frame_(nullptr)
+  , frame_dock_(nullptr)
   , menu_handler_start_(new interactive_markers::MenuHandler)
   , menu_handler_goal_(new interactive_markers::MenuHandler)
-  , int_marker_display_(NULL)
+  , int_marker_display_(nullptr)
 {
   // Category Groups
   plan_category_ = new rviz::Property("Planning Request", QVariant(), "", this);
@@ -200,7 +200,7 @@ void MotionPlanningDisplay::onInitialize()
   QColor qcolor = attached_body_color_property_->getColor();
   trajectory_visual_->setDefaultAttachedObjectColor(qcolor);
 
-  query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
+  query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -212,7 +212,7 @@ void MotionPlanningDisplay::onInitialize()
   color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
 
-  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", NULL));
+  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
@@ -223,7 +223,7 @@ void MotionPlanningDisplay::onInitialize()
   query_robot_goal_->setDefaultAttachedObjectColor(color);
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
-  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
+  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : nullptr);
   resetStatusTextColor();
   addStatusText("Initialized.");
 
@@ -594,7 +594,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
       }
     }
 
-    const robot_state::LinkModel* lm = NULL;
+    const robot_state::LinkModel* lm = nullptr;
     const robot_model::JointModelGroup* jmg = getRobotModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
       if (!jmg->getLinkModelNames().empty())
