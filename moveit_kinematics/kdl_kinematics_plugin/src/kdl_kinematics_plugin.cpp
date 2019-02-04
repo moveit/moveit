@@ -472,7 +472,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
       double old_step_size = step_size;
       step_size *= std::min(0.2, last_delta_twist_norm / delta_twist_norm);  // reduce scale;
       KDL::Multiply(delta_q, step_size / old_step_size, delta_q);
-      ROS_WARN_NAMED("kdl", "      error increased: %f -> %f, scale: %f", last_delta_twist_norm, delta_twist_norm,
+      ROS_DEBUG_NAMED("kdl", "      error increased: %f -> %f, scale: %f", last_delta_twist_norm, delta_twist_norm,
                      step_size);
       q_out = q_backup;  // restore previous unclipped joint values
     }
@@ -488,7 +488,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
     clipToJointLimits(q_out, delta_q, extra_joint_weights);
 
     const double delta_q_norm = delta_q.data.lpNorm<1>();
-    ROS_INFO_NAMED("kdl", "[%3d] pos err: %f  rot err: %f  delta_q: %f", i, position_error, orientation_error,
+    ROS_DEBUG_NAMED("kdl", "[%3d] pos err: %f  rot err: %f  delta_q: %f", i, position_error, orientation_error,
                    delta_q_norm);
     if (delta_q_norm < epsilon_)  // stuck in singularity
     {
@@ -507,7 +507,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
   }
 
   int result = (i == max_iter) ? -3 : (success ? 0 : -2);
-  ROS_INFO_STREAM_NAMED("kdl", "Result " << result << " after " << i << " iterations: " << q_out);
+  ROS_DEBUG_STREAM_NAMED("kdl", "Result " << result << " after " << i << " iterations: " << q_out);
 
   return result;
 }
