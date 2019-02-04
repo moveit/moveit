@@ -469,7 +469,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
       step_size *= std::min(0.2, last_delta_twist_norm / delta_twist_norm);  // reduce scale;
       KDL::Multiply(delta_q, step_size / old_step_size, delta_q);
       ROS_DEBUG_NAMED("kdl", "      error increased: %f -> %f, scale: %f", last_delta_twist_norm, delta_twist_norm,
-                     step_size);
+                      step_size);
       q_out = q_backup;  // restore previous unclipped joint values
     }
     else
@@ -485,7 +485,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
 
     const double delta_q_norm = delta_q.data.lpNorm<1>();
     ROS_DEBUG_NAMED("kdl", "[%3d] pos err: %f  rot err: %f  delta_q: %f", i, position_error, orientation_error,
-                   delta_q_norm);
+                    delta_q_norm);
     if (delta_q_norm < epsilon_)  // stuck in singularity
     {
       if (step_size < 0.005)  // cannot reach target
