@@ -57,11 +57,11 @@ public:
    * @param num_mimic_joints The number of joints that are setup to follow other joints
    * @param position_ik false if you want to solve for the full 6 dof end-effector pose,
    *        true if you want to solve only for the 3 dof end-effector position.
-   * @param threshold if a singular value is below this value, its inverse is set to zero, default: 0.00001
+   * @param threshold if a singular value is below this value, its inverse is set to zero, default: 0.001
    */
   explicit ChainIkSolverVelMimicSVD(const Chain& chain_,
                                     const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints,
-                                    bool position_ik = false, double threshold = 0.00001);
+                                    bool position_ik = false, double threshold = 0.001);
 
 // TODO: simplify after kinetic support is dropped
 #define KDL_VERSION_LESS(a, b, c) ((KDL_VERSION) < ((a << 16) | (b << 8) | c))
@@ -74,12 +74,29 @@ public:
 
   ~ChainIkSolverVelMimicSVD() override;
 
-  int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override;
+  int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override
+  {
+    return CartToJnt(q_in, v_in, qdot_out, Eigen::VectorXd::Constant(svd_.cols(), 1.0),
+                     Eigen::Matrix<double, 6, 1>::Constant(1.0));
+  }
+
+  /** Compute qdot_out = W_q * (W_x * J * W_q)^# * W_x * v_in
+   *
+   * where W_q and W_x are joint- and Cartesian weights respectively.
+   * A smaller joint weight (< 1.0) will reduce the contribution of this joint to the solution. */
+  int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out, const Eigen::VectorXd& joint_weights,
+                const Eigen::Matrix<double, 6, 1>& cartesian_weights);
 
   /// not implemented.
   int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out) override
   {
     return -1;
+  }
+
+  /// Return true iff we ignore orientation but only consider position for inverse kinematics
+  bool isPositionOnly() const
+  {
+    return svd_.rows() == 3;
   }
 
 private:

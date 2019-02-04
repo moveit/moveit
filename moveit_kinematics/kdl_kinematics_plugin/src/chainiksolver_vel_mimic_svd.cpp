@@ -87,7 +87,9 @@ bool ChainIkSolverVelMimicSVD::jacToJacReduced(const Jacobian& jac, Jacobian& ja
   return true;
 }
 
-int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
+int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out,
+                                        const Eigen::VectorXd& joint_weights,
+                                        const Eigen::Matrix<double, 6, 1>& cartesian_weights)
 {
   // Let the ChainJntToJacSolver calculate the Jacobian for the current joint positions q_in.
   if (num_mimic_joints_ > 0)
@@ -99,24 +101,32 @@ int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in,
   else
     jnt2jac_.JntToJac(q_in, jac_reduced_);
 
+  // weight Jacobian
+  auto& J = jac_reduced_.data;
+  const Eigen::Index rows = svd_.rows();  // only operate on position rows?
+  J.topRows(rows) *= joint_weights.asDiagonal();
+  J.topRows(rows).transpose() *= cartesian_weights.topRows(rows).asDiagonal();
+
   // transform v_in to 6D Eigen::Vector
   Eigen::Matrix<double, 6, 1> vin;
-  vin.topRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.vel.data, 3);
-  vin.bottomRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.rot.data, 3);
-
-  const Eigen::MatrixXd& J = jac_reduced_.data;
+  vin.topRows<3>() = Eigen::Map<const Eigen::Array3d>(v_in.vel.data, 3) * cartesian_weights.topRows<3>().array();
+  vin.bottomRows<3>() = Eigen::Map<const Eigen::Array3d>(v_in.rot.data, 3) * cartesian_weights.bottomRows<3>().array();
 
   // Do a singular value decomposition: J = U*S*V^t
-  svd_.compute(J.topRows(svd_.rows()));
+  svd_.compute(J.topRows(rows));
 
   if (num_mimic_joints_ > 0)
   {
-    qdot_out_reduced_.noalias() = svd_.solve(vin.topRows(svd_.rows()));
+    qdot_out_reduced_.noalias() = svd_.solve(vin.topRows(rows));
+    qdot_out_reduced_.array() *= joint_weights.array();
     for (unsigned int i = 0; i < chain_.getNrOfJoints(); ++i)
       qdot_out(i) = qdot_out_reduced_[mimic_joints_[i].map_index] * mimic_joints_[i].multiplier;
   }
   else
-    qdot_out.data.noalias() = svd_.solve(vin.topRows(svd_.rows()));
+  {
+    qdot_out.data.noalias() = svd_.solve(vin.topRows(rows));
+    qdot_out.data.array() *= joint_weights.array();
+  }
 
   return 0;
 }

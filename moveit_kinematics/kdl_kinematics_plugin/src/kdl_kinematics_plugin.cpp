@@ -79,6 +79,61 @@ bool KDLKinematicsPlugin::checkConsistency(const Eigen::VectorXd& seed_state,
   return true;
 }
 
+void KDLKinematicsPlugin::getJointWeights()
+{
+  const std::vector<std::string>& active_names = joint_model_group_->getActiveJointModelNames();
+  std::vector<std::string> names;
+  std::vector<double> weights;
+  if (lookupParam("joint_weights/weights", weights, weights))
+  {
+    if (!lookupParam("joint_weights/names", names, names) || names.size() != weights.size())
+    {
+      ROS_ERROR_NAMED("kdl", "Expecting list parameter joint_weights/names of same size as list joint_weights/weights");
+      // fall back to default weights
+      weights.clear();
+    }
+  }
+  else if (lookupParam("joint_weights", weights, weights))  // try reading weight lists (for all active joints) directly
+  {
+    std::size_t num_active = active_names.size();
+    if (weights.size() == num_active)
+    {
+      joint_weights_ = weights;
+      return;
+    }
+    else if (!weights.empty())
+    {
+      ROS_ERROR_NAMED("kdl", "Expecting parameter joint_weights to list weights for all active joints (%zu) in order",
+                      num_active);
+      // fall back to default weights
+      weights.clear();
+    }
+  }
+
+  // by default assign weights of 1.0 to all joints
+  joint_weights_ = std::vector<double>(active_names.size(), 1.0);
+  if (weights.empty())  // indicates default case
+    return;
+
+  // modify weights of listed joints
+  assert(names.size() == weights.size());
+  for (size_t i = 0; i != names.size(); ++i)
+  {
+    auto it = std::find(active_names.begin(), active_names.end(), names[i]);
+    if (it == active_names.cend())
+      ROS_WARN_NAMED("kdl", "Joint '%s' is not an active joint in group '%s'", names[i].c_str(),
+                     joint_model_group_->getName().c_str());
+    else if (weights[i] < 0.0)
+      ROS_WARN_NAMED("kdl", "Negative weight %f for joint '%s' will be ignored", weights[i], names[i].c_str());
+    else
+      joint_weights_[it - active_names.begin()] = weights[i];
+  }
+  ROS_INFO_STREAM_NAMED("kdl", "Joint weights for group '"
+                                   << getGroupName() << "': \n"
+                                   << Eigen::Map<const Eigen::VectorXd>(joint_weights_.data(), joint_weights_.size())
+                                          .transpose());
+}
+
 bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
                                      const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                      double search_discretization)
@@ -144,10 +199,16 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   // Get Solver Parameters
   lookupParam("max_solver_iterations", max_solver_iterations_, 500);
   lookupParam("epsilon", epsilon_, 1e-5);
-  lookupParam("position_only_ik", position_ik_, false);
+  lookupParam("orientation_vs_position", orientation_vs_position_weight_, 1.0);
 
-  if (position_ik_)
+  bool position_ik;
+  lookupParam("position_only_ik", position_ik, false);
+  if (position_ik)  // position_only_ik overrules orientation_vs_position
+    orientation_vs_position_weight_ = 0.0;
+  if (orientation_vs_position_weight_ == 0.0)
     ROS_INFO_NAMED("kdl", "Using position only ik");
+
+  getJointWeights();
 
   // Check for mimic joints
   unsigned int joint_counter = 0;
@@ -303,6 +364,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
         consistency_limits_mimic.push_back(consistency_limits[i]);
     }
   }
+  Eigen::Matrix<double, 6, 1> cartesian_weights;
+  cartesian_weights.topRows<3>().setConstant(1.0);
+  cartesian_weights.bottomRows<3>().setConstant(orientation_vs_position_weight_);
 
   KDL::JntArray jnt_seed_state(dimension_);
   KDL::JntArray jnt_pos_in(dimension_);
@@ -310,7 +374,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   jnt_seed_state.data = Eigen::Map<const Eigen::VectorXd>(ik_seed_state.data(), ik_seed_state.size());
   jnt_pos_in = jnt_seed_state;
 
-  KDL::ChainIkSolverVelMimicSVD ik_solver_vel(kdl_chain_, mimic_joints_, position_ik_);
+  KDL::ChainIkSolverVelMimicSVD ik_solver_vel(kdl_chain_, mimic_joints_, orientation_vs_position_weight_ == 0.0);
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
@@ -334,7 +398,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       ROS_DEBUG_STREAM_NAMED("kdl", "New random configuration (" << attempt << "): " << jnt_pos_in);
     }
 
-    int ik_valid = CartToJnt(ik_solver_vel, jnt_pos_in, pose_desired, jnt_pos_out, max_solver_iterations_);
+    int ik_valid =
+        CartToJnt(ik_solver_vel, jnt_pos_in, pose_desired, jnt_pos_out, max_solver_iterations_,
+                  Eigen::Map<const Eigen::VectorXd>(joint_weights_.data(), joint_weights_.size()), cartesian_weights);
     if (ik_valid == 0 || options.return_approximate_solution)  // found acceptable solution
     {
       if (!consistency_limits_mimic.empty() &&
@@ -363,58 +429,102 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   return false;
 }
 
-int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVel& ik_solver, const KDL::JntArray& q_init,
-                                   const KDL::Frame& p_in, KDL::JntArray& q_out, const unsigned int max_iter) const
+int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init,
+                                   const KDL::Frame& p_in, KDL::JntArray& q_out, const unsigned int max_iter,
+                                   const Eigen::VectorXd& joint_weights, const Twist& cartesian_weights) const
 {
+  double last_delta_twist_norm = DBL_MAX;
+  double step_size = 1.0;
   KDL::Frame f;
   KDL::Twist delta_twist;
-  KDL::JntArray delta_q(q_out.rows());
+  KDL::JntArray delta_q(q_out.rows()), q_backup(q_out.rows());
+  Eigen::ArrayXd extra_joint_weights;
+  extra_joint_weights.setOnes(joint_weights.rows());
 
   q_out = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
 
   unsigned int i;
+  bool success = false;
   for (i = 0; i < max_iter; ++i)
   {
     fk_solver_->JntToCart(q_out, f);
     delta_twist = diff(f, p_in);
     ROS_DEBUG_STREAM_NAMED("kdl", "[" << std::setw(3) << i << "] delta_twist: " << delta_twist);
 
-    if (position_ik_)
+    // check norms of position and orientation errors
+    const double position_error = delta_twist.vel.Norm();
+    const double orientation_error = ik_solver.isPositionOnly() ? 0 : delta_twist.rot.Norm();
+    const double delta_twist_norm = std::max(position_error, orientation_error);
+    if (delta_twist_norm <= epsilon_)
     {
-      if (fabs(delta_twist(0)) < epsilon_ && fabs(delta_twist(1)) < epsilon_ && fabs(delta_twist(2)) < epsilon_)
-        break;
+      success = true;
+      break;
+    }
+
+    if (delta_twist_norm >= last_delta_twist_norm)
+    {
+      // if the error increased, we are close to a singularity -> reduce step size
+      double old_step_size = step_size;
+      step_size *= std::min(0.2, last_delta_twist_norm / delta_twist_norm);  // reduce scale;
+      KDL::Multiply(delta_q, step_size / old_step_size, delta_q);
+      ROS_DEBUG_NAMED("kdl", "      error increased: %f -> %f, scale: %f", last_delta_twist_norm, delta_twist_norm,
+                     step_size);
+      q_out = q_backup;  // restore previous unclipped joint values
     }
     else
     {
-      if (KDL::Equal(delta_twist, KDL::Twist::Zero(), epsilon_))
-        break;
+      q_backup = q_out;  // remember joint values of last successful step
+      step_size = 1.0;   // reset step size
+      last_delta_twist_norm = delta_twist_norm;
+
+      ik_solver.CartToJnt(q_out, delta_twist, delta_q, extra_joint_weights * joint_weights.array(), cartesian_weights);
     }
 
-    ik_solver.CartToJnt(q_out, delta_twist, delta_q);
+    clipToJointLimits(q_out, delta_q, extra_joint_weights);
+
+    const double delta_q_norm = delta_q.data.lpNorm<1>();
+    ROS_DEBUG_NAMED("kdl", "[%3d] pos err: %f  rot err: %f  delta_q: %f", i, position_error, orientation_error,
+                   delta_q_norm);
+    if (delta_q_norm < epsilon_)  // stuck in singularity
+    {
+      if (step_size < 0.005)  // cannot reach target
+        break;
+      // wiggle joints
+      last_delta_twist_norm = DBL_MAX;
+      delta_q.data.setRandom();
+      delta_q.data *= std::min(0.1, delta_twist_norm);
+    }
+
     KDL::Add(q_out, delta_q, q_out);
 
     ROS_DEBUG_STREAM_NAMED("kdl", "      delta_q: " << delta_q);
     ROS_DEBUG_STREAM_NAMED("kdl", "      q: " << q_out);
-
-    for (std::size_t j = 0; j < joint_min_.rows(); ++j)
-    {
-      if (q_out(j) < joint_min_(j))
-        q_out(j) = joint_min_(j);
-    }
-    for (std::size_t j = 0; j < joint_max_.rows(); ++j)
-    {
-      if (q_out(j) > joint_max_(j))
-        q_out(j) = joint_max_(j);
-    }
   }
 
-  ROS_DEBUG_STREAM_NAMED("kdl", "[" << std::setw(3) << i << "] Solution : " << q_out);
+  int result = (i == max_iter) ? -3 : (success ? 0 : -2);
+  ROS_DEBUG_STREAM_NAMED("kdl", "Result " << result << " after " << i << " iterations: " << q_out);
 
-  if (i != max_iter)
-    return 0;
-  else
-    return -3;
+  return result;
+}
+
+void KDLKinematicsPlugin::clipToJointLimits(const KDL::JntArray& q, KDL::JntArray& q_delta,
+                                            Eigen::ArrayXd& weighting) const
+{
+  weighting.setOnes(q_delta.rows());
+  for (std::size_t i = 0; i < q.rows(); ++i)
+  {
+    const double delta_max = joint_max_(i) - q(i);
+    const double delta_min = joint_min_(i) - q(i);
+    if (q_delta(i) > delta_max)
+      q_delta(i) = delta_max;
+    else if (q_delta(i) < delta_min)
+      q_delta(i) = delta_min;
+    else
+      continue;
+
+    weighting[mimic_joints_[i].map_index] = 0.01;
+  }
 }
 
 bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
