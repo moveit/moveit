@@ -41,7 +41,6 @@
 #include <ros/console.h>
 #include <memory>
 
-const static double RESOLUTION_SCALE = 1.0;
 const static double EPSILON = 0.0001;
 
 std::vector<collision_detection::CollisionSphere>

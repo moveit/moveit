@@ -79,7 +79,7 @@ public:
                                        bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
 // TODO: simplify after kinetic support is dropped
-#define KDL_VERSION_LESS(a, b, c) (KDL_VERSION < ((a << 16) | (b << 8) | c))
+#define KDL_VERSION_LESS(a, b, c) ((KDL_VERSION) < ((a << 16) | (b << 8) | c))
 #if KDL_VERSION_LESS(1, 4, 0)
   void updateInternalDataStructures();
 #else

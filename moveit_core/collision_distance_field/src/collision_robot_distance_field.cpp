@@ -212,7 +212,7 @@ void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::
                                                      const moveit::core::RobotState& state) const
 {
   GroupStateRepresentationPtr gsr;
-  checkSelfCollisionHelper(req, res, state, NULL, gsr);
+  checkSelfCollisionHelper(req, res, state, nullptr, gsr);
 }
 
 void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::CollisionRequest& req,
@@ -220,7 +220,7 @@ void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::
                                                      const moveit::core::RobotState& state,
                                                      GroupStateRepresentationPtr& gsr) const
 {
-  checkSelfCollisionHelper(req, res, state, NULL, gsr);
+  checkSelfCollisionHelper(req, res, state, nullptr, gsr);
 }
 
 void CollisionRobotDistanceField::checkSelfCollision(const collision_detection::CollisionRequest& req,
@@ -703,7 +703,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
 {
   DistanceFieldCacheEntryPtr dfce(new DistanceFieldCacheEntry());
 
-  if (robot_model_->getJointModelGroup(group_name) == NULL)
+  if (robot_model_->getJointModelGroup(group_name) == nullptr)
   {
     ROS_WARN("No group %s", group_name.c_str());
     return dfce;
