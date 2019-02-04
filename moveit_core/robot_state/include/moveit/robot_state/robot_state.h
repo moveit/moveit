@@ -1562,6 +1562,17 @@ as the new values that correspond to the group */
       updateMimicJoint(joint);
     }
   }
+
+  /// Call harmonizePosition() for all joints / all joints in group / given joint
+  void harmonizePositions();
+  void harmonizePositions(const JointModelGroup* joint_group);
+  void harmonizePosition(const JointModel* joint)
+  {
+    if (joint->harmonizePosition(position_ + joint->getFirstVariableIndex()))
+      // no need to mark transforms dirty, as the transform hasn't changed
+      updateMimicJoint(joint);
+  }
+
   void enforceVelocityBounds(const JointModel* joint)
   {
     joint->enforceVelocityBounds(velocity_ + joint->getFirstVariableIndex());

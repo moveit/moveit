@@ -174,6 +174,28 @@ bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bou
     return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
 }
 
+bool RevoluteJointModel::harmonizePosition(double* values, const JointModel::Bounds& other_bounds) const
+{
+  bool modified = false;
+  if (*values < other_bounds[0].min_position_)
+  {
+    while (*values + 2 * M_PI <= other_bounds[0].max_position_)
+    {
+      *values += 2 * M_PI;
+      modified = true;
+    }
+  }
+  else if (*values > other_bounds[0].max_position_)
+  {
+    while (*values - 2 * M_PI >= other_bounds[0].min_position_)
+    {
+      *values -= 2 * M_PI;
+      modified = true;
+    }
+  }
+  return modified;
+}
+
 bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
 {
   if (continuous_)
