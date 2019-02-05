@@ -77,6 +77,9 @@ protected:
 
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
+  // Scale the delta theta to match joint velocity limits. Uniform scaling
+  void enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_velocity);
+
   // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
   void resetVelocityFilters();
 
