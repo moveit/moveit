@@ -101,6 +101,11 @@ void RobotTrajectory::append(const RobotTrajectory& source, double dt, size_t st
 void RobotTrajectory::reverse()
 {
   std::reverse(waypoints_.begin(), waypoints_.end());
+  for (robot_state::RobotStatePtr& waypoint : waypoints_)
+  {
+    // reversing the trajectory implies inverting the velocity profile
+    waypoint->invertVelocity();
+  }
   if (!duration_from_previous_.empty())
   {
     duration_from_previous_.push_back(duration_from_previous_.front());
