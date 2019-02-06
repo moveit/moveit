@@ -429,6 +429,15 @@ void RobotState::setVariableEffort(const std::vector<std::string>& variable_name
     effort_[robot_model_->getVariableIndex(variable_names[i])] = variable_effort[i];
 }
 
+void RobotState::invertVelocity()
+{
+  if (has_velocity_)
+  {
+    for (size_t i = 0; i < robot_model_->getVariableCount(); ++i)
+      velocity_[i] *= -1;
+  }
+}
+
 void RobotState::setJointEfforts(const JointModel* joint, const double* effort)
 {
   if (has_acceleration_)

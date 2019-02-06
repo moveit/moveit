@@ -516,6 +516,9 @@ public:
     return effort_[index];
   }
 
+  /** \brief Invert velocity if present. */
+  void invertVelocity();
+
   /** @} */
 
   /** \name Getting and setting joint positions, velocities, accelerations and effort
