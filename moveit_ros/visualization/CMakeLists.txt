@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_visualization)
 
 add_compile_options(-std=c++14)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  # suppress warning in Ogre
+  add_compile_options(-Wno-deprecated-register)
+endif()
 
 # definition needed for boost/math/constants/constants.hpp included by Ogre to compile
 add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
