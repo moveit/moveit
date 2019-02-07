@@ -1,5 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_constraint_samplers)
 
+add_compile_options(-Wno-cast-qual)  # suppress warning in tf/Vector3.h: https://github.com/ros/geometry/pull/167
 add_library(${MOVEIT_LIB_NAME}
   src/constraint_sampler.cpp
   src/constraint_sampler_manager.cpp
