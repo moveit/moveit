@@ -15,9 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   pluginlib
   roscpp
-  rosconsole
-  srdfdom
-  urdf
   tf2
   tf2_kdl
 )

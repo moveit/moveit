@@ -9,6 +9,7 @@ endif()
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
+  moveit_msgs
   moveit_ros_planning
   moveit_ros_move_group
   dynamic_reconfigure
@@ -31,6 +32,7 @@ catkin_package(
     moveit_pick_place_planner
   CATKIN_DEPENDS
     moveit_core
+    moveit_msgs
     moveit_ros_planning
   DEPENDS
     EIGEN3
@@ -43,9 +45,6 @@ include_directories(${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS})
-
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(pick_place)
 add_subdirectory(move_group_pick_place_capability)

@@ -10,15 +10,8 @@ set(SOURCE_FILES
   src/add_iterative_spline_parameterization.cpp
   )
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  moveit_core
-  moveit_msgs
-  pluginlib
-  )
-
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_list_request_adapter_plugins src/list.cpp)

@@ -34,6 +34,7 @@ elseif()
   set(BOOST_PYTHON_COMPONENT python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
 endif()
 
+#catkin_lint: ignore_once duplicate_find
 find_package(Boost REQUIRED COMPONENTS
   date_time
   filesystem
@@ -66,6 +67,9 @@ catkin_package(
     moveit_ros_warehouse
     moveit_ros_manipulation
     moveit_ros_move_group
+    geometry_msgs
+    moveit_msgs
+    tf2_geometry_msgs
   DEPENDS
     EIGEN3
 )
@@ -77,9 +81,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
-
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(py_bindings_tools)
 add_subdirectory(common_planning_interface_objects)

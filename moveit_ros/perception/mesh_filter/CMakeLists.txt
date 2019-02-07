@@ -7,11 +7,12 @@ add_library(${MOVEIT_LIB_NAME}
   src/gl_renderer.cpp
   src/gl_mesh.cpp
   )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} glut GLEW)
 
 if (CATKIN_ENABLE_TESTING)
+  #catkin_lint: ignore_once env_var
   # Can only run this test if we have a display
   if (DEFINED ENV{DISPLAY} AND NOT $ENV{DISPLAY} STREQUAL "")
     catkin_add_gtest(mesh_filter_test test/mesh_filter_test.cpp)
@@ -21,5 +22,5 @@ if (CATKIN_ENABLE_TESTING)
   endif()
 endif()
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

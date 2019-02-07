@@ -11,6 +11,7 @@ else()
   set(CHOMP_TEST_DEPS)
 endif()
 
+#catkin_lint: ignore_once duplicate_find  (find_package(catkin))
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core
@@ -36,11 +37,11 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} src/chomp_interface.cpp src/chomp_planning_context.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
-set_target_properties(chomp_planner_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(chomp_planner_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(chomp_planner_plugin ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml

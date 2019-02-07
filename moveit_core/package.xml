@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_core</name>
   <version>0.10.8</version>
   <description>Core libraries used by MoveIt!</description>
@@ -19,66 +19,39 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
 
-  <build_depend>assimp</build_depend>
-  <build_depend>boost</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>eigen_stl_containers</build_depend>
-  <build_depend>libfcl-dev</build_depend>
-  <build_depend version_gte="0.5.2">geometric_shapes</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>kdl_parser</build_depend>
-  <build_depend>libconsole-bridge-dev</build_depend>
-  <build_depend>urdf</build_depend>
-  <build_depend>liburdfdom-dev</build_depend>
-  <build_depend>liburdfdom-headers-dev</build_depend>
-  <build_depend>moveit_msgs</build_depend>
-  <build_depend>octomap</build_depend>
-  <build_depend>octomap_msgs</build_depend>
-  <build_depend>random_numbers</build_depend>
-  <build_depend>roslib</build_depend>
-  <build_depend>rostime</build_depend>
-  <build_depend>rosconsole</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>shape_msgs</build_depend>
-  <build_depend>srdfdom</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>tf2_eigen</build_depend>
-  <build_depend>tf2_kdl</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>trajectory_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <build_depend>xmlrpcpp</build_depend>
-
-  <run_depend>assimp</run_depend>
-  <run_depend>boost</run_depend>
-  <run_depend>eigen</run_depend>
-  <run_depend>eigen_stl_containers</run_depend>
-  <run_depend>libfcl-dev</run_depend>
-  <run_depend version_gte="0.5.2">geometric_shapes</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>kdl_parser</run_depend>
-  <run_depend>libconsole-bridge-dev</run_depend>
-  <run_depend>urdf</run_depend>
-  <run_depend>liburdfdom-dev</run_depend>
-  <run_depend>liburdfdom-headers-dev</run_depend>
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>octomap</run_depend>
-  <run_depend>octomap_msgs</run_depend>
-  <run_depend>random_numbers</run_depend>
-  <run_depend>rostime</run_depend>
-  <run_depend>rosconsole</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>srdfdom</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>tf2_eigen</run_depend>
-  <run_depend>tf2_kdl</run_depend>
-  <run_depend>tf2_geometry_msgs</run_depend>
-  <run_depend>trajectory_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>
-  <run_depend>xmlrpcpp</run_depend>
+  <depend>assimp</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
+  <depend>eigen_stl_containers</depend>
+  <depend>libfcl-dev</depend>
+  <depend version_gte="0.5.2">geometric_shapes</depend>
+  <depend>geometry_msgs</depend>
+  <depend>kdl_parser</depend>
+  <depend>libconsole-bridge-dev</depend>
+  <depend>urdf</depend>
+  <depend>liburdfdom-dev</depend>
+  <depend>liburdfdom-headers-dev</depend>
+  <depend>moveit_msgs</depend>
+  <depend>octomap</depend>
+  <depend>octomap_msgs</depend>
+  <depend>random_numbers</depend>
+  <depend>roslib</depend>
+  <depend>rostime</depend>
+  <depend>rosconsole</depend>
+  <depend>sensor_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>srdfdom</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>xmlrpcpp</depend>
 
   <test_depend>angles</test_depend>
   <test_depend>moveit_resources</test_depend>
+  <test_depend>tf2_kdl</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>rosunit</test_depend>
+  <test_depend>code_coverage</test_depend>
 </package>

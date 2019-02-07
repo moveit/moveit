@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_ros_planning_interface</name>
   <version>0.10.8</version>
   <description>Components of MoveIt! that offer simpler interfaces to planning and execution</description>
@@ -18,36 +18,23 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-catkin-pkg</buildtool_depend>
 
-  <build_depend>moveit_ros_planning</build_depend>
-  <build_depend>moveit_ros_warehouse</build_depend>
-  <build_depend>moveit_ros_move_group</build_depend>
-  <build_depend>moveit_ros_manipulation</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>rosconsole</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_eigen</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>python</build_depend>
-  <build_depend>eigen</build_depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>moveit_ros_warehouse</depend>
+  <depend>moveit_ros_move_group</depend>
+  <depend>moveit_ros_manipulation</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>rosconsole</depend>
+  <depend>actionlib</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>python</depend>
 
-  <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>moveit_ros_warehouse</run_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
-  <run_depend>moveit_ros_manipulation</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rosconsole</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>tf2</run_depend>
-  <run_depend>tf2_eigen</run_depend>
-  <run_depend>tf2_geometry_msgs</run_depend>
-  <run_depend>tf2_ros</run_depend>
-  <run_depend>python</run_depend>
+  <build_depend>eigen</build_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>rostest</test_depend>

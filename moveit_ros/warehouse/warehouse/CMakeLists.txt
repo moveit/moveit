@@ -8,7 +8,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/trajectory_constraints_storage.cpp
   src/state_storage.cpp
   src/warehouse_connector.cpp)
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_warehouse_broadcast src/broadcast.cpp)
@@ -38,6 +38,6 @@ install(
     moveit_warehouse_save_as_text
     moveit_init_demo_warehouse
     moveit_warehouse_services
-  LIBRARY DESTINATION lib
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

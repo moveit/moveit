@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_ros_move_group</name>
   <version>0.10.8</version>
   <description>The move_group node for MoveIt</description>
@@ -17,24 +17,17 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_planning</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend version_gte="1.11.2">pluginlib</build_depend>
-  <build_depend>std_srvs</build_depend>
+  <depend>actionlib</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>roscpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
+  <depend>std_srvs</depend>
 
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>moveit_kinematics</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>tf2</run_depend>
-  <run_depend>tf2_geometry_msgs</run_depend>
-  <run_depend>tf2_ros</run_depend>
-  <run_depend version_gte="1.11.2">pluginlib</run_depend>
-  <run_depend>std_srvs</run_depend>
+  <exec_depend>moveit_kinematics</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>moveit_resources</test_depend>

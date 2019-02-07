@@ -37,7 +37,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <boost/thread/mutex.hpp>
+#include <boost/bind.hpp>
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 #include <tf2_eigen/tf2_eigen.h>

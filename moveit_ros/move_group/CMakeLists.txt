@@ -28,20 +28,18 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     moveit_ros_planning
+    tf2_geometry_msgs
 )
 
 include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 add_library(moveit_move_group_capabilities_base
   src/move_group_context.cpp
   src/move_group_capability.cpp
   )
-set_target_properties(moveit_move_group_capabilities_base PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(moveit_move_group_capabilities_base PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 add_dependencies(moveit_move_group_capabilities_base ${catkin_EXPORTED_TARGETS}) # wait until all *_msgs packages are finished being built
 
 add_executable(move_group src/move_group.cpp)
@@ -60,7 +58,7 @@ add_library(moveit_move_group_default_capabilities
   src/default_capabilities/apply_planning_scene_service_capability.cpp
   src/default_capabilities/clear_octomap_service_capability.cpp
   )
-set_target_properties(moveit_move_group_default_capabilities PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(moveit_move_group_default_capabilities PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 add_dependencies(moveit_move_group_default_capabilities ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})
@@ -73,7 +71,7 @@ install(TARGETS move_group list_move_group_capabilities moveit_move_group_capabi
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(PROGRAMS
   scripts/load_map scripts/save_map DESTINATION

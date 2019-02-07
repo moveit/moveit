@@ -14,7 +14,7 @@ catkin_package()
 include_directories(${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} src/chomp_optimizer_adapter.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(FILES chomp_optimizer_adapter_plugin_description.xml
