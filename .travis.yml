@@ -20,8 +20,7 @@ env:
     - TEST_BLACKLIST=moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
     - WARNINGS_OK=false
   matrix:
-    - TEST=clang-format
-    - TEST=catkin_lint
+    - TEST="clang-format catkin_lint"
     - ROS_DISTRO=melodic
     - ROS_DISTRO=kinetic
 
@@ -31,9 +30,6 @@ matrix: # Add a separate config to the matrix, using clang as compiler
     - compiler: clang
       env: ROS_REPO=ros-shadow-fixed
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
-
-  allow_failures:
-    - env: TEST=catkin_lint  # need to fix catkin_lint errors
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
