@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package>
+<package format="2">
   <name>moveit_ros_planning</name>
   <version>0.10.8</version>
   <description>Planning components of MoveIt! that use ROS</description>
@@ -18,30 +18,24 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_perception</build_depend>
-  <build_depend version_gte="1.11.2">pluginlib</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>angles</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_eigen</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>tf2_msgs</build_depend>
-  <build_depend>tf2_ros</build_depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_perception</depend>
+  <depend>moveit_msgs</depend>
+  <depend>message_filters</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
+  <depend>actionlib</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>rosconsole</depend>
+  <depend>roscpp</depend>
+  <depend>srdfdom</depend>
+  <depend>urdf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_msgs</depend>
+  <depend>tf2_ros</depend>
 
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_ros_perception</run_depend>
-  <run_depend version_gte="1.11.2">pluginlib</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>angles</run_depend>
-  <run_depend>tf2</run_depend>
-  <run_depend>tf2_eigen</run_depend>
-  <run_depend>tf2_geometry_msgs</run_depend>
-  <run_depend>tf2_msgs</run_depend>
-  <run_depend>tf2_ros</run_depend>
+  <build_depend>eigen</build_depend>
 
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>

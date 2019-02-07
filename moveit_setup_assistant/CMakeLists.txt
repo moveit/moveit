@@ -14,23 +14,18 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-include_directories(include)
-
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
 find_package(catkin REQUIRED COMPONENTS
+  moveit_core
   moveit_ros_planning
   moveit_ros_visualization
   rviz
-  urdf
   rosconsole
   roscpp
+  urdf
   srdfdom
 )
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
@@ -48,7 +43,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 find_package(PkgConfig)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp>=0.5)
 include_directories(${YAMLCPP_INCLUDE_DIRS})
-link_directories(${YAMLCPP_LIBRARY_DIRS})
 
 catkin_package(
   INCLUDE_DIRS
@@ -146,9 +140,9 @@ set_target_properties(${PROJECT_NAME}_updater
                       PREFIX "")
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${PROJECT_NAME}_updater
-  LIBRARY DESTINATION lib
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
@@ -159,8 +153,6 @@ if(CATKIN_ENABLE_TESTING)
   find_package(moveit_resources REQUIRED)
   include_directories(${moveit_resources_INCLUDE_DIRS})
   catkin_add_gtest(test_reading_writing_config test/moveit_config_data_test.cpp)
-  target_link_libraries(test_reading_writing_config  ${PROJECT_NAME}_tools
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_reading_writing_config
+    ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()

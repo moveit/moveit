@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>moveit</name>
   <version>0.10.8</version>
   <description>Meta package that contains all essential package of MoveIt!. Until Summer 2016 MoveIt! had been developed over multiple repositories, where developers' usability and maintenance effort was non-trivial. See <a href = "http://discourse.ros.org/t/migration-to-one-github-repo-for-moveit/266/34">the detailed discussion for the merge of several repositories</a>.</description>
@@ -20,12 +20,12 @@
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>moveit_commander</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_planners</run_depend>
-  <run_depend>moveit_plugins</run_depend>
-  <run_depend>moveit_ros</run_depend>
-  <run_depend>moveit_setup_assistant</run_depend>
+  <exec_depend>moveit_commander</exec_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>moveit_planners</exec_depend>
+  <exec_depend>moveit_plugins</exec_depend>
+  <exec_depend>moveit_ros</exec_depend>
+  <exec_depend>moveit_setup_assistant</exec_depend>
 
   <export>
     <metapackage/>

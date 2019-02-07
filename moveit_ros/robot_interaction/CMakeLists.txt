@@ -28,13 +28,12 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_ros_planning
     interactive_markers
-    )
+    tf2_geometry_msgs
+)
 
 include_directories(include
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS})
-
-link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME}
   src/interactive_marker_helpers.cpp
@@ -54,7 +53,7 @@ if (CATKIN_ENABLE_TESTING)
     ${Boost_LIBRARIES})
 endif()
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-install(DIRECTORY include/ DESTINATION include)
+install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

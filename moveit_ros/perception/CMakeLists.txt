@@ -25,12 +25,14 @@ if(APPLE)
 endif(APPLE)
 
 find_package(catkin REQUIRED COMPONENTS
+  cv_bridge
   moveit_core
   roscpp
   rosconsole
   urdf
   message_filters
   tf2
+  tf2_eigen
   tf2_geometry_msgs
   tf2_ros
   pluginlib
@@ -53,20 +55,22 @@ catkin_package(
     pointcloud_octomap_updater/include
     semantic_world/include
     ${perception_GL_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_lazy_free_space_updater
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
     moveit_pointcloud_octomap_updater_core
     moveit_semantic_world
-    ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     moveit_core
     image_transport
     moveit_msgs
+    sensor_msgs
+    object_recognition_msgs
+    tf2_geometry_msgs
   DEPENDS
     EIGEN3
+    OCTOMAP
 )
 
 include_directories(lazy_free_space_updater/include
@@ -84,10 +88,6 @@ include_directories(SYSTEM
                     ${SYSTEM_GL_INCLUDE_DIR}
                     ${X11_INCLUDE_DIR}
                     )
-
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-link_directories(${X11_LIBRARY_DIR})
 
 add_subdirectory(lazy_free_space_updater)
 add_subdirectory(point_containment_filter)

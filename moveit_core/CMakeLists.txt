@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_core)
 
+#suppress spurious errors: https://github.com/fkie/catkin_lint/issues/62
+#catkin_lint: ignore duplicate_find  (find_package(moveit_resources))
+
 add_compile_options(-std=c++14)
 
 # Warnings
@@ -25,6 +28,7 @@ find_package(Eigen3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(LIBFCL REQUIRED fcl)
+# replace LIBFCL_LIBRARIES with full path to the library
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
@@ -35,7 +39,6 @@ find_package(urdfdom_headers REQUIRED)
 find_package(catkin REQUIRED
 COMPONENTS
   tf2_eigen
-  tf2_kdl
   tf2_geometry_msgs
   eigen_stl_containers
   geometric_shapes
@@ -52,17 +55,12 @@ COMPONENTS
   srdfdom
   std_msgs
   trajectory_msgs
+  urdf
   visualization_msgs
   xmlrpcpp
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
-# Add the folder for the generated version header to the package's
-# exported include dirs to avoid a catkin_lint error.
-# This is how gencpp adds the folder of generated message code to
-# the include dirs, see:
-#   https://github.com/ros/gencpp/blob/e5acaf6/cmake/gencpp-extras.cmake.em#L51-L54
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${VERSION_FILE_PATH})
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}/moveit")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
@@ -93,6 +91,8 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     utils/include
 )
 
+#suppress spurious error: https://github.com/fkie/catkin_lint/issues/62
+#catkin_lint: ignore_once exported_pkg_config  (LIBFCL)
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
@@ -120,7 +120,6 @@ catkin_package(
     moveit_utils
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
-    tf2_eigen
     eigen_stl_containers
     geometric_shapes
     geometry_msgs
@@ -129,8 +128,11 @@ catkin_package(
     octomap_msgs
     random_numbers
     sensor_msgs
+    shape_msgs
     srdfdom
     std_msgs
+    tf2_eigen
+    tf2_geometry_msgs
     trajectory_msgs
     visualization_msgs
   DEPENDS
@@ -144,20 +146,20 @@ catkin_package(
 
 
 # to run: catkin_make -DENABLE_COVERAGE_TESTING=ON package_name_coverage
-if(ENABLE_COVERAGE_TESTING)
+if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
   find_package(code_coverage REQUIRED)   # catkin package ros-*-code-coverage
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
   set(COVERAGE_EXCLUDES "*/test/*")
-  add_code_coverage(
-    NAME ${PROJECT_NAME}_coverage
-  )
+  add_code_coverage(NAME ${PROJECT_NAME}_coverage)
 endif()
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
                            )
 
+#suppress spurious error: https://github.com/fkie/catkin_lint/issues/62
+#catkin_lint: ignore_once external_directory missing_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH}
                     ${Boost_INCLUDE_DIRS}
@@ -175,6 +177,7 @@ set(MOVEIT_VERSION_EXTRA "Alpha")
 set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
+#catkin_lint: ignore_once external_file
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)

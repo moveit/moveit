@@ -17,7 +17,12 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
-  CATKIN_DEPENDS moveit_core
+    ${PROJECT_NAME}_plugin
+    ${PROJECT_NAME}_trajectory_plugin
+  CATKIN_DEPENDS
+    moveit_core
+    controller_manager_msgs
+    trajectory_msgs
   DEPENDS Boost
 )
 

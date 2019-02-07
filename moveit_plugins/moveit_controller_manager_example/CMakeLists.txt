@@ -8,26 +8,20 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED thread)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
-find_package(catkin COMPONENTS
+find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   roscpp
-  REQUIRED)
-
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+)
 
 catkin_package(
   LIBRARIES
   INCLUDE_DIRS
-  DEPENDS
+  CATKIN_DEPENDS
     moveit_core
-    )
+)
 
-include_directories(include)
+include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} src/moveit_controller_manager_example.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})

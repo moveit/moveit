@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>moveit_runtime</name>
   <version>0.10.8</version>
   <description>moveit_runtime meta package contains MoveIt! packages that are essential for its runtime (e.g. running MoveIt! on robots).</description>
@@ -12,15 +12,15 @@
   <url type="website">http://wiki.ros.org/moveit_runtime</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>moveit_planners</run_depend>
-  <run_depend>moveit_plugins</run_depend>
-  <run_depend>moveit_ros_manipulation</run_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
-  <run_depend>moveit_ros_perception</run_depend>
-  <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>moveit_ros_warehouse</run_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>moveit_planners</exec_depend>
+  <exec_depend>moveit_plugins</exec_depend>
+  <exec_depend>moveit_ros_manipulation</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_perception</exec_depend>
+  <exec_depend>moveit_ros_planning</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>moveit_ros_warehouse</exec_depend>
   <export>
     <metapackage/>
   </export>

@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_commander</name>
   <version>0.10.8</version>
   <description>Python interfaces to MoveIt</description>
@@ -20,15 +20,15 @@
 
   <build_depend>python</build_depend>
 
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>python</run_depend>
-  <run_depend>python-pyassimp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>shape_msgs</run_depend>
-  <run_depend>tf</run_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>python</exec_depend>
+  <exec_depend>python-pyassimp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>moveit_resources</test_depend>

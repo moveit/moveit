@@ -17,19 +17,13 @@ find_package(catkin COMPONENTS
   control_msgs
   REQUIRED)
 
-include_directories(include)
-
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
-include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 catkin_package(
-  LIBRARIES
+  LIBRARIES ${PROJECT_NAME}
   INCLUDE_DIRS include
   CATKIN_DEPENDS moveit_core actionlib control_msgs
-    )
+)
 
 add_library(${PROJECT_NAME} src/moveit_simple_controller_manager.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})

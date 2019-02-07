@@ -11,13 +11,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED thread date_time system filesystem)
-
-find_package(PkgConfig REQUIRED)
-
-# Ogre
-pkg_check_modules(OGRE OGRE)
-link_directories( ${OGRE_LIBRARY_DIRS} )
-
 find_package(catkin REQUIRED COMPONENTS
   class_loader
   geometric_shapes
@@ -36,7 +29,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
   object_recognition_msgs
-  rostest
 )
 # TODO: Remove when Kinetic support is dropped
 if(rviz_VERSION VERSION_LESS 1.13.1) # Does rviz supports TF2?
@@ -98,8 +90,7 @@ include_directories(rviz_plugin_render_tools/include
 
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
-                    ${QT_INCLUDE_DIR}
-                    ${OGRE_INCLUDE_DIRS})
+                    ${QT_INCLUDE_DIR})
 
 add_subdirectory(rviz_plugin_render_tools)
 add_subdirectory(robot_state_rviz_plugin)

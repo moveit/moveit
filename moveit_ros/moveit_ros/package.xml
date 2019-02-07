@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_ros</name>
   <version>0.10.8</version>
   <description>Components of MoveIt! that use ROS</description>
@@ -19,15 +19,15 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>moveit_ros_perception</run_depend>
-  <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>moveit_ros_warehouse</run_depend>
-  <run_depend>moveit_ros_benchmarks</run_depend>
-  <run_depend>moveit_ros_robot_interaction</run_depend>
-  <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>moveit_ros_visualization</run_depend>
-  <run_depend>moveit_ros_manipulation</run_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
+  <exec_depend>moveit_ros_perception</exec_depend>
+  <exec_depend>moveit_ros_planning</exec_depend>
+  <exec_depend>moveit_ros_warehouse</exec_depend>
+  <exec_depend>moveit_ros_benchmarks</exec_depend>
+  <exec_depend>moveit_ros_robot_interaction</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>moveit_ros_manipulation</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
 
   <export>
     <metapackage/>
