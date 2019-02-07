@@ -19,7 +19,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
 )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 find_package(OpenMP REQUIRED)
 
@@ -37,7 +37,7 @@ set_target_properties(moveit_generate_state_database PROPERTIES LINK_FLAGS "${Op
 set_target_properties(moveit_generate_state_database PROPERTIES OUTPUT_NAME "generate_state_database")
 
 add_library(moveit_ompl_planner_plugin src/ompl_planner_manager.cpp)
-set_target_properties(moveit_ompl_planner_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(moveit_ompl_planner_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(moveit_ompl_planner_plugin ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} moveit_ompl_planner moveit_ompl_planner_plugin moveit_generate_state_database

@@ -24,7 +24,7 @@ catkin_package(
 include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} src/moveit_controller_manager_example.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})

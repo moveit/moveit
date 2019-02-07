@@ -86,7 +86,7 @@ add_library(${PROJECT_NAME}_tools
   src/tools/collision_matrix_model.cpp
   src/tools/rotated_header_view.cpp
 )
-set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAMLCPP_LIBRARIES}
   ${catkin_LIBRARIES}
@@ -118,7 +118,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
-set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME}_widgets
   ${PROJECT_NAME}_tools
   ${QT_LIBRARIES}
