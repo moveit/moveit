@@ -1,5 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_kinematic_constraints)
 
+add_compile_options(-Wno-cast-qual) # suppress warning in tf/Vector3.h
 add_library(${MOVEIT_LIB_NAME}
   src/kinematic_constraint.cpp
   src/utils.cpp)
