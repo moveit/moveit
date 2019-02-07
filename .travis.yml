@@ -18,7 +18,7 @@ env:
     - ROS_REPO=ros
     - UPSTREAM_WORKSPACE=moveit.rosinstall
     - TEST_BLACKLIST=moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
-    - WARNINGS_OK=true
+    - WARNINGS_OK=false
   matrix:
     - TEST=clang-format
     - TEST=catkin_lint
