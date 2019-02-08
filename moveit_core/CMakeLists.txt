@@ -61,6 +61,10 @@ COMPONENTS
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
+# Pass the folder of the generated version.h to catkin_package() for export in devel-space
+# This is how gencpp adds the folder of generated message code to the include dirs, see:
+#   https://github.com/ros/gencpp/blob/e5acaf6/cmake/gencpp-extras.cmake.em#L51-L54
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${VERSION_FILE_PATH})
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}/moveit")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
