@@ -192,9 +192,6 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
   pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.joint_command_deltas = *msg;
 
-  // Input frame determined by YAML file
-  shared_variables_.joint_command_deltas.header.frame_id = ros_parameters_.command_frame;
-
   // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
   bool all_zeros = true;
   for (double delta : shared_variables_.joint_command_deltas.deltas)
