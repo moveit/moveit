@@ -407,7 +407,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
 bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory& traj) const
 {
   traj.clear();
-  if (!ompl_simple_setup_->haveSolutionPath())
+  if (!ompl_simple_setup_->haveSolutionPath()) // NOLINT(readability-simplify-boolean-expr)
     return false;
   convertPath(ompl_simple_setup_->getSolutionPath(), traj);
   return true;
@@ -501,10 +501,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_->setGoal(goal);
-  if (goal)
-    return true;
-  else
-    return false;
+  return goal !=nullptr;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsigned int count,
@@ -688,7 +685,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
       result = true;
-      for (int i = 0; i < n && ptc() == false; ++i)
+      for (int i = 0; i < n && !ptc(); ++i)
       {
         ompl_parallel_plan_.clearPlanners();
         if (ompl_simple_setup_->getPlannerAllocator())
@@ -701,7 +698,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         result = result && r;
       }
       n = count % max_planning_threads_;
-      if (n && ptc() == false)
+      if (n && !ptc())
       {
         ompl_parallel_plan_.clearPlanners();
         if (ompl_simple_setup_->getPlannerAllocator())

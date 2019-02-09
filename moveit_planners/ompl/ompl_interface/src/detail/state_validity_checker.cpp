@@ -137,7 +137,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
-  return res.collision == false;
+  return !res.collision;
 }
 
 bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State* state, double& dist,
@@ -177,7 +177,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
   dist = res.distance;
-  return res.collision == false;
+  return !res.collision;
 }
 
 bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State* state, bool verbose) const
@@ -215,7 +215,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
-  if (res.collision == false)
+  if (!res.collision) // NOLINT(readability-simplify-boolean-expr)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
     return true;
@@ -273,5 +273,5 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
   dist = res.distance;
-  return res.collision == false;
+  return !res.collision;
 }
