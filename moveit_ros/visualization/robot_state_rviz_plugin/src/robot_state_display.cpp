@@ -103,8 +103,7 @@ RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_r
 // Deconstructor
 // ******************************************************************************************
 RobotStateDisplay::~RobotStateDisplay()
-{
-}
+= default;
 
 void RobotStateDisplay::onInitialize()
 {

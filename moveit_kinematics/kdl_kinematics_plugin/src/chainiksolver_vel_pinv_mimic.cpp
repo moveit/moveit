@@ -71,8 +71,7 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, in
 }
 
 ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
-{
-}
+= default;
 
 bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints)
 {

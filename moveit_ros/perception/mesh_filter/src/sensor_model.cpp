@@ -39,8 +39,7 @@
 #include <stdexcept>
 
 mesh_filter::SensorModel::~SensorModel()
-{
-}
+= default;
 
 mesh_filter::SensorModel::Parameters::Parameters(unsigned width, unsigned height, float near_clipping_plane_distance,
                                                  float far_clipping_plane_distance)
@@ -52,8 +51,7 @@ mesh_filter::SensorModel::Parameters::Parameters(unsigned width, unsigned height
 }
 
 mesh_filter::SensorModel::Parameters::~Parameters()
-{
-}
+= default;
 
 void mesh_filter::SensorModel::Parameters::setImageSize(unsigned width, unsigned height)
 {

@@ -53,8 +53,7 @@ TrajectoryDisplay::TrajectoryDisplay() : Display(), load_robot_model_(false)
 }
 
 TrajectoryDisplay::~TrajectoryDisplay()
-{
-}
+= default;
 
 void TrajectoryDisplay::onInitialize()
 {

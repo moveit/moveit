@@ -81,8 +81,7 @@ public:
   }
 
   virtual ~MoveItControllerManagerExample()
-  {
-  }
+  = default;
 
   virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
   {

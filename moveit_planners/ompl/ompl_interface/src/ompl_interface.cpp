@@ -76,8 +76,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
 }
 
 ompl_interface::OMPLInterface::~OMPLInterface()
-{
-}
+= default;
 
 void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig)
 {

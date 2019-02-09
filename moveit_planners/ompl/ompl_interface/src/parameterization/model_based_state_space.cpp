@@ -76,8 +76,7 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
 }
 
 ompl_interface::ModelBasedStateSpace::~ModelBasedStateSpace()
-{
-}
+= default;
 
 double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment() const
 {

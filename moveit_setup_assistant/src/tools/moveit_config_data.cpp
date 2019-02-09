@@ -75,8 +75,7 @@ MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
 // Destructor
 // ******************************************************************************************
 MoveItConfigData::~MoveItConfigData()
-{
-}
+= default;
 
 // ******************************************************************************************
 // Load a robot model

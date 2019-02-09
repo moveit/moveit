@@ -71,8 +71,7 @@ ChompParameters::ChompParameters()
 }
 
 ChompParameters::~ChompParameters()
-{
-}
+= default;
 
 ChompParameters ChompParameters::getNonConstParams(const ChompParameters& params)
 {

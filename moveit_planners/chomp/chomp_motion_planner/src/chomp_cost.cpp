@@ -102,6 +102,5 @@ void ChompCost::scale(double scale)
 }
 
 ChompCost::~ChompCost()
-{
-}
+= default;
 }

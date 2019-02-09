@@ -58,8 +58,7 @@ PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr& pick_place, const 
 }
 
 PickPlacePlanBase::~PickPlacePlanBase()
-{
-}
+= default;
 
 void PickPlacePlanBase::foundSolution()
 {

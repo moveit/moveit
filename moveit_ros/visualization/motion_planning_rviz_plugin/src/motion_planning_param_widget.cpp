@@ -50,8 +50,7 @@ MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget* parent) : rviz::Pr
 }
 
 MotionPlanningParamWidget::~MotionPlanningParamWidget()
-{
-}
+= default;
 
 void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupInterfacePtr& mg)
 {

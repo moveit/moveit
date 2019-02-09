@@ -62,8 +62,7 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
 }
 
 ompl_interface::PoseModelStateSpace::~PoseModelStateSpace()
-{
-}
+= default;
 
 double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State* state1,
                                                      const ompl::base::State* state2) const

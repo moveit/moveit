@@ -126,8 +126,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
 }
 
 ompl_interface::PlanningContextManager::~PlanningContextManager()
-{
-}
+= default;
 
 namespace
 {
