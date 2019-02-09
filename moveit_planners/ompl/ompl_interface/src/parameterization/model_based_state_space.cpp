@@ -257,20 +257,20 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
     {
     }
 
-    virtual void sampleUniform(ompl::base::State* state)
+    void sampleUniform(ompl::base::State* state) override
     {
       joint_model_group_->getVariableRandomPositions(moveit_rng_, state->as<StateType>()->values, *joint_bounds_);
       state->as<StateType>()->clearKnownInformation();
     }
 
-    virtual void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance)
+    void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance) override
     {
       joint_model_group_->getVariableRandomPositionsNearBy(moveit_rng_, state->as<StateType>()->values, *joint_bounds_,
                                                            near->as<StateType>()->values, distance);
       state->as<StateType>()->clearKnownInformation();
     }
 
-    virtual void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev)
+    void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev) override
     {
       sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
     }

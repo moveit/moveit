@@ -89,12 +89,12 @@ public:
     inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
 
-  virtual void sampleUniform(ob::State* state)
+  void sampleUniform(ob::State* state) override
   {
     space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, max_index_)));
   }
 
-  virtual void sampleUniformNear(ob::State* state, const ob::State* near, const double distance)
+  void sampleUniformNear(ob::State* state, const ob::State* near, const double distance) override
   {
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
@@ -130,7 +130,7 @@ public:
       space_->copyState(state, state_storage_->getState(index));
   }
 
-  virtual void sampleGaussian(ob::State* state, const ob::State* mean, const double stdDev)
+  void sampleGaussian(ob::State* state, const ob::State* mean, const double stdDev) override
   {
     sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
   }

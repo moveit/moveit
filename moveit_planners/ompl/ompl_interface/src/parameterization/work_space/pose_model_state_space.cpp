@@ -303,19 +303,19 @@ ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocDefaultSta
     {
     }
 
-    virtual void sampleUniform(ompl::base::State* state)
+    void sampleUniform(ompl::base::State* state) override
     {
       sampler_->sampleUniform(state);
       afterStateSample(state);
     }
 
-    virtual void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance)
+    void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance) override
     {
       sampler_->sampleUniformNear(state, near, distance);
       afterStateSample(state);
     }
 
-    virtual void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev)
+    void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev) override
     {
       sampler_->sampleGaussian(state, mean, stdDev);
       afterStateSample(state);

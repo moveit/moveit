@@ -101,7 +101,7 @@ public:
     ompl::msg::useOutputHandler(output_handler_.get());
   }
 
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
@@ -115,17 +115,17 @@ public:
     return true;
   }
 
-  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
+  bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const override
   {
     return req.trajectory_constraints.constraints.empty();
   }
 
-  virtual std::string getDescription() const
+  std::string getDescription() const override
   {
     return "OMPL";
   }
 
-  virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const override
   {
     const planning_interface::PlannerConfigurationMap& pconfig = ompl_interface_->getPlannerConfigurations();
     algs.clear();
@@ -134,7 +134,7 @@ public:
       algs.push_back(it->first);
   }
 
-  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig)
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig) override
   {
     // this call can add a few more configs than we pass in (adds defaults)
     ompl_interface_->setPlannerConfigurations(pconfig);
@@ -142,9 +142,9 @@ public:
     PlannerManager::setPlannerConfigurations(ompl_interface_->getPlannerConfigurations());
   }
 
-  virtual planning_interface::PlanningContextPtr
+  planning_interface::PlanningContextPtr
   getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const
+                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const override
   {
     return ompl_interface_->getPlanningContext(planning_scene, req, error_code);
   }
