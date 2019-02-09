@@ -61,7 +61,7 @@ public:
     return true;
   }
 
-  bool waitForExecution(const ros::Duration&) override
+  bool waitForExecution(const ros::Duration& /*timeout*/) override
   {
     // wait for the current execution to finish
     return true;

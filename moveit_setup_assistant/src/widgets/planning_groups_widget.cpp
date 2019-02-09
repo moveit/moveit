@@ -83,7 +83,7 @@ struct cycle_detector : public boost::dfs_visitor<>
   }
 
   template <class Edge, class Graph>
-  void back_edge(Edge, Graph&)
+  void back_edge(Edge /*unused*/, Graph& /*unused*/)
   {
     m_has_cycle = true;
   }
