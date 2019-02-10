@@ -76,7 +76,7 @@ void hexToMsg(const std::string& hex, T& msg)
   ros::serialization::IStream stream_arg(buffer_arg.get(), serial_size_arg);
   ros::serialization::deserialize(stream_arg, msg);
 }
-}
+}  // namespace
 
 class ConstraintApproximationStateSampler : public ob::StateSampler
 {
@@ -197,7 +197,7 @@ allocConstraintApproximationStateSampler(const ob::StateSpace* space, const std:
   else
     return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
 }
-}
+}  // namespace ompl_interface
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(
     const std::string& group, const std::string& state_space_parameterization, bool explicit_motions,

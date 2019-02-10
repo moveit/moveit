@@ -299,4 +299,4 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   return true;
 }
-}
+}  // namespace chomp

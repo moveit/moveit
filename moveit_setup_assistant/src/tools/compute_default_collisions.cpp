@@ -675,4 +675,4 @@ DisabledReason disabledReasonFromString(const std::string& reason)
   return r;
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

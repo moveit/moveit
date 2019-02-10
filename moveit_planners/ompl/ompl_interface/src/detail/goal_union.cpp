@@ -51,7 +51,7 @@ ompl::base::SpaceInformationPtr getGoalsSI(const std::vector<ompl::base::GoalPtr
       throw ompl::Exception("The instance of SpaceInformation must be the same among the goals to be considered");
   return goals[0]->getSpaceInformation();
 }
-}
+}  // namespace
 
 ompl_interface::GoalSampleableRegionMux::GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr>& goals)
   : ompl::base::GoalSampleableRegion(getGoalsSI(goals)), goals_(goals), gindex_(0)

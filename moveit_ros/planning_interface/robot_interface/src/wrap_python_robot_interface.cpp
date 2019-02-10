@@ -367,7 +367,7 @@ private:
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   ros::NodeHandle nh_;
 };
-}
+}  // namespace moveit
 
 static void wrap_robot_interface()
 {

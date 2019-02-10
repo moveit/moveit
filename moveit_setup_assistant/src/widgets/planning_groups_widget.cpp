@@ -1495,7 +1495,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant
 
 // ******************************************************************************************
 // ******************************************************************************************

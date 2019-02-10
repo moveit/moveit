@@ -333,4 +333,4 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   // return the return value of the svd decomposition
   return ret;
 }
-}
+}  // namespace KDL

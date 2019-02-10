@@ -229,4 +229,4 @@ void LoadPathArgsWidget::setArgsEnabled(bool enabled)
 {
   args_->setEnabled(enabled);
 }
-}
+}  // namespace moveit_setup_assistant

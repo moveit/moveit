@@ -628,4 +628,4 @@ void VirtualJointsWidget::focusGiven()
   loadChildLinksComboBox();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

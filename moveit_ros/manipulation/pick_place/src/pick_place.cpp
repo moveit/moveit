@@ -174,7 +174,7 @@ std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors()
   result[5].a = 0.75f;
   return result;
 }
-}
+}  // namespace
 
 void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) const
 {
@@ -201,4 +201,4 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
 
   grasps_publisher_.publish(ma);
 }
-}
+}  // namespace pick_place

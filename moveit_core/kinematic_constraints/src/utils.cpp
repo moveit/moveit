@@ -569,4 +569,4 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
   constraints.name = static_cast<std::string>(params["name"]);
   return collectConstraints(params["constraints"], constraints);
 }
-}
+}  // namespace kinematic_constraints

@@ -249,4 +249,4 @@ void MotionPlanningFrame::clearStatesButtonClicked()
   populateRobotStatesList();
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

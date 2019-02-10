@@ -61,7 +61,7 @@ struct OrderGraspQuality
 
   const std::vector<moveit_msgs::Grasp>& grasps_;
 };
-}
+}  // namespace
 
 bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PickupGoal& goal)
 {
@@ -252,4 +252,4 @@ PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr& pla
 
   return p;
 }
-}
+}  // namespace pick_place

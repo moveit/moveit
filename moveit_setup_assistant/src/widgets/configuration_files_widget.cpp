@@ -1207,4 +1207,4 @@ bool ConfigurationFilesWidget::createFolder(const std::string& output_path)
   return true;
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

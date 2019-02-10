@@ -862,4 +862,4 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   btn_new_->setCheckable(true);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

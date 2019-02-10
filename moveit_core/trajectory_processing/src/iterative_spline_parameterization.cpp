@@ -595,4 +595,4 @@ void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, co
     fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0]);
   }
 }
-}
+}  // namespace trajectory_processing

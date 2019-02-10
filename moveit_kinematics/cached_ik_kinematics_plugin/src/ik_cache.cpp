@@ -335,4 +335,4 @@ std::string IKCacheMap::getKey(const std::vector<std::string>& fixed, const std:
   std::accumulate(active.begin(), active.end(), key);
   return key;
 }
-}
+}  // namespace cached_ik_kinematics_plugin

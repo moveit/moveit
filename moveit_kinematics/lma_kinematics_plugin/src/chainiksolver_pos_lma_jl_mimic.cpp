@@ -166,4 +166,4 @@ int ChainIkSolverPos_LMA_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, con
 ChainIkSolverPos_LMA_JL_Mimic::~ChainIkSolverPos_LMA_JL_Mimic()
 = default;
 
-}  // namespace
+}  // namespace KDL

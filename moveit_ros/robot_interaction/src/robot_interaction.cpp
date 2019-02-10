@@ -855,4 +855,4 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, EndEff
 {
   decideActiveEndEffectors(group, (InteractionStyle::InteractionStyle)(int)style);
 }
-}
+}  // namespace robot_interaction

@@ -497,4 +497,4 @@ void MotionPlanningFrame::updateExternalCommunication()
   }
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

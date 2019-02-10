@@ -831,4 +831,4 @@ void moveit_setup_assistant::MonitorThread::run()
   Q_EMIT progress(progress_);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

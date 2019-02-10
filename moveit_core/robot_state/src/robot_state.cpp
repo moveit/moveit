@@ -1347,7 +1347,7 @@ bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return true;
 }
-}
+}  // namespace
 
 bool RobotState::setToIKSolverFrame(Eigen::Affine3d& pose, const kinematics::KinematicsBaseConstPtr& solver)
 {
@@ -2264,7 +2264,7 @@ void getPoseString(std::ostream& ss, const Eigen::Affine3d& pose, const std::str
     ss << std::endl;
   }
 }
-}
+}  // namespace
 
 void RobotState::getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0,
                                          bool last) const

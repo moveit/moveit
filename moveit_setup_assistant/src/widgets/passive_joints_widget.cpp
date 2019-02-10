@@ -154,4 +154,4 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

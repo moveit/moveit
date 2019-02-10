@@ -47,4 +47,4 @@ std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory& trajecto
 {
   return std::max(trajectory.joint_trajectory.points.size(), trajectory.multi_dof_joint_trajectory.points.size());
 }
-}
+}  // namespace trajectory_processing

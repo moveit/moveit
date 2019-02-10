@@ -677,7 +677,7 @@ struct OrderPotentialControllerCombination
   std::vector<std::size_t> nrjoints;
   std::vector<std::size_t> nractive;
 };
-}
+}  // namespace
 
 bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& actuated_joints,
                                                  std::size_t controller_count,
@@ -1775,4 +1775,4 @@ void TrajectoryExecutionManager::loadControllerParams()
     }
   }
 }
-}
+}  // namespace trajectory_execution_manager

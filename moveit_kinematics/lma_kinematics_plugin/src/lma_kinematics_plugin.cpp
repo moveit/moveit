@@ -619,4 +619,4 @@ const std::vector<std::string>& LMAKinematicsPlugin::getLinkNames() const
   return ik_chain_info_.link_names;
 }
 
-}  // namespace
+}  // namespace lma_kinematics_plugin

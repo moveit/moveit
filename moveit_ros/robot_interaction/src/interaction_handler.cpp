@@ -566,4 +566,4 @@ bool InteractionHandler::getControlsVisible() const
   boost::mutex::scoped_lock lock(state_lock_);
   return display_controls_;
 }
-}
+}  // namespace robot_interaction

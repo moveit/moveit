@@ -352,4 +352,4 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

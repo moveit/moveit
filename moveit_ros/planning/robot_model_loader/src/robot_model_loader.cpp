@@ -80,7 +80,7 @@ bool canSpecifyPosition(const robot_model::JointModel* jmodel, const unsigned in
     ok = true;
   return ok;
 }
-}
+}  // namespace
 
 void robot_model_loader::RobotModelLoader::configure(const Options& opt)
 {

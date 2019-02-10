@@ -160,4 +160,4 @@ void RobotStateVisualization::setAlpha(float alpha)
 {
   robot_.setAlpha(alpha);
 }
-}
+}  // namespace moveit_rviz_plugin

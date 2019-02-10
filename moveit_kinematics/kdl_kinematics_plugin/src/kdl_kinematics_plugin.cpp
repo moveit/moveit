@@ -610,4 +610,4 @@ const std::vector<std::string>& KDLKinematicsPlugin::getLinkNames() const
   return ik_chain_info_.link_names;
 }
 
-}  // namespace
+}  // namespace kdl_kinematics_plugin

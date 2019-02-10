@@ -947,4 +947,4 @@ void SliderWidget::changeJointSlider()
   Q_EMIT jointValueChanged(joint_model_->getName(), value);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

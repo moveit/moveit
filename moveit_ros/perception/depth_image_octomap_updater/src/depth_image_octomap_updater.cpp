@@ -201,7 +201,7 @@ bool host_is_big_endian()
   } bint = { 0x01020304 };
   return bint.c[0] == 1;
 }
-}
+}  // namespace
 
 static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
 
@@ -545,4 +545,4 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
   ROS_DEBUG("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
 }
-}
+}  // namespace occupancy_map_monitor
