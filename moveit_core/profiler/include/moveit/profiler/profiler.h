@@ -79,7 +79,7 @@ public:
   {
   public:
     /** \brief Start counting time for the block named \e name of the profiler \e prof */
-    ScopedBlock(const std::string& name, Profiler& prof = Profiler::Instance()) : name_(name), prof_(prof)
+    ScopedBlock(const std::string& name, Profiler& prof = Profiler::instance()) : name_(name), prof_(prof)
     {
       prof_.begin(name);
     }
@@ -100,7 +100,7 @@ public:
   {
   public:
     /** \brief Take as argument the profiler instance to operate on (\e prof) */
-    ScopedStart(Profiler& prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
+    ScopedStart(Profiler& prof = Profiler::instance()) : prof_(prof), wasRunning_(prof_.running())
     {
       if (!wasRunning_)
         prof_.start();
@@ -118,7 +118,7 @@ public:
   };
 
   /** \brief Return an instance of the class */
-  static Profiler& Instance(void);
+  static Profiler& instance(void);
 
   /** \brief Constructor. It is allowed to separately instantiate this
       class (not only as a singleton) */
@@ -138,19 +138,19 @@ public:
   /** \brief Start counting time */
   static void Start(void)
   {
-    Instance().start();
+    instance().start();
   }
 
   /** \brief Stop counting time */
   static void Stop(void)
   {
-    Instance().stop();
+    instance().stop();
   }
 
   /** \brief Clear counted time and events */
   static void Clear(void)
   {
-    Instance().clear();
+    instance().clear();
   }
 
   /** \brief Start counting time */
@@ -165,7 +165,7 @@ public:
   /** \brief Count a specific event for a number of times */
   static void Event(const std::string& name, const unsigned int times = 1)
   {
-    Instance().event(name, times);
+    instance().event(name, times);
   }
 
   /** \brief Count a specific event for a number of times */
@@ -174,7 +174,7 @@ public:
   /** \brief Maintain the average of a specific value */
   static void Average(const std::string& name, const double value)
   {
-    Instance().average(name, value);
+    instance().average(name, value);
   }
 
   /** \brief Maintain the average of a specific value */
@@ -183,13 +183,13 @@ public:
   /** \brief Begin counting time for a specific chunk of code */
   static void Begin(const std::string& name)
   {
-    Instance().begin(name);
+    instance().begin(name);
   }
 
   /** \brief Stop counting time for a specific chunk of code */
   static void End(const std::string& name)
   {
-    Instance().end(name);
+    instance().end(name);
   }
 
   /** \brief Begin counting time for a specific chunk of code */
@@ -203,7 +203,7 @@ public:
       can be printed separately. */
   static void Status(std::ostream& out = std::cout, bool merge = true)
   {
-    Instance().status(out, merge);
+    instance().status(out, merge);
   }
 
   /** \brief Print the status of the profiled code chunks and
@@ -215,7 +215,7 @@ public:
       events to the console (using msg::Console) */
   static void Console(void)
   {
-    Instance().console();
+    instance().console();
   }
 
   /** \brief Print the status of the profiled code chunks and
@@ -231,7 +231,7 @@ public:
   /** \brief Check if the profiler is counting time or not */
   static bool Running(void)
   {
-    return Instance().running();
+    return instance().running();
   }
 
 private:
@@ -331,7 +331,7 @@ public:
   class ScopedBlock
   {
   public:
-    ScopedBlock(const std::string&, Profiler& = Profiler::Instance())
+    ScopedBlock(const std::string&, Profiler& = Profiler::instance())
     {
     }
 
@@ -343,7 +343,7 @@ public:
   class ScopedStart
   {
   public:
-    ScopedStart(Profiler& = Profiler::Instance())
+    ScopedStart(Profiler& = Profiler::instance())
     {
     }
 
@@ -352,7 +352,7 @@ public:
     }
   };
 
-  static Profiler& Instance(void);
+  static Profiler& instance(void);
 
   Profiler(bool = true, bool = true)
   {

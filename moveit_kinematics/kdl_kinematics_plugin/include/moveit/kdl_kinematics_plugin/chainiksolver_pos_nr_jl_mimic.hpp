@@ -71,7 +71,7 @@ public:
 
   virtual int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out);
 
-  virtual int CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints);
+  virtual int cartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints);
 
   bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints);
 

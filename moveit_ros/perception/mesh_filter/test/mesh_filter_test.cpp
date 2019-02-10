@@ -93,7 +93,7 @@ public:
 
 private:
   shapes::Mesh createMesh(double z) const;
-  bool transform_callback(MeshHandle handle, Affine3d& transform) const;
+  bool transformCallback(MeshHandle handle, Affine3d& transform) const;
   void getGroundTruth(unsigned int* labels, float* depth) const;
   const unsigned int width_;
   const unsigned int height_;
@@ -118,7 +118,7 @@ MeshFilterTest<Type>::MeshFilterTest(unsigned width, unsigned height, double nea
   , shadow_(shadow)
   , epsilon_(epsilon)
   , sensor_parameters_(width, height, near_, far_, width >> 1, height >> 1, width >> 1, height >> 1, 0.1, 0.1)
-  , filter_(boost::bind(&MeshFilterTest<Type>::transform_callback, this, _1, _2), sensor_parameters_)
+  , filter_(boost::bind(&MeshFilterTest<Type>::transformCallback, this, _1, _2), sensor_parameters_)
   , sensor_data_(width_ * height_)
   , distance_(0.0)
 {
@@ -201,7 +201,7 @@ shapes::Mesh MeshFilterTest<Type>::createMesh(double z) const
 }
 
 template <typename Type>
-bool MeshFilterTest<Type>::transform_callback(MeshHandle handle, Affine3d& transform) const
+bool MeshFilterTest<Type>::transformCallback(MeshHandle handle, Affine3d& transform) const
 {
   transform = Affine3d::Identity();
   if (handle == handle_)

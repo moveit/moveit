@@ -118,7 +118,7 @@ void ChainIkSolverPos_LMA_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_res
 
 int ChainIkSolverPos_LMA_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
-  return CartToJntAdvanced(q_init, p_in, q_out, false);
+  return cartToJntAdvanced(q_init, p_in, q_out, false);
 }
 
 void ChainIkSolverPos_LMA_JL_Mimic::harmonize(JntArray& q_out)
@@ -151,7 +151,7 @@ bool ChainIkSolverPos_LMA_JL_Mimic::obeysLimits(const KDL::JntArray& q_out)
   return obeys_limits;
 }
 
-int ChainIkSolverPos_LMA_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
+int ChainIkSolverPos_LMA_JL_Mimic::cartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
                                                      bool lock_redundant_joints)
 {
   int ik_valid = iksolver.CartToJnt(q_init, p_in, q_out);

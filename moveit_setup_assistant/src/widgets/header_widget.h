@@ -80,7 +80,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
   /// Load the file dialog
-  void btn_file_dialog();
+  void btnFileDialog();
 
 public:
   /// Constructor

@@ -46,7 +46,7 @@ namespace moveit
 {
 namespace tools
 {
-Profiler& Profiler::Instance()
+Profiler& Profiler::instance()
 {
   static Profiler p(false, false);
   return p;

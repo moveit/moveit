@@ -131,7 +131,7 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacLocked(const Jacobian& jac, Jacobian& 
   return true;
 }
 
-int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
+int ChainIkSolverVel_pinv_mimic::cartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   qdot_out.data.setZero();
   // Let the ChainJntToJacSolver calculate the jacobian "jac" for
@@ -238,7 +238,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
 int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   if (redundant_joints_locked)
-    return CartToJntRedundant(q_in, v_in, qdot_out);
+    return cartToJntRedundant(q_in, v_in, qdot_out);
 
   // Let the ChainJntToJacSolver calculate the jacobian "jac" for
   // the current joint positions "q_in". This will include the mimic joints

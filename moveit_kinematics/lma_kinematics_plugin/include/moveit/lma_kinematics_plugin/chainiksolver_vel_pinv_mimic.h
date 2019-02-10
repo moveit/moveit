@@ -81,7 +81,7 @@ public:
 
   virtual int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
 
-  virtual int CartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
+  virtual int cartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
 
   /**
    * not (yet) implemented.
