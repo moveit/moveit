@@ -211,7 +211,7 @@ void BenchmarkExecutor::addQueryCompletionEvent(const QueryCompletionEventFuncti
 
 bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
 {
-  if (planner_interfaces_.size() == 0)
+  if (planner_interfaces_.empty())
   {
     ROS_ERROR("No planning interfaces configured.  Did you call BenchmarkExecutor::initialize?");
     return false;
@@ -368,8 +368,8 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
     if (brequest.request.goal_constraints.size() == 1 &&
         brequest.request.goal_constraints[0].position_constraints.size() == 1 &&
         brequest.request.goal_constraints[0].orientation_constraints.size() == 1 &&
-        brequest.request.goal_constraints[0].visibility_constraints.size() == 0 &&
-        brequest.request.goal_constraints[0].joint_constraints.size() == 0)
+        brequest.request.goal_constraints[0].visibility_constraints.empty() &&
+        brequest.request.goal_constraints[0].joint_constraints.empty())
       shiftConstraintsByOffset(brequest.request.goal_constraints[0], goal_offset);
 
     std::vector<BenchmarkRequest> request_combos;
@@ -421,8 +421,8 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
     if (brequest.request.trajectory_constraints.constraints.size() == 1 &&
         brequest.request.trajectory_constraints.constraints[0].position_constraints.size() == 1 &&
         brequest.request.trajectory_constraints.constraints[0].orientation_constraints.size() == 1 &&
-        brequest.request.trajectory_constraints.constraints[0].visibility_constraints.size() == 0 &&
-        brequest.request.trajectory_constraints.constraints[0].joint_constraints.size() == 0)
+        brequest.request.trajectory_constraints.constraints[0].visibility_constraints.empty() &&
+        brequest.request.trajectory_constraints.constraints[0].joint_constraints.empty())
       shiftConstraintsByOffset(brequest.request.trajectory_constraints.constraints[0], goal_offset);
 
     std::vector<BenchmarkRequest> request_combos;
@@ -645,7 +645,7 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
 
 bool BenchmarkExecutor::loadStates(const std::string& regex, std::vector<StartState>& start_states)
 {
-  if (regex.size())
+  if (!regex.empty())
   {
     boost::regex start_regex(regex);
     std::vector<std::string> state_names;
@@ -683,7 +683,7 @@ bool BenchmarkExecutor::loadStates(const std::string& regex, std::vector<StartSt
 
 bool BenchmarkExecutor::loadPathConstraints(const std::string& regex, std::vector<PathConstraints>& constraints)
 {
-  if (regex.size())
+  if (!regex.empty())
   {
     std::vector<std::string> cnames;
     cs_->getKnownConstraints(regex, cnames);
@@ -719,7 +719,7 @@ bool BenchmarkExecutor::loadPathConstraints(const std::string& regex, std::vecto
 bool BenchmarkExecutor::loadTrajectoryConstraints(const std::string& regex,
                                                   std::vector<TrajectoryConstraints>& constraints)
 {
-  if (regex.size())
+  if (!regex.empty())
   {
     std::vector<std::string> cnames;
     tcs_->getKnownTrajectoryConstraints(regex, cnames);
@@ -920,7 +920,7 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
     hostname = "UNKNOWN";
 
   std::string filename = options_.getOutputDirectory();
-  if (filename.size() && filename[filename.size() - 1] != '/')
+  if (!filename.empty() && filename[filename.size() - 1] != '/')
     filename.append("/");
 
   // Ensure directories exist

@@ -1428,7 +1428,7 @@ bool MoveItConfigData::inputROSControllersYAML(const std::string& file_path)
 // ******************************************************************************************
 bool MoveItConfigData::addDefaultControllers()
 {
-  if (srdf_->srdf_model_->getGroups().size() == 0)
+  if (srdf_->srdf_model_->getGroups().empty())
     return false;
   // Loop through groups
   for (std::vector<srdf::Model::Group>::const_iterator group_it = srdf_->srdf_model_->getGroups().begin();

@@ -530,7 +530,7 @@ void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
 
-  if (joints.size() == 0)
+  if (joints.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;
@@ -562,7 +562,7 @@ void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group* this_group)
   // Get the names of the all links
   const std::vector<std::string>& links = model->getLinkModelNames();
 
-  if (links.size() == 0)
+  if (links.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No links found for robot model");
     return;
@@ -601,7 +601,7 @@ void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group* this_group)
   }
 
   // Set the selected tip and base of chain if one exists
-  if (this_group->chains_.size() > 0)
+  if (!this_group->chains_.empty())
   {
     chain_widget_->setSelected(this_group->chains_[0].first, this_group->chains_[0].second);
   }

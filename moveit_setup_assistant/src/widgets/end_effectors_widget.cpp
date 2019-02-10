@@ -644,7 +644,7 @@ void EndEffectorsWidget::loadDataTable()
   data_table_->resizeColumnToContents(3);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->end_effectors_.size() > 0)
+  if (!config_data_->srdf_->end_effectors_.empty())
     btn_edit_->show();
 }
 

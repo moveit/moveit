@@ -570,25 +570,25 @@ bool ConfigurationFilesWidget::checkDependencies()
   bool requiredActions = false;
 
   // Check that at least 1 planning group exists
-  if (!config_data_->srdf_->groups_.size())
+  if (config_data_->srdf_->groups_.empty())
   {
     dependencies << "No robot model planning groups have been created";
   }
 
   // Check that at least 1 link pair is disabled from collision checking
-  if (!config_data_->srdf_->disabled_collisions_.size())
+  if (config_data_->srdf_->disabled_collisions_.empty())
   {
     dependencies << "No self-collisions have been disabled";
   }
 
   // Check that there is at least 1 end effector added
-  if (!config_data_->srdf_->end_effectors_.size())
+  if (config_data_->srdf_->end_effectors_.empty())
   {
     dependencies << "No end effectors have been added";
   }
 
   // Check that there is at least 1 virtual joint added
-  if (!config_data_->srdf_->virtual_joints_.size())
+  if (config_data_->srdf_->virtual_joints_.empty())
   {
     dependencies << "No virtual joints have been added";
   }
@@ -1028,13 +1028,13 @@ bool ConfigurationFilesWidget::noGroupsEmpty()
        group_it != config_data_->srdf_->groups_.end(); ++group_it)
   {
     // Whenever 1 of the 4 component types are found, stop checking this group
-    if (group_it->joints_.size())
+    if (!group_it->joints_.empty())
       continue;
-    if (group_it->links_.size())
+    if (!group_it->links_.empty())
       continue;
-    if (group_it->chains_.size())
+    if (!group_it->chains_.empty())
       continue;
-    if (group_it->subgroups_.size())
+    if (!group_it->subgroups_.empty())
       continue;
 
     // This group has no contents, bad

@@ -609,7 +609,7 @@ void VirtualJointsWidget::loadDataTable()
   data_table_->resizeColumnToContents(3);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->virtual_joints_.size())
+  if (!config_data_->srdf_->virtual_joints_.empty())
     btn_edit_->show();
 }
 

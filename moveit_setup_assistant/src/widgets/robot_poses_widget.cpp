@@ -763,7 +763,7 @@ void RobotPosesWidget::loadDataTable()
   data_table_->resizeColumnToContents(1);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->group_states_.size())
+  if (!config_data_->srdf_->group_states_.empty())
     btn_edit_->show();
 }
 
@@ -821,7 +821,7 @@ void RobotPosesWidget::publishJoints()
   config_data_->getPlanningScene()->checkSelfCollision(
       request, result, config_data_->getPlanningScene()->getCurrentState(), config_data_->allowed_collision_matrix_);
   // Show result notification
-  if (result.contacts.size())
+  if (!result.contacts.empty())
   {
     collision_warning_->show();
   }

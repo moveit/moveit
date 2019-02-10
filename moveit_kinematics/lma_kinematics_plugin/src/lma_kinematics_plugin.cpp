@@ -480,7 +480,7 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   ik_solver_vel.setMimicJoints(mimic_joints_);
   ik_solver_pos.setMimicJoints(mimic_joints_);
 
-  if ((redundant_joint_indices_.size() > 0) && !ik_solver_vel.setRedundantJointsMapIndex(redundant_joints_map_index_))
+  if ((!redundant_joint_indices_.empty()) && !ik_solver_vel.setRedundantJointsMapIndex(redundant_joints_map_index_))
   {
     ROS_ERROR_NAMED("lma", "Could not set redundant joints");
     return false;

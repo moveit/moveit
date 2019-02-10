@@ -346,7 +346,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
     else
     {
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      if (goal.place_locations.size() > 0)
+      if (!goal.place_locations.empty())
       {
         ROS_WARN_NAMED("manipulation", "All supplied place locations failed. Retrying last location in verbose mode.");
         // everything failed. we now start the pipeline again in verbose mode for one grasp

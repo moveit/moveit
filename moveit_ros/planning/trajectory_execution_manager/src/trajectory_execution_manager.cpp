@@ -1211,7 +1211,7 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
   stopExecution(false);
 
   // check whether first trajectory starts at current robot state
-  if (trajectories_.size() && !validate(*trajectories_.front()))
+  if (!trajectories_.empty() && !validate(*trajectories_.front()))
   {
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     if (auto_clear)

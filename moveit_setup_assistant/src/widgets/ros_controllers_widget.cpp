@@ -291,7 +291,7 @@ void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ROSControlCo
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
 
-  if (joints.size() == 0)
+  if (joints.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;

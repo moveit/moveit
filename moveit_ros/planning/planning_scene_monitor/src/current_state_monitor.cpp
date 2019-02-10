@@ -142,7 +142,7 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
       ROS_ERROR("The joint states topic cannot be an empty string");
     else
       joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
-    if (tf_ && robot_model_->getMultiDOFJointModels().size() > 0)
+    if (tf_ && !robot_model_->getMultiDOFJointModels().empty())
     {
       tf_connection_.reset(
           new TFConnection(tf_->addTransformsChangedListener(boost::bind(&CurrentStateMonitor::tfCallback, this))));
