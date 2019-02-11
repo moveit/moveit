@@ -123,51 +123,51 @@ QSize NavDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelInde
 
 void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-  const bool isSelected = option.state & QStyle::State_Selected;
+  const bool is_selected = option.state & QStyle::State_Selected;
 
   // NavScreen tp = index.data().value<NavScreen>();
   QString nav_name = index.data().value<QString>();
 
   painter->save();
 
-  QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()),
+  QLinearGradient background_gradient(QPoint(option.rect.x(), option.rect.y()),
                                      QPoint(option.rect.x(), option.rect.y() + option.rect.height()));
-  if (isSelected)
+  if (is_selected)
   {
-    backgroundGradient.setColorAt(0, QColor(109, 164, 219));
-    backgroundGradient.setColorAt(1, QColor(61, 138, 212));
-    painter->fillRect(option.rect, QBrush(backgroundGradient));
+    background_gradient.setColorAt(0, QColor(109, 164, 219));
+    background_gradient.setColorAt(1, QColor(61, 138, 212));
+    painter->fillRect(option.rect, QBrush(background_gradient));
   }
   else
   {
-    backgroundGradient.setColorAt(0, QColor(245, 245, 245));
-    backgroundGradient.setColorAt(1, QColor(240, 240, 240));
-    painter->fillRect(option.rect, QBrush(backgroundGradient));
+    background_gradient.setColorAt(0, QColor(245, 245, 245));
+    background_gradient.setColorAt(1, QColor(240, 240, 240));
+    painter->fillRect(option.rect, QBrush(background_gradient));
   }
 
   painter->setPen(QColor(225, 225, 225));
-  if (isSelected)
+  if (is_selected)
   {
     painter->setPen(QColor(37, 105, 169));
     painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
     painter->setPen(Qt::transparent);
   }
   painter->drawLine(option.rect.topLeft(), option.rect.topRight());
-  if (!isSelected)
+  if (!is_selected)
   {
     painter->setPen(QColor(248, 248, 248));
     painter->drawLine(QPoint(option.rect.x(), option.rect.y() + 1),
                       QPoint(option.rect.x() + option.rect.width(), option.rect.y() + 1));
   }
 
-  QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
+  QRect text_rect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
 
-  QFont textFont(painter->font());
-  textFont.setPixelSize(14);  // Set font size
-  painter->setFont(textFont);
+  QFont text_font(painter->font());
+  text_font.setPixelSize(14);  // Set font size
+  painter->setFont(text_font);
 
   // Font color
-  if (isSelected)
+  if (is_selected)
   {
     // Selected
     painter->setPen(QColor(229, 229, 229));
@@ -183,7 +183,7 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
     painter->setPen(QColor(69, 69, 69));
   }
 
-  painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, nav_name);
+  painter->drawText(text_rect, Qt::AlignLeft | Qt::AlignVCenter, nav_name);
 
   painter->restore();
 }

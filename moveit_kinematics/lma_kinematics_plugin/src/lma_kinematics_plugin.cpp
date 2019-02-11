@@ -463,16 +463,16 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::JntArray jnt_pos_out(dimension_);
 
   // Build Solvers
-  Eigen::Matrix<double, 6, 1> L;
-  L(0) = 1;
-  L(1) = 1;
-  L(2) = 1;
-  L(3) = 0.01;
-  L(4) = 0.01;
-  L(5) = 0.01;
+  Eigen::Matrix<double, 6, 1> l;
+  l(0) = 1;
+  l(1) = 1;
+  l(2) = 1;
+  l(3) = 0.01;
+  l(4) = 0.01;
+  l(5) = 0.01;
 
   KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
-  KDL::ChainIkSolverPos_LMA ik_solver(kdl_chain_, L, epsilon_, max_solver_iterations_);
+  KDL::ChainIkSolverPos_LMA ik_solver(kdl_chain_, l, epsilon_, max_solver_iterations_);
   KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, joint_model_group_->getMimicJointModels().size(),
                                                  redundant_joint_indices_.size(), position_ik_);
   KDL::ChainIkSolverPos_LMA_JL_Mimic ik_solver_pos(kdl_chain_, joint_min_, joint_max_, fk_solver, ik_solver,

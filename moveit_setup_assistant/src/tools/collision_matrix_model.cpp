@@ -47,7 +47,7 @@
 using namespace moveit_setup_assistant;
 
 /// Boost mapping of reasons for disabling a link pair to strings
-static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
+static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> LONG_REASONS_TO_STRING =
     boost::assign::map_list_of  // clang-format off
     ( moveit_setup_assistant::NEVER, "Never in Collision" )
     ( moveit_setup_assistant::DEFAULT, "Collision by Default" )
@@ -57,7 +57,7 @@ static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const 
     ( moveit_setup_assistant::NOT_DISABLED, "");  // clang-format on
 
 /// Boost mapping of reasons to a background color
-static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVariant> longReasonsToBrush =
+static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVariant> LONG_REASONS_TO_BRUSH =
     boost::assign::map_list_of  // clang-format off
     ( moveit_setup_assistant::NEVER, QBrush(QColor("lightgreen")) )
     ( moveit_setup_assistant::DEFAULT, QBrush(QColor("lightpink")) )
@@ -116,9 +116,9 @@ QVariant CollisionMatrixModel::data(const QModelIndex& index, int role) const
     case Qt::CheckStateRole:
       return item->second.disable_check ? Qt::Checked : Qt::Unchecked;
     case Qt::ToolTipRole:
-      return longReasonsToString.at(item->second.reason);
+      return LONG_REASONS_TO_STRING.at(item->second.reason);
     case Qt::BackgroundRole:
-      return longReasonsToBrush.at(item->second.reason);
+      return LONG_REASONS_TO_BRUSH.at(item->second.reason);
   }
   return QVariant();
 }

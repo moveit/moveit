@@ -354,9 +354,9 @@ void RobotStateDisplay::loadRobotModel()
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
     kstate_->setToDefaultValues();
-    bool oldState = root_link_name_property_->blockSignals(true);
+    bool old_state = root_link_name_property_->blockSignals(true);
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
-    root_link_name_property_->blockSignals(oldState);
+    root_link_name_property_->blockSignals(old_state);
     update_state_ = true;
     setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
 

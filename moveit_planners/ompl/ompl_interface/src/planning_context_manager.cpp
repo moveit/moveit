@@ -311,8 +311,8 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   else
   {
     ROS_ERROR_NAMED("planning_context_manager", "Factory of type '%s' was not found", factory_type.c_str());
-    static const ModelBasedStateSpaceFactoryPtr empty;
-    return empty;
+    static const ModelBasedStateSpaceFactoryPtr EMPTY;
+    return EMPTY;
   }
 }
 
@@ -338,8 +338,8 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   {
     ROS_ERROR_NAMED("planning_context_manager", "There are no known state spaces that can represent the given planning "
                                                 "problem");
-    static const ModelBasedStateSpaceFactoryPtr empty;
-    return empty;
+    static const ModelBasedStateSpaceFactoryPtr EMPTY;
+    return EMPTY;
   }
   else
   {

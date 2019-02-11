@@ -504,11 +504,11 @@ void VirtualJointsWidget::doneEditing()
   config_data_->changes |= MoveItConfigData::VIRTUAL_JOINTS;
 
   // Save the new vjoint name or create the new vjoint ----------------------------
-  bool isNew = false;
+  bool is_new = false;
 
   if (searched_data == nullptr)  // create new
   {
-    isNew = true;
+    is_new = true;
 
     searched_data = new srdf::Model::VirtualJoint();
   }
@@ -522,7 +522,7 @@ void VirtualJointsWidget::doneEditing()
   bool emit_frame_notice = false;
 
   // Insert new vjoints into group state vector --------------------------
-  if (isNew)
+  if (is_new)
   {
     if (searched_data->child_link_ == config_data_->getRobotModel()->getRootLinkName())
       emit_frame_notice = true;

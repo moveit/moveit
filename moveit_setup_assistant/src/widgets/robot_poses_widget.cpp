@@ -659,11 +659,11 @@ void RobotPosesWidget::doneEditing()
   config_data_->changes |= MoveItConfigData::POSES;
 
   // Save the new pose name or create the new pose ----------------------------
-  bool isNew = false;
+  bool is_new = false;
 
   if (searched_data == nullptr)  // create new
   {
-    isNew = true;
+    is_new = true;
     searched_data = new srdf::Model::GroupState();
   }
 
@@ -693,7 +693,7 @@ void RobotPosesWidget::doneEditing()
   }
 
   // Insert new poses into group state vector --------------------------
-  if (isNew)
+  if (is_new)
   {
     config_data_->srdf_->group_states_.push_back(*searched_data);
   }

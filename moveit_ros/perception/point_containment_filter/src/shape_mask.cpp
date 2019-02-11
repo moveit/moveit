@@ -147,7 +147,7 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
     // compute a sphere that bounds the entire robot
     bodies::BoundingSphere bound;
     bodies::mergeBoundingSpheres(bspheres_, bound);
-    const double radiusSquared = bound.radius * bound.radius;
+    const double radius_squared = bound.radius * bound.radius;
 
     // we now decide which points we keep
     sensor_msgs::PointCloud2ConstIterator<float> iter_x(data_in, "x");
@@ -164,7 +164,7 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
       int out = OUTSIDE;
       if (d < min_sensor_dist || d > max_sensor_dist)
         out = CLIP;
-      else if ((bound.center - pt).squaredNorm() < radiusSquared)
+      else if ((bound.center - pt).squaredNorm() < radius_squared)
         for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end() && out == OUTSIDE; ++it)
           if (it->body->containsPoint(pt))
             out = INSIDE;

@@ -49,8 +49,8 @@
 moveit::core::RobotModelConstPtr loadModel();
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr rmodel = loadModel();
-robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
+moveit::core::RobotModelConstPtr RMODEL = loadModel();
+robot_trajectory::RobotTrajectory trajectory(RMODEL, "right_arm");
 
 // Load pr2.  Take a look at test/ in planning_scene, robot_mode,
 // and robot_state for inspiration.

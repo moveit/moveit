@@ -59,7 +59,7 @@ CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& mode
         // Need to store the FCL object so the AABB does not get recreated every time.
         // Every time this object is created, g->computeLocalAABB() is called  which is
         // very expensive and should only be calculated once. To update the AABB, use the
-        // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
+        // coll_obj->setTransform and then call coll_obj->computeAABB() to transform the AABB.
         fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObject(g->collision_geometry_));
       }
       else
@@ -97,10 +97,10 @@ void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
       transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
                                                     geoms_[i]->collision_geometry_data_->shape_index),
                     fcl_tf);
-      auto collObj = new fcl::CollisionObject(*fcl_objs_[i]);
-      collObj->setTransform(fcl_tf);
-      collObj->computeAABB();
-      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
+      auto coll_obj = new fcl::CollisionObject(*fcl_objs_[i]);
+      coll_obj->setTransform(fcl_tf);
+      coll_obj->computeAABB();
+      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(coll_obj));
     }
 
   // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's

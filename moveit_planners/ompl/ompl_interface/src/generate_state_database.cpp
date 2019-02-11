@@ -57,27 +57,27 @@ struct GenerateStateDatabaseParameters
 {
   bool setFromHandle(ros::NodeHandle& nh)
   {
-    use_current_scene = nh.param("use_current_scene", false);
+    use_current_scene_ = nh.param("use_current_scene", false);
 
     // number of states in joint space approximation
-    construction_opts.samples = nh.param("state_cnt", 10000);
+    construction_opts_.samples = nh.param("state_cnt", 10000);
 
     // generate edges together with states?
-    construction_opts.edges_per_sample = nh.param("edges_per_sample", 0);
-    construction_opts.max_edge_length = nh.param("max_edge_length", 0.2);
+    construction_opts_.edges_per_sample = nh.param("edges_per_sample", 0);
+    construction_opts_.max_edge_length = nh.param("max_edge_length", 0.2);
 
     // verify constraint validity on edges
-    construction_opts.explicit_motions = nh.param("explicit_motions", true);
-    construction_opts.explicit_points_resolution = nh.param("explicit_points_resolution", 0.05);
-    construction_opts.max_explicit_points = nh.param("max_explicit_points", 200);
+    construction_opts_.explicit_motions = nh.param("explicit_motions", true);
+    construction_opts_.explicit_points_resolution = nh.param("explicit_points_resolution", 0.05);
+    construction_opts_.max_explicit_points = nh.param("max_explicit_points", 200);
 
     // local planning in JointModel state space
-    construction_opts.state_space_parameterization =
+    construction_opts_.state_space_parameterization =
         nh.param<std::string>("state_space_parameterization", "JointModel");
 
-    output_folder = nh.param<std::string>("output_folder", "constraint_approximations_database");
+    output_folder_ = nh.param<std::string>("output_folder", "constraint_approximations_database");
 
-    if (!nh.getParam("planning_group", planning_group))
+    if (!nh.getParam("planning_group", planning_group_))
     {
       ROS_FATAL_NAMED(LOGNAME, "~planning_group parameter has to be specified.");
       return false;
@@ -85,7 +85,7 @@ struct GenerateStateDatabaseParameters
 
     XmlRpc::XmlRpcValue constraint_description;
     if (!nh.getParam(CONSTRAINT_PARAMETER, constraint_description) ||
-        !kinematic_constraints::constructConstraints(constraint_description, constraints))
+        !kinematic_constraints::constructConstraints(constraint_description, constraints_))
     {
       ROS_FATAL_STREAM_NAMED(LOGNAME,
                              "Could not find valid constraint description in parameter '"
@@ -98,19 +98,19 @@ struct GenerateStateDatabaseParameters
     return true;
   };
 
-  std::string planning_group;
+  std::string planning_group_;
 
   // path to folder for generated database
-  std::string output_folder;
+  std::string output_folder_;
 
   // request the current scene via get_planning_scene service
-  bool use_current_scene;
+  bool use_current_scene_;
 
   // constraints the approximation should satisfy
-  moveit_msgs::Constraints constraints;
+  moveit_msgs::Constraints constraints_;
 
   // internal parameters of approximation generator
-  ompl_interface::ConstraintApproximationConstructionOptions construction_opts;
+  ompl_interface::ConstraintApproximationConstructionOptions construction_opts_;
 };
 
 void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateStateDatabaseParameters& params)
@@ -121,22 +121,22 @@ void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateSta
   ompl_interface::OMPLInterface ompl_interface(scene->getRobotModel());
 
   ROS_INFO_STREAM_NAMED(LOGNAME, "Generating Joint Space Constraint Approximation Database for constraint:\n"
-                                     << params.constraints);
+                                     << params.constraints_);
 
   ompl_interface::ConstraintApproximationConstructionResults result =
-      ompl_interface.getConstraintsLibrary().addConstraintApproximation(params.constraints, params.planning_group,
-                                                                        scene, params.construction_opts);
+      ompl_interface.getConstraintsLibrary().addConstraintApproximation(params.constraints_, params.planning_group_,
+                                                                        scene, params.construction_opts_);
 
   if (!result.approx)
   {
     ROS_FATAL_NAMED(LOGNAME, "Failed to generate approximation.");
     return;
   }
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations(params.output_folder);
+  ompl_interface.getConstraintsLibrary().saveConstraintApproximations(params.output_folder_);
   ROS_INFO_STREAM_NAMED(LOGNAME,
                         "Successfully generated Joint Space Constraint Approximation Database for constraint:\n"
-                            << params.constraints);
-  ROS_INFO_STREAM_NAMED(LOGNAME, "The database has been saved in your local folder '" << params.output_folder << "'");
+                            << params.constraints_);
+  ROS_INFO_STREAM_NAMED(LOGNAME, "The database has been saved in your local folder '" << params.output_folder_ << "'");
 }
 
 int main(int argc, char** argv)
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
   if (!psm.getRobotModel())
     return 1;
 
-  if (params.use_current_scene)
+  if (params.use_current_scene_)
   {
     ROS_INFO_NAMED(LOGNAME, "Requesting current planning scene to generate database");
     if (!psm.requestPlanningSceneState())
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
     }
   }
 
-  if (kinematic_constraints::isEmpty(params.constraints))
+  if (kinematic_constraints::isEmpty(params.constraints_))
   {
     ROS_FATAL_NAMED(LOGNAME, "Abort. Constraint description is an empty set of constraints.");
     return 1;

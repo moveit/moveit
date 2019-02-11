@@ -149,10 +149,10 @@ int main(int argc, char** argv)
           {
             ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
             qfout << robotStateNames[k] << std::endl;
-            moveit_warehouse::RobotStateWithMetadata robotState;
-            rss.getRobotState(robotState, robotStateNames[k]);
+            moveit_warehouse::RobotStateWithMetadata robot_state_with_meta_data;
+            rss.getRobotState(robot_state_with_meta_data, robotStateNames[k]);
             robot_state::RobotState ks(km);
-            robot_state::robotStateMsgToRobotState(*robotState, ks, false);
+            robot_state::robotStateMsgToRobotState(*robot_state_with_meta_data, ks, false);
             ks.printStateInfo(qfout);
             qfout << "." << std::endl;
           }

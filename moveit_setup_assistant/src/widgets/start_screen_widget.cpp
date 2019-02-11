@@ -648,7 +648,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
     path_parts.push_back(it->native());
 
-  bool packageFound = false;
+  bool package_found = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
   for (int segment_length = path_parts.size(); segment_length > 0; --segment_length)
@@ -685,13 +685,13 @@ bool StartScreenWidget::extractPackageNameFromPath()
 
       // end the search
       segment_length = 0;
-      packageFound = true;
+      package_found = true;
       break;
     }
   }
 
   // Assign data to moveit_config_data
-  if (!packageFound)
+  if (!package_found)
   {
     // No package name found, we must be outside ROS
     config_data_->urdf_pkg_name_ = "";

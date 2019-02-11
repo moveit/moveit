@@ -388,12 +388,12 @@ void MotionPlanningFrame::importResource(const std::string& path)
       // If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
       {
-        QMessageBox msgBox;
-        msgBox.setText("There exists another object with the same name.");
-        msgBox.setInformativeText("Would you like to overwrite it?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::No);
-        int ret = msgBox.exec();
+        QMessageBox msg_box;
+        msg_box.setText("There exists another object with the same name.");
+        msg_box.setInformativeText("Would you like to overwrite it?");
+        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg_box.setDefaultButton(QMessageBox::No);
+        int ret = msg_box.exec();
 
         switch (ret)
         {

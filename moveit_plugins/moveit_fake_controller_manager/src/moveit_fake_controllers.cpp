@@ -167,7 +167,7 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 
   // publish joint states for all intermediate via points of the trajectory
   // no further interpolation
-  ros::Time startTime = ros::Time::now();
+  ros::Time start_time = ros::Time::now();
   for (std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator via = t.joint_trajectory.points.begin(),
                                                                           end = t.joint_trajectory.points.end();
        !cancelled() && via != end; ++via)
@@ -176,7 +176,7 @@ void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
     js.velocity = via->velocities;
     js.effort = via->effort;
 
-    ros::Duration waitTime = via->time_from_start - (ros::Time::now() - startTime);
+    ros::Duration waitTime = via->time_from_start - (ros::Time::now() - start_time);
     if (waitTime.toSec() > std::numeric_limits<float>::epsilon())
     {
       ROS_DEBUG("Fake execution: waiting %0.1fs for next via point, %ld remaining", waitTime.toSec(), end - via);
@@ -233,10 +233,10 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
       next = points.begin() + 1,  // currently targetted via point
       end = points.end();
 
-  ros::Time startTime = ros::Time::now();
+  ros::Time start_time = ros::Time::now();
   while (!cancelled())
   {
-    ros::Duration elapsed = ros::Time::now() - startTime;
+    ros::Duration elapsed = ros::Time::now() - start_time;
     // hop to next targetted via point
     while (next != end && elapsed > next->time_from_start)
     {
@@ -259,7 +259,7 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory&
   if (cancelled())
     return;
 
-  ros::Duration elapsed = ros::Time::now() - startTime;
+  ros::Duration elapsed = ros::Time::now() - start_time;
   ROS_DEBUG("elapsed: %.3f via points %td,%td / %td  alpha: 1.0", elapsed.toSec(), prev - points.begin(),
             next - points.begin(), end - points.begin());
 

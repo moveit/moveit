@@ -429,9 +429,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       while (uit != used_handles.end())
         if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
         {
-          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator toErase = uit;
+          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator to_erase = uit;
           ++uit;
-          used_handles.erase(toErase);
+          used_handles.erase(to_erase);
         }
         else
           ++uit;
@@ -652,30 +652,30 @@ struct OrderPotentialControllerCombination
   bool operator()(const std::size_t a, const std::size_t b) const
   {
     // preference is given to controllers marked as default
-    if (nrdefault[a] > nrdefault[b])
+    if (nrdefault_[a] > nrdefault_[b])
       return true;
-    if (nrdefault[a] < nrdefault[b])
+    if (nrdefault_[a] < nrdefault_[b])
       return false;
 
     // and then to ones that operate on fewer joints
-    if (nrjoints[a] < nrjoints[b])
+    if (nrjoints_[a] < nrjoints_[b])
       return true;
-    if (nrjoints[a] > nrjoints[b])
+    if (nrjoints_[a] > nrjoints_[b])
       return false;
 
     // and then to active ones
-    if (nractive[a] < nractive[b])
+    if (nractive_[a] < nractive_[b])
       return true;
-    if (nractive[a] > nractive[b])
+    if (nractive_[a] > nractive_[b])
       return false;
 
     return false;
   }
 
-  std::vector<std::vector<std::string> > selected_options;
-  std::vector<std::size_t> nrdefault;
-  std::vector<std::size_t> nrjoints;
-  std::vector<std::size_t> nractive;
+  std::vector<std::vector<std::string> > selected_options_;
+  std::vector<std::size_t> nrdefault_;
+  std::vector<std::size_t> nrjoints_;
+  std::vector<std::size_t> nractive_;
 };
 }  // namespace
 
@@ -687,7 +687,7 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& ac
   // generate all combinations of controller_count controllers that operate on disjoint sets of joints
   std::vector<std::string> work_area;
   OrderPotentialControllerCombination order;
-  std::vector<std::vector<std::string> >& selected_options = order.selected_options;
+  std::vector<std::vector<std::string> >& selected_options = order.selected_options_;
   generateControllerCombination(0, controller_count, available_controllers, work_area, selected_options,
                                 actuated_joints);
 
@@ -719,9 +719,9 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& ac
   // count how many default controllers are used in each reported option, and how many joints are actuated in total by
   // the selected controllers,
   // to use that in the ranking of the options
-  order.nrdefault.resize(selected_options.size(), 0);
-  order.nrjoints.resize(selected_options.size(), 0);
-  order.nractive.resize(selected_options.size(), 0);
+  order.nrdefault_.resize(selected_options.size(), 0);
+  order.nrjoints_.resize(selected_options.size(), 0);
+  order.nractive_.resize(selected_options.size(), 0);
   for (std::size_t i = 0; i < selected_options.size(); ++i)
   {
     for (std::size_t k = 0; k < selected_options[i].size(); ++k)
@@ -730,10 +730,10 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& ac
       const ControllerInformation& ci = known_controllers_[selected_options[i][k]];
 
       if (ci.state_.default_)
-        order.nrdefault[i]++;
+        order.nrdefault_[i]++;
       if (ci.state_.active_)
-        order.nractive[i]++;
-      order.nrjoints[i] += ci.joints_.size();
+        order.nractive_[i]++;
+      order.nrjoints_[i] += ci.joints_.size();
     }
   }
 
@@ -1048,15 +1048,15 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   }
   std::set<std::string> actuated_joints;
 
-  auto isActuated = [this](const std::string& joint_name) -> bool {
+  auto is_actuated = [this](const std::string& joint_name) -> bool {
     const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
     return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != robot_model::JointModel::FIXED);
   };
   for (const std::string& joint_name : trajectory.multi_dof_joint_trajectory.joint_names)
-    if (isActuated(joint_name))
+    if (is_actuated(joint_name))
       actuated_joints.insert(joint_name);
   for (const std::string& joint_name : trajectory.joint_trajectory.joint_names)
-    if (isActuated(joint_name))
+    if (is_actuated(joint_name))
       actuated_joints.insert(joint_name);
 
   if (actuated_joints.empty())
