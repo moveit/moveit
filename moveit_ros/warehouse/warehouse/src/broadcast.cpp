@@ -121,10 +121,10 @@ int main(int argc, char** argv)
     std::vector<std::string> scene_names;
     pss.getPlanningSceneNames(vm["scene"].as<std::string>(), scene_names);
 
-    for (std::size_t i = 0; i < scene_names.size(); ++i)
+    for (const std::string& scene_name : scene_names)
     {
       moveit_warehouse::PlanningSceneWithMetadata pswm;
-      if (pss.getPlanningScene(pswm, scene_names[i]))
+      if (pss.getPlanningScene(pswm, scene_name))
       {
         ROS_INFO("Publishing scene '%s'",
                  pswm->lookupString(moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME).c_str());
@@ -151,9 +151,9 @@ int main(int argc, char** argv)
             {
               std::vector<moveit_warehouse::RobotTrajectoryWithMetadata> planning_results;
               pss.getPlanningResults(planning_results, query_names[i], pswm->name);
-              for (std::size_t j = 0; j < planning_results.size(); ++j)
+              for (moveit_warehouse::RobotTrajectoryWithMetadata& planning_result : planning_results)
               {
-                pub_res.publish(static_cast<const moveit_msgs::RobotTrajectory&>(*planning_results[j]));
+                pub_res.publish(static_cast<const moveit_msgs::RobotTrajectory&>(*planning_result));
                 ros::spinOnce();
               }
             }
@@ -172,10 +172,10 @@ int main(int argc, char** argv)
     std::vector<std::string> cnames;
     cs.getKnownConstraints(vm["constraint"].as<std::string>(), cnames);
 
-    for (std::size_t i = 0; i < cnames.size(); ++i)
+    for (const std::string& cname : cnames)
     {
       moveit_warehouse::ConstraintsWithMetadata cwm;
-      if (cs.getConstraints(cwm, cnames[i]))
+      if (cs.getConstraints(cwm, cname))
       {
         ROS_INFO("Publishing constraints '%s'",
                  cwm->lookupString(moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME).c_str());
@@ -194,10 +194,10 @@ int main(int argc, char** argv)
     std::vector<std::string> rnames;
     rs.getKnownRobotStates(vm["state"].as<std::string>(), rnames);
 
-    for (std::size_t i = 0; i < rnames.size(); ++i)
+    for (const std::string& rname : rnames)
     {
       moveit_warehouse::RobotStateWithMetadata rswm;
-      if (rs.getRobotState(rswm, rnames[i]))
+      if (rs.getRobotState(rswm, rname))
       {
         ROS_INFO("Publishing state '%s'", rswm->lookupString(moveit_warehouse::RobotStateStorage::STATE_NAME).c_str());
         pub_state.publish(static_cast<const moveit_msgs::RobotState&>(*rswm));

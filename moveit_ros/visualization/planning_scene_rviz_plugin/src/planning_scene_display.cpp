@@ -419,8 +419,8 @@ void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& 
     if (jmg)
     {
       const std::vector<std::string>& links = jmg->getLinkModelNamesWithCollisionGeometry();
-      for (std::size_t i = 0; i < links.size(); ++i)
-        setLinkColor(robot, links[i], color);
+      for (const std::string& link : links)
+        setLinkColor(robot, link, color);
     }
   }
 }
@@ -430,8 +430,8 @@ void PlanningSceneDisplay::unsetAllColors(rviz::Robot* robot)
   if (getRobotModel())
   {
     const std::vector<std::string>& links = getRobotModel()->getLinkModelNamesWithCollisionGeometry();
-    for (std::size_t i = 0; i < links.size(); ++i)
-      unsetLinkColor(robot, links[i]);
+    for (const std::string& link : links)
+      unsetLinkColor(robot, link);
   }
 }
 
@@ -443,8 +443,8 @@ void PlanningSceneDisplay::unsetGroupColor(rviz::Robot* robot, const std::string
     if (jmg)
     {
       const std::vector<std::string>& links = jmg->getLinkModelNamesWithCollisionGeometry();
-      for (std::size_t i = 0; i < links.size(); ++i)
-        unsetLinkColor(robot, links[i]);
+      for (const std::string& link : links)
+        unsetLinkColor(robot, link);
     }
   }
 }

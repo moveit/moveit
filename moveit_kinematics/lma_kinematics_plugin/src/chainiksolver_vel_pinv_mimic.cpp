@@ -89,9 +89,9 @@ bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<lma_kinematic
   if (mimic_joints.size() != chain.getNrOfJoints())
     return false;
 
-  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
+  for (const lma_kinematics_plugin::JointMimic& mimic_joint : mimic_joints)
   {
-    if (mimic_joints[i].map_index >= chain.getNrOfJoints())
+    if (mimic_joint.map_index >= chain.getNrOfJoints())
       return false;
   }
   mimic_joints_ = mimic_joints;
@@ -110,9 +110,9 @@ bool ChainIkSolverVel_pinv_mimic::setRedundantJointsMapIndex(
     return false;
   }
 
-  for (std::size_t i = 0; i < redundant_joints_map_index.size(); ++i)
+  for (unsigned int i : redundant_joints_map_index)
   {
-    if (redundant_joints_map_index[i] >= chain.getNrOfJoints() - num_mimic_joints)
+    if (i >= chain.getNrOfJoints() - num_mimic_joints)
       return false;
   }
   locked_joints_map_index = redundant_joints_map_index;

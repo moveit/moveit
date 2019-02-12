@@ -339,15 +339,15 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 
   // Loop through all planners and add to combo box
-  for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
+  for (const std::string& classe : classes)
   {
-    kinematics_solver_field_->addItem(plugin_it->c_str());
+    kinematics_solver_field_->addItem(classe.c_str());
   }
 
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
-  for (std::size_t i = 0; i < planners.size(); ++i)
+  for (const moveit_setup_assistant::OMPLPlannerDescription& planner : planners)
   {
-    std::string planner_name = planners[i].name_;
+    std::string planner_name = planner.name_;
     default_planner_field_->addItem(planner_name.c_str());
   }
 }

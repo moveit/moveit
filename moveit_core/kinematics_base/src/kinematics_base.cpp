@@ -67,8 +67,8 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
 
   // Copy tip frames to local vector after stripping slashes
   tip_frames_.clear();
-  for (std::size_t i = 0; i < tip_frames.size(); ++i)
-    tip_frames_.push_back(removeSlash(tip_frames[i]));
+  for (const std::string& tip_frame : tip_frames)
+    tip_frames_.push_back(removeSlash(tip_frame));
 
   // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
   if (tip_frames.size() == 1)
@@ -77,9 +77,9 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
 
 bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
-  for (std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
+  for (unsigned int redundant_joint_indice : redundant_joint_indices)
   {
-    if (redundant_joint_indices[i] >= getJointNames().size())
+    if (redundant_joint_indice >= getJointNames().size())
     {
       return false;
     }
@@ -94,9 +94,9 @@ bool KinematicsBase::setRedundantJoints(const std::vector<std::string>& redundan
 {
   const std::vector<std::string>& jnames = getJointNames();
   std::vector<unsigned int> redundant_joint_indices;
-  for (std::size_t i = 0; i < redundant_joint_names.size(); ++i)
+  for (const std::string& redundant_joint_name : redundant_joint_names)
     for (std::size_t j = 0; j < jnames.size(); ++j)
-      if (jnames[j] == redundant_joint_names[i])
+      if (jnames[j] == redundant_joint_name)
       {
         redundant_joint_indices.push_back(j);
         break;

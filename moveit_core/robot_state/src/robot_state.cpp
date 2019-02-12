@@ -156,10 +156,9 @@ void RobotState::copyFrom(const RobotState& other)
 
   // copy attached bodies
   clearAttachedBodies();
-  for (std::map<std::string, AttachedBody*>::const_iterator it = other.attached_body_map_.begin();
-       it != other.attached_body_map_.end(); ++it)
-    attachBody(it->second->getName(), it->second->getShapes(), it->second->getFixedTransforms(),
-               it->second->getTouchLinks(), it->second->getAttachedLinkName(), it->second->getDetachPosture());
+  for (const std::pair<const std::string, moveit::core::AttachedBody*>& it : other.attached_body_map_)
+    attachBody(it.second->getName(), it.second->getShapes(), it.second->getFixedTransforms(),
+               it.second->getTouchLinks(), it.second->getAttachedLinkName(), it.second->getDetachPosture());
 }
 
 bool RobotState::checkJointTransforms(const JointModel* joint) const
@@ -240,8 +239,8 @@ void RobotState::setToRandomPositions(const JointModelGroup* group)
 void RobotState::setToRandomPositions(const JointModelGroup* group, random_numbers::RandomNumberGenerator& rng)
 {
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
-  for (std::size_t i = 0; i < joints.size(); ++i)
-    joints[i]->getVariableRandomPositions(rng, position_ + joints[i]->getFirstVariableIndex());
+  for (const JointModel* joint : joints)
+    joint->getVariableRandomPositions(rng, position_ + joint->getFirstVariableIndex());
   updateMimicJoints(group);
 }
 
@@ -268,10 +267,10 @@ void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const 
   // could trigger updates outside the state of the group itself
   random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
-  for (std::size_t i = 0; i < joints.size(); ++i)
+  for (const JointModel* joint : joints)
   {
-    const int idx = joints[i]->getFirstVariableIndex();
-    joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(),
+    const int idx = joint->getFirstVariableIndex();
+    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(),
                                                 near.position_ + idx, distance);
   }
   updateMimicJoints(group);
@@ -308,11 +307,10 @@ void RobotState::setVariablePositions(const double* position)
 
 void RobotState::setVariablePositions(const std::map<std::string, double>& variable_map)
 {
-  for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end(); it != end;
-       ++it)
+  for (const std::pair<const std::string, double> & it : variable_map)
   {
-    const int index = robot_model_->getVariableIndex(it->first);
-    position_[index] = it->second;
+    const int index = robot_model_->getVariableIndex(it.first);
+    position_[index] = it.second;
     const JointModel* jm = robot_model_->getJointOfVariable(index);
     markDirtyJointTransforms(jm);
     updateMimicJoint(jm);
@@ -324,10 +322,10 @@ void RobotState::getMissingKeys(const std::map<std::string, double>& variable_ma
 {
   missing_variables.clear();
   const std::vector<std::string>& nm = robot_model_->getVariableNames();
-  for (std::size_t i = 0; i < nm.size(); ++i)
-    if (variable_map.find(nm[i]) == variable_map.end())
-      if (robot_model_->getJointOfVariable(nm[i])->getMimic() == nullptr)
-        missing_variables.push_back(nm[i]);
+  for (const std::string& variable : nm)
+    if (variable_map.find(variable) == variable_map.end())
+      if (robot_model_->getJointOfVariable(variable)->getMimic() == nullptr)
+        missing_variables.push_back(variable);
 }
 
 void RobotState::setVariablePositions(const std::map<std::string, double>& variable_map,
@@ -353,9 +351,8 @@ void RobotState::setVariablePositions(const std::vector<std::string>& variable_n
 void RobotState::setVariableVelocities(const std::map<std::string, double>& variable_map)
 {
   markVelocity();
-  for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end(); it != end;
-       ++it)
-    velocity_[robot_model_->getVariableIndex(it->first)] = it->second;
+  for (const std::pair<const std::string, double>& it : variable_map)
+    velocity_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableVelocities(const std::map<std::string, double>& variable_map,
@@ -377,9 +374,8 @@ void RobotState::setVariableVelocities(const std::vector<std::string>& variable_
 void RobotState::setVariableAccelerations(const std::map<std::string, double>& variable_map)
 {
   markAcceleration();
-  for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end(); it != end;
-       ++it)
-    acceleration_[robot_model_->getVariableIndex(it->first)] = it->second;
+  for (const std::pair<const std::string, double>& it : variable_map)
+    acceleration_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableAccelerations(const std::map<std::string, double>& variable_map,
@@ -401,9 +397,8 @@ void RobotState::setVariableAccelerations(const std::vector<std::string>& variab
 void RobotState::setVariableEffort(const std::map<std::string, double>& variable_map)
 {
   markEffort();
-  for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end(); it != end;
-       ++it)
-    acceleration_[robot_model_->getVariableIndex(it->first)] = it->second;
+  for (const std::pair<const std::string, double>& it : variable_map)
+    acceleration_[robot_model_->getVariableIndex(it.first)] = it.second;
 }
 
 void RobotState::setVariableEffort(const std::map<std::string, double>& variable_map,
@@ -574,12 +569,12 @@ void RobotState::updateCollisionBodyTransforms()
     const std::vector<const LinkModel*>& links = dirty_collision_body_transforms_->getDescendantLinkModels();
     dirty_collision_body_transforms_ = nullptr;
 
-    for (std::size_t i = 0; i < links.size(); ++i)
+    for (const LinkModel* link : links)
     {
-      const EigenSTL::vector_Affine3d& ot = links[i]->getCollisionOriginTransforms();
-      const std::vector<int>& ot_id = links[i]->areCollisionOriginTransformsIdentity();
-      const int index_co = links[i]->getFirstCollisionBodyTransformIndex();
-      const int index_l = links[i]->getLinkIndex();
+      const EigenSTL::vector_Affine3d& ot = link->getCollisionOriginTransforms();
+      const std::vector<int>& ot_id = link->areCollisionOriginTransformsIdentity();
+      const int index_co = link->getFirstCollisionBodyTransformIndex();
+      const int index_l = link->getLinkIndex();
       for (std::size_t j = 0; j < ot.size(); ++j)
         global_collision_body_transforms_[index_co + j].matrix().noalias() =
             ot_id[j] ? global_link_transforms_[index_l].matrix() :
@@ -655,8 +650,8 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Affin
 
   // update link transforms for descendant links only (leaving the transform for the current link untouched)
   const std::vector<const JointModel*>& cj = link->getChildJointModels();
-  for (std::size_t i = 0; i < cj.size(); ++i)
-    updateLinkTransformsInternal(cj[i]);
+  for (const JointModel* joint : cj)
+    updateLinkTransformsInternal(joint);
 
   // if we also need to go backward
   if (backward)
@@ -678,9 +673,9 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Affin
       // update link transforms for descendant links only (leaving the transform for the current link untouched)
       // with the exception of the child link we are coming backwards from
       const std::vector<const JointModel*>& cj = parent_link->getChildJointModels();
-      for (std::size_t i = 0; i < cj.size(); ++i)
-        if (cj[i] != child_link->getParentJointModel())
-          updateLinkTransformsInternal(cj[i]);
+      for (const JointModel* joint : cj)
+        if (joint != child_link->getParentJointModel())
+          updateLinkTransformsInternal(joint);
     }
     // all collision body transforms are invalid now
     dirty_collision_body_transforms_ = parent_link->getParentJointModel();
@@ -695,8 +690,8 @@ void RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Affin
 bool RobotState::satisfiesBounds(double margin) const
 {
   const std::vector<const JointModel*>& jm = robot_model_->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
-    if (!satisfiesBounds(jm[i], margin))
+  for (const JointModel* joint : jm)
+    if (!satisfiesBounds(joint, margin))
       return false;
   return true;
 }
@@ -704,8 +699,8 @@ bool RobotState::satisfiesBounds(double margin) const
 bool RobotState::satisfiesBounds(const JointModelGroup* group, double margin) const
 {
   const std::vector<const JointModel*>& jm = group->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
-    if (!satisfiesBounds(jm[i], margin))
+  for (const JointModel* joint : jm)
+    if (!satisfiesBounds(joint, margin))
       return false;
   return true;
 }
@@ -713,15 +708,15 @@ bool RobotState::satisfiesBounds(const JointModelGroup* group, double margin) co
 void RobotState::enforceBounds()
 {
   const std::vector<const JointModel*>& jm = robot_model_->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
-    enforceBounds(jm[i]);
+  for (const JointModel* joint : jm)
+    enforceBounds(joint);
 }
 
 void RobotState::enforceBounds(const JointModelGroup* joint_group)
 {
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
-    enforceBounds(jm[i]);
+  for (const JointModel* joint : jm)
+    enforceBounds(joint);
 }
 
 std::pair<double, const JointModel*> RobotState::getMinDistanceToPositionBounds() const
@@ -739,32 +734,32 @@ RobotState::getMinDistanceToPositionBounds(const std::vector<const JointModel*>&
 {
   double distance = std::numeric_limits<double>::max();
   const JointModel* index = nullptr;
-  for (std::size_t i = 0; i < joints.size(); ++i)
+  for (const JointModel* joint : joints)
   {
-    if (joints[i]->getType() == JointModel::PLANAR || joints[i]->getType() == JointModel::FLOATING)
+    if (joint->getType() == JointModel::PLANAR || joint->getType() == JointModel::FLOATING)
       continue;
-    if (joints[i]->getType() == JointModel::REVOLUTE)
-      if (static_cast<const RevoluteJointModel*>(joints[i])->isContinuous())
+    if (joint->getType() == JointModel::REVOLUTE)
+      if (static_cast<const RevoluteJointModel*>(joint)->isContinuous())
         continue;
 
-    const double* joint_values = getJointPositions(joints[i]);
-    const JointModel::Bounds& bounds = joints[i]->getVariableBounds();
+    const double* joint_values = getJointPositions(joint);
+    const JointModel::Bounds& bounds = joint->getVariableBounds();
     std::vector<double> lower_bounds(bounds.size()), upper_bounds(bounds.size());
     for (std::size_t j = 0; j < bounds.size(); ++j)
     {
       lower_bounds[j] = bounds[j].min_position_;
       upper_bounds[j] = bounds[j].max_position_;
     }
-    double new_distance = joints[i]->distance(joint_values, &lower_bounds[0]);
+    double new_distance = joint->distance(joint_values, &lower_bounds[0]);
     if (new_distance < distance)
     {
-      index = joints[i];
+      index = joint;
       distance = new_distance;
     }
-    new_distance = joints[i]->distance(joint_values, &upper_bounds[0]);
+    new_distance = joint->distance(joint_values, &upper_bounds[0]);
     if (new_distance < distance)
     {
-      index = joints[i];
+      index = joint;
       distance = new_distance;
     }
   }
@@ -774,13 +769,13 @@ RobotState::getMinDistanceToPositionBounds(const std::vector<const JointModel*>&
 bool RobotState::isValidVelocityMove(const RobotState& other, const JointModelGroup* group, double dt) const
 {
   const std::vector<const JointModel*>& jm = group->getActiveJointModels();
-  for (std::size_t joint_id = 0; joint_id < jm.size(); ++joint_id)
+  for (const JointModel* joint : jm)
   {
-    const int idx = jm[joint_id]->getFirstVariableIndex();
-    const std::vector<VariableBounds>& bounds = jm[joint_id]->getVariableBounds();
+    const int idx = joint->getFirstVariableIndex();
+    const std::vector<VariableBounds>& bounds = joint->getVariableBounds();
 
     // Check velocity for each joint variable
-    for (std::size_t var_id = 0; var_id < jm[joint_id]->getVariableCount(); ++var_id)
+    for (std::size_t var_id = 0; var_id < joint->getVariableCount(); ++var_id)
     {
       const double dtheta = std::abs(*(position_ + idx + var_id) - *(other.getVariablePositions() + idx + var_id));
 
@@ -796,10 +791,10 @@ double RobotState::distance(const RobotState& other, const JointModelGroup* join
 {
   double d = 0.0;
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
+  for (const JointModel* joint : jm)
   {
-    const int idx = jm[i]->getFirstVariableIndex();
-    d += jm[i]->getDistanceFactor() * jm[i]->distance(position_ + idx, other.position_ + idx);
+    const int idx = joint->getFirstVariableIndex();
+    d += joint->getDistanceFactor() * joint->distance(position_ + idx, other.position_ + idx);
   }
   return d;
 }
@@ -816,10 +811,10 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state,
                              const JointModelGroup* joint_group) const
 {
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
+  for (const JointModel* joint : jm)
   {
-    const int idx = jm[i]->getFirstVariableIndex();
-    jm[i]->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
+    const int idx = joint->getFirstVariableIndex();
+    joint->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
   }
   state.updateMimicJoints(joint_group);
 }
@@ -870,28 +865,25 @@ void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bo
 {
   attached_bodies.clear();
   attached_bodies.reserve(attached_body_map_.size());
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
-    attached_bodies.push_back(it->second);
+  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+    attached_bodies.push_back(it.second);
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies,
                                    const JointModelGroup* group) const
 {
   attached_bodies.clear();
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
-    if (group->hasLinkModel(it->second->getAttachedLinkName()))
-      attached_bodies.push_back(it->second);
+  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+    if (group->hasLinkModel(it.second->getAttachedLinkName()))
+      attached_bodies.push_back(it.second);
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* lm) const
 {
   attached_bodies.clear();
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
-    if (it->second->getAttachedLink() == lm)
-      attached_bodies.push_back(it->second);
+  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+    if (it.second->getAttachedLink() == lm)
+      attached_bodies.push_back(it.second);
 }
 
 void RobotState::clearAttachedBodies()
@@ -1029,28 +1021,27 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
                                  bool include_attached) const
 {
   ros::Time tm = ros::Time::now();
-  for (std::size_t i = 0; i < link_names.size(); ++i)
+  for (const std::string& link_name : link_names)
   {
-    ROS_DEBUG_NAMED(LOGNAME, "Trying to get marker for link '%s'", link_names[i].c_str());
-    const LinkModel* lm = robot_model_->getLinkModel(link_names[i]);
+    ROS_DEBUG_NAMED(LOGNAME, "Trying to get marker for link '%s'", link_name.c_str());
+    const LinkModel* lm = robot_model_->getLinkModel(link_name);
     if (!lm)
       continue;
     if (include_attached)
-      for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-           it != attached_body_map_.end(); ++it)
-        if (it->second->getAttachedLink() == lm)
+      for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
+        if (it.second->getAttachedLink() == lm)
         {
-          for (std::size_t j = 0; j < it->second->getShapes().size(); ++j)
+          for (std::size_t j = 0; j < it.second->getShapes().size(); ++j)
           {
             visualization_msgs::Marker att_mark;
             att_mark.header.frame_id = robot_model_->getModelFrame();
             att_mark.header.stamp = tm;
-            if (shapes::constructMarkerFromShape(it->second->getShapes()[j].get(), att_mark))
+            if (shapes::constructMarkerFromShape(it.second->getShapes()[j].get(), att_mark))
             {
               // if the object is invisible (0 volume) we skip it
               if (fabs(att_mark.scale.x * att_mark.scale.y * att_mark.scale.z) < std::numeric_limits<float>::epsilon())
                 continue;
-              tf::poseEigenToMsg(it->second->getGlobalCollisionBodyTransforms()[j], att_mark.pose);
+              tf::poseEigenToMsg(it.second->getGlobalCollisionBodyTransforms()[j], att_mark.pose);
               arr.markers.push_back(att_mark);
             }
           }
@@ -1523,11 +1514,11 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
             return false;
           }
           const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-          for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-            if (Transforms::sameFrame(it->first->getName(), solver_tip_frame))
+          for (const std::pair<const LinkModel*, Eigen::Affine3d>& fixed_link : fixed_links)
+            if (Transforms::sameFrame(fixed_link.first->getName(), solver_tip_frame))
             {
               pose_frame = solver_tip_frame;
-              pose = pose * it->second;
+              pose = pose * fixed_link.second;
               break;
             }
         }
@@ -1644,8 +1635,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
         std::vector<unsigned int> red_joints;
         solver->getRedundantJoints(red_joints);
         copyJointGroupPositions(jmg, initial_values);
-        for (std::size_t i = 0; i < red_joints.size(); ++i)
-          seed[red_joints[i]] = initial_values[bij[red_joints[i]]];
+        for (unsigned int red_joint : red_joints)
+          seed[red_joint] = initial_values[bij[red_joint]];
       }
     }
 
@@ -1764,11 +1755,11 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
         if (!lm)
           return false;
         const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-        for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-          if (it->first->getName() == solver_tip_frame)
+        for (const std::pair<const LinkModel*, Eigen::Affine3d>& fixed_link : fixed_links)
+          if (fixed_link.first->getName() == solver_tip_frame)
           {
             pose_frame = solver_tip_frame;
-            pose = pose * it->second;
+            pose = pose * fixed_link.second;
             break;
           }
       }
@@ -1897,8 +1888,8 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 {
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
-  for (std::size_t i = 0; i < cjnt.size(); ++i)
-    enforceBounds(cjnt[i]);
+  for (const JointModel* joint : cjnt)
+    enforceBounds(joint);
 
   // this is the Cartesian pose we start from, and we move in the direction indicated
   Eigen::Affine3d start_pose = getGlobalLinkTransform(link);
@@ -2111,18 +2102,17 @@ void RobotState::computeAABB(std::vector<double>& aabb) const
 
   core::AABB bounding_box;
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (std::size_t i = 0; i < links.size(); ++i)
+  for (const LinkModel* link : links)
   {
-    Eigen::Affine3d transform = getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
-    const Eigen::Vector3d& extents = links[i]->getShapeExtentsAtOrigin();
-    transform.translate(links[i]->getCenteredBoundingBoxOffset());
+    Eigen::Affine3d transform = getGlobalLinkTransform(link);  // intentional copy, we will translate
+    const Eigen::Vector3d& extents = link->getShapeExtentsAtOrigin();
+    transform.translate(link->getCenteredBoundingBoxOffset());
     bounding_box.extendWithTransformedBox(transform, extents);
   }
-  for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
-       it != attached_body_map_.end(); ++it)
+  for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
   {
-    const EigenSTL::vector_Affine3d& transforms = it->second->getGlobalCollisionBodyTransforms();
-    const std::vector<shapes::ShapeConstPtr>& shapes = it->second->getShapes();
+    const EigenSTL::vector_Affine3d& transforms = it.second->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr>& shapes = it.second->getShapes();
     for (std::size_t i = 0; i < transforms.size(); ++i)
     {
       Eigen::Vector3d extents = shapes::computeShapeExtents(shapes[i].get());
@@ -2152,9 +2142,9 @@ void RobotState::printDirtyInfo(std::ostream& out) const
 {
   out << "  * Dirty Joint Transforms: " << std::endl;
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
-    if (jm[i]->getVariableCount() > 0 && dirtyJointTransform(jm[i]))
-      out << "    " << jm[i]->getName() << std::endl;
+  for (const JointModel* joint : jm)
+    if (joint->getVariableCount() > 0 && dirtyJointTransform(joint))
+      out << "    " << joint->getName() << std::endl;
   out << "  * Dirty Link Transforms: " << (dirty_link_transforms_ ? dirty_link_transforms_->getName() : "NULL")
       << std::endl;
   out << "  * Dirty Collision Body Transforms: "
@@ -2222,10 +2212,10 @@ void RobotState::printTransforms(std::ostream& out) const
 
   out << "Joint transforms:" << std::endl;
   const std::vector<const JointModel*>& jm = robot_model_->getJointModels();
-  for (std::size_t i = 0; i < jm.size(); ++i)
+  for (const JointModel* joint : jm)
   {
-    out << "  " << jm[i]->getName();
-    const int idx = jm[i]->getJointIndex();
+    out << "  " << joint->getName();
+    const int idx = joint->getJointIndex();
     if (dirty_joint_transforms_[idx])
       out << " [dirty]";
     out << ": ";
@@ -2234,10 +2224,10 @@ void RobotState::printTransforms(std::ostream& out) const
 
   out << "Link poses:" << std::endl;
   const std::vector<const LinkModel*>& lm = robot_model_->getLinkModels();
-  for (std::size_t i = 0; i < lm.size(); ++i)
+  for (const LinkModel* joint : lm)
   {
-    out << "  " << lm[i]->getName() << ": ";
-    printTransform(global_link_transforms_[lm[i]->getLinkIndex()], out);
+    out << "  " << joint->getName() << ": ";
+    printTransform(global_link_transforms_[joint->getLinkIndex()], out);
   }
 }
 

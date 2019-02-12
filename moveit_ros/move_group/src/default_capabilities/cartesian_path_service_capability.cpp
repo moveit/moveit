@@ -149,8 +149,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
 
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
-          for (std::size_t i = 0; i < traj.size(); ++i)
-            rt.addSuffixWayPoint(traj[i], 0.0);
+          for (const moveit::core::RobotStatePtr& state : traj)
+            rt.addSuffixWayPoint(state, 0.0);
 
           // time trajectory
           // \todo optionally compute timing to move the eef with constant speed

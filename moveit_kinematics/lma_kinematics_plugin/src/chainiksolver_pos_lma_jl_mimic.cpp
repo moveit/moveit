@@ -78,9 +78,9 @@ bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinemat
     return false;
   }
 
-  for (std::size_t i = 0; i < _mimic_joints.size(); ++i)
+  for (const lma_kinematics_plugin::JointMimic& _mimic_joint : _mimic_joints)
   {
-    if (_mimic_joints[i].map_index >= chain.getNrOfJoints())
+    if (_mimic_joint.map_index >= chain.getNrOfJoints())
     {
       ROS_ERROR_NAMED("lma", "Mimic Joint index should be less than number of joints in chain: %d",
                       chain.getNrOfJoints());

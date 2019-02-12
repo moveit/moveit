@@ -208,11 +208,9 @@ void ROSControllersWidget::loadControllersTree()
   controllers_tree_->clear();                   // reset the tree
 
   // Display all controllers by looping through them
-  for (std::vector<moveit_setup_assistant::ROSControlConfig>::iterator controller_it =
-           config_data_->getROSControllers().begin();
-       controller_it != config_data_->getROSControllers().end(); ++controller_it)
+  for (const moveit_setup_assistant::ROSControlConfig& controller : config_data_->getROSControllers())
   {
-    loadToControllersTree(*controller_it);
+    loadToControllersTree(controller);
   }
 
   // Reenable Tree
@@ -256,14 +254,13 @@ void ROSControllersWidget::loadToControllersTree(const moveit_setup_assistant::R
     controller->addChild(joints);
 
     // Loop through all available joints
-    for (std::vector<std::string>::const_iterator joint_it = controller_it.joints_.begin();
-         joint_it != controller_it.joints_.end(); ++joint_it)
+    for (const std::string& joint : controller_it.joints_)
     {
       QTreeWidgetItem* joint_item = new QTreeWidgetItem(joints);
       joint_item->setData(0, Qt::UserRole, QVariant::fromValue(2));
 
       // Add to tree
-      joint_item->setText(0, (*joint_it).c_str());
+      joint_item->setText(0, joint.c_str());
       joints->addChild(joint_item);
     }
   }
@@ -320,11 +317,10 @@ void ROSControllersWidget::loadGroupsScreen(moveit_setup_assistant::ROSControlCo
   std::vector<std::string> groups;
 
   // Display all groups by looping through them
-  for (std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->srdf_model_->getGroups().begin();
-       group_it != config_data_->srdf_->srdf_model_->getGroups().end(); ++group_it)
+  for (const srdf::Model::Group & group_it : config_data_->srdf_->srdf_model_->getGroups())
   {
     // Add to available groups list
-    groups.push_back(group_it->name_);
+    groups.push_back(group_it.name_);
   }
 
   // Set the available groups (left box)
@@ -475,9 +471,9 @@ void ROSControllersWidget::previewSelectedJoints(std::vector<std::string> joints
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (std::size_t i = 0; i < joints.size(); ++i)
+  for (const std::string& joint : joints)
   {
-    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
+    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
 
     // Check that a joint model was found
     if (!joint_model)
@@ -506,10 +502,10 @@ void ROSControllersWidget::previewSelectedGroup(std::vector<std::string> groups)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (std::size_t i = 0; i < groups.size(); ++i)
+  for (const std::string& group : groups)
   {
     // Highlight group
-    Q_EMIT highlightGroup(groups[i]);
+    Q_EMIT highlightGroup(group);
   }
 }
 

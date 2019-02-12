@@ -50,42 +50,42 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, con
   , detach_posture_(detach_posture)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
-  for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
-    global_collision_body_transforms_[i].setIdentity();
+  for (Eigen::Affine3d& global_collision_body_transform : global_collision_body_transforms_)
+    global_collision_body_transform.setIdentity();
 }
 
 moveit::core::AttachedBody::~AttachedBody() = default;
 
 void moveit::core::AttachedBody::setScale(double scale)
 {
-  for (std::size_t i = 0; i < shapes_.size(); ++i)
+  for (shapes::ShapeConstPtr& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
-    if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->scale(scale);
+    if (shape.unique())
+      const_cast<shapes::Shape*>(shape.get())->scale(scale);
     else
     {
       // if the shape is owned elsewhere, we make a copy:
-      shapes::Shape* copy = shapes_[i]->clone();
+      shapes::Shape* copy = shape->clone();
       copy->scale(scale);
-      shapes_[i].reset(copy);
+      shape.reset(copy);
     }
   }
 }
 
 void moveit::core::AttachedBody::setPadding(double padding)
 {
-  for (std::size_t i = 0; i < shapes_.size(); ++i)
+  for (shapes::ShapeConstPtr& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
-    if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->padd(padding);
+    if (shape.unique())
+      const_cast<shapes::Shape*>(shape.get())->padd(padding);
     else
     {
       // if the shape is owned elsewhere, we make a copy:
-      shapes::Shape* copy = shapes_[i]->clone();
+      shapes::Shape* copy = shape->clone();
       copy->padd(padding);
-      shapes_[i].reset(copy);
+      shape.reset(copy);
     }
   }
 }

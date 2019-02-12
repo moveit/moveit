@@ -123,11 +123,11 @@ public:
     if (jm)
     {
       const std::vector<moveit_msgs::JointLimits>& lim = jm->getVariableBoundsMsg();
-      for (std::size_t i = 0; i < lim.size(); ++i)
+      for (const moveit_msgs::JointLimits& joint_limit : lim)
       {
         bp::list l;
-        l.append(lim[i].min_position);
-        l.append(lim[i].max_position);
+        l.append(joint_limit.min_position);
+        l.append(joint_limit.max_position);
         result.append(l);
       }
     }
@@ -346,8 +346,8 @@ public:
       return d;
 
     const std::map<std::string, double>& vars = current_state_monitor_->getCurrentStateValues();
-    for (std::map<std::string, double>::const_iterator it = vars.begin(); it != vars.end(); ++it)
-      d[it->first] = it->second;
+    for (const std::pair<const std::string, double>& var : vars)
+      d[var.first] = var.second;
 
     return d;
   }

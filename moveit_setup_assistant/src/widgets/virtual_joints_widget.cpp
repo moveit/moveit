@@ -377,12 +377,11 @@ srdf::Model::VirtualJoint* VirtualJointsWidget::findVJointByName(const std::stri
   // Find the group state we are editing based on the vjoint name
   srdf::Model::VirtualJoint* searched_group = nullptr;  // used for holding our search results
 
-  for (std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
-       vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it)
+  for (srdf::Model::VirtualJoint & virtual_joint : config_data_->srdf_->virtual_joints_)
   {
-    if (vjoint_it->name_ == name)  // string match
+    if (virtual_joint.name_ == name)  // string match
     {
-      searched_group = &(*vjoint_it);  // convert to pointer from iterator
+      searched_group = &virtual_joint;  // convert to pointer from iterator
       break;                           // we are done searching
     }
   }

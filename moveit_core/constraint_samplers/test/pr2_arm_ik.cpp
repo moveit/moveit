@@ -261,9 +261,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& t
   std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl << theta4[0] << std::endl;
 #endif
 
-  for (int jj = 0; jj < 2; jj++)
+  for (double jj : theta4)
   {
-    t4 = theta4[jj];
+    t4 = jj;
     cost4 = cos(t4);
     sint4 = sin(t4);
 
@@ -284,9 +284,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& t
     if (!solveCosineEqn(at, bt, ct, theta2[0], theta2[1]))
       continue;
 
-    for (int ii = 0; ii < 2; ii++)
+    for (double ii : theta2)
     {
-      t2 = theta2[ii];
+      t2 = ii;
       if (!checkJointLimits(t2, 1))
         continue;
 
@@ -306,9 +306,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Affine3f& g_in, const double& t
       if (!solveCosineEqn(at, bt, ct, theta3[0], theta3[1]))
         continue;
 
-      for (int kk = 0; kk < 2; kk++)
+      for (double kk : theta3)
       {
-        t3 = theta3[kk];
+        t3 = kk;
 
         if (!checkJointLimits(angles::normalize_angle(t3), 2))
           continue;
@@ -529,9 +529,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& 
   theta4[1] = -theta4[0];
   theta4[3] = -theta4[2];
 
-  for (int jj = 0; jj < 4; jj++)
+  for (double jj : theta4)
   {
-    t4 = theta4[jj];
+    t4 = jj;
 
     if (!checkJointLimits(t4, 3))
     {
@@ -552,9 +552,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& 
     if (!solveCosineEqn(at, bt, ct, theta2[0], theta2[1]))
       continue;
 
-    for (int ii = 0; ii < 2; ii++)
+    for (double ii : theta2)
     {
-      t2 = theta2[ii];
+      t2 = ii;
 #ifdef DEBUG
       std::cout << "t2 " << t2 << std::endl;
 #endif
@@ -577,9 +577,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Affine3f& g_in, const double& 
         continue;
       }
 
-      for (int kk = 0; kk < 2; kk++)
+      for (double kk : theta1)
       {
-        t1 = theta1[kk];
+        t1 = kk;
 #ifdef DEBUG
         std::cout << "t1 " << t1 << std::endl;
 #endif

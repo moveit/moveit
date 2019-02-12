@@ -106,26 +106,26 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
   // Load the planning plugins
   const std::vector<std::string>& classes = planner_plugin_loader_->getDeclaredClasses();
 
-  for (std::size_t i = 0; i < plugin_classes.size(); ++i)
+  for (const std::string& plugin_class : plugin_classes)
   {
-    std::vector<std::string>::const_iterator it = std::find(classes.begin(), classes.end(), plugin_classes[i]);
+    auto it = std::find(classes.begin(), classes.end(), plugin_class);
     if (it == classes.end())
     {
-      ROS_ERROR("Failed to find plugin_class %s", plugin_classes[i].c_str());
+      ROS_ERROR("Failed to find plugin_class %s", plugin_class.c_str());
       return;
     }
 
     try
     {
-      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
+      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(plugin_class);
       p->initialize(planning_scene_->getRobotModel(), "");
 
       p->getPlannerConfigurations();
-      planner_interfaces_[plugin_classes[i]] = p;
+      planner_interfaces_[plugin_class] = p;
     }
     catch (pluginlib::PluginlibException& ex)
     {
-      ROS_ERROR_STREAM("Exception while loading planner '" << plugin_classes[i] << "': " << ex.what());
+      ROS_ERROR_STREAM("Exception while loading planner '" << plugin_class << "': " << ex.what());
     }
   }
 
@@ -241,16 +241,16 @@ bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
         planning_scene_->usePlanningSceneMsg(scene_msg);
 
       // Calling query start events
-      for (std::size_t j = 0; j < query_start_fns_.size(); ++j)
-        query_start_fns_[j](queries[i].request, planning_scene_);
+      for (QueryStartEventFunction& query_start_fn : query_start_fns_)
+        query_start_fn(queries[i].request, planning_scene_);
 
       ROS_INFO("Benchmarking query '%s' (%lu of %lu)", queries[i].name.c_str(), i + 1, queries.size());
       ros::WallTime start_time = ros::WallTime::now();
       runBenchmark(queries[i].request, options_.getPlannerConfigurations(), options_.getNumRuns());
       double duration = (ros::WallTime::now() - start_time).toSec();
 
-      for (std::size_t j = 0; j < query_end_fns_.size(); ++j)
-        query_end_fns_[j](queries[i].request, planning_scene_);
+      for (QueryCompletionEventFunction& query_end_fn : query_end_fns_)
+        query_end_fn(queries[i].request, planning_scene_);
 
       writeOutput(queries[i], boost::posix_time::to_iso_extended_string(start_time.toBoost()), duration);
     }
@@ -267,12 +267,12 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<Benchmark
   for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin();
        it != planner_interfaces_.end(); ++it)
   {
-    for (std::size_t i = 0; i < requests.size(); ++i)
+    for (const BenchmarkRequest& request : requests)
     {
-      if (!it->second->canServiceRequest(requests[i].request))
+      if (!it->second->canServiceRequest(request.request))
       {
         ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(),
-                  requests[i].name.c_str());
+                  request.name.c_str());
         return false;
       }
     }
@@ -354,13 +354,13 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 
   // 1) Create requests for combinations of start states,
   //    goal constraints, and path constraints
-  for (std::size_t i = 0; i < goal_constraints.size(); ++i)
+  for (PathConstraints& goal_constraint : goal_constraints)
   {
     // Common benchmark request properties
     BenchmarkRequest brequest;
-    brequest.name = goal_constraints[i].name;
+    brequest.name = goal_constraint.name;
     brequest.request.workspace_parameters = workspace_parameters;
-    brequest.request.goal_constraints = goal_constraints[i].constraints;
+    brequest.request.goal_constraints = goal_constraint.constraints;
     brequest.request.group_name = opts.getGroupName();
     brequest.request.allowed_planning_time = opts.getTimeout();
     brequest.request.num_planning_attempts = 1;
@@ -379,12 +379,12 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 
   // 2) Existing queries are treated like goal constraints.
   //    Create all combos of query, start states, and path constraints
-  for (std::size_t i = 0; i < queries.size(); ++i)
+  for (BenchmarkRequest& querie : queries)
   {
     // Common benchmark request properties
     BenchmarkRequest brequest;
-    brequest.name = queries[i].name;
-    brequest.request = queries[i].request;
+    brequest.name = querie.name;
+    brequest.request = querie.request;
     brequest.request.group_name = opts.getGroupName();
     brequest.request.allowed_planning_time = opts.getTimeout();
     brequest.request.num_planning_attempts = 1;
@@ -408,12 +408,12 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   }
 
   // 3) Trajectory constraints are also treated like goal constraints
-  for (std::size_t i = 0; i < traj_constraints.size(); ++i)
+  for (TrajectoryConstraints& traj_constraint : traj_constraints)
   {
     // Common benchmark request properties
     BenchmarkRequest brequest;
-    brequest.name = traj_constraints[i].name;
-    brequest.request.trajectory_constraints = traj_constraints[i].constraints;
+    brequest.name = traj_constraint.name;
+    brequest.request.trajectory_constraints = traj_constraint.constraints;
     brequest.request.group_name = opts.getGroupName();
     brequest.request.allowed_planning_time = opts.getTimeout();
     brequest.request.num_planning_attempts = 1;
@@ -466,11 +466,11 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
   if (start_states.empty())
   {
     // Adding path constraints
-    for (std::size_t k = 0; k < path_constraints.size(); ++k)
+    for (const PathConstraints& path_constraint : path_constraints)
     {
       BenchmarkRequest new_brequest = brequest;
-      new_brequest.request.path_constraints = path_constraints[k].constraints[0];
-      new_brequest.name = brequest.name + "_" + path_constraints[k].name;
+      new_brequest.request.path_constraints = path_constraint.constraints[0];
+      new_brequest.name = brequest.name + "_" + path_constraint.name;
       requests.push_back(new_brequest);
     }
 
@@ -479,22 +479,22 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
   }
   else  // Create a request for each start state specified
   {
-    for (std::size_t j = 0; j < start_states.size(); ++j)
+    for (const StartState& start_state : start_states)
     {
       BenchmarkRequest new_brequest = brequest;
-      new_brequest.request.start_state = start_states[j].state;
+      new_brequest.request.start_state = start_state.state;
 
       // Duplicate the request for each of the path constraints
-      for (std::size_t k = 0; k < path_constraints.size(); ++k)
+      for (const auto & path_constraint : path_constraints)
       {
-        new_brequest.request.path_constraints = path_constraints[k].constraints[0];
-        new_brequest.name = start_states[j].name + "_" + new_brequest.name + "_" + path_constraints[k].name;
+        new_brequest.request.path_constraints = path_constraint.constraints[0];
+        new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
         requests.push_back(new_brequest);
       }
 
       if (path_constraints.empty())
       {
-        new_brequest.name = start_states[j].name + "_" + brequest.name;
+        new_brequest.name = start_state.name + "_" + brequest.name;
         requests.push_back(new_brequest);
       }
     }
@@ -621,21 +621,21 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
     return false;
   }
 
-  for (std::size_t i = 0; i < query_names.size(); ++i)
+  for (const std::string& query_name : query_names)
   {
     moveit_warehouse::MotionPlanRequestWithMetadata planning_query;
     try
     {
-      pss_->getPlanningQuery(planning_query, scene_name, query_names[i]);
+      pss_->getPlanningQuery(planning_query, scene_name, query_name);
     }
     catch (std::exception& ex)
     {
-      ROS_ERROR("Error loading motion planning query '%s': %s", query_names[i].c_str(), ex.what());
+      ROS_ERROR("Error loading motion planning query '%s': %s", query_name.c_str(), ex.what());
       continue;
     }
 
     BenchmarkRequest query;
-    query.name = query_names[i];
+    query.name = query_name;
     query.request = static_cast<moveit_msgs::MotionPlanRequest>(*planning_query);
     queries.push_back(query);
   }
@@ -650,25 +650,25 @@ bool BenchmarkExecutor::loadStates(const std::string& regex, std::vector<StartSt
     boost::regex start_regex(regex);
     std::vector<std::string> state_names;
     rs_->getKnownRobotStates(state_names);
-    for (std::size_t i = 0; i < state_names.size(); ++i)
+    for (const std::string& state_name : state_names)
     {
       boost::cmatch match;
-      if (boost::regex_match(state_names[i].c_str(), match, start_regex))
+      if (boost::regex_match(state_name.c_str(), match, start_regex))
       {
         moveit_warehouse::RobotStateWithMetadata robot_state;
         try
         {
-          if (rs_->getRobotState(robot_state, state_names[i]))
+          if (rs_->getRobotState(robot_state, state_name))
           {
             StartState start_state;
             start_state.state = moveit_msgs::RobotState(*robot_state);
-            start_state.name = state_names[i];
+            start_state.name = state_name;
             start_states.push_back(start_state);
           }
         }
         catch (std::exception& ex)
         {
-          ROS_ERROR("Runtime error when loading state '%s': %s", state_names[i].c_str(), ex.what());
+          ROS_ERROR("Runtime error when loading state '%s': %s", state_name.c_str(), ex.what());
           continue;
         }
       }
@@ -688,22 +688,22 @@ bool BenchmarkExecutor::loadPathConstraints(const std::string& regex, std::vecto
     std::vector<std::string> cnames;
     cs_->getKnownConstraints(regex, cnames);
 
-    for (std::size_t i = 0; i < cnames.size(); ++i)
+    for (const std::string& cname : cnames)
     {
       moveit_warehouse::ConstraintsWithMetadata constr;
       try
       {
-        if (cs_->getConstraints(constr, cnames[i]))
+        if (cs_->getConstraints(constr, cname))
         {
           PathConstraints constraint;
           constraint.constraints.push_back(*constr);
-          constraint.name = cnames[i];
+          constraint.name = cname;
           constraints.push_back(constraint);
         }
       }
       catch (std::exception& ex)
       {
-        ROS_ERROR("Runtime error when loading path constraint '%s': %s", cnames[i].c_str(), ex.what());
+        ROS_ERROR("Runtime error when loading path constraint '%s': %s", cname.c_str(), ex.what());
         continue;
       }
     }
@@ -724,22 +724,22 @@ bool BenchmarkExecutor::loadTrajectoryConstraints(const std::string& regex,
     std::vector<std::string> cnames;
     tcs_->getKnownTrajectoryConstraints(regex, cnames);
 
-    for (std::size_t i = 0; i < cnames.size(); ++i)
+    for (const std::string& cname : cnames)
     {
       moveit_warehouse::TrajectoryConstraintsWithMetadata constr;
       try
       {
-        if (tcs_->getTrajectoryConstraints(constr, cnames[i]))
+        if (tcs_->getTrajectoryConstraints(constr, cname))
         {
           TrajectoryConstraints constraint;
           constraint.constraints = *constr;
-          constraint.name = cnames[i];
+          constraint.name = cname;
           constraints.push_back(constraint);
         }
       }
       catch (std::exception& ex)
       {
-        ROS_ERROR("Runtime error when loading trajectory constraint '%s': %s", cnames[i].c_str(), ex.what());
+        ROS_ERROR("Runtime error when loading trajectory constraint '%s': %s", cname.c_str(), ex.what());
         continue;
       }
     }
@@ -758,35 +758,33 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
   benchmark_data_.clear();
 
   unsigned int num_planners = 0;
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
-    num_planners += it->second.size();
+  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
+    num_planners += planner.second.size();
 
   boost::progress_display progress(num_planners * runs, std::cout);
 
   // Iterate through all planner plugins
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
+  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
   {
     // Iterate through all planners associated with the plugin
-    for (std::size_t i = 0; i < it->second.size(); ++i)
+    for (std::size_t i = 0; i < planner.second.size(); ++i)
     {
       // This container stores all of the benchmark data for this planner
       PlannerBenchmarkData planner_data(runs);
 
-      request.planner_id = it->second[i];
+      request.planner_id = planner.second[i];
 
       // Planner start events
-      for (std::size_t j = 0; j < planner_start_fns_.size(); ++j)
-        planner_start_fns_[j](request, planner_data);
+      for (auto & planner_start_fn : planner_start_fns_)
+        planner_start_fn(request, planner_data);
 
       planning_interface::PlanningContextPtr context =
-          planner_interfaces_[it->first]->getPlanningContext(planning_scene_, request);
+          planner_interfaces_[planner.first]->getPlanningContext(planning_scene_, request);
       for (int j = 0; j < runs; ++j)
       {
         // Pre-run events
-        for (std::size_t k = 0; k < pre_event_fns_.size(); ++k)
-          pre_event_fns_[k](request);
+        for (PreRunEventFunction& pre_event_fn : pre_event_fns_)
+          pre_event_fn(request);
 
         // Solve problem
         planning_interface::MotionPlanDetailedResponse mp_res;
@@ -798,8 +796,8 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
         start = ros::WallTime::now();
 
         // Post-run events
-        for (std::size_t k = 0; k < post_event_fns_.size(); ++k)
-          post_event_fns_[k](request, mp_res, planner_data[j]);
+        for (PostRunEventFunction& post_event_fn : post_event_fns_)
+          post_event_fn(request, mp_res, planner_data[j]);
         collectMetrics(planner_data[j], mp_res, solved, total_time);
         double metrics_time = (ros::WallTime::now() - start).toSec();
         ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
@@ -808,8 +806,8 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
       }
 
       // Planner completion events
-      for (std::size_t j = 0; j < planner_completion_fns_.size(); ++j)
-        planner_completion_fns_[j](request, planner_data);
+      for (PlannerCompletionEventFunction& planner_completion_fn : planner_completion_fns_)
+        planner_completion_fn(request, planner_data);
 
       benchmark_data_.push_back(planner_data);
     }
@@ -911,9 +909,8 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
   const std::map<std::string, std::vector<std::string>>& planners = options_.getPlannerConfigurations();
 
   size_t num_planners = 0;
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
-    num_planners += it->second.size();
+  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
+    num_planners += planner.second.size();
 
   std::string hostname = getHostname();
   if (hostname.empty())
@@ -963,13 +960,12 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
   out << num_planners << " planners" << std::endl;
 
   size_t run_id = 0;
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
+  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
   {
-    for (std::size_t i = 0; i < it->second.size(); ++i, ++run_id)
+    for (std::size_t i = 0; i < planner.second.size(); ++i, ++run_id)
     {
       // Write the name of the planner.
-      out << it->second[i] << std::endl;
+      out << planner.second[i] << std::endl;
 
       // in general, we could have properties specific for a planner;
       // right now, we do not include such properties
@@ -977,28 +973,28 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
 
       // Create a list of the benchmark properties for this planner
       std::set<std::string> properties_set;
-      for (std::size_t j = 0; j < benchmark_data_[run_id].size(); ++j)  // each run of this planner
-        for (PlannerRunData::const_iterator pit = benchmark_data_[run_id][j].begin();
-             pit != benchmark_data_[run_id][j].end(); ++pit)  // each benchmark property of the given run
+      for (std::map<std::string, std::string>& planner_run_data : benchmark_data_[run_id])  // each run of this planner
+        for (PlannerRunData::const_iterator pit = planner_run_data.begin();
+             pit != planner_run_data.end(); ++pit)  // each benchmark property of the given run
           properties_set.insert(pit->first);
 
       // Writing property list
       out << properties_set.size() << " properties for each run" << std::endl;
-      for (std::set<std::string>::const_iterator pit = properties_set.begin(); pit != properties_set.end(); ++pit)
-        out << *pit << std::endl;
+      for (const std::string& property : properties_set)
+        out << property << std::endl;
 
       // Number of runs
       out << benchmark_data_[run_id].size() << " runs" << std::endl;
 
       // And the benchmark properties
-      for (std::size_t j = 0; j < benchmark_data_[run_id].size(); ++j)  // each run of this planner
+      for (std::map<std::string, std::string>& planner_run_data : benchmark_data_[run_id])  // each run of this planner
       {
         // Write out properties in the order we listed them above
-        for (std::set<std::string>::const_iterator pit = properties_set.begin(); pit != properties_set.end(); ++pit)
+        for (const auto & pit : properties_set)
         {
           // Make sure this run has this property
-          PlannerRunData::const_iterator runit = benchmark_data_[run_id][j].find(*pit);
-          if (runit != benchmark_data_[run_id][j].end())
+          auto runit = planner_run_data.find(pit);
+          if (runit != planner_run_data.end())
             out << runit->second;
           out << "; ";
         }

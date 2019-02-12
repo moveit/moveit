@@ -179,19 +179,19 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
   bool found_shoulder_pan_link = false;
   bool found_wrist_roll_link = false;
-  for (unsigned int i = 0; i < left_arm_base_tip_group->getLinkModels().size(); i++)
+  for (const moveit::core::LinkModel* link : left_arm_base_tip_group->getLinkModels())
   {
-    if (left_arm_base_tip_group->getLinkModels()[i]->getName() == "l_shoulder_pan_link")
+    if (link->getName() == "l_shoulder_pan_link")
     {
       EXPECT_TRUE(!found_shoulder_pan_link);
       found_shoulder_pan_link = true;
     }
-    if (left_arm_base_tip_group->getLinkModels()[i]->getName() == "l_wrist_roll_link")
+    if (link->getName() == "l_wrist_roll_link")
     {
       EXPECT_TRUE(!found_wrist_roll_link);
       found_wrist_roll_link = true;
     }
-    EXPECT_TRUE(left_arm_base_tip_group->getLinkModels()[i]->getName() != "torso_lift_link");
+    EXPECT_TRUE(link->getName() != "torso_lift_link");
   }
   EXPECT_TRUE(found_shoulder_pan_link);
   EXPECT_TRUE(found_wrist_roll_link);

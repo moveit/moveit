@@ -292,14 +292,14 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   // the name of a planner is either "GROUP[planner_id]" or "planner_id"
   if (!group.empty())
   {
-    for (std::size_t i = 0; i < desc.planner_ids.size(); ++i)
-      if (desc.planner_ids[i] == group)
+    for (const std::string& planner_id : desc.planner_ids)
+      if (planner_id == group)
         found_group = true;
-      else if (desc.planner_ids[i].substr(0, group.length()) == group)
+      else if (planner_id.substr(0, group.length()) == group)
       {
-        if (desc.planner_ids[i].size() > group.length() && desc.planner_ids[i][group.length()] == '[')
+        if (planner_id.size() > group.length() && planner_id[group.length()] == '[')
         {
-          std::string id = desc.planner_ids[i].substr(group.length());
+          std::string id = planner_id.substr(group.length());
           if (id.size() > 2)
           {
             id.resize(id.length() - 1);
@@ -309,8 +309,8 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
       }
   }
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
-    for (std::size_t i = 0; i < desc.planner_ids.size(); ++i)
-      ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
+    for (const std::string& planner_id : desc.planner_ids)
+      ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(planner_id));
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
   // retrieve default planner config from parameter server
@@ -332,8 +332,8 @@ void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string>
 {
   ui_->path_constraints_combo_box->clear();
   ui_->path_constraints_combo_box->addItem("None");
-  for (std::size_t i = 0; i < constr.size(); ++i)
-    ui_->path_constraints_combo_box->addItem(QString::fromStdString(constr[i]));
+  for (const std::string& constraint : constr)
+    ui_->path_constraints_combo_box->addItem(QString::fromStdString(constraint));
 }
 
 void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest& mreq)
@@ -381,17 +381,17 @@ void MotionPlanningFrame::configureWorkspace()
   {
     const robot_model::RobotModelPtr& kmodel = psm->getRobotModelLoader()->getModel();
     const std::vector<robot_model::JointModel*>& jm = kmodel->getJointModels();
-    for (std::size_t i = 0; i < jm.size(); ++i)
-      if (jm[i]->getType() == robot_model::JointModel::PLANAR)
+    for (robot_model::JointModel* joint_model : jm)
+      if (joint_model->getType() == robot_model::JointModel::PLANAR)
       {
-        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
-        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
+        joint_model->setVariableBounds(joint_model->getName() + "/" + joint_model->getLocalVariableNames()[0], bx);
+        joint_model->setVariableBounds(joint_model->getName() + "/" + joint_model->getLocalVariableNames()[1], by);
       }
-      else if (jm[i]->getType() == robot_model::JointModel::FLOATING)
+      else if (joint_model->getType() == robot_model::JointModel::FLOATING)
       {
-        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
-        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
-        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[2], bz);
+        joint_model->setVariableBounds(joint_model->getName() + "/" + joint_model->getLocalVariableNames()[0], bx);
+        joint_model->setVariableBounds(joint_model->getName() + "/" + joint_model->getLocalVariableNames()[1], by);
+        joint_model->setVariableBounds(joint_model->getName() + "/" + joint_model->getLocalVariableNames()[2], bz);
       }
   }
 }

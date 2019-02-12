@@ -204,8 +204,8 @@ void MotionPlanningFrame::approximateIKChanged(int state)
 void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
 {
   QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (int i = 0; i < found_items.size(); ++i)
-    found_items[i]->setSelected(selection);
+  for (QListWidgetItem* found_item : found_items)
+    found_item->setSelected(selection);
 }
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
@@ -274,10 +274,10 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     {
       ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
       ui_->goal_state_selection->insertSeparator(ui_->goal_state_selection->count());
-      for (std::size_t i = 0; i < known_states.size(); ++i)
+      for (const std::string& known_state : known_states)
       {
-        ui_->start_state_selection->addItem(QString::fromStdString(known_states[i]));
-        ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
+        ui_->start_state_selection->addItem(QString::fromStdString(known_state));
+        ui_->goal_state_selection->addItem(QString::fromStdString(known_state));
       }
     }
     ui_->start_state_selection->setCurrentIndex(2);  // default to 'current'

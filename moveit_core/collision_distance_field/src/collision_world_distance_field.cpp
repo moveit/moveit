@@ -362,19 +362,19 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
       if (coll)
       {
         res.collision = true;
-        for (unsigned int j = 0; j < colls.size(); j++)
+        for (unsigned int collision_sphere_index : colls)
         {
           Contact con;
           if (is_link)
           {
-            con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
+            con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[collision_sphere_index];
             con.body_type_1 = BodyTypes::ROBOT_LINK;
             con.body_name_1 = gsr->dfce_->link_names_[i];
           }
           else
           {
             con.pos =
-                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[colls[j]];
+                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[collision_sphere_index];
             con.body_type_1 = BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i - gsr->dfce_->link_names_.size()];
           }
@@ -383,7 +383,7 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
           con.body_name_2 = "environment";
           res.contact_count++;
           res.contacts[std::pair<std::string, std::string>(con.body_name_1, con.body_name_2)].push_back(con);
-          gsr->gradients_[i].types[colls[j]] = ENVIRONMENT;
+          gsr->gradients_[i].types[collision_sphere_index] = ENVIRONMENT;
           // ROS_DEBUG_STREAM("Link " << dfce->link_names_[i] << " sphere " <<
           // colls[j] << " in env collision");
         }
@@ -499,14 +499,13 @@ void CollisionWorldDistanceField::updateDistanceObject(const std::string& id, Di
                                                        EigenSTL::vector_Vector3d& add_points,
                                                        EigenSTL::vector_Vector3d& subtract_points)
 {
-  std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>>::iterator cur_it =
-      dfce->posed_body_point_decompositions_.find(id);
+  auto cur_it = dfce->posed_body_point_decompositions_.find(id);
   if (cur_it != dfce->posed_body_point_decompositions_.end())
   {
-    for (unsigned int i = 0; i < cur_it->second.size(); i++)
+    for (PosedBodyPointDecompositionPtr& it : cur_it->second)
     {
-      subtract_points.insert(subtract_points.end(), cur_it->second[i]->getCollisionPoints().begin(),
-                             cur_it->second[i]->getCollisionPoints().end());
+      subtract_points.insert(subtract_points.end(), it->getCollisionPoints().begin(),
+                             it->getCollisionPoints().end());
     }
   }
 
@@ -555,9 +554,9 @@ CollisionWorldDistanceField::DistanceFieldCacheEntryPtr CollisionWorldDistanceFi
 
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
-  for (World::const_iterator it = getWorld()->begin(); it != getWorld()->end(); ++it)
+  for (const std::pair<const std::string, collision_detection::World::ObjectPtr>& it : *getWorld())
   {
-    updateDistanceObject(it->first, dfce, add_points, subtract_points);
+    updateDistanceObject(it.first, dfce, add_points, subtract_points);
   }
   dfce->distance_field_->addPointsToField(add_points);
   return dfce;

@@ -140,16 +140,16 @@ void planning_pipeline::PlanningPipeline::configure()
     }
 
     if (adapter_plugin_loader_)
-      for (std::size_t i = 0; i < adapter_plugin_names_.size(); ++i)
+      for (std::string& adapter_plugin_name : adapter_plugin_names_)
       {
         planning_request_adapter::PlanningRequestAdapterConstPtr ad;
         try
         {
-          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_names_[i]));
+          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_name));
         }
         catch (pluginlib::PluginlibException& ex)
         {
-          ROS_ERROR_STREAM("Exception while loading planning adapter plugin '" << adapter_plugin_names_[i]
+          ROS_ERROR_STREAM("Exception while loading planning adapter plugin '" << adapter_plugin_name
                                                                                << "': " << ex.what());
         }
         if (ad)
@@ -158,10 +158,10 @@ void planning_pipeline::PlanningPipeline::configure()
     if (!ads.empty())
     {
       adapter_chain_.reset(new planning_request_adapter::PlanningRequestAdapterChain());
-      for (std::size_t i = 0; i < ads.size(); ++i)
+      for (planning_request_adapter::PlanningRequestAdapterConstPtr& ad : ads)
       {
-        ROS_INFO_STREAM("Using planning request adapter '" << ads[i]->getDescription() << "'");
-        adapter_chain_->addAdapter(ads[i]);
+        ROS_INFO_STREAM("Using planning request adapter '" << ad->getDescription() << "'");
+        adapter_chain_->addAdapter(ad);
       }
     }
   }
@@ -229,8 +229,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       if (!adapter_added_state_index.empty())
       {
         std::stringstream ss;
-        for (std::size_t i = 0; i < adapter_added_state_index.size(); ++i)
-          ss << adapter_added_state_index[i] << " ";
+        for (std::size_t& i: adapter_added_state_index)
+          ss << i << " ";
         ROS_INFO("Planning adapters have added states at index positions: [ %s]", ss.str().c_str());
       }
     }
@@ -263,8 +263,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
         for (std::size_t i = 0; i < index.size() && !problem; ++i)
         {
           bool found = false;
-          for (std::size_t j = 0; j < adapter_added_state_index.size(); ++j)
-            if (index[i] == adapter_added_state_index[j])
+          for (std::size_t& j : adapter_added_state_index)
+            if (index[i] == j)
             {
               found = true;
               break;
@@ -283,8 +283,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 
             // display error messages
             std::stringstream ss;
-            for (std::size_t i = 0; i < index.size(); ++i)
-              ss << index[i] << " ";
+            for (std::size_t& i : index)
+              ss << i << " ";
             ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ "
                              << ss.str() << "] out of " << state_count
                              << ". Explanations follow in command line. Contacts are published on "
@@ -292,10 +292,10 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
 
             // call validity checks in verbose mode for the problematic states
             visualization_msgs::MarkerArray arr;
-            for (std::size_t i = 0; i < index.size(); ++i)
+            for (std::size_t& waypoint_index : index)
             {
               // check validity with verbose on
-              const robot_state::RobotState& kstate = res.trajectory_->getWayPoint(index[i]);
+              const robot_state::RobotState& kstate = res.trajectory_->getWayPoint(waypoint_index);
               planning_scene->isStateValid(kstate, req.path_constraints, req.group_name, true);
 
               // compute the contacts if any

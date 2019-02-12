@@ -88,21 +88,21 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   }
 
   const std::vector<std::string>& ids = scene->getWorld()->getObjectIds();
-  for (std::size_t i = 0; i < ids.size(); ++i)
+  for (const std::string& id : ids)
   {
-    collision_detection::CollisionWorld::ObjectConstPtr o = scene->getWorld()->getObject(ids[i]);
+    collision_detection::CollisionWorld::ObjectConstPtr object = scene->getWorld()->getObject(id);
     rviz::Color color = default_env_color;
     float alpha = default_scene_alpha;
-    if (scene->hasObjectColor(ids[i]))
+    if (scene->hasObjectColor(id))
     {
-      const std_msgs::ColorRGBA& c = scene->getObjectColor(ids[i]);
+      const std_msgs::ColorRGBA& c = scene->getObjectColor(id);
       color.r_ = c.r;
       color.g_ = c.g;
       color.b_ = c.b;
       alpha = c.a;
     }
-    for (std::size_t j = 0; j < o->shapes_.size(); ++j)
-      render_shapes_->renderShape(planning_scene_geometry_node_, o->shapes_[j].get(), o->shape_poses_[j],
+    for (std::size_t j = 0; j < object->shapes_.size(); ++j)
+      render_shapes_->renderShape(planning_scene_geometry_node_, object->shapes_[j].get(), object->shape_poses_[j],
                                   octree_voxel_rendering, octree_color_mode, color, alpha);
   }
 }

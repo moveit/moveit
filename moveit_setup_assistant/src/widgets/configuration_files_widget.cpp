@@ -759,9 +759,9 @@ bool ConfigurationFilesWidget::checkGenFiles()
 
   // Check all old file's modification time
   bool found_modified = false;
-  for (std::size_t i = 0; i < gen_files_.size(); ++i)
+  for (moveit_setup_assistant::GenerateFile & gen_file : gen_files_)
   {
-    GenerateFile* file = &gen_files_[i];
+    GenerateFile* file = &gen_file;
 
     fs::path file_path = config_data_->appendPaths(config_data_->config_pkg_path_, file->rel_path_);
 
@@ -950,9 +950,9 @@ bool ConfigurationFilesWidget::generatePackage()
   // Begin to create files and folders ----------------------------------------------------------------------
   std::string absolute_path;
 
-  for (std::size_t i = 0; i < gen_files_.size(); ++i)
+  for (moveit_setup_assistant::GenerateFile & gen_file : gen_files_)
   {
-    GenerateFile* file = &gen_files_[i];
+    GenerateFile* file = &gen_file;
 
     // Check if we should skip this file
     if (!file->generate_)
@@ -1112,12 +1112,11 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   else
   {
     std::stringstream controllers;
-    for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
-         controller_it != config_data_->getROSControllers().end(); ++controller_it)
+    for (const moveit_setup_assistant::ROSControlConfig & controller : config_data_->getROSControllers())
     {
       // Check if the controller belongs to controller_list namespace
-      if (controller_it->type_ != "FollowJointTrajectory")
-        controllers << controller_it->name_ << " ";
+      if (controller.type_ != "FollowJointTrajectory")
+        controllers << controller.name_ << " ";
     }
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
@@ -1171,9 +1170,9 @@ bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, co
   template_stream.close();
 
   // Replace keywords in string ------------------------------------------------------------
-  for (std::size_t i = 0; i < template_strings_.size(); ++i)
+  for (std::pair<std::string, std::string> & str_item : template_strings_)
   {
-    boost::replace_all(template_string, template_strings_[i].first, template_strings_[i].second);
+    boost::replace_all(template_string, str_item.first, str_item.second);
   }
 
   // Save string to new location -----------------------------------------------------------

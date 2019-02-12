@@ -72,8 +72,8 @@ void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray& jnt_array, bool 
 
 bool KDLKinematicsPlugin::isRedundantJoint(unsigned int index) const
 {
-  for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
-    if (redundant_joint_indices_[j] == index)
+  for (unsigned int redundant_joint_indice : redundant_joint_indices_)
+    if (redundant_joint_indice == index)
       return true;
   return false;
 }
@@ -103,8 +103,8 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state
   {
     bool skip = false;
     if (lock_redundancy)
-      for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
-        if (redundant_joint_indices_[j] == i)
+      for (unsigned int redundant_joint_indice : redundant_joint_indices_)
+        if (redundant_joint_indice == i)
         {
           skip = true;
           break;
@@ -318,9 +318,9 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
   for (std::size_t i = 0; i < dimension_; ++i)
   {
     bool is_redundant_joint = false;
-    for (std::size_t j = 0; j < redundant_joints.size(); ++j)
+    for (unsigned int redundant_joint : redundant_joints)
     {
-      if (i == redundant_joints[j])
+      if (i == redundant_joint)
       {
         is_redundant_joint = true;
         counter++;

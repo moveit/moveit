@@ -74,10 +74,10 @@ void NavigationWidget::setNavs(const QList<QString>& navs)
   setModel(nullptr);
   model_->clear();
 
-  for (int i = 0; i < navs.size(); i++)
+  for (const QString& nav : navs)
   {
     QStandardItem* item = new QStandardItem();
-    item->setData(QVariant::fromValue(navs.at(i)), Qt::DisplayRole);
+    item->setData(QVariant::fromValue(nav), Qt::DisplayRole);
     item->setFlags(Qt::NoItemFlags);
     model_->appendRow(item);
   }

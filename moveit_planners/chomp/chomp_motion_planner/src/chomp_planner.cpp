@@ -94,13 +94,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   int goal_index = trajectory.getNumPoints() - 1;
   trajectory.getTrajectoryPoint(goal_index) = trajectory.getTrajectoryPoint(0);
   sensor_msgs::JointState js;
-  for (unsigned int i = 0; i < req.goal_constraints[0].joint_constraints.size(); i++)
+  for (const moveit_msgs::JointConstraint& joint_constraint : req.goal_constraints[0].joint_constraints)
   {
-    js.name.push_back(req.goal_constraints[0].joint_constraints[i].joint_name);
-    js.position.push_back(req.goal_constraints[0].joint_constraints[i].position);
-    ROS_INFO_STREAM_NAMED("chomp_planner", "Setting joint " << req.goal_constraints[0].joint_constraints[i].joint_name
+    js.name.push_back(joint_constraint.joint_name);
+    js.position.push_back(joint_constraint.position);
+    ROS_INFO_STREAM_NAMED("chomp_planner", "Setting joint " << joint_constraint.joint_name
                                                             << " to position "
-                                                            << req.goal_constraints[0].joint_constraints[i].position);
+                                                            << joint_constraint.position);
   }
   jointStateToArray(planning_scene->getRobotModel(), js, req.group_name, trajectory.getTrajectoryPoint(goal_index));
 
