@@ -10,7 +10,6 @@ set(HEADERS
   include/moveit/rviz_plugin_render_tools/trajectory_panel.h
 )
 
-#catkin_lint: ignore_once missing_directory
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${MOVEIT_LIB_NAME}
