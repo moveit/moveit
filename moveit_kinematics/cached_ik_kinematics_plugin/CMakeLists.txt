@@ -1,7 +1,6 @@
 find_package(trac_ik_kinematics_plugin QUIET)
 find_package(ur_kinematics QUIET)
 
-#catkin_lint: ignore_once duplicate_find
 find_package(Boost COMPONENTS filesystem program_options REQUIRED)
 
 set(MOVEIT_LIB_NAME moveit_cached_ik_kinematics_base)
