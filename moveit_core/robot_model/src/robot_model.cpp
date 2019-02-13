@@ -637,7 +637,6 @@ void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
           ROS_WARN_NAMED(LOGNAME, "Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
           it->second->setEndEffectorParent("", eefs[k].parent_link_);
         }
-        break;
       }
   }
   std::sort(end_effectors_.begin(), end_effectors_.end(), OrderGroupsByName());
