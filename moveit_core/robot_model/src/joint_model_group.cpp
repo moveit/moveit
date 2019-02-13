@@ -489,18 +489,17 @@ bool JointModelGroup::getEndEffectorTips(std::vector<std::string>& tips) const
 
   // Convert to string names
   tips.clear();
-  for (std::size_t i = 0; i < tip_links.size(); ++i)
-  {
-    tips.push_back(tip_links[i]->getName());
-  }
+  for (const LinkModel* link_model : tip_links)
+    tips.push_back(link_model->getName());
   return true;
 }
 
 bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) const
 {
-  for (std::size_t i = 0; i < getAttachedEndEffectorNames().size(); ++i)
+  tips.clear();
+  for (const std::string& name : getAttachedEndEffectorNames())
   {
-    const JointModelGroup* eef = parent_model_->getEndEffector(getAttachedEndEffectorNames()[i]);
+    const JointModelGroup* eef = parent_model_->getEndEffector(name);
     if (!eef)
     {
       ROS_ERROR_NAMED("robot_model.jmg", "Unable to find joint model group for eef");
@@ -514,8 +513,10 @@ bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) co
       ROS_ERROR_NAMED("robot_model.jmg", "Unable to find end effector link for eef");
       return false;
     }
-
-    tips.push_back(eef_link);
+    // insert eef_link into tips, maintaining a *sorted* vector, thus enabling use of std::lower_bound
+    const auto insert_it = std::lower_bound(tips.cbegin(), tips.cend(), eef_link);
+    if (insert_it == tips.end() || eef_link != *insert_it)  // only insert if not a duplicate
+      tips.insert(insert_it, eef_link);
   }
   return true;
 }
