@@ -94,7 +94,7 @@ bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::strin
 }
 
 bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
-                                      AllowedCollision::Type& allowed_collision) const
+                                      AllowedCollision::Type& allowed_collision_type) const
 {
   auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
@@ -102,7 +102,7 @@ bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::strin
   auto it2 = it1->second.find(name2);
   if (it2 == it1->second.end())
     return false;
-  allowed_collision = it2->second;
+  allowed_collision_type = it2->second;
   return true;
 }
 

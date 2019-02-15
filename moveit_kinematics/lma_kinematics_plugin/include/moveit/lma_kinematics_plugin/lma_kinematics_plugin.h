@@ -108,7 +108,7 @@ public:
                              std::vector<geometry_msgs::Pose>& poses) const;
 
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
-                          const std::string& base_name, const std::string& tip_name, double search_discretization);
+                          const std::string& base_frame, const std::string& tip_frame, double search_discretization);
 
   /**
    * @brief  Return all the joint names in the order they are used internally
@@ -155,7 +155,7 @@ private:
    *  @param solution solution configuration
    *  @return true if check succeeds
    */
-  bool checkConsistency(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limit,
+  bool checkConsistency(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
                         const KDL::JntArray& solution) const;
 
   int getJointIndex(const std::string& name) const;

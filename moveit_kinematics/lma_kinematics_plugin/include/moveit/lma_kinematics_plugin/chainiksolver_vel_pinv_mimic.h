@@ -100,7 +100,7 @@ public:
    * @param mimic_joints Vector of size chain.getNrOfJoints() that maps every joint in the chain onto (a) itself
    * if its not a mimic joint or (b) onto the active dof that it is mimicking
    */
-  bool setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& _mimic_joints);
+  bool setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& mimic_joints);
 
   /**
    * @brief Set a mapping between a reduced set of joints (numbering either 6 or 3) and the full set of active (i.e
@@ -114,72 +114,72 @@ public:
 
   void lockRedundantJoints()
   {
-    redundant_joints_locked = true;
+    redundant_joints_locked_ = true;
   }
 
   void unlockRedundantJoints()
   {
-    redundant_joints_locked = false;
+    redundant_joints_locked_ = false;
   }
 
 private:
-  bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_mimic);
+  bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced_l);
   bool jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked);
 
-  const Chain chain;
-  ChainJntToJacSolver jnt2jac;
+  const Chain chain_;
+  ChainJntToJacSolver jnt2jac_;
 
   // This set of variables are all used in the default case, i.e. where we are solving for the
   // full end-effector pose
-  Jacobian jac;
-  std::vector<JntArray> U;
-  JntArray S;
-  std::vector<JntArray> V;
-  JntArray tmp;
+  Jacobian jac_;
+  std::vector<JntArray> U_;
+  JntArray S_;
+  std::vector<JntArray> V_;
+  JntArray tmp_;
 
   // This is the "reduced" jacobian, i.e. the contributions of the mimic joints have been mapped onto
   // the active DOFs here
-  Jacobian jac_reduced;
-  JntArray qdot_out_reduced;
+  Jacobian jac_reduced_;
+  JntArray qdot_out_reduced_;
 
   // This is the set of variable used when solving for position only inverse kinematics
-  Eigen::MatrixXd U_translate;
-  Eigen::VectorXd S_translate;
-  Eigen::MatrixXd V_translate;
-  Eigen::VectorXd tmp_translate;
+  Eigen::MatrixXd U_translate_;
+  Eigen::VectorXd S_translate_;
+  Eigen::MatrixXd V_translate_;
+  Eigen::VectorXd tmp_translate_;
 
   // This is the jacobian when the redundant joint is "locked" and plays no part
-  Jacobian jac_locked;
-  JntArray qdot_out_reduced_locked, qdot_out_locked;
+  Jacobian jac_locked_;
+  JntArray qdot_out_reduced_locked_, qdot_out_locked_;
 
-  SVD_HH svd;
-  double eps;
-  int maxiter;
+  SVD_HH svd_;
+  double eps_;
+  int maxiter_;
 
   // Mimic joint specific
   std::vector<lma_kinematics_plugin::JointMimic> mimic_joints_;
-  int num_mimic_joints;
+  int num_mimic_joints_;
 
-  bool position_ik;
+  bool position_ik_;
 
   // This is the set of variable used when solving for inverse kinematics
   // for the case where the redundant joint is "locked" and plays no part
-  Eigen::MatrixXd U_locked;
-  Eigen::VectorXd S_locked;
-  Eigen::MatrixXd V_locked;
-  Eigen::VectorXd tmp_locked;
+  Eigen::MatrixXd U_locked_;
+  Eigen::VectorXd S_locked_;
+  Eigen::MatrixXd V_locked_;
+  Eigen::VectorXd tmp_locked_;
 
   // This is the set of variable used when solving for position only inverse kinematics
   // for the case where the redundant joint is "locked" and plays no part
-  Eigen::MatrixXd U_translate_locked;
-  Eigen::VectorXd S_translate_locked;
-  Eigen::MatrixXd V_translate_locked;
-  Eigen::VectorXd tmp_translate_locked;
+  Eigen::MatrixXd U_translate_locked_;
+  Eigen::VectorXd S_translate_locked_;
+  Eigen::MatrixXd V_translate_locked_;
+  Eigen::VectorXd tmp_translate_locked_;
 
   // Internal storage for a map from the "locked" state to the full active state
-  std::vector<unsigned int> locked_joints_map_index;
-  unsigned int num_redundant_joints;
-  bool redundant_joints_locked;
+  std::vector<unsigned int> locked_joints_map_index_;
+  unsigned int num_redundant_joints_;
+  bool redundant_joints_locked_;
 };
 }
 #endif

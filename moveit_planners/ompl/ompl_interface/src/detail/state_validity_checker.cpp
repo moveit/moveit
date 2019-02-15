@@ -39,11 +39,11 @@
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
-ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext* pc)
-  : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup()->getSpaceInformation())
-  , planning_context_(pc)
-  , group_name_(pc->getGroupName())
-  , tss_(pc->getCompleteInitialRobotState())
+ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext* planning_context)
+  : ompl::base::StateValidityChecker(planning_context->getOMPLSimpleSetup()->getSpaceInformation())
+  , planning_context_(planning_context)
+  , group_name_(planning_context->getGroupName())
+  , tss_(planning_context->getCompleteInitialRobotState())
   , verbose_(false)
 {
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;

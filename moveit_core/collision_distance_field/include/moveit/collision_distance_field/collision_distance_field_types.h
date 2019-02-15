@@ -196,7 +196,7 @@ protected:
 // determines set of collision spheres given a posed body; this is BAD!
 // Allocation erorrs will happen; change this function so it does not return
 // that vector by value
-std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relativeTransform);
+std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relative_transform);
 
 // determines a set of gradients of the given collision spheres in the distance
 // field
@@ -330,7 +330,7 @@ public:
 
   // assumed to be in reference frame, updates the pose of the body,
   // the collision spheres, and the posed collision points
-  void updatePose(const Eigen::Affine3d& linkTransform);
+  void updatePose(const Eigen::Affine3d& trans);
 
 protected:
   BodyDecompositionConstPtr body_decomposition_;
@@ -346,7 +346,7 @@ public:
 
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 
-  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition, const Eigen::Affine3d& pose);
+  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition, const Eigen::Affine3d& trans);
 
   PosedBodyPointDecomposition(std::shared_ptr<const octomap::OcTree> octree);
 
@@ -355,7 +355,7 @@ public:
     return posed_collision_points_;
   }
   // the collision spheres, and the posed collision points
-  void updatePose(const Eigen::Affine3d& linkTransform);
+  void updatePose(const Eigen::Affine3d& trans);
 
 protected:
   BodyDecompositionConstPtr body_decomposition_;

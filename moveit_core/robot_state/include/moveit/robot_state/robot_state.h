@@ -55,11 +55,11 @@ namespace core
 {
 MOVEIT_CLASS_FORWARD(RobotState);
 
-/** \brief Signature for functions that can verify that if the group \e joint_group in \e robot_state is set to \e
+/** \brief Signature for functions that can verify that if the group \e jmg in \e robot_state is set to \e
    joint_group_variable_values
     the state is valid or not. Returns true if the state is valid. This call is allowed to modify \e robot_state (e.g.,
    set \e joint_group_variable_values) */
-typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joint_group,
+typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* jmg,
                              const double* joint_group_variable_values)>
     GroupStateValidityCallbackFn;
 
@@ -486,7 +486,7 @@ public:
 
   /** \brief Set the effort of a set of variables. If unknown variable names are specified, an exception is thrown. */
   void setVariableEffort(const std::vector<std::string>& variable_names,
-                         const std::vector<double>& variable_acceleration);
+                         const std::vector<double>& variable_effort);
 
   /** \brief Set the effort of a variable. If an unknown variable name is specified, an exception is thrown. */
   void setVariableEffort(const std::string& variable, double value)
@@ -950,7 +950,7 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose, unsigned int attempts = 0,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -962,7 +962,7 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
+  bool setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose, const std::string& tip,
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -974,7 +974,7 @@ as the new values that correspond to the group */
       @param tip The name of the link the pose is specified for
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose, unsigned int attempts = 0,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -985,7 +985,7 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, const std::string& tip,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose_in, const std::string& tip_in,
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -999,8 +999,8 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, const std::string& tip,
-                 const std::vector<double>& consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose_in, const std::string& tip_in,
+                 const std::vector<double>& consistency_limits_in, unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1014,8 +1014,8 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                 const std::vector<std::string>& tips, unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                 const std::vector<std::string>& tips_in, unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1030,8 +1030,8 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
+  bool setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                 const std::vector<std::string>& tips_in, const std::vector<std::vector<double> >& consistency_limit_sets,
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -1045,8 +1045,8 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                          const std::vector<std::string>& tips,
+  bool setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                          const std::vector<std::string>& tips_in,
                           const std::vector<std::vector<double> >& consistency_limits, unsigned int attempts = 0,
                           double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
@@ -1059,7 +1059,7 @@ as the new values that correspond to the group */
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const JointModelGroup* group, const Eigen::VectorXd& twist, const std::string& tip, double dt,
+  bool setFromDiffIK(const JointModelGroup* jmg, const Eigen::VectorXd& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
 
   /** \brief Set the joint values from a Cartesian velocity applied during a time dt
@@ -1069,7 +1069,7 @@ as the new values that correspond to the group */
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const JointModelGroup* group, const geometry_msgs::Twist& twist, const std::string& tip, double dt,
+  bool setFromDiffIK(const JointModelGroup* jmg, const geometry_msgs::Twist& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
 
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path for a particular group.
@@ -1466,7 +1466,7 @@ as the new values that correspond to the group */
     return robot_model_->distance(position_, other.getVariablePositions());
   }
 
-  double distance(const RobotState& other, const JointModelGroup* joint_group) const;
+  double distance(const RobotState& other, const JointModelGroup* jmg) const;
 
   double distance(const RobotState& other, const JointModel* joint) const
   {
@@ -1482,7 +1482,7 @@ as the new values that correspond to the group */
   /** \brief Interpolate from this state towards \e to, at time \e t in [0,1], but only for the joints in the
       specified group. If mimic joints need to be updated, they are updated accordingly. Flags are set so that FK
       computation is triggered when needed. */
-  void interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* joint_group) const;
+  void interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* jmg) const;
 
   /** \brief Update \e state by interpolating form this state towards \e to, at time \e t in [0,1] but only for
       the joint \e joint. If there are joints that mimic this joint, they are updated. Flags are set so that
@@ -1496,7 +1496,7 @@ as the new values that correspond to the group */
   }
 
   void enforceBounds();
-  void enforceBounds(const JointModelGroup* joint_group);
+  void enforceBounds(const JointModelGroup* jmg);
   void enforceBounds(const JointModel* joint)
   {
     enforcePositionBounds(joint);
@@ -1517,7 +1517,7 @@ as the new values that correspond to the group */
   }
 
   bool satisfiesBounds(double margin = 0.0) const;
-  bool satisfiesBounds(const JointModelGroup* joint_group, double margin = 0.0) const;
+  bool satisfiesBounds(const JointModelGroup* jmg, double margin = 0.0) const;
   bool satisfiesBounds(const JointModel* joint, double margin = 0.0) const
   {
     return satisfiesPositionBounds(joint, margin) && (!has_velocity_ || satisfiesVelocityBounds(joint, margin));
@@ -1625,7 +1625,7 @@ as the new values that correspond to the group */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const;
 
   /** \brief Get all bodies attached to a particular group the model corresponding to this state */
-  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* lm) const;
+  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* jmg) const;
 
   /** \brief Get all bodies attached to a particular link in the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* lm) const;
@@ -1643,8 +1643,8 @@ as the new values that correspond to the group */
   /** \brief Clear all attached bodies. This calls delete on the AttachedBody instances, if needed. */
   void clearAttachedBodies();
 
-  /** \brief Get the attached body named \e name. Return NULL if not found. */
-  const AttachedBody* getAttachedBody(const std::string& name) const;
+  /** \brief Get the attached body named \e id. Return NULL if not found. */
+  const AttachedBody* getAttachedBody(const std::string& id) const;
 
   /** \brief Check if an attached body named \e id exists in this state */
   bool hasAttachedBody(const std::string& id) const;

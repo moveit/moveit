@@ -279,7 +279,7 @@ private:
   bool findControllers(const std::set<std::string>& actuated_joints, std::size_t controller_count,
                        const std::vector<std::string>& available_controllers,
                        std::vector<std::string>& selected_controllers);
-  bool checkControllerCombination(std::vector<std::string>& controllers, const std::set<std::string>& actuated_joints);
+  bool checkControllerCombination(std::vector<std::string>& selected_controllers, const std::set<std::string>& actuated_joints);
   void generateControllerCombination(std::size_t start_index, std::size_t controller_count,
                                      const std::vector<std::string>& available_controllers,
                                      std::vector<std::string>& selected_controllers,

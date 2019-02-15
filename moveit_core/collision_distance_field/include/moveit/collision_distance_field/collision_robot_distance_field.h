@@ -231,7 +231,7 @@ protected:
   void addLinkBodyDecompositions(double resolution);
 
   void addLinkBodyDecompositions(double resolution,
-                                 const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions);
+                                 const std::map<std::string, std::vector<CollisionSphere>>& link_spheres);
 
   PosedBodySphereDecompositionPtr getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
                                                                       unsigned int ind) const;

@@ -115,7 +115,7 @@ public:
     tree_->setUpdateCallback(update_callback);
   }
 
-  void setTransformCacheCallback(const TransformCacheProvider& transform_cache_callback);
+  void setTransformCacheCallback(const TransformCacheProvider& transform_callback);
 
   void publishDebugInformation(bool flag);
 

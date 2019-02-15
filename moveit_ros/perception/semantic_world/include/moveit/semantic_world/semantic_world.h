@@ -95,11 +95,11 @@ public:
                                                              unsigned int num_heights = 2) const;
 
   /**
-   * @brief Generate possible place poses on the table for a given object. This chooses appropriate
+   * @brief Generate possible place poses on the chosen_table for a given object. This chooses appropriate
    * values for min_distance_from_edge and for height_above_table based on the object properties.
    * The assumption is that the object is represented by a mesh.
    */
-  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table& table,
+  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table& chosen_table,
                                                              const shapes::ShapeConstPtr& object_shape,
                                                              const geometry_msgs::Quaternion& object_orientation,
                                                              double resolution, double delta_height = 0.01,

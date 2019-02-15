@@ -453,9 +453,9 @@ JointModelGroup* RobotModel::getEndEffector(const std::string& name)
   return it->second;
 }
 
-bool RobotModel::hasJointModelGroup(const std::string& name) const
+bool RobotModel::hasJointModelGroup(const std::string& joint_group_name) const
 {
-  return joint_model_group_map_.find(name) != joint_model_group_map_.end();
+  return joint_model_group_map_.find(joint_group_name) != joint_model_group_map_.end();
 }
 
 const JointModelGroup* RobotModel::getJointModelGroup(const std::string& name) const
@@ -644,18 +644,18 @@ void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
   std::sort(end_effectors_.begin(), end_effectors_.end(), OrderGroupsByName());
 }
 
-bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
+bool RobotModel::addJointModelGroup(const srdf::Model::Group& group)
 {
-  if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
+  if (joint_model_group_map_.find(group.name_) != joint_model_group_map_.end())
   {
-    ROS_WARN_NAMED(LOGNAME, "A group named '%s' already exists. Not adding.", gc.name_.c_str());
+    ROS_WARN_NAMED(LOGNAME, "A group named '%s' already exists. Not adding.", group.name_.c_str());
     return false;
   }
 
   std::set<const JointModel*> jset;
 
   // add joints from chains
-  for (const std::pair<std::string, std::string>& chain : gc.chains_)
+  for (const std::pair<std::string, std::string>& chain : group.chains_)
   {
     const LinkModel* base_link = getLinkModel(chain.first);
     const LinkModel* tip_link = getLinkModel(chain.second);
@@ -705,7 +705,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   }
 
   // add joints
-  for (const std::string& joint : gc.joints_)
+  for (const std::string& joint : group.joints_)
   {
     const JointModel* j = getJointModel(joint);
     if (j)
@@ -713,7 +713,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   }
 
   // add joints that are parents of included links
-  for (const std::string& link : gc.links_)
+  for (const std::string& link : group.links_)
   {
     const LinkModel* l = getLinkModel(link);
     if (l)
@@ -721,7 +721,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   }
 
   // add joints from subgroups
-  for (const std::string& subgroup : gc.subgroups_)
+  for (const std::string& subgroup : group.subgroups_)
   {
     const JointModelGroup* sg = getJointModelGroup(subgroup);
     if (sg)
@@ -745,7 +745,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 
   if (jset.empty())
   {
-    ROS_WARN_NAMED(LOGNAME, "Group '%s' must have at least one valid joint", gc.name_.c_str());
+    ROS_WARN_NAMED(LOGNAME, "Group '%s' must have at least one valid joint", group.name_.c_str());
     return false;
   }
 
@@ -753,8 +753,8 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   for (const JointModel* it : jset)
     joints.push_back(it);
 
-  JointModelGroup* jmg = new JointModelGroup(gc.name_, gc, joints, this);
-  joint_model_group_map_[gc.name_] = jmg;
+  JointModelGroup* jmg = new JointModelGroup(group.name_, group, joints, this);
+  joint_model_group_map_[group.name_] = jmg;
 
   return true;
 }
@@ -1082,12 +1082,12 @@ bool RobotModel::hasLinkModel(const std::string& name) const
   return link_model_map_.find(name) != link_model_map_.end();
 }
 
-const JointModel* RobotModel::getJointModel(const std::string& name) const
+const JointModel* RobotModel::getJointModel(const std::string& joint_name) const
 {
-  JointModelMap::const_iterator it = joint_model_map_.find(name);
+  JointModelMap::const_iterator it = joint_model_map_.find(joint_name);
   if (it != joint_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", joint_name.c_str(), model_name_.c_str());
   return nullptr;
 }
 
@@ -1102,18 +1102,18 @@ const JointModel* RobotModel::getJointModel(int index) const
   return joint_model_vector_[index];
 }
 
-JointModel* RobotModel::getJointModel(const std::string& name)
+JointModel* RobotModel::getJointModel(const std::string& joint_name)
 {
-  JointModelMap::const_iterator it = joint_model_map_.find(name);
+  JointModelMap::const_iterator it = joint_model_map_.find(joint_name);
   if (it != joint_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in model '%s'", joint_name.c_str(), model_name_.c_str());
   return nullptr;
 }
 
-const LinkModel* RobotModel::getLinkModel(const std::string& name) const
+const LinkModel* RobotModel::getLinkModel(const std::string& link_name) const
 {
-  return const_cast<RobotModel*>(this)->getLinkModel(name);
+  return const_cast<RobotModel*>(this)->getLinkModel(link_name);
 }
 
 const LinkModel* RobotModel::getLinkModel(int index) const
@@ -1127,12 +1127,12 @@ const LinkModel* RobotModel::getLinkModel(int index) const
   return link_model_vector_[index];
 }
 
-LinkModel* RobotModel::getLinkModel(const std::string& name)
+LinkModel* RobotModel::getLinkModel(const std::string& link_name)
 {
-  LinkModelMap::const_iterator it = link_model_map_.find(name);
+  LinkModelMap::const_iterator it = link_model_map_.find(link_name);
   if (it != link_model_map_.end())
     return it->second;
-  ROS_ERROR_NAMED(LOGNAME, "Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  ROS_ERROR_NAMED(LOGNAME, "Link '%s' not found in model '%s'", link_name.c_str(), model_name_.c_str());
   return nullptr;
 }
 

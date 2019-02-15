@@ -460,7 +460,7 @@ void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& const
 void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& brequest,
                                                   const std::vector<StartState>& start_states,
                                                   const std::vector<PathConstraints>& path_constraints,
-                                                  std::vector<BenchmarkRequest>& requests)
+                                                  std::vector<BenchmarkRequest>& request_combos)
 {
   // Use default start state
   if (start_states.empty())
@@ -471,11 +471,11 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
       BenchmarkRequest new_brequest = brequest;
       new_brequest.request.path_constraints = path_constraint.constraints[0];
       new_brequest.name = brequest.name + "_" + path_constraint.name;
-      requests.push_back(new_brequest);
+      request_combos.push_back(new_brequest);
     }
 
     if (path_constraints.empty())
-      requests.push_back(brequest);
+      request_combos.push_back(brequest);
   }
   else  // Create a request for each start state specified
   {
@@ -489,13 +489,13 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
       {
         new_brequest.request.path_constraints = path_constraint.constraints[0];
         new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
-        requests.push_back(new_brequest);
+        request_combos.push_back(new_brequest);
       }
 
       if (path_constraints.empty())
       {
         new_brequest.name = start_state.name + "_" + brequest.name;
-        requests.push_back(new_brequest);
+        request_combos.push_back(new_brequest);
       }
     }
   }

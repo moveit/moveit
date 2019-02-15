@@ -93,7 +93,7 @@ public:
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata>& planning_results, const std::string& scene_name,
                           const moveit_msgs::MotionPlanRequest& planning_query) const;
   void getPlanningResults(std::vector<RobotTrajectoryWithMetadata>& planning_results, const std::string& scene_name,
-                          const std::string& query_name) const;
+                          const std::string& planning_query) const;
 
   void renamePlanningScene(const std::string& old_scene_name, const std::string& new_scene_name);
   void renamePlanningQuery(const std::string& scene_name, const std::string& old_query_name,

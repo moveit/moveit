@@ -171,25 +171,25 @@ bool InteractionHandler::getPoseOffset(const JointInteraction& vj, geometry_msgs
   return false;
 }
 
-bool InteractionHandler::getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& ps)
+bool InteractionHandler::getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& pose)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(eef.eef_group);
   if (it != pose_map_.end())
   {
-    ps = it->second;
+    pose = it->second;
     return true;
   }
   return false;
 }
 
-bool InteractionHandler::getLastJointMarkerPose(const JointInteraction& vj, geometry_msgs::PoseStamped& ps)
+bool InteractionHandler::getLastJointMarkerPose(const JointInteraction& vj, geometry_msgs::PoseStamped& pose)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(vj.joint_name);
   if (it != pose_map_.end())
   {
-    ps = it->second;
+    pose = it->second;
     return true;
   }
   return false;
@@ -497,20 +497,20 @@ void InteractionHandler::setIKAttempts(unsigned int attempts)
   kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::MAX_ATTEMPTS);
 }
 
-void InteractionHandler::setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt)
+void InteractionHandler::setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& options)
 {
   KinematicOptions delta;
-  delta.options_ = opt;
+  delta.options_ = options;
 
   boost::mutex::scoped_lock lock(state_lock_);
   kinematic_options_map_->setOptions(KinematicOptionsMap::ALL, delta, KinematicOptions::ALL_QUERY_OPTIONS);
 }
 
 void InteractionHandler::setKinematicsQueryOptionsForGroup(const std::string& group_name,
-                                                           const kinematics::KinematicsQueryOptions& opt)
+                                                           const kinematics::KinematicsQueryOptions& options)
 {
   KinematicOptions delta;
-  delta.options_ = opt;
+  delta.options_ = options;
 
   boost::mutex::scoped_lock lock(state_lock_);
   kinematic_options_map_->setOptions(group_name, delta, KinematicOptions::ALL_QUERY_OPTIONS);

@@ -115,11 +115,11 @@ public:
                        const std::string& name = "");
 
   /** @brief Constructor
-   *  @param rml A pointer to a kinematic model loader
+   *  @param rm_loader A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr& rml,
+  PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr& rm_loader,
                        const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string& name = "");
 
@@ -135,18 +135,18 @@ public:
 
   /** @brief Constructor
    *  @param scene The scene instance to maintain up to date with monitored information
-   *  @param rml A pointer to a kinematic model loader
+   *  @param rm_loader A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
-                       const robot_model_loader::RobotModelLoaderPtr& rml,
+                       const robot_model_loader::RobotModelLoaderPtr& rm_loader,
                        const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string& name = "");
 
   /** @brief Constructor
    *  @param scene The scene instance to maintain up to date with monitored information
-   *  @param rml A pointer to a kinematic model loader
+   *  @param rm_loader A pointer to a kinematic model loader
    *  @param nh external parent NodeHandle
    *         The monitors will use this NodeHandle's CallbackQueue for updates.
    *         Usually, this should be a different queue than the global queue, otherwise you might run into timeouts.
@@ -154,7 +154,7 @@ public:
    *  @param name A name identifying this planning scene monitor
    */
   PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
-                       const robot_model_loader::RobotModelLoaderPtr& rml, const ros::NodeHandle& nh,
+                       const robot_model_loader::RobotModelLoaderPtr& rm_loader, const ros::NodeHandle& nh,
                        const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>(),
                        const std::string& name = "");
 
@@ -261,9 +261,9 @@ public:
   void monitorDiffs(bool flag);
 
   /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene.
-      Diffs are sent afterwards on updates specified by the \e event bitmask. For UPDATE_SCENE, the full scene is always
+      Diffs are sent afterwards on updates specified by the \e update_type bitmask. For UPDATE_SCENE, the full scene is always
      sent. */
-  void startPublishingPlanningScene(SceneUpdateType event,
+  void startPublishingPlanningScene(SceneUpdateType update_type,
                                     const std::string& planning_scene_topic = MONITORED_PLANNING_SCENE_TOPIC);
 
   /** \brief Stop publishing the maintained planning scene. */
@@ -434,7 +434,7 @@ protected:
   void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody* attached_body, bool just_attached);
 
   /** @brief Callback for a change in the world maintained by the planning scene */
-  void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& object,
+  void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& obj,
                                         collision_detection::World::Action action);
 
   void includeRobotLinksInOctree();

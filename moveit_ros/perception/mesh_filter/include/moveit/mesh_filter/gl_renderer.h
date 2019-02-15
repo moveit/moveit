@@ -117,11 +117,11 @@ public:
   /**
    * \brief loads, compiles, links and adds GLSL shaders from string to the current OpenGL context.
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] vertex_shader source code of the vertex shader. Can be "" if no vertex shader is used.
-   * \param[in] fragment_shader source code of the fragment shader. Can be "" if no fragment shader is used.
+   * \param[in] vertex_source source code of the vertex shader. Can be "" if no vertex shader is used.
+   * \param[in] fragment_source source code of the fragment shader. Can be "" if no fragment shader is used.
    * \return  programID
    */
-  GLuint setShadersFromString(const std::string& vertex_shader, const std::string& fragment_shader);
+  GLuint setShadersFromString(const std::string& vertex_source, const std::string& fragment_source);
 
   /**
    * \brief set the camera parameters
@@ -225,11 +225,11 @@ private:
   /**
    * \brief create a OpenGL shader object from the shader source code
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] shaderID type of shader to be created (e.g. GL_VERTEX_SHADER or GL_FRAGMENT_SHADER)
-   * \param[in] source the source code of the shader to be created
+   * \param[in] shaderType type of shader to be created (e.g. GL_VERTEX_SHADER or GL_FRAGMENT_SHADER)
+   * \param[in] ShaderCode the source code of the shader to be created
    * \return handle to the shader object
    */
-  GLuint createShader(GLuint shaderID, const std::string& source) const;
+  GLuint createShader(GLuint shaderType, const std::string& ShaderCode) const;
 
   /**
    * \brief initializes the frame buffer objects

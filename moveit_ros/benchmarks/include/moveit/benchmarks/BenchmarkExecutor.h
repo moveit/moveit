@@ -139,7 +139,7 @@ protected:
   };
 
   virtual bool initializeBenchmarks(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
-                                    std::vector<BenchmarkRequest>& queries);
+                                    std::vector<BenchmarkRequest>& requests);
 
   virtual void collectMetrics(PlannerRunData& metrics, const planning_interface::MotionPlanDetailedResponse& mp_res,
                               bool solved, double total_time);
@@ -174,7 +174,7 @@ protected:
   /// Duplicate the given benchmark request for all combinations of start states and path constraints
   void createRequestCombinations(const BenchmarkRequest& brequest, const std::vector<StartState>& start_states,
                                  const std::vector<PathConstraints>& path_constraints,
-                                 std::vector<BenchmarkRequest>& combos);
+                                 std::vector<BenchmarkRequest>& request_combos);
 
   /// Execute the given motion plan request on the set of planners for the set number of runs
   void runBenchmark(moveit_msgs::MotionPlanRequest request,

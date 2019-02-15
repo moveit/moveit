@@ -76,24 +76,24 @@ public:
   bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints);
 
 private:
-  const Chain chain;
-  JntArray q_min;        // These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_min_mimic;  // These are the limits for the full state
-  JntArray q_max;        // These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_max_mimic;  // These are the limits for the full state
-  JntArray q_temp;
-  ChainFkSolverPos& fksolver;
-  ChainIkSolverVel& iksolver;
-  JntArray delta_q;
-  Frame f;
-  Twist delta_twist;
-  unsigned int maxiter;
-  double eps;
-  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
+  const Chain chain_;
+  JntArray q_min_;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_min_mimic_;  // These are the limits for the full state
+  JntArray q_max_;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_max_mimic_;  // These are the limits for the full state
+  JntArray q_temp_;
+  ChainFkSolverPos& fksolver_;
+  ChainIkSolverVel& iksolver_;
+  JntArray delta_q_;
+  Frame f_;
+  Twist delta_twist_;
+  unsigned int maxiter_;
+  double eps_;
+  std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints_;
   void qToqMimic(const JntArray& q,
                  JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state
   void qMimicToq(const JntArray& q, JntArray& q_result);  // Convert from the "full" state to the "reduced" state
-  bool position_ik;
+  bool position_ik_;
 };
 }
 

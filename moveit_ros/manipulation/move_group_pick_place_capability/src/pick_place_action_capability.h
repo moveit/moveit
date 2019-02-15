@@ -54,7 +54,7 @@ public:
   virtual void initialize();
 
 private:
-  void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal);
+  void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& input_goal);
   void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal);
 
   void executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr& goal,

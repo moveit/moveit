@@ -52,7 +52,7 @@ WarehouseConnector::~WarehouseConnector()
     kill(child_pid_, SIGTERM);
 }
 
-bool WarehouseConnector::connectToDatabase(const std::string& dirname)
+bool WarehouseConnector::connectToDatabase(const std::string& db_dirname)
 {
   if (child_pid_ != 0)
     kill(child_pid_, SIGTERM);
@@ -79,7 +79,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
       snprintf(argv[1], 15, "--dbpath");
 
       argv[2] = new char[1024];
-      snprintf(argv[2], 1023, "%s", dirname.c_str());
+      snprintf(argv[2], 1023, "%s", db_dirname.c_str());
 
       argv[3] = nullptr;
 

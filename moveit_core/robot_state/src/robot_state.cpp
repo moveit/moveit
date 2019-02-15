@@ -696,9 +696,9 @@ bool RobotState::satisfiesBounds(double margin) const
   return true;
 }
 
-bool RobotState::satisfiesBounds(const JointModelGroup* group, double margin) const
+bool RobotState::satisfiesBounds(const JointModelGroup* jmg, double margin) const
 {
-  const std::vector<const JointModel*>& jm = group->getActiveJointModels();
+  const std::vector<const JointModel*>& jm = jmg->getActiveJointModels();
   for (const JointModel* joint : jm)
     if (!satisfiesBounds(joint, margin))
       return false;
@@ -712,9 +712,9 @@ void RobotState::enforceBounds()
     enforceBounds(joint);
 }
 
-void RobotState::enforceBounds(const JointModelGroup* joint_group)
+void RobotState::enforceBounds(const JointModelGroup* jmg)
 {
-  const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
+  const std::vector<const JointModel*>& jm = jmg->getActiveJointModels();
   for (const JointModel* joint : jm)
     enforceBounds(joint);
 }
@@ -787,10 +787,10 @@ bool RobotState::isValidVelocityMove(const RobotState& other, const JointModelGr
   return true;
 }
 
-double RobotState::distance(const RobotState& other, const JointModelGroup* joint_group) const
+double RobotState::distance(const RobotState& other, const JointModelGroup* jmg) const
 {
   double d = 0.0;
-  const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
+  const std::vector<const JointModel*>& jm = jmg->getActiveJointModels();
   for (const JointModel* joint : jm)
   {
     const int idx = joint->getFirstVariableIndex();
@@ -808,15 +808,15 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state) 
 }
 
 void RobotState::interpolate(const RobotState& to, double t, RobotState& state,
-                             const JointModelGroup* joint_group) const
+                             const JointModelGroup* jmg) const
 {
-  const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
+  const std::vector<const JointModel*>& jm = jmg->getActiveJointModels();
   for (const JointModel* joint : jm)
   {
     const int idx = joint->getFirstVariableIndex();
     joint->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
   }
-  state.updateMimicJoints(joint_group);
+  state.updateMimicJoints(jmg);
 }
 
 void RobotState::setAttachedBodyUpdateCallback(const AttachedBodyCallback& callback)
@@ -851,9 +851,9 @@ void RobotState::attachBody(AttachedBody* attached_body)
 
 void RobotState::attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                             const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-                            const std::string& link, const trajectory_msgs::JointTrajectory& detach_posture)
+                            const std::string& link_name, const trajectory_msgs::JointTrajectory& detach_posture)
 {
-  const LinkModel* l = robot_model_->getLinkModel(link);
+  const LinkModel* l = robot_model_->getLinkModel(link_name);
   AttachedBody* ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
   attached_body_map_[id] = ab;
   ab->computeTransform(getGlobalLinkTransform(l));
@@ -870,11 +870,11 @@ void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bo
 }
 
 void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies,
-                                   const JointModelGroup* group) const
+                                   const JointModelGroup* jmg) const
 {
   attached_bodies.clear();
   for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
-    if (group->hasLinkModel(it.second->getAttachedLinkName()))
+    if (jmg->hasLinkModel(it.second->getAttachedLinkName()))
       attached_bodies.push_back(it.second);
 }
 
@@ -2043,15 +2043,15 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
 }
 
 double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                              double revolute_threshold, double prismatic_threshold)
+                                              double revolute_jump_threshold, double prismatic_jump_threshold)
 {
   struct LimitData
   {
     double limit_;
     bool check_;
   };
-  LimitData data[2] = { { revolute_threshold, revolute_threshold > 0.0 },
-                        { prismatic_threshold, prismatic_threshold > 0.0 } };
+  LimitData data[2] = { { revolute_jump_threshold, revolute_jump_threshold > 0.0 },
+                        { prismatic_jump_threshold, prismatic_jump_threshold > 0.0 } };
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t traj_ix = 0, ix_end = traj.size() - 1; traj_ix != ix_end; ++traj_ix)

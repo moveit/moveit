@@ -198,7 +198,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
   return result;
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_states) const
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_joints) const
 {
   bool result = true;
   const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
@@ -207,7 +207,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
     if (joint_time_.find(joint) == joint_time_.end())
       if (!joint->isPassive() && !joint->getMimic())
       {
-        missing_states.push_back(joint->getName());
+        missing_joints.push_back(joint->getName());
         result = false;
       }
   return result;
@@ -241,7 +241,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration& age,
-                                                                    std::vector<std::string>& missing_states) const
+                                                                    std::vector<std::string>& missing_joints) const
 {
   bool result = true;
   const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
@@ -256,14 +256,14 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
     if (it == joint_time_.end())
     {
       ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
-      missing_states.push_back(joint->getName());
+      missing_joints.push_back(joint->getName());
       result = false;
     }
     else if (it->second < old)
     {
       ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
                 joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
-      missing_states.push_back(joint->getName());
+      missing_joints.push_back(joint->getName());
       result = false;
     }
   }

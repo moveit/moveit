@@ -220,7 +220,7 @@ protected:
   void updateBackgroundJobProgressBar();
   void backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent event, const std::string& jobname);
 
-  void setQueryStateHelper(bool use_start_state, const std::string& v);
+  void setQueryStateHelper(bool use_start_state, const std::string& state_name);
   void populateMenuHandler(std::shared_ptr<interactive_markers::MenuHandler>& mh);
 
   void selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg);

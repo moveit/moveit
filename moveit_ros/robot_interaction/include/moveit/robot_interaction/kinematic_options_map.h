@@ -77,10 +77,10 @@ public:
   ///         To set the default options use key = KinematicOptionsMap::DEFAULT
   ///         To set ALL options use key = KinematicOptionsMap::ALL
   ///
-  /// @param options the new value for the options.
+  /// @param options_delta the new value for the options.
   ///
   /// @fields which options to set for the key.
-  void setOptions(const std::string& key, const KinematicOptions& options,
+  void setOptions(const std::string& key, const KinematicOptions& options_delta,
                   KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
 
   /// Merge all options from \e other into \e this.

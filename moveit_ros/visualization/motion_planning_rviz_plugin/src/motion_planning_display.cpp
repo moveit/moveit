@@ -497,12 +497,12 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string& group,
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>& metrics,
-                                                   const robot_interaction::RobotInteraction::EndEffector& ee,
+                                                   const robot_interaction::RobotInteraction::EndEffector& eef,
                                                    const robot_state::RobotState& state, double payload)
 {
   metrics.clear();
   dynamics_solver::DynamicsSolverPtr ds;
-  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(ee.parent_group);
+  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(eef.parent_group);
   if (it != dynamics_solver_.end())
     ds = it->second;
 
@@ -512,7 +512,7 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
     double max_payload;
     unsigned int saturated_joint;
     std::vector<double> joint_values;
-    state.copyJointGroupPositions(ee.parent_group, joint_values);
+    state.copyJointGroupPositions(eef.parent_group, joint_values);
     if (ds->getMaxPayload(joint_values, max_payload, saturated_joint))
     {
       metrics["max_payload"] = max_payload;
@@ -533,14 +533,14 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
 
   if (kinematics_metrics_)
   {
-    if (position_only_ik_.find(ee.parent_group) == position_only_ik_.end())
-      private_handle_.param(ee.parent_group + "/position_only_ik", position_only_ik_[ee.parent_group], false);
+    if (position_only_ik_.find(eef.parent_group) == position_only_ik_.end())
+      private_handle_.param(eef.parent_group + "/position_only_ik", position_only_ik_[eef.parent_group], false);
 
     double manipulability_index, manipulability;
-    bool position_ik = position_only_ik_[ee.parent_group];
-    if (kinematics_metrics_->getManipulabilityIndex(state, ee.parent_group, manipulability_index, position_ik))
+    bool position_ik = position_only_ik_[eef.parent_group];
+    if (kinematics_metrics_->getManipulabilityIndex(state, eef.parent_group, manipulability_index, position_ik))
       metrics["manipulability_index"] = manipulability_index;
-    if (kinematics_metrics_->getManipulability(state, ee.parent_group, manipulability))
+    if (kinematics_metrics_->getManipulability(state, eef.parent_group, manipulability))
       metrics["manipulability"] = manipulability;
   }
 }

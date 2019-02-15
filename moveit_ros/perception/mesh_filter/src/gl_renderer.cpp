@@ -286,10 +286,10 @@ GLuint mesh_filter::GLRenderer::createShader(GLuint shaderType, const string& Sh
   return shader_id;
 }
 
-void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, string& shader) const
+void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, string& source) const
 {
   if (filename.empty())
-    shader = "";
+    source = "";
   else
   {
     string shader_code;
@@ -298,7 +298,7 @@ void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, str
     {
       stringstream buffer;
       buffer << shader_file.rdbuf();
-      shader = buffer.str();
+      source = buffer.str();
     }
     else
     {

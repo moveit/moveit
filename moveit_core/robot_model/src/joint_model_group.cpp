@@ -286,23 +286,23 @@ bool JointModelGroup::hasLinkModel(const std::string& link) const
   return link_model_map_.find(link) != link_model_map_.end();
 }
 
-const LinkModel* JointModelGroup::getLinkModel(const std::string& name) const
+const LinkModel* JointModelGroup::getLinkModel(const std::string& link_name) const
 {
-  LinkModelMapConst::const_iterator it = link_model_map_.find(name);
+  LinkModelMapConst::const_iterator it = link_model_map_.find(link_name);
   if (it == link_model_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model.jmg", "Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED("robot_model.jmg", "Link '%s' not found in group '%s'", link_name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;
 }
 
-const JointModel* JointModelGroup::getJointModel(const std::string& name) const
+const JointModel* JointModelGroup::getJointModel(const std::string& joint_name) const
 {
-  JointModelMapConst::const_iterator it = joint_model_map_.find(name);
+  JointModelMapConst::const_iterator it = joint_model_map_.find(joint_name);
   if (it == joint_model_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model.jmg", "Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED("robot_model.jmg", "Joint '%s' not found in group '%s'", joint_name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;

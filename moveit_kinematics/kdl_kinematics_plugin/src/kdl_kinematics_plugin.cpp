@@ -286,30 +286,30 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
   return true;
 }
 
-bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joints)
+bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
   if (num_possible_redundant_joints_ < 0)
   {
     ROS_ERROR_NAMED("kdl", "This group cannot have redundant joints");
     return false;
   }
-  if (static_cast<int>(redundant_joints.size()) > num_possible_redundant_joints_)
+  if (static_cast<int>(redundant_joint_indices.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("kdl", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
   }
   /*
     XmlRpc::XmlRpcValue joint_list;
-    if(private_handle.getParam(group_name+"/redundant_joints", joint_list))
+    if(private_handle.getParam(group_name+"/redundant_joint_indices", joint_list))
     {
       ROS_ASSERT(joint_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-      std::vector<std::string> redundant_joints;
+      std::vector<std::string> redundant_joint_indices;
       for (std::size_t i = 0; i < joint_list.size(); ++i)
       {
         ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-        redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
+        redundant_joint_indices.push_back(static_cast<std::string>(joint_list[i]));
         ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint",
-    redundant_joints.back().c_str());
+        redundant_joint_indices.back().c_str());
       }
     }
   */
@@ -318,7 +318,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
   for (std::size_t i = 0; i < dimension_; ++i)
   {
     bool is_redundant_joint = false;
-    for (unsigned int redundant_joint : redundant_joints)
+    for (unsigned int redundant_joint : redundant_joint_indices)
     {
       if (i == redundant_joint)
       {
@@ -341,7 +341,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
     ROS_DEBUG_NAMED("kdl", "Redundant joint map index: %d %d", (int)i, (int)redundant_joints_map_index[i]);
 
   redundant_joints_map_index_ = redundant_joints_map_index;
-  redundant_joint_indices_ = redundant_joints;
+  redundant_joint_indices_ = redundant_joint_indices;
   return true;
 }
 

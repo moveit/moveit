@@ -114,7 +114,7 @@ public:
   }
 
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
-                          const std::string& base_name, const std::vector<std::string>& tip_frames,
+                          const std::string& base_frame, const std::vector<std::string>& tip_frames,
                           double search_discretization);
 
   /**

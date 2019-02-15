@@ -79,7 +79,7 @@ public:
   void start();
   void stop();
 
-  void push(const ManipulationPlanPtr& grasp);
+  void push(const ManipulationPlanPtr& plan);
   void clear();
 
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const

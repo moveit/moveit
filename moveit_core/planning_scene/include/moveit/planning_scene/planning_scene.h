@@ -679,16 +679,16 @@ public:
      parent.
       If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg()
      */
-  void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene) const;
+  void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
   /** \brief Construct a message (\e scene) with all the necessary data so that the scene can be later reconstructed to
      be
       exactly the same using setPlanningSceneMsg() */
-  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene) const;
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
   /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
       this will be a complete planning scene message */
-  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene, const moveit_msgs::PlanningSceneComponents& comp) const;
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg, const moveit_msgs::PlanningSceneComponents& comp) const;
 
   /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
    * requested object*/
@@ -718,15 +718,15 @@ public:
       member). A parent is not required to exist. However, the existing data in the planning instance is not cleared.
      Data from
       the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
-  bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene);
+  bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message, even if
    * the message itself is marked as being a diff (is_diff member) */
-  bool setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene);
+  bool setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message
    * is set */
-  bool usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene);
+  bool usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject& object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object);

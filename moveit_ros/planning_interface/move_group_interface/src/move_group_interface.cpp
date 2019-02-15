@@ -1709,10 +1709,10 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(
   return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
-bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& rstate)
+bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& robot_state)
 {
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget() = rstate;
+  impl_->getJointStateTarget() = robot_state;
   return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 

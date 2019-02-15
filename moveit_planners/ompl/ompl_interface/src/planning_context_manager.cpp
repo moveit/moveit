@@ -317,7 +317,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
 }
 
 const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(
-    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
+    const std::string& group_name, const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
@@ -325,7 +325,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
        it != state_space_factories_.end(); ++it)
   {
-    int priority = it->second->canRepresentProblem(group, req, kmodel_);
+    int priority = it->second->canRepresentProblem(group_name, req, kmodel_);
     if (priority > 0)
       if (best == state_space_factories_.end() || priority > prev_priority)
       {

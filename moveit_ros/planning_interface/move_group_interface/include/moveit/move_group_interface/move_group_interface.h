@@ -158,7 +158,7 @@ public:
       \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
       \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
     */
-  MoveGroupInterface(const std::string& group,
+  MoveGroupInterface(const std::string& group_name,
                      const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>(),
                      const ros::WallDuration& wait_for_servers = ros::WallDuration());
   MOVEIT_DEPRECATED MoveGroupInterface(const std::string& group, const boost::shared_ptr<tf::Transformer>& tf,
@@ -220,7 +220,7 @@ public:
 
   /** \brief Set the planner parameters for given group and planner_id */
   void setPlannerParams(const std::string& planner_id, const std::string& group,
-                        const std::map<std::string, std::string>& params, bool bReplace = false);
+                        const std::map<std::string, std::string>& params, bool replace = false);
 
   /** \brief Get the default planner for a given group (or global default) */
   std::string getDefaultPlannerId(const std::string& group = "") const;
@@ -336,7 +336,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  bool setJointValueTarget(const std::vector<double>& group_variable_values);
+  bool setJointValueTarget(const std::vector<double>& joint_values);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
@@ -353,7 +353,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  bool setJointValueTarget(const std::map<std::string, double>& variable_values);
+  bool setJointValueTarget(const std::map<std::string, double>& joint_values);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
@@ -523,7 +523,7 @@ public:
       This new orientation target replaces any pre-existing JointValueTarget or
       pre-existing Position, Orientation, or Pose target for this \e
       end_effector_link. */
-  bool setRPYTarget(double roll, double pitch, double yaw, const std::string& end_effector_link = "");
+  bool setRPYTarget(double r, double p, double y, const std::string& end_effector_link = "");
 
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e
      w).
@@ -542,7 +542,7 @@ public:
       This new pose target replaces any pre-existing JointValueTarget or
       pre-existing Position, Orientation, or Pose target for this \e
       end_effector_link. */
-  bool setPoseTarget(const Eigen::Affine3d& end_effector_pose, const std::string& end_effector_link = "");
+  bool setPoseTarget(const Eigen::Affine3d& pose, const std::string& end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
 
@@ -580,7 +580,7 @@ public:
       This new orientation target replaces any pre-existing JointValueTarget or
       pre-existing Position, Orientation, or Pose target(s) for this \e
       end_effector_link. */
-  bool setPoseTargets(const EigenSTL::vector_Affine3d& end_effector_pose, const std::string& end_effector_link = "");
+  bool setPoseTargets(const EigenSTL::vector_Affine3d& target, const std::string& end_effector_link = "");
 
   /** \brief Set goal poses for \e end_effector_link.
 
@@ -628,7 +628,7 @@ public:
   /** \brief Specify the parent link of the end-effector.
       This \e end_effector_link will be used in calls to pose target functions
       when end_effector_link is not explicitly specified. */
-  bool setEndEffectorLink(const std::string& end_effector_link);
+  bool setEndEffectorLink(const std::string& link_name);
 
   /** \brief Specify the name of the end-effector to use.
       This is equivalent to setting the EndEffectorLink to the parent link of this end effector. */
@@ -749,7 +749,7 @@ public:
 
   /** \brief Build the MotionPlanRequest that would be sent to the move_group action with plan() or move() and store it
       in \e request */
-  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request);
+  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& goal_out);
 
   /**@}*/
 

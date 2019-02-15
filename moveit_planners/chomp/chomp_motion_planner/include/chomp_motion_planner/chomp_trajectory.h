@@ -59,13 +59,13 @@ public:
    * \brief Constructs a trajectory for a given robot model, trajectory duration, and discretization
    */
   ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration, double discretization,
-                  std::string groupName);
+                  std::string group_name);
 
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
   ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points, double discretization,
-                  std::string groupName);
+                  std::string group_name);
 
   /**
    * \brief Creates a new containing only the joints of interest, and adds padding to the start
@@ -148,8 +148,8 @@ public:
    * @param chomp_trajectory_point index of the chomp_trajectory's point to get joint values from
    */
   void assignCHOMPTrajectoryPointFromInputTrajectoryPoint(moveit_msgs::RobotTrajectory trajectory_msg,
-                                                          int num_joints_trajectory, int trajectory_msgs_point,
-                                                          int chomp_trajectory_point);
+                                                          int num_joints_trajectory, int trajectory_msgs_point_index,
+                                                          int chomp_trajectory_point_index);
 
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory

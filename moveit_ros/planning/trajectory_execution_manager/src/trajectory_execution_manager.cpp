@@ -586,11 +586,11 @@ void TrajectoryExecutionManager::updateControllersState(const ros::Duration& age
     updateControllerState(known_controller.second, age);
 }
 
-bool TrajectoryExecutionManager::checkControllerCombination(std::vector<std::string>& selected,
+bool TrajectoryExecutionManager::checkControllerCombination(std::vector<std::string>& selected_controllers,
                                                             const std::set<std::string>& actuated_joints)
 {
   std::set<std::string> combined_joints;
-  for (const std::string& controller_name : selected)
+  for (const std::string& controller_name : selected_controllers)
   {
     const ControllerInformation& ci = known_controllers_[controller_name];
     combined_joints.insert(ci.joints_.begin(), ci.joints_.end());
@@ -599,7 +599,7 @@ bool TrajectoryExecutionManager::checkControllerCombination(std::vector<std::str
   if (verbose_)
   {
     std::stringstream ss, saj, sac;
-    for (const std::string& controller_name : selected)
+    for (const std::string& controller_name : selected_controllers)
       ss << controller_name << " ";
     for (const std::string& actuated_joint : actuated_joints)
       saj << actuated_joint << " ";

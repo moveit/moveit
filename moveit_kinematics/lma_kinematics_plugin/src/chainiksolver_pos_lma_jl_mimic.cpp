@@ -39,59 +39,59 @@
 
 namespace KDL
 {
-ChainIkSolverPos_LMA_JL_Mimic::ChainIkSolverPos_LMA_JL_Mimic(const Chain& _chain, const JntArray& _q_min,
-                                                             const JntArray& _q_max, ChainFkSolverPos& _fksolver,
-                                                             ChainIkSolverPos_LMA& _iksolver, unsigned int _maxiter,
-                                                             double _eps, bool _position_ik)
-  : chain(_chain)
-  , q_min(_q_min)
-  , q_min_mimic(chain.getNrOfJoints())
-  , q_max(_q_max)
-  , q_max_mimic(chain.getNrOfJoints())
-  , q_temp(chain.getNrOfJoints())
-  , fksolver(_fksolver)
-  , iksolver(_iksolver)
-  , delta_q(_chain.getNrOfJoints())
-  , maxiter(_maxiter)
-  , eps(_eps)
-  , position_ik(_position_ik)
+ChainIkSolverPos_LMA_JL_Mimic::ChainIkSolverPos_LMA_JL_Mimic(const Chain& chain, const JntArray& q_min,
+                                                             const JntArray& q_max, ChainFkSolverPos& fksolver,
+                                                             ChainIkSolverPos_LMA& iksolver, unsigned int maxiter,
+                                                             double eps, bool position_ik)
+  : chain_(chain)
+  , q_min_(q_min)
+  , q_min_mimic_(chain_.getNrOfJoints())
+  , q_max_(q_max)
+  , q_max_mimic_(chain_.getNrOfJoints())
+  , q_temp_(chain_.getNrOfJoints())
+  , fksolver_(fksolver)
+  , iksolver_(iksolver)
+  , delta_q_(chain.getNrOfJoints())
+  , maxiter_(maxiter)
+  , eps_(eps)
+  , position_ik_(position_ik)
 {
-  mimic_joints.resize(chain.getNrOfJoints());
-  for (std::size_t i = 0; i < mimic_joints.size(); ++i)
+  mimic_joints_.resize(chain_.getNrOfJoints());
+  for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
   {
-    mimic_joints[i].reset(i);
+    mimic_joints_[i].reset(i);
   }
   ROS_DEBUG_NAMED("lma", "Limits");
-  for (std::size_t i = 0; i < q_min.rows(); ++i)
+  for (std::size_t i = 0; i < q_min_.rows(); ++i)
   {
-    ROS_DEBUG_NAMED("lma", "%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
+    ROS_DEBUG_NAMED("lma", "%ld: Min: %f, Max: %f", long(i), q_min_(i), q_max_(i));
   }
   ROS_DEBUG_NAMED("lma", " ");
 }
 
-bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& _mimic_joints)
+bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& mimic_joints)
 {
-  if (_mimic_joints.size() != chain.getNrOfJoints())
+  if (mimic_joints.size() != chain_.getNrOfJoints())
   {
-    ROS_ERROR_NAMED("lma", "Mimic Joint info should be same size as number of joints in chain: %d",
-                    chain.getNrOfJoints());
+    ROS_ERROR_NAMED("lma", "Mimic Joint info should be same size as number of joints in chain_: %d",
+                    chain_.getNrOfJoints());
     return false;
   }
 
-  for (const lma_kinematics_plugin::JointMimic& _mimic_joint : _mimic_joints)
+  for (const lma_kinematics_plugin::JointMimic& _mimic_joint : mimic_joints)
   {
-    if (_mimic_joint.map_index >= chain.getNrOfJoints())
+    if (_mimic_joint.map_index >= chain_.getNrOfJoints())
     {
-      ROS_ERROR_NAMED("lma", "Mimic Joint index should be less than number of joints in chain: %d",
-                      chain.getNrOfJoints());
+      ROS_ERROR_NAMED("lma", "Mimic Joint index should be less than number of joints in chain_: %d",
+                      chain_.getNrOfJoints());
       return false;
     }
   }
-  mimic_joints = _mimic_joints;
+  mimic_joints_ = mimic_joints;
 
-  // Note that q_min and q_max will be of size chain.getNrOfJoints() - num_mimic_joints
-  //  qToqMimic(q_min,q_min_mimic);
-  //  qToqMimic(q_max,q_max_mimic);
+  // Note that q_min_ and q_max_ will be of size chain_.getNrOfJoints() - num_mimic_joints
+  //  qToqMimic(q_min_,q_min_mimic_);
+  //  qToqMimic(q_max_,q_max_mimic_);
 
   ROS_DEBUG_NAMED("lma", "Set mimic joints");
   return true;
@@ -99,19 +99,19 @@ bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinemat
 
 void ChainIkSolverPos_LMA_JL_Mimic::qToqMimic(const JntArray& q, JntArray& q_result)
 {
-  for (std::size_t i = 0; i < chain.getNrOfJoints(); ++i)
+  for (std::size_t i = 0; i < chain_.getNrOfJoints(); ++i)
   {
-    q_result(i) = mimic_joints[i].offset + mimic_joints[i].multiplier * q(mimic_joints[i].map_index);
+    q_result(i) = mimic_joints_[i].offset + mimic_joints_[i].multiplier * q(mimic_joints_[i].map_index);
   }
 }
 
 void ChainIkSolverPos_LMA_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_result)
 {
-  for (std::size_t i = 0; i < chain.getNrOfJoints(); ++i)
+  for (std::size_t i = 0; i < chain_.getNrOfJoints(); ++i)
   {
-    if (mimic_joints[i].active)  // This is not a mimic joint
+    if (mimic_joints_[i].active)  // This is not a mimic joint
     {
-      q_result(mimic_joints[i].map_index) = q(i);
+      q_result(mimic_joints_[i].map_index) = q(i);
     }
   }
 }
@@ -123,7 +123,7 @@ int ChainIkSolverPos_LMA_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame
 
 void ChainIkSolverPos_LMA_JL_Mimic::harmonize(JntArray& q_out)
 {
-  for (size_t i = 0; i < chain.getNrOfJoints(); ++i)
+  for (size_t i = 0; i < chain_.getNrOfJoints(); ++i)
   {
     // Harmonize
     while (q_out(i) > 2 * M_PI)
@@ -137,14 +137,14 @@ void ChainIkSolverPos_LMA_JL_Mimic::harmonize(JntArray& q_out)
 bool ChainIkSolverPos_LMA_JL_Mimic::obeysLimits(const KDL::JntArray& q_out)
 {
   bool obeys_limits = true;
-  for (size_t i = 0; i < chain.getNrOfJoints(); i++)
+  for (size_t i = 0; i < chain_.getNrOfJoints(); i++)
   {
-    if ((q_out(i) < (q_min(i) - 0.0001)) || (q_out(i) > (q_max(i) + 0.0001)))
+    if ((q_out(i) < (q_min_(i) - 0.0001)) || (q_out(i) > (q_max_(i) + 0.0001)))
     {
       // One element of solution is not within limits
       obeys_limits = false;
-      ROS_DEBUG_STREAM_NAMED("lma", "Not in limits! " << i << " value " << q_out(i) << " has limit being  " << q_min(i)
-                                                      << " to " << q_max(i));
+      ROS_DEBUG_STREAM_NAMED("lma", "Not in limits! " << i << " value " << q_out(i) << " has limit being  " << q_min_(i)
+                                                      << " to " << q_max_(i));
       break;
     }
   }
@@ -154,7 +154,7 @@ bool ChainIkSolverPos_LMA_JL_Mimic::obeysLimits(const KDL::JntArray& q_out)
 int ChainIkSolverPos_LMA_JL_Mimic::cartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
                                                      bool lock_redundant_joints)
 {
-  int ik_valid = iksolver.CartToJnt(q_init, p_in, q_out);
+  int ik_valid = iksolver_.CartToJnt(q_init, p_in, q_out);
   harmonize(q_out);
 
   if (!obeysLimits(q_out))

@@ -89,7 +89,7 @@ public:
   InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
                      const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
   // DEPRECATED.
-  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& model,
+  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& robot_model,
                      const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
 
   virtual ~InteractionHandler()
@@ -120,9 +120,9 @@ public:
   void setPoseOffset(const EndEffectorInteraction& eef, const geometry_msgs::Pose& m);
 
   /** \brief Set the offset from a joint to its marker.
-   * @param j The target joint.
+   * @param vj The target joint.
    * @param m The pose of the marker in the frame of the joint parent. */
-  void setPoseOffset(const JointInteraction& j, const geometry_msgs::Pose& m);
+  void setPoseOffset(const JointInteraction& vj, const geometry_msgs::Pose& m);
 
   /** \brief Get the offset from EEF to its marker.
    * @param  The target end-effector.
@@ -247,7 +247,7 @@ private:
 
   // Update RobotState for a new joint position.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* pose,
+  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* feedback_pose,
                         StateChangeCallbackFn* callback);
 
   // Set the error state for \e name.
@@ -332,7 +332,7 @@ public:
   void setIKTimeout(double timeout);
   void setIKAttempts(unsigned int attempts);
   kinematics::KinematicsQueryOptions getKinematicsQueryOptions() const;
-  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt);
+  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& options);
   void setKinematicsQueryOptionsForGroup(const std::string& group_name,
                                          const kinematics::KinematicsQueryOptions& options);
 };

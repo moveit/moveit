@@ -102,17 +102,17 @@ static bool setLinkPair(const std::string& linkA, const std::string& linkB, cons
 
 /**
  * \brief Build the robot links connection graph and then check for links with no geomotry
- * \param link The root link to begin a breadth first search on
+ * \param start_link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
  */
-static void computeConnectionGraph(const robot_model::LinkModel* link, LinkGraph& link_graph);
+static void computeConnectionGraph(const robot_model::LinkModel* start_link, LinkGraph& link_graph);
 
 /**
  * \brief Recursively build the adj list of link connections
- * \param link The root link to begin a breadth first search on
+ * \param start_link The root link to begin a breadth first search on
  * \param link_graph A representation of all bi-direcitonal joint connections between links in robot_description
  */
-static void computeConnectionGraphRec(const robot_model::LinkModel* link, LinkGraph& link_graph);
+static void computeConnectionGraphRec(const robot_model::LinkModel* start_link, LinkGraph& link_graph);
 
 /**
  * \brief Disable collision checking for adjacent links, or adjacent with no geometry links between them

@@ -147,14 +147,14 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
   return true;
 }
 
-bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joints)
+bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
   if (num_possible_redundant_joints_ < 0)
   {
     ROS_ERROR_NAMED("srv", "This group cannot have redundant joints");
     return false;
   }
-  if (int(redundant_joints.size()) > num_possible_redundant_joints_)
+  if (int(redundant_joint_indices.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("srv", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;

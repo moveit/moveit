@@ -71,23 +71,23 @@ public:
   /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
       \param nh The ROS node handle that should be used for reading parameters needed for configuration
-      \param planning_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is
+      \param planner_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is
      specified
       \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter
      plugins are specified (plugin names separated by space; order matters)
   */
   PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh = ros::NodeHandle("~"),
-                   const std::string& planning_plugin_param_name = "planning_plugin",
+                   const std::string& planner_plugin_param_name = "planning_plugin",
                    const std::string& adapter_plugins_param_name = "request_adapters");
 
   /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
       \param nh The ROS node handle that should be used for reading parameters needed for configuration
-      \param planning_plugin_name The name of the planning plugin to load
+      \param planner_plugin_name The name of the planning plugin to load
       \param adapter_plugins_names The names of the planning request adapter plugins to load
   */
   PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh,
-                   const std::string& planning_plugin_name, const std::vector<std::string>& adapter_plugin_names);
+                   const std::string& planner_plugin_name, const std::vector<std::string>& adapter_plugin_names);
 
   /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC.
    * Default is true. */

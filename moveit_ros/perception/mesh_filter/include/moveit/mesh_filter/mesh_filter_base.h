@@ -104,9 +104,9 @@ public:
   /**
    * \brief removes a mesh given by its handle
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] mesh_handle the handle of the mesh to be removed.
+   * \param[in] handle the handle of the mesh to be removed.
    */
-  void removeMesh(MeshHandle mesh_handle);
+  void removeMesh(MeshHandle handle);
 
   /**
    * \brief label/remove pixels from input depth-image

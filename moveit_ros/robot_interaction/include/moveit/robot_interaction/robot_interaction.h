@@ -85,7 +85,7 @@ public:
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
-  RobotInteraction(const robot_model::RobotModelConstPtr& kmodel, const std::string& ns = "");
+  RobotInteraction(const robot_model::RobotModelConstPtr& robot_model, const std::string& ns = "");
   virtual ~RobotInteraction();
 
   const std::string& getServerTopic(void) const
@@ -191,7 +191,7 @@ private:
                              const EndEffectorInteraction& eef, visualization_msgs::InteractiveMarker& im,
                              bool position = true, bool orientation = true);
   void addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr& handler,
-                             const EndEffectorInteraction& eef, const geometry_msgs::Pose& offset,
+                             const EndEffectorInteraction& eef, const geometry_msgs::Pose& im_to_eef,
                              visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void subscribeMoveInteractiveMarker(const std::string marker_name, const std::string& name);

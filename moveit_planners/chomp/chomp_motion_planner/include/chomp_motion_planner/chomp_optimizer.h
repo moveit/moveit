@@ -107,7 +107,7 @@ private:
     return potential;
   }
   template <typename Derived>
-  void getJacobian(int trajectoryPoint, Eigen::Vector3d& collision_point_pos, std::string& jointName,
+  void getJacobian(int trajectory_point, Eigen::Vector3d& collision_point_pos, std::string& joint_name,
                    Eigen::MatrixBase<Derived>& jacobian) const;
 
   // void getRandomState(const moveit::core::RobotState& currentState,
@@ -220,7 +220,7 @@ private:
   void updateMomentum();
   void updatePositionFromMomentum();
   void calculatePseudoInverse();
-  void computeJointProperties(int trajectoryPoint);
+  void computeJointProperties(int trajectory_point);
   bool isCurrentTrajectoryMeshToMeshCollisionFree() const;
 };
 }

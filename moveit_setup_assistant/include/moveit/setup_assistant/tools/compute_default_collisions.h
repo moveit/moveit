@@ -81,8 +81,8 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData> LinkPairMap;
  * \return Adj List of unique set of pairs of links in string-based form
  */
 LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr& parent_scene, unsigned int* progress,
-                                     const bool include_never_colliding, const unsigned int trials,
-                                     const double min_collision_faction, const bool verbose);
+                                     const bool include_never_colliding, const unsigned int num_trials,
+                                     const double min_collision_fraction, const bool verbose);
 
 /**
  * \brief Generate a list of unique link pairs for all links with geometry. Order pairs alphabetically. n choose 2 pairs

@@ -44,9 +44,9 @@
 
 namespace moveit_rviz_plugin
 {
-PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode* node, rviz::DisplayContext* context,
+PlanningSceneRender::PlanningSceneRender(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
                                          const RobotStateVisualizationPtr& robot)
-  : planning_scene_geometry_node_(node->createChildSceneNode()), context_(context), scene_robot_(robot)
+  : planning_scene_geometry_node_(root_node->createChildSceneNode()), context_(context), scene_robot_(robot)
 {
   render_shapes_.reset(new RenderShapes(context));
 }
@@ -62,10 +62,10 @@ void PlanningSceneRender::clear()
 }
 
 void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr& scene,
-                                              const rviz::Color& default_env_color,
+                                              const rviz::Color& default_scene_color,
                                               const rviz::Color& default_attached_color,
-                                              OctreeVoxelRenderMode octree_voxel_rendering,
-                                              OctreeVoxelColorMode octree_color_mode, float default_scene_alpha)
+                                              OctreeVoxelRenderMode octree_voxel_render_mode,
+                                              OctreeVoxelColorMode octree_voxel_color_mode, float default_scene_alpha)
 {
   if (!scene)
     return;
@@ -91,7 +91,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   for (const std::string& id : ids)
   {
     collision_detection::CollisionWorld::ObjectConstPtr object = scene->getWorld()->getObject(id);
-    rviz::Color color = default_env_color;
+    rviz::Color color = default_scene_color;
     float alpha = default_scene_alpha;
     if (scene->hasObjectColor(id))
     {
@@ -103,7 +103,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     }
     for (std::size_t j = 0; j < object->shapes_.size(); ++j)
       render_shapes_->renderShape(planning_scene_geometry_node_, object->shapes_[j].get(), object->shape_poses_[j],
-                                  octree_voxel_rendering, octree_color_mode, color, alpha);
+                                  octree_voxel_render_mode, octree_voxel_color_mode, color, alpha);
   }
 }
 }  // namespace moveit_rviz_plugin
