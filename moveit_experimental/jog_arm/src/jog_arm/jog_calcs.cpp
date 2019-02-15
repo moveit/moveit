@@ -554,9 +554,10 @@ double JogCalcs::decelerateForSingularity(Eigen::MatrixXd jacobian, const Eigen:
 void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_velocity)
 {
   double maximum_joint_vel = calculated_joint_velocity.cwiseAbs().maxCoeff();
-  if(maximum_joint_vel > parameters_.joint_scale)
+  if (maximum_joint_vel > parameters_.joint_scale)
   {
-    // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is scaled uniformly to match expected motion
+    // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is
+    // scaled uniformly to match expected motion
     calculated_joint_velocity = calculated_joint_velocity * parameters_.joint_scale / maximum_joint_vel;
   }
 }
