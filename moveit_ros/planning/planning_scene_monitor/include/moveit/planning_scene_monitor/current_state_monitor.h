@@ -53,9 +53,7 @@ typedef boost::function<void(const sensor_msgs::JointStateConstPtr& joint_state)
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
 class CurrentStateMonitor
 {
-  /* tf changed their interface between indigo and kinetic
-     from boost::signals::connection to boost::signals2::connection */
-  typedef decltype(tf2_ros::Buffer()._addTransformsChangedListener(boost::function<void(void)>())) TFConnection;
+  typedef boost::signals2::connection TFConnection;
 
 public:
   /**
