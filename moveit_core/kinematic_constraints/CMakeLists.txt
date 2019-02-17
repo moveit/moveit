@@ -6,7 +6,7 @@ add_library(${MOVEIT_LIB_NAME}
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 target_link_libraries(${MOVEIT_LIB_NAME}
-  moveit_robot_model moveit_kinematics_base moveit_robot_state moveit_collision_detection_fcl
+  moveit_robot_model moveit_kinematics_base moveit_robot_state moveit_collision_detection_fcl moveit_utils
   ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 

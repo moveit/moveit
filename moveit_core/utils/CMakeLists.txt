@@ -1,7 +1,9 @@
 set(MOVEIT_LIB_NAME moveit_utils)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/lexical_casts.cpp)
+  src/lexical_casts.cpp
+  src/xmlrpc_casts.cpp
+)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
