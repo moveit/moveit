@@ -67,27 +67,18 @@ public:
     /* actually create each controller */
     for (int i = 0; i < controller_list.size(); ++i)
     {
-      if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
+      if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints") ||
+          !controller_list[i].hasMember("action_ns") || !controller_list[i].hasMember("type"))
       {
-        ROS_ERROR_STREAM_NAMED("manager", "Name and joints must be specifed for each controller");
+        ROS_ERROR_STREAM_NAMED("manager", "name, joints, action_ns, and type must be specifed for each controller");
         continue;
       }
 
       try
       {
-        std::string name = std::string(controller_list[i]["name"]);
-
-        std::string action_ns;
-        if (controller_list[i].hasMember("ns"))
-        {
-          /* TODO: this used to be called "ns", renaming to "action_ns" and will remove in the future */
-          action_ns = std::string(controller_list[i]["ns"]);
-          ROS_WARN_NAMED("manager", "Use of 'ns' is deprecated, use 'action_ns' instead.");
-        }
-        else if (controller_list[i].hasMember("action_ns"))
-          action_ns = std::string(controller_list[i]["action_ns"]);
-        else
-          ROS_WARN_NAMED("manager", "Please note that 'action_ns' no longer has a default value.");
+        const std::string name = std::string(controller_list[i]["name"]);
+        const std::string action_ns = std::string(controller_list[i]["action_ns"]);
+        const std::string type = std::string(controller_list[i]["type"]);
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
@@ -95,14 +86,6 @@ public:
                                                                                  << " is not specified as an array");
           continue;
         }
-
-        if (!controller_list[i].hasMember("type"))
-        {
-          ROS_ERROR_STREAM_NAMED("manager", "No type specified for controller " << name);
-          continue;
-        }
-
-        std::string type = std::string(controller_list[i]["type"]);
 
         ActionBasedControllerHandleBasePtr new_handle;
         if (type == "GripperCommand")
