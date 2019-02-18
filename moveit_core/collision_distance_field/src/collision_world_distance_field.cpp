@@ -373,8 +373,8 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
           }
           else
           {
-            con.pos =
-                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[collision_sphere_index];
+            con.pos = gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]
+                          ->getSphereCenters()[collision_sphere_index];
             con.body_type_1 = BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i - gsr->dfce_->link_names_.size()];
           }
@@ -504,8 +504,7 @@ void CollisionWorldDistanceField::updateDistanceObject(const std::string& id, Di
   {
     for (PosedBodyPointDecompositionPtr& it : cur_it->second)
     {
-      subtract_points.insert(subtract_points.end(), it->getCollisionPoints().begin(),
-                             it->getCollisionPoints().end());
+      subtract_points.insert(subtract_points.end(), it->getCollisionPoints().begin(), it->getCollisionPoints().end());
     }
   }
 

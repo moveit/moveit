@@ -950,7 +950,8 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
   if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
   {
     robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);
-    for (moveit_msgs::AttachedCollisionObject& attached_collision_object : scene_msg.robot_state.attached_collision_objects)
+    for (moveit_msgs::AttachedCollisionObject& attached_collision_object :
+         scene_msg.robot_state.attached_collision_objects)
     {
       if (hasObjectType(attached_collision_object.object.id))
       {
@@ -1153,8 +1154,7 @@ void PlanningScene::decoupleParent()
     }
     if (!it.second->crobot_unpadded_)
     {
-      it.second->crobot_unpadded_ =
-          it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobotUnpadded());
+      it.second->crobot_unpadded_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobotUnpadded());
       it.second->crobot_unpadded_const_ = it.second->crobot_unpadded_;
     }
     it.second->parent_.reset();

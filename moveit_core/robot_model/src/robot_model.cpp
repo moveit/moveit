@@ -156,7 +156,7 @@ void computeDescendantsHelper(const JointModel* joint, std::vector<const JointMo
   for (const JointModel* child_joint : ch)
     computeDescendantsHelper(child_joint, parents, seen, descendants);
   const std::vector<const JointModel*>& mim = joint->getMimicRequests();
-  for (const JointModel* mimic_joint: mim)
+  for (const JointModel* mimic_joint : mim)
     computeDescendantsHelper(mimic_joint, parents, seen, descendants);
   parents.pop_back();
 }
@@ -209,19 +209,16 @@ void RobotModel::computeCommonRoots()
   // have X as the common root.
   computeCommonRootsHelper(root_joint_, common_joint_roots_, joint_model_vector_.size());
 
-  for (JointModel* joint: joint_model_vector_)
+  for (JointModel* joint : joint_model_vector_)
   {
     // the common root of a joint and itself is the same joint:
-    common_joint_roots_[joint->getJointIndex() * (1 + joint_model_vector_.size())] =
-        joint->getJointIndex();
+    common_joint_roots_[joint->getJointIndex() * (1 + joint_model_vector_.size())] = joint->getJointIndex();
 
     // a node N and one of its descendants have as common root the node N itself:
     const std::vector<const JointModel*>& descendant_joints = joint->getDescendantJointModels();
     for (const JointModel* descendant_joint : descendant_joints)
-      common_joint_roots_[descendant_joint->getJointIndex() * joint_model_vector_.size() +
-                          joint->getJointIndex()] =
-          common_joint_roots_[descendant_joint->getJointIndex() +
-                              joint->getJointIndex() * joint_model_vector_.size()] =
+      common_joint_roots_[descendant_joint->getJointIndex() * joint_model_vector_.size() + joint->getJointIndex()] =
+          common_joint_roots_[descendant_joint->getJointIndex() + joint->getJointIndex() * joint_model_vector_.size()] =
               joint->getJointIndex();
   }
 }
@@ -235,7 +232,8 @@ void RobotModel::computeDescendants()
   DescMap descendants;
   computeDescendantsHelper(root_joint_, parents, seen, descendants);
   for (std::pair<const JointModel* const, std::pair<std::set<const LinkModel*, OrderLinksByIndex>,
-                                              std::set<const JointModel*, OrderJointsByIndex> > >& descendant : descendants)
+                                                    std::set<const JointModel*, OrderJointsByIndex> > >& descendant :
+       descendants)
   {
     JointModel* jm = const_cast<JointModel*>(descendant.first);
     for (const JointModel* jt : descendant.second.second)
@@ -379,8 +377,8 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
                             joint->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          ROS_ERROR_NAMED(LOGNAME, "Joint '%s' cannot mimic unknown joint '%s'",
-                          joint->getName().c_str(), jm->mimic->joint_name.c_str());
+          ROS_ERROR_NAMED(LOGNAME, "Joint '%s' cannot mimic unknown joint '%s'", joint->getName().c_str(),
+                          jm->mimic->joint_name.c_str());
       }
   }
 
@@ -394,17 +392,14 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
       {
         if (joint->getMimic()->getMimic())
         {
-          joint->setMimic(
-              joint->getMimic()->getMimic(),
-              joint->getMimicFactor() * joint->getMimic()->getMimicFactor(),
-              joint->getMimicOffset() +
-                  joint->getMimicFactor() * joint->getMimic()->getMimicOffset());
+          joint->setMimic(joint->getMimic()->getMimic(), joint->getMimicFactor() * joint->getMimic()->getMimicFactor(),
+                          joint->getMimicOffset() + joint->getMimicFactor() * joint->getMimic()->getMimicOffset());
           change = true;
         }
         if (joint == joint->getMimic())
         {
           ROS_ERROR_NAMED(LOGNAME, "Cycle found in joint that mimic each other. Ignoring all mimic joints.");
-          for (auto & joint : joint_model_vector_)
+          for (auto& joint : joint_model_vector_)
             joint->setMimic(nullptr, 0.0, 0.0);
           change = false;
           break;
@@ -907,8 +902,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       }
       else if (vjoint.parent_frame_.empty())
       {
-        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its parent frame is empty",
-                       vjoint.name_.c_str());
+        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its parent frame is empty", vjoint.name_.c_str());
       }
       else
       {
@@ -1352,14 +1346,13 @@ void RobotModel::printModelInfo(std::ostream& out) const
   out << "Joints: " << std::endl;
   for (JointModel* joint : joint_model_vector_)
   {
-    out << " '" << joint->getName() << "' (" << joint->getTypeName() << ")"
-        << std::endl;
+    out << " '" << joint->getName() << "' (" << joint->getTypeName() << ")" << std::endl;
     out << "  * Joint Index: " << joint->getJointIndex() << std::endl;
     const std::vector<std::string>& vn = joint->getVariableNames();
     out << "  * " << vn.size() << (vn.size() > 1 ? " variables:" : (vn.empty() ? " variables" : " variable:"))
         << std::endl;
     int idx = joint->getFirstVariableIndex();
-    for (const auto & it : vn)
+    for (const auto& it : vn)
     {
       out << "     * '" << it << "', index " << idx++ << " in full state";
       if (joint->getMimic())
@@ -1376,8 +1369,7 @@ void RobotModel::printModelInfo(std::ostream& out) const
   out << "Links: " << std::endl;
   for (LinkModel* link : link_model_vector_)
   {
-    out << " '" << link->getName() << "' with " << link->getShapes().size()
-        << " geoms" << std::endl;
+    out << " '" << link->getName() << "' with " << link->getShapes().size() << " geoms" << std::endl;
     if (link->parentJointIsFixed())
       out << "   * "
           << "parent joint is fixed" << std::endl;

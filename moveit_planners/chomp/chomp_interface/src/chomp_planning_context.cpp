@@ -18,8 +18,7 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::s
   chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
 }
 
-CHOMPPlanningContext::~CHOMPPlanningContext()
-= default;
+CHOMPPlanningContext::~CHOMPPlanningContext() = default;
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {

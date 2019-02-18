@@ -407,7 +407,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
 bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory& traj) const
 {
   traj.clear();
-  if (!ompl_simple_setup_->haveSolutionPath()) // NOLINT(readability-simplify-boolean-expr)
+  if (!ompl_simple_setup_->haveSolutionPath())  // NOLINT(readability-simplify-boolean-expr)
     return false;
   convertPath(ompl_simple_setup_->getSolutionPath(), traj);
   return true;
@@ -501,7 +501,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 
   ob::GoalPtr goal = constructGoal();
   ompl_simple_setup_->setGoal(goal);
-  return goal !=nullptr;
+  return goal != nullptr;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsigned int count,

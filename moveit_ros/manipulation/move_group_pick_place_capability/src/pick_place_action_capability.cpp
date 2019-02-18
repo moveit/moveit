@@ -89,7 +89,7 @@ void move_group::MoveGroupPickPlaceAction::startPlaceLookCallback()
 }
 
 void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr& goal,
-                                                                          moveit_msgs::PickupResult& action_res)
+                                                                         moveit_msgs::PickupResult& action_res)
 {
   pick_place::PickPlanPtr plan;
   try
@@ -128,7 +128,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanOnly(const m
 }
 
 void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal,
-                                                                         moveit_msgs::PlaceResult& action_res)
+                                                                        moveit_msgs::PlaceResult& action_res)
 {
   pick_place::PlacePlanPtr plan;
   try
@@ -167,8 +167,8 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanOnly(const mo
 }
 
 bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePickup(const moveit_msgs::PickupGoal& goal,
-                                                                     moveit_msgs::PickupResult* action_res,
-                                                                     plan_execution::ExecutableMotionPlan& plan)
+                                                                    moveit_msgs::PickupResult* action_res,
+                                                                    plan_execution::ExecutableMotionPlan& plan)
 {
   setPickupState(PLANNING);
 
@@ -209,8 +209,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePickup(const moveit
 }
 
 bool move_group::MoveGroupPickPlaceAction::planUsingPickPlacePlace(const moveit_msgs::PlaceGoal& goal,
-                                                                    moveit_msgs::PlaceResult* action_res,
-                                                                    plan_execution::ExecutableMotionPlan& plan)
+                                                                   moveit_msgs::PlaceResult* action_res,
+                                                                   plan_execution::ExecutableMotionPlan& plan)
 {
   setPlaceState(PLANNING);
 

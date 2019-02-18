@@ -61,8 +61,7 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
 }
 
-ompl_interface::PoseModelStateSpace::~PoseModelStateSpace()
-= default;
+ompl_interface::PoseModelStateSpace::~PoseModelStateSpace() = default;
 
 double ompl_interface::PoseModelStateSpace::distance(const ompl::base::State* state1,
                                                      const ompl::base::State* state2) const
@@ -287,7 +286,8 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State* state
     return computeStateFK(state);
   if (!state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
     return computeStateIK(state);
-  if (state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed()) // NOLINT(readability-simplify-boolean-expr)
+  if (state->as<StateType>()->jointsComputed() &&
+      state->as<StateType>()->poseComputed())  // NOLINT(readability-simplify-boolean-expr)
     return true;
   state->as<StateType>()->markInvalid();
   return false;

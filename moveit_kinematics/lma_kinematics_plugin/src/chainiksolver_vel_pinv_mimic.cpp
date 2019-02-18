@@ -66,12 +66,12 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& chain, int
   , U_locked_(MatrixXd::Zero(6, chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , S_locked_(VectorXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , V_locked_(MatrixXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints,
-                            chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
+                             chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , tmp_locked_(VectorXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , U_translate_locked_(MatrixXd::Zero(3, chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , S_translate_locked_(VectorXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , V_translate_locked_(MatrixXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints,
-                                      chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
+                                       chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , tmp_translate_locked_(VectorXd::Zero(chain_.getNrOfJoints() - num_mimic_joints - num_redundant_joints))
   , num_redundant_joints_(num_redundant_joints)
   , redundant_joints_locked_(false)
@@ -81,8 +81,7 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& chain, int
     mimic_joints_[i].reset(i);
 }
 
-ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
-= default;
+ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic() = default;
 
 bool ChainIkSolverVel_pinv_mimic::setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& mimic_joints)
 {
@@ -167,9 +166,9 @@ int ChainIkSolverVel_pinv_mimic::cartToJntRedundant(const JntArray& q_in, const 
   if (!position_ik_)
     ret = svd_eigen_HH(jac_locked_.data, U_locked_, S_locked_, V_locked_, tmp_locked_, maxiter_);
   else
-    ret =
-        svd_eigen_HH(jac_locked_.data.topLeftCorner(3, chain_.getNrOfJoints() - num_mimic_joints_ - num_redundant_joints_),
-                     U_translate_locked_, S_translate_locked_, V_translate_locked_, tmp_translate_locked_, maxiter_);
+    ret = svd_eigen_HH(
+        jac_locked_.data.topLeftCorner(3, chain_.getNrOfJoints() - num_mimic_joints_ - num_redundant_joints_),
+        U_translate_locked_, S_translate_locked_, V_translate_locked_, tmp_translate_locked_, maxiter_);
 
   double sum;
   unsigned int i, j;

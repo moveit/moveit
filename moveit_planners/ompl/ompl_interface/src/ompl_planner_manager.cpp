@@ -142,9 +142,9 @@ public:
     PlannerManager::setPlannerConfigurations(ompl_interface_->getPlannerConfigurations());
   }
 
-  planning_interface::PlanningContextPtr
-  getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const override
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                            const planning_interface::MotionPlanRequest& req,
+                                                            moveit_msgs::MoveItErrorCodes& error_code) const override
   {
     return ompl_interface_->getPlanningContext(planning_scene, req, error_code);
   }

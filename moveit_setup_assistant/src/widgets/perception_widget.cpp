@@ -313,8 +313,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
       max_update_rate_field_->setText(QString(sensor_config["max_update_rate"].getValue().c_str()));
       filtered_cloud_topic_field_->setText(QString(sensor_config["filtered_cloud_topic"].getValue().c_str()));
     }
-    else if (sensor_config["sensor_plugin"].getValue() ==
-             std::string("occupancy_map_monitor/DepthImageOctomapUpdater"))
+    else if (sensor_config["sensor_plugin"].getValue() == std::string("occupancy_map_monitor/DepthImageOctomapUpdater"))
     {
       sensor_plugin_field_->setCurrentIndex(2);
       image_topic_field_->setText(QString(sensor_config["image_topic"].getValue().c_str()));
@@ -324,8 +323,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
       shadow_threshold_field_->setText(QString(sensor_config["shadow_threshold"].getValue().c_str()));
       depth_padding_scale_field_->setText(QString(sensor_config["padding_scale"].getValue().c_str()));
       depth_padding_offset_field_->setText(QString(sensor_config["padding_offset"].getValue().c_str()));
-      depth_filtered_cloud_topic_field_->setText(
-          QString(sensor_config["filtered_cloud_topic"].getValue().c_str()));
+      depth_filtered_cloud_topic_field_->setText(QString(sensor_config["filtered_cloud_topic"].getValue().c_str()));
       depth_max_update_rate_field_->setText(QString(sensor_config["max_update_rate"].getValue().c_str()));
     }
   }

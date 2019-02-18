@@ -89,8 +89,10 @@ bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::
     else
       ji.index_ = jmg_->getVariableGroupIndex(joint_constraint.getJointVariableName());
     ji.potentiallyAdjustMinMaxBounds(
-        std::max(joint_bounds.min_position_, joint_constraint.getDesiredJointPosition() - joint_constraint.getJointToleranceBelow()),
-        std::min(joint_bounds.max_position_, joint_constraint.getDesiredJointPosition() + joint_constraint.getJointToleranceAbove()));
+        std::max(joint_bounds.min_position_,
+                 joint_constraint.getDesiredJointPosition() - joint_constraint.getJointToleranceBelow()),
+        std::min(joint_bounds.max_position_,
+                 joint_constraint.getDesiredJointPosition() + joint_constraint.getJointToleranceAbove()));
 
     ROS_DEBUG_NAMED("constraint_samplers", "Bounds for %s JointConstraint are %g %g",
                     joint_constraint.getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);

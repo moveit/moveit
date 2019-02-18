@@ -171,7 +171,8 @@ bool InteractionHandler::getPoseOffset(const JointInteraction& vj, geometry_msgs
   return false;
 }
 
-bool InteractionHandler::getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& pose)
+bool InteractionHandler::getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef,
+                                                      geometry_msgs::PoseStamped& pose)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(eef.eef_group);

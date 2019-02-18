@@ -86,10 +86,10 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
   }
 
   // add all joint constraints that are in second but not in first
-  for (const auto & jc_second : second.joint_constraints)
+  for (const auto& jc_second : second.joint_constraints)
   {
     bool add = true;
-    for (const auto & jc_first : first.joint_constraints)
+    for (const auto& jc_first : first.joint_constraints)
       if (jc_second.joint_name == jc_first.joint_name)
       {
         add = false;
@@ -101,15 +101,15 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
 
   // merge rest of constraints
   r.position_constraints = first.position_constraints;
-  for (const auto & position_constraint : second.position_constraints)
+  for (const auto& position_constraint : second.position_constraints)
     r.position_constraints.push_back(position_constraint);
 
   r.orientation_constraints = first.orientation_constraints;
-  for (const auto & orientation_constraint : second.orientation_constraints)
+  for (const auto& orientation_constraint : second.orientation_constraints)
     r.orientation_constraints.push_back(orientation_constraint);
 
   r.visibility_constraints = first.visibility_constraints;
-  for (const auto & visibility_constraint : second.visibility_constraints)
+  for (const auto& visibility_constraint : second.visibility_constraints)
     r.visibility_constraints.push_back(visibility_constraint);
 
   return r;
@@ -526,7 +526,7 @@ static bool collectConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constra
     return false;
   }
 
-  for (int i = 0; i < params.size(); ++i) // NOLINT(modernize-loop-convert)
+  for (int i = 0; i < params.size(); ++i)  // NOLINT(modernize-loop-convert)
   {
     if (!params[i].hasMember("type"))
     {

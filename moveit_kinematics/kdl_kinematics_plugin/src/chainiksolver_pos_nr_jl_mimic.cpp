@@ -32,8 +32,8 @@ namespace KDL
 {
 ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& chain, const JntArray& q_min,
                                                            const JntArray& q_max, ChainFkSolverPos& fksolver,
-                                                           ChainIkSolverVel& iksolver, unsigned int maxiter,
-                                                           double eps, bool position_ik)
+                                                           ChainIkSolverVel& iksolver, unsigned int maxiter, double eps,
+                                                           bool position_ik)
   : chain_(chain)
   , q_min_(q_min)
   , q_min_mimic_(chain_.getNrOfJoints())
@@ -191,6 +191,5 @@ int ChainIkSolverPos_NR_JL_Mimic::cartToJntAdvanced(const JntArray& q_init, cons
     return -3;
 }
 
-ChainIkSolverPos_NR_JL_Mimic::~ChainIkSolverPos_NR_JL_Mimic()
-= default;
+ChainIkSolverPos_NR_JL_Mimic::~ChainIkSolverPos_NR_JL_Mimic() = default;
 }  // namespace KDL

@@ -70,8 +70,7 @@ ChompParameters::ChompParameters()
   max_recovery_attempts_ = 5;
 }
 
-ChompParameters::~ChompParameters()
-= default;
+ChompParameters::~ChompParameters() = default;
 
 ChompParameters ChompParameters::getNonConstParams(const ChompParameters& params)
 {

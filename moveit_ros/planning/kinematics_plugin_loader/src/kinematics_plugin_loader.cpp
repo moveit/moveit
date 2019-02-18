@@ -209,8 +209,8 @@ public:
         if (kinematics_base.unique())
         {
           ROS_DEBUG("Reusing cached kinematics solver for group '%s'", jmg->getName().c_str());
-          return kinematics_base;  // this is safe since the shared_ptr is copied on stack BEFORE the destructors in scope get
-                         // called
+          return kinematics_base;  // this is safe since the shared_ptr is copied on stack BEFORE the destructors in
+                                   // scope get called
         }
     }
 
@@ -413,7 +413,7 @@ kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::
               }
               else
               {
-                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j) // NOLINT(modernize-loop-convert)
+                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)  // NOLINT(modernize-loop-convert)
                 {
                   ROS_ASSERT(ksolver_ik_links[j].getType() == XmlRpc::XmlRpcValue::TypeString);
                   ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader",

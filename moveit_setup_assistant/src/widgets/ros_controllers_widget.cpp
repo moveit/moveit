@@ -317,7 +317,7 @@ void ROSControllersWidget::loadGroupsScreen(moveit_setup_assistant::ROSControlCo
   std::vector<std::string> groups;
 
   // Display all groups by looping through them
-  for (const srdf::Model::Group & group_it : config_data_->srdf_->srdf_model_->getGroups())
+  for (const srdf::Model::Group& group_it : config_data_->srdf_->srdf_model_->getGroups())
   {
     // Add to available groups list
     groups.push_back(group_it.name_);
@@ -394,7 +394,7 @@ void ROSControllersWidget::addController()
 
   // Load the data
   loadControllerScreen(nullptr);  // nullptr indicates this is a new controller, not an existing one
-  changeScreen(2);             // 1 is index of controller edit
+  changeScreen(2);                // 1 is index of controller edit
 }
 
 // ******************************************************************************************

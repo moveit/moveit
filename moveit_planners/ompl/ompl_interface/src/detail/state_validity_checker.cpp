@@ -215,7 +215,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
-  if (!res.collision) // NOLINT(readability-simplify-boolean-expr)
+  if (!res.collision)  // NOLINT(readability-simplify-boolean-expr)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
     return true;

@@ -74,8 +74,7 @@ MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
 // ******************************************************************************************
 // Destructor
 // ******************************************************************************************
-MoveItConfigData::~MoveItConfigData()
-= default;
+MoveItConfigData::~MoveItConfigData() = default;
 
 // ******************************************************************************************
 // Load a robot model
@@ -241,11 +240,10 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << group.name_;
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
-    emitter << YAML::Key << "default_planner_config" << YAML::Value
-            << group_meta_data_[group.name_].default_planner_;
+    emitter << YAML::Key << "default_planner_config" << YAML::Value << group_meta_data_[group.name_].default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
-    for (auto & pconfig : pconfigs)
+    for (auto& pconfig : pconfigs)
       emitter << pconfig;
     emitter << YAML::EndSeq;
 
@@ -414,7 +412,8 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr && doc_element->FirstChildElement("collision") != nullptr)
+        if (doc_element->FirstChildElement("inertial") == nullptr &&
+            doc_element->FirstChildElement("collision") != nullptr)
         {
           new_urdf_needed = true;
           TiXmlElement inertia_link("inertial");
@@ -592,15 +591,15 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 
   OMPLPlannerDescription rrt_connect("RRTConnect", "geometric");
   rrt_connect.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                          "setup()");
+                                           "setup()");
   planner_des.push_back(rrt_connect);
 
   OMPLPlannerDescription rr_tstar("RRTstar", "geometric");
   rr_tstar.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                       "setup()");
+                                        "setup()");
   rr_tstar.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
   rr_tstar.addParameter("delay_collision_checking", "1", "Stop collision checking as soon as C-free parent found. "
-                                                        "default 1");
+                                                         "default 1");
   planner_des.push_back(rr_tstar);
 
   OMPLPlannerDescription trrt("TRRT", "geometric");
@@ -671,14 +670,14 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 
   OMPLPlannerDescription bi_trrt("BiTRRT", "geometric");
   bi_trrt.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                      "setup()");
+                                       "setup()");
   bi_trrt.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   bi_trrt.addParameter("init_temperature", "100", "initial temperature. default: 100");
   bi_trrt.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
-                                                    "default: 0.0 set in setup()");
+                                                     "default: 0.0 set in setup()");
   bi_trrt.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   bi_trrt.addParameter("cost_threshold", "1e300", "the cost threshold. Any motion cost that is not better will not be "
-                                                 "expanded. default: inf");
+                                                  "expanded. default: inf");
   planner_des.push_back(bi_trrt);
 
   OMPLPlannerDescription lbtrrt("LBTRRT", "geometric");
@@ -690,18 +689,18 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 
   OMPLPlannerDescription bi_est("BiEST", "geometric");
   bi_est.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                     "setup()");
+                                      "setup()");
   planner_des.push_back(bi_est);
 
   OMPLPlannerDescription proj_est("ProjEST", "geometric");
   proj_est.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                       "setup()");
+                                        "setup()");
   proj_est.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   planner_des.push_back(proj_est);
 
   OMPLPlannerDescription lazy_prm("LazyPRM", "geometric");
   lazy_prm.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
-                                       "setup()");
+                                        "setup()");
   planner_des.push_back(lazy_prm);
 
   OMPLPlannerDescription lazy_pr_mstar("LazyPRMstar", "geometric");  // no declares in code
@@ -719,11 +718,11 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 
   OMPLPlannerDescription spar_stwo("SPARStwo", "geometric");
   spar_stwo.addParameter("stretch_factor", "3.0", "roadmap spanner stretch factor. multiplicative upper bound on path "
-                                                 "quality. It does not make sense to make this parameter more than 3. "
-                                                 "default: 3.0");
+                                                  "quality. It does not make sense to make this parameter more than 3. "
+                                                  "default: 3.0");
   spar_stwo.addParameter("sparse_delta_fraction", "0.25",
-                        "delta fraction for connection distance. This value represents "
-                        "the visibility range of sparse samples. default: 0.25");
+                         "delta fraction for connection distance. This value represents "
+                         "the visibility range of sparse samples. default: 0.25");
   spar_stwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
   spar_stwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(spar_stwo);
@@ -1129,7 +1128,8 @@ void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkP
   disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
 
   // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for (const std::pair<std::pair<std::string, std::string>, moveit_setup_assistant::LinkPairData> & link_pair : link_pairs)
+  for (const std::pair<std::pair<std::string, std::string>, moveit_setup_assistant::LinkPairData>& link_pair :
+       link_pairs)
   {
     // Only copy those that are actually disabled
     if (link_pair.second.disable_check)
@@ -1711,7 +1711,7 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
     if (group.name_ == name)  // string match
     {
       searched_group = &group;  // convert to pointer from iterator
-      break;                          // we are done searching
+      break;                    // we are done searching
     }
   }
 
@@ -1736,7 +1736,7 @@ ROSControlConfig* MoveItConfigData::findROSControllerByName(const std::string& c
     if (controller_it.name_ == controller_name)  // string match
     {
       searched_ros_controller = &controller_it;  // convert to pointer from iterator
-      break;                                        // we are done searching
+      break;                                     // we are done searching
     }
   }
 

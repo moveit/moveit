@@ -261,7 +261,8 @@ public:
   void monitorDiffs(bool flag);
 
   /** \brief Start publishing the maintained planning scene. The first message set out is a complete planning scene.
-      Diffs are sent afterwards on updates specified by the \e update_type bitmask. For UPDATE_SCENE, the full scene is always
+      Diffs are sent afterwards on updates specified by the \e update_type bitmask. For UPDATE_SCENE, the full scene is
+     always
      sent. */
   void startPublishingPlanningScene(SceneUpdateType update_type,
                                     const std::string& planning_scene_topic = MONITORED_PLANNING_SCENE_TOPIC);

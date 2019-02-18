@@ -65,7 +65,7 @@ public:
     }
 
     /* actually create each controller */
-    for (int i = 0; i < controller_list.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < controller_list.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
       {
@@ -168,8 +168,7 @@ public:
     }
   }
 
-  ~MoveItSimpleControllerManager()
-  override = default;
+  ~MoveItSimpleControllerManager() override = default;
 
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml

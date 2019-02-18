@@ -759,7 +759,7 @@ bool ConfigurationFilesWidget::checkGenFiles()
 
   // Check all old file's modification time
   bool found_modified = false;
-  for (moveit_setup_assistant::GenerateFile & gen_file : gen_files_)
+  for (moveit_setup_assistant::GenerateFile& gen_file : gen_files_)
   {
     GenerateFile* file = &gen_file;
 
@@ -950,7 +950,7 @@ bool ConfigurationFilesWidget::generatePackage()
   // Begin to create files and folders ----------------------------------------------------------------------
   std::string absolute_path;
 
-  for (moveit_setup_assistant::GenerateFile & gen_file : gen_files_)
+  for (moveit_setup_assistant::GenerateFile& gen_file : gen_files_)
   {
     GenerateFile* file = &gen_file;
 
@@ -1112,7 +1112,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   else
   {
     std::stringstream controllers;
-    for (const moveit_setup_assistant::ROSControlConfig & controller : config_data_->getROSControllers())
+    for (const moveit_setup_assistant::ROSControlConfig& controller : config_data_->getROSControllers())
     {
       // Check if the controller belongs to controller_list namespace
       if (controller.type_ != "FollowJointTrajectory")
@@ -1170,7 +1170,7 @@ bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, co
   template_stream.close();
 
   // Replace keywords in string ------------------------------------------------------------
-  for (std::pair<std::string, std::string> & str_item : template_strings_)
+  for (std::pair<std::string, std::string>& str_item : template_strings_)
   {
     boost::replace_all(template_string, str_item.first, str_item.second);
   }

@@ -221,7 +221,7 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   std::sort(events.begin(), events.end(), SortIntByValue());
   if (!events.empty())
     out << "Events:" << std::endl;
-  for (const DataIntVal & event : events)
+  for (const DataIntVal& event : events)
     out << event.name_ << ": " << event.value_ << std::endl;
 
   std::vector<DataDoubleVal> avg;
@@ -236,9 +236,9 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   for (const DataDoubleVal& val : avg)
   {
     const AvgInfo& a = data.avg.find(val.name_)->second;
-    out << val.name_ << ": " << val.value_ << " (stddev = "
-        << sqrt(fabs(a.totalSqr - (double)a.parts * val.value_ * val.value_) / ((double)a.parts - 1.)) << ")"
-        << std::endl;
+    out << val.name_ << ": " << val.value_
+        << " (stddev = " << sqrt(fabs(a.totalSqr - (double)a.parts * val.value_ * val.value_) / ((double)a.parts - 1.))
+        << ")" << std::endl;
   }
 
   std::vector<DataDoubleVal> time;
@@ -260,8 +260,8 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
 
     double t_s = to_seconds(d.shortest);
     double t_l = to_seconds(d.longest);
-    out << val.name_ << ": " << val.value_ << "s (" << (100.0 * val.value_ / total) << "%), [" << t_s
-        << "s --> " << t_l << " s], " << d.parts << " parts";
+    out << val.name_ << ": " << val.value_ << "s (" << (100.0 * val.value_ / total) << "%), [" << t_s << "s --> " << t_l
+        << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
       double pavg = to_seconds(d.total) / (double)d.parts;

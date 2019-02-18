@@ -688,7 +688,8 @@ public:
 
   /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
       this will be a complete planning scene message */
-  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg, const moveit_msgs::PlanningSceneComponents& comp) const;
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
+                           const moveit_msgs::PlanningSceneComponents& comp) const;
 
   /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
    * requested object*/

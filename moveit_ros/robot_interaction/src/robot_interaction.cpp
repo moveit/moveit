@@ -307,7 +307,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   }
   else if (!smap.second.empty())
   {
-    for (const std::pair<const moveit::core::JointModelGroup*, moveit::core::JointModelGroup::KinematicsSolver>& it : smap.second)
+    for (const std::pair<const moveit::core::JointModelGroup*, moveit::core::JointModelGroup::KinematicsSolver>& it :
+         smap.second)
     {
       for (const srdf::Model::EndEffector& eef : eefs)
       {
@@ -671,7 +672,7 @@ bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHand
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
-  for (const EndEffectorInteraction& ee_interaction: active_eef_)
+  for (const EndEffectorInteraction& ee_interaction : active_eef_)
     if (shown_markers_.find(getMarkerName(handler, ee_interaction)) == shown_markers_.end())
       return false;
   for (const JointInteraction& joint_interaction : active_vj_)

@@ -43,8 +43,7 @@ OccupancyMapUpdater::OccupancyMapUpdater(const std::string& type) : type_(type)
 {
 }
 
-OccupancyMapUpdater::~OccupancyMapUpdater()
-= default;
+OccupancyMapUpdater::~OccupancyMapUpdater() = default;
 
 void OccupancyMapUpdater::setMonitor(OccupancyMapMonitor* monitor)
 {

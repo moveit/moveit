@@ -154,7 +154,7 @@ bool PlanningRequestAdapterChain::adaptAndPlan(const planning_interface::Planner
 
     // merge the index values from each adapter
     for (std::vector<std::size_t>& index_values : added_path_index_each)
-      for (unsigned long & index_value : index_values)
+      for (unsigned long& index_value : index_values)
       {
         for (unsigned long& k : added_path_index)
           if (index_value <= k)

@@ -94,7 +94,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
 }
 
 void move_group::MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                                                         moveit_msgs::MoveGroupResult& action_res)
+                                                                        moveit_msgs::MoveGroupResult& action_res)
 {
   ROS_INFO("Combined planning and execution request received for MoveGroup action. Forwarding to planning and "
            "execution pipeline.");
@@ -158,7 +158,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const mo
 }
 
 void move_group::MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                                                   moveit_msgs::MoveGroupResult& action_res)
+                                                                  moveit_msgs::MoveGroupResult& action_res)
 {
   ROS_INFO("Planning request received for MoveGroup action. Forwarding to planning pipeline.");
 

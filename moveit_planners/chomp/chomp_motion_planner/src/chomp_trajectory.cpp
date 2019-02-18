@@ -139,8 +139,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   overwriteTrajectory(traj);
 }
 
-ChompTrajectory::~ChompTrajectory()
-= default;
+ChompTrajectory::~ChompTrajectory() = default;
 
 void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj)
 {

@@ -1147,7 +1147,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::executeAn
 void TrajectoryExecutionManager::stopExecutionInternal()
 {
   // execution_state_mutex_ needs to have been locked by the caller
-  for (moveit_controller_manager::MoveItControllerHandlePtr & active_handle : active_handles_)
+  for (moveit_controller_manager::MoveItControllerHandlePtr& active_handle : active_handles_)
     try
     {
       active_handle->cancelExecution();
@@ -1455,19 +1455,18 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
         ros::Duration d(0.0);
         if (context.trajectory_parts_[longest_part].joint_trajectory.header.stamp > current_time)
           d = context.trajectory_parts_[longest_part].joint_trajectory.header.stamp - current_time;
-        for (const trajectory_msgs::JointTrajectoryPoint& point : context.trajectory_parts_[longest_part].joint_trajectory.points)
-          time_index_.push_back(current_time + d +
-                                point.time_from_start);
+        for (const trajectory_msgs::JointTrajectoryPoint& point :
+             context.trajectory_parts_[longest_part].joint_trajectory.points)
+          time_index_.push_back(current_time + d + point.time_from_start);
       }
       else
       {
         ros::Duration d(0.0);
         if (context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp > current_time)
           d = context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.header.stamp - current_time;
-        for (const trajectory_msgs::MultiDOFJointTrajectoryPoint& point : context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points)
-          time_index_.push_back(
-              current_time + d +
-              point.time_from_start);
+        for (const trajectory_msgs::MultiDOFJointTrajectoryPoint& point :
+             context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points)
+          time_index_.push_back(current_time + d + point.time_from_start);
       }
     }
 
@@ -1756,7 +1755,7 @@ void TrajectoryExecutionManager::loadControllerParams()
   if (node_handle_.getParam("controller_list", controller_list) &&
       controller_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
   {
-    for (int i = 0; i < controller_list.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < controller_list.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       XmlRpc::XmlRpcValue& controller = controller_list[i];
       if (controller.hasMember("name"))

@@ -48,9 +48,8 @@ public:
   }
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
-                            const planning_interface::MotionPlanRequest& req,
-                            planning_interface::MotionPlanResponse& res,
-                            std::vector<std::size_t>& added_path_index) const override
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& added_path_index) const override
   {
     return planner(planning_scene, req, res);
   }

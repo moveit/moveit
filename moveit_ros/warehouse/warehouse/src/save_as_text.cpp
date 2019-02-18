@@ -64,8 +64,7 @@ void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkCon
   {
     if (lcmap.count(orientation_constraint.link_name))
     {
-      lcmap[orientation_constraint.link_name].second =
-          orientation_constraint.orientation;
+      lcmap[orientation_constraint.link_name].second = orientation_constraint.orientation;
     }
     else
     {

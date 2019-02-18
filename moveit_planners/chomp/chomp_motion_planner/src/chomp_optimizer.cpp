@@ -213,9 +213,7 @@ void ChompOptimizer::initialize()
   // TODO - is this just the joint_roots_?
   for (const moveit::core::LinkModel* link_model : joint_model_group_->getUpdatedLinkModels())
   {
-    if (fixed_link_resolution_map.find(
-            link_model->getParentJointModel()->getName()) ==
-        fixed_link_resolution_map.end())
+    if (fixed_link_resolution_map.find(link_model->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
       const moveit::core::JointModel* parent_model = nullptr;
       bool found_root = false;
@@ -238,8 +236,7 @@ void ChompOptimizer::initialize()
           }
         }
       }
-      fixed_link_resolution_map[link_model->getParentJointModel()->getName()] =
-          parent_model->getName();
+      fixed_link_resolution_map[link_model->getParentJointModel()->getName()] = parent_model->getName();
     }
   }
 
@@ -945,7 +942,8 @@ void ChompOptimizer::performForwardKinematics()
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
 
-    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr, gsr_);
+    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr,
+                                     gsr_);
     total_dur += (ros::WallTime::now() - grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;

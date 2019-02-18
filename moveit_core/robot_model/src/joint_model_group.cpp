@@ -148,8 +148,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
       }
       joint_variables_index_map_[joint->getName()] = variable_count_;
 
-      if (joint->getType() == JointModel::REVOLUTE &&
-          static_cast<const RevoluteJointModel*>(joint)->isContinuous())
+      if (joint->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(joint)->isContinuous())
         continuous_joint_model_vector_.push_back(joint);
 
       variable_count_ += vc;
@@ -429,8 +428,7 @@ void JointModelGroup::updateMimicJoints(double* values) const
 {
   // update mimic (only local joints as we are dealing with a local group state)
   for (const GroupMimicUpdate& it : group_mimic_update_)
-    values[it.dest] =
-        values[it.src] * it.factor + it.offset;
+    values[it.dest] = values[it.src] * it.factor + it.offset;
 }
 
 void JointModelGroup::addDefaultState(const std::string& name, const std::map<std::string, double>& default_state)
@@ -650,7 +648,7 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
         const LinkModel* lm = getLinkModel(tip_frame_local);
         const LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
         // Check if our frame of inquiry is located anywhere further down the chain (towards the tip of the arm)
-        for (const std::pair<const LinkModel* const, Eigen::Affine3d> & fixed_link : fixed_links)
+        for (const std::pair<const LinkModel* const, Eigen::Affine3d>& fixed_link : fixed_links)
         {
           if (fixed_link.first->getName() == tip_local)
             return true;
@@ -670,8 +668,7 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   out << "Group '" << name_ << "' using " << variable_count_ << " variables" << std::endl;
   out << "  * Joints:" << std::endl;
   for (const JointModel* joint : joint_model_vector_)
-    out << "    '" << joint->getName() << "' (" << joint->getTypeName() << ")"
-        << std::endl;
+    out << "    '" << joint->getName() << "' (" << joint->getTypeName() << ")" << std::endl;
   out << "  * Variables:" << std::endl;
   for (const std::string& variable_name : variable_names_)
   {
@@ -718,8 +715,7 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   {
     out << "  * Local Mimic Updates:" << std::endl;
     for (const GroupMimicUpdate& it : group_mimic_update_)
-      out << "    [" << it.dest << "] = " << it.factor << " * ["
-          << it.src << "] + " << it.offset << std::endl;
+      out << "    [" << it.dest << "] = " << it.factor << " * [" << it.src << "] + " << it.offset << std::endl;
   }
   out << std::endl;
 }

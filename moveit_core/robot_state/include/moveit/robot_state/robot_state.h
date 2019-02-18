@@ -485,8 +485,7 @@ public:
                          std::vector<std::string>& missing_variables);
 
   /** \brief Set the effort of a set of variables. If unknown variable names are specified, an exception is thrown. */
-  void setVariableEffort(const std::vector<std::string>& variable_names,
-                         const std::vector<double>& variable_effort);
+  void setVariableEffort(const std::vector<std::string>& variable_names, const std::vector<double>& variable_effort);
 
   /** \brief Set the effort of a variable. If an unknown variable name is specified, an exception is thrown. */
   void setVariableEffort(const std::string& variable, double value)
@@ -1034,9 +1033,9 @@ as the new values that correspond to the group */
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
-                 const std::vector<std::string>& tips_in, const std::vector<std::vector<double> >& consistency_limit_sets,
-                 unsigned int attempts = 0, double timeout = 0.0,
-                 const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+                 const std::vector<std::string>& tips_in,
+                 const std::vector<std::vector<double> >& consistency_limit_sets, unsigned int attempts = 0,
+                 double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
   /**

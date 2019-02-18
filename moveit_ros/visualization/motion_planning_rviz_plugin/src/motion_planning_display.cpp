@@ -200,7 +200,8 @@ void MotionPlanningDisplay::onInitialize()
   QColor qcolor = attached_body_color_property_->getColor();
   trajectory_visual_->setDefaultAttachedObjectColor(qcolor);
 
-  query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
+  query_robot_start_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -212,7 +213,8 @@ void MotionPlanningDisplay::onInitialize()
   color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
 
-  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
+  query_robot_goal_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
@@ -320,7 +322,8 @@ void MotionPlanningDisplay::setName(const QString& name)
   trajectory_visual_->setName(name);
 }
 
-void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/, const std::string& /*unused*/)
+void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/,
+                                                const std::string& /*unused*/)
 {
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
 }
@@ -502,7 +505,8 @@ void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double>
 {
   metrics.clear();
   dynamics_solver::DynamicsSolverPtr ds;
-  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it = dynamics_solver_.find(eef.parent_group);
+  std::map<std::string, dynamics_solver::DynamicsSolverPtr>::const_iterator it =
+      dynamics_solver_.find(eef.parent_group);
   if (it != dynamics_solver_.end())
     ds = it->second;
 
@@ -906,8 +910,8 @@ void MotionPlanningDisplay::changedAttachedBodyColor()
   trajectory_visual_->setDefaultAttachedObjectColor(color);
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::RobotInteraction::InteractionHandler* /*unused*/,
-                                                        bool error_state_changed)
+void MotionPlanningDisplay::scheduleDrawQueryStartState(
+    robot_interaction::RobotInteraction::InteractionHandler* /*unused*/, bool error_state_changed)
 {
   if (!planning_scene_monitor_)
     return;
@@ -918,8 +922,8 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Robot
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotInteraction::InteractionHandler* /*unused*/,
-                                                       bool error_state_changed)
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(
+    robot_interaction::RobotInteraction::InteractionHandler* /*unused*/, bool error_state_changed)
 {
   if (!planning_scene_monitor_)
     return;
@@ -1185,8 +1189,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   dynamics_solver_.clear();
   for (const std::string& group : groups)
     if (getRobotModel()->getJointModelGroup(group)->isChain())
-      dynamics_solver_[group].reset(
-          new dynamics_solver::DynamicsSolver(getRobotModel(), group, gravity_vector));
+      dynamics_solver_[group].reset(new dynamics_solver::DynamicsSolver(getRobotModel(), group, gravity_vector));
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
 }
 

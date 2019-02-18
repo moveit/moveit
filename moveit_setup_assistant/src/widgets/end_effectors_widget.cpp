@@ -404,7 +404,7 @@ srdf::Model::EndEffector* EndEffectorsWidget::findEffectorByName(const std::stri
     if (end_effector.name_ == name)  // string match
     {
       searched_group = &end_effector;  // convert to pointer from iterator
-      break;                             // we are done searching
+      break;                           // we are done searching
     }
   }
 

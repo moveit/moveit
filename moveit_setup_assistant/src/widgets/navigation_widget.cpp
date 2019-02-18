@@ -131,7 +131,7 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
   painter->save();
 
   QLinearGradient background_gradient(QPoint(option.rect.x(), option.rect.y()),
-                                     QPoint(option.rect.x(), option.rect.y() + option.rect.height()));
+                                      QPoint(option.rect.x(), option.rect.y() + option.rect.height()));
   if (is_selected)
   {
     background_gradient.setColorAt(0, QColor(109, 164, 219));

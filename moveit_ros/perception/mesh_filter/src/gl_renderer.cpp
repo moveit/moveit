@@ -355,9 +355,10 @@ GLuint mesh_filter::GLRenderer::loadShaders(const string& vertex_source, const s
   return program_id;
 }
 
-map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_; // NOLINT(readability-identifier-naming)
-boost::mutex mesh_filter::GLRenderer::context_lock_; // NOLINT(readability-identifier-naming)
-bool mesh_filter::GLRenderer::glutInitialized_ = false; // NOLINT(readability-identifier-naming)
+map<boost::thread::id, pair<unsigned, GLuint> >
+    mesh_filter::GLRenderer::context_;                   // NOLINT(readability-identifier-naming)
+boost::mutex mesh_filter::GLRenderer::context_lock_;     // NOLINT(readability-identifier-naming)
+bool mesh_filter::GLRenderer::glutInitialized_ = false;  // NOLINT(readability-identifier-naming)
 
 namespace
 {

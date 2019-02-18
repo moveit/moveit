@@ -247,8 +247,8 @@ private:
 
   // Update RobotState for a new joint position.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* feedback_pose,
-                        StateChangeCallbackFn* callback);
+  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj,
+                        const geometry_msgs::Pose* feedback_pose, StateChangeCallbackFn* callback);
 
   // Set the error state for \e name.
   // Returns true if the error state for \e name changed.

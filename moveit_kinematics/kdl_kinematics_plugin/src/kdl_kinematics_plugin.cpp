@@ -378,7 +378,7 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, cons
                                         std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                         const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
+  const IKCallbackFn solution_callback = 0;  // NOLINT(modernize-use-nullptr)
   std::vector<double> consistency_limits;
 
   return searchPositionIK(ik_pose, ik_seed_state, default_timeout_, solution, solution_callback, error_code,
@@ -390,7 +390,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
+  const IKCallbackFn solution_callback = 0;  // NOLINT(modernize-use-nullptr)
   std::vector<double> consistency_limits;
 
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
@@ -402,7 +402,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
                                            std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
-  const IKCallbackFn solution_callback = 0; // NOLINT(modernize-use-nullptr)
+  const IKCallbackFn solution_callback = 0;  // NOLINT(modernize-use-nullptr)
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }

@@ -270,8 +270,8 @@ void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const 
   for (const JointModel* joint : joints)
   {
     const int idx = joint->getFirstVariableIndex();
-    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(),
-                                                near.position_ + idx, distance);
+    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(), near.position_ + idx,
+                                            distance);
   }
   updateMimicJoints(group);
 }
@@ -307,7 +307,7 @@ void RobotState::setVariablePositions(const double* position)
 
 void RobotState::setVariablePositions(const std::map<std::string, double>& variable_map)
 {
-  for (const std::pair<const std::string, double> & it : variable_map)
+  for (const std::pair<const std::string, double>& it : variable_map)
   {
     const int index = robot_model_->getVariableIndex(it.first);
     position_[index] = it.second;
@@ -816,8 +816,7 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state) 
   state.dirty_link_transforms_ = state.robot_model_->getRootJoint();
 }
 
-void RobotState::interpolate(const RobotState& to, double t, RobotState& state,
-                             const JointModelGroup* jmg) const
+void RobotState::interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* jmg) const
 {
   const std::vector<const JointModel*>& jm = jmg->getActiveJointModels();
   for (const JointModel* joint : jm)
@@ -878,8 +877,7 @@ void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bo
     attached_bodies.push_back(it.second);
 }
 
-void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies,
-                                   const JointModelGroup* jmg) const
+void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* jmg) const
 {
   attached_bodies.clear();
   for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)

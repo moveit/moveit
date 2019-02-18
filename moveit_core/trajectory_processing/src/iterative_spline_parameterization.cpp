@@ -78,8 +78,7 @@ IterativeSplineParameterization::IterativeSplineParameterization(bool add_points
 {
 }
 
-IterativeSplineParameterization::~IterativeSplineParameterization()
-= default;
+IterativeSplineParameterization::~IterativeSplineParameterization() = default;
 
 bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
@@ -302,7 +301,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
                              &t2[j].accelerations_[0], t2[j].initial_acceleration_, t2[j].final_acceleration_);
       }
 
-      fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0], &t2[j].accelerations_[0]);
+      fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions_[0], &t2[j].velocities_[0],
+                       &t2[j].accelerations_[0]);
       for (unsigned i = 0; i < num_points; i++)
       {
         const double acc = t2[j].accelerations_[i];
@@ -339,7 +339,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   {
     for (unsigned int j = 0; j < num_joints; j++)
     {
-
       trajectory.getWayPointPtr(i)->setVariableVelocity(idx[j], t2[j].velocities_[i]);
       trajectory.getWayPointPtr(i)->setVariableAcceleration(idx[j], t2[j].accelerations_[i]);
     }

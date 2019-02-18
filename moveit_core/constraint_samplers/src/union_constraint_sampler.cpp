@@ -115,7 +115,7 @@ UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSce
   for (const ConstraintSamplerPtr& sampler : samplers_)
   {
     const std::vector<std::string>& fd = sampler->getFrameDependency();
-    for (const auto & j : fd)
+    for (const auto& j : fd)
       frame_depends_.push_back(j);
 
     ROS_DEBUG_NAMED("constraint_samplers", "Union sampler for group '%s' includes sampler for group '%s'",

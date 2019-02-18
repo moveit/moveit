@@ -47,8 +47,7 @@ BenchmarkOptions::BenchmarkOptions(const std::string& ros_namespace)
   readBenchmarkOptions(ros_namespace);
 }
 
-BenchmarkOptions::~BenchmarkOptions()
-= default;
+BenchmarkOptions::~BenchmarkOptions() = default;
 
 void BenchmarkOptions::setNamespace(const std::string& ros_namespace)
 {
@@ -249,7 +248,7 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
       return;
     }
 
-    for (int i = 0; i < planner_configs.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < planner_configs.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (planner_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {

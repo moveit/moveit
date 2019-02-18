@@ -193,8 +193,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   }
 }
 
-MotionPlanningFrame::~MotionPlanningFrame()
-= default;
+MotionPlanningFrame::~MotionPlanningFrame() = default;
 
 void MotionPlanningFrame::approximateIKChanged(int state)
 {

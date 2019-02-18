@@ -51,8 +51,7 @@ robot_interaction::LockedRobotState::LockedRobotState(const robot_model::RobotMo
   state_->update();
 }
 
-robot_interaction::LockedRobotState::~LockedRobotState()
-= default;
+robot_interaction::LockedRobotState::~LockedRobotState() = default;
 
 robot_state::RobotStateConstPtr robot_interaction::LockedRobotState::getState() const
 {

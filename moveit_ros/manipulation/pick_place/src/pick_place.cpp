@@ -57,8 +57,7 @@ PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr& pick_place, const 
   pipeline_.setEmptyQueueCallback(boost::bind(&PickPlacePlanBase::emptyQueue, this));
 }
 
-PickPlacePlanBase::~PickPlacePlanBase()
-= default;
+PickPlacePlanBase::~PickPlacePlanBase() = default;
 
 void PickPlacePlanBase::foundSolution()
 {
@@ -127,8 +126,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr& plan) const
       continue;
     if (first)
     {
-      robot_state::robotStateToRobotStateMsg(trajectory.trajectory_->getFirstWayPoint(),
-                                             dtraj.trajectory_start);
+      robot_state::robotStateToRobotStateMsg(trajectory.trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
       first = false;
     }
     dtraj.trajectory.resize(dtraj.trajectory.size() + 1);

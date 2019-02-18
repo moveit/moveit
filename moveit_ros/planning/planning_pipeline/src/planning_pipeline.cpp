@@ -229,7 +229,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       if (!adapter_added_state_index.empty())
       {
         std::stringstream ss;
-        for (std::size_t& i: adapter_added_state_index)
+        for (std::size_t& i : adapter_added_state_index)
           ss << i << " ";
         ROS_INFO("Planning adapters have added states at index positions: [ %s]", ss.str().c_str());
       }

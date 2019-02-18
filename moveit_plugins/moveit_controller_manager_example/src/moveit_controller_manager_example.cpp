@@ -80,8 +80,7 @@ public:
   {
   }
 
-  ~MoveItControllerManagerExample()
-  override = default;
+  ~MoveItControllerManagerExample() override = default;
 
   moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name) override
   {

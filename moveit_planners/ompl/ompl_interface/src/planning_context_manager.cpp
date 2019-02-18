@@ -125,8 +125,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
   registerDefaultStateSpaces();
 }
 
-ompl_interface::PlanningContextManager::~PlanningContextManager()
-= default;
+ompl_interface::PlanningContextManager::~PlanningContextManager() = default;
 
 namespace
 {

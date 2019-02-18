@@ -93,32 +93,31 @@ public:
       return result;
     }
 
-    for (const moveit_msgs::CollisionObject & collision_object : response.scene.world.collision_objects)
+    for (const moveit_msgs::CollisionObject& collision_object : response.scene.world.collision_objects)
     {
       if (with_type && collision_object.type.key.empty())
         continue;
-      if (collision_object.mesh_poses.empty() &&
-          collision_object.primitive_poses.empty())
+      if (collision_object.mesh_poses.empty() && collision_object.primitive_poses.empty())
         continue;
       bool good = true;
-      for (const geometry_msgs::Pose& mesh_pose : collision_object.mesh_poses)
-        if (!(mesh_pose.position.x >= minx &&
+      for (const geometry_msgs::Pose& mesh_pose : collision_object.mesh_poses)  // clang-format off
+        if (!(mesh_pose.position.x >= minx && 
               mesh_pose.position.x <= maxx &&
               mesh_pose.position.y >= miny &&
               mesh_pose.position.y <= maxy &&
               mesh_pose.position.z >= minz &&
-              mesh_pose.position.z <= maxz))
+              mesh_pose.position.z <= maxz))  // clang-format on
         {
           good = false;
           break;
         }
-      for (const geometry_msgs::Pose& primitive_pose : collision_object.primitive_poses)
+      for (const geometry_msgs::Pose& primitive_pose : collision_object.primitive_poses)  // clang-format off
         if (!(primitive_pose.position.x >= minx &&
               primitive_pose.position.x <= maxx &&
               primitive_pose.position.y >= miny &&
               primitive_pose.position.y <= maxy &&
               primitive_pose.position.z >= minz &&
-              primitive_pose.position.z <= maxz))
+              primitive_pose.position.z <= maxz))  // clang-format on
         {
           good = false;
           break;
@@ -147,18 +146,14 @@ public:
 
     for (const moveit_msgs::CollisionObject& collision_object : response.scene.world.collision_objects)
     {
-      if (std::find(object_ids.begin(), object_ids.end(), collision_object.id) !=
-          object_ids.end())
+      if (std::find(object_ids.begin(), object_ids.end(), collision_object.id) != object_ids.end())
       {
-        if (collision_object.mesh_poses.empty() &&
-            collision_object.primitive_poses.empty())
+        if (collision_object.mesh_poses.empty() && collision_object.primitive_poses.empty())
           continue;
         if (!collision_object.mesh_poses.empty())
-          result[collision_object.id] =
-              collision_object.mesh_poses[0];
+          result[collision_object.id] = collision_object.mesh_poses[0];
         else
-          result[collision_object.id] =
-              collision_object.primitive_poses[0];
+          result[collision_object.id] = collision_object.primitive_poses[0];
       }
     }
     return result;
@@ -176,11 +171,10 @@ public:
       return result;
     }
 
-    for (const moveit_msgs::CollisionObject & collision_object : response.scene.world.collision_objects)
+    for (const moveit_msgs::CollisionObject& collision_object : response.scene.world.collision_objects)
     {
       if (object_ids.empty() ||
-          std::find(object_ids.begin(), object_ids.end(), collision_object.id) !=
-              object_ids.end())
+          std::find(object_ids.begin(), object_ids.end(), collision_object.id) != object_ids.end())
       {
         result[collision_object.id] = collision_object;
       }
@@ -202,14 +196,13 @@ public:
       return result;
     }
 
-    for (const moveit_msgs::AttachedCollisionObject& attached_collision_object : response.scene.robot_state.attached_collision_objects)
+    for (const moveit_msgs::AttachedCollisionObject& attached_collision_object :
+         response.scene.robot_state.attached_collision_objects)
     {
       if (object_ids.empty() ||
-          std::find(object_ids.begin(), object_ids.end(),
-                    attached_collision_object.object.id) != object_ids.end())
+          std::find(object_ids.begin(), object_ids.end(), attached_collision_object.object.id) != object_ids.end())
       {
-        result[attached_collision_object.object.id] =
-            attached_collision_object;
+        result[attached_collision_object.object.id] = attached_collision_object;
       }
     }
     return result;
@@ -355,7 +348,8 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_object)
+bool PlanningSceneInterface::applyAttachedCollisionObject(
+    const moveit_msgs::AttachedCollisionObject& attached_collision_object)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;

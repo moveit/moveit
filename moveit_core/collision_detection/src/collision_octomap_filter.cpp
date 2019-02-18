@@ -298,7 +298,8 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
       double r_scaled = r / r_bounds;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);
-      f_grad = pos * (-4.0 / r_bounds * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) + 4.0 / r_bounds * pow(1 - r_scaled, 4));
+      f_grad = pos * (-4.0 / r_bounds * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) +
+                      4.0 / r_bounds * pow(1 - r_scaled, 4));
     }
 
     // TODO:  The whole library should be overhauled to follow the "gradient points out"

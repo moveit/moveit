@@ -271,8 +271,7 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<Benchmark
     {
       if (!it->second->canServiceRequest(request.request))
       {
-        ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(),
-                  request.name.c_str());
+        ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(), request.name.c_str());
         return false;
       }
     }
@@ -485,7 +484,7 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
       new_brequest.request.start_state = start_state.state;
 
       // Duplicate the request for each of the path constraints
-      for (const auto & path_constraint : path_constraints)
+      for (const auto& path_constraint : path_constraints)
       {
         new_brequest.request.path_constraints = path_constraint.constraints[0];
         new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
@@ -775,7 +774,7 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
       request.planner_id = planner.second[i];
 
       // Planner start events
-      for (auto & planner_start_fn : planner_start_fns_)
+      for (auto& planner_start_fn : planner_start_fns_)
         planner_start_fn(request, planner_data);
 
       planning_interface::PlanningContextPtr context =
@@ -824,7 +823,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   if (solved)
   {
     // Analyzing the trajectory(ies) geometrically
-    double length = 0.0;           // trajectory length
+    double length = 0.0;      // trajectory length
     double clearance = 0.0;   // trajectory clearance (average)
     double smoothness = 0.0;  // trajectory smoothness (average)
     bool correct = true;      // entire trajectory collision free and in bounds
@@ -974,8 +973,8 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
       // Create a list of the benchmark properties for this planner
       std::set<std::string> properties_set;
       for (std::map<std::string, std::string>& planner_run_data : benchmark_data_[run_id])  // each run of this planner
-        for (PlannerRunData::const_iterator pit = planner_run_data.begin();
-             pit != planner_run_data.end(); ++pit)  // each benchmark property of the given run
+        for (PlannerRunData::const_iterator pit = planner_run_data.begin(); pit != planner_run_data.end();
+             ++pit)  // each benchmark property of the given run
           properties_set.insert(pit->first);
 
       // Writing property list
@@ -990,7 +989,7 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
       for (std::map<std::string, std::string>& planner_run_data : benchmark_data_[run_id])  // each run of this planner
       {
         // Write out properties in the order we listed them above
-        for (const auto & pit : properties_set)
+        for (const auto& pit : properties_set)
         {
           // Make sure this run has this property
           auto runit = planner_run_data.find(pit);

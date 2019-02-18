@@ -49,8 +49,7 @@ MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget* parent) : rviz::Pr
   property_tree_model_ = nullptr;
 }
 
-MotionPlanningParamWidget::~MotionPlanningParamWidget()
-= default;
+MotionPlanningParamWidget::~MotionPlanningParamWidget() = default;
 
 void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupInterfacePtr& mg)
 {
