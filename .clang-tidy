@@ -1,6 +1,5 @@
 ---
 Checks:          '-*,
-                  clang-analyzer-*,
                   performance-*,
                   modernize-redundant-void-arg,
                   modernize-use-nullptr,
@@ -22,30 +21,28 @@ CheckOptions:
     value:           '2'
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           '2'
+  # type names
   - key:             readability-identifier-naming.ClassCase
     value:           CamelCase
   - key:             readability-identifier-naming.EnumCase
     value:           CamelCase
-  - key:             readability-identifier-naming.EnumConstantCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.MethodCase
-    value:           camelBack
   - key:             readability-identifier-naming.UnionCase
     value:           CamelCase
+  # method names
+  - key:             readability-identifier-naming.MethodCase
+    value:           camelBack
+  # variable names
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
-  - key:             readability-identifier-naming.ConstantCase
+  - key:             readability-identifier-naming.ClassMemberSuffix
+    value:           '_'
+  # const static or global variables are UPPER_CASE
+  - key:             readability-identifier-naming.EnumConstantCase
     value:           UPPER_CASE
-  - key:             readability-identifier-naming.ConstantParameterCase
-    value:           lower_case
-  - key:             readability-identifier-naming.LocalConstantCase
-    value:           lower_case
   - key:             readability-identifier-naming.StaticConstantCase
     value:           UPPER_CASE
-  - key:             readability-identifier-naming.MemberCase
-    value:           lower_case
-  - key:             readability-identifier-naming.ConstantMemberCase
+  - key:             readability-identifier-naming.ClassConstantCase
     value:           UPPER_CASE
-  - key:             readability-identifier-naming.MemberSuffix
-    value:           '_'
+  - key:             readability-identifier-naming.GlobalVariableCase
+    value:           UPPER_CASE
 ...
