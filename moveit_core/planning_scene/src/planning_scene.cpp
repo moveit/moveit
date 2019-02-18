@@ -1618,9 +1618,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
     for (const moveit::core::AttachedBody* attached_bodie : attached_bodies)
     {
-      std::vector<shapes::ShapeConstPtr> shapes = attached_bodie->getShapes();
-      EigenSTL::vector_Affine3d poses = attached_bodie->getGlobalCollisionBodyTransforms();
-      std::string name = attached_bodie->getName();
+      const std::vector<shapes::ShapeConstPtr>& shapes = attached_bodie->getShapes();
+      const EigenSTL::vector_Affine3d& poses = attached_bodie->getGlobalCollisionBodyTransforms();
+      const std::string& name = attached_bodie->getName();
 
       kstate_->clearAttachedBody(name);
 

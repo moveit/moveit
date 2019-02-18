@@ -237,7 +237,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
   double r_bounds = r_multiple * spacing;  // TODO magic number!
   // double T = 0.5; // TODO magic number!
 
-  if (cloud.size() == 0)
+  if (cloud.empty())
   {
     return false;
   }

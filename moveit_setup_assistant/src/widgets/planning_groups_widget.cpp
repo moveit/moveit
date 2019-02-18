@@ -1033,7 +1033,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
       for (const std::string& sub_group : group.subgroups_)
       {
         // Get std::string of subgroup
-        const std::string to_string = sub_group;
+        const std::string& to_string = sub_group;
 
         // convert subgroup string to associated id
         int to_id = group_nodes[to_string];

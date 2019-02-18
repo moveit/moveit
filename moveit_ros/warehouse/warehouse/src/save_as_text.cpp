@@ -123,29 +123,29 @@ int main(int argc, char** argv)
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();
 
-      std::vector<std::string> robotStateNames;
+      std::vector<std::string> robot_state_names;
       robot_model::RobotModelConstPtr km = psm.getRobotModel();
       // Get start states for scene
       std::stringstream rsregex;
       rsregex << ".*" << scene_name << ".*";
-      rss.getKnownRobotStates(rsregex.str(), robotStateNames);
+      rss.getKnownRobotStates(rsregex.str(), robot_state_names);
 
       // Get goal constraints for scene
-      std::vector<std::string> constraintNames;
+      std::vector<std::string> constraint_names;
 
       std::stringstream csregex;
       csregex << ".*" << scene_name << ".*";
-      cs.getKnownConstraints(csregex.str(), constraintNames);
+      cs.getKnownConstraints(csregex.str(), constraint_names);
 
-      if (!(robotStateNames.empty() && constraintNames.empty()))
+      if (!(robot_state_names.empty() && constraint_names.empty()))
       {
         std::ofstream qfout((scene_name + ".queries").c_str());
         qfout << scene_name << std::endl;
-        if (!robotStateNames.empty())
+        if (!robot_state_names.empty())
         {
           qfout << "start" << std::endl;
-          qfout << robotStateNames.size() << std::endl;
-          for (const std::string& robotStateName : robotStateNames)
+          qfout << robot_state_names.size() << std::endl;
+          for (const std::string& robotStateName : robot_state_names)
           {
             ROS_INFO("Saving start state %s for scene %s", robotStateName.c_str(), scene_name.c_str());
             qfout << robotStateName << std::endl;
@@ -158,11 +158,11 @@ int main(int argc, char** argv)
           }
         }
 
-        if (!constraintNames.empty())
+        if (!constraint_names.empty())
         {
           qfout << "goal" << std::endl;
-          qfout << constraintNames.size() << std::endl;
-          for (const std::string& constraintName : constraintNames)
+          qfout << constraint_names.size() << std::endl;
+          for (const std::string& constraintName : constraint_names)
           {
             ROS_INFO("Saving goal %s for scene %s", constraintName.c_str(), scene_name.c_str());
             qfout << "link_constraint" << std::endl;

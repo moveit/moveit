@@ -898,7 +898,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
       for (const moveit::core::LinkModel* link : robot_model_->getLinkModelsWithCollisionGeometry())
       {
-        std::string link_name = link->getName();
+        const std::string& link_name = link->getName();
         const moveit::core::LinkModel* link_state = dfce->state_->getLinkModel(link_name);
         if (updated_group_map.find(link_name) != updated_group_map.end())
         {

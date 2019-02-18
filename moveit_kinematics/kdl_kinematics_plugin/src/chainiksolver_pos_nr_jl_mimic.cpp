@@ -69,9 +69,9 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
     return false;
   }
 
-  for (const kdl_kinematics_plugin::JointMimic& _mimic_joint : mimic_joints)
+  for (const kdl_kinematics_plugin::JointMimic& mimic_joint : mimic_joints)
   {
-    if (_mimic_joint.map_index >= chain_.getNrOfJoints())
+    if (mimic_joint.map_index >= chain_.getNrOfJoints())
     {
       ROS_ERROR_NAMED("kdl", "Mimic Joint index should be less than number of joints in chain_: %d",
                       chain_.getNrOfJoints());
