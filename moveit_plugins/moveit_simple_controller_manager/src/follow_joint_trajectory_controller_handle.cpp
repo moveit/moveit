@@ -36,7 +36,9 @@
 /* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
 #include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
+#include <moveit/utils/xmlrpc_casts.h>
 
+using namespace moveit::core;
 static const std::string LOGNAME("SimpleControllerManager");
 
 namespace moveit_simple_controller_manager
@@ -58,7 +60,7 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
   else
     ROS_DEBUG_STREAM_NAMED(LOGNAME, "sending continuation for the currently executed trajectory to " << name_);
 
-  control_msgs::FollowJointTrajectoryGoal goal;
+  control_msgs::FollowJointTrajectoryGoal goal = goal_template_;
   goal.trajectory = trajectory.joint_trajectory;
   controller_action_client_->sendGoal(
       goal, boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
@@ -69,8 +71,51 @@ bool FollowJointTrajectoryControllerHandle::sendTrajectory(const moveit_msgs::Ro
   return true;
 }
 
+void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& config)
+{
+  if (config.hasMember("path_tolerance"))
+    configure(config["path_tolerance"], "path_tolerance", goal_template_.path_tolerance);
+  if (config.hasMember("goal_tolerance"))
+    configure(config["goal_tolerance"], "goal_tolerance", goal_template_.goal_tolerance);
+  if (config.hasMember("goal_time_tolerance"))
+    goal_template_.goal_time_tolerance = ros::Duration(parseDouble(config["goal_time_tolerance"]));
+}
+
 namespace
 {
+enum ToleranceVariables
+{
+  POSITION,
+  VELOCITY,
+  ACCELERATION
+};
+template <ToleranceVariables>
+double& variable(control_msgs::JointTolerance& msg);
+
+template <>
+inline double& variable<POSITION>(control_msgs::JointTolerance& msg)
+{
+  return msg.position;
+}
+template <>
+inline double& variable<VELOCITY>(control_msgs::JointTolerance& msg)
+{
+  return msg.velocity;
+}
+template <>
+inline double& variable<ACCELERATION>(control_msgs::JointTolerance& msg)
+{
+  return msg.acceleration;
+}
+
+static std::map<ToleranceVariables, std::string> VAR_NAME = { { POSITION, "position" },
+                                                              { VELOCITY, "velocity" },
+                                                              { ACCELERATION, "acceleration" } };
+static std::map<ToleranceVariables, decltype(&variable<POSITION>)> VAR_ACCESS = { { POSITION, &variable<POSITION> },
+                                                                                  { VELOCITY, &variable<VELOCITY> },
+                                                                                  { ACCELERATION,
+                                                                                    &variable<ACCELERATION> } };
+
 const char* errorCodeToMessage(int error_code)
 {
   switch (error_code)
@@ -91,6 +136,61 @@ const char* errorCodeToMessage(int error_code)
       return "unknown error";
   }
 }
+}
+
+void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& config, const std::string& config_name,
+                                                      std::vector<control_msgs::JointTolerance>& tolerances)
+{
+  if (isStruct(config))  // config should be either a struct of position, velocity, acceleration
+  {
+    for (ToleranceVariables var : { POSITION, VELOCITY, ACCELERATION })
+    {
+      if (!config.hasMember(VAR_NAME[var]))
+        continue;
+      XmlRpc::XmlRpcValue values = config[VAR_NAME[var]];
+      if (isArray(values, joints_.size()))
+      {
+        size_t i = 0;
+        for (const auto& joint_name : joints_)
+          VAR_ACCESS[var](getTolerance(tolerances, joint_name)) = parseDouble(values[i++]);
+      }
+      else
+      {  // use common value for all joints
+        double value = parseDouble(values);
+        for (const auto& joint_name : joints_)
+          VAR_ACCESS[var](getTolerance(tolerances, joint_name)) = value;
+      }
+    }
+  }
+  else if (isArray(config))  // or an array of JointTolerance msgs
+  {
+    for (size_t i = 0; i < config.size(); ++i)
+    {
+      control_msgs::JointTolerance& tol = getTolerance(tolerances, config[i]["name"]);
+      for (ToleranceVariables var : { POSITION, VELOCITY, ACCELERATION })
+      {
+        if (!config[i].hasMember(VAR_NAME[var]))
+          continue;
+        VAR_ACCESS[var](tol) = parseDouble(config[i][VAR_NAME[var]]);
+      }
+    }
+  }
+  else
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Invalid " << config_name);
+}
+
+control_msgs::JointTolerance& FollowJointTrajectoryControllerHandle::getTolerance(
+    std::vector<control_msgs::JointTolerance>& tolerances, const std::string& name)
+{
+  auto it =
+      std::lower_bound(tolerances.begin(), tolerances.end(), name,
+                       [](const control_msgs::JointTolerance& lhs, const std::string& rhs) { return lhs.name < rhs; });
+  if (it == tolerances.cend() || it->name != name)
+  {  // insert new entry if not yet available
+    it = tolerances.insert(it, control_msgs::JointTolerance());
+    it->name = name;
+  }
+  return *it;
 }
 
 void FollowJointTrajectoryControllerHandle::controllerDoneCallback(

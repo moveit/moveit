@@ -57,6 +57,9 @@ public:
 
   virtual void addJoint(const std::string& name) = 0;
   virtual void getJoints(std::vector<std::string>& joints) = 0;
+  virtual void configure(XmlRpc::XmlRpcValue& config)
+  {
+  }
 };
 
 MOVEIT_CLASS_FORWARD(ActionBasedControllerHandleBase);

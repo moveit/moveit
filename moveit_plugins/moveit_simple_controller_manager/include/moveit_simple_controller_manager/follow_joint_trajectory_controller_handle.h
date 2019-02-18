@@ -58,13 +58,22 @@ public:
 
   bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) override;
 
+  void configure(XmlRpc::XmlRpcValue& config) override;
+
 protected:
+  void configure(XmlRpc::XmlRpcValue& config, const std::string& config_name,
+                 std::vector<control_msgs::JointTolerance>& tolerances);
+  static control_msgs::JointTolerance& getTolerance(std::vector<control_msgs::JointTolerance>& tolerances,
+                                                    const std::string& name);
+
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
                               const control_msgs::FollowJointTrajectoryResultConstPtr& result);
 
   void controllerActiveCallback();
 
   void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
+
+  control_msgs::FollowJointTrajectoryGoal goal_template_;
 };
 
 }  // end namespace moveit_simple_controller_manager
