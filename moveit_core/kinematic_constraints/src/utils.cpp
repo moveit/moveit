@@ -37,9 +37,9 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <xmlrpcpp/XmlRpcValue.h>
+#include <moveit/utils/xmlrpc_casts.h>
 
-#include <boost/algorithm/string/join.hpp>
+using namespace moveit::core;
 
 namespace kinematic_constraints
 {
@@ -272,49 +272,6 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
   pcm.weight = 1.0;
 
   return goal;
-}
-
-static double parseDouble(XmlRpc::XmlRpcValue& v)
-{
-  if (v.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-    return static_cast<double>(v);
-  else if (v.getType() == XmlRpc::XmlRpcValue::TypeInt)
-    return static_cast<int>(v);
-  else
-    return 0.0;
-}
-
-static bool isArray(XmlRpc::XmlRpcValue& v, size_t size, const std::string& name = "",
-                    const std::string& description = "")
-{
-  if (v.getType() != XmlRpc::XmlRpcValue::TypeArray || static_cast<size_t>(v.size()) != size)
-  {
-    if (!name.empty())
-      ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not an array[" << size << "] of " << description);
-    return false;
-  }
-  return true;
-}
-
-static bool isStruct(XmlRpc::XmlRpcValue& v, const std::set<std::string>& keys, const std::string& name = "")
-{
-  if (v.getType() != XmlRpc::XmlRpcValue::TypeStruct)
-  {
-    if (!name.empty())
-      ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not a struct with keys " << boost::join(keys, ","));
-    return false;
-  }
-
-  for (const std::string& key : keys)
-    if (!v.hasMember(key))
-    {
-      if (!name.empty())
-        ROS_WARN_STREAM_NAMED(LOGNAME, name << " is not a struct with keys " << boost::join(keys, ",") << " (misses "
-                                            << key << ")");
-      return false;
-    }
-
-  return true;
 }
 
 static bool constructPoseStamped(XmlRpc::XmlRpcValue::iterator& it, geometry_msgs::PoseStamped& pose)

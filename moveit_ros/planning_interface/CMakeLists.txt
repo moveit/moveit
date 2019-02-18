@@ -34,7 +34,6 @@ elseif()
   set(BOOST_PYTHON_COMPONENT python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
 endif()
 
-#catkin_lint: ignore_once duplicate_find
 find_package(Boost REQUIRED COMPONENTS
   date_time
   filesystem

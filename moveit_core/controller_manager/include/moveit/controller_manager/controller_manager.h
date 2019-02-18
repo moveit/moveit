@@ -120,18 +120,24 @@ public:
     return name_;
   }
 
-  /** \brief Send a trajectory to the controller. The controller is expected to execute the trajectory, but this
-   * function call should not block. Blocking is achievable by calling waitForExecution(). Return false when the
-   * controller cannot accept the trajectory. */
+  /** \brief Send a trajectory to the controller.
+   *
+   * The controller is expected to execute the trajectory, but this function call should not block.
+   * Blocking is achievable by calling waitForExecution().
+   * Return false when the controller cannot accept the trajectory. */
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) = 0;
 
-  /** \brief Cancel the execution of any motion using this controller. Report false if canceling is not possible. If
-   * there is no execution in progress, this function is a no-op and returns true. */
+  /** \brief Cancel the execution of any motion using this controller.
+   *
+   * Report false if canceling is not possible.
+   * If there is no execution in progress, this function is a no-op and returns true. */
   virtual bool cancelExecution() = 0;
 
-  /** \brief Wait for the current execution to complete, or until the timeout is reached. Return true if the execution
-   * is complete (whether successful or not). Return false if timeout was reached. If timeout is 0 (default argument),
-   * wait until the execution is complete (no timeout). */
+  /** \brief Wait for the current execution to complete, or until the timeout is reached.
+   *
+   * Return true if the execution is complete (whether successful or not).
+   * Return false if timeout was reached.
+   * If timeout is 0 (default argument), wait until the execution is complete (no timeout). */
   virtual bool waitForExecution(const ros::Duration& timeout = ros::Duration(0)) = 0;
 
   /** \brief Return the execution status of the last trajectory sent to the controller. */
@@ -143,12 +149,10 @@ protected:
 
 MOVEIT_CLASS_FORWARD(MoveItControllerManager);
 
-/** @brief MoveIt! does not enforce how controllers are
-    implemented. To make your controllers usable by MoveIt, this
-    interface needs to be implemented. The main purpose of this
-    interface is to expose the set of known controllers and
-    potentially to allow activating and deactivating them, if multiple
-    controllers are available.
+/** @brief MoveIt! does not enforce how controllers are implemented.
+    To make your controllers usable by MoveIt, this interface needs to be implemented.
+    The main purpose of this interface is to expose the set of known controllers and
+    potentially to allow activating and deactivating them, if multiple controllers are available.
  */
 class MoveItControllerManager
 {
@@ -179,20 +183,22 @@ public:
   {
   }
 
-  /** \brief Controllers are managed by name. Given a name, return an object that can perform operations on the
-   * corresponding controller. */
+  /** \brief Return a given named controller. */
   virtual MoveItControllerHandlePtr getControllerHandle(const std::string& name) = 0;
 
   /** \brief Get the list of known controller names. */
   virtual void getControllersList(std::vector<std::string>& names) = 0;
 
-  /** \brief Get the list of active controllers. If there is only one controller in the system, this will be active. In
-   * cases where multiple controllers exist, and they operate on overlaping sets of joints, not all controllers should
-   * be active at the same time. */
+  /** \brief Get the list of active controllers.
+   *
+   * If there is only one controller in the system, this will be active.  When multiple controllers exist,
+   * and they operate on overlaping sets of joints, not all controllers should be active at the same time. */
   virtual void getActiveControllers(std::vector<std::string>& names) = 0;
 
-  /** \brief In order to decide which controller to use, it is necessary to reason about the joints a controller
-   * operates on. This function reports the joints a controller operates on, given the controller name. */
+  /** \brief Report the joints a controller operates on, given the controller name.
+   *
+   * In order to decide which controller to use, it is necessary to reason about the joints a controller
+   * operates on. */
   virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints) = 0;
 
   /** \brief Report the state of a controller, given its name. */

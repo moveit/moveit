@@ -9,7 +9,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED thread signals)
+find_package(Boost REQUIRED thread)
 
 if(WITH_OPENGL)
   find_package(OpenGL REQUIRED)
