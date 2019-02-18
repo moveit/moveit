@@ -25,7 +25,10 @@ catkin_package(
   CATKIN_DEPENDS moveit_core actionlib control_msgs
 )
 
-add_library(${PROJECT_NAME} src/moveit_simple_controller_manager.cpp)
+add_library(${PROJECT_NAME}
+  src/moveit_simple_controller_manager.cpp
+  src/follow_joint_trajectory_controller_handle.cpp
+)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
