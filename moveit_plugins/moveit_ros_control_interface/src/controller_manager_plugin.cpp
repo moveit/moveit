@@ -448,7 +448,7 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
   /**
    * \brief Get namespace (including leading and trailing slashes) from controller name
    * @param name
-   * @return extracted namespace or / is none is found
+   * @return extracted namespace or / if none is found
    */
   static std::string getNamespace(const std::string& name)
   {
@@ -543,7 +543,7 @@ public:
   }
 
   /**
-   * \brief delegates switch  to all known interfaces. Stops of first failing switch.
+   * \brief delegates switch  to all known interfaces. Stops on first failing switch.
    * @param activate
    * @param deactivate
    * @return
