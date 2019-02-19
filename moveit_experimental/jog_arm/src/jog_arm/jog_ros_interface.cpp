@@ -194,7 +194,7 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
 
   // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
   bool all_zeros = true;
-  for (double delta : shared_variables_.joint_command_deltas.command)
+  for (double delta : shared_variables_.joint_command_deltas.displacements)
   {
     all_zeros &= (delta == 0.0);
   };
