@@ -450,7 +450,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
 // Scale for collisions is read from a shared variable.
 // Key equation: new_velocity = collision_scale*singularity_scale*previous_velocity
 bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, pthread_mutex_t& mutex,
-                                    trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta_,
+                                    trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
                                     double singularity_scale)
 {
   pthread_mutex_unlock(&mutex);
@@ -464,7 +464,7 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, pthread_mute
       // If close to a singularity or joint limit, undo any change to the joint angles
       new_jt_traj.points[0].positions[i] =
           new_jt_traj.points[0].positions[i] -
-          (1. - singularity_scale * collision_scale) * delta_theta_[static_cast<long>(i)];
+          (1. - singularity_scale * collision_scale) * delta_theta[static_cast<long>(i)];
     }
     if (parameters_.publish_joint_velocities)
       new_jt_traj.points[0].velocities[i] *= singularity_scale * collision_scale;
@@ -501,12 +501,12 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd commanded_veloci
   delta_x[5] = vector_toward_singularity[5] / scale;
 
   // Calculate a small change in joints
-  Eigen::VectorXd delta_theta_ = pseudo_inverse_ * delta_x;
+  Eigen::VectorXd new_delta_theta = pseudo_inverse_ * delta_x;
 
   double theta[6];
   const double* prev_joints = kinematic_state_->getVariablePositions();
   for (std::size_t i = 0, size = static_cast<std::size_t>(num_joints_); i < size; ++i)
-    theta[i] = prev_joints[i] + delta_theta_(i);
+    theta[i] = prev_joints[i] + new_delta_theta(i);
 
   kinematic_state_->setVariablePositions(theta);
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
