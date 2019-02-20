@@ -82,6 +82,22 @@ class PlanningSceneInterface(object):
         """
         self._pub_co.publish(self.__make_sphere(name, pose, radius))
 
+    def __make_cylinder(self, name, pose, height, radius):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        cylinder = SolidPrimitive()
+        cylinder.type = SolidPrimitive.CYLINDER
+        cylinder.dimensions = [height, radius]
+        co.primitives = [cylinder]
+        co.primitive_poses = [pose.pose]
+        return co
+
+    def add_cylinder(self, name, pose, height, radius):
+        """Add a cylinder to the planning scene"""
+        self._pub_co.publish(self.__make_cylinder(name, pose, height, radius))
+
     def __make_box(self, name, pose, size):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
