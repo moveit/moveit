@@ -120,11 +120,11 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   {
     // If user commands are all zero, reset the low-pass filters when commands resume
     pthread_mutex_lock(&mutex);
-    bool zero_cartesian_traj_flag = shared_variables.zero_cartesian_cmd_flag;
-    bool zero_joint_traj_flag = shared_variables.zero_joint_cmd_flag;
+    bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
+    bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
     pthread_mutex_unlock(&mutex);
 
-    if (zero_cartesian_traj_flag && zero_joint_traj_flag)
+    if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
       // Reset low-pass filters
       resetVelocityFilters();
 
@@ -144,7 +144,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
     // If there have not been several consecutive cycles of all zeros and joint
     // jogging commands are empty
-    if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_cartesian_traj_flag)
+    if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_cartesian_cmd_flag)
     {
       pthread_mutex_lock(&mutex);
       cartesian_deltas = shared_variables.command_deltas;
@@ -155,7 +155,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     }
     // If there have not been several consecutive cycles of all zeros and joint
     // jogging commands are not empty
-    else if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_joint_traj_flag)
+    else if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_joint_cmd_flag)
     {
       pthread_mutex_lock(&mutex);
       joint_deltas = shared_variables.joint_command_deltas;
@@ -164,23 +164,27 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       if (!jointJogCalcs(joint_deltas, shared_variables))
         continue;
     }
+    else
+    {
+      continue;
+    }
 
     // Halt if the command is stale or inputs are all zero, or commands were zero
     pthread_mutex_lock(&mutex);
     bool stale_command = shared_variables.command_is_stale;
     pthread_mutex_unlock(&mutex);
 
-    if (stale_command || (zero_cartesian_traj_flag && zero_joint_traj_flag))
+    if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
     {
       halt(new_traj_);
-      zero_cartesian_traj_flag = true;
-      zero_joint_traj_flag = true;
+      zero_cartesian_cmd_flag = true;
+      zero_joint_cmd_flag = true;
     }
 
     // Has the velocity command been zero for several cycles in a row?
     // If so, stop publishing so other controllers can take over
     bool valid_nonzero_trajectory =
-        !((zero_velocity_count > num_zero_cycles_to_publish) && zero_cartesian_traj_flag && zero_joint_traj_flag);
+        !((zero_velocity_count > num_zero_cycles_to_publish) && zero_cartesian_cmd_flag && zero_joint_cmd_flag);
 
     // Send the newest target joints
     if (!new_traj_.joint_names.empty())
@@ -201,7 +205,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
       // Store last zero-velocity message flag to prevent superfluous warnings.
       // Cartesian and joint commands must both be zero.
-      if (zero_cartesian_traj_flag && zero_joint_traj_flag)
+      if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
         zero_velocity_count += 1;
       else
         zero_velocity_count = 0;
