@@ -180,7 +180,12 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
   // (so it isn't copied over and over)
   shared_variables_.command_deltas.twist = msg->twist;
-  shared_variables_.command_deltas.header.stamp = msg->header.stamp;
+  shared_variables_.command_deltas.header = msg->header;
+
+  // Input frame determined by YAML file if not passed with message
+  if (shared_variables_.command_deltas.header.frame_id.empty()) {
+    shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
+  }
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
   shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
@@ -277,9 +282,6 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.publish_joint_accelerations);
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
-
-  // Set the input frame, as determined by YAML file:
-  shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
 
   // Input checking
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)
