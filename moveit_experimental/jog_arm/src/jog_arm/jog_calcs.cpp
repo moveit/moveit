@@ -166,6 +166,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     }
     else
     {
+      ros::Duration(WHILE_LOOP_WAIT).sleep();
       continue;
     }
 

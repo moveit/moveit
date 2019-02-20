@@ -135,10 +135,14 @@ JogROSInterface::JogROSInterface()
         outgoing_cmd_pub.publish(joints);
       }
     }
+    else if (shared_variables_.command_is_stale)
+    {
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale command. "
+                                                 "Try a larger 'incoming_command_timeout' parameter?");
+    }
     else
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale or zero command. "
-                                                 "Try a larger 'incoming_command_timeout' parameter?");
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "All-zero command. Doing nothing.");
     }
     pthread_mutex_unlock(&shared_variables_mutex_);
 
