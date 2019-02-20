@@ -144,7 +144,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
     // If there have not been several consecutive cycles of all zeros and joint
     // jogging commands are empty
-    if ((zero_velocity_count <= num_zero_cycles_to_publish) && zero_joint_traj_flag)
+    if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_cartesian_traj_flag)
     {
       pthread_mutex_lock(&mutex);
       cartesian_deltas = shared_variables.command_deltas;
