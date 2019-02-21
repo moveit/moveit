@@ -114,6 +114,7 @@ protected:
   robot_state::RobotStatePtr kinematic_state_;
 
   sensor_msgs::JointState jt_state_, original_jt_state_;
+  std::map <std::string, std::size_t> jt_state_name_map_;
   trajectory_msgs::JointTrajectory outgoing_command_;
 
   tf2_ros::Buffer tf_buffer_;

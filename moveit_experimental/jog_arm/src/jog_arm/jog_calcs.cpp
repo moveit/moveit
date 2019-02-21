@@ -77,6 +77,9 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   jt_state_.position.resize(num_joints_);
   jt_state_.velocity.resize(num_joints_);
   jt_state_.effort.resize(num_joints_);
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i) {
+    jt_state_name_map_[jt_state_.name[i]] = i;
+  }
 
   // Low-pass filters for the joint positions & velocities
   for (size_t i = 0; i < num_joints_; ++i)
@@ -646,35 +649,28 @@ void JogCalcs::resetVelocityFilters()
 // Parse the incoming joint msg for the joints of our MoveGroup
 bool JogCalcs::updateJoints()
 {
-  // Check if every joint was zero. Sometimes an issue.
-  bool all_zeros = true;
-
   // Check that the msg contains enough joints
   if (incoming_jts_.name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  bool done = false;
-  for (std::size_t m = 0; m < num_joints_; ++m)
+  for (std::size_t m = 0; m < incoming_jts_.name.size(); ++m)
   {
-    for (std::size_t c = 0; c < num_joints_; ++c)
+    std::size_t c;
+    try
     {
-      done = false;
-      if (incoming_jts_.name[m] == jt_state_.name[c])
-      {
-        jt_state_.position[c] = incoming_jts_.position[m];
-        // Make sure there was at least one nonzero value
-        if (incoming_jts_.position[m] != 0.)
-          all_zeros = false;
-        done = true;
-        break;
-      }
-      if (done == true)
-        break;
+      c = jt_state_name_map_.at(incoming_jts_.name[m]);
     }
+    catch(const std::out_of_range& e)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
+      return false;
+    }
+
+    jt_state_.position[c] = incoming_jts_.position[m];
   }
 
-  return !all_zeros;
+  return true;
 }
 
 // Scale the incoming jog command
@@ -718,28 +714,26 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
   }
 
   // Store joints in a member variable
-  bool done = false;
-  for (std::size_t m = 0; m < num_joints_; ++m)
+  for (std::size_t m = 0; m < command.joint_names.size(); ++m)
   {
-    done = false;
-    for (std::size_t c = 0; c < num_joints_; ++c)
+    std::size_t c;
+    try
     {
-      if (command.joint_names[m] == jt_state_.name[c])
-      {
-        // Apply user-defined scaling if inputs are unitless [-1:1]
-        if (parameters_.command_in_type == "unitless")
-          result[c] = command.displacements[m] * parameters_.joint_scale;
-        // Otherwise, commands are in m/s and rad/s
-        else if (parameters_.command_in_type == "speed_units")
-          result[c] = command.displacements[m] * parameters_.publish_period;
-        else
-          ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type");
-        done = true;
-        break;
-      }
-      if (done == false)
-        break;
+      c = jt_state_name_map_.at(incoming_jts_.name[m]);
     }
+    catch(const std::out_of_range& e)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
+      continue;
+    }
+    // Apply user-defined scaling if inputs are unitless [-1:1]
+    if (parameters_.command_in_type == "unitless")
+      result[c] = command.displacements[m] * parameters_.joint_scale;
+    // Otherwise, commands are in m/s and rad/s
+    else if (parameters_.command_in_type == "speed_units")
+      result[c] = command.displacements[m] * parameters_.publish_period;
+    else
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type, check yaml file.");
   }
 
   return result;
