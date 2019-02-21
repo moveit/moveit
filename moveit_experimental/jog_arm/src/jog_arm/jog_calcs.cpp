@@ -77,6 +77,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   jt_state_.position.resize(num_joints_);
   jt_state_.velocity.resize(num_joints_);
   jt_state_.effort.resize(num_joints_);
+  // A map for the indices of incoming joint commands
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i) {
     jt_state_name_map_[jt_state_.name[i]] = i;
   }
@@ -713,13 +714,12 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     result[i] = 0.0;
   }
 
-  // Store joints in a member variable
+  std::size_t c;
   for (std::size_t m = 0; m < command.joint_names.size(); ++m)
   {
-    std::size_t c;
     try
     {
-      c = jt_state_name_map_.at(incoming_jts_.name[m]);
+      c = jt_state_name_map_.at(command.joint_names[m]);
     }
     catch(const std::out_of_range& e)
     {
