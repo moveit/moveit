@@ -101,7 +101,7 @@ JogROSInterface::JogROSInterface()
     ros::spinOnce();
 
     pthread_mutex_lock(&shared_variables_mutex_);
-    trajectory_msgs::JointTrajectory new_traj = shared_variables_.new_traj;
+    trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
     // Check for stale cmds
     if ((ros::Time::now() - shared_variables_.incoming_cmd_stamp) <
@@ -122,16 +122,16 @@ JogROSInterface::JogROSInterface()
       // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
       if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
       {
-        new_traj.header.stamp = ros::Time::now();
-        outgoing_cmd_pub.publish(new_traj);
+        outgoing_command.header.stamp = ros::Time::now();
+        outgoing_cmd_pub.publish(outgoing_command);
       }
       else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
       {
         std_msgs::Float64MultiArray joints;
         if (ros_parameters_.publish_joint_positions)
-          joints.data = new_traj.points[0].positions;
+          joints.data = outgoing_command.points[0].positions;
         else if (ros_parameters_.publish_joint_velocities)
-          joints.data = new_traj.points[0].velocities;
+          joints.data = outgoing_command.points[0].velocities;
         outgoing_cmd_pub.publish(joints);
       }
     }

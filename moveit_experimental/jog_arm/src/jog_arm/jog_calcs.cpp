@@ -142,9 +142,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
 
-    // If there have not been several consecutive cycles of all zeros and joint
-    // jogging commands are empty
-    if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_cartesian_cmd_flag)
+    // Assume cartesian jogging command unless the joint command has some nonzero values
+    if (zero_joint_cmd_flag)
     {
       pthread_mutex_lock(&mutex);
       cartesian_deltas = shared_variables.command_deltas;
@@ -153,9 +152,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       if (!cartesianJogCalcs(cartesian_deltas, shared_variables, mutex))
         continue;
     }
-    // If there have not been several consecutive cycles of all zeros and joint
-    // jogging commands are not empty
-    else if ((zero_velocity_count <= num_zero_cycles_to_publish) && !zero_joint_cmd_flag)
+    // If joint jogging command is not all zeros
+    else
     {
       pthread_mutex_lock(&mutex);
       joint_deltas = shared_variables.joint_command_deltas;
@@ -163,11 +161,6 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
       if (!jointJogCalcs(joint_deltas, shared_variables))
         continue;
-    }
-    else
-    {
-      ros::Duration(WHILE_LOOP_WAIT).sleep();
-      continue;
     }
 
     // Halt if the command is stale or inputs are all zero, or commands were zero
@@ -177,24 +170,24 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
     if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
     {
-      halt(new_traj_);
+      halt(outgoing_command_);
       zero_cartesian_cmd_flag = true;
       zero_joint_cmd_flag = true;
     }
 
     // Has the velocity command been zero for several cycles in a row?
     // If so, stop publishing so other controllers can take over
-    bool valid_nonzero_trajectory =
+    bool valid_nonzero_command =
         !((zero_velocity_count > num_zero_cycles_to_publish) && zero_cartesian_cmd_flag && zero_joint_cmd_flag);
 
     // Send the newest target joints
-    if (!new_traj_.joint_names.empty())
+    if (!outgoing_command_.joint_names.empty())
     {
       pthread_mutex_lock(&mutex);
       // If everything normal, share the new traj to be published
-      if (valid_nonzero_trajectory)
+      if (valid_nonzero_command)
       {
-        shared_variables.new_traj = new_traj_;
+        shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row
@@ -304,14 +297,14 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   lowPassFilterPositions();
 
   const ros::Time next_time = ros::Time::now() + ros::Duration(parameters_.publish_period);
-  new_traj_ = composeOutgoingMessage(jt_state_, next_time);
+  outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, mutex, new_traj_, delta_theta_, decelerateForSingularity(delta_x, svd_));
+  applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_, decelerateForSingularity(delta_x, svd_));
 
-  if (!checkIfJointsWithinBounds(new_traj_))
+  if (!checkIfJointsWithinBounds(outgoing_command_))
   {
-    halt(new_traj_);
+    halt(outgoing_command_);
     publishWarning(true);
   }
   else
@@ -320,7 +313,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // If using Gazebo simulator, insert redundant points
   if (parameters_.use_gazebo)
   {
-    insertRedundantPointsIntoTrajectory(new_traj_, gazebo_redundant_message_count_);
+    insertRedundantPointsIntoTrajectory(outgoing_command_, gazebo_redundant_message_count_);
   }
 
   return true;
@@ -357,12 +350,12 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   kinematic_state_->setVariableValues(jt_state_);
 
   const ros::Time next_time = ros::Time::now() + ros::Duration(parameters_.publish_delay);
-  new_traj_ = composeOutgoingMessage(jt_state_, next_time);
+  outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
 
   // check if new joint state is valid
-  if (!checkIfJointsWithinBounds(new_traj_))
+  if (!checkIfJointsWithinBounds(outgoing_command_))
   {
-    halt(new_traj_);
+    halt(outgoing_command_);
     publishWarning(true);
   }
   else
@@ -373,7 +366,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   // done with calculations
   if (parameters_.use_gazebo)
   {
-    insertRedundantPointsIntoTrajectory(new_traj_, gazebo_redundant_message_count_);
+    insertRedundantPointsIntoTrajectory(outgoing_command_, gazebo_redundant_message_count_);
   }
 
   return true;

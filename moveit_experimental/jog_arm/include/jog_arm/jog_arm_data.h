@@ -71,8 +71,8 @@ struct JogArmShared
   // Indicates that we have not received a new command in some time
   bool command_is_stale = false;
 
-  // The new trajectory which is calculated
-  trajectory_msgs::JointTrajectory new_traj;
+  // The new command which is calculated
+  trajectory_msgs::JointTrajectory outgoing_command;
 
   // Timestamp of incoming commands
   ros::Time incoming_cmd_stamp = ros::Time(0.);

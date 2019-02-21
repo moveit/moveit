@@ -114,7 +114,7 @@ protected:
   robot_state::RobotStatePtr kinematic_state_;
 
   sensor_msgs::JointState jt_state_, original_jt_state_;
-  trajectory_msgs::JointTrajectory new_traj_;
+  trajectory_msgs::JointTrajectory outgoing_command_;
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
