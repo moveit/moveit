@@ -183,7 +183,8 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   shared_variables_.command_deltas.header = msg->header;
 
   // Input frame determined by YAML file if not passed with message
-  if (shared_variables_.command_deltas.header.frame_id.empty()) {
+  if (shared_variables_.command_deltas.header.frame_id.empty())
+  {
     shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
   }
 

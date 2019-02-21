@@ -78,7 +78,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   jt_state_.velocity.resize(num_joints_);
   jt_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i) {
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  {
     jt_state_name_map_[jt_state_.name[i]] = i;
   }
 
@@ -304,7 +305,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_, decelerateForSingularity(delta_x, svd_));
+  applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
+                       decelerateForSingularity(delta_x, svd_));
 
   if (!checkIfJointsWithinBounds(outgoing_command_))
   {
@@ -662,7 +664,7 @@ bool JogCalcs::updateJoints()
     {
       c = jt_state_name_map_.at(incoming_jts_.name[m]);
     }
-    catch(const std::out_of_range& e)
+    catch (const std::out_of_range& e)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
       return false;
@@ -721,7 +723,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     {
       c = jt_state_name_map_.at(command.joint_names[m]);
     }
-    catch(const std::out_of_range& e)
+    catch (const std::out_of_range& e)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
       continue;
