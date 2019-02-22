@@ -1,0 +1,17 @@
+<launch>
+  <!-- The package has 2 examples of converting controller commands to jog commands.
+  This is the lower-latency C++ example. You can modify it in your own package for
+  your own type of gamepad or joystick.
+  It reduces latency (slightly) compared to spacenav_teleop_tools.launch. We don't plan to accept pull requests for other controller types using this method because it would be too much to maintain. But, we do plan to accept teleop_tools config files (see 
+  spacenav_teleop_tools.launch)-->
+
+  <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node" />
+
+  <node name="spacenav_to_twist" pkg="moveit_experimental" type="jog_arm_spacenav_to_twist" output="screen" />
+
+  <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" >
+    <param name="parameter_ns" type="string" value="jog_arm_server" />
+    <rosparam command="load" file="$(find moveit_experimental)/jog_arm/config/sia5_simulated_config.yaml" />
+  </node>
+
+</launch>
