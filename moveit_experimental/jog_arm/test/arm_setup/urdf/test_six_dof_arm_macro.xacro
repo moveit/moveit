@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="six_dof_arm" params="prefix">
+        <!-- link list -->
+        <link name="${prefix}base_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_base_link.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_1">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_1.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_2">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_2.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_3">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_3.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_4">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_4.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_5">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_5.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+        <link name="${prefix}link_6">
+            <visual>
+                <geometry>
+                    <mesh filename="package://jog_arm/test/arm_setup/meshes/robot_link_6.stl"/>
+                </geometry>
+                <origin rpy="0.0 0 0.0" xyz="0 0 0"/>
+                <material name="DarkGray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
+
+        <!-- joint list -->
+        <joint name="${prefix}joint_1" type="revolute">
+            <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="3.14"/>
+            <parent link="base_link"/>
+            <child link="link_1"/>
+            <axis xyz="0 0 1"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0 0 0.1"/>
+        </joint>
+        <joint name="${prefix}joint_2" type="revolute">
+            <limit effort="1000.0" lower="-1.74" upper="2.35" velocity="3.14"/>
+            <parent link="link_1"/>
+            <child link="link_2"/>
+            <axis xyz="0 1 0"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0 0 0.1"/>
+        </joint>
+        <joint name="${prefix}joint_3" type="revolute">
+            <limit effort="1000.0" lower="-3.70" upper="1.15" velocity="3.14"/>
+            <parent link="link_2"/>
+            <child link="link_3"/>
+            <axis xyz="0 1 0"/>
+            <origin rpy="0.0 ${pi/2.0} 0.0" xyz="0.0 0.0 0.4"/>
+        </joint>
+        <joint name="${prefix}joint_4" type="revolute">
+            <limit effort="1000.0" lower="-2.6" upper="2.6" velocity="3.14"/>
+            <parent link="link_3"/>
+            <child link="link_4"/>
+            <axis xyz="0 0 1"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0 -0 0.05"/>
+        </joint>
+        <joint name="${prefix}joint_5" type="revolute">
+            <limit effort="1000.0" lower="-2.49" upper="2.49" velocity="3.14"/>
+            <parent link="link_4"/>
+            <child link="link_5"/>
+            <axis xyz="0 1 0"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.2"/>
+        </joint>
+        <joint name="${prefix}joint_6" type="revolute">
+            <limit effort="1000.0" lower="${pi*-2}" upper="${pi*2}" velocity="${pi*2}"/>
+            <parent link="link_5"/>
+            <child link="link_6"/>
+            <axis xyz="0 0 1"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0 0 0.15"/>
+        </joint>
+
+        <!-- ROS-Industrial 'base' frame: base_link to Fanuc World Coordinates transform -->
+        <link name="${prefix}base"/>
+        <joint name="${prefix}base_link-base" type="fixed">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <axis xyz="0 0 1"/>
+            <parent link="${prefix}base_link"/>
+            <child link="${prefix}base"/>
+        </joint>
+
+        <!-- ROS-Industrial 'flange' frame: attachment point for EEF models -->
+        <link name="${prefix}flange"/>
+        <joint name="${prefix}joint_6-flange" type="fixed">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <parent link="${prefix}link_6"/>
+            <child link="${prefix}flange"/>
+        </joint>
+
+        <!-- ROS-Industrial 'tool0' frame: all-zeros tool frame -->
+        <link name="${prefix}tool0"/>
+        <joint name="${prefix}link_6-tool0" type="fixed">
+            <origin xyz="0 0 0" rpy="${pi} ${-pi/2.0} 0"/>
+            <parent link="${prefix}link_6"/>
+            <child link="${prefix}tool0"/>
+        </joint>
+    </xacro:macro>
+</robot>
