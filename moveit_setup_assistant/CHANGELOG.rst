@@ -2,6 +2,14 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
+* [fix] memory leaks (`#1292 <https://github.com/ros-planning/moveit/issues/1292>`_)
+* [improve] Remove (redundant) random seeding and #attempts from RobotState::setFromIK() as the IK solver perform random seeding themselves. `#1288 <https://github.com/ros-planning/moveit/issues/1288>`_
+* [improve] support dark themes (`#1173 <https://github.com/ros-planning/moveit/issues/1173>`_)
+* Contributors: Dave Coleman, Robert Haschke, Victor Lamoine
+
 0.10.8 (2018-12-24)
 -------------------
 
