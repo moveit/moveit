@@ -55,8 +55,8 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater()
   , max_range_(std::numeric_limits<double>::infinity())
   , point_subsample_(1)
   , max_update_rate_(0)
-  , point_cloud_subscriber_(NULL)
-  , point_cloud_filter_(NULL)
+  , point_cloud_subscriber_(nullptr)
+  , point_cloud_filter_(nullptr)
 {
 }
 
@@ -132,8 +132,8 @@ void PointCloudOctomapUpdater::stopHelper()
 void PointCloudOctomapUpdater::stop()
 {
   stopHelper();
-  point_cloud_filter_ = NULL;
-  point_cloud_subscriber_ = NULL;
+  point_cloud_filter_ = nullptr;
+  point_cloud_subscriber_ = nullptr;
 }
 
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape)

@@ -64,11 +64,11 @@ static std::string getHostname()
 
 BenchmarkExecutor::BenchmarkExecutor(const std::string& robot_description_param)
 {
-  pss_ = NULL;
-  psws_ = NULL;
-  rs_ = NULL;
-  cs_ = NULL;
-  tcs_ = NULL;
+  pss_ = nullptr;
+  psws_ = nullptr;
+  rs_ = nullptr;
+  cs_ = nullptr;
+  tcs_ = nullptr;
   psm_ = new planning_scene_monitor::PlanningSceneMonitor(robot_description_param);
   planning_scene_ = psm_->getPlanningScene();
 
@@ -147,27 +147,27 @@ void BenchmarkExecutor::clear()
   if (pss_)
   {
     delete pss_;
-    pss_ = NULL;
+    pss_ = nullptr;
   }
   if (psws_)
   {
     delete psws_;
-    psws_ = NULL;
+    psws_ = nullptr;
   }
   if (rs_)
   {
     delete rs_;
-    rs_ = NULL;
+    rs_ = nullptr;
   }
   if (cs_)
   {
     delete cs_;
-    cs_ = NULL;
+    cs_ = nullptr;
   }
   if (tcs_)
   {
     delete tcs_;
-    tcs_ = NULL;
+    tcs_ = nullptr;
   }
 
   benchmark_data_.clear();

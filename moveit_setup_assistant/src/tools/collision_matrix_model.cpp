@@ -212,7 +212,7 @@ QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation, int role
 Qt::ItemFlags CollisionMatrixModel::flags(const QModelIndex& index) const
 {
   if (!index.isValid())
-    return 0;
+    return Qt::NoItemFlags;
 
   Qt::ItemFlags f = QAbstractTableModel::flags(index);
   if (index.row() != index.column())

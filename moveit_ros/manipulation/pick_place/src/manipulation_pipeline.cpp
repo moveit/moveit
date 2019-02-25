@@ -42,7 +42,7 @@ namespace pick_place
 ManipulationPipeline::ManipulationPipeline(const std::string& name, unsigned int nthreads)
   : name_(name), nthreads_(nthreads), verbose_(false), stop_processing_(true)
 {
-  processing_threads_.resize(nthreads, NULL);
+  processing_threads_.resize(nthreads, nullptr);
 }
 
 ManipulationPipeline::~ManipulationPipeline()
@@ -133,7 +133,7 @@ void ManipulationPipeline::stop()
     {
       processing_threads_[i]->join();
       delete processing_threads_[i];
-      processing_threads_[i] = NULL;
+      processing_threads_[i] = nullptr;
     }
 }
 

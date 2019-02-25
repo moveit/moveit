@@ -55,7 +55,7 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::Move
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Set pointer to null so later we can tell if we need to delete it
-  joint_list_layout_ = NULL;
+  joint_list_layout_ = nullptr;
 
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -563,7 +563,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& name, const std::string& group)
 {
   // Find the group state we are editing based on the pose name
-  srdf::Model::GroupState* searched_state = NULL;  // used for holding our search results
+  srdf::Model::GroupState* searched_state = nullptr;  // used for holding our search results
 
   for (srdf::Model::GroupState& state : config_data_->srdf_->group_states_)
   {
@@ -625,7 +625,7 @@ void RobotPosesWidget::doneEditing()
   const std::string& group = group_name_field_->currentText().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::GroupState* searched_data = NULL;
+  srdf::Model::GroupState* searched_data = nullptr;
 
   // Check that name field is not empty
   if (name.empty())
@@ -661,7 +661,7 @@ void RobotPosesWidget::doneEditing()
   // Save the new pose name or create the new pose ----------------------------
   bool isNew = false;
 
-  if (searched_data == NULL)  // create new
+  if (searched_data == nullptr)  // create new
   {
     isNew = true;
     searched_data = new srdf::Model::GroupState();

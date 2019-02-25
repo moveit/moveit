@@ -105,7 +105,7 @@ TrajectoryExecutionManager::~TrajectoryExecutionManager()
 
 void TrajectoryExecutionManager::initialize()
 {
-  reconfigure_impl_ = NULL;
+  reconfigure_impl_ = nullptr;
   verbose_ = false;
   execution_complete_ = true;
   stop_continuous_execution_ = false;
@@ -402,7 +402,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
 
     while (!continuous_execution_queue_.empty())
     {
-      TrajectoryExecutionContext* context = NULL;
+      TrajectoryExecutionContext* context = nullptr;
       {
         boost::mutex::scoped_lock slock(continuous_execution_mutex_);
         if (continuous_execution_queue_.empty())
@@ -811,7 +811,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
     const robot_model::JointModel* jm = robot_model_->getJointModel(trajectory.joint_trajectory.joint_names[i]);
     if (jm)
     {
-      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == robot_model::JointModel::FIXED)
         continue;
       actuated_joints_single.insert(jm->getName());
     }
@@ -1627,7 +1627,7 @@ bool TrajectoryExecutionManager::ensureActiveControllersForJoints(const std::vec
     const robot_model::JointModel* jm = robot_model_->getJointModel(joints[i]);
     if (jm)
     {
-      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == robot_model::JointModel::FIXED)
         continue;
       jset.insert(joints[i]);
     }

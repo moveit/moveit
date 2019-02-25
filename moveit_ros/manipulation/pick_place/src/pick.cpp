@@ -109,7 +109,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                                                              << planning_group << "'");
   }
   const robot_model::JointModelGroup* eef =
-      end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
+      end_effector.empty() ? nullptr : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
   {
     ROS_ERROR_NAMED("manipulation", "No end-effector specified for pick action");
