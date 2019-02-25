@@ -553,7 +553,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
   }
 }
 
-void RobotInteraction::registerMoveInteractiveMarkerTopic(const std::string marker_name, const std::string& name)
+void RobotInteraction::registerMoveInteractiveMarkerTopic(const std::string& marker_name, const std::string& name)
 {
   ros::NodeHandle nh;
   std::stringstream ss;
@@ -678,7 +678,7 @@ bool RobotInteraction::showingMarkers(const InteractionHandlerPtr& handler)
   return true;
 }
 
-void RobotInteraction::moveInteractiveMarker(const std::string name, const geometry_msgs::PoseStampedConstPtr& msg)
+void RobotInteraction::moveInteractiveMarker(const std::string& name, const geometry_msgs::PoseStampedConstPtr& msg)
 {
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
   if (it != shown_markers_.end())

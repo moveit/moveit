@@ -179,32 +179,32 @@ void BenchmarkExecutor::clear()
   query_end_fns_.clear();
 }
 
-void BenchmarkExecutor::addPreRunEvent(PreRunEventFunction func)
+void BenchmarkExecutor::addPreRunEvent(const PreRunEventFunction& func)
 {
   pre_event_fns_.push_back(func);
 }
 
-void BenchmarkExecutor::addPostRunEvent(PostRunEventFunction func)
+void BenchmarkExecutor::addPostRunEvent(const PostRunEventFunction& func)
 {
   post_event_fns_.push_back(func);
 }
 
-void BenchmarkExecutor::addPlannerStartEvent(PlannerStartEventFunction func)
+void BenchmarkExecutor::addPlannerStartEvent(const PlannerStartEventFunction& func)
 {
   planner_start_fns_.push_back(func);
 }
 
-void BenchmarkExecutor::addPlannerCompletionEvent(PlannerCompletionEventFunction func)
+void BenchmarkExecutor::addPlannerCompletionEvent(const PlannerCompletionEventFunction& func)
 {
   planner_completion_fns_.push_back(func);
 }
 
-void BenchmarkExecutor::addQueryStartEvent(QueryStartEventFunction func)
+void BenchmarkExecutor::addQueryStartEvent(const QueryStartEventFunction& func)
 {
   query_start_fns_.push_back(func);
 }
 
-void BenchmarkExecutor::addQueryCompletionEvent(QueryCompletionEventFunction func)
+void BenchmarkExecutor::addQueryCompletionEvent(const QueryCompletionEventFunction& func)
 {
   query_end_fns_.push_back(func);
 }
@@ -436,7 +436,7 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 }
 
 void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& constraints,
-                                                 const std::vector<double> offset)
+                                                 const std::vector<double>& offset)
 {
   Eigen::Isometry3d offset_tf(Eigen::AngleAxis<double>(offset[3], Eigen::Vector3d::UnitX()) *
                               Eigen::AngleAxis<double>(offset[4], Eigen::Vector3d::UnitY()) *

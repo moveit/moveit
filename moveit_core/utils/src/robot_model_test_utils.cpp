@@ -237,7 +237,7 @@ void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std
   addLinkCollision(link_name, coll, origin);
 }
 
-void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::CollisionSharedPtr collision,
+void RobotModelBuilder::addLinkCollision(const std::string& link_name, const urdf::CollisionSharedPtr& collision,
                                          geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
@@ -255,7 +255,7 @@ void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::Col
   link->collision_array.push_back(collision);
 }
 
-void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis,
+void RobotModelBuilder::addLinkVisual(const std::string& link_name, const urdf::VisualSharedPtr& vis,
                                       geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))

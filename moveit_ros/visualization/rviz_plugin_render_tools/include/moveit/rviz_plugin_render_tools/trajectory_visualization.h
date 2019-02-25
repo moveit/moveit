@@ -89,7 +89,7 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
-  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, ros::NodeHandle update_nh);
+  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, const ros::NodeHandle& update_nh);
   void onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model);
   void onEnable();
   void onDisable();

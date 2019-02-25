@@ -179,10 +179,10 @@ public:
 
 private:
   /** \brief Adds different collision geometries to a link. */
-  void addLinkCollision(const std::string& link_name, urdf::CollisionSharedPtr coll, geometry_msgs::Pose origin);
+  void addLinkCollision(const std::string& link_name, const urdf::CollisionSharedPtr& coll, geometry_msgs::Pose origin);
 
   /** \brief Adds different visual geometries to a link. */
-  void addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis, geometry_msgs::Pose origin);
+  void addLinkVisual(const std::string& link_name, const urdf::VisualSharedPtr& vis, geometry_msgs::Pose origin);
 
   /// The URDF model, holds all of the URDF components of the robot added so far.
   urdf::ModelInterfaceSharedPtr urdf_model_;
