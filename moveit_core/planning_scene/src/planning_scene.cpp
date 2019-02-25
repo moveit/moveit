@@ -1603,7 +1603,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         poses.insert(poses.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
         trajectory_msgs::JointTrajectory detach_posture =
             object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
-        std::set<std::string> ab_touch_links = ab->getTouchLinks();
+        const std::set<std::string>& ab_touch_links = ab->getTouchLinks();
         robot_state_->clearAttachedBody(object.object.id);
         if (object.touch_links.empty())
           robot_state_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);

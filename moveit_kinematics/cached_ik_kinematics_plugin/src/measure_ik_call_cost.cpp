@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   spinner.start();
 
   robot_model_loader::RobotModelLoader robot_model_loader;
-  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+  const robot_model::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
   planning_scene::PlanningScene planning_scene(kinematic_model);
   robot_state::RobotState& kinematic_state = planning_scene.getCurrentStateNonConst();
   collision_detection::CollisionRequest collision_request;

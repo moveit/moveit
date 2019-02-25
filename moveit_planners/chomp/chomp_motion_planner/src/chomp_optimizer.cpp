@@ -128,7 +128,7 @@ void ChompOptimizer::initialize()
   {
     const moveit::core::JointModel* model = joint_models[i];
     double joint_cost = 1.0;
-    std::string joint_name = model->getName();
+    const std::string& joint_name = model->getName();
     // nh.param("joint_costs/" + joint_name, joint_cost, 1.0);
     std::vector<double> derivative_costs(3);
     derivative_costs[0] = joint_cost * parameters_->smoothness_cost_velocity_;

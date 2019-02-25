@@ -1175,7 +1175,7 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
   const robot_model::JointModelGroup* group = model->getJointModelGroup(planning_group);
 
   // get vector of joint names
-  const std::vector<std::string> joints = group->getJointModelNames();
+  const std::vector<std::string>& joints = group->getJointModelNames();
 
   if (joints.size() >= 2)
   {
