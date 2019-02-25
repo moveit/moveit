@@ -2,8 +2,8 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2019-02-24)
+------------------
 * [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
 * [fix][moveit_setup_assistant] memory leaks (`#1292 <https://github.com/ros-planning/moveit/issues/1292>`_)
 * [fix][moveit_core] invert waypoint velocities on reverse (`#1335 <https://github.com/ros-planning/moveit/issues/1335>`_)
