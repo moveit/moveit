@@ -195,7 +195,7 @@ bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eige
 
 namespace
 {
-bool host_is_big_endian(void)
+bool host_is_big_endian()
 {
   union
   {
