@@ -579,6 +579,7 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
 TEST_F(OneRobot, testGenerateTrajectory)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
+  ASSERT_TRUE(joint_model_group);
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
   // The full trajectory should be of length 7
@@ -594,6 +595,7 @@ TEST_F(OneRobot, testGenerateTrajectory)
 TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
+  ASSERT_TRUE(joint_model_group);
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
   // A revolute joint jumps 1.01 at the 5th waypoint and a prismatic joint jumps 1.01 at the 6th waypoint
@@ -641,6 +643,7 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 TEST_F(OneRobot, testRelativeJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
+  ASSERT_TRUE(joint_model_group);
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
   // The first large jump of 1.01 occurs at the 5th waypoint so the test should trim the trajectory to length 4
@@ -669,6 +672,34 @@ TEST_F(OneRobot, testRelativeJointSpaceJump)
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.98));
   EXPECT_EQ(full_traj_len, traj.size());  // traj should not be cut
   EXPECT_NEAR(1.0, fraction, 0.01);
+}
+
+TEST_F(OneRobot, testPrintCurrentPositionWithJointLimits)
+{
+  moveit::core::RobotState state(robot_model_);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
+  ASSERT_TRUE(joint_model_group);
+
+  state.setToDefaultValues();
+
+  std::cout << "\nVisual inspection should show NO joints out of bounds:" << std::endl;
+  state.printStatePositionsWithJointLimits(joint_model_group);
+
+  std::cout << "\nVisual inspection should show ONE joint out of bounds:" << std::endl;
+  std::vector<double> single_joint(1);
+  single_joint[0] = -1.0;
+  state.setJointPositions("joint_c", single_joint);
+  state.printStatePositionsWithJointLimits(joint_model_group);
+
+  std::cout << "\nVisual inspection should show TWO joint out of bounds:" << std::endl;
+  single_joint[0] = 1.0;
+  state.setJointPositions("joint_f", single_joint);
+  state.printStatePositionsWithJointLimits(joint_model_group);
+
+  std::cout << "\nVisual inspection should show ONE joint out of bounds:" << std::endl;
+  single_joint[0] = 0.19;
+  state.setJointPositions("joint_f", single_joint);
+  state.printStatePositionsWithJointLimits(joint_model_group);
 }
 
 int main(int argc, char** argv)
