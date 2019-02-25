@@ -2,6 +2,11 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] cleanup SimpleControllerManager https://github.com/ros-planning/moveit/pull/1352
+* Contributors: Robert Haschke
+
 0.10.8 (2018-12-24)
 -------------------
 

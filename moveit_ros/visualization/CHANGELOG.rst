@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
+* Contributors: Dave Coleman, Robert Haschke
+
 0.10.8 (2018-12-24)
 -------------------
 * [fix] Handle exceptions in rviz plugins (`#1267 <https://github.com/ros-planning/moveit/issues/1267>`_)
