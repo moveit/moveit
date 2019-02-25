@@ -709,7 +709,7 @@ void RobotInteraction::processInteractiveMarkerFeedback(
     return;
   }
 
-  std::size_t u = feedback->marker_name.find_first_of("_");
+  std::size_t u = feedback->marker_name.find_first_of('_');
   if (u == std::string::npos || u < 4)
   {
     ROS_ERROR("Invalid marker name: '%s'", feedback->marker_name.c_str());
@@ -744,7 +744,7 @@ void RobotInteraction::processingThread()
                   feedback->marker_name.c_str());
         continue;
       }
-      std::size_t u = feedback->marker_name.find_first_of("_");
+      std::size_t u = feedback->marker_name.find_first_of('_');
       if (u == std::string::npos || u < 4)
       {
         ROS_ERROR("Invalid marker name: '%s' (should never have ended up in the feedback_map!)",
