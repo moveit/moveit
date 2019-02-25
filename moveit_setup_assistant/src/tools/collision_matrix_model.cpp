@@ -166,7 +166,7 @@ void CollisionMatrixModel::setEnabled(const QItemSelection& selection, bool valu
   // perform changes without signalling
   QItemSelection changes;
   blockSignals(true);
-  for (const auto range : selection)
+  for (const auto& range : selection)
   {
     setEnabled(range.indexes(), value);
 
@@ -179,7 +179,7 @@ void CollisionMatrixModel::setEnabled(const QItemSelection& selection, bool valu
   blockSignals(false);
 
   // emit changes
-  for (const auto range : changes)
+  for (const auto& range : changes)
     Q_EMIT dataChanged(range.topLeft(), range.bottomRight());
 }
 

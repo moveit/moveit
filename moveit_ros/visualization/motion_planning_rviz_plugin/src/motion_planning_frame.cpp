@@ -256,7 +256,7 @@ void MotionPlanningFrame::fillPlanningGroupOptions()
   ui_->planning_group_combo_box->clear();
 
   const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
-  for (const std::string group_name : kmodel->getJointModelGroupNames())
+  for (const std::string& group_name : kmodel->getJointModelGroupNames())
     ui_->planning_group_combo_box->addItem(QString::fromStdString(group_name));
 }
 
