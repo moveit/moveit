@@ -666,8 +666,8 @@ bool JogCalcs::updateJoints()
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
-      return false;
+      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
+      continue;
     }
 
     jt_state_.position[c] = incoming_jts_.position[m];
@@ -725,7 +725,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Command joint name unknown.");
+      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
