@@ -136,4 +136,4 @@ void MotionPlanningParamWidget::setPlannerId(const std::string& planner_id)
   if (old_model)
     delete old_model;
 }
-}
+}  // namespace moveit_rviz_plugin

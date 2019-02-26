@@ -955,4 +955,4 @@ void MotionPlanningFrame::importFromTextButtonClicked()
     planning_display_->addBackgroundJob(
         boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
 }
-}
+}  // namespace moveit_rviz_plugin

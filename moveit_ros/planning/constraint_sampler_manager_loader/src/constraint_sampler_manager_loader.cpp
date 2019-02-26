@@ -93,4 +93,4 @@ ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(
   , impl_(new Helper(constraint_sampler_manager_))
 {
 }
-}
+}  // namespace constraint_sampler_manager_loader

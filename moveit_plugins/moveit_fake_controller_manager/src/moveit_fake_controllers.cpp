@@ -216,7 +216,7 @@ void interpolate(sensor_msgs::JointState& js, const trajectory_msgs::JointTrajec
     js.position[i] = prev.positions[i] + alpha * (next.positions[i] - prev.positions[i]);
   }
 }
-}
+}  // namespace
 
 void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 {

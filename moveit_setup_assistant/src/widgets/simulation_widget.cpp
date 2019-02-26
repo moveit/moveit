@@ -224,4 +224,4 @@ void SimulationWidget::copyURDF(const QString& link)
   simulation_text_->copy();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

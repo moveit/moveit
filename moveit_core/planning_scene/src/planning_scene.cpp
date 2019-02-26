@@ -812,7 +812,7 @@ private:
   moveit_msgs::CollisionObject* obj_;
   const geometry_msgs::Pose* pose_;
 };
-}
+}  // namespace
 
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {

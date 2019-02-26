@@ -136,7 +136,7 @@ const char* errorCodeToMessage(int error_code)
       return "unknown error";
   }
 }
-}
+}  // namespace
 
 void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& config, const std::string& config_name,
                                                       std::vector<control_msgs::JointTolerance>& tolerances)

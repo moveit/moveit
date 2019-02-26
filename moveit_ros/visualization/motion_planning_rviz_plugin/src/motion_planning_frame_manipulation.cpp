@@ -354,4 +354,4 @@ void MotionPlanningFrame::placeObject()
   move_group_->place(place_object_name_, place_poses_);
   return;
 }
-}
+}  // namespace moveit_rviz_plugin

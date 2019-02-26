@@ -125,8 +125,8 @@ static void wrap_planning_scene_interface()
   PlanningSceneClass.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
   PlanningSceneClass.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
 {

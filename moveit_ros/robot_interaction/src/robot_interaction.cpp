@@ -820,4 +820,4 @@ void RobotInteraction::processingThread()
     }
   }
 }
-}
+}  // namespace robot_interaction

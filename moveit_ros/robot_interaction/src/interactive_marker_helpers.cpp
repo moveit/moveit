@@ -276,4 +276,4 @@ visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, co
   add6DOFControl(int_marker, orientation_fixed);
   return int_marker;
 }
-}
+}  // namespace robot_interaction

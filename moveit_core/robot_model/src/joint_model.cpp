@@ -216,7 +216,7 @@ inline void printBoundHelper(std::ostream& out, double v)
   else
     out << v;
 }
-}
+}  // namespace
 
 std::ostream& operator<<(std::ostream& out, const VariableBounds& b)
 {

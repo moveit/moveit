@@ -519,4 +519,4 @@ void SetupAssistantWidget::setModalMode(bool isModal)
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

@@ -626,5 +626,5 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
 
   return solid;
 }
-}
-}
+}  // namespace semantic_world
+}  // namespace moveit

@@ -1272,8 +1272,8 @@ private:
   std::unique_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const std::string& group_name,
                                                                    const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
@@ -1830,7 +1830,7 @@ inline void transformPose(const tf2_ros::Buffer& tf_buffer, const std::string& d
     target.header.stamp = ros::Time(0);
   }
 }
-}
+}  // namespace
 
 bool moveit::planning_interface::MoveGroupInterface::setPositionTarget(double x, double y, double z,
                                                                        const std::string& end_effector_link)

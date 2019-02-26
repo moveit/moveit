@@ -1830,4 +1830,4 @@ void MoveItConfigData::clearSensorPluginConfig()
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

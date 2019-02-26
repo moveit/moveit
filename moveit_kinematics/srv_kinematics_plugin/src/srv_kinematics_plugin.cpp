@@ -411,4 +411,4 @@ const std::vector<std::string>& SrvKinematicsPlugin::getVariableNames() const
   return joint_model_group_->getVariableNames();
 }
 
-}  // namespace
+}  // namespace srv_kinematics_plugin

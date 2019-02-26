@@ -93,4 +93,4 @@ void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detec
 {
   crobot_distance_->checkSelfCollision(req, res, state, acm, gsr);
 }
-}
+}  // namespace collision_detection

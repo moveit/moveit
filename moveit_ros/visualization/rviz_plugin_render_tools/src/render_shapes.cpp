@@ -186,4 +186,4 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
     scene_shapes_.emplace_back(ogre_shape);
   }
 }
-}
+}  // namespace moveit_rviz_plugin

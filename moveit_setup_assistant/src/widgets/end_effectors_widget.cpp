@@ -664,4 +664,4 @@ void EndEffectorsWidget::focusGiven()
   loadParentComboBox();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

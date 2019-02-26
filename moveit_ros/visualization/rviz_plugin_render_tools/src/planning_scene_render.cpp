@@ -106,4 +106,4 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
                                   octree_voxel_rendering, octree_color_mode, color, alpha);
   }
 }
-}
+}  // namespace moveit_rviz_plugin

@@ -64,7 +64,7 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
   place_pose.pose = tf2::toMsg(end_effector_transform);
   return true;
 }
-}
+}  // namespace
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PlaceGoal& goal)
 {
@@ -391,4 +391,4 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr& p
 
   return p;
 }
-}
+}  // namespace pick_place

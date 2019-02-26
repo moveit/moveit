@@ -298,4 +298,4 @@ void MotionPlanningFrame::populatePlanningSceneTreeView()
   ui_->planning_scene_tree->setUpdatesEnabled(true);
   checkPlanningSceneTreeEnabledButtons();
 }
-}
+}  // namespace moveit_rviz_plugin

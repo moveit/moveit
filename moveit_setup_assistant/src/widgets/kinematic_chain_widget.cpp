@@ -280,4 +280,4 @@ void KinematicChainWidget::itemSelected()
     Q_EMIT highlightLink(item->text(0).toStdString(), QColor(255, 0, 0));
   }
 }
-}
+}  // namespace moveit_setup_assistant

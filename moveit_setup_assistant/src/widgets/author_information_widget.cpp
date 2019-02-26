@@ -108,4 +108,4 @@ void AuthorInformationWidget::edited_email()
   config_data_->changes |= MoveItConfigData::AUTHOR_INFO;
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

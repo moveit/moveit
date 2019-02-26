@@ -91,7 +91,7 @@ struct CoupledDeleter
     delete p;
   }
 };
-}
+}  // namespace
 
 namespace moveit
 {

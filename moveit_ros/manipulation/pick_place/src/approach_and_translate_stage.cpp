@@ -190,7 +190,7 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
   }
 }
 
-}  // annonymous namespace
+}  // namespace
 
 bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 {
@@ -357,4 +357,4 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   return false;
 }
-}
+}  // namespace pick_place

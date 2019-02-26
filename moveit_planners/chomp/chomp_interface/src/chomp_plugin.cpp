@@ -114,6 +114,6 @@ protected:
   std::map<std::string, CHOMPPlanningContextPtr> planning_contexts_;
 };
 
-}  // ompl_interface_ros
+}  // namespace chomp_interface
 
 PLUGINLIB_EXPORT_CLASS(chomp_interface::CHOMPPlannerManager, planning_interface::PlannerManager);

@@ -227,4 +227,4 @@ void ManipulationPipeline::reprocessLastFailure()
                                             << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
-}
+}  // namespace pick_place

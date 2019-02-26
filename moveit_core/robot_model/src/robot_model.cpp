@@ -191,7 +191,7 @@ void computeCommonRootsHelper(const JointModel* joint, std::vector<int>& common_
     computeCommonRootsHelper(ch[i], common_roots, size);
   }
 }
-}
+}  // namespace
 
 void RobotModel::computeCommonRoots()
 {
@@ -840,7 +840,7 @@ static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
   }
   return b;
 }
-}
+}  // namespace
 
 JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                             const srdf::Model& srdf_model)
