@@ -73,7 +73,7 @@ protected:
       }
       xml_file.close();
       urdf_model_ = urdf::parseURDF(xml_string);
-      urdf_ok_ = urdf_model_ ? true : false;
+      urdf_ok_ = static_cast<bool>(urdf_model_);
     }
     else
       urdf_ok_ = false;

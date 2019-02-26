@@ -402,11 +402,7 @@ bool collision_detection::doBoundingSpheresIntersect(const PosedBodySphereDecomp
   double p2_radius = p2->getBoundingSphereRadius();
 
   double dist = (p1_sphere_center - p2_sphere_center).squaredNorm();
-  if (dist < (p1_radius + p2_radius))
-  {
-    return true;
-  }
-  return false;
+  return dist < (p1_radius + p2_radius);
 }
 
 void collision_detection::getCollisionSphereMarkers(

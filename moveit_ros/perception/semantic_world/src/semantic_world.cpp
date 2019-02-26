@@ -446,10 +446,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   double result = cv::pointPolygonTest(contours[0], point2f, true);
   ROS_DEBUG("table distance: %f", result);
 
-  if ((int)result >= (int)(min_distance_from_edge * scale_factor))
-    return true;
-
-  return false;
+  return (int)result >= (int)(min_distance_from_edge * scale_factor);
 }
 
 std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose& pose, double min_distance_from_edge,

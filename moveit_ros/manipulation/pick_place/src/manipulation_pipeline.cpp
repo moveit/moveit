@@ -173,7 +173,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
         {
           bool res = stages_[i]->evaluate(g);
           g->processing_stage_ = i + 1;
-          if (res == false)
+          if (!res)
           {
             boost::mutex::scoped_lock slock(result_lock_);
             failed_.push_back(g);
