@@ -48,8 +48,7 @@ BenchmarkOptions::BenchmarkOptions(const std::string& ros_namespace)
 }
 
 BenchmarkOptions::~BenchmarkOptions()
-{
-}
+= default;
 
 void BenchmarkOptions::setNamespace(const std::string& ros_namespace)
 {

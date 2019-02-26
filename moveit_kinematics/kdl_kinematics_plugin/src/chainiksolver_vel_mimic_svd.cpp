@@ -71,8 +71,7 @@ void ChainIkSolverVelMimicSVD::updateInternalDataStructures()
 }
 
 ChainIkSolverVelMimicSVD::~ChainIkSolverVelMimicSVD()
-{
-}
+= default;
 
 bool ChainIkSolverVelMimicSVD::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced)
 {

@@ -98,8 +98,7 @@ CollisionPluginLoader::CollisionPluginLoader()
 }
 
 CollisionPluginLoader::~CollisionPluginLoader()
-{
-}
+= default;
 
 bool CollisionPluginLoader::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
                                      bool exclusive)

@@ -19,8 +19,7 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::s
 }
 
 CHOMPPlanningContext::~CHOMPPlanningContext()
-{
-}
+= default;
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {

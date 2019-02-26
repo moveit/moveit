@@ -187,8 +187,7 @@ KinematicsBase::KinematicsBase()
 }
 
 KinematicsBase::~KinematicsBase()
-{
-}
+= default;
 
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                    const std::vector<double>& ik_seed_state,

@@ -71,8 +71,7 @@ LastPointController::LastPointController(const std::string& name, const std::vec
 }
 
 LastPointController::~LastPointController()
-{
-}
+= default;
 
 bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
@@ -157,8 +156,7 @@ ViaPointController::ViaPointController(const std::string& name, const std::vecto
 }
 
 ViaPointController::~ViaPointController()
-{
-}
+= default;
 
 void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
@@ -200,8 +198,7 @@ InterpolatingController::InterpolatingController(const std::string& name, const 
 }
 
 InterpolatingController::~InterpolatingController()
-{
-}
+= default;
 
 namespace
 {
