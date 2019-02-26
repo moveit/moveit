@@ -226,7 +226,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     {
       emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
       emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
-      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
+      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment);
     }
     emitter << YAML::EndMap;
 
@@ -1707,7 +1707,7 @@ std::string MoveItConfigData::appendPaths(const std::string& path1, const std::s
 {
   fs::path result = path1;
   result /= path2;
-  return result.make_preferred().native().c_str();
+  return result.make_preferred().native();
 }
 
 srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)

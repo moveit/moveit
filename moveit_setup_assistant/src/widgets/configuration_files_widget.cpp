@@ -184,7 +184,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   fs::path template_package_path = config_data_->setup_assistant_path_;
   template_package_path /= "templates";
   template_package_path /= "moveit_config_pkg_template";
-  config_data_->template_package_path_ = template_package_path.make_preferred().native().c_str();
+  config_data_->template_package_path_ = template_package_path.make_preferred().native();
 
   if (!fs::is_directory(config_data_->template_package_path_))
   {
