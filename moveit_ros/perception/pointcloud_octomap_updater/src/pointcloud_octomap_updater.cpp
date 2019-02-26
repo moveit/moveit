@@ -155,7 +155,7 @@ void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
 bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
-  if (it == transform_cache_.end())
+  if (it == transform_cache_.end())  // NOLINT(readability-simplify-boolean-expr)
   {
     return false;
   }
