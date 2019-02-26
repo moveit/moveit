@@ -202,7 +202,7 @@ void CollisionMatrixModel::setFilterRegExp(const QString& filter)
   endResetModel();
 }
 
-QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation, int role) const
+QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
 {
   if (role == Qt::DisplayRole)
     return q_names[visual_to_index[section]];

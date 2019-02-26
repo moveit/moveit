@@ -311,7 +311,7 @@ void MotionPlanningDisplay::setName(const QString& name)
   trajectory_visual_->setName(name);
 }
 
-void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent, const std::string&)
+void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/, const std::string& /*unused*/)
 {
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
 }
@@ -895,7 +895,7 @@ void MotionPlanningDisplay::changedAttachedBodyColor()
   trajectory_visual_->setDefaultAttachedObjectColor(color);
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::InteractionHandler*,
+void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::InteractionHandler* /*unused*/,
                                                         bool error_state_changed)
 {
   if (!planning_scene_monitor_)
@@ -907,7 +907,7 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Inter
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler*, bool error_state_changed)
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* /*unused*/, bool error_state_changed)
 {
   if (!planning_scene_monitor_)
     return;
