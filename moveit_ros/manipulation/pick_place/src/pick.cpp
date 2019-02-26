@@ -206,7 +206,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene,
     else
     {
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      if (goal.possible_grasps.size() > 0)
+      if (!goal.possible_grasps.empty())
       {
         ROS_WARN_NAMED("manipulation", "All supplied grasps failed. Retrying last grasp in verbose mode.");
         // everything failed. we now start the pipeline again in verbose mode for one grasp

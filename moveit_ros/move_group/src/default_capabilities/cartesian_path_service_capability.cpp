@@ -122,7 +122,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
       }
       else
       {
-        if (waypoints.size() > 0)
+        if (!waypoints.empty())
         {
           robot_state::GroupStateValidityCallbackFn constraint_fn;
           std::unique_ptr<planning_scene_monitor::LockedPlanningSceneRO> ls;

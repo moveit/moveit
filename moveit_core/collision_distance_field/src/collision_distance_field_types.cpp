@@ -249,7 +249,7 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
     }
   }
 
-  return colls.size() > 0;
+  return !colls.empty();
 }
 
 ///

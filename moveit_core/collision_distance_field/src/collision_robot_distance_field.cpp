@@ -757,7 +757,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       continue;
     }
 
-    if (link_state->getShapes().size() > 0)
+    if (!link_state->getShapes().empty())
     {
       dfce->link_has_geometry_.push_back(true);
       dfce->link_body_indices_.push_back(link_body_decomposition_index_map_.find(link_name)->second);

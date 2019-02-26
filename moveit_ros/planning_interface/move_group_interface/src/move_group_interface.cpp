@@ -693,7 +693,7 @@ public:
 
     std::map<std::string, moveit_msgs::CollisionObject> objects = psi.getObjects(std::vector<std::string>(1, object));
 
-    if (objects.size() < 1)
+    if (objects.empty())
     {
       ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
                                                          << object << "', but the object could not be found");

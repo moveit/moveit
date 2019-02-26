@@ -568,7 +568,7 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
   if (enable)
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-    if (int_marker_move_subscribers_.size() == 0)
+    if (int_marker_move_subscribers_.empty())
     {
       ros::NodeHandle nh;
       for (size_t i = 0; i < int_marker_move_topics_.size(); i++)
