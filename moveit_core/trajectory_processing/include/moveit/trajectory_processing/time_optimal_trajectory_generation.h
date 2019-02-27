@@ -51,11 +51,9 @@ public:
   PathSegment(double length = 0.0) : length_(length)
   {
   }
-
-  virtual ~PathSegment()
+  virtual ~PathSegment()  // is required for destructing derived classes
   {
   }
-
   double getLength() const
   {
     return length_;
@@ -77,19 +75,18 @@ class Path
 public:
   Path(const std::list<Eigen::VectorXd>& path, double max_deviation = 0.0);
   Path(const Path& path);
-  ~Path();
   double getLength() const;
   Eigen::VectorXd getConfig(double s) const;
   Eigen::VectorXd getTangent(double s) const;
   Eigen::VectorXd getCurvature(double s) const;
   double getNextSwitchingPoint(double s, bool& discontinuity) const;
-  std::list<std::pair<double, bool> > getSwitchingPoints() const;
+  std::list<std::pair<double, bool>> getSwitchingPoints() const;
 
 private:
   PathSegment* getPathSegment(double& s) const;
   double length_;
-  std::list<std::pair<double, bool> > switching_points_;
-  std::list<PathSegment*> path_segments_;
+  std::list<std::pair<double, bool>> switching_points_;
+  std::list<std::unique_ptr<PathSegment>> path_segments_;
 };
 
 class Trajectory
@@ -133,8 +130,8 @@ private:
 
   bool getNextSwitchingPoint(double path_pos, TrajectoryStep& next_switching_point, double& before_acceleration,
                              double& after_acceleration);
-  bool getNextAccelerationSwitchingPoint(double path_pos, TrajectoryStep& next_switching_point, double& before_acceleration,
-                                         double& after_acceleration);
+  bool getNextAccelerationSwitchingPoint(double path_pos, TrajectoryStep& next_switching_point,
+                                         double& before_acceleration, double& after_acceleration);
   bool getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& next_switching_point, double& before_acceleration,
                                      double& after_acceleration);
   bool integrateForward(std::list<TrajectoryStep>& trajectory, double acceleration);
@@ -157,22 +154,25 @@ private:
   std::list<TrajectoryStep> trajectory_;
   std::list<TrajectoryStep> end_trajectory_;  // non-empty only if the trajectory generation failed.
 
-  static constexpr double EPS = 0.000001;
   const double time_step_;
 
   mutable double cached_time_;
   mutable std::list<TrajectoryStep>::const_iterator cached_trajectory_segment_;
 };
 
-namespace time_optimal_trajectory_generation
+class TimeOptimalTrajectoryGeneration
 {
+public:
+  TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1);
+  ~TimeOptimalTrajectoryGeneration();
 
-bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                       const double max_velocity_scaling_factor,
-                       const double max_acceleration_scaling_factor);
+  bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
+                         const double max_acceleration_scaling_factor = 1.0) const;
 
-}  // namespace time_optimal_trajectory_generation
-
+private:
+  const double path_tolerance_;
+  const double resample_dt_;
+};
 }  // namespace trajectory_processing
 
 #endif  // MOVEIT_TRAJECTORY_PROCESSING_TIME_OPTIMAL_TRAJECTORY_GENERATION_H

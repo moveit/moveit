@@ -45,14 +45,17 @@
 #include <ros/console.h>
 #include <vector>
 
+#include <iostream>
+
 namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
+constexpr double EPS = 0.000001;
 class LinearPathSegment : public PathSegment
 {
 public:
   LinearPathSegment(const Eigen::VectorXd& start, const Eigen::VectorXd& end)
-    : start(start), end(end), PathSegment((end - start).norm())
+    : PathSegment((end - start).norm()), end_(end), start_(start)
   {
   }
 
@@ -60,17 +63,17 @@ public:
   {
     s /= length_;
     s = std::max(0.0, std::min(1.0, s));
-    return (1.0 - s) * start + s * end;
+    return (1.0 - s) * start_ + s * end_;
   }
 
   Eigen::VectorXd getTangent(double /* s */) const
   {
-    return (end - start) / length_;
+    return (end_ - start_) / length_;
   }
 
   Eigen::VectorXd getCurvature(double /* s */) const
   {
-    return Eigen::VectorXd::Zero(start.size());
+    return Eigen::VectorXd::Zero(start_.size());
   }
 
   std::list<double> getSwitchingPoints() const
@@ -84,8 +87,8 @@ public:
   }
 
 private:
-  Eigen::VectorXd start;
-  Eigen::VectorXd end;
+  Eigen::VectorXd end_;
+  Eigen::VectorXd start_;
 };
 
 class CircularPathSegment : public PathSegment
@@ -107,6 +110,7 @@ public:
     const Eigen::VectorXd start_direction = (intersection - start).normalized();
     const Eigen::VectorXd end_direction = (end - intersection).normalized();
 
+    // check if directions are divergent
     if ((start_direction - end_direction).norm() < 0.000001)
     {
       length_ = 0.0;
@@ -117,13 +121,13 @@ public:
       return;
     }
 
+    // directions must be different at this point so angle is always non-zero
+    const double angle = acos(start_direction.dot(end_direction));
     const double start_distance = (start - intersection).norm();
     const double end_distance = (end - intersection).norm();
 
-    double distance = std::min((start - intersection).norm(), (end - intersection).norm());
-    const double angle = acos(start_direction.dot(end_direction));
-
     // enforce max deviation
+    double distance = std::min(start_distance, end_distance);
     distance = std::min(distance, max_deviation * sin(0.5 * angle) / (1.0 - cos(0.5 * angle)));
 
     radius = distance / tan(0.5 * angle);
@@ -156,7 +160,7 @@ public:
   {
     std::list<double> switching_points;
     const double dim = x.size();
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < dim; ++i)
     {
       double switching_angle = atan2(y[i], x[i]);
       if (switching_angle < 0.0)
@@ -189,45 +193,47 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 {
   if (path.size() < 2)
     return;
-  std::list<Eigen::VectorXd>::const_iterator config1 = path.begin();
-  std::list<Eigen::VectorXd>::const_iterator config2 = config1;
-  config2++;
-  std::list<Eigen::VectorXd>::const_iterator config3;
-  Eigen::VectorXd start_config = *config1;
-  while (config2 != path.end())
+  std::list<Eigen::VectorXd>::const_iterator path_iterator1 = path.begin();
+  std::list<Eigen::VectorXd>::const_iterator path_iterator2 = path_iterator1;
+  ++path_iterator2;
+  std::list<Eigen::VectorXd>::const_iterator path_iterator3;
+  Eigen::VectorXd start_config = *path_iterator1;
+  while (path_iterator2 != path.end())
   {
-    config3 = config2;
-    config3++;
-    if (max_deviation > 0.0 && config3 != path.end())
+    path_iterator3 = path_iterator2;
+    ++path_iterator3;
+    if (max_deviation > 0.0 && path_iterator3 != path.end())
     {
       CircularPathSegment* blend_segment =
-          new CircularPathSegment(0.5 * (*config1 + *config2), *config2, 0.5 * (*config2 + *config3), max_deviation);
+          new CircularPathSegment(0.5 * (*path_iterator1 + *path_iterator2), *path_iterator2,
+                                  0.5 * (*path_iterator2 + *path_iterator3), max_deviation);
       Eigen::VectorXd end_config = blend_segment->getConfig(0.0);
       if ((end_config - start_config).norm() > 0.000001)
       {
-        path_segments_.push_back(new LinearPathSegment(start_config, end_config));
+        path_segments_.push_back(std::make_unique<LinearPathSegment>(start_config, end_config));
       }
-      path_segments_.push_back(blend_segment);
+      path_segments_.emplace_back(blend_segment);
 
       start_config = blend_segment->getConfig(blend_segment->getLength());
     }
     else
     {
-      path_segments_.push_back(new LinearPathSegment(start_config, *config2));
-      start_config = *config2;
+      path_segments_.push_back(std::make_unique<LinearPathSegment>(start_config, *path_iterator2));
+      start_config = *path_iterator2;
     }
-    config1 = config2;
-    config2++;
+    path_iterator1 = path_iterator2;
+    ++path_iterator2;
   }
 
   // Create list of switching point candidates, calculate total path length and
   // absolute positions of path segments
-  for (std::list<PathSegment*>::iterator segment = path_segments_.begin(); segment != path_segments_.end(); segment++)
+  for (std::list<std::unique_ptr<PathSegment>>::iterator segment = path_segments_.begin();
+       segment != path_segments_.end(); ++segment)
   {
     (*segment)->position_ = length_;
     std::list<double> local_switching_points = (*segment)->getSwitchingPoints();
-    for (std::list<double>::const_iterator point = local_switching_points.begin(); point != local_switching_points.end();
-         point++)
+    for (std::list<double>::const_iterator point = local_switching_points.begin();
+         point != local_switching_points.end(); ++point)
     {
       switching_points_.push_back(std::make_pair(length_ + *point, false));
     }
@@ -241,17 +247,10 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 
 Path::Path(const Path& path) : length_(path.length_), switching_points_(path.switching_points_)
 {
-  for (std::list<PathSegment*>::const_iterator it = path.path_segments_.begin(); it != path.path_segments_.end(); it++)
+  for (std::list<std::unique_ptr<PathSegment>>::const_iterator it = path.path_segments_.begin();
+       it != path.path_segments_.end(); ++it)
   {
-    path_segments_.push_back((*it)->clone());
-  }
-}
-
-Path::~Path()
-{
-  for (std::list<PathSegment*>::iterator it = path_segments_.begin(); it != path_segments_.end(); it++)
-  {
-    delete *it;
+    path_segments_.emplace_back((*it)->clone());
   }
 }
 
@@ -262,16 +261,16 @@ double Path::getLength() const
 
 PathSegment* Path::getPathSegment(double& s) const
 {
-  std::list<PathSegment*>::const_iterator it = path_segments_.begin();
-  std::list<PathSegment*>::const_iterator next = it;
-  next++;
+  std::list<std::unique_ptr<PathSegment>>::const_iterator it = path_segments_.begin();
+  std::list<std::unique_ptr<PathSegment>>::const_iterator next = it;
+  ++next;
   while (next != path_segments_.end() && s >= (*next)->position_)
   {
     it = next;
-    next++;
+    ++next;
   }
   s -= (*it)->position_;
-  return *it;
+  return (*it).get();
 }
 
 Eigen::VectorXd Path::getConfig(double s) const
@@ -294,24 +293,21 @@ Eigen::VectorXd Path::getCurvature(double s) const
 
 double Path::getNextSwitchingPoint(double s, bool& discontinuity) const
 {
-  std::list<std::pair<double, bool> >::const_iterator it = switching_points_.begin();
+  std::list<std::pair<double, bool>>::const_iterator it = switching_points_.begin();
   while (it != switching_points_.end() && it->first <= s)
   {
-    it++;
+    ++it;
   }
   if (it == switching_points_.end())
   {
     discontinuity = true;
     return length_;
   }
-  else
-  {
-    discontinuity = it->second;
-    return it->first;
-  }
+  discontinuity = it->second;
+  return it->first;
 }
 
-std::list<std::pair<double, bool> > Path::getSwitchingPoints() const
+std::list<std::pair<double, bool>> Path::getSwitchingPoints() const
 {
   return switching_points_;
 }
@@ -356,12 +352,13 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
     std::list<TrajectoryStep>::iterator previous = trajectory_.begin();
     std::list<TrajectoryStep>::iterator it = previous;
     it->time_ = 0.0;
-    it++;
+    ++it;
     while (it != trajectory_.end())
     {
-      it->time_ = previous->time_ + (it->path_pos_ - previous->path_pos_) / ((it->path_vel_ + previous->path_vel_) / 2.0);
+      it->time_ =
+          previous->time_ + (it->path_pos_ - previous->path_pos_) / ((it->path_vel_ + previous->path_vel_) / 2.0);
       previous = it;
-      it++;
+      ++it;
     }
   }
 }
@@ -382,7 +379,6 @@ bool Trajectory::getNextSwitchingPoint(double path_pos, TrajectoryStep& next_swi
     acceleration_reached_end =
         getNextAccelerationSwitchingPoint(acceleration_switching_point.path_pos_, acceleration_switching_point,
                                           acceleration_before_acceleration, acceleration_after_acceleration);
-    double test = getVelocityMaxPathVelocity(acceleration_switching_point.path_pos_);
   } while (!acceleration_reached_end &&
            acceleration_switching_point.path_vel_ > getVelocityMaxPathVelocity(acceleration_switching_point.path_pos_));
 
@@ -392,10 +388,11 @@ bool Trajectory::getNextSwitchingPoint(double path_pos, TrajectoryStep& next_swi
   do
   {
     velocity_reached_end = getNextVelocitySwitchingPoint(velocity_switching_point.path_pos_, velocity_switching_point,
-                                                       velocity_before_acceleration, velocity_after_acceleration);
-  } while (!velocity_reached_end && velocity_switching_point.path_pos_ <= acceleration_switching_point.path_pos_ &&
-           (velocity_switching_point.path_vel_ > getAccelerationMaxPathVelocity(velocity_switching_point.path_pos_ - EPS) ||
-            velocity_switching_point.path_vel_ > getAccelerationMaxPathVelocity(velocity_switching_point.path_pos_ + EPS)));
+                                                         velocity_before_acceleration, velocity_after_acceleration);
+  } while (
+      !velocity_reached_end && velocity_switching_point.path_pos_ <= acceleration_switching_point.path_pos_ &&
+      (velocity_switching_point.path_vel_ > getAccelerationMaxPathVelocity(velocity_switching_point.path_pos_ - EPS) ||
+       velocity_switching_point.path_vel_ > getAccelerationMaxPathVelocity(velocity_switching_point.path_pos_ + EPS)));
 
   if (acceleration_reached_end && velocity_reached_end)
   {
@@ -524,27 +521,28 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
   double path_pos = trajectory.back().path_pos_;
   double path_vel = trajectory.back().path_vel_;
 
-  std::list<std::pair<double, bool> > switchingPoints = path_.getSwitchingPoints();
-  std::list<std::pair<double, bool> >::iterator nextDiscontinuity = switchingPoints.begin();
+  std::list<std::pair<double, bool>> switching_points = path_.getSwitchingPoints();
+  std::list<std::pair<double, bool>>::iterator next_discontinuity = switching_points.begin();
 
   while (true)
   {
-    while ((nextDiscontinuity != switchingPoints.end()) &&
-           (nextDiscontinuity->first <= path_pos || !nextDiscontinuity->second))
+    while ((next_discontinuity != switching_points.end()) &&
+           (next_discontinuity->first <= path_pos || !next_discontinuity->second))
     {
-      nextDiscontinuity++;
+      ++next_discontinuity;
     }
 
-    double oldPathPos = path_pos;
-    double oldPathVel = path_vel;
+    double old_path_pos = path_pos;
+    double old_path_vel = path_vel;
 
     path_vel += time_step_ * acceleration;
-    path_pos += time_step_ * 0.5 * (oldPathVel + path_vel);
+    path_pos += time_step_ * 0.5 * (old_path_vel + path_vel);
 
-    if (nextDiscontinuity != switchingPoints.end() && path_pos > nextDiscontinuity->first)
+    if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
     {
-      path_vel = oldPathVel + (nextDiscontinuity->first - oldPathPos) * (path_vel - oldPathVel) / (path_pos - oldPathPos);
-      path_pos = nextDiscontinuity->first;
+      path_vel = old_path_vel +
+                 (next_discontinuity->first - old_path_pos) * (path_vel - old_path_vel) / (path_pos - old_path_pos);
+      path_pos = next_discontinuity->first;
     }
 
     if (path_pos > path_.getLength())
@@ -560,8 +558,8 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
     }
 
     if (path_vel > getVelocityMaxPathVelocity(path_pos) &&
-        getMinMaxPhaseSlope(oldPathPos, getVelocityMaxPathVelocity(oldPathPos), false) <=
-            getVelocityMaxPathVelocityDeriv(oldPathPos))
+        getMinMaxPhaseSlope(old_path_pos, getVelocityMaxPathVelocity(old_path_pos), false) <=
+            getVelocityMaxPathVelocityDeriv(old_path_pos))
     {
       path_vel = getVelocityMaxPathVelocity(path_pos);
     }
@@ -575,38 +573,38 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
       TrajectoryStep overshoot = trajectory.back();
       trajectory.pop_back();
       double before = trajectory.back().path_pos_;
-      double beforePathVel = trajectory.back().path_vel_;
+      double before_path_vel = trajectory.back().path_vel_;
       double after = overshoot.path_pos_;
-      double afterPathVel = overshoot.path_vel_;
+      double after_path_vel = overshoot.path_vel_;
       while (after - before > EPS)
       {
         const double midpoint = 0.5 * (before + after);
-        double midpointPathVel = 0.5 * (beforePathVel + afterPathVel);
+        double midpoint_path_vel = 0.5 * (before_path_vel + after_path_vel);
 
-        if (midpointPathVel > getVelocityMaxPathVelocity(midpoint) &&
+        if (midpoint_path_vel > getVelocityMaxPathVelocity(midpoint) &&
             getMinMaxPhaseSlope(before, getVelocityMaxPathVelocity(before), false) <=
                 getVelocityMaxPathVelocityDeriv(before))
         {
-          midpointPathVel = getVelocityMaxPathVelocity(midpoint);
+          midpoint_path_vel = getVelocityMaxPathVelocity(midpoint);
         }
 
-        if (midpointPathVel > getAccelerationMaxPathVelocity(midpoint) ||
-            midpointPathVel > getVelocityMaxPathVelocity(midpoint))
+        if (midpoint_path_vel > getAccelerationMaxPathVelocity(midpoint) ||
+            midpoint_path_vel > getVelocityMaxPathVelocity(midpoint))
         {
           after = midpoint;
-          afterPathVel = midpointPathVel;
+          after_path_vel = midpoint_path_vel;
         }
         else
         {
           before = midpoint;
-          beforePathVel = midpointPathVel;
+          before_path_vel = midpoint_path_vel;
         }
       }
-      trajectory.push_back(TrajectoryStep(before, beforePathVel));
+      trajectory.push_back(TrajectoryStep(before, before_path_vel));
 
       if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
       {
-        if (after > nextDiscontinuity->first)
+        if (after > next_discontinuity->first)
         {
           return false;
         }
@@ -632,9 +630,9 @@ void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, 
                                    double acceleration)
 {
   std::list<TrajectoryStep>::iterator start2 = start_trajectory.end();
-  start2--;
+  --start2;
   std::list<TrajectoryStep>::iterator start1 = start2;
-  start1--;
+  --start1;
   std::list<TrajectoryStep> trajectory;
   double slope;
   assert(start1->path_pos_ <= path_pos);
@@ -659,8 +657,8 @@ void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, 
     }
     else
     {
-      start1--;
-      start2--;
+      --start1;
+      --start2;
     }
 
     // Check for intersection between current start trajectory and backward
@@ -671,7 +669,8 @@ void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, 
     if (std::max(start1->path_pos_, path_pos) - EPS <= intersection_path_pos &&
         intersection_path_pos <= EPS + std::min(start2->path_pos_, trajectory.front().path_pos_))
     {
-      const double intersection_path_vel = start1->path_vel_ + start_slope * (intersection_path_pos - start1->path_pos_);
+      const double intersection_path_vel =
+          start1->path_vel_ + start_slope * (intersection_path_pos - start1->path_pos_);
       start_trajectory.erase(start2, start_trajectory.end());
       start_trajectory.push_back(TrajectoryStep(intersection_path_pos, intersection_path_vel));
       start_trajectory.splice(start_trajectory.end(), trajectory);
@@ -690,13 +689,13 @@ double Trajectory::getMinMaxPathAcceleration(double path_pos, double path_vel, b
   Eigen::VectorXd config_deriv2 = path_.getCurvature(path_pos);
   double factor = max ? 1.0 : -1.0;
   double max_path_acceleration = std::numeric_limits<double>::max();
-  for (unsigned int i = 0; i < joint_num_; i++)
+  for (unsigned int i = 0; i < joint_num_; ++i)
   {
     if (config_deriv[i] != 0.0)
     {
       max_path_acceleration =
           std::min(max_path_acceleration, max_acceleration_[i] / std::abs(config_deriv[i]) -
-                                            factor * config_deriv2[i] * path_vel * path_vel / config_deriv[i]);
+                                              factor * config_deriv2[i] * path_vel * path_vel / config_deriv[i]);
     }
   }
   return factor * max_path_acceleration;
@@ -712,11 +711,11 @@ double Trajectory::getAccelerationMaxPathVelocity(double path_pos) const
   double max_path_velocity = std::numeric_limits<double>::infinity();
   const Eigen::VectorXd config_deriv = path_.getTangent(path_pos);
   const Eigen::VectorXd config_deriv2 = path_.getCurvature(path_pos);
-  for (unsigned int i = 0; i < joint_num_; i++)
+  for (unsigned int i = 0; i < joint_num_; ++i)
   {
     if (config_deriv[i] != 0.0)
     {
-      for (unsigned int j = i + 1; j < joint_num_; j++)
+      for (unsigned int j = i + 1; j < joint_num_; ++j)
       {
         if (config_deriv[j] != 0.0)
         {
@@ -724,8 +723,8 @@ double Trajectory::getAccelerationMaxPathVelocity(double path_pos) const
           if (A_ij != 0.0)
           {
             max_path_velocity = std::min(max_path_velocity, sqrt((max_acceleration_[i] / std::abs(config_deriv[i]) +
-                                                              max_acceleration_[j] / std::abs(config_deriv[j])) /
-                                                             std::abs(A_ij)));
+                                                                  max_acceleration_[j] / std::abs(config_deriv[j])) /
+                                                                 std::abs(A_ij)));
           }
         }
       }
@@ -742,7 +741,7 @@ double Trajectory::getVelocityMaxPathVelocity(double path_pos) const
 {
   const Eigen::VectorXd tangent = path_.getTangent(path_pos);
   double max_path_velocity = std::numeric_limits<double>::max();
-  for (unsigned int i = 0; i < joint_num_; i++)
+  for (unsigned int i = 0; i < joint_num_; ++i)
   {
     max_path_velocity = std::min(max_path_velocity, max_velocity_[i] / std::abs(tangent[i]));
   }
@@ -751,7 +750,8 @@ double Trajectory::getVelocityMaxPathVelocity(double path_pos) const
 
 double Trajectory::getAccelerationMaxPathVelocityDeriv(double path_pos)
 {
-  return (getAccelerationMaxPathVelocity(path_pos + EPS) - getAccelerationMaxPathVelocity(path_pos - EPS)) / (2.0 * EPS);
+  return (getAccelerationMaxPathVelocity(path_pos + EPS) - getAccelerationMaxPathVelocity(path_pos - EPS)) /
+         (2.0 * EPS);
 }
 
 double Trajectory::getVelocityMaxPathVelocityDeriv(double path_pos)
@@ -759,7 +759,7 @@ double Trajectory::getVelocityMaxPathVelocityDeriv(double path_pos)
   const Eigen::VectorXd tangent = path_.getTangent(path_pos);
   double max_path_velocity = std::numeric_limits<double>::max();
   unsigned int active_constraint;
-  for (unsigned int i = 0; i < joint_num_; i++)
+  for (unsigned int i = 0; i < joint_num_; ++i)
   {
     const double this_max_path_velocity = max_velocity_[i] / std::abs(tangent[i]);
     if (this_max_path_velocity < max_path_velocity)
@@ -798,7 +798,7 @@ std::list<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectoryS
     }
     while (time >= cached_trajectory_segment_->time_)
     {
-      cached_trajectory_segment_++;
+      ++cached_trajectory_segment_;
     }
     cached_time_ = time;
     return cached_trajectory_segment_;
@@ -816,7 +816,8 @@ Eigen::VectorXd Trajectory::getPosition(double time) const
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
   time_step = time - previous->time_;
-  const double path_pos = previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
+  const double path_pos =
+      previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
 
   return path_.getConfig(path_pos);
 }
@@ -832,7 +833,8 @@ Eigen::VectorXd Trajectory::getVelocity(double time) const
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
   time_step = time - previous->time_;
-  const double path_pos = previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
+  const double path_pos =
+      previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
   const double path_vel = previous->path_vel_ + time_step * acceleration;
 
   return path_.getTangent(path_pos) * path_vel;
@@ -849,24 +851,29 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
       2.0 * (it->path_pos_ - previous->path_pos_ - time_step * previous->path_vel_) / (time_step * time_step);
 
   time_step = time - previous->time_;
-  const double path_pos = previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
+  const double path_pos =
+      previous->path_pos_ + time_step * previous->path_vel_ + 0.5 * time_step * time_step * acceleration;
   const double path_vel = previous->path_vel_ + time_step * acceleration;
-  Eigen::VectorXd path_acc = (path_.getTangent(path_pos) * path_vel - path_.getTangent(previous->path_pos_) * previous->path_vel_);
+  Eigen::VectorXd path_acc =
+      (path_.getTangent(path_pos) * path_vel - path_.getTangent(previous->path_pos_) * previous->path_vel_);
   if (time_step > 0.0)
     path_acc /= time_step;
   return path_acc;
 }
 
-namespace time_optimal_trajectory_generation
+TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double path_tolerance, const double resample_dt)
+  : path_tolerance_(path_tolerance), resample_dt_(resample_dt)
 {
+}
 
-bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                       const double max_velocity_scaling_factor,
-                       const double max_acceleration_scaling_factor)
+TimeOptimalTrajectoryGeneration::~TimeOptimalTrajectoryGeneration()
 {
-  double tolerance = 0.01;  // TODO
-  double resample = 0.01;  // TODO
+}
 
+bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                                                        const double max_velocity_scaling_factor,
+                                                        const double max_acceleration_scaling_factor) const
+{
   if (trajectory.empty())
     return true;
 
@@ -885,12 +892,13 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
   }
   else if (max_velocity_scaling_factor == 0.0)
   {
-    ROS_DEBUG_NAMED(LOGNAME, "A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+    ROS_DEBUG_NAMED(LOGNAME, "A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.",
+                    velocity_scaling_factor);
   }
   else
   {
-    ROS_WARN_NAMED(LOGNAME, "Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
-            velocity_scaling_factor);
+    ROS_WARN_NAMED(LOGNAME, "Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.",
+                   max_velocity_scaling_factor, velocity_scaling_factor);
   }
 
   double acceleration_scaling_factor = 1.0;
@@ -901,12 +909,12 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
   else if (max_acceleration_scaling_factor == 0.0)
   {
     ROS_DEBUG_NAMED(LOGNAME, "A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.",
-             acceleration_scaling_factor);
+                    acceleration_scaling_factor);
   }
   else
   {
     ROS_WARN_NAMED(LOGNAME, "Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
-            max_acceleration_scaling_factor, acceleration_scaling_factor);
+                   max_acceleration_scaling_factor, acceleration_scaling_factor);
   }
 
   // This lib does not actually work properly when angles wrap around, so we need to unwind the path first
@@ -922,7 +930,7 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
   // Get the limits (we do this at same time, unlike IterativeParabolicTimeParameterization)
   Eigen::VectorXd max_velocity(num_joints);
   Eigen::VectorXd max_acceleration(num_joints);
-  for (size_t j = 0; j < num_joints; j++)
+  for (size_t j = 0; j < num_joints; ++j)
   {
     const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
 
@@ -937,7 +945,8 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
     max_acceleration[j] = 1.0;
     if (bounds.acceleration_bounded_)
     {
-      max_acceleration[j] = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * acceleration_scaling_factor;
+      max_acceleration[j] =
+          std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * acceleration_scaling_factor;
       max_acceleration[j] = std::max(0.01, max_acceleration[j]);
     }
   }
@@ -945,60 +954,67 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
   // Have to convert into Eigen data structs and remove repeated points
   //  (https://github.com/tobiaskunz/trajectories/issues/3)
   std::list<Eigen::VectorXd> points;
-  for (size_t p = 0; p < num_points; p++)
+  for (size_t p = 0; p < num_points; ++p)
   {
     robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
     Eigen::VectorXd new_point(num_joints);
-    bool diverse_point = (p == 0);  // First point is always diverse enough to include
+    bool diverse_point = (p == 0);
 
     for (size_t j = 0; j < num_joints; j++)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      if (p > 0)
-      {
-        if (std::abs(new_point[j] - points.back()[j]) > 0.001)
-          diverse_point = true;
-      }
+      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > 0.001)
+        diverse_point = true;
     }
 
     if (diverse_point)
       points.push_back(new_point);
   }
 
+  // Return trajectory with only the first waypoint if there are not multiple diverse points
+  if (points.size() == 1)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Trajectory is not being parameterized since it only contains a single distinct waypoint.");
+    robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
+    trajectory.clear();
+    trajectory.addSuffixWayPoint(waypoint, 0.0);
+    return true;
+  }
+
   // Now actually call the algorithm
-  Trajectory parameterized(Path(points, tolerance), max_velocity, max_acceleration, 0.001);
+  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, 0.001);
   if (!parameterized.isValid())
   {
     ROS_ERROR_NAMED(LOGNAME, "Unable to parameterize trajectory.");
     return false;
   }
 
-  // Compute how to resample
-  double dt = parameterized.getDuration() / std::ceil(parameterized.getDuration() / resample);
+  // Compute sample count
+  size_t sample_count = std::ceil(parameterized.getDuration() / resample_dt_);
 
   // Resample and fill in trajectory
   robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
   trajectory.clear();
-  for (double t = 0.0; t <= parameterized.getDuration(); t += dt)
+  double last_t = 0;
+  for (size_t sample = 0; sample <= sample_count; ++sample)
   {
+    // always sample the end of the trajectory as well
+    double t = std::min(parameterized.getDuration(), sample * resample_dt_);
     Eigen::VectorXd position = parameterized.getPosition(t);
     Eigen::VectorXd velocity = parameterized.getVelocity(t);
     Eigen::VectorXd acceleration = parameterized.getAcceleration(t);
 
-    for (size_t j = 0; j < num_joints; j++)
+    for (size_t j = 0; j < num_joints; ++j)
     {
       waypoint.setVariablePosition(idx[j], position[j]);
       waypoint.setVariableVelocity(idx[j], velocity[j]);
       waypoint.setVariableAcceleration(idx[j], acceleration[j]);
     }
 
-    trajectory.addSuffixWayPoint(waypoint, dt);
+    trajectory.addSuffixWayPoint(waypoint, t - last_t);
+    last_t = t;
   }
-  trajectory.setWayPointDurationFromPrevious(0, 0.0);
 
   return true;
 }
-
-}  // namespace time_optimal_trajectory_generation
-
 }  // namespace trajectory_processing
