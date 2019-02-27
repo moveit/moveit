@@ -43,8 +43,7 @@ TrajectoryPanel::TrajectoryPanel(QWidget* parent) : Panel(parent)
 {
 }
 
-TrajectoryPanel::~TrajectoryPanel()
-= default;
+TrajectoryPanel::~TrajectoryPanel() = default;
 
 void TrajectoryPanel::onInitialize()
 {

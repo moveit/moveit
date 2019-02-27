@@ -946,7 +946,8 @@ void ChompOptimizer::performForwardKinematics()
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
 
-    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr, gsr_);
+    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr,
+                                     gsr_);
     total_dur += (ros::WallTime::now() - grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;

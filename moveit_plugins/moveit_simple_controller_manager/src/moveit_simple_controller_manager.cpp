@@ -158,8 +158,7 @@ public:
     }
   }
 
-  ~MoveItSimpleControllerManager() override
-  = default;
+  ~MoveItSimpleControllerManager() override = default;
 
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml

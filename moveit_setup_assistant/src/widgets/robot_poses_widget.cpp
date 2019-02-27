@@ -909,8 +909,7 @@ SliderWidget::SliderWidget(QWidget* parent, const robot_model::JointModel* joint
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
-SliderWidget::~SliderWidget()
-= default;
+SliderWidget::~SliderWidget() = default;
 
 // ******************************************************************************************
 // Called when the joint value slider is changed

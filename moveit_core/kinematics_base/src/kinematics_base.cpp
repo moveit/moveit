@@ -186,8 +186,7 @@ KinematicsBase::KinematicsBase()
   supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
 }
 
-KinematicsBase::~KinematicsBase()
-= default;
+KinematicsBase::~KinematicsBase() = default;
 
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                    const std::vector<double>& ik_seed_state,

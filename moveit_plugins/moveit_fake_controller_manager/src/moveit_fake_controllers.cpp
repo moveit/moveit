@@ -70,8 +70,7 @@ LastPointController::LastPointController(const std::string& name, const std::vec
 {
 }
 
-LastPointController::~LastPointController()
-= default;
+LastPointController::~LastPointController() = default;
 
 bool LastPointController::sendTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
@@ -155,8 +154,7 @@ ViaPointController::ViaPointController(const std::string& name, const std::vecto
 {
 }
 
-ViaPointController::~ViaPointController()
-= default;
+ViaPointController::~ViaPointController() = default;
 
 void ViaPointController::execTrajectory(const moveit_msgs::RobotTrajectory& t)
 {
@@ -197,8 +195,7 @@ InterpolatingController::InterpolatingController(const std::string& name, const 
     rate_ = ros::WallRate(r);
 }
 
-InterpolatingController::~InterpolatingController()
-= default;
+InterpolatingController::~InterpolatingController() = default;
 
 namespace
 {

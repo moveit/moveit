@@ -199,7 +199,8 @@ void MotionPlanningDisplay::onInitialize()
   QColor qcolor = attached_body_color_property_->getColor();
   trajectory_visual_->setDefaultAttachedObjectColor(qcolor);
 
-  query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
+  query_robot_start_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -211,7 +212,8 @@ void MotionPlanningDisplay::onInitialize()
   color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
 
-  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
+  query_robot_goal_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
@@ -311,7 +313,8 @@ void MotionPlanningDisplay::setName(const QString& name)
   trajectory_visual_->setName(name);
 }
 
-void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/, const std::string& /*unused*/)
+void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/,
+                                                const std::string& /*unused*/)
 {
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
 }
@@ -907,7 +910,8 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Inter
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* /*unused*/, bool error_state_changed)
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* /*unused*/,
+                                                       bool error_state_changed)
 {
   if (!planning_scene_monitor_)
     return;

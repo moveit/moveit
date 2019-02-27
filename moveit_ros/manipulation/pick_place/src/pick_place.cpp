@@ -56,8 +56,7 @@ PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr& pick_place, const 
   pipeline_.setEmptyQueueCallback(boost::bind(&PickPlacePlanBase::emptyQueue, this));
 }
 
-PickPlacePlanBase::~PickPlacePlanBase()
-= default;
+PickPlacePlanBase::~PickPlacePlanBase() = default;
 
 void PickPlacePlanBase::foundSolution()
 {

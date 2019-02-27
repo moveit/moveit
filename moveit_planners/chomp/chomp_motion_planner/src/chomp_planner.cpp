@@ -43,8 +43,7 @@
 
 namespace chomp
 {
-ChompPlanner::ChompPlanner()
-= default;
+ChompPlanner::ChompPlanner() = default;
 
 bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                          const moveit_msgs::MotionPlanRequest& req, const chomp::ChompParameters& params,

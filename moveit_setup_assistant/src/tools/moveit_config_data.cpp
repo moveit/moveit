@@ -75,8 +75,7 @@ MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
 // ******************************************************************************************
 // Destructor
 // ******************************************************************************************
-MoveItConfigData::~MoveItConfigData()
-= default;
+MoveItConfigData::~MoveItConfigData() = default;
 
 // ******************************************************************************************
 // Load a robot model
@@ -414,7 +413,8 @@ std::string MoveItConfigData::getGazeboCompatibleURDF()
       if (static_cast<std::string>(doc_element->Value()).find("link") != std::string::npos)
       {
         // Before adding inertial elements, make sure there is none and the link has collision element
-        if (doc_element->FirstChildElement("inertial") == nullptr && doc_element->FirstChildElement("collision") != nullptr)
+        if (doc_element->FirstChildElement("inertial") == nullptr &&
+            doc_element->FirstChildElement("collision") != nullptr)
         {
           new_urdf_needed = true;
           TiXmlElement inertia_link("inertial");
