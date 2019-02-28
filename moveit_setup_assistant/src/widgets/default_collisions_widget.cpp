@@ -420,8 +420,8 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint& p)
     menu.addActions(header_actions_);
   menu.exec(global);
 
-  // clicked_headers_ = nullptr;
-  // clicked_section_ = -1;
+  clicked_headers_ = {};
+  clicked_section_ = -1;
 }
 
 void DefaultCollisionsWidget::hideSections()
