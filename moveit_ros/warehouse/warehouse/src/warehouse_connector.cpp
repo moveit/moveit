@@ -81,7 +81,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
       argv[2] = new char[1024];
       snprintf(argv[2], 1023, "%s", dirname.c_str());
 
-      argv[3] = NULL;
+      argv[3] = nullptr;
 
       int code = execv(dbexec_.c_str(), argv);
       delete[] argv[0];
@@ -99,4 +99,4 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
   }
   return true;
 }
-}
+}  // namespace moveit_warehouse

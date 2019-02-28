@@ -215,4 +215,4 @@ void MotionPlanningFrame::computeResetDbButtonClicked(const std::string& db)
   else if (db == "Planning Scenes")
     planning_scene_storage_->reset();
 }
-}
+}  // namespace moveit_rviz_plugin

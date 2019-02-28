@@ -75,7 +75,7 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
                                OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
                                const rviz::Color& color, float alpha)
 {
-  rviz::Shape* ogre_shape = NULL;
+  rviz::Shape* ogre_shape = nullptr;
   Eigen::Vector3d translation = p.translation();
   Ogre::Vector3 position(translation.x(), translation.y(), translation.z());
   Eigen::Quaterniond q(p.rotation());
@@ -186,4 +186,4 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
     scene_shapes_.emplace_back(ogre_shape);
   }
 }
-}
+}  // namespace moveit_rviz_plugin

@@ -71,7 +71,7 @@ public:
     return py_bindings_tools::listFromString(getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type));
   }
 
-  bp::dict getObjectPosesPython(bp::list object_ids)
+  bp::dict getObjectPosesPython(const bp::list& object_ids)
   {
     std::map<std::string, geometry_msgs::Pose> ops = getObjectPoses(py_bindings_tools::stringFromList(object_ids));
     std::map<std::string, std::string> ser_ops;
@@ -81,7 +81,7 @@ public:
     return py_bindings_tools::dictFromType(ser_ops);
   }
 
-  bp::dict getObjectsPython(bp::list object_ids)
+  bp::dict getObjectsPython(const bp::list& object_ids)
   {
     std::map<std::string, moveit_msgs::CollisionObject> objs =
         getObjects(py_bindings_tools::stringFromList(object_ids));
@@ -125,8 +125,8 @@ static void wrap_planning_scene_interface()
   PlanningSceneClass.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
   PlanningSceneClass.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 BOOST_PYTHON_MODULE(_moveit_planning_scene_interface)
 {

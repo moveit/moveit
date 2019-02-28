@@ -64,15 +64,15 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
   place_pose.pose = tf2::toMsg(end_effector_transform);
   return true;
 }
-}
+}  // namespace
 
 bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PlaceGoal& goal)
 {
   double timeout = goal.allowed_planning_time;
   ros::WallTime endtime = ros::WallTime::now() + ros::WallDuration(timeout);
   std::string attached_object_name = goal.attached_object_name;
-  const robot_model::JointModelGroup* jmg = NULL;
-  const robot_model::JointModelGroup* eef = NULL;
+  const robot_model::JointModelGroup* jmg = nullptr;
+  const robot_model::JointModelGroup* eef = nullptr;
 
   // if the group specified is actually an end-effector, we use it as such
   if (planning_scene->getRobotModel()->hasEndEffector(goal.group_name))
@@ -96,7 +96,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
   else
   {
     // if a group name was specified, try to use it
-    jmg = goal.group_name.empty() ? NULL : planning_scene->getRobotModel()->getJointModelGroup(goal.group_name);
+    jmg = goal.group_name.empty() ? nullptr : planning_scene->getRobotModel()->getJointModelGroup(goal.group_name);
     if (jmg)
     {
       // we also try to find the corresponding eef
@@ -346,7 +346,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
     else
     {
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-      if (goal.place_locations.size() > 0)
+      if (!goal.place_locations.empty())
       {
         ROS_WARN_NAMED("manipulation", "All supplied place locations failed. Retrying last location in verbose mode.");
         // everything failed. we now start the pipeline again in verbose mode for one grasp
@@ -391,4 +391,4 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr& p
 
   return p;
 }
-}
+}  // namespace pick_place

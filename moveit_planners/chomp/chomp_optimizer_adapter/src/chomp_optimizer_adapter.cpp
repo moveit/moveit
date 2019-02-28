@@ -223,6 +223,6 @@ private:
   ros::NodeHandle nh_;
   chomp::ChompParameters params_;
 };
-}
+}  // namespace chomp
 
 CLASS_LOADER_REGISTER_CLASS(chomp::OptimizerAdapter, planning_request_adapter::PlanningRequestAdapter);

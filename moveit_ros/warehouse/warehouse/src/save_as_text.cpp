@@ -141,7 +141,7 @@ int main(int argc, char** argv)
       {
         std::ofstream qfout((scene_names[i] + ".queries").c_str());
         qfout << scene_names[i] << std::endl;
-        if (robotStateNames.size())
+        if (!robotStateNames.empty())
         {
           qfout << "start" << std::endl;
           qfout << robotStateNames.size() << std::endl;
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
           }
         }
 
-        if (constraintNames.size())
+        if (!constraintNames.empty())
         {
           qfout << "goal" << std::endl;
           qfout << constraintNames.size() << std::endl;

@@ -288,7 +288,8 @@ bool ompl_interface::PoseModelStateSpace::computeStateK(ompl::base::State* state
     return computeStateFK(state);
   if (!state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
     return computeStateIK(state);
-  if (state->as<StateType>()->jointsComputed() && state->as<StateType>()->poseComputed())
+  if (state->as<StateType>()->jointsComputed() &&
+      state->as<StateType>()->poseComputed())  // NOLINT(readability-simplify-boolean-expr)
     return true;
   state->as<StateType>()->markInvalid();
   return false;

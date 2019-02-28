@@ -61,7 +61,7 @@ public:
     return true;
   }
 
-  bool waitForExecution(const ros::Duration&) override
+  bool waitForExecution(const ros::Duration& /*timeout*/) override
   {
     // wait for the current execution to finish
     return true;
@@ -80,9 +80,7 @@ public:
   {
   }
 
-  ~MoveItControllerManagerExample() override
-  {
-  }
+  ~MoveItControllerManagerExample() override = default;
 
   moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name) override
   {

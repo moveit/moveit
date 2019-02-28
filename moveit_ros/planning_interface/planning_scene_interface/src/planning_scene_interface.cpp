@@ -390,5 +390,5 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   impl_->removeCollisionObjects(object_ids);
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit

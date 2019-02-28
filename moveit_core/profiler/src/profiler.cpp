@@ -208,7 +208,7 @@ struct SortDoubleByValue
     return a.value_ > b.value_;
   }
 };
-}
+}  // namespace
 /// @endcond
 
 void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)

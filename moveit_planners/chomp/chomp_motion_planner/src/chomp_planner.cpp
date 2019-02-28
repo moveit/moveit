@@ -43,9 +43,7 @@
 
 namespace chomp
 {
-ChompPlanner::ChompPlanner()
-{
-}
+ChompPlanner::ChompPlanner() = default;
 
 bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                          const moveit_msgs::MotionPlanRequest& req, const chomp::ChompParameters& params,
@@ -114,7 +112,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     const moveit::core::RevoluteJointModel* revolute_joint =
         dynamic_cast<const moveit::core::RevoluteJointModel*>(model);
 
-    if (revolute_joint != NULL)
+    if (revolute_joint != nullptr)
     {
       if (revolute_joint->isContinuous())
       {
@@ -300,4 +298,4 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   return true;
 }
-}
+}  // namespace chomp

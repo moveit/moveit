@@ -102,12 +102,12 @@ public:
   // given set of classes
   void initialize(const std::vector<std::string>& plugin_classes);
 
-  void addPreRunEvent(PreRunEventFunction func);
-  void addPostRunEvent(PostRunEventFunction func);
-  void addPlannerStartEvent(PlannerStartEventFunction func);
-  void addPlannerCompletionEvent(PlannerCompletionEventFunction func);
-  void addQueryStartEvent(QueryStartEventFunction func);
-  void addQueryCompletionEvent(QueryCompletionEventFunction func);
+  void addPreRunEvent(const PreRunEventFunction& func);
+  void addPostRunEvent(const PostRunEventFunction& func);
+  void addPlannerStartEvent(const PlannerStartEventFunction& func);
+  void addPlannerCompletionEvent(const PlannerCompletionEventFunction& func);
+  void addQueryStartEvent(const QueryStartEventFunction& func);
+  void addQueryCompletionEvent(const QueryCompletionEventFunction& func);
 
   virtual void clear();
 
@@ -146,7 +146,7 @@ protected:
 
   virtual void writeOutput(const BenchmarkRequest& brequest, const std::string& start_time, double benchmark_duration);
 
-  void shiftConstraintsByOffset(moveit_msgs::Constraints& constraints, const std::vector<double> offset);
+  void shiftConstraintsByOffset(moveit_msgs::Constraints& constraints, const std::vector<double>& offset);
 
   /// Check that the desired planner plugins and algorithms exist for the given group
   bool plannerConfigurationsExist(const std::map<std::string, std::vector<std::string>>& planners,

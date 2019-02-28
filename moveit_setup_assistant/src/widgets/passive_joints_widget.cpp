@@ -89,7 +89,7 @@ void PassiveJointsWidget::focusGiven()
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
 
-  if (joints.size() == 0)
+  if (joints.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;
@@ -154,4 +154,4 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

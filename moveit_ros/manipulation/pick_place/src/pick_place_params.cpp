@@ -71,8 +71,8 @@ private:
 
   dynamic_reconfigure::Server<PickPlaceDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
-}
-}
+}  // namespace
+}  // namespace pick_place
 
 pick_place::PickPlaceParams::PickPlaceParams() : max_goal_count_(5), max_fail_(3), max_step_(0.02), jump_factor_(2.0)
 {

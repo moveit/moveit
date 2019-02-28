@@ -68,10 +68,7 @@ inline bool getParam(const std::string& param, T& val)
 
   // then in local namespace
   ros::NodeHandle nh;
-  if (nh.getParam(param, val))
-    return true;
-
-  return false;
+  return nh.getParam(param, val);
 }
 
 // As loading of parameters is quite slow, we share them across all tests

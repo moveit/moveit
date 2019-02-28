@@ -82,13 +82,13 @@ void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::Colo
 
 void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state)
 {
-  updateHelper(kinematic_state, default_attached_object_color_, NULL);
+  updateHelper(kinematic_state, default_attached_object_color_, nullptr);
 }
 
 void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
                                      const std_msgs::ColorRGBA& default_attached_object_color)
 {
-  updateHelper(kinematic_state, default_attached_object_color, NULL);
+  updateHelper(kinematic_state, default_attached_object_color, nullptr);
 }
 
 void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
@@ -160,4 +160,4 @@ void RobotStateVisualization::setAlpha(float alpha)
 {
   robot_.setAlpha(alpha);
 }
-}
+}  // namespace moveit_rviz_plugin

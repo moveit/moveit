@@ -901,7 +901,7 @@ void cleanCollisionGeometryCache()
     cache2.bumpUseCount(true);
   }
 }
-}
+}  // namespace collision_detection
 
 void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& robot_model)
 {

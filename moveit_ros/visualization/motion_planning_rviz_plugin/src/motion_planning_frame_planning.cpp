@@ -557,4 +557,4 @@ void MotionPlanningFrame::remoteUpdateCustomGoalStateCallback(const moveit_msgs:
     }
   }
 }
-}
+}  // namespace moveit_rviz_plugin

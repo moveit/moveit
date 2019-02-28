@@ -101,7 +101,5 @@ void ChompCost::scale(double scale)
   quad_cost_full_ *= scale;
 }
 
-ChompCost::~ChompCost()
-{
-}
-}
+ChompCost::~ChompCost() = default;
+}  // namespace chomp

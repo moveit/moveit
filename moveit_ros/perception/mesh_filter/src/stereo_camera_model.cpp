@@ -54,9 +54,7 @@ mesh_filter::StereoCameraModel::Parameters::Parameters(unsigned width, unsigned 
 {
 }
 
-mesh_filter::StereoCameraModel::Parameters::~Parameters()
-{
-}
+mesh_filter::StereoCameraModel::Parameters::~Parameters() = default;
 
 mesh_filter::SensorModel::Parameters* mesh_filter::StereoCameraModel::Parameters::clone() const
 {

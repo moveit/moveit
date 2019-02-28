@@ -163,7 +163,7 @@ void ControllerEditWidget::setSelected(const std::string& controller_name)
   controller_name_field_->setText(QString(controller_name.c_str()));
   moveit_setup_assistant::ROSControlConfig* searched_controller =
       config_data_->findROSControllerByName(controller_name);
-  if (searched_controller != NULL)
+  if (searched_controller != nullptr)
   {
     const std::string controller_type = searched_controller->type_;
     int type_index = controller_type_field_->findText(controller_type.c_str());
@@ -259,4 +259,4 @@ std::string ControllerEditWidget::getControllerType()
   return controller_type_field_->currentText().toStdString();
 }
 
-}  // namespace
+}  // namespace moveit_ros_control

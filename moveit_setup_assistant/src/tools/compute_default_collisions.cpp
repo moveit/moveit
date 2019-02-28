@@ -303,7 +303,7 @@ bool setLinkPair(const std::string& linkA, const std::string& linkB, const Disab
   LinkPairData* link_pair_ptr = &link_pairs[link_pair];
 
   // Check if link pair was already disabled. It also creates the entry if none existed
-  if (link_pairs[link_pair].disable_check == false)  // it was not previously disabled
+  if (!link_pairs[link_pair].disable_check)  // it was not previously disabled
   {
     isUnique = true;
     link_pair_ptr->reason = reason;  // only change the reason if the pair was previously enabled
@@ -675,4 +675,4 @@ DisabledReason disabledReasonFromString(const std::string& reason)
   return r;
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

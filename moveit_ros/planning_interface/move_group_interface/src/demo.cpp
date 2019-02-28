@@ -101,7 +101,7 @@ void demoPlace(moveit::planning_interface::MoveGroupInterface& group)
   group.place("bubu", loc);
 }
 
-void attachObject(void)
+void attachObject()
 {
 }
 

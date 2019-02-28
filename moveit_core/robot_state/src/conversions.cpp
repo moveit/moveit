@@ -357,7 +357,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
 
   return valid;
 }
-}
+}  // namespace
 
 // ********************************************
 

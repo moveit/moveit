@@ -251,7 +251,7 @@ void IKCache::saveCache() const
 
 void IKCache::verifyCache(kdl_kinematics_plugin::KDLKinematicsPlugin& fk) const
 {
-  std::vector<std::string> tip_names(fk.getTipFrames());
+  const std::vector<std::string>& tip_names(fk.getTipFrames());
   std::vector<geometry_msgs::Pose> poses(tip_names.size());
   double error, max_error = 0.;
 
@@ -335,4 +335,4 @@ std::string IKCacheMap::getKey(const std::vector<std::string>& fixed, const std:
   std::accumulate(active.begin(), active.end(), key);
   return key;
 }
-}
+}  // namespace cached_ik_kinematics_plugin

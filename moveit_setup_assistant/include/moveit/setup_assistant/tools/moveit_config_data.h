@@ -347,7 +347,7 @@ public:
    * \param planning_group name of group to use
    * \return string - value to insert into yaml file
    */
-  std::string decideProjectionJoints(std::string planning_group);
+  std::string decideProjectionJoints(const std::string& planning_group);
 
   /**
    * Input ompl_planning.yaml file for editing its values

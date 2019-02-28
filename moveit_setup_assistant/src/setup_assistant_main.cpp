@@ -94,7 +94,7 @@ int main(int argc, char** argv)
   setlocale(LC_NUMERIC, "C");
 
   // Load Qt Widget
-  moveit_setup_assistant::SetupAssistantWidget saw(NULL, vm);
+  moveit_setup_assistant::SetupAssistantWidget saw(nullptr, vm);
   saw.setMinimumWidth(980);
   saw.setMinimumHeight(550);
   //  saw.setWindowState( Qt::WindowMaximized );

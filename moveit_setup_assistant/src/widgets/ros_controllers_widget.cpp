@@ -291,7 +291,7 @@ void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ROSControlCo
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
 
-  if (joints.size() == 0)
+  if (joints.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;
@@ -352,7 +352,7 @@ void ROSControllersWidget::deleteController()
   {
     QTreeWidgetItem* item = controllers_tree_->currentItem();
     // Check that something was actually selected
-    if (item == NULL)
+    if (item == nullptr)
       return;
 
     // Get the user custom properties of the currently selected row
@@ -397,8 +397,8 @@ void ROSControllersWidget::addController()
   adding_new_controller_ = true;
 
   // Load the data
-  loadControllerScreen(NULL);  // NULL indicates this is a new controller, not an existing one
-  changeScreen(2);             // 1 is index of controller edit
+  loadControllerScreen(nullptr);  // NULL indicates this is a new controller, not an existing one
+  changeScreen(2);                // 1 is index of controller edit
 }
 
 // ******************************************************************************************
@@ -419,7 +419,7 @@ void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::ROSContr
   // Load the avail controllers. This function only runs once
   controller_edit_widget_->loadControllersTypesComboBox();
 
-  if (this_controller == NULL)  // this is a new screen
+  if (this_controller == nullptr)  // this is a new screen
   {
     current_edit_controller_.clear();  // provide a blank controller name
     controller_edit_widget_->setTitle("Create New Controller");
@@ -619,7 +619,7 @@ void ROSControllersWidget::saveJointsGroupsScreen()
     // Iterate through the joints
     for (const robot_model::JointModel* joint : joint_models)
     {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
+      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == robot_model::JointModel::FIXED)
         continue;
       searched_controller->joints_.push_back(joint->getName());
     }
@@ -655,7 +655,7 @@ bool ROSControllersWidget::saveControllerScreen()
   const std::string& controller_type = controller_edit_widget_->getControllerType();
 
   // Used for editing existing controllers
-  moveit_setup_assistant::ROSControlConfig* searched_controller = NULL;
+  moveit_setup_assistant::ROSControlConfig* searched_controller = nullptr;
 
   std::smatch invalid_name_match;
   std::regex invalid_reg_ex("[^a-z|^1-9|^_]");
@@ -693,7 +693,7 @@ bool ROSControllersWidget::saveControllerScreen()
   adding_new_controller_ = false;
 
   // Save the new controller name or create the new controller
-  if (searched_controller == NULL)  // create new
+  if (searched_controller == nullptr)  // create new
   {
     moveit_setup_assistant::ROSControlConfig new_controller;
     new_controller.name_ = controller_name;
@@ -730,7 +730,7 @@ void ROSControllersWidget::editSelected()
   QTreeWidgetItem* controller_item;
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   adding_new_controller_ = false;
@@ -790,7 +790,7 @@ void ROSControllersWidget::editController()
   QTreeWidgetItem* item = controllers_tree_->currentItem();
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   adding_new_controller_ = false;
@@ -844,4 +844,4 @@ void ROSControllersWidget::itemSelectionChanged()
   }
 }
 
-}  // namespace
+}  // namespace moveit_ros_control

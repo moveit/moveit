@@ -520,7 +520,7 @@ void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_mod
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
 }
-}
+}  // namespace
 
 bool IKConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
                                  unsigned int max_attempts)

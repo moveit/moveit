@@ -97,9 +97,7 @@ CollisionPluginLoader::CollisionPluginLoader()
   loader_.reset(new CollisionPluginLoaderImpl());
 }
 
-CollisionPluginLoader::~CollisionPluginLoader()
-{
-}
+CollisionPluginLoader::~CollisionPluginLoader() = default;
 
 bool CollisionPluginLoader::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
                                      bool exclusive)
