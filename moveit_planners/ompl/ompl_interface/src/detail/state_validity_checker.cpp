@@ -214,16 +214,15 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *robot_state);
-  if (!res.collision)  // NOLINT(readability-simplify-boolean-expr)
+  if (!res.collision)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
-    return true;
   }
   else
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
-    return false;
   }
+  return !res.collision;
 }
 
 bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State* state, double& dist,

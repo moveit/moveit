@@ -155,12 +155,11 @@ void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
 bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
-  if (it == transform_cache_.end())  // NOLINT(readability-simplify-boolean-expr)
+  if (it != transform_cache_.end())
   {
-    return false;
+    transform = it->second;
   }
-  transform = it->second;
-  return true;
+  return it != transform_cache_.end();
 }
 
 void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
