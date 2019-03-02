@@ -3,8 +3,7 @@
 
 namespace collision_detection
 {
-bool CollisionDetectorFCLPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene,
-                                                     bool exclusive) const
+bool CollisionDetectorFCLPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
 {
   scene->setActiveCollisionDetector(CollisionDetectorAllocatorFCL::create(), exclusive);
   return true;
