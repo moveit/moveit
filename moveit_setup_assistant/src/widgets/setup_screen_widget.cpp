@@ -45,3 +45,7 @@ bool SetupScreenWidget::focusLost()
 {
   return true;  // accept switching by default
 }
+
+void SetupScreenWidget::initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+{
+}

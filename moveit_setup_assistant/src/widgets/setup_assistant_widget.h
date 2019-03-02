@@ -39,6 +39,7 @@
 
 // Qt
 #include <QWidget>
+#include <QStackedLayout>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QString>
@@ -50,19 +51,10 @@
 #include <QSplitter>
 #include <QStringList>
 // Setup Asst
+#include "header_widget.h"
 #include "navigation_widget.h"
 #include "start_screen_widget.h"
-#include "default_collisions_widget.h"
-#include "planning_groups_widget.h"
-#include "robot_poses_widget.h"
-#include "end_effectors_widget.h"
-#include "virtual_joints_widget.h"
-#include "passive_joints_widget.h"
-#include "author_information_widget.h"
-#include "simulation_widget.h"
-#include "configuration_files_widget.h"
-#include "perception_widget.h"
-#include "ros_controllers_widget.h"
+#include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
@@ -205,7 +197,6 @@ private:
 
   QWidget* middle_frame_;
   QWidget* rviz_container_;
-  QSplitter* splitter_;
   QStackedLayout* main_content_;
   int current_index_;
   boost::mutex change_screen_lock_;
@@ -215,22 +206,13 @@ private:
   rviz::VisualizationManager* rviz_manager_;
   moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
 
-  // Screen Widgets
-  StartScreenWidget* start_screen_widget_;
-  DefaultCollisionsWidget* default_collisions_widget_;
-  PlanningGroupsWidget* planning_groups_widget;
-  RobotPosesWidget* robot_poses_widget_;
-  EndEffectorsWidget* end_effectors_widget_;
-  VirtualJointsWidget* virtual_joints_widget_;
-  PassiveJointsWidget* passive_joints_widget_;
-  AuthorInformationWidget* author_information_widget_;
-  ConfigurationFilesWidget* configuration_files_widget_;
-  SimulationWidget* simulation_widget_;
-  PerceptionWidget* perception_widget_;
-  moveit_ros_control::ROSControllersWidget* controllers_widget_;
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+
+  // Screen Widgets
+  StartScreenWidget* start_screen_widget_;
+
+  std::unique_ptr<pluginlib::ClassLoader<SetupScreenWidget> > plugins_loader_;
 
   // ******************************************************************************************
   // Private Functions

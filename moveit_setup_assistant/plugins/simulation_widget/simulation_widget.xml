@@ -1,0 +1,8 @@
+<library path="libsimulation_widget">
+  <class name="08.Simulation"
+         type="moveit_setup_assistant::SimulationWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

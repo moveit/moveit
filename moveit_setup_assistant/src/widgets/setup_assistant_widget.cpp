@@ -47,7 +47,7 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
-#include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
+
 // Rviz
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
@@ -122,19 +122,8 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
     start_screen_widget_->stack_path_->setPath(pwdir);
   }
 
-  // Add Navigation Buttons (but do not load widgets yet except start screen)
+  // Add the first Navigation button (but do not load widgets yet except start screen)
   nav_name_list_ << "Start";
-  nav_name_list_ << "Self-Collisions";
-  nav_name_list_ << "Virtual Joints";
-  nav_name_list_ << "Planning Groups";
-  nav_name_list_ << "Robot Poses";
-  nav_name_list_ << "End Effectors";
-  nav_name_list_ << "Passive Joints";
-  nav_name_list_ << "ROS Control";
-  nav_name_list_ << "Simulation";
-  nav_name_list_ << "3D Perception";
-  nav_name_list_ << "Author Information";
-  nav_name_list_ << "Configuration Files";
 
   // Navigation Left Pane --------------------------------------------------
   navs_view_ = new NavigationWidget(this);
@@ -148,14 +137,14 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   rviz_container_->hide();  // do not show until after the start screen
 
   // Split screen -----------------------------------------------------
-  splitter_ = new QSplitter(Qt::Horizontal, this);
-  splitter_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  splitter_->addWidget(navs_view_);
-  splitter_->addWidget(middle_frame_);
-  splitter_->addWidget(rviz_container_);
-  splitter_->setHandleWidth(6);
-  // splitter_->setCollapsible( 0, false ); // don't let navigation collapse
-  layout->addWidget(splitter_);
+  QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
+  splitter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  splitter->addWidget(navs_view_);
+  splitter->addWidget(middle_frame_);
+  splitter->addWidget(rviz_container_);
+  splitter->setHandleWidth(6);
+  // splitter->setCollapsible( 0, false ); // don't let navigation collapse
+  layout->addWidget(splitter);
 
   // Add event for switching between screens -------------------------
   connect(navs_view_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(navigationClicked(const QModelIndex&)));
@@ -242,112 +231,60 @@ void SetupAssistantWidget::progressPastStartScreen()
 {
   // Load all widgets ------------------------------------------------
 
-  // Self-Collisions
-  default_collisions_widget_ = new DefaultCollisionsWidget(this, config_data_);
-  main_content_->addWidget(default_collisions_widget_);
-  connect(default_collisions_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(default_collisions_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(default_collisions_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  if (!plugins_loader_)
+  {
+    try
+    {
+      plugins_loader_.reset(
+          new pluginlib::ClassLoader<SetupScreenWidget>("moveit_setup_assistant", "SetupScreenWidget"));
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
+    }
+  }
 
-  // Virtual Joints
-  virtual_joints_widget_ = new VirtualJointsWidget(this, config_data_);
-  main_content_->addWidget(virtual_joints_widget_);
-  connect(virtual_joints_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(virtual_joints_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(virtual_joints_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(virtual_joints_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
-  connect(virtual_joints_widget_, SIGNAL(referenceFrameChanged()), this, SLOT(virtualJointReferenceFrameChanged()));
+  // Declared classes with setup screen widget as their base class
+  std::vector<std::string> classes = plugins_loader_->getDeclaredClasses();
 
-  // Planning Groups
-  planning_groups_widget = new PlanningGroupsWidget(this, config_data_);
-  main_content_->addWidget(planning_groups_widget);
-  connect(planning_groups_widget, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(planning_groups_widget, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(planning_groups_widget, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(planning_groups_widget, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  SetupScreenWidget* widget;
 
-  // Robot Poses
-  robot_poses_widget_ = new RobotPosesWidget(this, config_data_);
-  main_content_->addWidget(robot_poses_widget_);
-  connect(robot_poses_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(robot_poses_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(robot_poses_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(robot_poses_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+  for (size_t i = 0; i < classes.size(); ++i)
+  {
+    try
+    {
+      widget = plugins_loader_->createUnmanagedInstance(classes[i]);
+    }
+    catch (pluginlib::PluginlibException& ex)
+    {
+      ROS_ERROR_STREAM("Exception while loading a '"
+                       << "moveit setup assistant plugin"
+                       << "': " << ex.what() << std::endl);
+    }
 
-  // End Effectors
-  end_effectors_widget_ = new EndEffectorsWidget(this, config_data_);
-  main_content_->addWidget(end_effectors_widget_);
-  connect(end_effectors_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(end_effectors_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(end_effectors_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(end_effectors_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+    // Set the setup assistant widget as the parent for the plugin
+    widget->initializeWidget(this, config_data_);
 
-  // Virtual Joints
-  passive_joints_widget_ = new PassiveJointsWidget(this, config_data_);
-  main_content_->addWidget(passive_joints_widget_);
-  connect(passive_joints_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(passive_joints_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(passive_joints_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(passive_joints_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+    // Attach the plugin to the setup assistant widget
+    main_content_->addWidget(widget);
 
-  // ROS Controllers
-  controllers_widget_ = new moveit_ros_control::ROSControllersWidget(this, config_data_);
-  main_content_->addWidget(controllers_widget_);
-  connect(controllers_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(controllers_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(controllers_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(controllers_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+    // Add navigation button
+    nav_name_list_ << QString::fromStdString(classes[i]);
 
-  // Simulation Screen
-  simulation_widget_ = new SimulationWidget(this, config_data_);
-  main_content_->addWidget(simulation_widget_);
-  connect(simulation_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(simulation_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(simulation_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(simulation_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+    // Connect necessary signals
+    connect(widget, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
+    connect(widget, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+            SLOT(highlightLink(const std::string&, const QColor&)));
+    connect(widget, SIGNAL(highlightGroup(const std::string&)), this, SLOT(highlightGroup(const std::string&)));
+    connect(widget, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
+    connect(widget, SIGNAL(referenceFrameChanged()), this, SLOT(virtualJointReferenceFrameChanged()));
+  }
 
-  // Perception
-  perception_widget_ = new PerceptionWidget(this, config_data_);
-  main_content_->addWidget(perception_widget_);
-  connect(perception_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(perception_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(perception_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(perception_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
-
-  // Author Information
-  author_information_widget_ = new AuthorInformationWidget(this, config_data_);
-  main_content_->addWidget(author_information_widget_);
-  connect(author_information_widget_, SIGNAL(isModal(bool)), this, SLOT(setModalMode(bool)));
-  connect(author_information_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
-          SLOT(highlightLink(const std::string&, const QColor&)));
-  connect(author_information_widget_, SIGNAL(highlightGroup(const std::string&)), this,
-          SLOT(highlightGroup(const std::string&)));
-  connect(author_information_widget_, SIGNAL(unhighlightAll()), this, SLOT(unhighlightAll()));
-
-  // Configuration Files
-  configuration_files_widget_ = new ConfigurationFilesWidget(this, config_data_);
-  main_content_->addWidget(configuration_files_widget_);
+  // Update navigation menu
+  navs_view_->setNavs(nav_name_list_);
 
   // Enable all nav buttons -------------------------------------------
-  for (int i = 0; i < nav_name_list_.count(); ++i)
+  for (size_t i = 0; i < nav_name_list_.count(); ++i)
   {
     navs_view_->setEnabled(i, true);
   }
