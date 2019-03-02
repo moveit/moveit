@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2018, Mohamad Ayman.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,8 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * The name of Mohamad Ayman may not be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -32,54 +31,81 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
 
-#include <QWidget>
+// Qt
+#include <QScrollArea>
+#include <QTextEdit>
+#include <QString>
+
+// SA
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
+#include <widgets/header_widget.h>
+#include <widgets/setup_screen_widget.h>  // a base class for screens in the setup assistant
+
+namespace moveit_setup_assistant
+{
 // ******************************************************************************************
-// Provides the title and instructions
 // ******************************************************************************************
-class SetupScreenWidget : public QWidget
+// Class for showing changes needed to help user bring his robot into gazebo simulation
+// ******************************************************************************************
+// ******************************************************************************************
+class SimulationWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
 public:
-  SetupScreenWidget()
-  {
-  }
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
 
-  /// function called when widget is activated, allows to update/initialize GUI
-  virtual void focusGiven();
-
-  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
-  virtual bool focusLost();
+  SimulationWidget();
 
   /// used to set data and parent of the widget after construction
   virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
+private Q_SLOTS:
+
   // ******************************************************************************************
-  // Emitted Signal Functions
+  // Slot Event Functions
   // ******************************************************************************************
 
-Q_SIGNALS:
+  // Called the copy to clipboard button is clicked
+  void copyURDF(const QString& link);
 
-  /// Event for when the current screen is in modal view. Essential disabled the left navigation
-  void isModal(bool isModal);
+  /// Generate URDF button clicked
+  void generateURDFClick();
 
-  /// Event for telling rviz to highlight a link of the robot
-  void highlightLink(const std::string& name, const QColor&);
+private:
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
 
-  /// Event for telling rviz to highlight a group of the robot
-  void highlightGroup(const std::string& name);
+  QTextEdit* simulation_text_;
+  QLabel* no_changes_label_;
+  QLabel* copy_urdf_;
 
-  /// Event for telling rviz to unhighlight all links of the robot
-  void unhighlightAll();
+  // ******************************************************************************************
+  // Variables
+  // ******************************************************************************************
+
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+
+  // ******************************************************************************************
+  // Functions
+  // ******************************************************************************************
+
+  /// Helper function to correct the order of creation of the widget contents
+  void createMainWidget();
 };
+
+}  // namespace moveit_setup_assistant
 
 #endif

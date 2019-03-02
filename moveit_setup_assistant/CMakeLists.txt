@@ -14,6 +14,9 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+include_directories(include)
+include_directories(src)
+
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
@@ -28,7 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
 include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 # Qt Stuff
-if(rviz_QT_VERSION VERSION_LESS "5")
+if("${rviz_QT_VERSION}" VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
   include(${QT_USE_FILE})
 else()
@@ -50,8 +53,13 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}_tools
   CATKIN_DEPENDS
+    moveit_core
     moveit_ros_planning
     moveit_ros_visualization
+    roscpp
+    srdfdom
+    rviz
+    urdf
 )
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
@@ -59,23 +67,9 @@ set(HEADERS
   src/widgets/navigation_widget.h
   src/widgets/header_widget.h
   src/widgets/setup_assistant_widget.h
-  src/widgets/start_screen_widget.h
-  src/widgets/planning_groups_widget.h
-  src/widgets/double_list_widget.h
-  src/widgets/kinematic_chain_widget.h
-  src/widgets/group_edit_widget.h
-  src/widgets/default_collisions_widget.h
-  src/widgets/robot_poses_widget.h
-  src/widgets/end_effectors_widget.h
-  src/widgets/virtual_joints_widget.h
-  src/widgets/passive_joints_widget.h
-  src/widgets/perception_widget.h
-  src/widgets/ros_controllers_widget.h
-  src/widgets/controller_edit_widget.h
-  src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
-  src/widgets/simulation_widget.h
-  src/widgets/author_information_widget.h
+  src/widgets/start_screen_widget.h
+  src/widgets/double_list_widget.h
 )
 
 # Tools Library
@@ -96,26 +90,12 @@ target_link_libraries(${PROJECT_NAME}_tools
 
 # Main Widgets Library - all screens (navigation options)
 add_library(${PROJECT_NAME}_widgets
-  src/widgets/start_screen_widget.cpp
-  src/widgets/planning_groups_widget.cpp
-  src/widgets/double_list_widget.cpp
-  src/widgets/kinematic_chain_widget.cpp
-  src/widgets/group_edit_widget.cpp
-  src/widgets/default_collisions_widget.cpp
-  src/widgets/robot_poses_widget.cpp
-  src/widgets/end_effectors_widget.cpp
-  src/widgets/virtual_joints_widget.cpp
-  src/widgets/passive_joints_widget.cpp
-  src/widgets/perception_widget.cpp
-  src/widgets/configuration_files_widget.cpp
-  src/widgets/ros_controllers_widget.cpp
-  src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
-  src/widgets/simulation_widget.cpp
-  src/widgets/author_information_widget.cpp
+  src/widgets/start_screen_widget.cpp
+  src/widgets/double_list_widget.cpp
   ${HEADERS}
 )
 set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
@@ -143,7 +123,7 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${
   LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-
+install(DIRECTORY src/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
@@ -156,3 +136,5 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(test_reading_writing_config
     ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()
+
+add_subdirectory(plugins)

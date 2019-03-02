@@ -1,0 +1,8 @@
+<library path="libpassive_joints_widget">
+  <class name="06.Passive Joints"
+         type="moveit_setup_assistant::PassiveJointsWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

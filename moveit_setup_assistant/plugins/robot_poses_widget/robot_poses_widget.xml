@@ -1,0 +1,8 @@
+<library path="librobot_poses_widget">
+  <class name="04.Robot Poses"
+         type="moveit_setup_assistant::RobotPosesWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

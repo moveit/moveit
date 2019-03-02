@@ -1,0 +1,8 @@
+<library path="libconfiguration_files_widget">
+  <class name="11.Configuration Files"
+         type="moveit_setup_assistant::ConfigurationFilesWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

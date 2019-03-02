@@ -1,0 +1,8 @@
+<library path="lib/libend_effectors_widget">
+  <class name="05.End Effectors"
+         type="moveit_setup_assistant::EndEffectorsWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

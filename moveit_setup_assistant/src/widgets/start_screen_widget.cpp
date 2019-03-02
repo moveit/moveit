@@ -68,7 +68,7 @@ namespace fs = boost::filesystem;
 // Start screen user interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
 StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
-  : SetupScreenWidget(parent), config_data_(config_data)
+  : config_data_(config_data)
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout(this);

@@ -1,0 +1,8 @@
+<library path="libplanning_groups_widget">
+  <class name="03.Planning Groups"
+         type="moveit_setup_assistant::PlanningGroupsWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

@@ -34,52 +34,71 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
+#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
 
+// Qt
 #include <QWidget>
+
+// SA
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-// ******************************************************************************************
-// Provides the title and instructions
-// ******************************************************************************************
-class SetupScreenWidget : public QWidget
+#include <widgets/double_list_widget.h>
+#include <widgets/setup_screen_widget.h>  // a base class for screens in the setup assistant
+
+namespace moveit_setup_assistant
+{
+class PassiveJointsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
 public:
-  SetupScreenWidget()
-  {
-  }
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
 
-  /// function called when widget is activated, allows to update/initialize GUI
-  virtual void focusGiven();
-
-  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
-  virtual bool focusLost();
+  PassiveJointsWidget();
 
   /// used to set data and parent of the widget after construction
-  virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  virtual void initializeWidget(QWidget* parent, MoveItConfigDataPtr config_data);
+
+  /// Received when this widget is chosen from the navigation menu
+  void focusGiven() override;
 
   // ******************************************************************************************
-  // Emitted Signal Functions
+  // Qt Components
   // ******************************************************************************************
 
-Q_SIGNALS:
+  DoubleListWidget* joints_widget_;
 
-  /// Event for when the current screen is in modal view. Essential disabled the left navigation
-  void isModal(bool isModal);
+private Q_SLOTS:
 
-  /// Event for telling rviz to highlight a link of the robot
-  void highlightLink(const std::string& name, const QColor&);
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+  void selectionUpdated();
 
-  /// Event for telling rviz to highlight a group of the robot
-  void highlightGroup(const std::string& name);
+  /// Called from Double List widget to highlight joints
+  void previewSelectedJoints(std::vector<std::string> joints);
 
-  /// Event for telling rviz to unhighlight all links of the robot
-  void unhighlightAll();
+private:
+  // ******************************************************************************************
+  // Variables
+  // ******************************************************************************************
+
+  /// Contains all the configuration data for the setup assistant
+  MoveItConfigDataPtr config_data_;
+
+  // ******************************************************************************************
+  // Functions
+  // ******************************************************************************************
+
+  /// Helper function to correct the order of creation of the widget contents
+  void createMainWidget();
 };
+
+}  // namespace
 
 #endif
