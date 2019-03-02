@@ -11,6 +11,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 include_directories(include)
+include_directories(src)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -63,23 +64,9 @@ set(HEADERS
   src/widgets/navigation_widget.h
   src/widgets/header_widget.h
   src/widgets/setup_assistant_widget.h
-  src/widgets/start_screen_widget.h
-  src/widgets/planning_groups_widget.h
-  src/widgets/double_list_widget.h
-  src/widgets/kinematic_chain_widget.h
-  src/widgets/group_edit_widget.h
-  src/widgets/default_collisions_widget.h
-  src/widgets/robot_poses_widget.h
-  src/widgets/end_effectors_widget.h
-  src/widgets/virtual_joints_widget.h
-  src/widgets/passive_joints_widget.h
-  src/widgets/perception_widget.h
-  src/widgets/ros_controllers_widget.h
-  src/widgets/controller_edit_widget.h
-  src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
-  src/widgets/simulation_widget.h
-  src/widgets/author_information_widget.h
+  src/widgets/start_screen_widget.h
+  src/widgets/double_list_widget.h
 )
 
 # Tools Library
@@ -100,26 +87,12 @@ target_link_libraries(${PROJECT_NAME}_tools
 
 # Main Widgets Library - all screens (navigation options)
 add_library(${PROJECT_NAME}_widgets
-  src/widgets/start_screen_widget.cpp
-  src/widgets/planning_groups_widget.cpp
-  src/widgets/double_list_widget.cpp
-  src/widgets/kinematic_chain_widget.cpp
-  src/widgets/group_edit_widget.cpp
-  src/widgets/default_collisions_widget.cpp
-  src/widgets/robot_poses_widget.cpp
-  src/widgets/end_effectors_widget.cpp
-  src/widgets/virtual_joints_widget.cpp
-  src/widgets/passive_joints_widget.cpp
-  src/widgets/perception_widget.cpp
-  src/widgets/configuration_files_widget.cpp
-  src/widgets/ros_controllers_widget.cpp
-  src/widgets/controller_edit_widget.cpp
   src/widgets/navigation_widget.cpp
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
-  src/widgets/simulation_widget.cpp
-  src/widgets/author_information_widget.cpp
+  src/widgets/start_screen_widget.cpp
+  src/widgets/double_list_widget.cpp
   ${HEADERS}
 )
 set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
@@ -148,7 +121,7 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-
+install(DIRECTORY src/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
@@ -163,3 +136,5 @@ if(CATKIN_ENABLE_TESTING)
   ${Boost_LIBRARIES}
   ${MOVEIT_LIB_NAME})
 endif()
+
+add_subdirectory(plugins)

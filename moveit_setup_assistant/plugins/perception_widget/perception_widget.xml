@@ -1,0 +1,8 @@
+<library path="libperception_widget">
+  <class name="09.3D Perception"
+         type="moveit_setup_assistant::PerceptionWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

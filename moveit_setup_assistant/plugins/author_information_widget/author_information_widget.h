@@ -32,54 +32,61 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Dave Coleman, Michael 'v4hn' Goerner */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_AUTHOR_INFORMATION_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_AUTHOR_INFORMATION_WIDGET_
 
 #include <QWidget>
+#include <QString>
+#include <QLineEdit>
+
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-// ******************************************************************************************
-// Provides the title and instructions
-// ******************************************************************************************
-class SetupScreenWidget : public QWidget
+#include <widgets/header_widget.h>
+#include <widgets/setup_screen_widget.h>  // a base class for screens in the setup assistant
+
+namespace moveit_setup_assistant
+{
+class AuthorInformationWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
 public:
-  SetupScreenWidget()
-  {
-  }
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
 
-  /// function called when widget is activated, allows to update/initialize GUI
+  AuthorInformationWidget();
+
+  virtual void initializeWidget(QWidget* parent, MoveItConfigDataPtr config_data);
+
+  /// Received when this widget is chosen from the navigation menu
   virtual void focusGiven();
 
-  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
-  virtual bool focusLost();
-
-  /// used to set data and parent of the widget after construction
-  virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
-
   // ******************************************************************************************
-  // Emitted Signal Functions
+  // Qt Components
   // ******************************************************************************************
 
-Q_SIGNALS:
+  QLineEdit* name_edit_;
 
-  /// Event for when the current screen is in modal view. Essential disabled the left navigation
-  void isModal(bool isModal);
+  QLineEdit* email_edit_;
 
-  /// Event for telling rviz to highlight a link of the robot
-  void highlightLink(const std::string& name, const QColor&);
+private Q_SLOTS:
 
-  /// Event for telling rviz to highlight a group of the robot
-  void highlightGroup(const std::string& name);
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+  void edited_name();
+  void edited_email();
 
-  /// Event for telling rviz to unhighlight all links of the robot
-  void unhighlightAll();
+private:
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 };
+
+}  // namespace moveit_setup_assistant
 
 #endif
