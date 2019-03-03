@@ -2,7 +2,7 @@ set(MOVEIT_LIB_NAME author_information_widget)
 
 add_library(${MOVEIT_LIB_NAME}
   author_information_widget.cpp
-  )
+)
 
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 

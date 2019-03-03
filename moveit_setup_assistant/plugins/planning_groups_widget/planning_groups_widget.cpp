@@ -59,9 +59,9 @@
 #include <QMessageBox>
 #include <QTreeWidgetItem>
 
-#include <widgets/double_list_widget.h>   // for joints, links and subgroups pages
-#include "kinematic_chain_widget.h"       // for kinematic chain page
-#include "group_edit_widget.h"            // for group rename page
+#include <widgets/double_list_widget.h>  // for joints, links and subgroups pages
+#include "kinematic_chain_widget.h"      // for kinematic chain page
+#include "group_edit_widget.h"           // for group rename page
 
 // Cycle checking
 #include <boost/graph/adjacency_list.hpp>
