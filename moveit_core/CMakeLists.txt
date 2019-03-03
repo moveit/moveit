@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_core)
 
-#suppress spurious errors: https://github.com/fkie/catkin_lint/issues/62
-#catkin_lint: ignore duplicate_find  (find_package(moveit_resources))
-
 add_compile_options(-std=c++14)
 
 # Warnings
@@ -25,12 +22,12 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
-find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(LIBFCL REQUIRED fcl)
-# replace LIBFCL_LIBRARIES with full path to the library
-find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
-set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBFCL_PC REQUIRED fcl)
+# find *absolute* paths to LIBFCL_INCLUDE_DIRS and LIBFCL_LIBRARIES
+find_path(LIBFCL_INCLUDE_DIRS fcl/config.h HINTS ${LIBFCL_PC_INCLUDE_DIR} ${LIBFCL_PC_INCLUDE_DIRS})
+find_library(LIBFCL_LIBRARIES fcl HINTS ${LIBFCL_PC_LIBRARY_DIRS})
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
@@ -95,8 +92,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     utils/include
 )
 
-#suppress spurious error: https://github.com/fkie/catkin_lint/issues/62
-#catkin_lint: ignore_once exported_pkg_config  (LIBFCL)
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
@@ -162,8 +157,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
                            )
 
-#suppress spurious error: https://github.com/fkie/catkin_lint/issues/62
-#catkin_lint: ignore_once external_directory missing_directory  (${VERSION_FILE_PATH})
+#catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH}
                     ${Boost_INCLUDE_DIRS}
