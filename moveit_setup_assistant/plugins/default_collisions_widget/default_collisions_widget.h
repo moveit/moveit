@@ -90,7 +90,9 @@ public:
    */
   DefaultCollisionsWidget();
   ~DefaultCollisionsWidget();
-  virtual void initializeWidget(QWidget* parent, MoveItConfigDataPtr config_data);
+
+  /// used to set data and parent of the widget after construction
+  virtual void initializeWidget(QWidget* parent, MoveItConfigDataPtr config_data) override;
 
   /**
    * \brief Output Link Pairs to SRDF Format

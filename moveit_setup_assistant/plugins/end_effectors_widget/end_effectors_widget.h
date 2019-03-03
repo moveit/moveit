@@ -71,7 +71,7 @@ public:
   EndEffectorsWidget();
 
   /// used to set data and parent of the widget after construction
-  virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data) override;
 
   /// Received when this widget is chosen from the navigation menu
   void focusGiven() override;
