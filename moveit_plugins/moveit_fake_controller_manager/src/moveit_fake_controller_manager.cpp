@@ -92,7 +92,7 @@ public:
 
       try
       {
-        std::string name = std::string(controller_list[i]["name"]);
+        const std::string name = std::string(controller_list[i]["name"]);
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
@@ -101,8 +101,9 @@ public:
           continue;
         }
         std::vector<std::string> joints;
+        joints.reserve(controller_list[i]["joints"].size());
         for (int j = 0; j < controller_list[i]["joints"].size(); ++j)
-          joints.push_back(std::string(controller_list[i]["joints"][j]));
+          joints.emplace_back(std::string(controller_list[i]["joints"][j]));
 
         const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;

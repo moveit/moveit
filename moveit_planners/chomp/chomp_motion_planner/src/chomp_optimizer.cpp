@@ -1022,10 +1022,9 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   const Eigen::MatrixXd::RowXpr& point = group_trajectory.getTrajectoryPoint(i);
 
   std::vector<double> joint_states;
+  joint_states.reserve(group_trajectory.getNumJoints());
   for (int j = 0; j < group_trajectory.getNumJoints(); j++)
-  {
-    joint_states.push_back(point(0, j));
-  }
+    joint_states.emplace_back(point(0, j));
 
   state_.setJointGroupPositions(planning_group_, joint_states);
   state_.update();

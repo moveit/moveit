@@ -318,6 +318,7 @@ TEST_F(KinematicsTest, getFK)
 
     robot_state.updateLinkTransforms();
     std::vector<geometry_msgs::Pose> model_poses;
+    model_poses.reserve(tip_frames.size());
     for (const auto& tip : tip_frames)
       model_poses.emplace_back(tf2::toMsg(robot_state.getGlobalLinkTransform(tip)));
     EXPECT_NEAR_POSES(model_poses, fk_poses, tolerance_);

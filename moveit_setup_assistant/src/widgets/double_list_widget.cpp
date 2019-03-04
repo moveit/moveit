@@ -326,10 +326,9 @@ void DoubleListWidget::previewSelected(const QList<QTableWidgetItem*>& selected)
   std::vector<std::string> selected_vector;
 
   // Convert QList to std vector
+  selected_vector.reserve(selected.size());
   for (int i = 0; i < selected.size(); ++i)
-  {
-    selected_vector.push_back(selected[i]->text().toStdString());
-  }
+    selected_vector.emplace_back(selected[i]->text().toStdString());
 
   // Send to shared function
   Q_EMIT(previewSelected(selected_vector));
