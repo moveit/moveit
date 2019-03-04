@@ -406,7 +406,7 @@ void RobotPosesWidget::playPoses()
 void RobotPosesWidget::editSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   edit(ranges[0].bottomRow());
 }
@@ -583,7 +583,7 @@ srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& nam
 void RobotPosesWidget::deleteSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   int row = ranges[0].bottomRow();
 

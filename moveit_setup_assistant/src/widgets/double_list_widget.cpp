@@ -320,7 +320,7 @@ void DoubleListWidget::previewSelectedRight(const QItemSelection& selected, cons
 void DoubleListWidget::previewSelected(const QList<QTableWidgetItem*>& selected)
 {
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   std::vector<std::string> selected_vector;

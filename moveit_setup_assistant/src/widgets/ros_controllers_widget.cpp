@@ -837,7 +837,7 @@ void ROSControllersWidget::alterTree(const QString& link)
 void ROSControllersWidget::itemSelectionChanged()
 {
   QList<QTreeWidgetItem*> selected_items = controllers_tree_->selectedItems();
-  if (selected_items.size() == 0)
+  if (selected_items.empty())
   {
     btn_edit_->setEnabled(false);
     btn_delete_->setEnabled(false);

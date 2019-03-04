@@ -289,7 +289,7 @@ void VirtualJointsWidget::editSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -406,7 +406,7 @@ void VirtualJointsWidget::deleteSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
