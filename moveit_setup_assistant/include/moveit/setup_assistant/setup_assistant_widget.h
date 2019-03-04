@@ -51,9 +51,9 @@
 #include <QSplitter>
 #include <QStringList>
 // Setup Asst
-#include "header_widget.h"
-#include "navigation_widget.h"
-#include "start_screen_widget.h"
+#include <moveit/setup_assistant/header_widget.h>
+#include <moveit/setup_assistant/navigation_widget.h>
+#include <moveit/setup_assistant/start_screen_widget.h>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 
 #ifndef Q_MOC_RUN

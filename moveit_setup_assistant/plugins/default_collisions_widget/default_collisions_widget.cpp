@@ -48,9 +48,9 @@
 #include <pluginlib/class_list_macros.h>
 
 #include "default_collisions_widget.h"
-#include <tools/collision_matrix_model.h>
-#include <tools/collision_linear_model.h>
-#include <tools/rotated_header_view.h>
+#include <moveit/setup_assistant/tools/collision_matrix_model.h>
+#include <moveit/setup_assistant/tools/collision_linear_model.h>
+#include <moveit/setup_assistant/tools/rotated_header_view.h>
 #include <ros/console.h>
 
 namespace moveit_setup_assistant

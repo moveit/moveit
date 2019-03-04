@@ -36,7 +36,7 @@
 
 // SA
 #include "robot_poses_widget.h"
-#include <widgets/header_widget.h>
+#include <moveit/setup_assistant/header_widget.h>
 #include <moveit_msgs/JointLimits.h>
 // Qt
 #include <QFormLayout>

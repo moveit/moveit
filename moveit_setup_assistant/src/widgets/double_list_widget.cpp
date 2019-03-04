@@ -43,7 +43,7 @@
 #include <QMessageBox>
 #include <QString>
 #include <QHeaderView>
-#include "double_list_widget.h"
+#include <moveit/setup_assistant/double_list_widget.h>
 
 namespace moveit_setup_assistant
 {

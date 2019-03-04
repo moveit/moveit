@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "widgets/setup_assistant_widget.h"
+#include <moveit/setup_assistant/setup_assistant_widget.h>
 #include <ros/ros.h>
 #include <QApplication>
 #include <QMessageBox>

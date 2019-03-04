@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "setup_screen_widget.h"
+#include <moveit/setup_assistant/setup_screen_widget.h>
 #include <iostream>
 
 void SetupScreenWidget::focusGiven()

@@ -51,8 +51,8 @@
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include <widgets/double_list_widget.h>   // for joints, links and subgroups pages
-#include <widgets/setup_screen_widget.h>  // a base class for screens in the setup assistant
+#include <moveit/setup_assistant/double_list_widget.h>   // for joints, links and subgroups pages
+#include <moveit/setup_assistant/setup_screen_widget.h>  // a base class for screens in the setup assistant
 #include "controller_edit_widget.h"
 
 namespace moveit_setup_assistant

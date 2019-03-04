@@ -35,8 +35,8 @@
 /* Author: Dave Coleman */
 
 // SA
-#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
-#include "setup_assistant_widget.h"
+#include <moveit/setup_assistant/setup_screen_widget.h>  // a base class for screens in the setup assistant
+#include <moveit/setup_assistant/setup_assistant_widget.h>
 // Qt
 #include <QStackedLayout>
 #include <QListWidget>

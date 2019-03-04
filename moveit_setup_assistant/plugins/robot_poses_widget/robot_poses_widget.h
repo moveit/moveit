@@ -57,7 +57,7 @@
 #include <ros/ros.h>
 #endif
 
-#include <widgets/setup_screen_widget.h>  // a base class for screens in the setup assistant
+#include <moveit/setup_assistant/setup_screen_widget.h>  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {

@@ -36,7 +36,7 @@
 
 // SA
 #include "passive_joints_widget.h"
-#include <widgets/header_widget.h>
+#include <moveit/setup_assistant/header_widget.h>
 // Qt
 #include <QFormLayout>
 #include <QMessageBox>

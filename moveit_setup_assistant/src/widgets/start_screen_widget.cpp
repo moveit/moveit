@@ -48,8 +48,8 @@
 #include <ros/ros.h>
 #include <ros/package.h>  // for getting file path for loadng images
 // SA
-#include "header_widget.h"  // title and instructions
-#include "start_screen_widget.h"
+#include <moveit/setup_assistant/header_widget.h>  // title and instructions
+#include <moveit/setup_assistant/start_screen_widget.h>
 // C
 #include <fstream>  // for reading in urdf
 #include <streambuf>

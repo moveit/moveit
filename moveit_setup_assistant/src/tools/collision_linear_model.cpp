@@ -34,8 +34,7 @@
 
 /* Author: Robert Haschke */
 
-#include "collision_linear_model.h"
-#include "collision_matrix_model.h"
+#include <moveit/setup_assistant/tools/collision_linear_model.h>
 
 #include <QItemSelection>
 #include <QPainter>

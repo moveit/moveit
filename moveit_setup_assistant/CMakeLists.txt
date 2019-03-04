@@ -15,7 +15,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 include_directories(include)
-include_directories(src)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
 find_package(catkin REQUIRED COMPONENTS
@@ -64,12 +63,12 @@ catkin_package(
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set(HEADERS
-  src/widgets/navigation_widget.h
-  src/widgets/header_widget.h
-  src/widgets/setup_assistant_widget.h
-  src/widgets/setup_screen_widget.h
-  src/widgets/start_screen_widget.h
-  src/widgets/double_list_widget.h
+  include/moveit/setup_assistant/navigation_widget.h
+  include/moveit/setup_assistant/header_widget.h
+  include/moveit/setup_assistant/setup_assistant_widget.h
+  include/moveit/setup_assistant/setup_screen_widget.h
+  include/moveit/setup_assistant/start_screen_widget.h
+  include/moveit/setup_assistant/double_list_widget.h
 )
 
 # Tools Library
@@ -79,6 +78,7 @@ add_library(${PROJECT_NAME}_tools
   src/tools/collision_linear_model.cpp
   src/tools/collision_matrix_model.cpp
   src/tools/rotated_header_view.cpp
+  include/moveit/setup_assistant/tools/collision_matrix_model.h
 )
 set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${PROJECT_NAME}_tools
@@ -123,7 +123,6 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${
   LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-install(DIRECTORY src/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

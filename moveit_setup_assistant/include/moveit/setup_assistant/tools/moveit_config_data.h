@@ -43,6 +43,7 @@
 #include <yaml-cpp/yaml.h>                                            // outputing yaml config files
 #include <urdf/model.h>                                               // to share throughout app
 #include <srdfdom/srdf_writer.h>                                      // for writing srdf data
+#include <moveit/collision_detection/collision_matrix.h>              // for figuring out if robot is in collision
 
 namespace moveit_setup_assistant
 {
