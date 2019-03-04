@@ -36,7 +36,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <utility>
 
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 
@@ -165,9 +164,9 @@ void TrajectoryVisualization::setName(const QString& name)
     trajectory_slider_dock_panel_->setWindowTitle(name + " - Slider");
 }
 
-void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model)
+void TrajectoryVisualization::onRobotModelLoaded(const robot_model::RobotModelConstPtr& robot_model)
 {
-  robot_model_ = std::move(robot_model);
+  robot_model_ = robot_model;
 
   // Error check
   if (!robot_model_)
