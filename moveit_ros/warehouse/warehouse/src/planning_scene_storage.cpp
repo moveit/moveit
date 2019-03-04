@@ -36,6 +36,7 @@
 
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <boost/regex.hpp>
+#include <utility>
 
 const std::string moveit_warehouse::PlanningSceneStorage::DATABASE_NAME = "moveit_planning_scenes";
 
@@ -46,7 +47,7 @@ using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(warehouse_ros::DatabaseConnection::Ptr conn)
-  : MoveItMessageStorage(conn)
+  : MoveItMessageStorage(std::move(conn))
 {
   createCollections();
 }

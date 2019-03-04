@@ -39,8 +39,10 @@
 //#include <warehouse_ros_mongo/database_connection.h>
 #include <boost/regex.hpp>
 #include <memory>
+#include <utility>
 
-moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn) : conn_(conn)
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn)
+  : conn_(std::move(conn))
 {
 }
 
