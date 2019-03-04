@@ -128,7 +128,7 @@ void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene
     return;
   }
 
-  if (collision_detector_name == "")
+  if (collision_detector_name.empty())
   {
     // This is not a valid name for a collision detector plugin
     return;

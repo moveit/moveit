@@ -612,7 +612,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   }
 
   // Display all accumumlated errors:
-  if (dependencies.size())
+  if (!dependencies.empty())
   {
     // Create a dependency message
     QString dep_message;

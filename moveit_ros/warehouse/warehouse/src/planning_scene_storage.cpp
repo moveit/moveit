@@ -138,7 +138,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningQuery(const moveit_msgs:
   if (!query_name.empty() && id.empty())
     removePlanningQuery(scene_name, query_name);
 
-  if (id != query_name || id == "")
+  if (id != query_name || id.empty())
     addNewPlanningRequest(planning_query, scene_name, query_name);
 }
 
