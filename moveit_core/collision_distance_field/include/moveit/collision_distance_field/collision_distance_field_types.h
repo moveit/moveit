@@ -348,7 +348,7 @@ public:
 
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition, const Eigen::Isometry3d& pose);
 
-  PosedBodyPointDecomposition(std::shared_ptr<const octomap::OcTree> octree);
+  PosedBodyPointDecomposition(const std::shared_ptr<const octomap::OcTree>& octree);
 
   const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {

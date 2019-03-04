@@ -51,7 +51,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Set pointer to null so later we can tell if we need to delete it

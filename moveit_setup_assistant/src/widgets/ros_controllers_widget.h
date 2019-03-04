@@ -67,7 +67,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  ROSControllersWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
 
   void changeScreen(int index);
 

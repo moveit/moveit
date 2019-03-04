@@ -49,7 +49,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-KinematicChainWidget::KinematicChainWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+KinematicChainWidget::KinematicChainWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container

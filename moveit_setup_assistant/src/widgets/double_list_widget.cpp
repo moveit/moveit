@@ -50,8 +50,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 //
 // ******************************************************************************************
-DoubleListWidget::DoubleListWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
-                                   QString long_name, QString short_name, bool add_ok_cancel)
+DoubleListWidget::DoubleListWidget(QWidget* parent, const MoveItConfigDataPtr& config_data, const QString& long_name,
+                                   const QString& short_name, bool add_ok_cancel)
   : QWidget(parent), long_name_(long_name), short_name_(short_name), config_data_(config_data)
 {
   // Basic widget container

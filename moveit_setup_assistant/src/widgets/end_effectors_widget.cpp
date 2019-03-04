@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container

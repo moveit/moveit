@@ -59,7 +59,7 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
 
   /// Set the previous data
   void setSelected(const std::string& group_name);

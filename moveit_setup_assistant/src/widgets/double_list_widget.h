@@ -60,8 +60,8 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  DoubleListWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, QString long_name,
-                   QString short_name, bool add_ok_cancel = true);
+  DoubleListWidget(QWidget* parent, const MoveItConfigDataPtr& config_data, const QString& long_name,
+                   const QString& short_name, bool add_ok_cancel = true);
 
   /// Loads the availble data list
   void setAvailable(const std::vector<std::string>& items);

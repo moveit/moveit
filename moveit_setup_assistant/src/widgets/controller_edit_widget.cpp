@@ -46,7 +46,7 @@ namespace moveit_ros_control
 // ******************************************************************************************
 //  ControllerEditWidget constructor, create controller edit screen GUI
 // ******************************************************************************************
-ControllerEditWidget::ControllerEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+ControllerEditWidget::ControllerEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container

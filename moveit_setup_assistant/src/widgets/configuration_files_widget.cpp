@@ -62,8 +62,7 @@ const std::string SETUP_ASSISTANT_FILE = ".setup_assistant";
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent,
-                                                   moveit_setup_assistant::MoveItConfigDataPtr config_data)
+ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data), has_generated_pkg_(false), first_focusGiven_(true)
 {
   // Basic widget container

@@ -51,7 +51,7 @@ namespace moveit_ros_control
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container

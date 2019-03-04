@@ -92,7 +92,7 @@ protected:
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container

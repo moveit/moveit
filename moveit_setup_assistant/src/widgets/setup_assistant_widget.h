@@ -102,7 +102,7 @@ public:
    * @param parent - used by Qt for destructing all elements
    * @return
    */
-  SetupAssistantWidget(QWidget* parent, boost::program_options::variables_map args);
+  SetupAssistantWidget(QWidget* parent, const boost::program_options::variables_map& args);
 
   /**
    * Deconstructor

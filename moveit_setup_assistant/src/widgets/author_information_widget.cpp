@@ -49,8 +49,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-AuthorInformationWidget::AuthorInformationWidget(QWidget* parent,
-                                                 moveit_setup_assistant::MoveItConfigDataPtr config_data)
+AuthorInformationWidget::AuthorInformationWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container

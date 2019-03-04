@@ -70,7 +70,7 @@ public:
    *  @param nh A ros::NodeHandle to pass node specific options
    */
   CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
-                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, ros::NodeHandle nh);
+                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const ros::NodeHandle& nh);
 
   ~CurrentStateMonitor();
 
