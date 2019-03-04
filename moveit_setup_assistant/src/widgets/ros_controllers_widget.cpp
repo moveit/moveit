@@ -46,7 +46,7 @@
 #include <regex>
 #include <moveit/robot_state/conversions.h>
 
-namespace moveit_ros_control
+namespace moveit_setup_assistant
 {
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
@@ -844,4 +844,4 @@ void ROSControllersWidget::itemSelectionChanged()
   }
 }
 
-}  // namespace moveit_ros_control
+}  // namespace moveit_setup_assistant

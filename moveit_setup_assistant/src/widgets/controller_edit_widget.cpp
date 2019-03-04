@@ -41,7 +41,7 @@
 #include <QGroupBox>
 #include "controller_edit_widget.h"
 
-namespace moveit_ros_control
+namespace moveit_setup_assistant
 {
 // ******************************************************************************************
 //  ControllerEditWidget constructor, create controller edit screen GUI
@@ -259,4 +259,4 @@ std::string ControllerEditWidget::getControllerType()
   return controller_type_field_->currentText().toStdString();
 }
 
-}  // namespace moveit_ros_control
+}  // namespace moveit_setup_assistant
