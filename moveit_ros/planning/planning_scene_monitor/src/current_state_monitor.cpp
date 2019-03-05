@@ -49,7 +49,7 @@ planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_mod
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
                                                                  const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                                                                 ros::NodeHandle nh)
+                                                                 const ros::NodeHandle& nh)
   : nh_(nh)
   , tf_buffer_(tf_buffer)
   , robot_model_(robot_model)

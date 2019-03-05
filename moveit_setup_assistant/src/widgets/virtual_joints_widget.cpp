@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -289,7 +289,7 @@ void VirtualJointsWidget::editSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -406,7 +406,7 @@ void VirtualJointsWidget::deleteSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it

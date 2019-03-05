@@ -290,7 +290,7 @@ void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const s
                                         const std::string& type, const std::string& name)
 {
   srdf::Model::VirtualJoint new_virtual_joint;
-  if (name == "")
+  if (name.empty())
     new_virtual_joint.name_ = parent_frame + "-" + child_link + "-virtual_joint";
   else
     new_virtual_joint.name_ = name;
@@ -304,7 +304,7 @@ void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::s
                                       const std::string& name)
 {
   srdf::Model::Group new_group;
-  if (name == "")
+  if (name.empty())
     new_group.name_ = base_link + "-" + tip_link + "-chain-group";
   else
     new_group.name_ = name;

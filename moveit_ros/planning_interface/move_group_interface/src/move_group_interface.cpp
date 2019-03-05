@@ -1322,7 +1322,7 @@ operator=(MoveGroupInterface&& other)
   if (this != &other)
   {
     delete impl_;
-    impl_ = std::move(other.impl_);
+    impl_ = other.impl_;
     remembered_joint_values_ = std::move(other.remembered_joint_values_);
     other.impl_ = nullptr;
   }

@@ -71,7 +71,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
 
   /// Received when this widget is chosen from the navigation menu
   void focusGiven() override;

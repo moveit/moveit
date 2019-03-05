@@ -45,7 +45,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PassiveJointsWidget::PassiveJointsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PassiveJointsWidget::PassiveJointsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container

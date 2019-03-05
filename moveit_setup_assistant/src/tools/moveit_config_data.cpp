@@ -41,7 +41,6 @@
 #include <boost/filesystem/path.hpp>        // for creating folders/files
 #include <boost/filesystem/operations.hpp>  // is_regular_file, is_directory, etc.
 #include <boost/algorithm/string/trim.hpp>
-#include <utility>
 
 // ROS
 #include <ros/console.h>
@@ -80,9 +79,9 @@ MoveItConfigData::~MoveItConfigData() = default;
 // ******************************************************************************************
 // Load a robot model
 // ******************************************************************************************
-void MoveItConfigData::setRobotModel(robot_model::RobotModelPtr robot_model)
+void MoveItConfigData::setRobotModel(const robot_model::RobotModelPtr& robot_model)
 {
-  robot_model_ = std::move(robot_model);
+  robot_model_ = robot_model;
 }
 
 // ******************************************************************************************

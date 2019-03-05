@@ -57,7 +57,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDataPtr config_data)
+DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), model_(nullptr), selection_model_(nullptr), worker_(nullptr), config_data_(config_data)
 {
   // Basic widget container

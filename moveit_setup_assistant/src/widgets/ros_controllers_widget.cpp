@@ -46,12 +46,12 @@
 #include <regex>
 #include <moveit/robot_state/conversions.h>
 
-namespace moveit_ros_control
+namespace moveit_setup_assistant
 {
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-ROSControllersWidget::ROSControllersWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -837,11 +837,11 @@ void ROSControllersWidget::alterTree(const QString& link)
 void ROSControllersWidget::itemSelectionChanged()
 {
   QList<QTreeWidgetItem*> selected_items = controllers_tree_->selectedItems();
-  if (selected_items.size() == 0)
+  if (selected_items.empty())
   {
     btn_edit_->setEnabled(false);
     btn_delete_->setEnabled(false);
   }
 }
 
-}  // namespace moveit_ros_control
+}  // namespace moveit_setup_assistant

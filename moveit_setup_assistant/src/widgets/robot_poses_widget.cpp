@@ -51,7 +51,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Set pointer to null so later we can tell if we need to delete it
@@ -406,7 +406,7 @@ void RobotPosesWidget::playPoses()
 void RobotPosesWidget::editSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   edit(ranges[0].bottomRow());
 }
@@ -583,7 +583,7 @@ srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& nam
 void RobotPosesWidget::deleteSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   int row = ranges[0].bottomRow();
 
