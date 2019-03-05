@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.12)
-
 add_subdirectory(author_information_widget)
 add_subdirectory(default_collisions_widget)
 add_subdirectory(configuration_files_widget)
@@ -11,3 +9,10 @@ add_subdirectory(ros_controllers_widget)
 add_subdirectory(simulation_widget)
 add_subdirectory(virtual_joints_widget)
 add_subdirectory(end_effectors_widget)
+
+install(
+  FILES
+    virtual_joints_widget/virtual_joints_widget.xml
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
