@@ -76,7 +76,7 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
 
 ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc,
                                                                              std::vector<unsigned int> variables)
-  : ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc), variables_(std::move(variables))
+  : ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), variables_(std::move(variables))
 {
 }
 
