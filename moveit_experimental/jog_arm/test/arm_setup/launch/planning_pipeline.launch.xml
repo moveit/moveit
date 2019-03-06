@@ -5,6 +5,6 @@
 
   <arg name="pipeline" default="ompl" />
 
-  <include file="$(find jog_arm)/test/arm_setup/launch/$(arg pipeline)_planning_pipeline.launch.xml" />
+  <include file="$(find moveit_experimental)/jog_arm/test/arm_setup/launch/$(arg pipeline)_planning_pipeline.launch.xml" />
 
 </launch>

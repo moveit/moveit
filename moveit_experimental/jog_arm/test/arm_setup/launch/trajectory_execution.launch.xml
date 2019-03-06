@@ -15,6 +15,6 @@
 
   <!-- Load the robot specific controller manager; this sets the moveit_controller_manager ROS parameter -->
   <arg name="moveit_controller_manager" default="six_dof_arm" />
-  <include file="$(find jog_arm)/test/arm_setup/launch/$(arg moveit_controller_manager)_moveit_controller_manager.launch.xml" />
+  <include file="$(find moveit_experimental)/jog_arm/test/arm_setup/launch/$(arg moveit_controller_manager)_moveit_controller_manager.launch.xml" />
 
 </launch>

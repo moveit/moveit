@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 import time
 
 import pytest
 import rospy
 from geometry_msgs.msg import TwistStamped
 
-from jog_msgs.msg import JogJoint
+from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
 JOG_ARM_STALE_TIMEOUT_S = 2.0
@@ -25,10 +25,10 @@ def node():
 
 class JointJogCmd(object):
     def __init__(self):
-        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JogJoint, queue_size=1)
+        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=1)
 
     def send_cmd(self, joint_pos):
-        jj = JogJoint()
+        jj = JointJog()
         jj.header.stamp = rospy.Time.now()
         jj.joint_names = ['joint_{}'.format(i) for i in range(len(joint_pos))]
         jj.deltas = list(map(float, joint_pos))
@@ -48,7 +48,6 @@ class CartesianJogCmd(object):
         ts.twist.angular.x, ts.twist.angular.y, ts.twist.angular.z = angular
         self._pub.publish(ts)
 
-
 def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(node):
     received = []
     sub = rospy.Subscriber(
@@ -57,35 +56,13 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     joint_cmd = JointJogCmd()
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_WAIT_TIME_S)  # wait for pub/subs to settle
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     time.sleep(JOG_ARM_INIT_WAIT_TIME_S)  # wait for jog_arm server to init
-    joint_cmd.send_cmd([0, 0, 0, 0, 0, 1])
+    # This zero-command should produce no output
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
+    rospy.sleep(1)
+    assert len(received) == 0
 
-    # wait until 103 messages received
-    # 1s timeout, 0.01s message period, 0.005s message send delay ->
-    # 99 command messages and 4 halt messages
-    while len(received) < 104:
-        rospy.wait_for_message(COMMAND_OUT_TOPIC, JointTrajectory, timeout=JOG_ARM_STALE_TIMEOUT_S)
-
-    # the first message must be a command message
-    first_msg = received[0]
-    assert first_msg.joint_names == [
-        'joint_1',
-        'joint_2',
-        'joint_3',
-        'joint_4',
-        'joint_5',
-        'joint_6',
-    ]
-    assert len(first_msg.points) == 1
-    tfs = first_msg.points[0].time_from_start
-    assert tfs.secs == 0 and tfs.nsecs == 1e7
-    assert len(first_msg.points[0].positions) == 6
-    assert len(first_msg.points[0].velocities) == 6
-    assert first_msg.points[0].velocities[5] > 0.0
-
-    # last message must be a halt message
-    last_msg = received[-1]
-    assert len(last_msg.points[0].positions) == 6
-    assert len(last_msg.points[0].velocities) == 6
-    assert last_msg.points[0].velocities[5] == pytest.approx(0.0)
+    # This nonzero command should produce jogging output
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+    rospy.sleep(1)
+    assert len(received) != 0

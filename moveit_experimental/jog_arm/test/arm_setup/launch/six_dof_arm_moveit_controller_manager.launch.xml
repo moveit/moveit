@@ -6,5 +6,5 @@
   <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
 
   <!-- loads ros_controllers to the param server -->
-  <rosparam file="$(find jog_arm)/test/arm_setup/config/ros_controllers.yaml"/>
+  <rosparam file="$(find moveit_experimental)/jog_arm/test/arm_setup/config/ros_controllers.yaml"/>
 </launch>
