@@ -62,7 +62,7 @@ MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
 
 namespace move_group
 {
-MOVEIT_CLASS_FORWARD(MoveGroupContext);
+MOVEIT_STRUCT_FORWARD(MoveGroupContext);
 
 struct MoveGroupContext
 {
