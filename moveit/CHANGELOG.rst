@@ -2,6 +2,14 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] segfault in chomp adapter (`#1377 <https://github.com/ros-planning/moveit/issues/1377>`_)
+* [capability] Graphically print current robot joint states with joint limits (`#1358 <https://github.com/ros-planning/moveit/issues/1358>`_)
+* [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
+* [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)
+* Contributors: Dave Coleman, Robert Haschke, Yu, Yan
+
 1.0.0 (2019-02-24)
 ------------------
 * [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
