@@ -46,7 +46,7 @@ namespace cached_ik_kinematics_plugin
 IKCache::IKCache()
 {
   // set distance function for nearest-neighbor queries
-  ik_nn_.setDistanceFunction([this](const IKEntry* entry1, const IKEntry* entry2) {
+  ik_nn_.setDistanceFunction([](const IKEntry* entry1, const IKEntry* entry2) {
     double dist = 0.;
     for (unsigned int i = 0; i < entry1->first.size(); ++i)
       dist += entry1->first[i].distance(entry2->first[i]);
