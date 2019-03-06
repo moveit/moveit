@@ -95,8 +95,8 @@ void parseStart(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* 
 void parseLinkConstraint(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* psm,
                          moveit_warehouse::ConstraintsStorage* cs)
 {
-  Eigen::Translation3d pos;
-  Eigen::Quaterniond rot;
+  Eigen::Translation3d pos(Eigen::Vector3d::Zero());
+  Eigen::Quaterniond rot(Eigen::Quaterniond::Identity());
 
   bool have_position = false;
   bool have_orientation = false;

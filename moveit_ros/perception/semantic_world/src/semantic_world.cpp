@@ -247,8 +247,8 @@ SemanticWorld::generatePlacePoses(const object_recognition_msgs::Table& chosen_t
 
   Eigen::Quaterniond rotation(object_orientation.x, object_orientation.y, object_orientation.z, object_orientation.w);
   Eigen::Isometry3d object_pose(rotation);
-  double min_distance_from_edge;
-  double height_above_table;
+  double min_distance_from_edge = 0;
+  double height_above_table = 0;
 
   if (object_shape->type == shapes::MESH)
   {

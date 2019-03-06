@@ -95,7 +95,7 @@ public:
     centers.push_back(std::uniform_int_distribution<size_t>{ 0, data.size() - 1 }(generator_));
     for (unsigned i = 1; i < k; ++i)
     {
-      unsigned ind;
+      unsigned ind = 0;
       const _T& center = data[centers[i - 1]];
       double maxDist = -std::numeric_limits<double>::infinity();
       for (unsigned j = 0; j < data.size(); ++j)

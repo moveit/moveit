@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   collision_detection::CollisionRequest collision_request;
   collision_detection::CollisionResult collision_result;
   std::vector<double> joint_values;
-  std::chrono::duration<double> ik_time;
+  std::chrono::duration<double> ik_time(0);
   std::chrono::time_point<std::chrono::system_clock> start, end;
   std::vector<robot_state::JointModelGroup*> groups;
   std::vector<std::string> end_effectors;
