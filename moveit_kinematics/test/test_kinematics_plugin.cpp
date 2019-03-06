@@ -413,7 +413,9 @@ static void parseVector(XmlRpc::XmlRpcValue& vec, std::vector<double>& values, s
 {
   ASSERT_EQ(vec.getType(), XmlRpc::XmlRpcValue::TypeArray);
   if (num != 0)
-    ASSERT_EQ(vec.size(), num);
+  {
+    ASSERT_EQ(static_cast<size_t>(vec.size()), num);
+  }
   values.reserve(vec.size());
   values.clear();
   for (int i = 0; i < vec.size(); ++i)
