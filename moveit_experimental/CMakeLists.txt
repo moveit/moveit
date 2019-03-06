@@ -11,6 +11,7 @@ find_package(catkin REQUIRED
 COMPONENTS
   control_msgs
   geometry_msgs
+  joy_teleop
   moveit_ros_planning_interface
   rosparam_shortcuts
   tf2_ros
