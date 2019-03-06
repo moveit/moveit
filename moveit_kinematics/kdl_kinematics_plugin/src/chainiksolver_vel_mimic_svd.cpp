@@ -58,9 +58,10 @@ ChainIkSolverVelMimicSVD::ChainIkSolverVelMimicSVD(const Chain& chain,
   , jac_reduced_(svd_.cols())
 {
   assert(mimic_joints_.size() == chain.getNrOfJoints());
+#ifndef NDEBUG
   for (const auto& item : mimic_joints)
     assert(item.map_index < chain_.getNrOfJoints());
-
+#endif
   svd_.setThreshold(threshold);
 }
 
