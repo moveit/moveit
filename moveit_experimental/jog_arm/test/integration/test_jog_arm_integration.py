@@ -56,7 +56,7 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
     time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
-    # This zero-command should produce no output
+    # This zero-command should produce no output, other than one halt message
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     received = []
     rospy.sleep(1)

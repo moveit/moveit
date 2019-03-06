@@ -11,11 +11,13 @@
 
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>joy_teleop</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
-  <depend>ros_pytest</depend>
+  <depend>rostest<depend>
   <depend>tf2_ros</depend>
+
+  <run_depend>joy_teleop</run_depend>
+  <run_depend>ros_pytest</run_depend>
 
   <export>
   </export>
