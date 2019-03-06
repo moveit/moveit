@@ -8,9 +8,8 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
-JOG_ARM_STALE_TIMEOUT_S = 2.0
-JOG_ARM_SETTLE_TIME_S = 3
-ROS_SETTLE_TIME_S = 0.5
+JOG_ARM_SETTLE_TIME_S = 10
+ROS_SETTLE_TIME_S = 10
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_arm_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_arm_server/delta_jog_cmds'
