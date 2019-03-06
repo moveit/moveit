@@ -9,8 +9,8 @@ from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
 JOG_ARM_STALE_TIMEOUT_S = 2.0
-JOG_ARM_INIT_WAIT_TIME_S = 0.5
-ROS_SETTLE_WAIT_TIME_S = 0.5
+JOG_ARM_SETTLE_TIME_S = 3
+ROS_SETTLE_TIME_S = 0.5
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_arm_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_arm_server/delta_jog_cmds'
@@ -55,12 +55,13 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     )
     joint_cmd = JointJogCmd()
     cartesian_cmd = CartesianJogCmd()
-    time.sleep(ROS_SETTLE_WAIT_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_INIT_WAIT_TIME_S)  # wait for jog_arm server to init
+    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
+    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
     # This zero-command should produce no output
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     rospy.sleep(1)
     assert len(received) == 0
+    received = []
 
     # This nonzero command should produce jogging output
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
