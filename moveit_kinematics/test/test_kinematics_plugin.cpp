@@ -292,11 +292,11 @@ public:
   std::vector<double> consistency_limits_;
   double timeout_;
   double tolerance_;
-  int num_fk_tests_;
-  int num_ik_cb_tests_;
-  int num_ik_tests_;
-  int num_ik_multiple_tests_;
-  int num_nearest_ik_tests_;
+  unsigned int num_fk_tests_;
+  unsigned int num_ik_cb_tests_;
+  unsigned int num_ik_tests_;
+  unsigned int num_ik_multiple_tests_;
+  unsigned int num_nearest_ik_tests_;
 };
 
 #define EXPECT_NEAR_POSES(lhs, rhs, near)                                                                              \
@@ -419,7 +419,7 @@ static void parseVector(XmlRpc::XmlRpcValue& vec, std::vector<double>& values, s
   }
   values.reserve(vec.size());
   values.clear();
-  for (size_t i = 0; i < vec.size(); ++i)
+  for (int i = 0; i < vec.size(); ++i)
     values.push_back(parseDouble(vec[i]));
 }
 static bool parseGoal(const std::string& name, XmlRpc::XmlRpcValue& value, Eigen::Isometry3d& goal, std::string& desc)
@@ -512,7 +512,7 @@ TEST_F(KinematicsTest, unitIK)
      - pos.y: -0.1
        joints: [0, 0, 0, 0, 0, 0]
   */
-  for (size_t i = 0; i < tests.size(); ++i)
+  for (int i = 0; i < tests.size(); ++i)
   {
     goal = initial;  // reset goal to initial
     ground_truth.clear();

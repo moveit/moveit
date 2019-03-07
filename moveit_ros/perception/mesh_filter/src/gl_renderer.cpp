@@ -440,12 +440,12 @@ GLuint mesh_filter::GLRenderer::getDepthTexture() const
   return depth_id_;
 }
 
-const unsigned mesh_filter::GLRenderer::getWidth() const
+unsigned mesh_filter::GLRenderer::getWidth() const
 {
   return width_;
 }
 
-const unsigned mesh_filter::GLRenderer::getHeight() const
+unsigned mesh_filter::GLRenderer::getHeight() const
 {
   return height_;
 }

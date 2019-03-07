@@ -56,6 +56,8 @@ public:
   Job() : done_(false)
   {
   }
+  virtual ~Job() = default;
+
   inline void wait() const;
   virtual void execute() = 0;
   inline void cancel();

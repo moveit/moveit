@@ -160,14 +160,14 @@ public:
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return width of frame buffer in pixels
    */
-  const unsigned getWidth() const;
+  unsigned getWidth() const;
 
   /**
    * \brief returns the height of the frame buffer objects in pixels
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return height of frame buffer in pixels
    */
-  const unsigned getHeight() const;
+  unsigned getHeight() const;
 
   /**
    * \brief set the size of fram buffers

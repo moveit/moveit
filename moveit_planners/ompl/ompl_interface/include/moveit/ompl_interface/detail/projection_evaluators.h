@@ -80,7 +80,6 @@ public:
   void project(const ompl::base::State* state, OMPLProjection projection) const override;
 
 private:
-  const ModelBasedPlanningContext* planning_context_;
   std::vector<unsigned int> variables_;
 };
 }
