@@ -54,4 +54,8 @@
   <test_depend>orocos_kdl</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>code_coverage</test_depend>
+
+  <export>
+    <moveit_core plugin="${prefix}/collision_detector_fcl_description.xml"/>
+  </export>
 </package>
