@@ -1,4 +1,17 @@
-# This is a comment.
+# MoveIt! is a large project with pull requests being created often. In order
+# to ensure quick review turn around time from our maintainer team, we're
+# leveraging an automated "triage" approach to auto-assign reviews to new pull
+# requests. If you already know who should review your PR, then you can assign
+# them manually. Otherwise, this code owners file will help assign reviewers
+# and reduce the amount of email received by maintainers having to "Watch" the
+# entire repository.
+
+# When a PR is finished being created ("Create Pull Request" is clicked), the
+# codeowner of each file in the PR will be added to the list of reviewers.
+# Code owners are maintainers who are familiar with certain parts of the code,
+# and thus more likely to review a PR relating to them. Being a code owner
+# does not imply authorship, control or ownership in a legal sense.
+
 # Each line in this file is a file pattern followed by one or more
 # @github_usernames and/or e-mail addresses corresponding to users with write
 # permissions for the repository.
@@ -10,61 +23,53 @@
 # The users below will be the default owners for everything in the repository.
 # Unless a line further in this file matches, all of the users here will be
 # requested for review when someone opens a pull request.
-*	dave@picknik.ai me@v4hn.de mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+*	@davetcoleman @v4hn @mikeferguson
 
 # The lines below correspond to directories with a package.xml file and the
 # maintainers specified in that file
 
-/moveit_runtime/	gm130s@gmail.com
+/moveit_plugins/moveit_ros_control_interface/	@ipa-mdl
 
-/moveit_plugins/moveit_plugins/	me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_plugins/moveit_fake_controller_manager/	@v4hn
 
-/moveit_plugins/moveit_ros_control_interface/	mathias.luedtke@ipa.fraunhofer.de moveit_releasers@googlegroups.com
+/moveit_plugins/moveit_simple_controller_manager/	@mikeferguson @v4hn
 
-/moveit_plugins/moveit_fake_controller_manager/	me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_plugins/moveit_controller_manager_example/	@v4hn
 
-/moveit_plugins/moveit_simple_controller_manager/	mferguson@fetchrobotics.com me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_core/	@davetcoleman @v4hn @mikeferguson
 
-/moveit_plugins/moveit_controller_manager_example/	me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_commander/	@v4hn @rhaschke
 
-/moveit_core/	dave@picknik.ai me@v4hn.de mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+/moveit/	@davetcoleman @mikeferguson @v4hn @rhaschke @IanTheEngineer @130s
 
-/moveit_commander/	me@v4hn.de rhaschke@techfak.uni-bielefeld.de moveit_releasers@googlegroups.com
+/moveit_kinematics/	@davetcoleman @gavanderhoorn @jrgnicho
 
-/moveit/	dave@picknik.ai mferguson@fetchrobotics.com me@v4hn.de rhaschke@techfak.uni-bielefeld.de imcmahon01@gmail.com 130s@2000.jukuin.keio.ac.jp
+/moveit_experimental/	@AndyZe
 
-/moveit_kinematics/	dave@picknik.ai g.a.vanderhoorn@tudelft.nl jorge.nicho@swri.org moveit_releasers@googlegroups.com
+/moveit_ros/perception/	@mikeferguson
 
-/moveit_experimental/	moveit_releasers@googlegroups.com
+/moveit_ros/manipulation/	@v4hn @mikeferguson
 
-/moveit_ros/perception/	mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+/moveit_ros/benchmarks/	@davetcoleman
 
-/moveit_ros/manipulation/	me@v4hn.de mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+/moveit_ros/planning_interface/	@mikeferguson @v4hn
 
-/moveit_ros/benchmarks/	dave@picknik.ai moveit_releasers@googlegroups.com
+/moveit_ros/robot_interaction/	@mikeferguson @rhaschke
 
-/moveit_ros/moveit_ros/	mferguson@fetchrobotics.com me@v4hn.de dave@picknik.ai moveit_releasers@googlegroups.com
+/moveit_ros/planning/	@mikeferguson @v4hn
 
-/moveit_ros/planning_interface/	mferguson@fetchrobotics.com me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_ros/warehouse/	@mikeferguson
 
-/moveit_ros/robot_interaction/	mferguson@fetchrobotics.com rhaschke@techfak.uni-bielefeld.de moveit_releasers@googlegroups.com
+/moveit_ros/move_group/	@mikeferguson @v4hn
 
-/moveit_ros/planning/	mferguson@fetchrobotics.com me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_ros/visualization/	@jonbinney @mikeferguson
 
-/moveit_ros/warehouse/	mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+/moveit_setup_assistant/	@davetcoleman @rhaschke
 
-/moveit_ros/move_group/	mferguson@fetchrobotics.com me@v4hn.de moveit_releasers@googlegroups.com
+/moveit_planners/ompl/	@BryceStevenWilley @zkingston
 
-/moveit_ros/visualization/	jon.binney@gmail.com mferguson@fetchrobotics.com moveit_releasers@googlegroups.com
+/moveit_planners/chomp/chomp_interface/	@sachinchitta @davetcoleman
 
-/moveit_setup_assistant/	dave@picknik.ai rhaschke@techfak.uni-bielefeld.de moveit_releasers@googlegroups.com
+/moveit_planners/chomp/chomp_optimizer_adapter/	@raghavendersahdev
 
-/moveit_planners/ompl/	dave@picknik.ai moveit_releasers@googlegroups.com
-
-/moveit_planners/moveit_planners/	dave@picknik.ai moveit_releasers@googlegroups.com
-
-/moveit_planners/chomp/chomp_interface/	chitt@live.in dave@picknik.ai moveit_releasers@googlegroups.com
-
-/moveit_planners/chomp/chomp_optimizer_adapter/	raghavendersahdev@gmail.com moveit_releasers@googlegroups.com
-
-/moveit_planners/chomp/chomp_motion_planner/	chitt@live.in moveit_releasers@googlegroups.com
+/moveit_planners/chomp/chomp_motion_planner/	@sachinchitta
