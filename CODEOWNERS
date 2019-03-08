@@ -23,7 +23,7 @@
 # The users below will be the default owners for everything in the repository.
 # Unless a line further in this file matches, all of the users here will be
 # requested for review when someone opens a pull request.
-*	@davetcoleman @v4hn @mikeferguson
+*	@davetcoleman @v4hn @rhaschke 
 
 # The lines below correspond to directories with a package.xml file and the
 # maintainers specified in that file
@@ -36,40 +36,44 @@
 
 /moveit_plugins/moveit_controller_manager_example/	@v4hn
 
-/moveit_core/	@davetcoleman @v4hn @mikeferguson
+/moveit_core/	@davetcoleman @v4hn @mlautman
 
 /moveit_commander/	@v4hn @rhaschke
 
-/moveit/	@davetcoleman @mikeferguson @v4hn @rhaschke @IanTheEngineer @130s
+/moveit/	@130s
 
-/moveit_kinematics/	@davetcoleman @gavanderhoorn @jrgnicho
+/moveit_kinematics/	@rhaschke @gavanderhoorn @jrgnicho
 
 /moveit_experimental/	@AndyZe
 
-/moveit_ros/perception/	@mikeferguson
+/moveit_ros/perception/	@mikeferguson @jonbinney
+--
 
-/moveit_ros/manipulation/	@v4hn @mikeferguson
 
-/moveit_ros/benchmarks/	@davetcoleman
 
-/moveit_ros/planning_interface/	@mikeferguson @v4hn
+
+/moveit_ros/manipulation/	@v4hn @felixvd 
+
+/moveit_ros/benchmarks/	@davetcoleman @MohmadAyman 
+
+/moveit_ros/planning_interface/	@mintar @rhaschke 
 
 /moveit_ros/robot_interaction/	@mikeferguson @rhaschke
 
-/moveit_ros/planning/	@mikeferguson @v4hn
+/moveit_ros/planning/	@henningkayser @v4hn
 
-/moveit_ros/warehouse/	@mikeferguson
+/moveit_ros/warehouse/	@mikeferguson @dg-shadow 
 
-/moveit_ros/move_group/	@mikeferguson @v4hn
+/moveit_ros/move_group/	@IanTheEngineer @v4hn
 
-/moveit_ros/visualization/	@jonbinney @mikeferguson
+/moveit_ros/visualization/	@jonbinney @christian-rauch 
 
-/moveit_setup_assistant/	@davetcoleman @rhaschke
+/moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman 
 
 /moveit_planners/ompl/	@BryceStevenWilley @zkingston
 
-/moveit_planners/chomp/chomp_interface/	@sachinchitta @davetcoleman
+/moveit_planners/chomp/chomp_interface/    @raghavendersahdev @knorth55 @bmagyar
 
-/moveit_planners/chomp/chomp_optimizer_adapter/	@raghavendersahdev
+/moveit_planners/chomp/chomp_optimizer_adapter/	@raghavendersahdev @knorth55 @bmagyar
 
-/moveit_planners/chomp/chomp_motion_planner/	@sachinchitta
+/moveit_planners/chomp/chomp_motion_planner/	@raghavendersahdev @knorth55 @bmagyar
