@@ -91,7 +91,7 @@ void RobotState::allocMemory()
                     sizeof(Eigen::Isometry3d),
                 "sizeof(Eigen::Isometry3d) should be a multiple of EIGEN_MAX_ALIGN_BYTES");
 
-  unsigned int extra_alignment_bytes = EIGEN_MAX_ALIGN_BYTES - 1;
+  constexpr unsigned int extra_alignment_bytes = EIGEN_MAX_ALIGN_BYTES - 1;
   // memory for the dirty joint transforms
   const int nr_doubles_for_dirty_joint_transforms =
       1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
