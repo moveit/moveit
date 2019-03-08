@@ -7,6 +7,8 @@ Forthcoming
 * [fix] segfault in chomp adapter (`#1377 <https://github.com/ros-planning/moveit/issues/1377>`_)
 * [capability] Graphically print current robot joint states with joint limits (`#1358 <https://github.com/ros-planning/moveit/issues/1358>`_)
 * [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
+* [capability] Add time-optimal trajectory parameterization https://github.com/ros-planning/moveit/pull/1365
+* [capability] FCL as a plugin  https://github.com/ros-planning/moveit/pull/1370
 * [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)
 * Contributors: Dave Coleman, Robert Haschke, Yu, Yan
 
