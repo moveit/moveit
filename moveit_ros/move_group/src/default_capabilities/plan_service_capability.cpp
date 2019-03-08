@@ -53,7 +53,7 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
 {
   ROS_INFO("Received new planning service request...");
   // before we start planning, ensure that we have the latest robot state received...
-  if (req.motion_plan_request.start_state.is_diff == true)
+  if (static_cast<bool>(req.motion_plan_request.start_state.is_diff))
     context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
 

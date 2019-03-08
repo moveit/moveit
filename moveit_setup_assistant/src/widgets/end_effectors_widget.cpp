@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -261,7 +261,7 @@ void EndEffectorsWidget::previewClicked(int row, int column)
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Find the selected in datastructure
@@ -299,7 +299,7 @@ void EndEffectorsWidget::editSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -398,7 +398,7 @@ void EndEffectorsWidget::loadParentComboBox()
 srdf::Model::EndEffector* EndEffectorsWidget::findEffectorByName(const std::string& name)
 {
   // Find the group state we are editing based on the effector name
-  srdf::Model::EndEffector* searched_group = NULL;  // used for holding our search results
+  srdf::Model::EndEffector* searched_group = nullptr;  // used for holding our search results
 
   for (std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin();
        effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it)
@@ -411,7 +411,7 @@ srdf::Model::EndEffector* EndEffectorsWidget::findEffectorByName(const std::stri
   }
 
   // Check if effector was found
-  if (searched_group == NULL)  // not found
+  if (searched_group == nullptr)  // not found
   {
     QMessageBox::critical(this, "Error Saving", "An internal error has occured while saving. Quitting.");
     QApplication::quit();
@@ -429,7 +429,7 @@ void EndEffectorsWidget::deleteSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -471,7 +471,7 @@ void EndEffectorsWidget::doneEditing()
   const std::string effector_name = effector_name_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::EndEffector* searched_data = NULL;
+  srdf::Model::EndEffector* searched_data = nullptr;
 
   // Check that name field is not empty
   if (effector_name.empty())
@@ -549,7 +549,7 @@ void EndEffectorsWidget::doneEditing()
   // Save the new effector name or create the new effector ----------------------------
   bool isNew = false;
 
-  if (searched_data == NULL)  // create new
+  if (searched_data == nullptr)  // create new
   {
     isNew = true;
 
@@ -644,7 +644,7 @@ void EndEffectorsWidget::loadDataTable()
   data_table_->resizeColumnToContents(3);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->end_effectors_.size() > 0)
+  if (!config_data_->srdf_->end_effectors_.empty())
     btn_edit_->show();
 }
 
@@ -664,4 +664,4 @@ void EndEffectorsWidget::focusGiven()
   loadParentComboBox();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

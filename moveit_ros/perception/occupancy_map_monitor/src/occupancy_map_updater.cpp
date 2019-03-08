@@ -43,9 +43,7 @@ OccupancyMapUpdater::OccupancyMapUpdater(const std::string& type) : type_(type)
 {
 }
 
-OccupancyMapUpdater::~OccupancyMapUpdater()
-{
-}
+OccupancyMapUpdater::~OccupancyMapUpdater() = default;
 
 void OccupancyMapUpdater::setMonitor(OccupancyMapMonitor* monitor)
 {
@@ -81,4 +79,4 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string& target_frame, 
     return false;
   }
 }
-}
+}  // namespace occupancy_map_monitor

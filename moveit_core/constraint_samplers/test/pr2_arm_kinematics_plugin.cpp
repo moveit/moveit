@@ -428,4 +428,4 @@ const std::vector<std::string>& PR2ArmKinematicsPlugin::getLinkNames() const
   return fk_solver_info_.link_names;
 }
 
-}  // namespace
+}  // namespace pr2_arm_kinematics

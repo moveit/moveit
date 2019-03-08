@@ -54,6 +54,6 @@ public:
     return planner(planning_scene, req, res);
   }
 };
-}
+}  // namespace default_planner_request_adapters
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::Empty, planning_request_adapter::PlanningRequestAdapter);

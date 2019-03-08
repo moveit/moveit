@@ -62,13 +62,13 @@ class TestAABB : public testing::Test
 protected:
   void SetUp() override{};
 
-  robot_state::RobotState loadModel(const std::string robot_name)
+  robot_state::RobotState loadModel(const std::string& robot_name)
   {
     robot_model::RobotModelPtr model = moveit::core::loadTestingRobotModel(robot_name);
     return loadModel(model);
   }
 
-  robot_state::RobotState loadModel(robot_model::RobotModelPtr model)
+  robot_state::RobotState loadModel(const robot_model::RobotModelPtr& model)
   {
     robot_state::RobotState robot_state = robot_state::RobotState(model);
     robot_state.setToDefaultValues();

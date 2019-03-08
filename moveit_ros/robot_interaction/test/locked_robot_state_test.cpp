@@ -523,7 +523,7 @@ static void runThreads(int ncheck, int nset, int nmod)
   }
 
   ASSERT_EQ(p, num);
-  counters[p] = NULL;
+  counters[p] = nullptr;
 
   // this thread waits for all the other threads to make progress, then stops
   // everything.

@@ -79,13 +79,13 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 MotionPlanningDisplay::MotionPlanningDisplay()
   : PlanningSceneDisplay()
-  , text_to_display_(NULL)
+  , text_to_display_(nullptr)
   , private_handle_("~")
-  , frame_(NULL)
-  , frame_dock_(NULL)
+  , frame_(nullptr)
+  , frame_dock_(nullptr)
   , menu_handler_start_(new interactive_markers::MenuHandler)
   , menu_handler_goal_(new interactive_markers::MenuHandler)
-  , int_marker_display_(NULL)
+  , int_marker_display_(nullptr)
 {
   // Category Groups
   plan_category_ = new rviz::Property("Planning Request", QVariant(), "", this);
@@ -199,7 +199,8 @@ void MotionPlanningDisplay::onInitialize()
   QColor qcolor = attached_body_color_property_->getColor();
   trajectory_visual_->setDefaultAttachedObjectColor(qcolor);
 
-  query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
+  query_robot_start_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", nullptr));
   query_robot_start_->setCollisionVisible(false);
   query_robot_start_->setVisualVisible(true);
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -211,7 +212,8 @@ void MotionPlanningDisplay::onInitialize()
   color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
 
-  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", NULL));
+  query_robot_goal_.reset(
+      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
@@ -222,7 +224,7 @@ void MotionPlanningDisplay::onInitialize()
   query_robot_goal_->setDefaultAttachedObjectColor(color);
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
-  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
+  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : nullptr);
   resetStatusTextColor();
   addStatusText("Initialized.");
 
@@ -311,7 +313,8 @@ void MotionPlanningDisplay::setName(const QString& name)
   trajectory_visual_->setName(name);
 }
 
-void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent, const std::string&)
+void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent /*unused*/,
+                                                const std::string& /*unused*/)
 {
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::updateBackgroundJobProgressBar, this));
 }
@@ -583,7 +586,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
       }
     }
 
-    const robot_state::LinkModel* lm = NULL;
+    const robot_state::LinkModel* lm = nullptr;
     const robot_model::JointModelGroup* jmg = getRobotModel()->getJointModelGroup(eef[i].parent_group);
     if (jmg)
       if (!jmg->getLinkModelNames().empty())
@@ -895,7 +898,7 @@ void MotionPlanningDisplay::changedAttachedBodyColor()
   trajectory_visual_->setDefaultAttachedObjectColor(color);
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::InteractionHandler*,
+void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::InteractionHandler* /*unused*/,
                                                         bool error_state_changed)
 {
   if (!planning_scene_monitor_)
@@ -907,7 +910,8 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Inter
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler*, bool error_state_changed)
+void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::InteractionHandler* /*unused*/,
+                                                       bool error_state_changed)
 {
   if (!planning_scene_monitor_)
     return;

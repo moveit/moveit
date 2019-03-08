@@ -55,8 +55,8 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater()
   , max_range_(std::numeric_limits<double>::infinity())
   , point_subsample_(1)
   , max_update_rate_(0)
-  , point_cloud_subscriber_(NULL)
-  , point_cloud_filter_(NULL)
+  , point_cloud_subscriber_(nullptr)
+  , point_cloud_filter_(nullptr)
 {
 }
 
@@ -132,8 +132,8 @@ void PointCloudOctomapUpdater::stopHelper()
 void PointCloudOctomapUpdater::stop()
 {
   stopHelper();
-  point_cloud_filter_ = NULL;
-  point_cloud_subscriber_ = NULL;
+  point_cloud_filter_ = nullptr;
+  point_cloud_subscriber_ = nullptr;
 }
 
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape)
@@ -155,12 +155,11 @@ void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
 bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
-  if (it == transform_cache_.end())
+  if (it != transform_cache_.end())
   {
-    return false;
+    transform = it->second;
   }
-  transform = it->second;
-  return true;
+  return it != transform_cache_.end();
 }
 
 void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
@@ -360,4 +359,4 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     filtered_cloud_publisher_.publish(*filtered_cloud);
   }
 }
-}
+}  // namespace occupancy_map_monitor

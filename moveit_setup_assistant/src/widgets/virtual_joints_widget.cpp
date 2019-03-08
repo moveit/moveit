@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+VirtualJointsWidget::VirtualJointsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -289,7 +289,7 @@ void VirtualJointsWidget::editSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -375,7 +375,7 @@ void VirtualJointsWidget::loadChildLinksComboBox()
 srdf::Model::VirtualJoint* VirtualJointsWidget::findVJointByName(const std::string& name)
 {
   // Find the group state we are editing based on the vjoint name
-  srdf::Model::VirtualJoint* searched_group = NULL;  // used for holding our search results
+  srdf::Model::VirtualJoint* searched_group = nullptr;  // used for holding our search results
 
   for (std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
        vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it)
@@ -388,7 +388,7 @@ srdf::Model::VirtualJoint* VirtualJointsWidget::findVJointByName(const std::stri
   }
 
   // Check if vjoint was found
-  if (searched_group == NULL)  // not found
+  if (searched_group == nullptr)  // not found
   {
     QMessageBox::critical(this, "Error Saving", "An internal error has occured while saving. Quitting.");
     QApplication::quit();
@@ -406,7 +406,7 @@ void VirtualJointsWidget::deleteSelected()
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   // Get selected name and edit it
@@ -449,7 +449,7 @@ void VirtualJointsWidget::doneEditing()
   const std::string parent_name = parent_name_field_->text().trimmed().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::VirtualJoint* searched_data = NULL;
+  srdf::Model::VirtualJoint* searched_data = nullptr;
 
   // Check that name field is not empty
   if (vjoint_name.empty())
@@ -506,7 +506,7 @@ void VirtualJointsWidget::doneEditing()
   // Save the new vjoint name or create the new vjoint ----------------------------
   bool isNew = false;
 
-  if (searched_data == NULL)  // create new
+  if (searched_data == nullptr)  // create new
   {
     isNew = true;
     searched_data = new srdf::Model::VirtualJoint();
@@ -609,7 +609,7 @@ void VirtualJointsWidget::loadDataTable()
   data_table_->resizeColumnToContents(3);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->virtual_joints_.size())
+  if (!config_data_->srdf_->virtual_joints_.empty())
     btn_edit_->show();
 }
 
@@ -628,4 +628,4 @@ void VirtualJointsWidget::focusGiven()
   loadChildLinksComboBox();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

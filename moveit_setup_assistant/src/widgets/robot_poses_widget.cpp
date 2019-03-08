@@ -51,11 +51,11 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt! Configuration Assistant
 // ******************************************************************************************
-RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Set pointer to null so later we can tell if we need to delete it
-  joint_list_layout_ = NULL;
+  joint_list_layout_ = nullptr;
 
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -406,7 +406,7 @@ void RobotPosesWidget::playPoses()
 void RobotPosesWidget::editSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   edit(ranges[0].bottomRow());
 }
@@ -563,7 +563,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& name, const std::string& group)
 {
   // Find the group state we are editing based on the pose name
-  srdf::Model::GroupState* searched_state = NULL;  // used for holding our search results
+  srdf::Model::GroupState* searched_state = nullptr;  // used for holding our search results
 
   for (srdf::Model::GroupState& state : config_data_->srdf_->group_states_)
   {
@@ -583,7 +583,7 @@ srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& nam
 void RobotPosesWidget::deleteSelected()
 {
   const auto& ranges = data_table_->selectedRanges();
-  if (!ranges.size())
+  if (ranges.empty())
     return;
   int row = ranges[0].bottomRow();
 
@@ -625,7 +625,7 @@ void RobotPosesWidget::doneEditing()
   const std::string& group = group_name_field_->currentText().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::GroupState* searched_data = NULL;
+  srdf::Model::GroupState* searched_data = nullptr;
 
   // Check that name field is not empty
   if (name.empty())
@@ -661,7 +661,7 @@ void RobotPosesWidget::doneEditing()
   // Save the new pose name or create the new pose ----------------------------
   bool isNew = false;
 
-  if (searched_data == NULL)  // create new
+  if (searched_data == nullptr)  // create new
   {
     isNew = true;
     searched_data = new srdf::Model::GroupState();
@@ -764,7 +764,7 @@ void RobotPosesWidget::loadDataTable()
   data_table_->resizeColumnToContents(1);
 
   // Show edit button if applicable
-  if (config_data_->srdf_->group_states_.size())
+  if (!config_data_->srdf_->group_states_.empty())
     btn_edit_->show();
 }
 
@@ -822,7 +822,7 @@ void RobotPosesWidget::publishJoints()
   config_data_->getPlanningScene()->checkSelfCollision(
       request, result, config_data_->getPlanningScene()->getCurrentState(), config_data_->allowed_collision_matrix_);
   // Show result notification
-  if (result.contacts.size())
+  if (!result.contacts.empty())
   {
     collision_warning_->show();
   }
@@ -909,9 +909,7 @@ SliderWidget::SliderWidget(QWidget* parent, const robot_model::JointModel* joint
 // ******************************************************************************************
 // Deconstructor
 // ******************************************************************************************
-SliderWidget::~SliderWidget()
-{
-}
+SliderWidget::~SliderWidget() = default;
 
 // ******************************************************************************************
 // Called when the joint value slider is changed
@@ -949,4 +947,4 @@ void SliderWidget::changeJointSlider()
   Q_EMIT jointValueChanged(joint_model_->getName(), value);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

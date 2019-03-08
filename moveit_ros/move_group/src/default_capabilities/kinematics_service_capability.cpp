@@ -64,7 +64,7 @@ bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
   return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName())) &&
          (!constraint_set || constraint_set->decide(*state).satisfied);
 }
-}
+}  // namespace
 
 void move_group::MoveGroupKinematicsService::computeIK(
     moveit_msgs::PositionIKRequest& req, moveit_msgs::RobotState& solution, moveit_msgs::MoveItErrorCodes& error_code,
@@ -155,8 +155,8 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
     computeIK(req.ik_request, res.solution, res.error_code, rs,
               boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
                                                   static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
-                                                  NULL,
-                          kset.empty() ? NULL : &kset, _1, _2, _3));
+                                                  nullptr,
+                          kset.empty() ? nullptr : &kset, _1, _2, _3));
   }
   else
   {

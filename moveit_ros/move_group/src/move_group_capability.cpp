@@ -83,7 +83,7 @@ void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execut
 {
   if (trajectory.size() > 1)
     ROS_ERROR_STREAM("Internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
-  if (trajectory.size() > 0)
+  if (!trajectory.empty())
     convertToMsg(trajectory[0].trajectory_, first_state_msg, trajectory_msg);
 }
 

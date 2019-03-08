@@ -46,7 +46,7 @@
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-namespace moveit_ros_control
+namespace moveit_setup_assistant
 {
 class ControllerEditWidget : public QWidget
 {
@@ -58,7 +58,7 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  ControllerEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  ControllerEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
 
   /// Set the previous data
   void setSelected(const std::string& controller_name);

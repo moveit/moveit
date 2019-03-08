@@ -48,7 +48,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 //
 // ******************************************************************************************
-GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -338,4 +338,4 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

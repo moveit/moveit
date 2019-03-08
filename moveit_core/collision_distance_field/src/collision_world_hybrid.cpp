@@ -35,6 +35,7 @@
 /* Author: E. Gil Jones */
 
 #include <moveit/collision_distance_field/collision_world_hybrid.h>
+#include <utility>
 
 namespace collision_detection
 {
@@ -43,7 +44,8 @@ CollisionWorldHybrid::CollisionWorldHybrid(Eigen::Vector3d size, Eigen::Vector3d
                                            double max_propogation_distance)
   : CollisionWorldFCL()
   , cworld_distance_(new collision_detection::CollisionWorldDistanceField(
-        getWorld(), size, origin, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance))
+        getWorld(), std::move(size), std::move(origin), use_signed_distance_field, resolution, collision_tolerance,
+        max_propogation_distance))
 
 {
 }
@@ -53,7 +55,8 @@ CollisionWorldHybrid::CollisionWorldHybrid(const WorldPtr& world, Eigen::Vector3
                                            double collision_tolerance, double max_propogation_distance)
   : CollisionWorldFCL(world)
   , cworld_distance_(new collision_detection::CollisionWorldDistanceField(
-        getWorld(), size, origin, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance))
+        getWorld(), std::move(size), std::move(origin), use_signed_distance_field, resolution, collision_tolerance,
+        max_propogation_distance))
 {
 }
 
@@ -151,7 +154,7 @@ void CollisionWorldHybrid::getAllCollisions(const CollisionRequest& req, Collisi
 {
   cworld_distance_->getAllCollisions(req, res, robot, state, acm, gsr);
 }
-}
+}  // namespace collision_detection
 
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 const std::string collision_detection::CollisionDetectorAllocatorHybrid::NAME_("HYBRID");

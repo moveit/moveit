@@ -50,8 +50,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 //
 // ******************************************************************************************
-DoubleListWidget::DoubleListWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
-                                   QString long_name, QString short_name, bool add_ok_cancel)
+DoubleListWidget::DoubleListWidget(QWidget* parent, const MoveItConfigDataPtr& config_data, const QString& long_name,
+                                   const QString& short_name, bool add_ok_cancel)
   : QWidget(parent), long_name_(long_name), short_name_(short_name), config_data_(config_data)
 {
   // Basic widget container
@@ -320,16 +320,15 @@ void DoubleListWidget::previewSelectedRight(const QItemSelection& selected, cons
 void DoubleListWidget::previewSelected(const QList<QTableWidgetItem*>& selected)
 {
   // Check that an element was selected
-  if (!selected.size())
+  if (selected.empty())
     return;
 
   std::vector<std::string> selected_vector;
 
   // Convert QList to std vector
+  selected_vector.reserve(selected.size());
   for (int i = 0; i < selected.size(); ++i)
-  {
-    selected_vector.push_back(selected[i]->text().toStdString());
-  }
+    selected_vector.emplace_back(selected[i]->text().toStdString());
 
   // Send to shared function
   Q_EMIT(previewSelected(selected_vector));

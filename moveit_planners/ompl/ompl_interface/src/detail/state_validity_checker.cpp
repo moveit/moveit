@@ -217,13 +217,12 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   if (!res.collision)
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
-    return true;
   }
   else
   {
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
-    return false;
   }
+  return !res.collision;
 }
 
 bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State* state, double& dist,

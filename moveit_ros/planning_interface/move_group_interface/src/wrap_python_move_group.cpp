@@ -654,8 +654,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   MoveGroupInterfaceClass.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
 }
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 BOOST_PYTHON_MODULE(_moveit_move_group_interface)
 {

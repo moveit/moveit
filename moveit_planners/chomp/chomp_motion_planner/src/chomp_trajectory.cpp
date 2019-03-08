@@ -41,7 +41,7 @@
 namespace chomp
 {
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration,
-                                 double discretization, std::string group_name)
+                                 double discretization, const std::string& group_name)
   : planning_group_name_(group_name)
   , num_points_((duration / discretization) + 1)
   , discretization_(discretization)
@@ -55,7 +55,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
 }
 
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points,
-                                 double discretization, std::string group_name)
+                                 double discretization, const std::string& group_name)
   : planning_group_name_(group_name)
   , num_points_(num_points)
   , discretization_(discretization)
@@ -68,9 +68,9 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   init();
 }
 
-ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group,
+ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& group_name,
                                  int diff_rule_length)
-  : planning_group_name_(planning_group), discretization_(source_traj.discretization_)
+  : planning_group_name_(group_name), discretization_(source_traj.discretization_)
 {
   num_joints_ = source_traj.getNumJoints();
 
@@ -105,9 +105,9 @@ ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::
   }
 }
 
-ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& planning_group,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                                  const trajectory_msgs::JointTrajectory& traj)
-  : planning_group_name_(planning_group)
+  : planning_group_name_(group_name)
 {
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getActiveJointModels().size();
@@ -139,9 +139,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   overwriteTrajectory(traj);
 }
 
-ChompTrajectory::~ChompTrajectory()
-{
-}
+ChompTrajectory::~ChompTrajectory() = default;
 
 void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj)
 {

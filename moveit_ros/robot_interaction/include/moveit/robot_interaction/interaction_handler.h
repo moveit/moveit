@@ -50,9 +50,9 @@ MOVEIT_CLASS_FORWARD(InteractionHandler);
 MOVEIT_CLASS_FORWARD(RobotInteraction);
 MOVEIT_CLASS_FORWARD(KinematicOptionsMap);
 
-class EndEffectorInteraction;
-class JointInteraction;
-class GenericInteraction;
+struct EndEffectorInteraction;
+struct JointInteraction;
+struct GenericInteraction;
 
 /// Function type for notifying client of RobotState changes.
 ///

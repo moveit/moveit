@@ -46,7 +46,7 @@
 
 namespace moveit_rviz_plugin
 {
-void MotionPlanningFrame::populateRobotStatesList(void)
+void MotionPlanningFrame::populateRobotStatesList()
 {
   ui_->list_states->clear();
   for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
@@ -249,4 +249,4 @@ void MotionPlanningFrame::clearStatesButtonClicked()
   populateRobotStatesList();
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

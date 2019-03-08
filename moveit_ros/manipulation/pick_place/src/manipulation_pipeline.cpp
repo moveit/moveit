@@ -42,7 +42,7 @@ namespace pick_place
 ManipulationPipeline::ManipulationPipeline(const std::string& name, unsigned int nthreads)
   : name_(name), nthreads_(nthreads), verbose_(false), stop_processing_(true)
 {
-  processing_threads_.resize(nthreads, NULL);
+  processing_threads_.resize(nthreads, nullptr);
 }
 
 ManipulationPipeline::~ManipulationPipeline()
@@ -133,7 +133,7 @@ void ManipulationPipeline::stop()
     {
       processing_threads_[i]->join();
       delete processing_threads_[i];
-      processing_threads_[i] = NULL;
+      processing_threads_[i] = nullptr;
     }
 }
 
@@ -173,7 +173,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
         {
           bool res = stages_[i]->evaluate(g);
           g->processing_stage_ = i + 1;
-          if (res == false)
+          if (!res)
           {
             boost::mutex::scoped_lock slock(result_lock_);
             failed_.push_back(g);
@@ -227,4 +227,4 @@ void ManipulationPipeline::reprocessLastFailure()
                                             << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
-}
+}  // namespace pick_place

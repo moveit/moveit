@@ -647,7 +647,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
 
           robot_state::RobotStatePtr goal_state(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
           for (std::size_t i = 0; i < mp->goal_constraints.size(); ++i)
-            if (mp->goal_constraints[i].joint_constraints.size() > 0)
+            if (!mp->goal_constraints[i].joint_constraints.empty())
             {
               std::map<std::string, double> vals;
               for (std::size_t j = 0; j < mp->goal_constraints[i].joint_constraints.size(); ++j)
@@ -955,4 +955,4 @@ void MotionPlanningFrame::importFromTextButtonClicked()
     planning_display_->addBackgroundJob(
         boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
 }
-}
+}  // namespace moveit_rviz_plugin

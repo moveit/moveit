@@ -41,12 +41,12 @@
 #include <QGroupBox>
 #include "controller_edit_widget.h"
 
-namespace moveit_ros_control
+namespace moveit_setup_assistant
 {
 // ******************************************************************************************
 //  ControllerEditWidget constructor, create controller edit screen GUI
 // ******************************************************************************************
-ControllerEditWidget::ControllerEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+ControllerEditWidget::ControllerEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -163,7 +163,7 @@ void ControllerEditWidget::setSelected(const std::string& controller_name)
   controller_name_field_->setText(QString(controller_name.c_str()));
   moveit_setup_assistant::ROSControlConfig* searched_controller =
       config_data_->findROSControllerByName(controller_name);
-  if (searched_controller != NULL)
+  if (searched_controller != nullptr)
   {
     const std::string controller_type = searched_controller->type_;
     int type_index = controller_type_field_->findText(controller_type.c_str());
@@ -259,4 +259,4 @@ std::string ControllerEditWidget::getControllerType()
   return controller_type_field_->currentText().toStdString();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

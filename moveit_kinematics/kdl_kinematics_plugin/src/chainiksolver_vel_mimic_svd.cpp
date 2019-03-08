@@ -40,7 +40,7 @@ unsigned int countMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimi
   }
   return num_mimic;
 }
-}
+}  // namespace
 
 namespace KDL
 {
@@ -58,9 +58,10 @@ ChainIkSolverVelMimicSVD::ChainIkSolverVelMimicSVD(const Chain& chain,
   , jac_reduced_(svd_.cols())
 {
   assert(mimic_joints_.size() == chain.getNrOfJoints());
+#ifndef NDEBUG
   for (const auto& item : mimic_joints)
     assert(item.map_index < chain_.getNrOfJoints());
-
+#endif
   svd_.setThreshold(threshold);
 }
 
@@ -70,9 +71,7 @@ void ChainIkSolverVelMimicSVD::updateInternalDataStructures()
   // to react to changes in chain
 }
 
-ChainIkSolverVelMimicSVD::~ChainIkSolverVelMimicSVD()
-{
-}
+ChainIkSolverVelMimicSVD::~ChainIkSolverVelMimicSVD() = default;
 
 bool ChainIkSolverVelMimicSVD::jacToJacReduced(const Jacobian& jac, Jacobian& jac_reduced)
 {
@@ -130,4 +129,4 @@ int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in,
 
   return 0;
 }
-}
+}  // namespace KDL

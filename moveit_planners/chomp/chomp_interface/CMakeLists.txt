@@ -11,7 +11,6 @@ else()
   set(CHOMP_TEST_DEPS)
 endif()
 
-#catkin_lint: ignore_once duplicate_find  (find_package(catkin))
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core

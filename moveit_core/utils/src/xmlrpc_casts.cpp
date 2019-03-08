@@ -87,5 +87,5 @@ bool isStruct(XmlRpc::XmlRpcValue& v, const std::vector<std::string>& keys, cons
 
   return missing.empty();
 }
-}
-}
+}  // namespace core
+}  // namespace moveit

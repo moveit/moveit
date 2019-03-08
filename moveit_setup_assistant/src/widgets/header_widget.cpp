@@ -166,7 +166,7 @@ void LoadPathWidget::btn_file_dialog()
   }
 
   // check they did not press cancel
-  if (path != NULL)
+  if (!path.isNull())
     path_box_->setText(path);
 }
 
@@ -229,4 +229,4 @@ void LoadPathArgsWidget::setArgsEnabled(bool enabled)
 {
   args_->setEnabled(enabled);
 }
-}
+}  // namespace moveit_setup_assistant

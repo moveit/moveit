@@ -126,10 +126,8 @@ void ChompOptimizer::initialize()
   const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getActiveJointModels();
   for (size_t i = 0; i < joint_models.size(); i++)
   {
-    const moveit::core::JointModel* model = joint_models[i];
     double joint_cost = 1.0;
-    std::string joint_name = model->getName();
-    // nh.param("joint_costs/" + joint_name, joint_cost, 1.0);
+    // nh.param("joint_costs/" + joint_models[i]->getName(), joint_cost, 1.0);
     std::vector<double> derivative_costs(3);
     derivative_costs[0] = joint_cost * parameters_->smoothness_cost_velocity_;
     derivative_costs[1] = joint_cost * parameters_->smoothness_cost_acceleration_;
@@ -217,12 +215,12 @@ void ChompOptimizer::initialize()
             joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel()->getName()) ==
         fixed_link_resolution_map.end())
     {
-      const moveit::core::JointModel* parent_model = NULL;
+      const moveit::core::JointModel* parent_model = nullptr;
       bool found_root = false;
 
       while (!found_root)
       {
-        if (parent_model == NULL)
+        if (parent_model == nullptr)
         {
           parent_model = joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel();
         }
@@ -276,7 +274,7 @@ ChompOptimizer::~ChompOptimizer()
 
 void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
 {
-  const moveit::core::JointModel* parent_model = NULL;
+  const moveit::core::JointModel* parent_model = nullptr;
   bool found_root = false;
 
   if (model == robot_model_->getRootJoint())
@@ -284,14 +282,14 @@ void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
 
   while (!found_root)
   {
-    if (parent_model == NULL)
+    if (parent_model == nullptr)
     {
-      if (model->getParentLinkModel() == NULL)
+      if (model->getParentLinkModel() == nullptr)
       {
         ROS_ERROR_STREAM("Model " << model->getName() << " not root but has NULL link model parent");
         return;
       }
-      else if (model->getParentLinkModel()->getParentJointModel() == NULL)
+      else if (model->getParentLinkModel()->getParentJointModel() == nullptr)
       {
         ROS_ERROR_STREAM("Model " << model->getName() << " not root but has NULL joint model parent");
         return;
@@ -792,11 +790,11 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
     // joint_transform = inverseWorldTransform * jointTransform;
     Eigen::Vector3d axis;
 
-    if (revolute_joint != NULL)
+    if (revolute_joint != nullptr)
     {
       axis = revolute_joint->getAxis();
     }
-    else if (prismatic_joint != NULL)
+    else if (prismatic_joint != nullptr)
     {
       axis = prismatic_joint->getAxis();
     }
@@ -946,7 +944,8 @@ void ChompOptimizer::performForwardKinematics()
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
 
-    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, NULL, gsr_);
+    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr,
+                                     gsr_);
     total_dur += (ros::WallTime::now() - grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;
@@ -1021,10 +1020,9 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   const Eigen::MatrixXd::RowXpr& point = group_trajectory.getTrajectoryPoint(i);
 
   std::vector<double> joint_states;
+  joint_states.reserve(group_trajectory.getNumJoints());
   for (int j = 0; j < group_trajectory.getNumJoints(); j++)
-  {
-    joint_states.push_back(point(0, j));
-  }
+    joint_states.emplace_back(point(0, j));
 
   state_.setJointGroupPositions(planning_group_, joint_states);
   state_.update();

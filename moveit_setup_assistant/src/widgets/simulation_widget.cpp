@@ -52,7 +52,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-SimulationWidget::SimulationWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+SimulationWidget::SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -224,4 +224,4 @@ void SimulationWidget::copyURDF(const QString& link)
   simulation_text_->copy();
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

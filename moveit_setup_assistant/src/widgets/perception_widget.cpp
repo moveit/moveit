@@ -46,7 +46,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PerceptionWidget::PerceptionWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -337,4 +337,4 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

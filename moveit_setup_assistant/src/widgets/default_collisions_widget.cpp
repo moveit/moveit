@@ -57,8 +57,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDataPtr config_data)
-  : SetupScreenWidget(parent), model_(NULL), selection_model_(NULL), worker_(NULL), config_data_(config_data)
+DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
+  : SetupScreenWidget(parent), model_(nullptr), selection_model_(nullptr), worker_(nullptr), config_data_(config_data)
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
@@ -246,7 +246,7 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 
   config_data_->changes |= MoveItConfigData::COLLISIONS;
   worker_->deleteLater();
-  worker_ = NULL;
+  worker_ = nullptr;
 }
 
 // ******************************************************************************************
@@ -420,14 +420,14 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint& p)
     menu.addActions(header_actions_);
   menu.exec(global);
 
-  clicked_headers_ = 0;
+  clicked_headers_ = {};
   clicked_section_ = -1;
 }
 
 void DefaultCollisionsWidget::hideSections()
 {
   QList<int> list;
-  QHeaderView* header = 0;
+  QHeaderView* header = nullptr;
   if (clicked_headers_ == Qt::Horizontal)
   {
     for (const QModelIndex& index : selection_model_->selectedColumns())
@@ -455,7 +455,7 @@ void DefaultCollisionsWidget::hideSections()
 void DefaultCollisionsWidget::hideOtherSections()
 {
   QList<int> list;
-  QHeaderView* header = 0;
+  QHeaderView* header = nullptr;
   if (clicked_headers_ == Qt::Horizontal)
   {
     header = collision_table_->horizontalHeader();
@@ -509,7 +509,7 @@ void DefaultCollisionsWidget::showSections()
     return;
   }
 
-  QHeaderView* header = 0;
+  QHeaderView* header = nullptr;
   if (clicked_headers_ == Qt::Horizontal)
   {
     for (const QModelIndex& index : selection_model_->selectedColumns())
@@ -838,4 +838,4 @@ void moveit_setup_assistant::MonitorThread::run()
   Q_EMIT progress(progress_);
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant

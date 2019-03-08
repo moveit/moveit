@@ -20,6 +20,7 @@ env:
     # moveit_ros_perception: mesh_filter_test fails due to broken Mesa OpenGL
     # moveit_experimental: test succeeds locally, not on Travis
     - TEST_BLACKLIST="moveit_ros_perception moveit_experimental"
+    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
   matrix:
     - TEST="clang-format catkin_lint"
@@ -33,6 +34,7 @@ matrix: # Add a separate config to the matrix, using clang as compiler
     - compiler: clang
       env: ROS_REPO=ros-shadow-fixed
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
+           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
   fast_finish: true  # finish, even if allow-failure-tests still running
   allow_failures:

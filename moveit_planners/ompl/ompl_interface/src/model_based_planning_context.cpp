@@ -406,10 +406,9 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
 bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory& traj) const
 {
   traj.clear();
-  if (!ompl_simple_setup_->haveSolutionPath())
-    return false;
-  convertPath(ompl_simple_setup_->getSolutionPath(), traj);
-  return true;
+  if (ompl_simple_setup_->haveSolutionPath())
+    convertPath(ompl_simple_setup_->getSolutionPath(), traj);
+  return ompl_simple_setup_->haveSolutionPath();
 }
 
 void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)

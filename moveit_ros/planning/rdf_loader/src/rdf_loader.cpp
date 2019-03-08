@@ -185,7 +185,7 @@ bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std
   char pipe_buffer[128];
   while (!feof(pipe))
   {
-    if (fgets(pipe_buffer, 128, pipe) != NULL)
+    if (fgets(pipe_buffer, 128, pipe) != nullptr)
       buffer += pipe_buffer;
   }
   pclose(pipe);
