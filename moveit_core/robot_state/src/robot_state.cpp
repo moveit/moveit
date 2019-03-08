@@ -87,17 +87,25 @@ RobotState::~RobotState()
 
 void RobotState::allocMemory()
 {
+  static_assert((sizeof(Eigen::Isometry3d) / EIGEN_MAX_ALIGN_BYTES) * EIGEN_MAX_ALIGN_BYTES ==
+                    sizeof(Eigen::Isometry3d),
+                "sizeof(Eigen::Isometry3d) should be a multiple of EIGEN_MAX_ALIGN_BYTES");
+
+  constexpr unsigned int extra_alignment_bytes = EIGEN_MAX_ALIGN_BYTES - 1;
   // memory for the dirty joint transforms
   const int nr_doubles_for_dirty_joint_transforms =
       1 + robot_model_->getJointModelCount() / (sizeof(double) / sizeof(unsigned char));
   const size_t bytes =
       sizeof(Eigen::Isometry3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() +
                                    robot_model_->getLinkGeometryCount()) +
-      sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
+      sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) +
+      extra_alignment_bytes;
   memory_ = malloc(bytes);
 
-  // make the memory for transforms align at 16 bytes
-  variable_joint_transforms_ = reinterpret_cast<Eigen::Isometry3d*>(((uintptr_t)memory_ + 15) & ~(uintptr_t)0x0F);
+  // make the memory for transforms align at EIGEN_MAX_ALIGN_BYTES
+  // https://eigen.tuxfamily.org/dox/classEigen_1_1aligned__allocator.html
+  variable_joint_transforms_ = reinterpret_cast<Eigen::Isometry3d*>(((uintptr_t)memory_ + extra_alignment_bytes) &
+                                                                    ~(uintptr_t)extra_alignment_bytes);
   global_link_transforms_ = variable_joint_transforms_ + robot_model_->getJointModelCount();
   global_collision_body_transforms_ = global_link_transforms_ + robot_model_->getLinkModelCount();
   dirty_joint_transforms_ =
