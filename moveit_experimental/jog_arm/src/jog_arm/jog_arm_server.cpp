@@ -45,5 +45,5 @@ int main(int argc, char** argv)
 
   jog_arm::JogROSInterface ros_interface;
 
-  return false;
+  return 0;
 }
