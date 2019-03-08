@@ -1637,6 +1637,25 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(
   return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
+bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const std::vector<std::string>& variable_names,
+                                                                         const std::vector<double>& variable_values)
+{
+  const auto& allowed = impl_->getJointModelGroup()->getVariableNames();
+  for (const auto& variable_name : variable_names)
+  {
+    if (std::find(allowed.begin(), allowed.end(), variable_name) == allowed.end())
+    {
+      ROS_ERROR_STREAM("joint variable " << variable_name << " is not part of group "
+                                         << impl_->getJointModelGroup()->getName());
+      return false;
+    }
+  }
+
+  impl_->setTargetType(JOINT);
+  impl_->getTargetRobotState().setVariablePositions(variable_names, variable_values);
+  return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
+}
+
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& rstate)
 {
   ROS_WARN("Use of setJointValueTarget(RobotState) is deprecated!");
@@ -1668,10 +1687,7 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const sensor_msgs::JointState& state)
 {
-  ROS_WARN("Use of setJointValueTarget(JointState) is deprecated!");
-  impl_->setTargetType(JOINT);
-  impl_->getTargetRobotState().setVariableValues(state);
-  return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
+  return setJointValueTarget(state.name, state.position);
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const geometry_msgs::Pose& eef_pose,

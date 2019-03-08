@@ -361,6 +361,23 @@ public:
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
+      \e variable_names are variable joint names and variable_values are
+      variable joint positions. Joints in the group are used to set the
+      JointValueTarget.  Joints in the model but not in the group are ignored.
+      An exception is thrown if a joint name is not found in the model.
+      Joint variables in the group that are missing from \e variable_names
+      remain unchanged (to reset all target variables to their current values
+      in the robot use setJointValueTarget(getCurrentJointValues())).
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets.
+
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
+  bool setJointValueTarget(const std::vector<std::string>& variable_names, const std::vector<double>& variable_values);
+
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
       The target for all joints in the group are set to the value in \e robot_state.
 
       After this call, the JointValueTarget is used \b instead of any
@@ -406,7 +423,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  MOVEIT_DEPRECATED bool setJointValueTarget(const sensor_msgs::JointState& state);
+  bool setJointValueTarget(const sensor_msgs::JointState& state);
 
   /** \brief Set the joint state goal for a particular joint by computing IK.
 
