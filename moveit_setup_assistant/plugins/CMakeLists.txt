@@ -9,10 +9,3 @@ add_subdirectory(ros_controllers_widget)
 add_subdirectory(simulation_widget)
 add_subdirectory(virtual_joints_widget)
 add_subdirectory(end_effectors_widget)
-
-install(
-  FILES
-    virtual_joints_widget/virtual_joints_widget.xml
-  DESTINATION
-    ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
