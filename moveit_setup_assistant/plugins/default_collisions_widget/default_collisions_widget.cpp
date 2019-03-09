@@ -60,6 +60,9 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 DefaultCollisionsWidget::DefaultCollisionsWidget()
 {
+  model_ = nullptr;
+  selection_model_ = nullptr;
+  worker_ = nullptr;
   // Basic widget container
   layout_ = new QVBoxLayout(this);
 
