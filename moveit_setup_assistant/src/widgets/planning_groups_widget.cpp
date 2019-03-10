@@ -73,14 +73,14 @@ namespace moveit_setup_assistant
 static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 
 // Used for checking for cycles in a subgroup hierarchy
-struct cycle_detector : public boost::dfs_visitor<>
+struct CycleDetector : public boost::dfs_visitor<>
 {
-  cycle_detector(bool& has_cycle) : m_has_cycle(has_cycle)
+  CycleDetector(bool& has_cycle) : m_has_cycle(has_cycle)
   {
   }
 
   template <class Edge, class Graph>
-  void back_edge(Edge /*unused*/, Graph& /*unused*/)
+  void backEdge(Edge /*unused*/, Graph& /*unused*/)
   {
     m_has_cycle = true;
   }
@@ -1051,7 +1051,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Check for cycles
   bool has_cycle = false;
-  cycle_detector vis(has_cycle);
+  CycleDetector vis(has_cycle);
   boost::depth_first_search(g, visitor(vis));
 
   if (has_cycle)
