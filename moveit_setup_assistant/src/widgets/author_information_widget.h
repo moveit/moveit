@@ -77,8 +77,8 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
-  void edited_name();
-  void edited_email();
+  void editedName();
+  void editedEmail();
 
 private:
   /// Contains all the configuration data for the setup assistant
