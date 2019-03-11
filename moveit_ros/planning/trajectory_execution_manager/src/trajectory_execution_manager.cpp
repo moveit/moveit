@@ -418,9 +418,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       while (uit != used_handles.end())
         if ((*uit)->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::RUNNING)
         {
-          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator toErase = uit;
+          std::set<moveit_controller_manager::MoveItControllerHandlePtr>::iterator to_erase = uit;
           ++uit;
-          used_handles.erase(toErase);
+          used_handles.erase(to_erase);
         }
         else
           ++uit;
@@ -1037,15 +1037,15 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   }
   std::set<std::string> actuated_joints;
 
-  auto isActuated = [this](const std::string& joint_name) -> bool {
+  auto is_actuated = [this](const std::string& joint_name) -> bool {
     const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
     return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != robot_model::JointModel::FIXED);
   };
   for (const std::string& joint_name : trajectory.multi_dof_joint_trajectory.joint_names)
-    if (isActuated(joint_name))
+    if (is_actuated(joint_name))
       actuated_joints.insert(joint_name);
   for (const std::string& joint_name : trajectory.joint_trajectory.joint_names)
-    if (isActuated(joint_name))
+    if (is_actuated(joint_name))
       actuated_joints.insert(joint_name);
 
   if (actuated_joints.empty())
