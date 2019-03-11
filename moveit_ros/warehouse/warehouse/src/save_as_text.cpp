@@ -123,52 +123,52 @@ int main(int argc, char** argv)
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();
 
-      std::vector<std::string> robotStateNames;
+      std::vector<std::string> robot_state_names;
       robot_model::RobotModelConstPtr km = psm.getRobotModel();
       // Get start states for scene
       std::stringstream rsregex;
       rsregex << ".*" << scene_names[i] << ".*";
-      rss.getKnownRobotStates(rsregex.str(), robotStateNames);
+      rss.getKnownRobotStates(rsregex.str(), robot_state_names);
 
       // Get goal constraints for scene
-      std::vector<std::string> constraintNames;
+      std::vector<std::string> constraint_names;
 
       std::stringstream csregex;
       csregex << ".*" << scene_names[i] << ".*";
-      cs.getKnownConstraints(csregex.str(), constraintNames);
+      cs.getKnownConstraints(csregex.str(), constraint_names);
 
-      if (!(robotStateNames.empty() && constraintNames.empty()))
+      if (!(robot_state_names.empty() && constraint_names.empty()))
       {
         std::ofstream qfout((scene_names[i] + ".queries").c_str());
         qfout << scene_names[i] << std::endl;
-        if (!robotStateNames.empty())
+        if (!robot_state_names.empty())
         {
           qfout << "start" << std::endl;
-          qfout << robotStateNames.size() << std::endl;
-          for (std::size_t k = 0; k < robotStateNames.size(); ++k)
+          qfout << robot_state_names.size() << std::endl;
+          for (std::size_t k = 0; k < robot_state_names.size(); ++k)
           {
-            ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
-            qfout << robotStateNames[k] << std::endl;
-            moveit_warehouse::RobotStateWithMetadata robotState;
-            rss.getRobotState(robotState, robotStateNames[k]);
+            ROS_INFO("Saving start state %s for scene %s", robot_state_names[k].c_str(), scene_names[i].c_str());
+            qfout << robot_state_names[k] << std::endl;
+            moveit_warehouse::RobotStateWithMetadata robot_state;
+            rss.getRobotState(robot_state, robot_state_names[k]);
             robot_state::RobotState ks(km);
-            robot_state::robotStateMsgToRobotState(*robotState, ks, false);
+            robot_state::robotStateMsgToRobotState(*robot_state, ks, false);
             ks.printStateInfo(qfout);
             qfout << "." << std::endl;
           }
         }
 
-        if (!constraintNames.empty())
+        if (!constraint_names.empty())
         {
           qfout << "goal" << std::endl;
-          qfout << constraintNames.size() << std::endl;
-          for (std::size_t k = 0; k < constraintNames.size(); ++k)
+          qfout << constraint_names.size() << std::endl;
+          for (std::size_t k = 0; k < constraint_names.size(); ++k)
           {
-            ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
+            ROS_INFO("Saving goal %s for scene %s", constraint_names[k].c_str(), scene_names[i].c_str());
             qfout << "link_constraint" << std::endl;
-            qfout << constraintNames[k] << std::endl;
+            qfout << constraint_names[k] << std::endl;
             moveit_warehouse::ConstraintsWithMetadata constraints;
-            cs.getConstraints(constraints, constraintNames[k]);
+            cs.getConstraints(constraints, constraint_names[k]);
 
             LinkConstraintMap lcmap;
             collectLinkConstraints(*constraints, lcmap);

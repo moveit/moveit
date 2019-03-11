@@ -716,20 +716,20 @@ void PlanningGroupsWidget::deleteGroup()
   }
 
   // delete all robot poses that use that group's name
-  bool haveConfirmedGroupStateDeletion = false;
-  bool haveDeletedGroupState = true;
-  while (haveDeletedGroupState)
+  bool have_confirmed_group_state_deletion = false;
+  bool have_deleted_group_state = true;
+  while (have_deleted_group_state)
   {
-    haveDeletedGroupState = false;
+    have_deleted_group_state = false;
     for (std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin();
          pose_it != config_data_->srdf_->group_states_.end(); ++pose_it)
     {
       // check if this group state depends on the currently being deleted group
       if (pose_it->group_ == searched_group->name_)
       {
-        if (!haveConfirmedGroupStateDeletion)
+        if (!have_confirmed_group_state_deletion)
         {
-          haveConfirmedGroupStateDeletion = true;
+          have_confirmed_group_state_deletion = true;
 
           // confirm the user wants to delete group states
           if (QMessageBox::question(
@@ -745,27 +745,27 @@ void PlanningGroupsWidget::deleteGroup()
 
         // the user has confirmed, now delete this group state
         config_data_->srdf_->group_states_.erase(pose_it);
-        haveDeletedGroupState = true;
+        have_deleted_group_state = true;
         break;  // you can only delete 1 item in vector before invalidating iterator
       }
     }
   }
 
   // delete all end effectors that use that group's name
-  bool haveConfirmedEndEffectorDeletion = false;
-  bool haveDeletedEndEffector = true;
-  while (haveDeletedEndEffector)
+  bool have_confirmed_end_effector_deletion = false;
+  bool have_deleted_end_effector = true;
+  while (have_deleted_end_effector)
   {
-    haveDeletedEndEffector = false;
+    have_deleted_end_effector = false;
     for (std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin();
          effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it)
     {
       // check if this group state depends on the currently being deleted group
       if (effector_it->component_group_ == searched_group->name_)
       {
-        if (!haveConfirmedEndEffectorDeletion)
+        if (!have_confirmed_end_effector_deletion)
         {
-          haveConfirmedEndEffectorDeletion = true;
+          have_confirmed_end_effector_deletion = true;
 
           // confirm the user wants to delete group states
           if (QMessageBox::question(
@@ -781,7 +781,7 @@ void PlanningGroupsWidget::deleteGroup()
 
         // the user has confirmed, now delete this group state
         config_data_->srdf_->end_effectors_.erase(effector_it);
-        haveDeletedEndEffector = true;
+        have_deleted_end_effector = true;
         break;  // you can only delete 1 item in vector before invalidating iterator
       }
     }
