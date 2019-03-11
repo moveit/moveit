@@ -122,9 +122,9 @@ double RobotInteraction::computeLinkMarkerSize(const std::string& link)
   {
     Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
     // drop largest extension and take norm of two remaining
-    Eigen::MatrixXd::Index maxIndex;
-    ext.maxCoeff(&maxIndex);
-    ext[maxIndex] = 0;
+    Eigen::MatrixXd::Index max_index;
+    ext.maxCoeff(&max_index);
+    ext[max_index] = 0;
     size = 1.01 * ext.norm();
     if (size > 0)
       break;  // break, if a non-empty shape was found
@@ -165,9 +165,9 @@ double RobotInteraction::computeGroupMarkerSize(const std::string& group)
     Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
 
     // drop largest extension and take norm of two remaining
-    Eigen::MatrixXd::Index maxIndex;
-    ext.maxCoeff(&maxIndex);
-    ext[maxIndex] = 0;
+    Eigen::MatrixXd::Index max_index;
+    ext.maxCoeff(&max_index);
+    ext[max_index] = 0;
     size = std::max(size, 1.01 * ext.norm());
   }
 

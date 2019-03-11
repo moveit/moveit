@@ -157,7 +157,7 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
                                                     const std::vector<std::string>& objects)
 {
   ui_->detected_objects_list->setUpdatesEnabled(false);
-  bool oldState = ui_->detected_objects_list->blockSignals(true);
+  bool old_state = ui_->detected_objects_list->blockSignals(true);
   ui_->detected_objects_list->clear();
   {
     for (std::size_t i = 0; i < object_ids.size(); ++i)
@@ -171,7 +171,7 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
       ui_->detected_objects_list->addItem(item);
     }
   }
-  ui_->detected_objects_list->blockSignals(oldState);
+  ui_->detected_objects_list->blockSignals(old_state);
   ui_->detected_objects_list->setUpdatesEnabled(true);
   if (!object_ids.empty())
     ui_->pick_button->setEnabled(true);
@@ -227,7 +227,7 @@ void MotionPlanningFrame::updateSupportSurfacesList()
   ROS_INFO("%d Tables in collision world", (int)support_ids.size());
 
   ui_->support_surfaces_list->setUpdatesEnabled(false);
-  bool oldState = ui_->support_surfaces_list->blockSignals(true);
+  bool old_state = ui_->support_surfaces_list->blockSignals(true);
   ui_->support_surfaces_list->clear();
   {
     for (std::size_t i = 0; i < support_ids.size(); ++i)
@@ -241,7 +241,7 @@ void MotionPlanningFrame::updateSupportSurfacesList()
       ui_->support_surfaces_list->addItem(item);
     }
   }
-  ui_->support_surfaces_list->blockSignals(oldState);
+  ui_->support_surfaces_list->blockSignals(old_state);
   ui_->support_surfaces_list->setUpdatesEnabled(true);
 }
 
