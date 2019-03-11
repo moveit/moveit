@@ -331,13 +331,13 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   PropagationDistanceField df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist);
 
   // Check size
-  int numX = df.getXNumCells();
-  int numY = df.getYNumCells();
-  int numZ = df.getZNumCells();
+  int num_x = df.getXNumCells();
+  int num_y = df.getYNumCells();
+  int num_z = df.getZNumCells();
 
-  EXPECT_EQ(numX, (int)(width / resolution + 0.5));
-  EXPECT_EQ(numY, (int)(height / resolution + 0.5));
-  EXPECT_EQ(numZ, (int)(depth / resolution + 0.5));
+  EXPECT_EQ(num_x, (int)(width / resolution + 0.5));
+  EXPECT_EQ(num_y, (int)(height / resolution + 0.5));
+  EXPECT_EQ(num_z, (int)(depth / resolution + 0.5));
 
   // getting a bad point
   double tgx, tgy, tgz;
@@ -364,7 +364,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   // std::cout << "One removal, one addition" << std::endl;
   // print(df, numX, numY, numZ);
   // printNeg(df, numX, numY, numZ);
-  check_distance_field(df, points, numX, numY, numZ, false);
+  check_distance_field(df, points, num_x, num_y, num_z, false);
 
   // Remove
   points.clear();
@@ -372,7 +372,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   df.removePointsFromField(points);
   points.clear();
   points.push_back(POINT3);
-  check_distance_field(df, points, numX, numY, numZ, false);
+  check_distance_field(df, points, num_x, num_y, num_z, false);
 
   // now testing gradient calls
   df.reset();
@@ -433,13 +433,13 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   PropagationDistanceField df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
 
   // Check size
-  int numX = df.getXNumCells();
-  int numY = df.getYNumCells();
-  int numZ = df.getZNumCells();
+  int num_x = df.getXNumCells();
+  int num_y = df.getYNumCells();
+  int num_z = df.getZNumCells();
 
-  EXPECT_EQ(numX, (int)(width / resolution + 0.5));
-  EXPECT_EQ(numY, (int)(height / resolution + 0.5));
-  EXPECT_EQ(numZ, (int)(depth / resolution + 0.5));
+  EXPECT_EQ(num_x, (int)(width / resolution + 0.5));
+  EXPECT_EQ(num_y, (int)(height / resolution + 0.5));
+  EXPECT_EQ(num_z, (int)(depth / resolution + 0.5));
 
   // Error checking
   // print(df, numX, numY, numZ);

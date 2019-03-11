@@ -530,9 +530,9 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> xacro_args_ = { xacro_args };
+  const std::vector<std::string> vec_xacro_args = { xacro_args };
 
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, xacro_args_))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(config_data_->urdf_string_, urdf_file_path, vec_xacro_args))
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
@@ -647,7 +647,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
     path_parts.push_back(it->native());
 
-  bool packageFound = false;
+  bool package_found = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
   for (int segment_length = path_parts.size(); segment_length > 0; --segment_length)
@@ -684,13 +684,13 @@ bool StartScreenWidget::extractPackageNameFromPath()
 
       // end the search
       segment_length = 0;
-      packageFound = true;
+      package_found = true;
       break;
     }
   }
 
   // Assign data to moveit_config_data
-  if (!packageFound)
+  if (!package_found)
   {
     // No package name found, we must be outside ROS
     config_data_->urdf_pkg_name_ = "";

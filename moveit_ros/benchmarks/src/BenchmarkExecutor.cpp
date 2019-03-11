@@ -878,11 +878,11 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
           // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
           double b = p.getWayPoint(k - 1).distance(p.getWayPoint(k));
           double cdist = p.getWayPoint(k - 2).distance(p.getWayPoint(k));
-          double acosValue = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
-          if (acosValue > -1.0 && acosValue < 1.0)
+          double acos_value = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
+          if (acos_value > -1.0 && acos_value < 1.0)
           {
             // the smoothness is actually the outside angle of the one we compute
-            double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+            double angle = (boost::math::constants::pi<double>() - acos(acos_value));
 
             // and we normalize by the length of the segments
             double u = 2.0 * angle;  /// (a + b);

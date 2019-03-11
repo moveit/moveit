@@ -284,7 +284,7 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
 bool setLinkPair(const std::string& linkA, const std::string& linkB, const DisabledReason reason,
                  LinkPairMap& link_pairs)
 {
-  bool isUnique = false;  // determine if this link pair had already existsed in the link_pairs datastructure
+  bool is_unique = false;  // determine if this link pair had already existsed in the link_pairs datastructure
 
   // Determine order of the 2 links in the pair
   std::pair<std::string, std::string> link_pair;
@@ -305,14 +305,14 @@ bool setLinkPair(const std::string& linkA, const std::string& linkB, const Disab
   // Check if link pair was already disabled. It also creates the entry if none existed
   if (!link_pairs[link_pair].disable_check)  // it was not previously disabled
   {
-    isUnique = true;
+    is_unique = true;
     link_pair_ptr->reason = reason;  // only change the reason if the pair was previously enabled
   }
 
   // Only disable collision checking if there is a reason to disable it. This func is also used for initializing pairs
   link_pair_ptr->disable_check = (reason != NOT_DISABLED);
 
-  return isUnique;
+  return is_unique;
 }
 
 // ******************************************************************************************

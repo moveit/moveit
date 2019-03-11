@@ -221,7 +221,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
-  robot_state::GroupStateValidityCallbackFn approach_validCallback =
+  robot_state::GroupStateValidityCallbackFn approach_valid_callback =
       boost::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_,
                   &plan->approach_posture_, _1, _2, _3);
   plan->goal_sampler_->setVerbose(verbose_);
@@ -239,7 +239,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         std::vector<robot_state::RobotStatePtr> close_up_states;
         double d_close_up = close_up_state->computeCartesianPath(
             plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_, approach_direction,
-            approach_direction_is_global_frame, MAX_CLOSE_UP_DIST, max_step_, jump_factor_, approach_validCallback);
+            approach_direction_is_global_frame, MAX_CLOSE_UP_DIST, max_step_, jump_factor_, approach_valid_callback);
         // if progress towards the object was made, update the desired goal state
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i] = *close_up_states[close_up_states.size() - 2];
@@ -252,7 +252,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
       double d_approach = first_approach_state->computeCartesianPath(
           plan->shared_data_->planning_group_, approach_states, plan->shared_data_->ik_link_, -approach_direction,
           approach_direction_is_global_frame, plan->approach_.desired_distance, max_step_, jump_factor_,
-          approach_validCallback);
+          approach_valid_callback);
 
       // if we were able to follow the approach direction for sufficient length, try to compute a retreat direction
       if (d_approach > plan->approach_.min_distance && !signal_stop_)
@@ -270,7 +270,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the
           // actual grasp
-          robot_state::GroupStateValidityCallbackFn retreat_validCallback =
+          robot_state::GroupStateValidityCallbackFn retreat_valid_callback =
               boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(), collision_matrix_.get(), verbose_,
                           &plan->retreat_posture_, _1, _2, _3);
 
@@ -281,7 +281,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           double d_retreat = last_retreat_state->computeCartesianPath(
               plan->shared_data_->planning_group_, retreat_states, plan->shared_data_->ik_link_, retreat_direction,
               retreat_direction_is_global_frame, plan->retreat_.desired_distance, max_step_, jump_factor_,
-              retreat_validCallback);
+              retreat_valid_callback);
 
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for
           // future stages

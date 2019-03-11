@@ -317,8 +317,8 @@ bool ChompOptimizer::optimize()
   ros::WallTime start_time = ros::WallTime::now();
   // double averageCostVelocity = 0.0;
   // int currentCostIter = 0;
-  int costWindow = 10;
-  std::vector<double> costs(costWindow, 0.0);
+  int cost_window = 10;
+  std::vector<double> costs(cost_window, 0.0);
   // double minimaThreshold = 0.05;
   bool should_break_out = false;
 
@@ -328,9 +328,9 @@ bool ChompOptimizer::optimize()
     ros::WallTime for_time = ros::WallTime::now();
     performForwardKinematics();
     ROS_INFO_STREAM("Forward kinematics took " << (ros::WallTime::now() - for_time));
-    double cCost = getCollisionCost();
-    double sCost = getSmoothnessCost();
-    double cost = cCost + sCost;
+    double c_cost = getCollisionCost();
+    double s_cost = getSmoothnessCost();
+    double cost = c_cost + s_cost;
 
     // ROS_INFO_STREAM("Collision cost " << cCost << " smoothness cost " << sCost);
 
@@ -432,7 +432,7 @@ bool ChompOptimizer::optimize()
 
     if (!parameters_->filter_mode_)
     {
-      if (cCost < parameters_->collision_threshold_)
+      if (c_cost < parameters_->collision_threshold_)
       {
         num_collision_free_iterations_ = parameters_->max_iterations_after_collision_free_;
         is_collision_free_ = true;
@@ -615,26 +615,26 @@ void ChompOptimizer::calculateCollisionIncrements()
 
   collision_increments_.setZero(num_vars_free_, num_joints_);
 
-  int startPoint = 0;
-  int endPoint = free_vars_end_;
+  int start_point = 0;
+  int end_point = free_vars_end_;
 
   // In stochastic descent, simply use a random point in the trajectory, rather than all the trajectory points.
   // This is faster and guaranteed to converge, but it may take more iterations in the worst case.
   if (parameters_->use_stochastic_descent_)
   {
-    startPoint = (int)(((double)random() / (double)RAND_MAX) * (free_vars_end_ - free_vars_start_) + free_vars_start_);
-    if (startPoint < free_vars_start_)
-      startPoint = free_vars_start_;
-    if (startPoint > free_vars_end_)
-      startPoint = free_vars_end_;
-    endPoint = startPoint;
+    start_point = (int)(((double)random() / (double)RAND_MAX) * (free_vars_end_ - free_vars_start_) + free_vars_start_);
+    if (start_point < free_vars_start_)
+      start_point = free_vars_start_;
+    if (start_point > free_vars_end_)
+      start_point = free_vars_end_;
+    end_point = start_point;
   }
   else
   {
-    startPoint = free_vars_start_;
+    start_point = free_vars_start_;
   }
 
-  for (int i = startPoint; i <= endPoint; i++)
+  for (int i = start_point; i <= end_point; i++)
   {
     for (int j = 0; j < num_collision_points_; j++)
     {

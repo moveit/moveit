@@ -1359,9 +1359,9 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     else
     {
       std::string node_name = ros::names::append(getMoveGroupNS(), "move_group");
-      ros::NodeHandle nh_(node_name);
+      ros::NodeHandle nh(node_name);
       double val;
-      if (nh_.getParam("default_workspace_bounds", val))
+      if (nh.getParam("default_workspace_bounds", val))
       {
         frame_->ui_->wsize_x->setValue(val);
         frame_->ui_->wsize_y->setValue(val);
