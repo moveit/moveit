@@ -86,6 +86,7 @@ bool ChainIkSolverVelMimicSVD::jacToJacReduced(const Jacobian& jac, Jacobian& ja
   return true;
 }
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 int ChainIkSolverVelMimicSVD::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out,
                                         const Eigen::VectorXd& joint_weights,
                                         const Eigen::Matrix<double, 6, 1>& cartesian_weights)
