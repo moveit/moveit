@@ -64,8 +64,8 @@ int main(int argc, char** argv)
     ros::Publisher pub_markers = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
     std::cout << "\nListening for planning scene...\nType the number of spheres to generate and press Enter: "
               << std::endl;
-    int N;
-    std::cin >> N;
+    int num_spheres;
+    std::cin >> num_spheres;
 
     planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     std::vector<double> aabb;
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
     color.b = 0.0f;
     color.a = 1.0f;
 
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < num_spheres; ++i)
     {
       t.translation() = Eigen::Vector3d(rng.uniformReal(aabb[0], aabb[1]), rng.uniformReal(aabb[2], aabb[3]),
                                         rng.uniformReal(aabb[4], aabb[5]));
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
       if (res.collision)
       {
         points.push_back(t.translation());
-        if (points.size() - published >= 100 || (points.size() > published && i + 1 >= N))
+        if (points.size() - published >= 100 || (points.size() > published && i + 1 >= num_spheres))
         {
           arr.markers.clear();
           for (std::size_t k = published; k < points.size(); ++k)
