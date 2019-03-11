@@ -270,9 +270,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
         }
         catch (tf2::TransformException& ex)
         {
-          static const ros::Duration d(TEST_DT);
+          static const ros::Duration D(TEST_DT);
           err = ex.what();
-          d.sleep();
+          D.sleep();
         }
       static const unsigned int MAX_TF_COUNTER = 1000;  // so we avoid int overflow
       if (found)

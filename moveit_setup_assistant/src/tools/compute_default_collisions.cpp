@@ -478,19 +478,19 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene& scene, Link
                                       double min_collision_faction)
 {
   // Trial count variables
-  static const unsigned int small_trial_count = 200;
-  static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * min_collision_faction);
+  static const unsigned int SMALL_TRIAL_COUNT = 200;
+  static const unsigned int SMALL_TRIAL_LIMIT = (unsigned int)((double)SMALL_TRIAL_COUNT * min_collision_faction);
 
   bool done = false;
   unsigned int num_disabled = 0;
 
   while (!done)
   {
-    // DO 'small_trial_count' COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
+    // DO 'SMALL_TRIAL_COUNT' COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
     std::map<std::pair<std::string, std::string>, unsigned int> collision_count;
 
     // Do a large number of tests
-    for (unsigned int i = 0; i < small_trial_count; ++i)
+    for (unsigned int i = 0; i < SMALL_TRIAL_COUNT; ++i)
     {
       // Check for collisions
       collision_detection::CollisionResult res;
@@ -524,7 +524,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene& scene, Link
          it != collision_count.end(); ++it)
     {
       // Disable these two links permanently
-      if (it->second > small_trial_limit)
+      if (it->second > SMALL_TRIAL_LIMIT)
       {
         num_disabled += setLinkPair(it->first.first, it->first.second, ALWAYS, link_pairs);
 

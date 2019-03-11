@@ -1398,16 +1398,16 @@ void PlanningSceneMonitor::configureDefaultPadding()
   }
 
   // Ensure no leading slash creates a bad param server address
-  static const std::string robot_description =
+  static const std::string ROBOT_DESCRIPTION =
       (robot_description_[0] == '/') ? robot_description_.substr(1) : robot_description_;
 
-  nh_.param(robot_description + "_planning/default_robot_padding", default_robot_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_robot_scale", default_robot_scale_, 1.0);
-  nh_.param(robot_description + "_planning/default_object_padding", default_object_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_attached_padding", default_attached_padd_, 0.0);
-  nh_.param(robot_description + "_planning/default_robot_link_padding", default_robot_link_padd_,
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_robot_padding", default_robot_padd_, 0.0);
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_robot_scale", default_robot_scale_, 1.0);
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_object_padding", default_object_padd_, 0.0);
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_attached_padding", default_attached_padd_, 0.0);
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_robot_link_padding", default_robot_link_padd_,
             std::map<std::string, double>());
-  nh_.param(robot_description + "_planning/default_robot_link_scale", default_robot_link_scale_,
+  nh_.param(ROBOT_DESCRIPTION + "_planning/default_robot_link_scale", default_robot_link_scale_,
             std::map<std::string, double>());
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Loaded " << default_robot_link_padd_.size() << " default link paddings");
