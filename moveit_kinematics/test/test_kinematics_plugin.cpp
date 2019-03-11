@@ -143,8 +143,8 @@ public:
 
   static const SharedData& instance()
   {
-    static SharedData instance_;
-    return instance_;
+    static SharedData instance;
+    return instance;
   }
   static void release()
   {

@@ -285,10 +285,10 @@ void GroupEditWidget::setSelected(const std::string& group_name)
 void GroupEditWidget::loadKinematicPlannersComboBox()
 {
   // Only load this combo box once
-  static bool hasLoaded = false;
-  if (hasLoaded)
+  static bool has_loaded = false;
+  if (has_loaded)
     return;
-  hasLoaded = true;
+  has_loaded = true;
 
   // Remove all old items
   kinematics_solver_field_->clear();
