@@ -2,6 +2,16 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2019-03-08)
+------------------
+* [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
+* Contributors: Robert Haschke
+
+1.0.0 (2019-02-24)
+------------------
+* [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
+* Contributors: Keerthana Subramanian Manivannan, Robert Haschke
+
 0.10.8 (2018-12-24)
 -------------------
 

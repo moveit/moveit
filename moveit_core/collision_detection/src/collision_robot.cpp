@@ -69,8 +69,7 @@ static inline bool validatePadding(double padding)
 
 namespace collision_detection
 {
-CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model,  // NOLINT
-                               double padding, double scale)
+CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : robot_model_(model)
 {
   if (!validateScale(scale))

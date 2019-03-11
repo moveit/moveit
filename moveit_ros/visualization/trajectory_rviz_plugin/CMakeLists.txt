@@ -5,7 +5,6 @@ set(HEADERS
   include/moveit/trajectory_rviz_plugin/trajectory_display.h
 )
 
-#catkin_lint: ignore_once missing_directory
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Trajectory Display

@@ -70,9 +70,7 @@ ChompParameters::ChompParameters()
   max_recovery_attempts_ = 5;
 }
 
-ChompParameters::~ChompParameters()
-{
-}
+ChompParameters::~ChompParameters() = default;
 
 void ChompParameters::setRecoveryParams(double learning_rate, double ridge_factor, int planning_time_limit,
                                         int max_iterations)

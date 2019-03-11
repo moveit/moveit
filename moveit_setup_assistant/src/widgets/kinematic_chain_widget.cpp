@@ -49,7 +49,7 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-KinematicChainWidget::KinematicChainWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+KinematicChainWidget::KinematicChainWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -151,7 +151,7 @@ void KinematicChainWidget::setAvailable()
   // Get the root joint
   const robot_model::JointModel* root_joint = model->getRootJoint();
 
-  addLinktoTreeRecursive(root_joint->getChildLinkModel(), NULL);
+  addLinktoTreeRecursive(root_joint->getChildLinkModel(), nullptr);
 
   // Remember that we have loaded the chain
   kinematic_chain_loaded_ = true;
@@ -167,7 +167,7 @@ void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel* 
   QTreeWidgetItem* new_item = new QTreeWidgetItem(link_tree_);
 
   // Add item to tree
-  if (parent == NULL)
+  if (parent == nullptr)
   {
     new_item->setText(0, link->getName().c_str());
     link_tree_->addTopLevelItem(new_item);
@@ -231,7 +231,7 @@ void KinematicChainWidget::setSelected(const std::string& base_link, const std::
 void KinematicChainWidget::baseLinkTreeClick()
 {
   QTreeWidgetItem* item = link_tree_->currentItem();
-  if (item != NULL)
+  if (item != nullptr)
   {
     base_link_field_->setText(item->text(0));
   }
@@ -243,7 +243,7 @@ void KinematicChainWidget::baseLinkTreeClick()
 void KinematicChainWidget::tipLinkTreeClick()
 {
   QTreeWidgetItem* item = link_tree_->currentItem();
-  if (item != NULL)
+  if (item != nullptr)
   {
     tip_link_field_->setText(item->text(0));
   }
@@ -266,7 +266,7 @@ void KinematicChainWidget::alterTree(const QString& link)
 void KinematicChainWidget::itemSelected()
 {
   QTreeWidgetItem* item = link_tree_->currentItem();
-  if (item != NULL)
+  if (item != nullptr)
   {
     Q_EMIT unhighlightAll();
 
@@ -280,4 +280,4 @@ void KinematicChainWidget::itemSelected()
     Q_EMIT highlightLink(item->text(0).toStdString(), QColor(255, 0, 0));
   }
 }
-}
+}  // namespace moveit_setup_assistant

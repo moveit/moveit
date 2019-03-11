@@ -94,7 +94,7 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
 
   return false;
 }
-}
+}  // namespace
 
 JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Model::Group& config,
                                  const std::vector<const JointModel*>& unsorted_group_joints,

@@ -92,7 +92,7 @@ public:
 
       try
       {
-        std::string name = std::string(controller_list[i]["name"]);
+        const std::string name = std::string(controller_list[i]["name"]);
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
@@ -101,8 +101,9 @@ public:
           continue;
         }
         std::vector<std::string> joints;
+        joints.reserve(controller_list[i]["joints"].size());
         for (int j = 0; j < controller_list[i]["joints"].size(); ++j)
-          joints.push_back(std::string(controller_list[i]["joints"][j]));
+          joints.emplace_back(std::string(controller_list[i]["joints"][j]));
 
         const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
@@ -134,7 +135,7 @@ public:
     }
 
     robot_model_loader::RobotModelLoader robot_model_loader(ROBOT_DESCRIPTION);
-    robot_model::RobotModelPtr robot_model = robot_model_loader.getModel();
+    const robot_model::RobotModelPtr& robot_model = robot_model_loader.getModel();
     typedef std::map<std::string, double> JointPoseMap;
     JointPoseMap joints;
 
@@ -196,9 +197,7 @@ public:
     return js;
   }
 
-  ~MoveItFakeControllerManager() override
-  {
-  }
+  ~MoveItFakeControllerManager() override = default;
 
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml

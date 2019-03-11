@@ -1,6 +1,6 @@
 <package format="2">
   <name>moveit_setup_assistant</name>
-  <version>0.10.8</version>
+  <version>1.0.1</version>
 
   <description>Generates a configuration package that makes it easy to use MoveIt!</description>
 
@@ -17,6 +17,10 @@
   <url type="repository">https://github.com/ros-planning/moveit</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>libogre-dev</build_depend>
+  <build_depend>qtbase5-dev</build_depend>
+  <build_depend>libqt5-opengl-dev</build_depend>
 
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>

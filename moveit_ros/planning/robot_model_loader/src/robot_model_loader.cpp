@@ -81,7 +81,7 @@ bool canSpecifyPosition(const robot_model::JointModel* jmodel, const unsigned in
     ok = true;
   return ok;
 }
-}
+}  // namespace
 
 void RobotModelLoader::configure(const Options& opt)
 {
@@ -226,4 +226,4 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     }
   }
 }
-}
+}  // namespace robot_model_loader

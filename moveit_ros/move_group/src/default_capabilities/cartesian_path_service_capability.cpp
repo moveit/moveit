@@ -68,7 +68,7 @@ bool isStateValid(const planning_scene::PlanningScene* planning_scene,
   return (!planning_scene || !planning_scene->isStateColliding(*state, group->getName())) &&
          (!constraint_set || constraint_set->decide(*state).satisfied);
 }
-}
+}  // namespace
 
 bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath::Request& req,
                                                                moveit_msgs::GetCartesianPath::Response& res)
@@ -122,7 +122,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
       }
       else
       {
-        if (waypoints.size() > 0)
+        if (!waypoints.empty())
         {
           robot_state::GroupStateValidityCallbackFn constraint_fn;
           std::unique_ptr<planning_scene_monitor::LockedPlanningSceneRO> ls;
@@ -134,8 +134,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
             kset->add(req.path_constraints, (*ls)->getTransforms());
             constraint_fn = boost::bind(
                 &isStateValid,
-                req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : NULL,
-                kset->empty() ? NULL : kset.get(), _1, _2, _3);
+                req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : nullptr,
+                kset->empty() ? nullptr : kset.get(), _1, _2, _3);
           }
           bool global_frame = !robot_state::Transforms::sameFrame(link_name, req.header.frame_id);
           ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in "

@@ -121,14 +121,15 @@ bool PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld& msg)
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
 
-PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model, collision_detection::WorldPtr world)
+PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
+                             const collision_detection::WorldPtr& world)
   : robot_model_(robot_model), world_(world), world_const_(world)
 {
   initialize();
 }
 
 PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model,
-                             const srdf::ModelConstSharedPtr& srdf_model, collision_detection::WorldPtr world)
+                             const srdf::ModelConstSharedPtr& srdf_model, const collision_detection::WorldPtr& world)
   : world_(world), world_const_(world)
 {
   if (!urdf_model)
@@ -812,7 +813,7 @@ private:
   moveit_msgs::CollisionObject* obj_;
   const geometry_msgs::Pose* pose_;
 };
-}
+}  // namespace
 
 bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
@@ -1603,7 +1604,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         poses.insert(poses.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
         trajectory_msgs::JointTrajectory detach_posture =
             object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
-        std::set<std::string> ab_touch_links = ab->getTouchLinks();
+        const std::set<std::string>& ab_touch_links = ab->getTouchLinks();
         robot_state_->clearAttachedBody(object.object.id);
         if (object.touch_links.empty())
           robot_state_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);

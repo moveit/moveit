@@ -68,7 +68,7 @@ private:
   PlanWithSensing* owner_;
   dynamic_reconfigure::Server<SenseForPlanDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
-}
+}  // namespace plan_execution
 
 plan_execution::PlanWithSensing::PlanWithSensing(
     const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution)

@@ -80,7 +80,7 @@ struct cycle_detector : public boost::dfs_visitor<>
   }
 
   template <class Edge, class Graph>
-  void back_edge(Edge, Graph&)
+  void back_edge(Edge /*unused*/, Graph& /*unused*/)
   {
     m_has_cycle = true;
   }
@@ -92,7 +92,7 @@ protected:
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
@@ -260,7 +260,7 @@ void PlanningGroupsWidget::loadGroupsTree()
   for (std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
        group_it != config_data_->srdf_->groups_.end(); ++group_it)
   {
-    loadGroupsTreeRecursive(*group_it, NULL);
+    loadGroupsTreeRecursive(*group_it, nullptr);
   }
 
   // Reenable Tree
@@ -294,7 +294,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   QTreeWidgetItem* group;
 
   // Allow a subgroup to open into a whole new group
-  if (parent == NULL)
+  if (parent == nullptr)
   {
     group = new QTreeWidgetItem(groups_tree_);
     group->setText(0, group_it.name_.c_str());
@@ -403,7 +403,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   {
     // Find group with this subgroups' name
 
-    srdf::Model::Group* searched_group = NULL;  // used for holding our search results
+    srdf::Model::Group* searched_group = nullptr;  // used for holding our search results
 
     for (std::vector<srdf::Model::Group>::iterator group2_it = config_data_->srdf_->groups_.begin();
          group2_it != config_data_->srdf_->groups_.end(); ++group2_it)
@@ -416,7 +416,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
     }
 
     // Check if subgroup was found
-    if (searched_group == NULL)  // not found
+    if (searched_group == nullptr)  // not found
     {
       QMessageBox::critical(this, "Error Loading SRDF", QString("Subgroup '")
                                                             .append(subgroup_it->c_str())
@@ -441,7 +441,7 @@ void PlanningGroupsWidget::previewSelected()
   QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   // Get the user custom properties of the currently selected row
@@ -462,7 +462,7 @@ void PlanningGroupsWidget::editSelected()
   QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   adding_new_group_ = false;
@@ -527,7 +527,7 @@ void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
 
-  if (joints.size() == 0)
+  if (joints.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;
@@ -559,7 +559,7 @@ void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group* this_group)
   // Get the names of the all links
   const std::vector<std::string>& links = model->getLinkModelNames();
 
-  if (links.size() == 0)
+  if (links.empty())
   {
     QMessageBox::critical(this, "Error Loading", "No links found for robot model");
     return;
@@ -598,7 +598,7 @@ void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group* this_group)
   }
 
   // Set the selected tip and base of chain if one exists
-  if (this_group->chains_.size() > 0)
+  if (!this_group->chains_.empty())
   {
     chain_widget_->setSelected(this_group->chains_[0].first, this_group->chains_[0].second);
   }
@@ -654,7 +654,7 @@ void PlanningGroupsWidget::loadGroupScreen(srdf::Model::Group* this_group)
   // Load the avail kin solvers. This function only runs once
   group_edit_widget_->loadKinematicPlannersComboBox();
 
-  if (this_group == NULL)  // this is a new screen
+  if (this_group == nullptr)  // this is a new screen
   {
     current_edit_group_.clear();  // provide a blank group name
     group_edit_widget_->title_->setText("Create New Planning Group");
@@ -689,7 +689,7 @@ void PlanningGroupsWidget::deleteGroup()
   {
     QTreeWidgetItem* item = groups_tree_->currentItem();
     // Check that something was actually selected
-    if (item == NULL)
+    if (item == nullptr)
       return;
     // Get the user custom properties of the currently selected row
     PlanGroupType plan_group = item->data(0, Qt::UserRole).value<PlanGroupType>();
@@ -844,7 +844,7 @@ void PlanningGroupsWidget::addGroup()
   adding_new_group_ = true;
 
   // Load the data
-  loadGroupScreen(NULL);  // NULL indicates this is a new group, not an existing one
+  loadGroupScreen(nullptr);  // NULL indicates this is a new group, not an existing one
 
   // Switch to screen
   changeScreen(5);
@@ -1094,7 +1094,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::Group* searched_group = NULL;
+  srdf::Model::Group* searched_group = nullptr;
 
   // Check that a valid group name has been given
   if (group_name.empty())
@@ -1164,7 +1164,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   adding_new_group_ = false;
 
   // Save the new group name or create the new group
-  if (searched_group == NULL)  // create new
+  if (searched_group == nullptr)  // create new
   {
     srdf::Model::Group new_group;
     new_group.name_ = group_name;
@@ -1473,7 +1473,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
   }
 }
 
-}  // namespace
+}  // namespace moveit_setup_assistant
 
 // ******************************************************************************************
 // ******************************************************************************************

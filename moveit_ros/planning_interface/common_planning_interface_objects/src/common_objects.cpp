@@ -91,7 +91,7 @@ struct CoupledDeleter
     delete p;
   }
 };
-}
+}  // namespace
 
 namespace moveit
 {
@@ -139,7 +139,8 @@ CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstP
 }
 
 CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
-                                             const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, ros::NodeHandle nh)
+                                             const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+                                             const ros::NodeHandle& nh)
 {
   SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);

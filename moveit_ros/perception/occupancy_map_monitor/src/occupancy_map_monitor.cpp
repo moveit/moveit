@@ -352,4 +352,4 @@ OccupancyMapMonitor::~OccupancyMapMonitor()
 {
   stopMonitor();
 }
-}
+}  // namespace occupancy_map_monitor

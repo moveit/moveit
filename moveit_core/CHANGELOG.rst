@@ -2,6 +2,26 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2019-03-08)
+------------------
+* [capability] Graphically print current robot joint states with joint limits (`#1358 <https://github.com/ros-planning/moveit/issues/1358>`_)
+* [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)
+* Contributors: Dave Coleman, Robert Haschke, Yu, Yan
+
+1.0.0 (2019-02-24)
+------------------
+* [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
+* [fix] invert waypoint velocities on reverse (`#1335 <https://github.com/ros-planning/moveit/issues/1335>`_)
+* [fix] Added missing robot state update to iterative spline parameterization to prevent warnings. (`#1298 <https://github.com/ros-planning/moveit/issues/1298>`_)
+* [fix] robot_model_test_utils depends on message generation (`#1286 <https://github.com/ros-planning/moveit/issues/1286>`_)
+* [improve] cleanup LMA kinematics solver `#1318 <https://github.com/ros-planning/moveit/issues/1318>`_
+* [improve] Remove (redundant) random seeding and #attempts from RobotState::setFromIK() as the IK solver perform random seeding themselves. `#1288 <https://github.com/ros-planning/moveit/issues/1288>`_
+* [improve] Make FCL shape cache thread-local (`#1316 <https://github.com/ros-planning/moveit/issues/1316>`_)
+* [improve] Kinematics tests, kdl cleanup `#1272 <https://github.com/ros-planning/moveit/issues/1272>`_, `#1294 <https://github.com/ros-planning/moveit/issues/1294>`_
+* [maintenance] Add coverage analysis for moveit_core (`#1133 <https://github.com/ros-planning/moveit/issues/1133>`_)
+* [improve] computeCartesianPath: limit joint-space jumps with IK consistency limits (`#1293 <https://github.com/ros-planning/moveit/issues/1293>`_)
+* Contributors: Alexander Gutenkunst, Dave Coleman, Jonathan Binney, Martin Oehler, Michael Görner, Mike Lautman, Robert Haschke, Simon Schmeisser
+
 0.10.8 (2018-12-24)
 -------------------
 * [enhancement] Tool to generate constraint approximation databases (`#1253 <https://github.com/ros-planning/moveit/issues/1253>`_)

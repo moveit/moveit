@@ -36,6 +36,8 @@
 
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 
+#include <utility>
+
 const std::string moveit_warehouse::TrajectoryConstraintsStorage::DATABASE_NAME = "moveit_trajectory_constraints";
 
 const std::string moveit_warehouse::TrajectoryConstraintsStorage::CONSTRAINTS_ID_NAME = "constraints_id";
@@ -47,18 +49,18 @@ using warehouse_ros::Query;
 
 moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(
     warehouse_ros::DatabaseConnection::Ptr conn)
-  : MoveItMessageStorage(conn)
+  : MoveItMessageStorage(std::move(conn))
 {
   createCollections();
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::createCollections(void)
+void moveit_warehouse::TrajectoryConstraintsStorage::createCollections()
 {
   constraints_collection_ =
       conn_->openCollectionPtr<moveit_msgs::TrajectoryConstraints>(DATABASE_NAME, "trajectory_constraints");
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::reset(void)
+void moveit_warehouse::TrajectoryConstraintsStorage::reset()
 {
   constraints_collection_.reset();
   conn_->dropDatabase(DATABASE_NAME);

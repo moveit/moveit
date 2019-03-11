@@ -166,7 +166,8 @@ public:
   {
     // following call to planner() calls the OMPL planner and stores the trajectory inside the MotionPlanResponse res
     // variable which is then used by CHOMP for optimization of the computed trajectory
-    bool solved = planner(ps, req, res);
+    if (!planner(ps, req, res))
+      return false;
 
     // create a hybrid collision detector to set the collision checker as hybrid
     collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
@@ -216,13 +217,13 @@ public:
       res.planning_time_ = res_detailed.processing_time_[0];
     }
 
-    return solved;
+    return planning_success;
   }
 
 private:
   ros::NodeHandle nh_;
   chomp::ChompParameters params_;
 };
-}
+}  // namespace chomp
 
 CLASS_LOADER_REGISTER_CLASS(chomp::OptimizerAdapter, planning_request_adapter::PlanningRequestAdapter);

@@ -62,7 +62,7 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Isometry3d& transform
 
   return result;
 }
-}
+}  // namespace
 
 DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
                                const geometry_msgs::Vector3& gravity_vector)

@@ -5,7 +5,6 @@ set(HEADERS
 )
 qt_wrap_ui(UIC_FILES src/ui/motion_planning_rviz_plugin_frame.ui)
 
-#catkin_lint: ignore_once missing_directory
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Plugin Source

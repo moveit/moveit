@@ -47,9 +47,7 @@ BenchmarkOptions::BenchmarkOptions(const std::string& ros_namespace)
   readBenchmarkOptions(ros_namespace);
 }
 
-BenchmarkOptions::~BenchmarkOptions()
-{
-}
+BenchmarkOptions::~BenchmarkOptions() = default;
 
 void BenchmarkOptions::setNamespace(const std::string& ros_namespace)
 {
@@ -270,12 +268,13 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
         continue;
       }
 
-      std::string plugin = planner_configs[i]["plugin"];
+      const std::string plugin = planner_configs[i]["plugin"];
       ROS_INFO("Reading in planner names for plugin '%s'", plugin.c_str());
 
       std::vector<std::string> planners;
+      planners.reserve(planner_configs[i]["planners"].size());
       for (int j = 0; j < planner_configs[i]["planners"].size(); ++j)
-        planners.push_back(planner_configs[i]["planners"][j]);
+        planners.emplace_back(planner_configs[i]["planners"][j]);
 
       for (std::size_t j = 0; j < planners.size(); ++j)
         ROS_INFO("  [%lu]: %s", j, planners[j].c_str());

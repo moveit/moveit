@@ -573,4 +573,4 @@ const std::vector<std::string>& KDLKinematicsPlugin::getLinkNames() const
   return solver_info_.link_names;
 }
 
-}  // namespace
+}  // namespace kdl_kinematics_plugin

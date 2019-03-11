@@ -233,7 +233,7 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  bp::tuple getEndEffectorParentGroup(std::string group)
+  bp::tuple getEndEffectorParentGroup(const std::string& group)
   {
     // name of the group that is parent to this end-effector group;
     // Second: the link this in the parent group that this group attaches to
@@ -303,7 +303,7 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  std::string getRobotMarkersPythonList(bp::list links)
+  std::string getRobotMarkersPythonList(const bp::list& links)
   {
     if (!ensureCurrentState())
       return "";
@@ -314,7 +314,7 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  std::string getRobotMarkersGroup(std::string group)
+  std::string getRobotMarkersGroup(const std::string& group)
   {
     if (!ensureCurrentState())
       return "";
@@ -329,7 +329,7 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  std::string getRobotMarkersGroupPythonDict(std::string group, bp::dict& values)
+  std::string getRobotMarkersGroupPythonDict(const std::string& group, bp::dict& values)
   {
     const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
     if (!jmg)
@@ -367,7 +367,7 @@ private:
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   ros::NodeHandle nh_;
 };
-}
+}  // namespace moveit
 
 static void wrap_robot_interface()
 {

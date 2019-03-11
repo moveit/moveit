@@ -73,14 +73,13 @@ int main(int argc, char* argv[])
   spinner.start();
 
   robot_model_loader::RobotModelLoader robot_model_loader;
-  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+  const robot_model::RobotModelPtr& kinematic_model = robot_model_loader.getModel();
   planning_scene::PlanningScene planning_scene(kinematic_model);
   robot_state::RobotState& kinematic_state = planning_scene.getCurrentStateNonConst();
   collision_detection::CollisionRequest collision_request;
   collision_detection::CollisionResult collision_result;
-  std::vector<double> joint_values;
-  std::chrono::duration<double> ik_time;
-  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::duration<double> ik_time(0);
+  std::chrono::time_point<std::chrono::system_clock> start;
   std::vector<robot_state::JointModelGroup*> groups;
   std::vector<std::string> end_effectors;
 

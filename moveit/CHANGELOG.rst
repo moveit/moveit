@@ -2,6 +2,37 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2019-03-08)
+------------------
+* [fix] segfault in chomp adapter (`#1377 <https://github.com/ros-planning/moveit/issues/1377>`_)
+* [capability] Graphically print current robot joint states with joint limits (`#1358 <https://github.com/ros-planning/moveit/issues/1358>`_)
+* [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
+* [capability] Add time-optimal trajectory parameterization https://github.com/ros-planning/moveit/pull/1365
+* [capability] FCL as a plugin  https://github.com/ros-planning/moveit/pull/1370
+* [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)
+* Contributors: Dave Coleman, Robert Haschke, Yu, Yan
+
+1.0.0 (2019-02-24)
+------------------
+* [fix] catkin_lint issues (`#1341 <https://github.com/ros-planning/moveit/issues/1341>`_)
+* [fix][moveit_setup_assistant] memory leaks (`#1292 <https://github.com/ros-planning/moveit/issues/1292>`_)
+* [fix][moveit_core] invert waypoint velocities on reverse (`#1335 <https://github.com/ros-planning/moveit/issues/1335>`_)
+* [fix][moveit_core]  Added missing robot state update to iterative spline parameterization to prevent warnings. (`#1298 <https://github.com/ros-planning/moveit/issues/1298>`_)
+* [fix][moveit_core]  robot_model_test_utils depends on message generation (`#1286 <https://github.com/ros-planning/moveit/issues/1286>`_)
+* [capability][moveit_kinematics] Adapt ikfast plugin to new KinematicsBase API. `#1320 <https://github.com/ros-planning/moveit/issues/1320>`_
+* [improve] computeCartesianPath: limit joint-space jumps with IK consistency limits (`#1293 <https://github.com/ros-planning/moveit/issues/1293>`_)
+* [improve] cleanup LMA kinematics solver `#1318 <https://github.com/ros-planning/moveit/issues/1318>`_
+* [improve] Remove (redundant) random seeding and #attempts from RobotState::setFromIK() as the IK solver perform random seeding themselves. `#1288 <https://github.com/ros-planning/moveit/issues/1288>`_
+* [improve] Kinematics tests, kdl cleanup `#1272 <https://github.com/ros-planning/moveit/issues/1272>`_, `#1294 <https://github.com/ros-planning/moveit/issues/1294>`_
+* [improve][moveit_core]  Make FCL shape cache thread-local (`#1316 <https://github.com/ros-planning/moveit/issues/1316>`_)
+* [improve][moveit_kinematics] KDL IK solver improvements (`#1321 <https://github.com/ros-planning/moveit/issues/1321>`_)
+* [improve][moveit_setup_assistant] support dark themes (`#1173 <https://github.com/ros-planning/moveit/issues/1173>`_)
+* [improve][moveit_ros_robot_interaction] cleanup RobotInteraction (`#1287 <https://github.com/ros-planning/moveit/issues/1287>`_)
+* [improve][moveit_ros_robot_interaction] limit IK timeout to 0.1s for a responsive interaction behaviour (`#1291 <https://github.com/ros-planning/moveit/issues/1291>`_)  
+* [maintenance] cleanup SimpleControllerManager https://github.com/ros-planning/moveit/pull/1352
+* [maintenance][moveit_core]  Add coverage analysis for moveit_core (`#1133 <https://github.com/ros-planning/moveit/issues/1133>`_)
+* Contributors: Alexander Gutenkunst, Dave Coleman, Jonathan Binney, Keerthana Subramanian Manivannan, Martin Oehler, Michael Görner, Mike Lautman, Robert Haschke, Simon Schmeisser
+
 0.10.8 (2018-12-24)
 -------------------
 

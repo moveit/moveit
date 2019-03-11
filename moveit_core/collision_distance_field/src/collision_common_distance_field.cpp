@@ -128,7 +128,7 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const rob
   return ret;
 }
 
-void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, std::string reference_frame,
+void getBodySphereVisualizationMarkers(const GroupStateRepresentationConstPtr& gsr, const std::string& reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array)
 {
   // creating namespaces
@@ -220,4 +220,4 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
     }
   }
 }
-}
+}  // namespace collision_detection

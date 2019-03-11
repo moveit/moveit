@@ -693,7 +693,7 @@ public:
 
     std::map<std::string, moveit_msgs::CollisionObject> objects = psi.getObjects(std::vector<std::string>(1, object));
 
-    if (objects.size() < 1)
+    if (objects.empty())
     {
       ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
                                                          << object << "', but the object could not be found");
@@ -1272,8 +1272,8 @@ private:
   std::unique_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const std::string& group_name,
                                                                    const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
@@ -1322,7 +1322,7 @@ operator=(MoveGroupInterface&& other)
   if (this != &other)
   {
     delete impl_;
-    impl_ = std::move(other.impl_);
+    impl_ = other.impl_;
     remembered_joint_values_ = std::move(other.remembered_joint_values_);
     other.impl_ = nullptr;
   }
@@ -1830,7 +1830,7 @@ inline void transformPose(const tf2_ros::Buffer& tf_buffer, const std::string& d
     target.header.stamp = ros::Time(0);
   }
 }
-}
+}  // namespace
 
 bool moveit::planning_interface::MoveGroupInterface::setPositionTarget(double x, double y, double z,
                                                                        const std::string& end_effector_link)

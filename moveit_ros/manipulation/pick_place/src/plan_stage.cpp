@@ -85,7 +85,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
         // Apply the open gripper state to the waypoint
         // If user has defined a time for it's gripper movement time, don't add the
         // DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
-        if (plan->approach_posture_.points.size() > 0 &&
+        if (!plan->approach_posture_.points.empty() &&
             plan->approach_posture_.points.back().time_from_start > ros::Duration(0.0))
         {
           pre_approach_traj->addPrefixWayPoint(pre_approach_state, 0.0);
@@ -120,4 +120,4 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
 
   return false;
 }
-}
+}  // namespace pick_place

@@ -9,12 +9,21 @@ Currently we support ROS Indigo, Kinetic, and Melodic.
 - [Documentation](http://moveit.ros.org/documentation/)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
 
+## Branches Policy
+
+We develop all new 1.0 features on ``master``. The ``*-devel`` branches correspond to 
+released and stable versions of MoveIt for specific distributions of ROS. 
+Bug fixes occationally get backported to these released versions of MoveIt.
+The next version of MoveIt 1.0 will be branched to ``noetic-devel`` around May 2020.
+
+For MoveIt 2.0 development, see [moveit2](https://github.com/ros-planning/moveit2).
+
 ## Continuous Integration Status
 
-service    | Indigo | Kinetic | Melodic
----------- | ------ | ------- | -------
-Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit/branches) |
-build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__moveit__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__moveit__ubuntu_trusty_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) |
+service    | Indigo | Kinetic | Melodic | Master
+---------- | ------ | ------- | ------- | ------
+Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=master)](https://travis-ci.org/ros-planning/moveit/branches) |
+build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__moveit__ubuntu_trusty_amd64)](http://build.ros.org/job/Idev__moveit__ubuntu_trusty_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) | N/A |
 
 
 ## Docker Containers

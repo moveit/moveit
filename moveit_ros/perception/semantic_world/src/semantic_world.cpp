@@ -247,8 +247,8 @@ SemanticWorld::generatePlacePoses(const object_recognition_msgs::Table& chosen_t
 
   Eigen::Quaterniond rotation(object_orientation.x, object_orientation.y, object_orientation.z, object_orientation.w);
   Eigen::Isometry3d object_pose(rotation);
-  double min_distance_from_edge;
-  double height_above_table;
+  double min_distance_from_edge = 0;
+  double height_above_table = 0;
 
   if (object_shape->type == shapes::MESH)
   {
@@ -446,10 +446,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   double result = cv::pointPolygonTest(contours[0], point2f, true);
   ROS_DEBUG("table distance: %f", result);
 
-  if ((int)result >= (int)(min_distance_from_edge * scale_factor))
-    return true;
-
-  return false;
+  return (int)result >= (int)(min_distance_from_edge * scale_factor);
 }
 
 std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose& pose, double min_distance_from_edge,
@@ -506,7 +503,7 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
 shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) const
 {
   if (polygon.vertex_count < 3 || polygon.triangle_count < 1)
-    return 0;
+    return nullptr;
   // first get the normal of the first triangle of the input polygon
   Eigen::Vector3d vec1, vec2, vec3, normal;
 
@@ -560,7 +557,7 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
 shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh& polygon, double thickness) const
 {
   if (polygon.vertex_count < 3 || polygon.triangle_count < 1 || thickness <= 0)
-    return 0;
+    return nullptr;
   // first get the normal of the first triangle of the input polygon
   Eigen::Vector3d vec1, vec2, vec3, normal;
 
@@ -629,5 +626,5 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
 
   return solid;
 }
-}
-}
+}  // namespace semantic_world
+}  // namespace moveit

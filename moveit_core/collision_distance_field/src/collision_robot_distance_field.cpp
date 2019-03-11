@@ -757,7 +757,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       continue;
     }
 
-    if (link_state->getShapes().size() > 0)
+    if (!link_state->getShapes().empty())
     {
       dfce->link_has_geometry_.push_back(true);
       dfce->link_body_indices_.push_back(link_body_decomposition_index_map_.find(link_name)->second);
@@ -874,7 +874,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
     }
   }
 
-  const std::vector<std::string> state_variable_names = state.getVariableNames();
+  const std::vector<std::string>& state_variable_names = state.getVariableNames();
   for (std::vector<std::string>::const_iterator name_iter = state_variable_names.begin();
        name_iter != state_variable_names.end(); name_iter++)
   {
@@ -1372,4 +1372,4 @@ bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(
 //     if(dfce->acm.find
 //   }
 // }
-}
+}  // namespace collision_detection

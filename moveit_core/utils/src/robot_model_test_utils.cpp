@@ -237,7 +237,7 @@ void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std
   addLinkCollision(link_name, coll, origin);
 }
 
-void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::CollisionSharedPtr collision,
+void RobotModelBuilder::addLinkCollision(const std::string& link_name, const urdf::CollisionSharedPtr& collision,
                                          geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
@@ -255,7 +255,7 @@ void RobotModelBuilder::addLinkCollision(const std::string& link_name, urdf::Col
   link->collision_array.push_back(collision);
 }
 
-void RobotModelBuilder::addLinkVisual(const std::string& link_name, urdf::VisualSharedPtr vis,
+void RobotModelBuilder::addLinkVisual(const std::string& link_name, const urdf::VisualSharedPtr& vis,
                                       geometry_msgs::Pose origin)
 {
   if (not urdf_model_->getLink(link_name))
@@ -290,7 +290,7 @@ void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const s
                                         const std::string& type, const std::string& name)
 {
   srdf::Model::VirtualJoint new_virtual_joint;
-  if (name == "")
+  if (name.empty())
     new_virtual_joint.name_ = parent_frame + "-" + child_link + "-virtual_joint";
   else
     new_virtual_joint.name_ = name;
@@ -304,7 +304,7 @@ void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::s
                                       const std::string& name)
 {
   srdf::Model::Group new_group;
-  if (name == "")
+  if (name.empty())
     new_group.name_ = base_link + "-" + tip_link + "-chain-group";
   else
     new_group.name_ = name;

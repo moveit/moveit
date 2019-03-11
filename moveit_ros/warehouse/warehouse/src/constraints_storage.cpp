@@ -36,6 +36,8 @@
 
 #include <moveit/warehouse/constraints_storage.h>
 
+#include <utility>
+
 const std::string moveit_warehouse::ConstraintsStorage::DATABASE_NAME = "moveit_constraints";
 
 const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME = "constraints_id";
@@ -46,7 +48,7 @@ using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::ConstraintsStorage::ConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn)
-  : MoveItMessageStorage(conn)
+  : MoveItMessageStorage(std::move(conn))
 {
   createCollections();
 }

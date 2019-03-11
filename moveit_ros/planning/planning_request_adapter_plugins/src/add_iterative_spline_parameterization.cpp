@@ -73,7 +73,7 @@ public:
 private:
   trajectory_processing::IterativeSplineParameterization time_param_;
 };
-}
+}  // namespace default_planner_request_adapters
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::AddIterativeSplineParameterization,
                             planning_request_adapter::PlanningRequestAdapter);
