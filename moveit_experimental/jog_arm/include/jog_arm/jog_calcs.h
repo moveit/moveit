@@ -134,7 +134,7 @@ protected:
 
   const int gazebo_redundant_message_count_ = 30;
 
-  int num_joints_;
+  uint num_joints_;
 };
 }  // namespace jog_arm
 

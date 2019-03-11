@@ -223,7 +223,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
       std::isnan(cmd.twist.angular.x) || std::isnan(cmd.twist.angular.y) || std::isnan(cmd.twist.angular.z))
   {
-    ROS_WARN_STREAM_NAMED(LOGNAME, "nan in incoming command. Skipping this datapoint.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
     return false;
   }
 
@@ -233,7 +233,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     if ((fabs(cmd.twist.linear.x) > 1) || (fabs(cmd.twist.linear.y) > 1) || (fabs(cmd.twist.linear.z) > 1) ||
         (fabs(cmd.twist.angular.x) > 1) || (fabs(cmd.twist.angular.y) > 1) || (fabs(cmd.twist.angular.z) > 1))
     {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "Component of incoming command is >1. Skipping this datapoint.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Component of incoming command is >1. Skipping this datapoint.");
       return false;
     }
   }
@@ -332,7 +332,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   {
     if (std::isnan(cmd.velocities[i]) || (fabs(cmd.velocities[i]) > 1))
     {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "nan in incoming command. Skipping this datapoint.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
       return false;
     }
   }
@@ -418,7 +418,7 @@ void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
     {
       jt_state_.position[i] = original_jt_state_.position[i];
       jt_state_.velocity[i] = 0.;
-      ROS_WARN_STREAM_NAMED(LOGNAME, "nan in velocity filter");
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in velocity filter");
     }
   }
 }
@@ -546,7 +546,7 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd commanded_veloci
     else if (ini_condition > parameters_.hard_stop_singularity_threshold)
     {
       velocity_scale = 0;
-      ROS_WARN_NAMED(LOGNAME, "Close to a singularity. Halting.");
+      ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a singularity. Halting.");
     }
   }
 
