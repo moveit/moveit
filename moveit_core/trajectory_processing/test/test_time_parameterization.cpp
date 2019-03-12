@@ -44,7 +44,7 @@
 #include <moveit/utils/robot_model_test_utils.h>
 
 // Static variables used in all tests
-moveit::core::RobotModelConstPtr rmodel = moveit::core::loadTestingRobotModel("pr2_description");
+moveit::core::RobotModelConstPtr rmodel = moveit::core::loadTestingRobotModel("pr2");
 robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
 
 // Initialize one-joint, 3 points exactly the same.
