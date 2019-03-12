@@ -510,9 +510,12 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
   int v_idx1 = polygon.triangles[0];
   int v_idx2 = polygon.triangles[1];
   int v_idx3 = polygon.triangles[2];
-  vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
-  vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
-  vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
+  vec1 =
+      Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
+  vec2 =
+      Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
+  vec3 =
+      Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
   vec2 -= vec1;
   vec3 -= vec1;
   normal = vec3.cross(vec2);
@@ -536,12 +539,12 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
     int v_idx2 = polygon.triangles[t_idx * 3 + 1];
     int v_idx3 = polygon.triangles[t_idx * 3 + 2];
 
-    vec1 =
-        Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
-    vec2 =
-        Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
-    vec3 =
-        Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
+    vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1],
+                           polygon.vertices[v_idx1 * 3 + 2]);
+    vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1],
+                           polygon.vertices[v_idx2 * 3 + 2]);
+    vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1],
+                           polygon.vertices[v_idx3 * 3 + 2]);
 
     vec2 -= vec1;
     vec3 -= vec1;
@@ -564,9 +567,12 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
   int v_idx1 = polygon.triangles[0];
   int v_idx2 = polygon.triangles[1];
   int v_idx3 = polygon.triangles[2];
-  vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
-  vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
-  vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
+  vec1 =
+      Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
+  vec2 =
+      Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
+  vec3 =
+      Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
   vec2 -= vec1;
   vec3 -= vec1;
   normal = vec3.cross(vec2);
@@ -598,12 +604,12 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
     int v_idx2 = polygon.triangles[t_idx * 3 + 1];
     int v_idx3 = polygon.triangles[t_idx * 3 + 2];
 
-    vec1 =
-        Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
-    vec2 =
-        Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
-    vec3 =
-        Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
+    vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1],
+                           polygon.vertices[v_idx1 * 3 + 2]);
+    vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1],
+                           polygon.vertices[v_idx2 * 3 + 2]);
+    vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1],
+                           polygon.vertices[v_idx3 * 3 + 2]);
 
     vec2 -= vec1;
     vec3 -= vec1;

@@ -94,7 +94,8 @@ TEST_F(TestAABB, TestPR2)
   EXPECT_NEAR(extents_base_footprint[1], 0.001, 1e-4);
   EXPECT_NEAR(extents_base_footprint[2], 0.001, 1e-4);
 
-  const Eigen::Vector3d& offset_base_footprint = pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
+  const Eigen::Vector3d& offset_base_footprint =
+      pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
   EXPECT_NEAR(offset_base_footprint[0], 0.0, 1e-4);
   EXPECT_NEAR(offset_base_footprint[1], 0.0, 1e-4);
   EXPECT_NEAR(offset_base_footprint[2], 0.071, 1e-4);

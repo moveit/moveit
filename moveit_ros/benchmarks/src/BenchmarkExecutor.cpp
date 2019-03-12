@@ -826,7 +826,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   if (solved)
   {
     // Analyzing the trajectory(ies) geometrically
-    double traj_len = 0.0;           // trajectory length
+    double traj_len = 0.0;    // trajectory length
     double clearance = 0.0;   // trajectory clearance (average)
     double smoothness = 0.0;  // trajectory smoothness (average)
     bool correct = true;      // entire trajectory collision free and in bounds
