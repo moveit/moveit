@@ -49,10 +49,10 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 
 // Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<DisabledReason, std::string> reasonsToString = boost::assign::map_list_of(NEVER, "Never")(
+const boost::unordered_map<DisabledReason, std::string> REASONS_TO_STRING = boost::assign::map_list_of(NEVER, "Never")(
     DEFAULT, "Default")(ADJACENT, "Adjacent")(ALWAYS, "Always")(USER, "User")(NOT_DISABLED, "Not Disabled");
 
-const boost::unordered_map<std::string, DisabledReason> reasonsFromString = boost::assign::map_list_of("Never", NEVER)(
+const boost::unordered_map<std::string, DisabledReason> REASONS_FROM_STRING = boost::assign::map_list_of("Never", NEVER)(
     "Default", DEFAULT)("Adjacent", ADJACENT)("Always", ALWAYS)("User", USER)("Not Disabled", NOT_DISABLED);
 
 // Unique set of pairs of links in string-based form
@@ -654,7 +654,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
 // ******************************************************************************************
 const std::string disabledReasonToString(DisabledReason reason)
 {
-  return reasonsToString.at(reason);
+  return REASONS_TO_STRING.at(reason);
 }
 
 // ******************************************************************************************
@@ -665,7 +665,7 @@ DisabledReason disabledReasonFromString(const std::string& reason)
   DisabledReason r;
   try
   {
-    r = reasonsFromString.at(reason);
+    r = REASONS_FROM_STRING.at(reason);
   }
   catch (std::out_of_range)
   {
