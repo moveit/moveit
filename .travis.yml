@@ -34,10 +34,6 @@ matrix: # Add a separate config to the matrix, using clang as compiler
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
-  fast_finish: true  # finish, even if allow-failure-tests still running
-  allow_failures:
-    - env: TEST=clang-tidy-fix  # need to fix clang-tidy issues
-
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
 
