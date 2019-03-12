@@ -54,7 +54,7 @@
 
 namespace collision_detection
 {
-const std::string CollisionDetectorAllocatorFCL::NAME_("FCL");
+const std::string CollisionDetectorAllocatorFCL::NAME("FCL");
 
 CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
 {

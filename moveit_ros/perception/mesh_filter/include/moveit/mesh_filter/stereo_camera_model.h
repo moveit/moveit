@@ -149,19 +149,19 @@ public:
   };
 
   /** \brief predefined sensor model for OpenNI compatible devices (e.g., PrimeSense, Kinect, Asus Xtion) */
-  static const StereoCameraModel::Parameters& RegisteredPSDKParams;
+  static const StereoCameraModel::Parameters& REGISTERED_PSDK_PARAMS;
 
   /** \brief source code of the vertex shader used to render the meshes*/
-  static const std::string renderVertexShaderSource;
+  static const std::string RENDER_VERTEX_SHADER_SOURCE;
 
   /** \brief source code of the fragment shader used to render the meshes*/
-  static const std::string renderFragmentShaderSource;
+  static const std::string RENDER_FRAGMENT_SHADER_SOURCE;
 
   /** \brief source code of the vertex shader used to filter the depth map*/
-  static const std::string filterVertexShaderSource;
+  static const std::string FILTER_VERTEX_SHADER_SOURCE;
 
   /** \brief source code of the fragment shader used to filter the depth map*/
-  static const std::string filterFragmentShaderSource;
+  static const std::string FILTER_FRAGMENT_SHADER_SOURCE;
 };
 }  // namespace mesh_filter
 #endif

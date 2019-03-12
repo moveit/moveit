@@ -48,7 +48,7 @@ class CollisionDetectorAllocatorFCL
     : public CollisionDetectorAllocatorTemplate<CollisionWorldFCL, CollisionRobotFCL, CollisionDetectorAllocatorFCL>
 {
 public:
-  static const std::string NAME_;  // defined in collision_world_fcl.cpp
+  static const std::string NAME;  // defined in collision_world_fcl.cpp
 };
 }
 
