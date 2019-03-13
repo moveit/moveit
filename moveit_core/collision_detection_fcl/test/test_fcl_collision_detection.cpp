@@ -57,7 +57,7 @@ class FclCollisionDetectionTester : public testing::Test
 protected:
   void SetUp() override
   {
-    robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2");
     robot_model_ok_ = static_cast<bool>(robot_model_);
     kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 

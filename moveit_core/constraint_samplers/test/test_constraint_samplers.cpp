@@ -72,7 +72,7 @@ protected:
 
   void SetUp() override
   {
-    robot_model_ = moveit::core::loadTestingRobotModel("pr2_description");
+    robot_model_ = moveit::core::loadTestingRobotModel("pr2");
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
     pr2_kinematics_plugin_right_arm_->initialize(*robot_model_, "right_arm", "torso_lift_link", { "r_wrist_roll_link" },
