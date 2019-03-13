@@ -52,12 +52,12 @@ TEST(time_optimal_trajectory_generation, test1)
   waypoint << 1423.0, 985.000244140625, 2126.0, 0.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.00249, 0.00249, 0.00249, 0.00249;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.00249, 0.00249, 0.00249, 0.00249;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations, 10.0);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(40.080256821829849, trajectory.getDuration());
 
@@ -90,12 +90,12 @@ TEST(time_optimal_trajectory_generation, test2)
   waypoint << 452.5, 533.0, 951.0, 90.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.002, 0.002, 0.002, 0.002;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.002, 0.002, 0.002, 0.002;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations, 10.0);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(1922.1418427445944, trajectory.getDuration());
 
@@ -128,12 +128,12 @@ TEST(time_optimal_trajectory_generation, test3)
   waypoint << 452.5, 533.0, 951.0, 90.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.002, 0.002, 0.002, 0.002;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.002, 0.002, 0.002, 0.002;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(1919.5597888812974, trajectory.getDuration());
 
