@@ -56,8 +56,9 @@ public:
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& robot_model,
                        const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
                        double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
-                       bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD, double resolution = DEFAULT_RESOLUTION,
-                       double collision_tolerance = DEFAULT_COLLISION_TOLERANCE, double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE, double padding = 0.0,
+                       bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
+                       double resolution = DEFAULT_RESOLUTION, double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
+                       double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE, double padding = 0.0,
                        double scale = 1.0);
 
   CollisionRobotHybrid(const CollisionRobotHybrid& other);
