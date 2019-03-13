@@ -64,7 +64,7 @@ moveit::core::RobotModelPtr loadTestingRobotModel(const std::string& robot_name)
 /** \brief Loads a URDF Model Interface from moveit_resources.
  * \param[in] robot_name The name of the robot in moveit_resources to load.
  *            This should be the prefix to many of the robot packages.
- *            For example, "panda", or "fanuc".
+ *            For example, "pr2", "panda", or "fanuc".
  * \returns a ModelInterface constructed from robot_name's URDF.
  */
 urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name);

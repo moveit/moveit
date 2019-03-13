@@ -60,7 +60,7 @@ urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
   std::string urdf_path;
   if (robot_name == "pr2")
   {
-    urdf_path = (res_path / (robot_name + "_description") / "urdf/robot.xml").string();
+    urdf_path = (res_path / "pr2_description/urdf/robot.xml").string();
   }
   else
   {
@@ -83,7 +83,7 @@ srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name)
   std::string srdf_path;
   if (robot_name == "pr2")
   {
-    srdf_path = (res_path / (robot_name + "_description") / "srdf/robot.xml").string();
+    srdf_path = (res_path / "pr2_description/srdf/robot.xml").string();
   }
   else
   {
