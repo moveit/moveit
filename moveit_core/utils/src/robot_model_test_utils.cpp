@@ -57,7 +57,16 @@ moveit::core::RobotModelPtr loadTestingRobotModel(const std::string& robot_name)
 urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile((res_path / robot_name / "urdf/robot.xml").string());
+  std::string urdf_path;
+  if (robot_name == "pr2")
+  {
+    urdf_path = (res_path / "pr2_description/urdf/robot.xml").string();
+  }
+  else
+  {
+    urdf_path = (res_path / (robot_name + "_description") / "urdf" / (robot_name + ".urdf")).string();
+  }
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDFFile(urdf_path);
   if (urdf_model == nullptr)
   {
     ROS_ERROR_NAMED(LOGNAME, "Cannot find URDF for %s. Make sure moveit_resources/your robot description is installed",
@@ -71,7 +80,16 @@ srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name)
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
   urdf::ModelInterfaceSharedPtr urdf_model = loadModelInterface(robot_name);
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
-  srdf_model->initFile(*urdf_model, (res_path / robot_name / "srdf/robot.xml").string());
+  std::string srdf_path;
+  if (robot_name == "pr2")
+  {
+    srdf_path = (res_path / "pr2_description/srdf/robot.xml").string();
+  }
+  else
+  {
+    srdf_path = (res_path / (robot_name + "_moveit_config") / "config" / (robot_name + ".srdf")).string();
+  }
+  srdf_model->initFile(*urdf_model, srdf_path);
   return srdf_model;
 }
 
