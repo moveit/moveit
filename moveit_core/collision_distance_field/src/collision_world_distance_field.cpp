@@ -566,4 +566,4 @@ CollisionWorldDistanceField::DistanceFieldCacheEntryPtr CollisionWorldDistanceFi
 }  // namespace collision_detection
 
 #include <moveit/collision_distance_field/collision_detector_allocator_distance_field.h>
-const std::string collision_detection::CollisionDetectorAllocatorDistanceField::NAME_("DISTANCE_FIELD");
+const std::string collision_detection::CollisionDetectorAllocatorDistanceField::NAME("DISTANCE_FIELD");

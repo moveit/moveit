@@ -61,8 +61,8 @@ const ManipulationStagePtr& ManipulationPipeline::getFirstStage() const
 {
   if (stages_.empty())
   {
-    static const ManipulationStagePtr empty;
-    return empty;
+    static const ManipulationStagePtr EMPTY;
+    return EMPTY;
   }
   else
     return stages_.front();
@@ -72,8 +72,8 @@ const ManipulationStagePtr& ManipulationPipeline::getLastStage() const
 {
   if (stages_.empty())
   {
-    static const ManipulationStagePtr empty;
-    return empty;
+    static const ManipulationStagePtr EMPTY;
+    return EMPTY;
   }
   else
     return stages_.back();

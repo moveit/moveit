@@ -283,10 +283,10 @@ void PerceptionWidget::sensorPluginChanged(int index)
 void PerceptionWidget::loadSensorPluginsComboBox()
 {
   // Only load this combo box once
-  static bool hasLoaded = false;
-  if (hasLoaded)
+  static bool has_loaded = false;
+  if (has_loaded)
     return;
-  hasLoaded = true;
+  has_loaded = true;
 
   // Remove all old items
   sensor_plugin_field_->clear();

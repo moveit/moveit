@@ -146,4 +146,4 @@ void collision_detection::CollisionWorldAllValid::distanceWorld(const collision_
 }
 
 #include <moveit/collision_detection/allvalid/collision_detector_allocator_allvalid.h>
-const std::string collision_detection::CollisionDetectorAllocatorAllValid::NAME_("ALL_VALID");
+const std::string collision_detection::CollisionDetectorAllocatorAllValid::NAME("ALL_VALID");

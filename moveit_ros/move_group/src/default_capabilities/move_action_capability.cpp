@@ -70,10 +70,10 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
     if (!goal->planning_options.plan_only)
       ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the goal request has plan_only "
                "set to false. Only a motion plan will be computed anyway.");
-    executeMoveCallback_PlanOnly(goal, action_res);
+    executeMoveCallbackPlanOnly(goal, action_res);
   }
   else
-    executeMoveCallback_PlanAndExecute(goal, action_res);
+    executeMoveCallbackPlanAndExecute(goal, action_res);
 
   bool planned_trajectory_empty = trajectory_processing::isTrajectoryEmpty(action_res.planned_trajectory);
   std::string response =
@@ -93,8 +93,8 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
   preempt_requested_ = false;
 }
 
-void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                                                         moveit_msgs::MoveGroupResult& action_res)
+void move_group::MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
+                                                                        moveit_msgs::MoveGroupResult& action_res)
 {
   ROS_INFO("Combined planning and execution request received for MoveGroup action. Forwarding to planning and "
            "execution pipeline.");
@@ -157,8 +157,8 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   action_res.error_code = plan.error_code_;
 }
 
-void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
-                                                                   moveit_msgs::MoveGroupResult& action_res)
+void move_group::MoveGroupMoveAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
+                                                                  moveit_msgs::MoveGroupResult& action_res)
 {
   ROS_INFO("Planning request received for MoveGroup action. Forwarding to planning pipeline.");
 

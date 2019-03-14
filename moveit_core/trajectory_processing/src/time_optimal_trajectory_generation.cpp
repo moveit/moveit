@@ -59,29 +59,29 @@ public:
   {
   }
 
-  Eigen::VectorXd getConfig(double s) const
+  Eigen::VectorXd getConfig(double s) const override
   {
     s /= length_;
     s = std::max(0.0, std::min(1.0, s));
     return (1.0 - s) * start_ + s * end_;
   }
 
-  Eigen::VectorXd getTangent(double /* s */) const
+  Eigen::VectorXd getTangent(double /* s */) const override
   {
     return (end_ - start_) / length_;
   }
 
-  Eigen::VectorXd getCurvature(double /* s */) const
+  Eigen::VectorXd getCurvature(double /* s */) const override
   {
     return Eigen::VectorXd::Zero(start_.size());
   }
 
-  std::list<double> getSwitchingPoints() const
+  std::list<double> getSwitchingPoints() const override
   {
     return std::list<double>();
   }
 
-  LinearPathSegment* clone() const
+  LinearPathSegment* clone() const override
   {
     return new LinearPathSegment(*this);
   }
@@ -138,25 +138,25 @@ public:
     y = start_direction;
   }
 
-  Eigen::VectorXd getConfig(double s) const
+  Eigen::VectorXd getConfig(double s) const override
   {
     const double angle = s / radius;
     return center + radius * (x * cos(angle) + y * sin(angle));
   }
 
-  Eigen::VectorXd getTangent(double s) const
+  Eigen::VectorXd getTangent(double s) const override
   {
     const double angle = s / radius;
     return -x * sin(angle) + y * cos(angle);
   }
 
-  Eigen::VectorXd getCurvature(double s) const
+  Eigen::VectorXd getCurvature(double s) const override
   {
     const double angle = s / radius;
     return -1.0 / radius * (x * cos(angle) + y * sin(angle));
   }
 
-  std::list<double> getSwitchingPoints() const
+  std::list<double> getSwitchingPoints() const override
   {
     std::list<double> switching_points;
     const double dim = x.size();
@@ -177,7 +177,7 @@ public:
     return switching_points;
   }
 
-  CircularPathSegment* clone() const
+  CircularPathSegment* clone() const override
   {
     return new CircularPathSegment(*this);
   }
@@ -363,7 +363,7 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
   }
 }
 
-Trajectory::~Trajectory(void)
+Trajectory::~Trajectory()
 {
 }
 
@@ -719,12 +719,12 @@ double Trajectory::getAccelerationMaxPathVelocity(double path_pos) const
       {
         if (config_deriv[j] != 0.0)
         {
-          double A_ij = config_deriv2[i] / config_deriv[i] - config_deriv2[j] / config_deriv[j];
-          if (A_ij != 0.0)
+          double a_ij = config_deriv2[i] / config_deriv[i] - config_deriv2[j] / config_deriv[j];
+          if (a_ij != 0.0)
           {
             max_path_velocity = std::min(max_path_velocity, sqrt((max_acceleration_[i] / std::abs(config_deriv[i]) +
                                                                   max_acceleration_[j] / std::abs(config_deriv[j])) /
-                                                                 std::abs(A_ij)));
+                                                                 std::abs(a_ij)));
           }
         }
       }

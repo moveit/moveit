@@ -549,9 +549,9 @@ void PlanningSceneDisplay::onRobotModelLoaded()
     planning_scene_robot_->update(robot_state::RobotStateConstPtr(rs));
   }
 
-  bool oldState = scene_name_property_->blockSignals(true);
+  bool old_state = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
-  scene_name_property_->blockSignals(oldState);
+  scene_name_property_->blockSignals(old_state);
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
@@ -563,10 +563,10 @@ void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(
     planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
-  bool oldState = scene_name_property_->blockSignals(true);
+  bool old_state = scene_name_property_->blockSignals(true);
   getPlanningSceneRW()->getCurrentStateNonConst().update();
   scene_name_property_->setStdString(getPlanningSceneRO()->getName());
-  scene_name_property_->blockSignals(oldState);
+  scene_name_property_->blockSignals(old_state);
 
   planning_scene_needs_render_ = true;
 }

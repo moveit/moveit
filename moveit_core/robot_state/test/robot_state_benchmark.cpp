@@ -108,21 +108,21 @@ TEST_F(Timing, stateUpdate)
 
 TEST_F(Timing, multiply)
 {
-  size_t RUNS = 1e7;
+  size_t runs = 1e7;
   double gold_standard = 0;
   {
     ScopedTimer t("Eigen::Affine * Eigen::Matrix: ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_].affine().noalias() = transforms_[input_idx_].affine() * transforms_[input_idx_].matrix();
   }
   {
     ScopedTimer t("Eigen::Matrix * Eigen::Matrix: ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_].matrix().noalias() = transforms_[input_idx_].matrix() * transforms_[input_idx_].matrix();
   }
   {
     ScopedTimer t("Eigen::Isometry * Eigen::Isometry: ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_] = transforms_[input_idx_] * transforms_[input_idx_];
   }
 }
@@ -131,27 +131,27 @@ TEST_F(Timing, inverse)
 {
   EigenSTL::vector_Affine3d affine(1);
   affine[0].matrix() = transforms_[input_idx_].matrix();
-  size_t RUNS = 1e7;
+  size_t runs = 1e7;
   double gold_standard = 0;
   {
     ScopedTimer t("Isometry3d::inverse(): ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_] = transforms_[input_idx_].inverse();
   }
   volatile size_t input_idx = 0;
   {
     ScopedTimer t("Affine3d::inverse(Eigen::Isometry): ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_].affine().noalias() = affine[input_idx].inverse(Eigen::Isometry).affine();
   }
   {
     ScopedTimer t("Affine3d::inverse(): ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_].affine().noalias() = affine[input_idx].inverse().affine();
   }
   {
     ScopedTimer t("Matrix4d::inverse(): ", &gold_standard);
-    for (size_t i = 0; i < RUNS; ++i)
+    for (size_t i = 0; i < runs; ++i)
       transforms_[result_idx_].matrix().noalias() = affine[input_idx].matrix().inverse();
   }
 }

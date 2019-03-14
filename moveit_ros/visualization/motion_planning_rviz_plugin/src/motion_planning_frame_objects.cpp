@@ -190,29 +190,29 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
   QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())
   {
-    bool oldState = ui_->object_x->blockSignals(true);
+    bool old_state = ui_->object_x->blockSignals(true);
     ui_->object_x->setValue(0.0);
-    ui_->object_x->blockSignals(oldState);
+    ui_->object_x->blockSignals(old_state);
 
-    oldState = ui_->object_y->blockSignals(true);
+    old_state = ui_->object_y->blockSignals(true);
     ui_->object_y->setValue(0.0);
-    ui_->object_y->blockSignals(oldState);
+    ui_->object_y->blockSignals(old_state);
 
-    oldState = ui_->object_z->blockSignals(true);
+    old_state = ui_->object_z->blockSignals(true);
     ui_->object_z->setValue(0.0);
-    ui_->object_z->blockSignals(oldState);
+    ui_->object_z->blockSignals(old_state);
 
-    oldState = ui_->object_rx->blockSignals(true);
+    old_state = ui_->object_rx->blockSignals(true);
     ui_->object_rx->setValue(0.0);
-    ui_->object_rx->blockSignals(oldState);
+    ui_->object_rx->blockSignals(old_state);
 
-    oldState = ui_->object_ry->blockSignals(true);
+    old_state = ui_->object_ry->blockSignals(true);
     ui_->object_ry->setValue(0.0);
-    ui_->object_ry->blockSignals(oldState);
+    ui_->object_ry->blockSignals(old_state);
 
-    oldState = ui_->object_rz->blockSignals(true);
+    old_state = ui_->object_rz->blockSignals(true);
     ui_->object_rz->setValue(0.0);
-    ui_->object_rz->blockSignals(oldState);
+    ui_->object_rz->blockSignals(old_state);
 
     ui_->object_status->setText("");
     scene_marker_.reset();
@@ -240,29 +240,29 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
             Eigen::Vector3d xyz = obj_pose.rotation().eulerAngles(0, 1, 2);
             update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
 
-            bool oldState = ui_->object_x->blockSignals(true);
+            bool old_state = ui_->object_x->blockSignals(true);
             ui_->object_x->setValue(obj_pose.translation()[0]);
-            ui_->object_x->blockSignals(oldState);
+            ui_->object_x->blockSignals(old_state);
 
-            oldState = ui_->object_y->blockSignals(true);
+            old_state = ui_->object_y->blockSignals(true);
             ui_->object_y->setValue(obj_pose.translation()[1]);
-            ui_->object_y->blockSignals(oldState);
+            ui_->object_y->blockSignals(old_state);
 
-            oldState = ui_->object_z->blockSignals(true);
+            old_state = ui_->object_z->blockSignals(true);
             ui_->object_z->setValue(obj_pose.translation()[2]);
-            ui_->object_z->blockSignals(oldState);
+            ui_->object_z->blockSignals(old_state);
 
-            oldState = ui_->object_rx->blockSignals(true);
+            old_state = ui_->object_rx->blockSignals(true);
             ui_->object_rx->setValue(xyz[0]);
-            ui_->object_rx->blockSignals(oldState);
+            ui_->object_rx->blockSignals(old_state);
 
-            oldState = ui_->object_ry->blockSignals(true);
+            old_state = ui_->object_ry->blockSignals(true);
             ui_->object_ry->setValue(xyz[1]);
-            ui_->object_ry->blockSignals(oldState);
+            ui_->object_ry->blockSignals(old_state);
 
-            oldState = ui_->object_rz->blockSignals(true);
+            old_state = ui_->object_rz->blockSignals(true);
             ui_->object_rz->setValue(xyz[2]);
-            ui_->object_rz->blockSignals(oldState);
+            ui_->object_rz->blockSignals(old_state);
           }
         }
         else
@@ -348,33 +348,33 @@ void MotionPlanningFrame::collisionObjectChanged(QListWidgetItem* item)
 /* Receives feedback from the interactive marker and updates the shape pose in the world accordingly */
 void MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
-  bool oldState = ui_->object_x->blockSignals(true);
+  bool old_state = ui_->object_x->blockSignals(true);
   ui_->object_x->setValue(feedback.pose.position.x);
-  ui_->object_x->blockSignals(oldState);
+  ui_->object_x->blockSignals(old_state);
 
-  oldState = ui_->object_y->blockSignals(true);
+  old_state = ui_->object_y->blockSignals(true);
   ui_->object_y->setValue(feedback.pose.position.y);
-  ui_->object_y->blockSignals(oldState);
+  ui_->object_y->blockSignals(old_state);
 
-  oldState = ui_->object_z->blockSignals(true);
+  old_state = ui_->object_z->blockSignals(true);
   ui_->object_z->setValue(feedback.pose.position.z);
-  ui_->object_z->blockSignals(oldState);
+  ui_->object_z->blockSignals(old_state);
 
   Eigen::Quaterniond q;
   tf2::fromMsg(feedback.pose.orientation, q);
   Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
 
-  oldState = ui_->object_rx->blockSignals(true);
+  old_state = ui_->object_rx->blockSignals(true);
   ui_->object_rx->setValue(xyz[0]);
-  ui_->object_rx->blockSignals(oldState);
+  ui_->object_rx->blockSignals(old_state);
 
-  oldState = ui_->object_ry->blockSignals(true);
+  old_state = ui_->object_ry->blockSignals(true);
   ui_->object_ry->setValue(xyz[1]);
-  ui_->object_ry->blockSignals(oldState);
+  ui_->object_ry->blockSignals(old_state);
 
-  oldState = ui_->object_rz->blockSignals(true);
+  old_state = ui_->object_rz->blockSignals(true);
   ui_->object_rz->setValue(xyz[2]);
-  ui_->object_rz->blockSignals(oldState);
+  ui_->object_rz->blockSignals(old_state);
 
   updateCollisionObjectPose(false);
 }
@@ -845,7 +845,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
 void MotionPlanningFrame::populateCollisionObjectsList()
 {
   ui_->collision_objects_list->setUpdatesEnabled(false);
-  bool oldState = ui_->collision_objects_list->blockSignals(true);
+  bool old_state = ui_->collision_objects_list->blockSignals(true);
 
   {
     QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
@@ -895,7 +895,7 @@ void MotionPlanningFrame::populateCollisionObjectsList()
     }
   }
 
-  ui_->collision_objects_list->blockSignals(oldState);
+  ui_->collision_objects_list->blockSignals(old_state);
   ui_->collision_objects_list->setUpdatesEnabled(true);
   selectedCollisionObjectChanged();
 }

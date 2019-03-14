@@ -87,27 +87,28 @@ TEST_F(TestAABB, TestPR2)
 
   robot_state::RobotState pr2_state = this->loadModel("pr2");
 
-  const Eigen::Vector3d& extentsBaseFootprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
+  const Eigen::Vector3d& extents_base_footprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
   // values taken from moveit_resources/pr2_description/urdf/robot.xml
-  EXPECT_NEAR(extentsBaseFootprint[0], 0.001, 1e-4);
-  EXPECT_NEAR(extentsBaseFootprint[1], 0.001, 1e-4);
-  EXPECT_NEAR(extentsBaseFootprint[2], 0.001, 1e-4);
+  EXPECT_NEAR(extents_base_footprint[0], 0.001, 1e-4);
+  EXPECT_NEAR(extents_base_footprint[1], 0.001, 1e-4);
+  EXPECT_NEAR(extents_base_footprint[2], 0.001, 1e-4);
 
-  const Eigen::Vector3d& offsetBaseFootprint = pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
-  EXPECT_NEAR(offsetBaseFootprint[0], 0.0, 1e-4);
-  EXPECT_NEAR(offsetBaseFootprint[1], 0.0, 1e-4);
-  EXPECT_NEAR(offsetBaseFootprint[2], 0.071, 1e-4);
+  const Eigen::Vector3d& offset_base_footprint =
+      pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
+  EXPECT_NEAR(offset_base_footprint[0], 0.0, 1e-4);
+  EXPECT_NEAR(offset_base_footprint[1], 0.0, 1e-4);
+  EXPECT_NEAR(offset_base_footprint[2], 0.071, 1e-4);
 
-  const Eigen::Vector3d& extentsBaseLink = pr2_state.getLinkModel("base_link")->getShapeExtentsAtOrigin();
+  const Eigen::Vector3d& extents_base_link = pr2_state.getLinkModel("base_link")->getShapeExtentsAtOrigin();
   // values computed from moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl in e.g. Meshlab
-  EXPECT_NEAR(extentsBaseLink[0], 0.668242, 1e-4);
-  EXPECT_NEAR(extentsBaseLink[1], 0.668242, 1e-4);
-  EXPECT_NEAR(extentsBaseLink[2], 0.656175, 1e-4);
+  EXPECT_NEAR(extents_base_link[0], 0.668242, 1e-4);
+  EXPECT_NEAR(extents_base_link[1], 0.668242, 1e-4);
+  EXPECT_NEAR(extents_base_link[2], 0.656175, 1e-4);
 
-  const Eigen::Vector3d& offsetBaseLink = pr2_state.getLinkModel("base_link")->getCenteredBoundingBoxOffset();
-  EXPECT_NEAR(offsetBaseLink[0], 0.0, 1e-4);
-  EXPECT_NEAR(offsetBaseLink[1], 0.0, 1e-4);
-  EXPECT_NEAR(offsetBaseLink[2], 0.656175 / 2, 1e-4);  // The 3D mesh isn't centered, but is whole above z axis
+  const Eigen::Vector3d& offset_base_link = pr2_state.getLinkModel("base_link")->getCenteredBoundingBoxOffset();
+  EXPECT_NEAR(offset_base_link[0], 0.0, 1e-4);
+  EXPECT_NEAR(offset_base_link[1], 0.0, 1e-4);
+  EXPECT_NEAR(offset_base_link[2], 0.656175 / 2, 1e-4);  // The 3D mesh isn't centered, but is whole above z axis
 
   std::vector<double> pr2_aabb;
   pr2_state.computeAABB(pr2_aabb);

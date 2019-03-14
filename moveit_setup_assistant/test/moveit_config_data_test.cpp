@@ -82,41 +82,41 @@ TEST_F(MoveItConfigData, ReadingControllers)
   boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
 
   // Contains all the configuration data for the setup assistant
-  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+  moveit_setup_assistant::MoveItConfigDataPtr config_data;
 
-  config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
-  config_data_->srdf_->srdf_model_ = srdf_model;
-  config_data_->setRobotModel(robot_model);
+  config_data.reset(new moveit_setup_assistant::MoveItConfigData());
+  config_data->srdf_->srdf_model_ = srdf_model;
+  config_data->setRobotModel(robot_model);
 
   // Initially no controllers
-  EXPECT_EQ(config_data_->getROSControllers().size(), 0u);
+  EXPECT_EQ(config_data->getROSControllers().size(), 0u);
 
   // Adding default controllers, a controller for each planning group
-  config_data_->addDefaultControllers();
+  config_data->addDefaultControllers();
 
   // Number of the planning groups defined in the model srdf
-  size_t group_count = config_data_->srdf_->srdf_model_->getGroups().size();
+  size_t group_count = config_data->srdf_->srdf_model_->getGroups().size();
 
   // Test that addDefaultControllers() did accually add a controller for the new_group
-  EXPECT_EQ(config_data_->getROSControllers().size(), group_count);
+  EXPECT_EQ(config_data->getROSControllers().size(), group_count);
 
   // Temporary file used during the test and is deleted when the test is finished
   char test_file[] = "/tmp/msa_unittest_ros_controller.yaml";
 
   // ros_controller.yaml written correctly
-  EXPECT_EQ(config_data_->outputROSControllersYAML(test_file), true);
+  EXPECT_EQ(config_data->outputROSControllersYAML(test_file), true);
 
   // Reset MoveIt! config MoveItConfigData
-  config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
+  config_data.reset(new moveit_setup_assistant::MoveItConfigData());
 
   // Initially no controllers
-  EXPECT_EQ(config_data_->getROSControllers().size(), 0u);
+  EXPECT_EQ(config_data->getROSControllers().size(), 0u);
 
   // ros_controllers.yaml read correctly
-  EXPECT_EQ(config_data_->inputROSControllersYAML(test_file), true);
+  EXPECT_EQ(config_data->inputROSControllersYAML(test_file), true);
 
   // ros_controllers.yaml parsed correctly
-  EXPECT_EQ(config_data_->getROSControllers().size(), group_count);
+  EXPECT_EQ(config_data->getROSControllers().size(), group_count);
 
   // Remove ros_controllers.yaml temp file which was used in testing
   boost::filesystem::remove(test_file);
@@ -126,26 +126,26 @@ TEST_F(MoveItConfigData, ReadingControllers)
 TEST_F(MoveItConfigData, ReadingSensorsConfig)
 {
   // Contains all the config data for the setup assistant
-  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-  config_data_.reset(new moveit_setup_assistant::MoveItConfigData());
+  moveit_setup_assistant::MoveItConfigDataPtr config_data;
+  config_data.reset(new moveit_setup_assistant::MoveItConfigData());
 
-  boost::filesystem::path setup_assistant_path(config_data_->setup_assistant_path_);
+  boost::filesystem::path setup_assistant_path(config_data->setup_assistant_path_);
 
   // Before parsing, no config available
-  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 0u);
+  EXPECT_EQ(config_data->getSensorPluginConfig().size(), 0u);
 
   // Read the file containing the default config parameters
-  config_data_->input3DSensorsYAML(
+  config_data->input3DSensorsYAML(
       (setup_assistant_path / "templates/moveit_config_pkg_template/config/sensors_3d.yaml").string());
 
   // Default config for the two available sensor plugins
   // Make sure both are parsed correctly
-  EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 2u);
+  EXPECT_EQ(config_data->getSensorPluginConfig().size(), 2u);
 
-  EXPECT_EQ(config_data_->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
+  EXPECT_EQ(config_data->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
             std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));
 
-  EXPECT_EQ(config_data_->getSensorPluginConfig()[1]["sensor_plugin"].getValue(),
+  EXPECT_EQ(config_data->getSensorPluginConfig()[1]["sensor_plugin"].getValue(),
             std::string("occupancy_map_monitor/DepthImageOctomapUpdater"));
 }
 

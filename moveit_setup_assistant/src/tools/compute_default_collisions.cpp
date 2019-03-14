@@ -49,11 +49,12 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 
 // Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<DisabledReason, std::string> reasonsToString = boost::assign::map_list_of(NEVER, "Never")(
+const boost::unordered_map<DisabledReason, std::string> REASONS_TO_STRING = boost::assign::map_list_of(NEVER, "Never")(
     DEFAULT, "Default")(ADJACENT, "Adjacent")(ALWAYS, "Always")(USER, "User")(NOT_DISABLED, "Not Disabled");
 
-const boost::unordered_map<std::string, DisabledReason> reasonsFromString = boost::assign::map_list_of("Never", NEVER)(
-    "Default", DEFAULT)("Adjacent", ADJACENT)("Always", ALWAYS)("User", USER)("Not Disabled", NOT_DISABLED);
+const boost::unordered_map<std::string, DisabledReason> REASONS_FROM_STRING =
+    boost::assign::map_list_of("Never", NEVER)("Default", DEFAULT)("Adjacent", ADJACENT)("Always", ALWAYS)(
+        "User", USER)("Not Disabled", NOT_DISABLED);
 
 // Unique set of pairs of links in string-based form
 typedef std::set<std::pair<std::string, std::string> > StringPairSet;
@@ -284,7 +285,7 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
 bool setLinkPair(const std::string& linkA, const std::string& linkB, const DisabledReason reason,
                  LinkPairMap& link_pairs)
 {
-  bool isUnique = false;  // determine if this link pair had already existsed in the link_pairs datastructure
+  bool is_unique = false;  // determine if this link pair had already existsed in the link_pairs datastructure
 
   // Determine order of the 2 links in the pair
   std::pair<std::string, std::string> link_pair;
@@ -305,14 +306,14 @@ bool setLinkPair(const std::string& linkA, const std::string& linkB, const Disab
   // Check if link pair was already disabled. It also creates the entry if none existed
   if (!link_pairs[link_pair].disable_check)  // it was not previously disabled
   {
-    isUnique = true;
+    is_unique = true;
     link_pair_ptr->reason = reason;  // only change the reason if the pair was previously enabled
   }
 
   // Only disable collision checking if there is a reason to disable it. This func is also used for initializing pairs
   link_pair_ptr->disable_check = (reason != NOT_DISABLED);
 
-  return isUnique;
+  return is_unique;
 }
 
 // ******************************************************************************************
@@ -478,19 +479,19 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene& scene, Link
                                       double min_collision_faction)
 {
   // Trial count variables
-  static const unsigned int small_trial_count = 200;
-  static const unsigned int small_trial_limit = (unsigned int)((double)small_trial_count * min_collision_faction);
+  static const unsigned int SMALL_TRIAL_COUNT = 200;
+  static const unsigned int SMALL_TRIAL_LIMIT = (unsigned int)((double)SMALL_TRIAL_COUNT * min_collision_faction);
 
   bool done = false;
   unsigned int num_disabled = 0;
 
   while (!done)
   {
-    // DO 'small_trial_count' COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
+    // DO 'SMALL_TRIAL_COUNT' COLLISION CHECKS AND RECORD STATISTICS ---------------------------------------
     std::map<std::pair<std::string, std::string>, unsigned int> collision_count;
 
     // Do a large number of tests
-    for (unsigned int i = 0; i < small_trial_count; ++i)
+    for (unsigned int i = 0; i < SMALL_TRIAL_COUNT; ++i)
     {
       // Check for collisions
       collision_detection::CollisionResult res;
@@ -524,7 +525,7 @@ unsigned int disableAlwaysInCollision(planning_scene::PlanningScene& scene, Link
          it != collision_count.end(); ++it)
     {
       // Disable these two links permanently
-      if (it->second > small_trial_limit)
+      if (it->second > SMALL_TRIAL_LIMIT)
       {
         num_disabled += setLinkPair(it->first.first, it->first.second, ALWAYS, link_pairs);
 
@@ -654,7 +655,7 @@ void disableNeverInCollisionThread(ThreadComputation tc)
 // ******************************************************************************************
 const std::string disabledReasonToString(DisabledReason reason)
 {
-  return reasonsToString.at(reason);
+  return REASONS_TO_STRING.at(reason);
 }
 
 // ******************************************************************************************
@@ -665,7 +666,7 @@ DisabledReason disabledReasonFromString(const std::string& reason)
   DisabledReason r;
   try
   {
-    r = reasonsFromString.at(reason);
+    r = REASONS_FROM_STRING.at(reason);
   }
   catch (std::out_of_range)
   {
