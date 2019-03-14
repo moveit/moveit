@@ -11,6 +11,7 @@ Checks:          '-*,
                   readability-redundant-string-cstr,
                   readability-simplify-boolean-expr,
                   readability-container-size-empty,
+                  readability-identifier-naming,
                   '
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

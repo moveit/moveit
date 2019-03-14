@@ -272,10 +272,10 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
 {
   if (transform_cache_callback_)
   {
-    ShapeTransformCache tempCache;
-    if (transform_cache_callback_(target_frame, target_time, tempCache))
+    ShapeTransformCache temp_cache;
+    if (transform_cache_callback_(target_frame, target_time, temp_cache))
     {
-      for (ShapeTransformCache::iterator it = tempCache.begin(); it != tempCache.end(); ++it)
+      for (ShapeTransformCache::iterator it = temp_cache.begin(); it != temp_cache.end(); ++it)
       {
         std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
         if (jt == mesh_handles_[index].end())

@@ -101,45 +101,45 @@ QModelIndex CollisionLinearModel::parent(const QModelIndex& child) const
 
 QVariant CollisionLinearModel::data(const QModelIndex& index, int role) const
 {
-  QModelIndex srcIndex = this->mapToSource(index);
+  QModelIndex src_index = this->mapToSource(index);
   switch (index.column())
   {
     case 0:  // link name 1
       if (role != Qt::DisplayRole)
         return QVariant();
       else
-        return this->sourceModel()->headerData(srcIndex.row(), Qt::Horizontal, Qt::DisplayRole);
+        return this->sourceModel()->headerData(src_index.row(), Qt::Horizontal, Qt::DisplayRole);
     case 1:  // link name 2
       if (role != Qt::DisplayRole)
         return QVariant();
-      return this->sourceModel()->headerData(srcIndex.column(), Qt::Vertical, Qt::DisplayRole);
+      return this->sourceModel()->headerData(src_index.column(), Qt::Vertical, Qt::DisplayRole);
     case 2:  // checkbox
       if (role != Qt::CheckStateRole)
         return QVariant();
       else
-        return this->sourceModel()->data(srcIndex, Qt::CheckStateRole);
+        return this->sourceModel()->data(src_index, Qt::CheckStateRole);
     case 3:  // reason
       if (role != Qt::DisplayRole)
         return QVariant();
       else
-        return this->sourceModel()->data(srcIndex, Qt::ToolTipRole);
+        return this->sourceModel()->data(src_index, Qt::ToolTipRole);
   }
   return QVariant();
 }
 
 DisabledReason CollisionLinearModel::reason(int row) const
 {
-  QModelIndex srcIndex = this->mapToSource(index(row, 0));
-  return qobject_cast<CollisionMatrixModel*>(sourceModel())->reason(srcIndex);
+  QModelIndex src_index = this->mapToSource(index(row, 0));
+  return qobject_cast<CollisionMatrixModel*>(sourceModel())->reason(src_index);
 }
 
 bool CollisionLinearModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-  QModelIndex srcIndex = this->mapToSource(index);
+  QModelIndex src_index = this->mapToSource(index);
 
   if (role == Qt::CheckStateRole)
   {
-    sourceModel()->setData(srcIndex, value, role);
+    sourceModel()->setData(src_index, value, role);
     int r = index.row();
     Q_EMIT dataChanged(this->index(r, 2), this->index(r, 3));  // reason changed too
     return true;

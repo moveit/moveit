@@ -54,11 +54,11 @@ mesh_filter::GLMesh::GLMesh(const Mesh& mesh, unsigned int mesh_label)
   glNewList(list_, GL_COMPILE);
   glBegin(GL_TRIANGLES);
   glColor4ubv((GLubyte*)&mesh_label_);
-  for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
+  for (unsigned t_idx = 0; t_idx < mesh.triangle_count; ++t_idx)
   {
-    unsigned v1 = 3 * mesh.triangles[3 * tIdx];
-    unsigned v2 = 3 * mesh.triangles[3 * tIdx + 1];
-    unsigned v3 = 3 * mesh.triangles[3 * tIdx + 2];
+    unsigned v1 = 3 * mesh.triangles[3 * t_idx];
+    unsigned v2 = 3 * mesh.triangles[3 * t_idx + 1];
+    unsigned v3 = 3 * mesh.triangles[3 * t_idx + 2];
 
     glNormal3f(mesh.vertex_normals[v1], mesh.vertex_normals[v1 + 1], mesh.vertex_normals[v1 + 2]);
     glVertex3f(mesh.vertices[v1], mesh.vertices[v1 + 1], mesh.vertices[v1 + 2]);

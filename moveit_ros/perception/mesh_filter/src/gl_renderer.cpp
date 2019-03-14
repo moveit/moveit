@@ -157,8 +157,8 @@ void mesh_filter::GLRenderer::initFrameBuffers()
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_id_, 0);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-  GLenum DrawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
-  glDrawBuffers(2, DrawBuffers);
+  GLenum draw_buffers[2] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
+  glDrawBuffers(2, draw_buffers);
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -258,32 +258,32 @@ const float& mesh_filter::GLRenderer::getFarClippingDistance() const
 
 GLuint mesh_filter::GLRenderer::createShader(GLuint shaderType, const string& ShaderCode) const
 {
-  GLuint ShaderID = glCreateShader(shaderType);
+  GLuint shader_id = glCreateShader(shaderType);
 
   // Compile Shader
-  char const* SourcePointer = ShaderCode.c_str();
-  glShaderSource(ShaderID, 1, &SourcePointer, nullptr);
-  glCompileShader(ShaderID);
+  char const* source_pointer = ShaderCode.c_str();
+  glShaderSource(shader_id, 1, &source_pointer, nullptr);
+  glCompileShader(shader_id);
 
   // Check Shader
-  GLint Result = GL_FALSE;
-  glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
-  if (Result != GL_TRUE)
+  GLint result = GL_FALSE;
+  glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
+  if (result != GL_TRUE)
   {
-    int InfoLogLength;
-    glGetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0)
+    int info_log_length;
+    glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &info_log_length);
+    if (info_log_length > 0)
     {
-      vector<char> ShaderErrorMessage(InfoLogLength + 1);
-      glGetShaderInfoLog(ShaderID, InfoLogLength, nullptr, &ShaderErrorMessage[0]);
-      stringstream errorStream;
-      errorStream << "Could not compile shader: " << (const char*)&ShaderErrorMessage[0];
+      vector<char> shader_error_message(info_log_length + 1);
+      glGetShaderInfoLog(shader_id, info_log_length, nullptr, &shader_error_message[0]);
+      stringstream error_stream;
+      error_stream << "Could not compile shader: " << (const char*)&shader_error_message[0];
 
-      glDeleteShader(ShaderID);
-      throw runtime_error(errorStream.str());
+      glDeleteShader(shader_id);
+      throw runtime_error(error_stream.str());
     }
   }
-  return ShaderID;
+  return shader_id;
 }
 
 void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, string& shader) const
@@ -292,19 +292,19 @@ void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, str
     shader = "";
   else
   {
-    string ShaderCode;
-    fstream ShaderFile(filename.c_str(), ios::in);
-    if (ShaderFile.is_open())
+    string shader_code;
+    fstream shader_file(filename.c_str(), ios::in);
+    if (shader_file.is_open())
     {
       stringstream buffer;
-      buffer << ShaderFile.rdbuf();
+      buffer << shader_file.rdbuf();
       shader = buffer.str();
     }
     else
     {
-      stringstream errorStream;
-      errorStream << "Could not open shader code in file \"" << filename << "\"";
-      throw runtime_error(errorStream.str());
+      stringstream error_stream;
+      error_stream << "Could not open shader code in file \"" << filename << "\"";
+      throw runtime_error(error_stream.str());
     }
   }
 }
@@ -314,45 +314,45 @@ GLuint mesh_filter::GLRenderer::loadShaders(const string& vertex_source, const s
   if (vertex_source.empty() && fragment_source.empty())
     return 0;
 
-  GLuint ProgramID = glCreateProgram();
-  GLuint VertexShaderID = 0;
-  GLuint FragmentShaderID = 0;
+  GLuint program_id = glCreateProgram();
+  GLuint vertex_shader_id = 0;
+  GLuint fragment_shader_id = 0;
 
   if (!vertex_source.empty())
   {
-    GLuint VertexShaderID = createShader(GL_VERTEX_SHADER, vertex_source);
-    glAttachShader(ProgramID, VertexShaderID);
+    GLuint vertex_shader_id = createShader(GL_VERTEX_SHADER, vertex_source);
+    glAttachShader(program_id, vertex_shader_id);
   }
 
   if (!fragment_source.empty())
   {
-    GLuint FragmentShaderID = createShader(GL_FRAGMENT_SHADER, fragment_source);
-    glAttachShader(ProgramID, FragmentShaderID);
+    GLuint fragment_shader_id = createShader(GL_FRAGMENT_SHADER, fragment_source);
+    glAttachShader(program_id, fragment_shader_id);
   }
 
-  glLinkProgram(ProgramID);
+  glLinkProgram(program_id);
 
   // Check the program
-  GLint Result = GL_FALSE;
-  GLint InfoLogLength;
-  glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-  glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-  if (InfoLogLength > 0)
+  GLint result = GL_FALSE;
+  GLint info_log_length;
+  glGetProgramiv(program_id, GL_LINK_STATUS, &result);
+  glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &info_log_length);
+  if (info_log_length > 0)
   {
-    vector<char> ProgramErrorMessage(InfoLogLength + 1);
-    glGetProgramInfoLog(ProgramID, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
-    std::size_t l = strnlen(&ProgramErrorMessage[0], ProgramErrorMessage.size());
+    vector<char> program_error_message(info_log_length + 1);
+    glGetProgramInfoLog(program_id, info_log_length, nullptr, &program_error_message[0]);
+    std::size_t l = strnlen(&program_error_message[0], program_error_message.size());
     if (l > 0)
-      ROS_ERROR("%s\n", &ProgramErrorMessage[0]);
+      ROS_ERROR("%s\n", &program_error_message[0]);
   }
 
-  if (VertexShaderID)
-    glDeleteShader(VertexShaderID);
+  if (vertex_shader_id)
+    glDeleteShader(vertex_shader_id);
 
-  if (FragmentShaderID)
-    glDeleteShader(FragmentShaderID);
+  if (fragment_shader_id)
+    glDeleteShader(fragment_shader_id);
 
-  return ProgramID;
+  return program_id;
 }
 
 map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context_;
@@ -379,12 +379,12 @@ void mesh_filter::GLRenderer::createGLContext()
   }
 
   // check if our thread is initialized
-  boost::thread::id threadID = boost::this_thread::get_id();
-  map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
+  boost::thread::id thread_id = boost::this_thread::get_id();
+  map<boost::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
 
-  if (contextIt == context_.end())
+  if (context_it == context_.end())
   {
-    context_[threadID] = std::pair<unsigned, GLuint>(1, 0);
+    context_[thread_id] = std::pair<unsigned, GLuint>(1, 0);
 
     glutInitWindowPosition(glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
     glutInitWindowSize(1, 1);
@@ -394,10 +394,10 @@ void mesh_filter::GLRenderer::createGLContext()
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
-      stringstream errorStream;
-      errorStream << "Unable to initialize GLEW: " << glewGetErrorString(err);
+      stringstream error_stream;
+      error_stream << "Unable to initialize GLEW: " << glewGetErrorString(err);
 
-      throw(runtime_error(errorStream.str()));
+      throw(runtime_error(error_stream.str()));
     }
     glutIconifyWindow();
     glutHideWindow();
@@ -405,28 +405,28 @@ void mesh_filter::GLRenderer::createGLContext()
     for (int i = 0; i < 10; ++i)
       glutMainLoopEvent();
 
-    context_[threadID] = std::pair<unsigned, GLuint>(1, window_id);
+    context_[thread_id] = std::pair<unsigned, GLuint>(1, window_id);
   }
   else
-    ++(contextIt->second.first);
+    ++(context_it->second.first);
 }
 
 void mesh_filter::GLRenderer::deleteGLContext()
 {
   boost::mutex::scoped_lock _(context_lock_);
-  boost::thread::id threadID = boost::this_thread::get_id();
-  map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
-  if (contextIt == context_.end())
+  boost::thread::id thread_id = boost::this_thread::get_id();
+  map<boost::thread::id, pair<unsigned, GLuint> >::iterator context_it = context_.find(thread_id);
+  if (context_it == context_.end())
   {
-    stringstream errorMsg;
-    errorMsg << "No OpenGL context exists for Thread " << threadID;
-    throw runtime_error(errorMsg.str());
+    stringstream error_msg;
+    error_msg << "No OpenGL context exists for Thread " << thread_id;
+    throw runtime_error(error_msg.str());
   }
 
-  if (--(contextIt->second.first) == 0)
+  if (--(context_it->second.first) == 0)
   {
-    glutDestroyWindow(contextIt->second.second);
-    context_.erase(contextIt);
+    glutDestroyWindow(context_it->second.second);
+    context_.erase(context_it);
   }
 }
 

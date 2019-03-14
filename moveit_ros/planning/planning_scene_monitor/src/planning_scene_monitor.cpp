@@ -1398,7 +1398,7 @@ void PlanningSceneMonitor::configureDefaultPadding()
   }
 
   // Ensure no leading slash creates a bad param server address
-  static const std::string robot_description =
+  const std::string robot_description =
       (robot_description_[0] == '/') ? robot_description_.substr(1) : robot_description_;
 
   nh_.param(robot_description + "_planning/default_robot_padding", default_robot_padd_, 0.0);

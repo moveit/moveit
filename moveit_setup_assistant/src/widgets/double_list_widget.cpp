@@ -250,8 +250,8 @@ void DoubleListWidget::selectDataButtonClicked()
   for (int i = 0; i < selected.size(); i++)
   {
     std::string name = selected[i]->text().toStdString();
-    bool alreadyExists = false;
-    int rowToAdd = 0;
+    bool already_exists = false;
+    int row_to_add = 0;
 
     // Check if this selected joint is already in the selected joint table
     for (int r = 0; r < selected_data_table_->rowCount(); r++)
@@ -260,19 +260,19 @@ void DoubleListWidget::selectDataButtonClicked()
 
       if (item->text().toStdString() == name)
       {
-        alreadyExists = true;
+        already_exists = true;
         break;
       }
-      rowToAdd = r + 1;
+      row_to_add = r + 1;
     }
 
     // This joint needs to be added to the selected joint table
-    if (!alreadyExists)
+    if (!already_exists)
     {
       selected_data_table_->setRowCount(selected_data_table_->rowCount() + 1);
-      QTableWidgetItem* newItem = new QTableWidgetItem(name.c_str());
-      newItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      selected_data_table_->setItem(rowToAdd, 0, newItem);
+      QTableWidgetItem* new_item = new QTableWidgetItem(name.c_str());
+      new_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      selected_data_table_->setItem(row_to_add, 0, new_item);
     }
   }
 

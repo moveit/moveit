@@ -261,14 +261,14 @@ QWidget* RobotPosesWidget::createEditWidget()
   controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton* btn_save_ = new QPushButton("&Save", this);
+  btn_save_ = new QPushButton("&Save", this);
   btn_save_->setMaximumWidth(200);
   connect(btn_save_, SIGNAL(clicked()), this, SLOT(doneEditing()));
   controls_layout->addWidget(btn_save_);
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton* btn_cancel_ = new QPushButton("&Cancel", this);
+  btn_cancel_ = new QPushButton("&Cancel", this);
   btn_cancel_->setMaximumWidth(200);
   connect(btn_cancel_, SIGNAL(clicked()), this, SLOT(cancelEditing()));
   controls_layout->addWidget(btn_cancel_);
@@ -659,11 +659,11 @@ void RobotPosesWidget::doneEditing()
   config_data_->changes |= MoveItConfigData::POSES;
 
   // Save the new pose name or create the new pose ----------------------------
-  bool isNew = false;
+  bool is_new = false;
 
   if (searched_data == nullptr)  // create new
   {
-    isNew = true;
+    is_new = true;
     searched_data = new srdf::Model::GroupState();
   }
 
@@ -693,7 +693,7 @@ void RobotPosesWidget::doneEditing()
   }
 
   // Insert new poses into group state vector --------------------------
-  if (isNew)
+  if (is_new)
   {
     config_data_->srdf_->group_states_.push_back(*searched_data);
     delete searched_data;

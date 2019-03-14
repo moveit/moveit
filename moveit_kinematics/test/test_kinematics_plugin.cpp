@@ -143,8 +143,8 @@ public:
 
   static const SharedData& instance()
   {
-    static SharedData instance_;
-    return instance_;
+    static SharedData instance;
+    return instance;
   }
   static void release()
   {
@@ -346,7 +346,7 @@ TEST_F(KinematicsTest, randomWalkIK)
   robot_trajectory::RobotTrajectory traj(robot_model_, jmg_);
 
   unsigned int failures = 0;
-  constexpr double NEAR_JOINT = 0.1;
+  static constexpr double NEAR_JOINT = 0.1;
   const std::vector<double> consistency_limits(jmg_->getVariableCount(), 1.05 * NEAR_JOINT);
   for (unsigned int i = 0; i < num_ik_tests_; ++i)
   {
@@ -480,7 +480,7 @@ TEST_F(KinematicsTest, unitIK)
   Eigen::Isometry3d initial, goal;
   tf2::fromMsg(poses[0], initial);
 
-  auto validateIK = [&](const geometry_msgs::Pose& goal, std::vector<double>& truth) {
+  auto validate_ik = [&](const geometry_msgs::Pose& goal, std::vector<double>& truth) {
     // compute IK
     moveit_msgs::MoveItErrorCodes error_code;
     kinematics_solver_->searchPositionIK(goal, seed, timeout_,
@@ -528,7 +528,7 @@ TEST_F(KinematicsTest, unitIK)
     }
     {
       SCOPED_TRACE(desc);
-      validateIK(tf2::toMsg(goal), ground_truth);
+      validate_ik(tf2::toMsg(goal), ground_truth);
     }
   }
 }
@@ -707,7 +707,7 @@ TEST_F(KinematicsTest, getNearestIKSolution)
       continue;
 
     const Eigen::Map<const Eigen::VectorXd> seed_eigen(seed.data(), seed.size());
-    double error_getIK =
+    double error_get_ik =
         (Eigen::Map<const Eigen::VectorXd>(solution.data(), solution.size()) - seed_eigen).array().abs().sum();
 
     // getPositionIK for multiple solutions
@@ -720,15 +720,15 @@ TEST_F(KinematicsTest, getNearestIKSolution)
     if (result.kinematic_error != kinematics::KinematicErrors::OK)
       continue;
 
-    double smallest_error_multipleIK = std::numeric_limits<double>::max();
+    double smallest_error_multiple_ik = std::numeric_limits<double>::max();
     for (const auto& s : solutions)
     {
-      double error_multipleIK =
+      double error_multiple_ik =
           (Eigen::Map<const Eigen::VectorXd>(s.data(), s.size()) - seed_eigen).array().abs().sum();
-      if (error_multipleIK <= smallest_error_multipleIK)
-        smallest_error_multipleIK = error_multipleIK;
+      if (error_multiple_ik <= smallest_error_multiple_ik)
+        smallest_error_multiple_ik = error_multiple_ik;
     }
-    EXPECT_NEAR(smallest_error_multipleIK, error_getIK, tolerance_);
+    EXPECT_NEAR(smallest_error_multiple_ik, error_get_ik, tolerance_);
   }
 }
 

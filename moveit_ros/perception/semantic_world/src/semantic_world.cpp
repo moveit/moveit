@@ -507,12 +507,15 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
   // first get the normal of the first triangle of the input polygon
   Eigen::Vector3d vec1, vec2, vec3, normal;
 
-  int vIdx1 = polygon.triangles[0];
-  int vIdx2 = polygon.triangles[1];
-  int vIdx3 = polygon.triangles[2];
-  vec1 = Eigen::Vector3d(polygon.vertices[vIdx1 * 3], polygon.vertices[vIdx1 * 3 + 1], polygon.vertices[vIdx1 * 3 + 2]);
-  vec2 = Eigen::Vector3d(polygon.vertices[vIdx2 * 3], polygon.vertices[vIdx2 * 3 + 1], polygon.vertices[vIdx2 * 3 + 2]);
-  vec3 = Eigen::Vector3d(polygon.vertices[vIdx3 * 3], polygon.vertices[vIdx3 * 3 + 1], polygon.vertices[vIdx3 * 3 + 2]);
+  int v_idx1 = polygon.triangles[0];
+  int v_idx2 = polygon.triangles[1];
+  int v_idx3 = polygon.triangles[2];
+  vec1 =
+      Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
+  vec2 =
+      Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
+  vec3 =
+      Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
   vec2 -= vec1;
   vec3 -= vec1;
   normal = vec3.cross(vec2);
@@ -530,18 +533,18 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
   // copy the first set of triangles
   memcpy(solid->triangles, polygon.triangles, polygon.triangle_count * 3 * sizeof(unsigned int));
 
-  for (unsigned tIdx = 0; tIdx < polygon.triangle_count; ++tIdx)
+  for (unsigned t_idx = 0; t_idx < polygon.triangle_count; ++t_idx)
   {
-    int vIdx1 = polygon.triangles[tIdx * 3];
-    int vIdx2 = polygon.triangles[tIdx * 3 + 1];
-    int vIdx3 = polygon.triangles[tIdx * 3 + 2];
+    int v_idx1 = polygon.triangles[t_idx * 3];
+    int v_idx2 = polygon.triangles[t_idx * 3 + 1];
+    int v_idx3 = polygon.triangles[t_idx * 3 + 2];
 
-    vec1 =
-        Eigen::Vector3d(polygon.vertices[vIdx1 * 3], polygon.vertices[vIdx1 * 3 + 1], polygon.vertices[vIdx1 * 3 + 2]);
-    vec2 =
-        Eigen::Vector3d(polygon.vertices[vIdx2 * 3], polygon.vertices[vIdx2 * 3 + 1], polygon.vertices[vIdx2 * 3 + 2]);
-    vec3 =
-        Eigen::Vector3d(polygon.vertices[vIdx3 * 3], polygon.vertices[vIdx3 * 3 + 1], polygon.vertices[vIdx3 * 3 + 2]);
+    vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1],
+                           polygon.vertices[v_idx1 * 3 + 2]);
+    vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1],
+                           polygon.vertices[v_idx2 * 3 + 2]);
+    vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1],
+                           polygon.vertices[v_idx3 * 3 + 2]);
 
     vec2 -= vec1;
     vec3 -= vec1;
@@ -549,7 +552,7 @@ shapes::Mesh* SemanticWorld::orientPlanarPolygon(const shapes::Mesh& polygon) co
     Eigen::Vector3d triangle_normal = vec2.cross(vec1);
 
     if (triangle_normal.dot(normal) < 0.0)
-      std::swap(solid->triangles[tIdx * 3 + 1], solid->triangles[tIdx * 3 + 2]);
+      std::swap(solid->triangles[t_idx * 3 + 1], solid->triangles[t_idx * 3 + 2]);
   }
   return solid;
 }
@@ -561,12 +564,15 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
   // first get the normal of the first triangle of the input polygon
   Eigen::Vector3d vec1, vec2, vec3, normal;
 
-  int vIdx1 = polygon.triangles[0];
-  int vIdx2 = polygon.triangles[1];
-  int vIdx3 = polygon.triangles[2];
-  vec1 = Eigen::Vector3d(polygon.vertices[vIdx1 * 3], polygon.vertices[vIdx1 * 3 + 1], polygon.vertices[vIdx1 * 3 + 2]);
-  vec2 = Eigen::Vector3d(polygon.vertices[vIdx2 * 3], polygon.vertices[vIdx2 * 3 + 1], polygon.vertices[vIdx2 * 3 + 2]);
-  vec3 = Eigen::Vector3d(polygon.vertices[vIdx3 * 3], polygon.vertices[vIdx3 * 3 + 1], polygon.vertices[vIdx3 * 3 + 2]);
+  int v_idx1 = polygon.triangles[0];
+  int v_idx2 = polygon.triangles[1];
+  int v_idx3 = polygon.triangles[2];
+  vec1 =
+      Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1], polygon.vertices[v_idx1 * 3 + 2]);
+  vec2 =
+      Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1], polygon.vertices[v_idx2 * 3 + 2]);
+  vec3 =
+      Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1], polygon.vertices[v_idx3 * 3 + 2]);
   vec2 -= vec1;
   vec3 -= vec1;
   normal = vec3.cross(vec2);
@@ -588,22 +594,22 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
   // copy the first set of triangles
   memcpy(solid->triangles, polygon.triangles, polygon.triangle_count * 3 * sizeof(unsigned int));
 
-  for (unsigned tIdx = 0; tIdx < polygon.triangle_count; ++tIdx)
+  for (unsigned t_idx = 0; t_idx < polygon.triangle_count; ++t_idx)
   {
-    solid->triangles[(tIdx + polygon.triangle_count) * 3 + 0] = solid->triangles[tIdx * 3 + 0] + polygon.vertex_count;
-    solid->triangles[(tIdx + polygon.triangle_count) * 3 + 1] = solid->triangles[tIdx * 3 + 1] + polygon.vertex_count;
-    solid->triangles[(tIdx + polygon.triangle_count) * 3 + 2] = solid->triangles[tIdx * 3 + 2] + polygon.vertex_count;
+    solid->triangles[(t_idx + polygon.triangle_count) * 3 + 0] = solid->triangles[t_idx * 3 + 0] + polygon.vertex_count;
+    solid->triangles[(t_idx + polygon.triangle_count) * 3 + 1] = solid->triangles[t_idx * 3 + 1] + polygon.vertex_count;
+    solid->triangles[(t_idx + polygon.triangle_count) * 3 + 2] = solid->triangles[t_idx * 3 + 2] + polygon.vertex_count;
 
-    int vIdx1 = polygon.triangles[tIdx * 3];
-    int vIdx2 = polygon.triangles[tIdx * 3 + 1];
-    int vIdx3 = polygon.triangles[tIdx * 3 + 2];
+    int v_idx1 = polygon.triangles[t_idx * 3];
+    int v_idx2 = polygon.triangles[t_idx * 3 + 1];
+    int v_idx3 = polygon.triangles[t_idx * 3 + 2];
 
-    vec1 =
-        Eigen::Vector3d(polygon.vertices[vIdx1 * 3], polygon.vertices[vIdx1 * 3 + 1], polygon.vertices[vIdx1 * 3 + 2]);
-    vec2 =
-        Eigen::Vector3d(polygon.vertices[vIdx2 * 3], polygon.vertices[vIdx2 * 3 + 1], polygon.vertices[vIdx2 * 3 + 2]);
-    vec3 =
-        Eigen::Vector3d(polygon.vertices[vIdx3 * 3], polygon.vertices[vIdx3 * 3 + 1], polygon.vertices[vIdx3 * 3 + 2]);
+    vec1 = Eigen::Vector3d(polygon.vertices[v_idx1 * 3], polygon.vertices[v_idx1 * 3 + 1],
+                           polygon.vertices[v_idx1 * 3 + 2]);
+    vec2 = Eigen::Vector3d(polygon.vertices[v_idx2 * 3], polygon.vertices[v_idx2 * 3 + 1],
+                           polygon.vertices[v_idx2 * 3 + 2]);
+    vec3 = Eigen::Vector3d(polygon.vertices[v_idx3 * 3], polygon.vertices[v_idx3 * 3 + 1],
+                           polygon.vertices[v_idx3 * 3 + 2]);
 
     vec2 -= vec1;
     vec3 -= vec1;
@@ -611,17 +617,17 @@ shapes::Mesh* SemanticWorld::createSolidMeshFromPlanarPolygon(const shapes::Mesh
     Eigen::Vector3d triangle_normal = vec2.cross(vec1);
 
     if (triangle_normal.dot(normal) < 0.0)
-      std::swap(solid->triangles[tIdx * 3 + 1], solid->triangles[tIdx * 3 + 2]);
+      std::swap(solid->triangles[t_idx * 3 + 1], solid->triangles[t_idx * 3 + 2]);
     else
-      std::swap(solid->triangles[(tIdx + polygon.triangle_count) * 3 + 1],
-                solid->triangles[(tIdx + polygon.triangle_count) * 3 + 2]);
+      std::swap(solid->triangles[(t_idx + polygon.triangle_count) * 3 + 1],
+                solid->triangles[(t_idx + polygon.triangle_count) * 3 + 2]);
   }
 
-  for (unsigned vIdx = 0; vIdx < polygon.vertex_count; ++vIdx)
+  for (unsigned v_idx = 0; v_idx < polygon.vertex_count; ++v_idx)
   {
-    solid->vertices[(vIdx + polygon.vertex_count) * 3 + 0] = solid->vertices[vIdx * 3 + 0] - thickness * normal[0];
-    solid->vertices[(vIdx + polygon.vertex_count) * 3 + 1] = solid->vertices[vIdx * 3 + 1] - thickness * normal[1];
-    solid->vertices[(vIdx + polygon.vertex_count) * 3 + 2] = solid->vertices[vIdx * 3 + 2] - thickness * normal[2];
+    solid->vertices[(v_idx + polygon.vertex_count) * 3 + 0] = solid->vertices[v_idx * 3 + 0] - thickness * normal[0];
+    solid->vertices[(v_idx + polygon.vertex_count) * 3 + 1] = solid->vertices[v_idx * 3 + 1] - thickness * normal[1];
+    solid->vertices[(v_idx + polygon.vertex_count) * 3 + 2] = solid->vertices[v_idx * 3 + 2] - thickness * normal[2];
   }
 
   return solid;

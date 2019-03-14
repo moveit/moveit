@@ -554,7 +554,7 @@ void MotionPlanningDisplay::displayMetrics(bool start)
   if (!robot_interaction_ || !planning_scene_monitor_)
     return;
 
-  static const Ogre::Quaternion orientation(1.0, 0.0, 0.0, 0.0);
+  static const Ogre::Quaternion ORIENTATION(1.0, 0.0, 0.0, 0.0);
   const std::vector<robot_interaction::EndEffectorInteraction>& eef = robot_interaction_->getActiveEndEffectors();
   if (eef.empty())
     return;
@@ -599,9 +599,9 @@ void MotionPlanningDisplay::displayMetrics(bool start)
       position[2] = t.z() + 0.2;  // \todo this should be a param
     }
     if (start)
-      displayTable(text_table, query_start_color_property_->getOgreColor(), position, orientation);
+      displayTable(text_table, query_start_color_property_->getOgreColor(), position, ORIENTATION);
     else
-      displayTable(text_table, query_goal_color_property_->getOgreColor(), position, orientation);
+      displayTable(text_table, query_goal_color_property_->getOgreColor(), position, ORIENTATION);
     text_display_for_start_ = start;
   }
 }
@@ -1359,9 +1359,9 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     else
     {
       std::string node_name = ros::names::append(getMoveGroupNS(), "move_group");
-      ros::NodeHandle nh_(node_name);
+      ros::NodeHandle nh(node_name);
       double val;
-      if (nh_.getParam("default_workspace_bounds", val))
+      if (nh.getParam("default_workspace_bounds", val))
       {
         frame_->ui_->wsize_x->setValue(val);
         frame_->ui_->wsize_y->setValue(val);

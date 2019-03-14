@@ -826,7 +826,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   if (solved)
   {
     // Analyzing the trajectory(ies) geometrically
-    double L = 0.0;           // trajectory length
+    double traj_len = 0.0;    // trajectory length
     double clearance = 0.0;   // trajectory clearance (average)
     double smoothness = 0.0;  // trajectory smoothness (average)
     bool correct = true;      // entire trajectory collision free and in bounds
@@ -835,14 +835,14 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
     for (std::size_t j = 0; j < mp_res.trajectory_.size(); ++j)
     {
       correct = true;
-      L = 0.0;
+      traj_len = 0.0;
       clearance = 0.0;
       smoothness = 0.0;
       const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory_[j];
 
       // compute path length
       for (std::size_t k = 1; k < p.getWayPointCount(); ++k)
-        L += p.getWayPoint(k - 1).distance(p.getWayPoint(k));
+        traj_len += p.getWayPoint(k - 1).distance(p.getWayPoint(k));
 
       // compute correctness and clearance
       collision_detection::CollisionRequest req;
@@ -878,11 +878,11 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
           // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
           double b = p.getWayPoint(k - 1).distance(p.getWayPoint(k));
           double cdist = p.getWayPoint(k - 2).distance(p.getWayPoint(k));
-          double acosValue = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
-          if (acosValue > -1.0 && acosValue < 1.0)
+          double acos_value = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
+          if (acos_value > -1.0 && acos_value < 1.0)
           {
             // the smoothness is actually the outside angle of the one we compute
-            double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+            double angle = (boost::math::constants::pi<double>() - acos(acos_value));
 
             // and we normalize by the length of the segments
             double u = 2.0 * angle;  /// (a + b);
@@ -893,7 +893,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         smoothness /= (double)p.getWayPointCount();
       }
       metrics["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(L);
+      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(traj_len);
       metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::core::toString(clearance);
       metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
       metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);

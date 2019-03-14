@@ -356,8 +356,8 @@ void ROSControllersWidget::deleteController()
       return;
 
     // Get the user custom properties of the currently selected row
-    int type_ = item->data(0, Qt::UserRole).value<int>();
-    if (type_ == 0)
+    int type = item->data(0, Qt::UserRole).value<int>();
+    if (type == 0)
       controller_name = item->text(0).toUtf8().constData();
   }
 

@@ -120,7 +120,7 @@ bool DepthImageOctomapUpdater::initialize()
 
   // create our mesh filter
   mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(
-      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS));
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
@@ -247,9 +247,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     monitor_->setMapFrame(depth_msg->header.frame_id);
 
   /* get transform for cloud into map frame */
-  tf2::Stamped<tf2::Transform> map_H_sensor;
+  tf2::Stamped<tf2::Transform> map_h_sensor;
   if (monitor_->getMapFrame() == depth_msg->header.frame_id)
-    map_H_sensor.setIdentity();
+    map_h_sensor.setIdentity();
   else
   {
     if (tf_buffer_)
@@ -264,15 +264,15 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
         {
           tf2::fromMsg(
               tf_buffer_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp),
-              map_H_sensor);
+              map_h_sensor);
           found = true;
           break;
         }
         catch (tf2::TransformException& ex)
         {
-          static const ros::Duration d(TEST_DT);
+          static const ros::Duration D(TEST_DT);
           err = ex.what();
-          d.sleep();
+          D.sleep();
         }
       static const unsigned int MAX_TF_COUNTER = 1000;  // so we avoid int overflow
       if (found)
@@ -372,8 +372,8 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       y_cache_[y] = (y - py) * inv_fy_;
   }
 
-  const octomap::point3d sensor_origin(map_H_sensor.getOrigin().getX(), map_H_sensor.getOrigin().getY(),
-                                       map_H_sensor.getOrigin().getZ());
+  const octomap::point3d sensor_origin(map_h_sensor.getOrigin().getX(), map_h_sensor.getOrigin().getY(),
+                                       map_h_sensor.getOrigin().getZ());
 
   octomap::KeySet* occupied_cells_ptr = new octomap::KeySet();
   octomap::KeySet* model_cells_ptr = new octomap::KeySet();
@@ -472,7 +472,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(xx, yy, zz);
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
           // on far plane or a model point -> remove
@@ -482,7 +482,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(xx, yy, zz);
             // add to the list of model cells
             model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
@@ -501,7 +501,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(xx, yy, zz);
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
           else if (labels_row[x] >= mesh_filter::MeshFilterBase::FarClip)
@@ -510,7 +510,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(xx, yy, zz);
             // add to the list of model cells
             model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }

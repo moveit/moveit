@@ -50,7 +50,7 @@ namespace
 template <typename T>
 void msgToHex(const T& msg, std::string& hex)
 {
-  static const char symbol[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+  static const char SYMBOL[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
   const size_t serial_size_arg = ros::serialization::serializationLength(msg);
 
   boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
@@ -59,8 +59,8 @@ void msgToHex(const T& msg, std::string& hex)
   hex.resize(serial_size_arg * 2);
   for (std::size_t i = 0; i < serial_size_arg; ++i)
   {
-    hex[i * 2] = symbol[buffer_arg[i] / 16];
-    hex[i * 2 + 1] = symbol[buffer_arg[i] % 16];
+    hex[i * 2] = SYMBOL[buffer_arg[i] / 16];
+    hex[i * 2 + 1] = SYMBOL[buffer_arg[i] % 16];
   }
 }
 

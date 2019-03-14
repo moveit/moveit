@@ -160,8 +160,8 @@ void mesh_filter::SensorModel::Parameters::transformModelDepthToMetricDepth(floa
   const float nf = near * far;
   const float f_n = far - near;
 
-  const float* depthEnd = depth + width_ * height_;
-  while (depth < depthEnd)
+  const float* depth_end = depth + width_ * height_;
+  while (depth < depth_end)
   {
     if (*depth != 0 && *depth != 1)
       *depth = nf / (far - *depth * f_n);
@@ -218,10 +218,10 @@ void mesh_filter::SensorModel::Parameters::transformFilteredDepthToMetricDepth(f
     ++mmDepth;
   }
 #else
-  const float* depthEnd = depth + width_ * height_;
+  const float* depth_end = depth + width_ * height_;
   const float scale = far_clipping_plane_distance_ - near_clipping_plane_distance_;
   const float offset = near_clipping_plane_distance_;
-  while (depth < depthEnd)
+  while (depth < depth_end)
   {
     // 0 = on near clipping plane -> we used 0 to mark invalid points -> not visible
     // points on far clipping plane needs to be removed too

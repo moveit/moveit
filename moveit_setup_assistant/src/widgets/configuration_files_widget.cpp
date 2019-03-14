@@ -566,7 +566,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 bool ConfigurationFilesWidget::checkDependencies()
 {
   QStringList dependencies;
-  bool requiredActions = false;
+  bool required_actions = false;
 
   // Check that at least 1 planning group exists
   if (config_data_->srdf_->groups_.empty())
@@ -597,18 +597,18 @@ bool ConfigurationFilesWidget::checkDependencies()
   {
     // There is no name or it consists of whitespaces only
     dependencies << "<b>No author name added</b>";
-    requiredActions = true;
+    required_actions = true;
   }
 
   // Check that email information is filled
-  QRegExp mailRegex("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b");
-  mailRegex.setCaseSensitivity(Qt::CaseInsensitive);
-  mailRegex.setPatternSyntax(QRegExp::RegExp);
-  QString testEmail = QString::fromStdString(config_data_->author_email_);
-  if (!mailRegex.exactMatch(testEmail))
+  QRegExp mail_regex("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b");
+  mail_regex.setCaseSensitivity(Qt::CaseInsensitive);
+  mail_regex.setPatternSyntax(QRegExp::RegExp);
+  QString test_email = QString::fromStdString(config_data_->author_email_);
+  if (!mail_regex.exactMatch(test_email))
   {
     dependencies << "<b>No valid email address added</b>";
-    requiredActions = true;
+    required_actions = true;
   }
 
   // Display all accumumlated errors:
@@ -616,7 +616,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   {
     // Create a dependency message
     QString dep_message;
-    if (!requiredActions)
+    if (!required_actions)
     {
       dep_message = "Some setup steps have not been completed. None of the steps are required, but here is a reminder "
                     "of what was not filled in, just in case something was forgotten:<br /><ul>";
@@ -632,7 +632,7 @@ bool ConfigurationFilesWidget::checkDependencies()
       dep_message.append("<li>").append(dependencies.at(i)).append("</li>");
     }
 
-    if (!requiredActions)
+    if (!required_actions)
     {
       dep_message.append("</ul><br/>Press Ok to continue generating files.");
       if (QMessageBox::question(this, "Incomplete MoveIt! Setup Assistant Steps", dep_message,
