@@ -763,7 +763,7 @@ bool JointModelGroup::isValidVelocityMove(const double* from_joint_pose, const d
     double max_dtheta = dt * max_velocity;
     if (dtheta > max_dtheta)
     {
-      ROS_DEBUG_NAMED(LOGNAME, "Not valid velocity move because of joint '%u'. ", i);
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Not valid velocity move because of joint " << i);
       return false;
     }
   }
