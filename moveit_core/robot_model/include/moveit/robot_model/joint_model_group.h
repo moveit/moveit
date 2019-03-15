@@ -567,6 +567,14 @@ public:
   /** \brief Print information about the constructed model */
   void printGroupInfo(std::ostream& out = std::cout) const;
 
+  /** \brief Check that the time to move between two waypoints is sufficient given velocity limits */
+  bool isValidVelocityMove(const std::vector<double>& from_joint_pose, const std::vector<double>& to_joint_pose,
+                           double dt) const;
+
+  /** \brief Check that the time to move between two waypoints is sufficient given velocity limits */
+  bool isValidVelocityMove(const double* from_joint_pose, const double* to_joint_pose, std::size_t array_size,
+                           double dt) const;
+
 protected:
   bool computeIKIndexBijection(const std::vector<std::string>& ik_jnames,
                                std::vector<unsigned int>& joint_bijection) const;
