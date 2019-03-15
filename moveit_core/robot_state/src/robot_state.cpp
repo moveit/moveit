@@ -830,7 +830,6 @@ bool RobotState::isValidVelocityMove(const RobotState& other, const JointModelGr
         return false;
     }
   }
-
   return true;
 }
 
