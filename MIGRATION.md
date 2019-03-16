@@ -3,6 +3,7 @@
 API changes in MoveIt! releases
 
 ## ROS Noetic (upcoming changes in master)
+- Extended the return value of `MoveitCommander.MoveGroup.plan()` from `trajectory` to a tuple of `(success, trajectory, planning_time, error_code)` to better match the C++ MoveGroupInterface ([790](https://github.com/ros-planning/moveit/pull/790/))
 
 ## ROS Melodic
 

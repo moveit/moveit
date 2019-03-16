@@ -42,6 +42,7 @@ from moveit_ros_planning_interface import _moveit_move_group_interface
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
 
+
 class MoveGroupCommander(object):
     """
     Execution of simple commands for a particular group
@@ -106,14 +107,14 @@ class MoveGroupCommander(object):
         """ Get the current configuration of the group as a list (these are values published on /joint_states) """
         return self._g.get_current_joint_values()
 
-    def get_current_pose(self, end_effector_link = ""):
+    def get_current_pose(self, end_effector_link=""):
         """ Get the current pose of the end-effector of the group. Throws an exception if there is not end-effector. """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             return conversions.list_to_pose_stamped(self._g.get_current_pose(end_effector_link), self.get_planning_frame())
         else:
             raise MoveItCommanderException("There is no end effector to get the pose of")
 
-    def get_current_rpy(self, end_effector_link = ""):
+    def get_current_rpy(self, end_effector_link=""):
         """ Get a list of 3 elements defining the [roll, pitch, yaw] of the end-effector. Throws an exception if there is not end-effector. """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             return self._g.get_current_rpy(end_effector_link)
@@ -123,7 +124,7 @@ class MoveGroupCommander(object):
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
 
-    def get_random_pose(self, end_effector_link = ""):
+    def get_random_pose(self, end_effector_link=""):
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             return conversions.list_to_pose_stamped(self._g.get_random_pose(end_effector_link), self.get_planning_frame())
         else:
@@ -158,7 +159,7 @@ class MoveGroupCommander(object):
     def get_joint_value_target(self):
         return self._g.get_joint_value_target()
 
-    def set_joint_value_target(self, arg1, arg2 = None, arg3 = None):
+    def set_joint_value_target(self, arg1, arg2=None, arg3=None):
         """
         Specify a target joint configuration for the group.
         - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments should be provided.
@@ -230,7 +231,7 @@ class MoveGroupCommander(object):
             raise MoveItCommanderException("Unsupported argument of type %s" % type(arg1))
 
 
-    def set_rpy_target(self, rpy, end_effector_link = ""):
+    def set_rpy_target(self, rpy, end_effector_link=""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(rpy) == 3:
@@ -241,7 +242,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
-    def set_orientation_target(self, q, end_effector_link = ""):
+    def set_orientation_target(self, q, end_effector_link=""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if len(q) == 4:
@@ -252,7 +253,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
-    def set_position_target(self, xyz, end_effector_link = ""):
+    def set_position_target(self, xyz, end_effector_link=""):
         """ Specify a target position for the end-effector. Any orientation of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if not self._g.set_position_target(xyz[0], xyz[1], xyz[2], end_effector_link):
@@ -260,7 +261,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
-    def set_pose_target(self, pose, end_effector_link = ""):
+    def set_pose_target(self, pose, end_effector_link=""):
         """ Set the pose of the end-effector, if one is available. The expected input is a Pose message, a PoseStamped message or a list of 6 floats:"""
         """ [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
@@ -279,7 +280,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to set the pose for")
 
-    def set_pose_targets(self, poses, end_effector_link = ""):
+    def set_pose_targets(self, poses, end_effector_link=""):
         """ Set the pose of the end-effector, if one is available. The expected input is a list of poses. Each pose can be a Pose message, a list of 6 floats: [x, y, z, rot_x, rot_y, rot_z] or a list of 7 floats [x, y, z, qx, qy, qz, qw] """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             if not self._g.set_pose_targets([conversions.pose_to_list(p) if type(p) is Pose else p for p in poses], end_effector_link):
@@ -287,7 +288,7 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to set poses for")
 
-    def shift_pose_target(self, axis, value, end_effector_link = ""):
+    def shift_pose_target(self, axis, value, end_effector_link=""):
         """ Get the current pose of the end effector, add value to the corresponding axis (0..5: X, Y, Z, R, P, Y) and set the new pose as the pose target """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             pose = self._g.get_current_pose(end_effector_link)
@@ -329,7 +330,7 @@ class MoveGroupCommander(object):
         """Get a dictionary of joint values of a named target"""
         return self._g.get_named_target_values(target)
 
-    def remember_joint_values(self, name, values = None):
+    def remember_joint_values(self, name, values=None):
         """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """
         if values is None:
             values = self.get_current_joint_values()
@@ -391,7 +392,7 @@ class MoveGroupCommander(object):
         """ Get the acutal path constraints in form of a moveit_msgs.msgs.Constraints """
         c = Constraints()
         c_str = self._g.get_path_constraints()
-        conversions.msg_from_string(c,c_str)
+        conversions.msg_from_string(c, c_str)
         return c
 
     def set_path_constraints(self, value):
@@ -471,16 +472,16 @@ class MoveGroupCommander(object):
         if value > 0 and value <= 1:
             self._g.set_max_velocity_scaling_factor(value)
         else:
-            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor" )
+            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor")
 
     def set_max_acceleration_scaling_factor(self, value):
         """ Set a scaling factor for optionally reducing the maximum joint acceleration. Allowed values are in (0,1]. """
         if value > 0 and value <= 1:
             self._g.set_max_acceleration_scaling_factor(value)
         else:
-            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor" )
+            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor")
 
-    def go(self, joints = None, wait = True):
+    def go(self, joints=None, wait=True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:
             wait = joints
@@ -492,34 +493,43 @@ class MoveGroupCommander(object):
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints is None:
+        elif joints is not None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
-            except:
+            except MoveItCommanderException:
                 self.set_joint_value_target(joints)
         if wait:
             return self._g.move()
         else:
             return self._g.async_move()
 
-    def plan(self, joints = None):
-        """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
+    def plan(self, joints=None):
+        """ Return a tuple of the motion planning results such as
+            (success flag : boolean, trajectory message : RobotTrajectory,
+             planning time : float, error code : MoveitErrorCodes) """
         if type(joints) is JointState:
             self.set_joint_value_target(joints)
 
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints is None:
+        elif joints is not None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
-            except:
+            except MoveItCommanderException:
                 self.set_joint_value_target(joints)
-        plan = RobotTrajectory()
-        plan.deserialize(self._g.compute_plan())
-        return plan
 
-    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True, path_constraints = None):
+        (error_code_msg, trajectory_msg, planning_time) = self._g.plan()
+
+        error_code = MoveItErrorCodes()
+        error_code.deserialize(error_code_msg)
+        plan = RobotTrajectory()
+        return (error_code.val == MoveItErrorCodes.SUCCESS,
+                plan.deserialize(trajectory_msg),
+                planning_time,
+                error_code)
+
+    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions=True, path_constraints=None):
         """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath; Kinematic constraints for the path given by path_constraints will be met for every point along the trajectory, if they are not met, a partial solution will be returned. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
         if path_constraints:
             if type(path_constraints) is Constraints:
@@ -534,22 +544,22 @@ class MoveGroupCommander(object):
         path.deserialize(ser_path)
         return (path, fraction)
 
-    def execute(self, plan_msg, wait = True):
+    def execute(self, plan_msg, wait=True):
         """Execute a previously planned path"""
         if wait:
             return self._g.execute(conversions.msg_to_string(plan_msg))
         else:
             return self._g.async_execute(conversions.msg_to_string(plan_msg))
 
-    def attach_object(self, object_name, link_name = "", touch_links = []):
+    def attach_object(self, object_name, link_name="", touch_links=[]):
         """ Given the name of an object existing in the planning scene, attach it to a link. The link used is specified by the second argument. If left unspecified, the end-effector link is used, if one is known. If there is no end-effector link, the first link in the group is used. If no link is identified, failure is reported. True is returned if an attach request was succesfully sent to the move_group node. This does not verify that the attach request also was successfuly applied by move_group."""
         return self._g.attach_object(object_name, link_name, touch_links)
 
-    def detach_object(self, name = ""):
+    def detach_object(self, name=""):
         """ Given the name of a link, detach the object(s) from that link. If no such link exists, the name is interpreted as an object name. If there is no name specified, an attempt is made to detach all objects attached to any link in the group."""
         return self._g.detach_object(name)
 
-    def pick(self, object_name, grasp = [], plan_only=False):
+    def pick(self, object_name, grasp=[], plan_only=False):
         """Pick the named object. A grasp message, or a list of Grasp messages can also be specified as argument."""
         if type(grasp) is Grasp:
             return self._g.pick(object_name, conversions.msg_to_string(grasp), plan_only)
