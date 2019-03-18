@@ -30,13 +30,13 @@
 
 /moveit_plugins/moveit_ros_control_interface/	@ipa-mdl
 
-/moveit_plugins/moveit_fake_controller_manager/	@v4hn
+/moveit_plugins/moveit_fake_controller_manager/	@v4hn @rhaschke
 
 /moveit_plugins/moveit_simple_controller_manager/	@mikeferguson @v4hn
 
 /moveit_plugins/moveit_controller_manager_example/	@v4hn
 
-/moveit_core/	@davetcoleman @v4hn @mlautman
+/moveit_core/	@davetcoleman @rhaschke @v4hn @mlautman
 
 /moveit_commander/	@v4hn @rhaschke @willcbaker
 
@@ -56,13 +56,13 @@
 
 /moveit_ros/robot_interaction/	@mikeferguson @rhaschke
 
-/moveit_ros/planning/	@henningkayser @v4hn
+/moveit_ros/planning/	@henningkayser @v4hn @rhaschke 
 
 /moveit_ros/warehouse/	@mikeferguson @dg-shadow 
 
-/moveit_ros/move_group/	@IanTheEngineer @v4hn
+/moveit_ros/move_group/	@rhaschke @IanTheEngineer @v4hn
 
-/moveit_ros/visualization/	@jonbinney @christian-rauch 
+/moveit_ros/visualization/	@rhaschke @jonbinney @christian-rauch 
 
 /moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman 
 
