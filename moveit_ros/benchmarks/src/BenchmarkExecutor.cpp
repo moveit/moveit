@@ -86,16 +86,11 @@ BenchmarkExecutor::BenchmarkExecutor(const std::string& robot_description_param)
 
 BenchmarkExecutor::~BenchmarkExecutor()
 {
-  if (pss_)
-    delete pss_;
-  if (psws_)
-    delete psws_;
-  if (rs_)
-    delete rs_;
-  if (cs_)
-    delete cs_;
-  if (tcs_)
-    delete tcs_;
+  delete pss_;
+  delete psws_;
+  delete rs_;
+  delete cs_;
+  delete tcs_;
   delete psm_;
 }
 
