@@ -28,7 +28,7 @@
 # The lines below correspond to directories with a package.xml file and the
 # maintainers specified in that file
 
-/moveit_plugins/moveit_ros_control_interface/	@ipa-mdl
+/moveit_plugins/moveit_ros_control_interface/	@ipa-mdl @bmagyar
 
 /moveit_plugins/moveit_fake_controller_manager/	@v4hn @rhaschke
 
