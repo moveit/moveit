@@ -38,7 +38,7 @@
 
 /moveit_core/	@davetcoleman @v4hn @mlautman
 
-/moveit_commander/	@v4hn @rhaschke
+/moveit_commander/	@v4hn @rhaschke @willcbaker
 
 /moveit/	@130s
 
