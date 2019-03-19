@@ -330,9 +330,8 @@ public:
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
-      \e group_variable_values MUST contain exactly one value per joint
-      variable in the same order as returned by
-      getJointValueTarget().getJointModelGroup(getName())->getVariableNames().
+      \e group_variable_values MUST exactly match the variable order as returned by
+      getJointValueTarget(std::vector<double>&).
 
       This always sets all of the group's joint values.
 
@@ -359,6 +358,23 @@ public:
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const std::map<std::string, double>& variable_values);
+
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      \e variable_names are variable joint names and variable_values are
+      variable joint positions. Joints in the group are used to set the
+      JointValueTarget.  Joints in the model but not in the group are ignored.
+      An exception is thrown if a joint name is not found in the model.
+      Joint variables in the group that are missing from \e variable_names
+      remain unchanged (to reset all target variables to their current values
+      in the robot use setJointValueTarget(getCurrentJointValues())).
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets.
+
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
+  bool setJointValueTarget(const std::vector<std::string>& variable_names, const std::vector<double>& variable_values);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
@@ -495,8 +511,11 @@ public:
       that are specified in the SRDF under the name \e name as a group state*/
   bool setNamedTarget(const std::string& name);
 
-  /// Get the currently set joint state goal
-  const robot_state::RobotState& getJointValueTarget() const;
+  /** \brief Get the current joint state goal in a form compatible to setJointValueTarget() */
+  void getJointValueTarget(std::vector<double>& group_variable_values) const;
+
+  /// Get the currently set joint state goal, replaced by private getTargetRobotState()
+  MOVEIT_DEPRECATED const robot_state::RobotState& getJointValueTarget() const;
 
   /**@}*/
 
@@ -929,6 +948,10 @@ public:
   void clearTrajectoryConstraints();
 
   /**@}*/
+
+protected:
+  /** return the full RobotState of the joint-space target, only for internal use */
+  const robot_state::RobotState& getTargetRobotState() const;
 
 private:
   std::map<std::string, std::vector<double> > remembered_joint_values_;

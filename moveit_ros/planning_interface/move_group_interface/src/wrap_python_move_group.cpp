@@ -112,28 +112,20 @@ public:
     return setJointValueTarget(js_msg);
   }
 
-  bool setStateValueTarget(const std::string& state_str)
-  {
-    moveit_msgs::RobotState msg;
-    py_bindings_tools::deserializeMsg(state_str, msg);
-    robot_state::RobotState state(moveit::planning_interface::MoveGroupInterface::getJointValueTarget());
-    moveit::core::robotStateMsgToRobotState(msg, state);
-    return moveit::planning_interface::MoveGroupInterface::setJointValueTarget(state);
-  }
-
   bp::list getJointValueTargetPythonList()
   {
-    const robot_state::RobotState& values = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
+    std::vector<double> values;
+    MoveGroupInterface::getJointValueTarget(values);
     bp::list l;
-    for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
-      l.append(*it);
+    for (const double value : values)
+      l.append(value);
     return l;
   }
 
   std::string getJointValueTarget()
   {
     moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
+    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
     moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
@@ -585,7 +577,6 @@ static void wrap_move_group_interface()
   bool (MoveGroupInterfaceWrapper::*set_joint_value_target_4)(const std::string&, double) =
       &MoveGroupInterfaceWrapper::setJointValueTarget;
   move_group_interface_class.def("set_joint_value_target", set_joint_value_target_4);
-  move_group_interface_class.def("set_state_value_target", &MoveGroupInterfaceWrapper::setStateValueTarget);
 
   move_group_interface_class.def("set_joint_value_target_from_pose",
                                  &MoveGroupInterfaceWrapper::setJointValueTargetFromPosePython);
