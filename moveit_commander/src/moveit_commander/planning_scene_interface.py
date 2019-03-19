@@ -88,7 +88,8 @@ class PlanningSceneInterface(object):
         """
         Add a cylinder to the planning scene
         """
-        self._pub_co.publish(self.__make_cylinder(name, pose, height, radius))
+        co = self.__make_cylinder(name, pose, height, radius)
+        self.__submit(co, attach=False)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """
