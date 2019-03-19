@@ -1,0 +1,75 @@
+# MoveIt! is a large project with pull requests being created often. In order
+# to ensure quick review turn around time from our maintainer team, we're
+# leveraging an automated "triage" approach to auto-assign reviews to new pull
+# requests. If you already know who should review your PR, then you can assign
+# them manually. Otherwise, this code owners file will help assign reviewers
+# and reduce the amount of email received by maintainers having to "Watch" the
+# entire repository.
+
+# When a PR is finished being created ("Create Pull Request" is clicked), the
+# codeowner of each file in the PR will be added to the list of reviewers.
+# Code owners are maintainers who are familiar with certain parts of the code,
+# and thus more likely to review a PR relating to them. Being a code owner
+# does not imply authorship, control or ownership in a legal sense.
+
+# Each line in this file is a file pattern followed by one or more
+# @github_usernames and/or e-mail addresses corresponding to users with write
+# permissions for the repository.
+# https://help.github.com/en/articles/about-code-owners
+
+# Order is important; the user(s) in the last matching pattern here for a file will
+# be that file's owner(s).
+
+# The users below will be the default owners for everything in the repository.
+# Unless a line further in this file matches, all of the users here will be
+# requested for review when someone opens a pull request.
+*	@davetcoleman @v4hn @rhaschke 
+
+# The lines below correspond to directories with a package.xml file and the
+# maintainers specified in that file
+
+/moveit_plugins/moveit_ros_control_interface/	@ipa-mdl @bmagyar
+
+/moveit_plugins/moveit_fake_controller_manager/	@v4hn @rhaschke
+
+/moveit_plugins/moveit_simple_controller_manager/	@mikeferguson @v4hn
+
+/moveit_plugins/moveit_controller_manager_example/	@v4hn
+
+/moveit_core/	@davetcoleman @rhaschke @v4hn @mlautman
+
+/moveit_commander/	@v4hn @rhaschke @willcbaker
+
+/moveit/	@130s
+
+/moveit_kinematics/	@rhaschke @gavanderhoorn @jrgnicho
+
+/moveit_experimental/	@AndyZe
+
+/moveit_ros/perception/	@mikeferguson @jonbinney
+
+/moveit_ros/manipulation/	@v4hn @felixvd 
+
+/moveit_ros/benchmarks/	@davetcoleman @MohmadAyman 
+
+/moveit_ros/planning_interface/	@mintar @rhaschke 
+
+/moveit_ros/robot_interaction/	@mikeferguson @rhaschke
+
+/moveit_ros/planning/	@henningkayser @v4hn @rhaschke 
+
+/moveit_ros/warehouse/	@mikeferguson @dg-shadow 
+
+/moveit_ros/move_group/	@rhaschke @IanTheEngineer @v4hn
+
+/moveit_ros/visualization/	@rhaschke @jonbinney @christian-rauch 
+
+/moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman 
+
+/moveit_planners/ompl/	@BryceStevenWilley @zkingston
+
+/moveit_planners/chomp/chomp_interface/ @raghavendersahdev @knorth55 @bmagyar
+
+/moveit_planners/chomp/chomp_optimizer_adapter/	@raghavendersahdev @knorth55 @bmagyar
+
+/moveit_planners/chomp/chomp_motion_planner/	@raghavendersahdev @knorth55 @bmagyar
