@@ -25,10 +25,11 @@
 # requested for review when someone opens a pull request.
 *	@davetcoleman @v4hn @rhaschke
 
+# The users below will be the owners of the CODEOWNERS file.
+/.github/CODEOWNERS	@nbbrooks @mlautman
+
 # The lines below correspond to directories with a package.xml file and the
 # maintainers specified in that file
-
-/.github/CODEOWNERS	@nbbrooks @mlautman
 
 /moveit_plugins/moveit_ros_control_interface/	@ipa-mdl @bmagyar
 
