@@ -385,7 +385,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  MOVEIT_DEPRECATED bool setJointValueTarget(const robot_state::RobotState& robot_state);
+  bool setJointValueTarget(const robot_state::RobotState& robot_state);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
