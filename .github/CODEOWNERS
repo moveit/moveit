@@ -23,10 +23,12 @@
 # The users below will be the default owners for everything in the repository.
 # Unless a line further in this file matches, all of the users here will be
 # requested for review when someone opens a pull request.
-*	@davetcoleman @v4hn @rhaschke 
+*	@davetcoleman @v4hn @rhaschke
 
 # The lines below correspond to directories with a package.xml file and the
 # maintainers specified in that file
+
+/.github/CODEOWNERS	@nbbrooks @mlautman
 
 /moveit_plugins/moveit_ros_control_interface/	@ipa-mdl @bmagyar
 
@@ -48,23 +50,23 @@
 
 /moveit_ros/perception/	@mikeferguson @jonbinney
 
-/moveit_ros/manipulation/	@v4hn @felixvd 
+/moveit_ros/manipulation/	@v4hn @felixvd
 
-/moveit_ros/benchmarks/	@davetcoleman @MohmadAyman 
+/moveit_ros/benchmarks/	@davetcoleman @MohmadAyman
 
-/moveit_ros/planning_interface/	@mintar @rhaschke 
+/moveit_ros/planning_interface/	@mintar @rhaschke
 
 /moveit_ros/robot_interaction/	@mikeferguson @rhaschke
 
-/moveit_ros/planning/	@henningkayser @v4hn @rhaschke 
+/moveit_ros/planning/	@henningkayser @v4hn @rhaschke
 
-/moveit_ros/warehouse/	@mikeferguson @dg-shadow 
+/moveit_ros/warehouse/	@mikeferguson @dg-shadow
 
 /moveit_ros/move_group/	@rhaschke @IanTheEngineer @v4hn
 
-/moveit_ros/visualization/	@rhaschke @jonbinney @christian-rauch 
+/moveit_ros/visualization/	@rhaschke @jonbinney @christian-rauch
 
-/moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman 
+/moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman
 
 /moveit_planners/ompl/	@BryceStevenWilley @zkingston
 
