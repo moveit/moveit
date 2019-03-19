@@ -150,7 +150,7 @@ class PlanningSceneInterface(object):
         co.operation = CollisionObject.REMOVE
         if name is not None:
             co.id = name
-        self.__submit(co, attach=True)
+        self.__submit(co, attach=False)
 
     def remove_attached_object(self, link, name=None):
         """
