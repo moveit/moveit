@@ -47,9 +47,9 @@
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
+  <depend>moveit_resources</depend>
 
   <test_depend>angles</test_depend>
-  <test_depend>moveit_resources</test_depend>
   <test_depend>tf2_kdl</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>rosunit</test_depend>
