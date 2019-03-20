@@ -45,13 +45,14 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
+#include <ros/package.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+    boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
 
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
