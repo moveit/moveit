@@ -39,7 +39,7 @@
 
 /moveit_core/background_processing/                         @mlautman
 /moveit_core/backtrace/                                     @mlautman
-/moveit_core/collision_detection/                           @rhaschke
+/moveit_core/collision_detection/                           @BryceStevenWilley
 /moveit_core/collision_detection_fcl/                       @rhaschke
 /moveit_core/collision_distance_field/                      @rhaschke
 /moveit_core/constraint_samplers/                           @v4hn
