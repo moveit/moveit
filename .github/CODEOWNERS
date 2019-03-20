@@ -12,64 +12,90 @@
 # and thus more likely to review a PR relating to them. Being a code owner
 # does not imply authorship, control or ownership in a legal sense.
 
-# Each line in this file is a file pattern followed by one or more
-# @github_usernames and/or e-mail addresses corresponding to users with write
-# permissions for the repository.
+# More info:
 # https://help.github.com/en/articles/about-code-owners
 
 # Order is important; the user(s) in the last matching pattern here for a file will
 # be that file's owner(s).
 
-# The users below will be the default owners for everything in the repository.
 # Unless a line further in this file matches, all of the users here will be
 # requested for review when someone opens a pull request.
-*	@davetcoleman @v4hn @rhaschke 
 
-# The lines below correspond to directories with a package.xml file and the
-# maintainers specified in that file
+# DEFAULT REVIEWERS:
 
-/moveit_plugins/moveit_ros_control_interface/	@ipa-mdl @bmagyar
+*                                                           @v4hn @rhaschke @davetcoleman
 
-/moveit_plugins/moveit_fake_controller_manager/	@v4hn @rhaschke
+# FILE-SPECIFIC REVIEWERS:
 
-/moveit_plugins/moveit_simple_controller_manager/	@mikeferguson @v4hn
+/.github/CODEOWNERS                                         @nbbrooks @davetcoleman
+/README.md                                                  @davetcoleman
 
-/moveit_plugins/moveit_controller_manager_example/	@v4hn
+# FOLDER-SPECIFIC REVIEWERS:
 
-/moveit_core/	@davetcoleman @rhaschke @v4hn @mlautman
+/moveit_plugins/moveit_ros_control_interface/	            @ipa-mdl @bmagyar
+/moveit_plugins/moveit_fake_controller_manager/	            @v4hn @rhaschke
+/moveit_plugins/moveit_simple_controller_manager/	    @mikeferguson @v4hn
+/moveit_plugins/moveit_controller_manager_example/	    @v4hn
 
-/moveit_commander/	@v4hn @rhaschke @willcbaker
+/moveit_core/background_processing/                         @mlautman
+/moveit_core/backtrace/                                     @mlautman
+/moveit_core/collision_detection/                           @BryceStevenWilley
+/moveit_core/collision_detection_fcl/                       @rhaschke
+/moveit_core/collision_distance_field/                      @rhaschke
+/moveit_core/constraint_samplers/                           @v4hn
+/moveit_core/controller_manager/                            @v4hn
+/moveit_core/distance_field/                                @v4hn
+/moveit_core/dynamics_solver/                               @mlautman
+/moveit_core/exceptions/                                    @mlautman
+/moveit_core/kinematic_constraints/                         @rhaschke
+/moveit_core/kinematics_base/                               @rhaschke @mlautman
+/moveit_core/kinematics_metrics/                            @gavanderhoorn
+/moveit_core/macros/                                        @mlautman
+/moveit_core/planning_interface/                            @rhaschke
+/moveit_core/planning_request_adapter/                      @rhaschke
+/moveit_core/planning_scene/                                @rhaschke
+/moveit_core/profiler/                                      @mlautman
+/moveit_core/robot_model/                                   @jonbinney
+/moveit_core/robot_state/                                   @rhaschke @mlautman
+/moveit_core/robot_trajectory/                              @mlautman
+/moveit_core/sensor_manager/                                @mlautman
+/moveit_core/trajectory_processing/                         @mlautman
+/moveit_core/transforms/                                    @rhaschke
+/moveit_core/utils/                                         @mlautman
+/moveit_core/version/                                       @v4hn
 
-/moveit/	@130s
+/moveit_commander/                                          @rhaschke @willcbaker
 
-/moveit_kinematics/	@rhaschke @gavanderhoorn @jrgnicho
+/moveit/	                                            @130s
 
-/moveit_experimental/	@AndyZe
+/moveit_kinematics/	                                    @rhaschke @gavanderhoorn @jrgnicho
 
-/moveit_ros/perception/	@mikeferguson @jonbinney
+/moveit_experimental/	                                    @AndyZe
 
-/moveit_ros/manipulation/	@v4hn @felixvd 
+/moveit_ros/perception/	                                    @mikeferguson @jonbinney
+/moveit_ros/manipulation/	                            @v4hn @felixvd
+/moveit_ros/benchmarks/	                                    @henningkayser @MohmadAyman
+/moveit_ros/planning_interface/	                            @mintar @rhaschke
+/moveit_ros/robot_interaction/	                            @mikeferguson @rhaschke
+/moveit_ros/warehouse/	                                    @mikeferguson @dg-shadow
+/moveit_ros/move_group/	                                    @rhaschke @IanTheEngineer
+/moveit_ros/visualization/	                            @rhaschke @jonbinney @christian-rauch
 
-/moveit_ros/benchmarks/	@davetcoleman @MohmadAyman 
+/moveit_ros/planning/collision_plugin_loader/               @rhaschke
+/moveit_ros/planning/constraint_sampler_manager_loader/     @henningkayser
+/moveit_ros/planning/kinematics_plugin_loader/              @gavanderhoorn
+/moveit_ros/planning/plan_execution/                        @v4hn
+/moveit_ros/planning/planning_components_tools/             @henningkayser
+/moveit_ros/planning/planning_pipeline/                     @v4hn
+/moveit_ros/planning/planning_request_adapter_plugins/      @v4hn
+/moveit_ros/planning/planning_scene_monitor/                @rhaschke
+/moveit_ros/planning/rdf_loader/                            @henningkayser
+/moveit_ros/planning/robot_model_loader/                    @henningkayser
+/moveit_ros/planning/trajectory_execution_manager/          @rhaschke
 
-/moveit_ros/planning_interface/	@mintar @rhaschke 
+/moveit_setup_assistant/	                            @davetcoleman @rhaschke @MohmadAyman
 
-/moveit_ros/robot_interaction/	@mikeferguson @rhaschke
-
-/moveit_ros/planning/	@henningkayser @v4hn @rhaschke 
-
-/moveit_ros/warehouse/	@mikeferguson @dg-shadow 
-
-/moveit_ros/move_group/	@rhaschke @IanTheEngineer @v4hn
-
-/moveit_ros/visualization/	@rhaschke @jonbinney @christian-rauch 
-
-/moveit_setup_assistant/	@davetcoleman @rhaschke @MohmadAyman 
-
-/moveit_planners/ompl/	@BryceStevenWilley @zkingston
-
-/moveit_planners/chomp/chomp_interface/ @raghavendersahdev @knorth55 @bmagyar
-
-/moveit_planners/chomp/chomp_optimizer_adapter/	@raghavendersahdev @knorth55 @bmagyar
-
-/moveit_planners/chomp/chomp_motion_planner/	@raghavendersahdev @knorth55 @bmagyar
+/moveit_planners/ompl/	                                    @BryceStevenWilley @zkingston
+/moveit_planners/chomp/chomp_interface/                     @raghavendersahdev @knorth55 @bmagyar
+/moveit_planners/chomp/chomp_optimizer_adapter/	            @raghavendersahdev @knorth55 @bmagyar
+/moveit_planners/chomp/chomp_motion_planner/	            @raghavendersahdev @knorth55 @bmagyar
