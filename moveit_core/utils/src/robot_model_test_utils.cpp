@@ -38,7 +38,9 @@
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <geometry_msgs/Pose.h>
+
 #include "moveit/utils/robot_model_test_utils.h"
+#include <ros/package.h>
 
 namespace moveit
 {
@@ -56,7 +58,7 @@ moveit::core::RobotModelPtr loadTestingRobotModel(const std::string& robot_name)
 
 urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
 {
-  boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+  boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
   std::string urdf_path;
   if (robot_name == "pr2")
   {
@@ -77,7 +79,7 @@ urdf::ModelInterfaceSharedPtr loadModelInterface(const std::string& robot_name)
 
 srdf::ModelSharedPtr loadSRDFModel(const std::string& robot_name)
 {
-  boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+  boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
   urdf::ModelInterfaceSharedPtr urdf_model = loadModelInterface(robot_name);
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   std::string srdf_path;

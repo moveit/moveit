@@ -42,12 +42,14 @@
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <moveit_resources/config.h>
+#include <ros/package.h>
+
 
 // This function needs to return void so the gtest FAIL() macro inside
 // it works right.
 void loadModelFile(std::string filename, std::string& file_content)
 {
-  boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+  boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
   std::string xml_string;
   std::fstream xml_file((res_path / filename).string().c_str(), std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());

@@ -1,8 +1,5 @@
 set(MOVEIT_LIB_NAME moveit_utils)
 
-find_package(moveit_resources REQUIRED)
-include_directories(${moveit_resources_INCLUDE_DIRS})
-
 add_library(${MOVEIT_LIB_NAME}
   src/lexical_casts.cpp
   src/xmlrpc_casts.cpp
