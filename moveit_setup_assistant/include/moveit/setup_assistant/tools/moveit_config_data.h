@@ -312,7 +312,7 @@ public:
   bool outputFakeControllersYAML(const std::string& file_path);
 
   /**
-   * Helper function for writing follow joint trajectory ROS controllers to ros_controllers.yaml
+   * Helper function for setting configuration for the controllers given by its namesake function
    * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
    * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
    */
