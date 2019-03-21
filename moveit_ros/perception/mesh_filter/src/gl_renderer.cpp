@@ -74,9 +74,7 @@ mesh_filter::GLRenderer::GLRenderer(unsigned width, unsigned height, float near,
 
 mesh_filter::GLRenderer::~GLRenderer()
 {
-  if (program_)
-    glDeleteProgram(program_);
-
+  glDeleteProgram(program_);
   deleteFrameBuffers();
   deleteGLContext();
 }
