@@ -1740,6 +1740,12 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     return false;
   }
 
+  if (!getTransforms().canTransform(object.header.frame_id))
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Unknown frame: " << object.header.frame_id);
+    return false;
+  }
+
   // replace the object if ADD is specified instead of APPEND
   if (object.operation == moveit_msgs::CollisionObject::ADD && world_->hasObject(object.id))
     world_->removeObject(object.id);

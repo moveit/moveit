@@ -427,7 +427,7 @@ void PlanningSceneMonitor::getMonitoredTopics(std::vector<std::string>& topics) 
   if (planning_scene_subscriber_)
     topics.push_back(planning_scene_subscriber_.getTopic());
   if (collision_object_subscriber_)
-    topics.push_back(collision_object_subscriber_->getTopic());
+    topics.push_back(collision_object_subscriber_.getTopic());
   if (planning_scene_world_subscriber_)
     topics.push_back(planning_scene_world_subscriber_.getTopic());
 }
@@ -614,26 +614,17 @@ void PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::Plan
   }
 }
 
-void PlanningSceneMonitor::collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr& obj,
-                                                         tf2_ros::filter_failure_reasons::FilterFailureReason reason)
-{
-  // if we just want to remove objects, the frame does not matter
-  if (reason == tf2_ros::filter_failure_reasons::EmptyFrameID && obj->operation == moveit_msgs::CollisionObject::REMOVE)
-    collisionObjectCallback(obj);
-}
-
 void PlanningSceneMonitor::collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr& obj)
 {
   if (!scene_)
-  {
     return;
-  }
 
   updateFrameTransforms();
   {
     boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
     last_update_time_ = ros::Time::now();
-    scene_->processCollisionObjectMsg(*obj);
+    if (!scene_->processCollisionObjectMsg(*obj))
+      return;
   }
   triggerSceneUpdateEvent(UPDATE_GEOMETRY);
 }
@@ -1029,25 +1020,9 @@ void PlanningSceneMonitor::startWorldGeometryMonitor(const std::string& collisio
   // Listen to the /collision_objects topic to detect requests to add/remove/update collision objects to/from the world
   if (!collision_objects_topic.empty())
   {
-    collision_object_subscriber_.reset(
-        new message_filters::Subscriber<moveit_msgs::CollisionObject>(root_nh_, collision_objects_topic, 1024));
-    if (tf_buffer_)
-    {
-      collision_object_filter_.reset(new tf2_ros::MessageFilter<moveit_msgs::CollisionObject>(
-          *collision_object_subscriber_, *tf_buffer_, scene_->getPlanningFrame(), 1024, root_nh_));
-      collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-      collision_object_filter_->registerFailureCallback(
-          boost::bind(&PlanningSceneMonitor::collisionObjectFailTFCallback, this, _1, _2));
-      ROS_INFO_NAMED(LOGNAME, "Listening to '%s' using message notifier with target frame '%s'",
-                     root_nh_.resolveName(collision_objects_topic).c_str(),
-                     collision_object_filter_->getTargetFramesString().c_str());
-    }
-    else
-    {
-      collision_object_subscriber_->registerCallback(
-          boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-      ROS_INFO_NAMED(LOGNAME, "Listening to '%s'", root_nh_.resolveName(collision_objects_topic).c_str());
-    }
+    collision_object_subscriber_ =
+        root_nh_.subscribe(collision_objects_topic, 1024, &PlanningSceneMonitor::collisionObjectCallback, this);
+    ROS_INFO_NAMED(LOGNAME, "Listening to '%s'", root_nh_.resolveName(collision_objects_topic).c_str());
   }
 
   if (!planning_scene_world_topic.empty())
@@ -1078,12 +1053,10 @@ void PlanningSceneMonitor::startWorldGeometryMonitor(const std::string& collisio
 
 void PlanningSceneMonitor::stopWorldGeometryMonitor()
 {
-  if (collision_object_subscriber_ || collision_object_filter_)
+  if (collision_object_subscriber_)
   {
     ROS_INFO_NAMED(LOGNAME, "Stopping world geometry monitor");
-    collision_object_filter_.reset();
-    collision_object_subscriber_.reset();
-    planning_scene_world_subscriber_.shutdown();
+    collision_object_subscriber_.shutdown();
   }
   else if (planning_scene_world_subscriber_)
   {
