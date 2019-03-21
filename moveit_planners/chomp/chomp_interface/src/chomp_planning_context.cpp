@@ -20,27 +20,7 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::s
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-  moveit_msgs::MotionPlanDetailedResponse res_msg;
-  if (chomp_interface_->solve(planning_scene_, request_, chomp_interface_->getParams(), res_msg))
-  {
-    res.trajectory_.resize(1);
-    res.trajectory_[0] =
-        robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, getGroupName()));
-
-    moveit::core::RobotState start_state(robot_model_);
-    robot_state::robotStateMsgToRobotState(res_msg.trajectory_start, start_state);
-    res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_msg.trajectory[0]);
-
-    res.description_.push_back("plan");
-    res.processing_time_ = res_msg.processing_time;
-    res.error_code_ = res_msg.error_code;
-    return true;
-  }
-  else
-  {
-    res.error_code_ = res_msg.error_code;
-    return false;
-  }
+  return chomp_interface_->solve(planning_scene_, request_, chomp_interface_->getParams(), res);
 }
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanResponse& res)

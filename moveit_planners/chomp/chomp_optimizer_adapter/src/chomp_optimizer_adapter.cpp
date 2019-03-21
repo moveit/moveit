@@ -175,47 +175,21 @@ public:
 
     // create a writable planning scene
     planning_scene::PlanningScenePtr planning_scene = ps->diff();
-    ROS_INFO_STREAM("Configuring Planning Scene for CHOMP ....");
+    ROS_DEBUG_STREAM("Configuring Planning Scene for CHOMP ...");
     planning_scene->setActiveCollisionDetector(hybrid_cd, true);
 
     chomp::ChompPlanner chomp_planner;
     planning_interface::MotionPlanDetailedResponse res_detailed;
-    moveit_msgs::MotionPlanDetailedResponse res_detailed_moveit_msgs;
+    res_detailed.trajectory_.push_back(res.trajectory_);
 
-    // populate the trajectory to pass to CHOMPPlanner::solve() method. Obtain trajectory from OMPL's
-    // planning_interface::MotionPlanResponse object and put / populate it in the
-    // moveit_msgs::MotionPlanDetailedResponse object
-    moveit_msgs::RobotTrajectory trajectory_msgs_from_response;
-    res.trajectory_->getRobotTrajectoryMsg(trajectory_msgs_from_response);
-    res_detailed_moveit_msgs.trajectory.resize(1);
-    res_detailed_moveit_msgs.trajectory[0] = trajectory_msgs_from_response;
+    bool planning_success = chomp_planner.solve(planning_scene, req, params_, res_detailed);
 
-    bool planning_success = chomp_planner.solve(planning_scene, req, params_, res_detailed_moveit_msgs);
-
-    if (planning_success)
-    {
-      res_detailed.trajectory_.resize(1);
-      res_detailed.trajectory_[0] = robot_trajectory::RobotTrajectoryPtr(
-          new robot_trajectory::RobotTrajectory(res.trajectory_->getRobotModel(), res.trajectory_->getGroup()));
-
-      moveit::core::RobotState start_state(planning_scene->getRobotModel());
-      robot_state::robotStateMsgToRobotState(res_detailed_moveit_msgs.trajectory_start, start_state);
-      res_detailed.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_detailed_moveit_msgs.trajectory[0]);
-      res_detailed.description_.push_back("plan");
-      res_detailed.processing_time_ = res_detailed_moveit_msgs.processing_time;
-      res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
-    }
-    else
-      res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
-
-    res.error_code_ = res_detailed.error_code_;
-
-    // populate the original response object 'res' with the CHOMP's optimized trajectory.
     if (planning_success)
     {
       res.trajectory_ = res_detailed.trajectory_[0];
       res.planning_time_ = res_detailed.processing_time_[0];
     }
+    res.error_code_ = res_detailed.error_code_;
 
     return planning_success;
   }
