@@ -97,34 +97,6 @@ ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::
   }
 }
 
-ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
-                                 const trajectory_msgs::JointTrajectory& traj)
-  : planning_group_name_(group_name)
-{
-  const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
-  num_points_ = traj.points.size();
-  num_joints_ = model_group->getActiveJointModels().size();
-  assert(num_points_ > 2);
-
-  double discretization = (traj.points[1].time_from_start - traj.points[0].time_from_start).toSec();
-  double discretization2 = (traj.points[2].time_from_start - traj.points[1].time_from_start).toSec();
-  if (fabs(discretization2 - discretization) > .001)
-  {
-    ROS_WARN_STREAM("Trajectory Discretization not constant " << discretization << " " << discretization2);
-  }
-  discretization_ = discretization;
-
-  duration_ = (traj.points.back().time_from_start - traj.points[0].time_from_start).toSec();
-
-  start_index_ = 1;
-  end_index_ = num_points_ - 2;
-
-  init();
-
-  for (unsigned int i = 0; i < traj.points.size(); i++)
-    trajectory_.row(i) = Eigen::Map<Eigen::VectorXd>(traj.points[i].positions, num_joints_);
-}
-
 void ChompTrajectory::init()
 {
   trajectory_.resize(num_points_, num_joints_);
