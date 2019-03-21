@@ -731,6 +731,29 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   return planner_des;
 }
 
+bool MoveItConfigData::outputFollowJointTrajectoryYAML(const std::string& file_path)
+{
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
+
+  addDefaultControllers();
+  std::vector<ROSControlConfig>& ros_controllers_config_output = getROSControllers();
+  outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
+
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
 // ******************************************************************************************
 // Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
 // and erases the controller that have been written, to avoid mixing between FollowJointTrajectory

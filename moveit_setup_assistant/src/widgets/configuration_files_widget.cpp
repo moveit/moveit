@@ -300,6 +300,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+  // controllers.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates configurations for FollowJointTrajectory.";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputFollowJointTrajectoryYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
   // ros_controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);

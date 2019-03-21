@@ -316,6 +316,7 @@ public:
    * @param YAML Emitter - yaml emitter used to write the config to the ROS controllers yaml file
    * @param vector<ROSControlConfig> - a copy of ROS controllers config which will be modified in the function
    */
+  bool outputFollowJointTrajectoryYAML(const std::string& file_path);
   void outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
                                        std::vector<ROSControlConfig>& ros_controllers_config_output);
 
