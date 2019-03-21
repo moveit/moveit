@@ -42,19 +42,11 @@ namespace chomp
 {
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration,
                                  double discretization, const std::string& group_name)
-  : planning_group_name_(group_name)
-  , num_points_((duration / discretization) + 1)
-  , discretization_(discretization)
-  , duration_(duration)
-  , start_index_(1)
-  , end_index_(num_points_ - 2)
+  : ChompTrajectory(robot_model, static_cast<unsigned int>(duration / discretization) + 1, discretization, group_name)
 {
-  const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
-  num_joints_ = model_group->getActiveJointModels().size();
-  init();
 }
 
-ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, unsigned int num_points,
                                  double discretization, const std::string& group_name)
   : planning_group_name_(group_name)
   , num_points_(num_points)
@@ -110,18 +102,18 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   : planning_group_name_(group_name)
 {
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
+  num_points_ = traj.points.size();
   num_joints_ = model_group->getActiveJointModels().size();
+  assert(num_points_ > 2);
+
   double discretization = (traj.points[1].time_from_start - traj.points[0].time_from_start).toSec();
-
   double discretization2 = (traj.points[2].time_from_start - traj.points[1].time_from_start).toSec();
-
   if (fabs(discretization2 - discretization) > .001)
   {
     ROS_WARN_STREAM("Trajectory Discretization not constant " << discretization << " " << discretization2);
   }
   discretization_ = discretization;
 
-  num_points_ = traj.points.size() + 1;
   duration_ = (traj.points.back().time_from_start - traj.points[0].time_from_start).toSec();
 
   start_index_ = 1;
@@ -129,41 +121,20 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
 
   init();
 
-  for (int i = 0; i < num_points_; i++)
-  {
-    for (int j = 0; j < num_joints_; j++)
-    {
-      trajectory_(i, j) = 0.0;
-    }
-  }
-  overwriteTrajectory(traj);
-}
-
-void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj)
-{
-  for (unsigned int i = 1; i <= traj.points.size(); i++)
-  {
-    for (unsigned int j = 0; j < traj.joint_names.size(); j++)
-    {
-      trajectory_(i, j) = traj.points[i - 1].positions[j];
-    }
-  }
+  for (unsigned int i = 0; i < traj.points.size(); i++)
+    trajectory_.row(i) = Eigen::Map<Eigen::VectorXd>(traj.points[i].positions, num_joints_);
 }
 
 void ChompTrajectory::init()
 {
   trajectory_.resize(num_points_, num_joints_);
-  trajectory_ = Eigen::MatrixXd(num_points_, num_joints_);
 }
 
 void ChompTrajectory::updateFromGroupTrajectory(const ChompTrajectory& group_trajectory)
 {
   int num_vars_free = end_index_ - start_index_ + 1;
-  for (int i = 0; i < num_joints_; i++)
-  {
-    trajectory_.block(start_index_, i, num_vars_free, 1) =
-        group_trajectory.trajectory_.block(group_trajectory.start_index_, i, num_vars_free, 1);
-  }
+  trajectory_.block(start_index_, 0, num_vars_free, num_joints_) =
+      group_trajectory.trajectory_.block(group_trajectory.start_index_, 0, num_vars_free, num_joints_);
 }
 
 void ChompTrajectory::fillInLinearInterpolation()

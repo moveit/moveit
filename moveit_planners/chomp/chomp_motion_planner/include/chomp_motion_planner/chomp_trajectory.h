@@ -64,7 +64,7 @@ public:
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points, double discretization,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, unsigned int num_points, double discretization,
                   const std::string& group_name);
 
   /**
@@ -88,8 +88,6 @@ public:
   Eigen::MatrixXd::RowXpr getTrajectoryPoint(int traj_point);
 
   Eigen::MatrixXd::ColXpr getJointTrajectory(int joint);
-
-  void overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj);
 
   /**
    * \brief Gets the number of points in the trajectory
