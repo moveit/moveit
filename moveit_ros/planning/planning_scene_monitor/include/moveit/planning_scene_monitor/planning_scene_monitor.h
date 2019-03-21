@@ -39,9 +39,7 @@
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
-#include <tf2_ros/message_filter.h>
 #include <tf2_ros/buffer.h>
-#include <message_filters/subscriber.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -419,10 +417,6 @@ protected:
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr& obj);
 
-  /** @brief Callback for a new collision object msg that failed to pass the TF filter */
-  void collisionObjectFailTFCallback(const moveit_msgs::CollisionObjectConstPtr& obj,
-                                     tf2_ros::filter_failure_reasons::FilterFailureReason reason);
-
   /** @brief Callback for a new planning scene world*/
   void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr& world);
 
@@ -500,9 +494,7 @@ protected:
   ros::Subscriber planning_scene_world_subscriber_;
 
   ros::Subscriber attached_collision_object_subscriber_;
-
-  std::unique_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
-  std::unique_ptr<tf2_ros::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
+  ros::Subscriber collision_object_subscriber_;
 
   // include a octomap monitor
   std::unique_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
