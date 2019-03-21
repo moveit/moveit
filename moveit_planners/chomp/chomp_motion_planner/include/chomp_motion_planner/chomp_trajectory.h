@@ -79,7 +79,7 @@ public:
   /**
    * \brief Destructor
    */
-  virtual ~ChompTrajectory();
+  virtual ~ChompTrajectory() = default;
 
   double& operator()(int traj_point, int joint);
 

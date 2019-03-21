@@ -47,8 +47,8 @@ namespace chomp
 class ChompPlanner
 {
 public:
-  ChompPlanner();
-  virtual ~ChompPlanner(){};
+  ChompPlanner() = default;
+  virtual ~ChompPlanner() = default;
 
   // TODO: switch API from moveit_msgs to MotionPlanRequest / MotionPlanDetailedResponse
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
