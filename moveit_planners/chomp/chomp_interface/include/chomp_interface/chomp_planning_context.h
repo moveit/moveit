@@ -55,7 +55,7 @@ public:
 
   CHOMPPlanningContext(const std::string& name, const std::string& group, const robot_model::RobotModelConstPtr& model);
 
-  ~CHOMPPlanningContext() override;
+  ~CHOMPPlanningContext() override = default;
 
   void initialize();
 
