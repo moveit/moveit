@@ -923,9 +923,6 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::EndMap;
     }
 
-    // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
-    outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
-
     for (std::vector<ROSControlConfig>::const_iterator controller_it = ros_controllers_config_output.begin();
          controller_it != ros_controllers_config_output.end(); ++controller_it)
     {
