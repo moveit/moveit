@@ -86,8 +86,7 @@ struct CoupledDeleter
 
   void operator()(const T* p)
   {
-    if (other_)
-      delete other_;
+    delete other_;
     delete p;
   }
 };
