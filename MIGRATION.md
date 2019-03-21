@@ -4,6 +4,7 @@ API changes in MoveIt! releases
 
 ## ROS Noetic (upcoming changes in master)
 - Extended the return value of `MoveitCommander.MoveGroup.plan()` from `trajectory` to a tuple of `(success, trajectory, planning_time, error_code)` to better match the C++ MoveGroupInterface ([790](https://github.com/ros-planning/moveit/pull/790/))
+- Setup_assistant launch file templates allow setting `rviz_config` argument and drop the boolean config argument ([1397](https://github.com/ros-planning/moveit/pull/1397))
 
 ## ROS Melodic
 
