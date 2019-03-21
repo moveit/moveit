@@ -38,8 +38,8 @@
 #define _CHOMP_PLANNER_H_
 
 #include <chomp_motion_planner/chomp_parameters.h>
-#include <moveit_msgs/MotionPlanDetailedResponse.h>
-#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit/planning_interface/planning_request.h>
+#include <moveit/planning_interface/planning_response.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 namespace chomp
@@ -50,9 +50,9 @@ public:
   ChompPlanner() = default;
   virtual ~ChompPlanner() = default;
 
-  // TODO: switch API from moveit_msgs to MotionPlanRequest / MotionPlanDetailedResponse
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
-             const ChompParameters& params, moveit_msgs::MotionPlanDetailedResponse& res) const;
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const planning_interface::MotionPlanRequest& req, const ChompParameters& params,
+             planning_interface::MotionPlanDetailedResponse& res) const;
 };
 }
 

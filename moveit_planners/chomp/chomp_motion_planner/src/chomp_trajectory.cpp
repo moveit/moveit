@@ -188,45 +188,39 @@ void ChompTrajectory::fillInMinJerk()
   }
 }
 
-bool ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedResponse& res)
+bool ChompTrajectory::fillInFromTrajectory(const robot_trajectory::RobotTrajectory& trajectory)
 {
-  // create a RobotTrajectory msg to obtain the trajectory from the MotionPlanDetailedResponse object
-  moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory[0];
-
   // get the default number of points in the CHOMP trajectory
-  size_t num_chomp_trajectory_points = (*this).getNumPoints();
-  // get the number of points in the response trajectory obtained from OMPL
-  size_t num_response_points = trajectory_msg.joint_trajectory.points.size();
+  const size_t num_chomp_trajectory_points = (*this).getNumPoints();
+  // get the number of points in the input trajectory
+  const size_t num_input_points = trajectory.getWayPointCount();
 
   // check if input trajectory has less than two states (start and goal), function returns false if condition is true
-  if (num_response_points < 2)
+  if (num_input_points < 2)
     return false;
 
-  // get the number of joints for each robot state
-  size_t num_joints_trajectory = trajectory_msg.joint_trajectory.points[0].positions.size();
-
   // variables for populating the CHOMP trajectory with correct number of trajectory points
-  unsigned int repeated_factor = num_chomp_trajectory_points / num_response_points;
-  unsigned int repeated_balance_factor = num_chomp_trajectory_points % num_response_points;
+  const unsigned int repeated_factor = num_chomp_trajectory_points / num_input_points;
+  const unsigned int repeated_balance_factor = num_chomp_trajectory_points % num_input_points;
 
   // response_point_id stores the point at the stored index location.
   size_t response_point_id = 0;
-  if (num_chomp_trajectory_points >= num_response_points)
+  if (num_chomp_trajectory_points >= num_input_points)
   {
-    for (size_t i = 0; i < num_response_points; i++)
+    for (size_t i = 0; i < num_input_points; i++)
     {
       // following for loop repeats each OMPL trajectory pose/row 'repeated_factor' times; alternatively, there could
       // also be a linear interpolation between these points later if required
       for (unsigned int k = 0; k < repeated_factor; k++)
       {
-        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory_msg, num_joints_trajectory, i, response_point_id);
+        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, i, response_point_id);
         response_point_id++;
       }
 
       // this populates the CHOMP trajectory row  for the remainder number of rows.
       if (i < repeated_balance_factor)
       {
-        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory_msg, num_joints_trajectory, i, response_point_id);
+        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, i, response_point_id);
         response_point_id++;
       }  // end of if
     }    // end of for loop for loading in the trajectory poses/rows
@@ -235,27 +229,30 @@ bool ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedRespon
   {
     // perform a decimation sampling in this block if the number of trajectory points in the MotionPlanDetailedResponse
     // res object is more than the number of points in the CHOMP trajectory
-    double decimation_sampling_factor = ((double)num_response_points) / ((double)num_chomp_trajectory_points);
+    const double decimation_sampling_factor = ((double)num_input_points) / ((double)num_chomp_trajectory_points);
 
     for (size_t i = 0; i < num_chomp_trajectory_points; i++)
     {
       size_t sampled_point = floor(i * decimation_sampling_factor);
-      assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory_msg, num_joints_trajectory, sampled_point, i);
+      assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, sampled_point, i);
     }
   }  // end of else
   return true;
 }
 
-void ChompTrajectory::assignCHOMPTrajectoryPointFromInputTrajectoryPoint(moveit_msgs::RobotTrajectory trajectory_msg,
-                                                                         size_t num_joints_trajectory,
-                                                                         size_t trajectory_msgs_point_index,
-                                                                         size_t chomp_trajectory_point_index)
+void ChompTrajectory::assignCHOMPTrajectoryPointFromInputTrajectoryPoint(
+    const robot_trajectory::RobotTrajectory& trajectory, size_t trajectory_point_index,
+    size_t chomp_trajectory_point_index)
 {
-  // following loop iterates over all joints for a single robot pose, it assigns the corresponding input trajectory
-  // points into CHOMP trajectory points
-  for (size_t j = 0; j < num_joints_trajectory; j++)
-    (*this)(chomp_trajectory_point_index, j) =
-        trajectory_msg.joint_trajectory.points[trajectory_msgs_point_index].positions[j];
+  const robot_state::RobotState& source = trajectory.getWayPoint(trajectory_point_index);
+  Eigen::MatrixXd::RowXpr target = getTrajectoryPoint(chomp_trajectory_point_index);
+  assert(trajectory.getGroup()->getActiveJointModels().size() == static_cast<size_t>(target.cols()));
+  size_t joint_index = 0;
+  for (const robot_state::JointModel* jm : trajectory.getGroup()->getActiveJointModels())
+  {
+    assert(jm->getVariableCount() == 1);
+    target[joint_index++] = source.getVariablePosition(jm->getJointIndex());
+  }
 }
 
 }  // namespace chomp
