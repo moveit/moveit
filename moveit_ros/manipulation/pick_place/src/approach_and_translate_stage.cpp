@@ -37,6 +37,7 @@
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
+#include <moveit/robot_state/cartesian_interpolator.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <ros/console.h>
 
@@ -237,9 +238,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         static const double MAX_CLOSE_UP_DIST = 1.0;
         robot_state::RobotStatePtr close_up_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
         std::vector<robot_state::RobotStatePtr> close_up_states;
-        double d_close_up = close_up_state->computeCartesianPath(
-            plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_, approach_direction,
-            approach_direction_is_global_frame, MAX_CLOSE_UP_DIST, max_step_, jump_factor_, approach_valid_callback);
+        double d_close_up = moveit::core::CartesianInterpolator::computeCartesianPath(
+            close_up_state.get(), plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_,
+            approach_direction, approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
+            moveit::core::MaxEEFStep(max_step_), moveit::core::JumpThreshold(jump_factor_), approach_valid_callback);
         // if progress towards the object was made, update the desired goal state
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i] = *close_up_states[close_up_states.size() - 2];
@@ -249,10 +251,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
       robot_state::RobotStatePtr first_approach_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
 
       std::vector<robot_state::RobotStatePtr> approach_states;
-      double d_approach = first_approach_state->computeCartesianPath(
-          plan->shared_data_->planning_group_, approach_states, plan->shared_data_->ik_link_, -approach_direction,
-          approach_direction_is_global_frame, plan->approach_.desired_distance, max_step_, jump_factor_,
-          approach_valid_callback);
+      double d_approach = moveit::core::CartesianInterpolator::computeCartesianPath(
+          first_approach_state.get(), plan->shared_data_->planning_group_, approach_states,
+          plan->shared_data_->ik_link_, -approach_direction, approach_direction_is_global_frame,
+          plan->approach_.desired_distance, moveit::core::MaxEEFStep(max_step_),
+          moveit::core::JumpThreshold(jump_factor_), approach_valid_callback);
 
       // if we were able to follow the approach direction for sufficient length, try to compute a retreat direction
       if (d_approach > plan->approach_.min_distance && !signal_stop_)
@@ -278,10 +281,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           robot_state::RobotStatePtr last_retreat_state(
               new robot_state::RobotState(planning_scene_after_approach->getCurrentState()));
           std::vector<robot_state::RobotStatePtr> retreat_states;
-          double d_retreat = last_retreat_state->computeCartesianPath(
-              plan->shared_data_->planning_group_, retreat_states, plan->shared_data_->ik_link_, retreat_direction,
-              retreat_direction_is_global_frame, plan->retreat_.desired_distance, max_step_, jump_factor_,
-              retreat_valid_callback);
+          double d_retreat = moveit::core::CartesianInterpolator::computeCartesianPath(
+              last_retreat_state.get(), plan->shared_data_->planning_group_, retreat_states,
+              plan->shared_data_->ik_link_, retreat_direction, retreat_direction_is_global_frame,
+              plan->retreat_.desired_distance, moveit::core::MaxEEFStep(max_step_),
+              moveit::core::JumpThreshold(jump_factor_), retreat_valid_callback);
 
           // if sufficient progress was made in the desired direction, we have a goal state that we can consider for
           // future stages

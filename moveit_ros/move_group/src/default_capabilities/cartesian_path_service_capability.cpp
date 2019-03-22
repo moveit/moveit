@@ -41,6 +41,8 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/cartesian_interpolator.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
@@ -143,9 +145,9 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
                    (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
                    global_frame ? "global" : "link");
           std::vector<robot_state::RobotStatePtr> traj;
-          res.fraction =
-              start_state.computeCartesianPath(jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame,
-                                               req.max_step, req.jump_threshold, constraint_fn);
+          res.fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
+              &start_state, jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame,
+              moveit::core::MaxEEFStep(req.max_step), moveit::core::JumpThreshold(req.jump_threshold), constraint_fn);
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
 
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
