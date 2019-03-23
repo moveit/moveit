@@ -42,7 +42,6 @@
 #include <string>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <moveit_resources/config.h>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include <ros/package.h>
 

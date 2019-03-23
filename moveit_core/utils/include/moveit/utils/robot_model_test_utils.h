@@ -45,7 +45,6 @@
 #include <urdf/model.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
-#include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <geometry_msgs/Pose.h>
 

@@ -40,7 +40,6 @@
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <moveit/collision_distance_field/collision_robot_distance_field.h>
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
-#include <moveit_resources/config.h>
 
 #include <geometric_shapes/shape_operations.h>
 #include <urdf_parser/urdf_parser.h>
