@@ -41,7 +41,6 @@
 #include <sstream>
 #include <string>
 #include <boost/filesystem/path.hpp>
-#include <moveit_resources/config.h>
 #include <ros/package.h>
 
 // This function needs to return void so the gtest FAIL() macro inside

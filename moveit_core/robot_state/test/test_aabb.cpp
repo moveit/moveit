@@ -37,7 +37,6 @@
 #include <moveit/robot_model/aabb.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit_resources/config.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <boost/filesystem.hpp>

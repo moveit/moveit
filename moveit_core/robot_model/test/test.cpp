@@ -40,7 +40,6 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem/path.hpp>
 #include <moveit/profiler/profiler.h>
-#include <moveit_resources/config.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
