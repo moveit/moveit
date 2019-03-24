@@ -167,8 +167,8 @@ void PlanningScene::initialize()
 
   // allow collisions for pairs that have been disabled
   const std::vector<srdf::Model::DisabledCollision>& dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
-  for (std::vector<srdf::Model::DisabledCollision>::const_iterator it = dc.begin(); it != dc.end(); ++it)
-    acm_->setEntry(it->link1_, it->link2_, true);
+  for (const srdf::Model::DisabledCollision& it : dc)
+    acm_->setEntry(it.link1_, it.link2_, true);
 
   setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
 }
@@ -203,10 +203,10 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
   world_diff_.reset(new collision_detection::WorldDiff(world_));
 
   // Set up the same collision detectors as the parent
-  for (CollisionDetectorConstIterator it = parent_->collision_.begin(); it != parent_->collision_.end(); ++it)
+  for (const std::pair<const std::string, CollisionDetectorPtr>& it : parent_->collision_)
   {
-    const CollisionDetectorPtr& parent_detector = it->second;
-    CollisionDetectorPtr& detector = collision_[it->first];
+    const CollisionDetectorPtr& parent_detector = it.second;
+    CollisionDetectorPtr& detector = collision_[it.first];
     detector.reset(new CollisionDetector());
     detector->alloc_ = parent_detector->alloc_;
     detector->parent_ = parent_detector;
@@ -261,10 +261,10 @@ void PlanningScene::propogateRobotPadding()
   if (!active_collision_->crobot_)
     return;
 
-  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (it->second != active_collision_)
-      it->second->copyPadding(*active_collision_);
+    if (it.second != active_collision_)
+      it.second->copyPadding(*active_collision_);
   }
 }
 
@@ -363,8 +363,8 @@ void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) c
 {
   names.clear();
   names.reserve(collision_.size());
-  for (CollisionDetectorConstIterator it = collision_.begin(); it != collision_.end(); ++it)
-    names.push_back(it->first);
+  for (const std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
+    names.push_back(it.first);
 }
 
 const collision_detection::CollisionWorldConstPtr&
@@ -423,27 +423,27 @@ void PlanningScene::clearDiffs()
     current_world_object_update_observer_handle_ = world_->addObserver(current_world_object_update_callback_);
 
   // use parent crobot_ if it exists.  Otherwise copy padding from parent.
-  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it->second->parent_)
-      it->second->findParent(*this);
+    if (!it.second->parent_)
+      it.second->findParent(*this);
 
-    if (it->second->parent_)
+    if (it.second->parent_)
     {
-      it->second->crobot_.reset();
-      it->second->crobot_const_.reset();
-      it->second->crobot_unpadded_.reset();
-      it->second->crobot_unpadded_const_.reset();
+      it.second->crobot_.reset();
+      it.second->crobot_const_.reset();
+      it.second->crobot_unpadded_.reset();
+      it.second->crobot_unpadded_const_.reset();
 
-      it->second->cworld_ = it->second->alloc_->allocateWorld(it->second->parent_->cworld_, world_);
-      it->second->cworld_const_ = it->second->cworld_;
+      it.second->cworld_ = it.second->alloc_->allocateWorld(it.second->parent_->cworld_, world_);
+      it.second->cworld_const_ = it.second->cworld_;
     }
     else
     {
-      it->second->copyPadding(*parent_->active_collision_);
+      it.second->copyPadding(*parent_->active_collision_);
 
-      it->second->cworld_ = it->second->alloc_->allocateWorld(world_);
-      it->second->cworld_const_ = it->second->cworld_;
+      it.second->cworld_ = it.second->alloc_->allocateWorld(world_);
+      it.second->cworld_const_ = it.second->cworld_;
     }
   }
 
@@ -491,23 +491,23 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
 
   if (world_diff_)
   {
-    for (collision_detection::WorldDiff::const_iterator it = world_diff_->begin(); it != world_diff_->end(); ++it)
+    for (const std::pair<const std::string, collision_detection::World::Action>& it : *world_diff_)
     {
-      if (it->second == collision_detection::World::DESTROY)
+      if (it.second == collision_detection::World::DESTROY)
       {
-        scene->world_->removeObject(it->first);
-        scene->removeObjectColor(it->first);
-        scene->removeObjectType(it->first);
+        scene->world_->removeObject(it.first);
+        scene->removeObjectColor(it.first);
+        scene->removeObjectType(it.first);
       }
       else
       {
-        const collision_detection::World::Object& obj = *world_->getObject(it->first);
+        const collision_detection::World::Object& obj = *world_->getObject(it.first);
         scene->world_->removeObject(obj.id_);
         scene->world_->addToObject(obj.id_, obj.shapes_, obj.shape_poses_);
-        if (hasObjectColor(it->first))
-          scene->setObjectColor(it->first, getObjectColor(it->first));
-        if (hasObjectType(it->first))
-          scene->setObjectType(it->first, getObjectType(it->first));
+        if (hasObjectColor(it.first))
+          scene->setObjectColor(it.first, getObjectColor(it.first));
+        if (hasObjectType(it.first))
+          scene->setObjectType(it.first, getObjectType(it.first));
       }
     }
   }
@@ -619,12 +619,12 @@ void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const rob
   links.clear();
   for (collision_detection::CollisionResult::ContactMap::const_iterator it = contacts.begin(); it != contacts.end();
        ++it)
-    for (std::size_t j = 0; j < it->second.size(); ++j)
+    for (const collision_detection::Contact& contact : it->second)
     {
-      if (it->second[j].body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
-        links.push_back(it->second[j].body_name_1);
-      if (it->second[j].body_type_2 == collision_detection::BodyTypes::ROBOT_LINK)
-        links.push_back(it->second[j].body_name_2);
+      if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_LINK)
+        links.push_back(contact.body_name_1);
+      if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK)
+        links.push_back(contact.body_name_2);
     }
 }
 
@@ -754,22 +754,22 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   if (world_diff_)
   {
     bool do_omap = false;
-    for (collision_detection::WorldDiff::const_iterator it = world_diff_->begin(); it != world_diff_->end(); ++it)
+    for (const std::pair<const std::string, collision_detection::World::Action>& it : *world_diff_)
     {
-      if (it->first == OCTOMAP_NS)
+      if (it.first == OCTOMAP_NS)
         do_omap = true;
-      else if (it->second == collision_detection::World::DESTROY)
+      else if (it.second == collision_detection::World::DESTROY)
       {
         moveit_msgs::CollisionObject co;
         co.header.frame_id = getPlanningFrame();
-        co.id = it->first;
+        co.id = it.first;
         co.operation = moveit_msgs::CollisionObject::REMOVE;
         scene_msg.world.collision_objects.push_back(co);
       }
       else
       {
         scene_msg.world.collision_objects.emplace_back();
-        getCollisionObjectMsg(scene_msg.world.collision_objects.back(), it->first);
+        getCollisionObjectMsg(scene_msg.world.collision_objects.back(), it.first);
       }
     }
     if (do_omap)
@@ -846,12 +846,12 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
 void PlanningScene::getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const
 {
   collision_objs.clear();
-  const std::vector<std::string>& ns = world_->getObjectIds();
-  for (std::size_t i = 0; i < ns.size(); ++i)
-    if (ns[i] != OCTOMAP_NS)
+  const std::vector<std::string>& ids = world_->getObjectIds();
+  for (const std::string& id : ids)
+    if (id != OCTOMAP_NS)
     {
       collision_objs.emplace_back();
-      getCollisionObjectMsg(collision_objs.back(), ns[i]);
+      getCollisionObjectMsg(collision_objs.back(), id);
     }
 }
 
@@ -860,11 +860,11 @@ bool PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollision
 {
   std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs;
   getAttachedCollisionObjectMsgs(attached_collision_objs);
-  for (std::size_t i = 0; i < attached_collision_objs.size(); ++i)
+  for (moveit_msgs::AttachedCollisionObject& it : attached_collision_objs)
   {
-    if (attached_collision_objs[i].object.id == ns)
+    if (it.object.id == ns)
     {
-      attached_collision_obj = attached_collision_objs[i];
+      attached_collision_obj = it;
       return true;
     }
   }
@@ -952,13 +952,11 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
   if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
   {
     robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);
-    for (std::vector<moveit_msgs::AttachedCollisionObject>::iterator it =
-             scene_msg.robot_state.attached_collision_objects.begin();
-         it != scene_msg.robot_state.attached_collision_objects.end(); ++it)
+    for (moveit_msgs::AttachedCollisionObject& attached_collision_object : scene_msg.robot_state.attached_collision_objects)
     {
-      if (hasObjectType(it->object.id))
+      if (hasObjectType(attached_collision_object.object.id))
       {
-        it->object.type = getObjectType(it->object.id);
+        attached_collision_object.object.type = getObjectType(attached_collision_object.object.id);
       }
     }
   }
@@ -984,14 +982,14 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
     getCollisionObjectMsgs(scene_msg.world.collision_objects);
   else if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES)
   {
-    const std::vector<std::string>& ns = world_->getObjectIds();
+    const std::vector<std::string>& ids = world_->getObjectIds();
     scene_msg.world.collision_objects.clear();
-    scene_msg.world.collision_objects.reserve(ns.size());
-    for (std::size_t i = 0; i < ns.size(); ++i)
-      if (ns[i] != OCTOMAP_NS)
+    scene_msg.world.collision_objects.reserve(ids.size());
+    for (const std::string& id : ids)
+      if (id != OCTOMAP_NS)
       {
         moveit_msgs::CollisionObject co;
-        co.id = ns[i];
+        co.id = id;
         if (hasObjectType(co.id))
           co.type = getObjectType(co.id);
         scene_msg.world.collision_objects.push_back(co);
@@ -1006,14 +1004,14 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
 void PlanningScene::saveGeometryToStream(std::ostream& out) const
 {
   out << name_ << std::endl;
-  const std::vector<std::string>& ns = world_->getObjectIds();
-  for (std::size_t i = 0; i < ns.size(); ++i)
-    if (ns[i] != OCTOMAP_NS)
+  const std::vector<std::string>& ids = world_->getObjectIds();
+  for (const std::string& id : ids)
+    if (id != OCTOMAP_NS)
     {
-      collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(ns[i]);
+      collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(id);
       if (obj)
       {
-        out << "* " << ns[i] << std::endl;
+        out << "* " << id << std::endl;
         out << obj->shapes_.size() << std::endl;
         for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
         {
@@ -1022,9 +1020,9 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
               << obj->shape_poses_[j].translation().z() << std::endl;
           Eigen::Quaterniond r(obj->shape_poses_[j].rotation());
           out << r.x() << " " << r.y() << " " << r.z() << " " << r.w() << std::endl;
-          if (hasObjectColor(ns[i]))
+          if (hasObjectColor(id))
           {
-            const std_msgs::ColorRGBA& c = getObjectColor(ns[i]);
+            const std_msgs::ColorRGBA& c = getObjectColor(id);
             out << c.r << " " << c.g << " " << c.b << " " << c.a << std::endl;
           }
           else
@@ -1183,20 +1181,20 @@ void PlanningScene::decoupleParent()
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
 
-  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it->second->crobot_)
+    if (!it.second->crobot_)
     {
-      it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
-      it->second->crobot_const_ = it->second->crobot_;
+      it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
+      it.second->crobot_const_ = it.second->crobot_;
     }
-    if (!it->second->crobot_unpadded_)
+    if (!it.second->crobot_unpadded_)
     {
-      it->second->crobot_unpadded_ =
-          it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobotUnpadded());
-      it->second->crobot_unpadded_const_ = it->second->crobot_unpadded_;
+      it.second->crobot_unpadded_ =
+          it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobotUnpadded());
+      it.second->crobot_unpadded_const_ = it.second->crobot_unpadded_;
     }
-    it->second->parent_.reset();
+    it.second->parent_.reset();
   }
   world_diff_.reset();
 
@@ -1265,25 +1263,25 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
 
   if (!scene_msg.link_padding.empty() || !scene_msg.link_scale.empty())
   {
-    for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
+    for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
     {
-      if (!it->second->crobot_)
+      if (!it.second->crobot_)
       {
-        it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
-        it->second->crobot_const_ = it->second->crobot_;
+        it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
+        it.second->crobot_const_ = it.second->crobot_;
       }
-      it->second->crobot_->setPadding(scene_msg.link_padding);
-      it->second->crobot_->setScale(scene_msg.link_scale);
+      it.second->crobot_->setPadding(scene_msg.link_padding);
+      it.second->crobot_->setScale(scene_msg.link_scale);
     }
   }
 
   // if any colors have been specified, replace the ones we have with the specified ones
-  for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
-    setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
+  for (const moveit_msgs::ObjectColor& object_color : scene_msg.object_colors)
+    setObjectColor(object_color.id, object_color.color);
 
   // process collision object updates
-  for (std::size_t i = 0; i < scene_msg.world.collision_objects.size(); ++i)
-    result &= processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
+  for (const moveit_msgs::CollisionObject& collision_object : scene_msg.world.collision_objects)
+    result &= processCollisionObjectMsg(collision_object);
 
   // if an octomap was specified, replace the one we have with that one
   if (!scene_msg.world.octomap.octomap.data.empty())
@@ -1308,19 +1306,19 @@ bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
   scene_transforms_->setTransforms(scene_msg.fixed_frame_transforms);
   setCurrentState(scene_msg.robot_state);
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
-  for (CollisionDetectorIterator it = collision_.begin(); it != collision_.end(); ++it)
+  for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it->second->crobot_)
+    if (!it.second->crobot_)
     {
-      it->second->crobot_ = it->second->alloc_->allocateRobot(it->second->parent_->getCollisionRobot());
-      it->second->crobot_const_ = it->second->crobot_;
+      it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
+      it.second->crobot_const_ = it.second->crobot_;
     }
-    it->second->crobot_->setPadding(scene_msg.link_padding);
-    it->second->crobot_->setScale(scene_msg.link_scale);
+    it.second->crobot_->setPadding(scene_msg.link_padding);
+    it.second->crobot_->setScale(scene_msg.link_scale);
   }
   object_colors_.reset(new ObjectColorMap());
-  for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
-    setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
+  for (const moveit_msgs::ObjectColor& object_color : scene_msg.object_colors)
+    setObjectColor(object_color.id, object_color.color);
   world_->clearObjects();
   return processPlanningSceneWorldMsg(scene_msg.world);
 }
@@ -1328,8 +1326,8 @@ bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
 bool PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld& world)
 {
   bool result = true;
-  for (std::size_t i = 0; i < world.collision_objects.size(); ++i)
-    result &= processCollisionObjectMsg(world.collision_objects[i]);
+  for (const moveit_msgs::CollisionObject& collision_object : world.collision_objects)
+    result &= processCollisionObjectMsg(collision_object);
   processOctomapMsg(world.octomap);
   return result;
 }
@@ -1371,12 +1369,12 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
 void PlanningScene::removeAllCollisionObjects()
 {
   const std::vector<std::string>& object_ids = world_->getObjectIds();
-  for (std::size_t i = 0; i < object_ids.size(); ++i)
-    if (object_ids[i] != OCTOMAP_NS)
+  for (const std::string& object_id : object_ids)
+    if (object_id != OCTOMAP_NS)
     {
-      world_->removeObject(object_ids[i]);
-      removeObjectColor(object_ids[i]);
-      removeObjectType(object_ids[i]);
+      world_->removeObject(object_id);
+      removeObjectColor(object_id);
+      removeObjectType(object_id);
     }
 }
 
@@ -1504,8 +1502,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
           // need to transform poses to the link frame
           const Eigen::Isometry3d& i_t = robot_state_->getGlobalLinkTransform(lm).inverse();
-          for (std::size_t i = 0; i < poses.size(); ++i)
-            poses[i] = i_t * poses[i];
+          for (Eigen::Isometry3d& pose : poses)
+            pose = i_t * pose;
         }
         else
         {
@@ -1569,8 +1567,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         {
           const Eigen::Isometry3d& t = robot_state_->getGlobalLinkTransform(lm).inverse() *
                                        getTransforms().getTransform(object.object.header.frame_id);
-          for (std::size_t i = 0; i < poses.size(); ++i)
-            poses[i] = t * poses[i];
+          for (Eigen::Isometry3d& pose : poses)
+            pose = t * pose;
         }
       }
 
@@ -1653,11 +1651,11 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       }
     }
 
-    for (std::size_t i = 0; i < attached_bodies.size(); ++i)
+    for (const moveit::core::AttachedBody* attached_body : attached_bodies)
     {
-      std::vector<shapes::ShapeConstPtr> shapes = attached_bodies[i]->getShapes();
-      EigenSTL::vector_Isometry3d poses = attached_bodies[i]->getGlobalCollisionBodyTransforms();
-      std::string name = attached_bodies[i]->getName();
+      std::vector<shapes::ShapeConstPtr> shapes = attached_body->getShapes();
+      EigenSTL::vector_Isometry3d poses = attached_body->getGlobalCollisionBodyTransforms();
+      std::string name = attached_body->getName();
 
       robot_state_->clearAttachedBody(name);
 
@@ -1812,22 +1810,22 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
 
     const Eigen::Isometry3d& t = getTransforms().getTransform(object.header.frame_id);
     EigenSTL::vector_Isometry3d new_poses;
-    for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
+    for (const geometry_msgs::Pose& primitive_pose : object.primitive_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      tf2::fromMsg(primitive_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
-    for (std::size_t i = 0; i < object.mesh_poses.size(); ++i)
+    for (const geometry_msgs::Pose& mesh_pose : object.mesh_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      tf2::fromMsg(mesh_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
-    for (std::size_t i = 0; i < object.plane_poses.size(); ++i)
+    for (const geometry_msgs::Pose& plane_pose : object.plane_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.plane_poses[i], object_pose);
+      tf2::fromMsg(plane_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
 
@@ -2203,9 +2201,9 @@ bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& traject
     if (i + 1 == n_wp && !goal_constraints.empty())
     {
       bool found = false;
-      for (std::size_t k = 0; k < goal_constraints.size(); ++k)
+      for (const moveit_msgs::Constraints& goal_constraint : goal_constraints)
       {
-        if (isStateConstrained(st, goal_constraints[k]))
+        if (isStateConstrained(st, goal_constraint))
         {
           found = true;
           break;
@@ -2318,15 +2316,15 @@ void PlanningScene::printKnownObjects(std::ostream& out) const
   out << "-----------------------------------------\n";
   out << "PlanningScene Known Objects:\n";
   out << "  - Collision World Objects:\n ";
-  for (std::size_t i = 0; i < objects.size(); ++i)
+  for (const std::string& object : objects)
   {
-    out << "\t- " << objects[i] << "\n";
+    out << "\t- " << object << "\n";
   }
 
   out << "  - Attached Bodies:\n";
-  for (std::size_t i = 0; i < attached_bodies.size(); ++i)
+  for (const robot_state::AttachedBody* attached_body : attached_bodies)
   {
-    out << "\t- " << attached_bodies[i]->getName() << "\n";
+    out << "\t- " << attached_body->getName() << "\n";
   }
   out << "-----------------------------------------\n";
 }

@@ -48,18 +48,18 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState& s
     return 1.0;
   double joint_limits_multiplier(1.0);
   const std::vector<const robot_model::JointModel*>& joint_model_vector = joint_model_group->getJointModels();
-  for (std::size_t i = 0; i < joint_model_vector.size(); ++i)
+  for (const robot_model::JointModel* joint_model : joint_model_vector)
   {
-    if (joint_model_vector[i]->getType() == robot_model::JointModel::REVOLUTE)
+    if (joint_model->getType() == robot_model::JointModel::REVOLUTE)
     {
       const robot_model::RevoluteJointModel* revolute_model =
-          static_cast<const robot_model::RevoluteJointModel*>(joint_model_vector[i]);
+          static_cast<const robot_model::RevoluteJointModel*>(joint_model);
       if (revolute_model->isContinuous())
         continue;
     }
-    if (joint_model_vector[i]->getType() == robot_model::JointModel::PLANAR)
+    if (joint_model->getType() == robot_model::JointModel::PLANAR)
     {
-      const robot_model::JointModel::Bounds& bounds = joint_model_vector[i]->getVariableBounds();
+      const robot_model::JointModel::Bounds& bounds = joint_model->getVariableBounds();
       if (bounds[0].min_position_ == -std::numeric_limits<double>::max() ||
           bounds[0].max_position_ == std::numeric_limits<double>::max() ||
           bounds[1].min_position_ == -std::numeric_limits<double>::max() ||
@@ -68,21 +68,21 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState& s
           bounds[2].max_position_ == boost::math::constants::pi<double>())
         continue;
     }
-    if (joint_model_vector[i]->getType() == robot_model::JointModel::FLOATING)
+    if (joint_model->getType() == robot_model::JointModel::FLOATING)
     {
       // Joint limits are not well-defined for floating joints
       continue;
     }
-    const double* joint_values = state.getJointPositions(joint_model_vector[i]);
-    const robot_model::JointModel::Bounds& bounds = joint_model_vector[i]->getVariableBounds();
+    const double* joint_values = state.getJointPositions(joint_model);
+    const robot_model::JointModel::Bounds& bounds = joint_model->getVariableBounds();
     std::vector<double> lower_bounds, upper_bounds;
-    for (std::size_t j = 0; j < bounds.size(); ++j)
+    for (const moveit::core::VariableBounds& bound : bounds)
     {
-      lower_bounds.push_back(bounds[j].min_position_);
-      upper_bounds.push_back(bounds[j].max_position_);
+      lower_bounds.push_back(bound.min_position_);
+      upper_bounds.push_back(bound.max_position_);
     }
-    double lower_bound_distance = joint_model_vector[i]->distance(joint_values, &lower_bounds[0]);
-    double upper_bound_distance = joint_model_vector[i]->distance(joint_values, &upper_bounds[0]);
+    double lower_bound_distance = joint_model->distance(joint_values, &lower_bounds[0]);
+    double upper_bound_distance = joint_model->distance(joint_values, &upper_bounds[0]);
     double range = lower_bound_distance + upper_bound_distance;
     if (range <= boost::math::tools::epsilon<double>())
       continue;
