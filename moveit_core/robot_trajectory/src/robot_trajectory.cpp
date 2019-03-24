@@ -122,15 +122,15 @@ void RobotTrajectory::unwind()
   const std::vector<const robot_model::JointModel*>& cont_joints =
       group_ ? group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
 
-  for (std::size_t i = 0; i < cont_joints.size(); ++i)
+  for (const moveit::core::JointModel* cont_joint : cont_joints)
   {
     // unwrap continuous joints
     double running_offset = 0.0;
-    double last_value = waypoints_[0]->getJointPositions(cont_joints[i])[0];
+    double last_value = waypoints_[0]->getJointPositions(cont_joint)[0];
 
     for (std::size_t j = 1; j < waypoints_.size(); ++j)
     {
-      double current_value = waypoints_[j]->getJointPositions(cont_joints[i])[0];
+      double current_value = waypoints_[j]->getJointPositions(cont_joint)[0];
       if (last_value > current_value + boost::math::constants::pi<double>())
         running_offset += 2.0 * boost::math::constants::pi<double>();
       else if (current_value > last_value + boost::math::constants::pi<double>())
@@ -141,12 +141,12 @@ void RobotTrajectory::unwind()
           running_offset < -std::numeric_limits<double>::epsilon())
       {
         current_value += running_offset;
-        waypoints_[j]->setJointPositions(cont_joints[i], &current_value);
+        waypoints_[j]->setJointPositions(cont_joint, &current_value);
       }
     }
   }
-  for (std::size_t j = 0; j < waypoints_.size(); ++j)
-    waypoints_[j]->update();
+  for (moveit::core::RobotStatePtr& waypoint : waypoints_)
+    waypoint->update();
 }
 
 void RobotTrajectory::unwind(const robot_state::RobotState& state)
@@ -157,26 +157,26 @@ void RobotTrajectory::unwind(const robot_state::RobotState& state)
   const std::vector<const robot_model::JointModel*>& cont_joints =
       group_ ? group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
 
-  for (std::size_t i = 0; i < cont_joints.size(); ++i)
+  for (const moveit::core::JointModel* cont_joint : cont_joints)
   {
-    double reference_value0 = state.getJointPositions(cont_joints[i])[0];
+    double reference_value0 = state.getJointPositions(cont_joint)[0];
     double reference_value = reference_value0;
-    cont_joints[i]->enforcePositionBounds(&reference_value);
+    cont_joint->enforcePositionBounds(&reference_value);
 
     // unwrap continuous joints
     double running_offset = reference_value0 - reference_value;
 
-    double last_value = waypoints_[0]->getJointPositions(cont_joints[i])[0];
+    double last_value = waypoints_[0]->getJointPositions(cont_joint)[0];
     if (running_offset > std::numeric_limits<double>::epsilon() ||
         running_offset < -std::numeric_limits<double>::epsilon())
     {
       double current_value = last_value + running_offset;
-      waypoints_[0]->setJointPositions(cont_joints[i], &current_value);
+      waypoints_[0]->setJointPositions(cont_joint, &current_value);
     }
 
     for (std::size_t j = 1; j < waypoints_.size(); ++j)
     {
-      double current_value = waypoints_[j]->getJointPositions(cont_joints[i])[0];
+      double current_value = waypoints_[j]->getJointPositions(cont_joint)[0];
       if (last_value > current_value + boost::math::constants::pi<double>())
         running_offset += 2.0 * boost::math::constants::pi<double>();
       else if (current_value > last_value + boost::math::constants::pi<double>())
@@ -187,12 +187,12 @@ void RobotTrajectory::unwind(const robot_state::RobotState& state)
           running_offset < -std::numeric_limits<double>::epsilon())
       {
         current_value += running_offset;
-        waypoints_[j]->setJointPositions(cont_joints[i], &current_value);
+        waypoints_[j]->setJointPositions(cont_joint, &current_value);
       }
     }
   }
-  for (std::size_t j = 0; j < waypoints_.size(); ++j)
-    waypoints_[j]->update();
+  for (moveit::core::RobotStatePtr& waypoint : waypoints_)
+    waypoint->update();
 }
 
 void RobotTrajectory::clear()
@@ -214,16 +214,16 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
   trajectory.joint_trajectory.joint_names.clear();
   trajectory.multi_dof_joint_trajectory.joint_names.clear();
 
-  for (std::size_t i = 0; i < jnt.size(); ++i)
-    if (jnt[i]->getVariableCount() == 1)
+  for (const moveit::core::JointModel* active_joint : jnt)
+    if (active_joint->getVariableCount() == 1)
     {
-      trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      onedof.push_back(jnt[i]);
+      trajectory.joint_trajectory.joint_names.push_back(active_joint->getName());
+      onedof.push_back(active_joint);
     }
     else
     {
-      trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
-      mdof.push_back(jnt[i]);
+      trajectory.multi_dof_joint_trajectory.joint_names.push_back(active_joint->getName());
+      mdof.push_back(active_joint);
     }
   if (!onedof.empty())
   {

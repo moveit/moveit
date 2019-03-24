@@ -227,17 +227,16 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 
   // Create list of switching point candidates, calculate total path length and
   // absolute positions of path segments
-  for (std::list<std::unique_ptr<PathSegment>>::iterator segment = path_segments_.begin();
-       segment != path_segments_.end(); ++segment)
+  for (std::unique_ptr<PathSegment>& path_segment : path_segments_)
   {
-    (*segment)->position_ = length_;
-    std::list<double> local_switching_points = (*segment)->getSwitchingPoints();
+    path_segment->position_ = length_;
+    std::list<double> local_switching_points = path_segment->getSwitchingPoints();
     for (std::list<double>::const_iterator point = local_switching_points.begin();
          point != local_switching_points.end(); ++point)
     {
       switching_points_.push_back(std::make_pair(length_ + *point, false));
     }
-    length_ += (*segment)->getLength();
+    length_ += path_segment->getLength();
     while (!switching_points_.empty() && switching_points_.back().first >= length_)
       switching_points_.pop_back();
     switching_points_.push_back(std::make_pair(length_, true));
@@ -247,10 +246,9 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 
 Path::Path(const Path& path) : length_(path.length_), switching_points_(path.switching_points_)
 {
-  for (std::list<std::unique_ptr<PathSegment>>::const_iterator it = path.path_segments_.begin();
-       it != path.path_segments_.end(); ++it)
+  for (const std::unique_ptr<PathSegment>& path_segment : path.path_segments_)
   {
-    path_segments_.emplace_back((*it)->clone());
+    path_segments_.emplace_back(path_segment->clone());
   }
 }
 

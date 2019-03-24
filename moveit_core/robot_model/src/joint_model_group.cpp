@@ -117,56 +117,56 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
 
   // figure out active joints, mimic joints, fixed joints
   // construct index maps, list of variables
-  for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
+  for (const JointModel* joint_model : joint_model_vector_)
   {
-    joint_model_name_vector_.push_back(joint_model_vector_[i]->getName());
-    joint_model_map_[joint_model_vector_[i]->getName()] = joint_model_vector_[i];
-    unsigned int vc = joint_model_vector_[i]->getVariableCount();
+    joint_model_name_vector_.push_back(joint_model->getName());
+    joint_model_map_[joint_model->getName()] = joint_model;
+    unsigned int vc = joint_model->getVariableCount();
     if (vc > 0)
     {
       if (vc > 1)
         is_single_dof_ = false;
-      const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
-      if (joint_model_vector_[i]->getMimic() == nullptr)
+      const std::vector<std::string>& name_order = joint_model->getVariableNames();
+      if (joint_model->getMimic() == nullptr)
       {
-        active_joint_model_vector_.push_back(joint_model_vector_[i]);
-        active_joint_model_name_vector_.push_back(joint_model_vector_[i]->getName());
+        active_joint_model_vector_.push_back(joint_model);
+        active_joint_model_name_vector_.push_back(joint_model->getName());
         active_joint_model_start_index_.push_back(variable_count_);
-        active_joint_models_bounds_.push_back(&joint_model_vector_[i]->getVariableBounds());
+        active_joint_models_bounds_.push_back(&joint_model->getVariableBounds());
       }
       else
-        mimic_joints_.push_back(joint_model_vector_[i]);
-      for (std::size_t j = 0; j < name_order.size(); ++j)
+        mimic_joints_.push_back(joint_model);
+      for (const std::string& name : name_order)
       {
-        variable_names_.push_back(name_order[j]);
-        variable_names_set_.insert(name_order[j]);
+        variable_names_.push_back(name);
+        variable_names_set_.insert(name);
       }
 
-      int first_index = joint_model_vector_[i]->getFirstVariableIndex();
+      int first_index = joint_model->getFirstVariableIndex();
       for (std::size_t j = 0; j < name_order.size(); ++j)
       {
         variable_index_list_.push_back(first_index + j);
         joint_variables_index_map_[name_order[j]] = variable_count_ + j;
       }
-      joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
+      joint_variables_index_map_[joint_model->getName()] = variable_count_;
 
-      if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE &&
-          static_cast<const RevoluteJointModel*>(joint_model_vector_[i])->isContinuous())
-        continuous_joint_model_vector_.push_back(joint_model_vector_[i]);
+      if (joint_model->getType() == JointModel::REVOLUTE &&
+          static_cast<const RevoluteJointModel*>(joint_model)->isContinuous())
+        continuous_joint_model_vector_.push_back(joint_model);
 
       variable_count_ += vc;
     }
     else
-      fixed_joints_.push_back(joint_model_vector_[i]);
+      fixed_joints_.push_back(joint_model);
   }
 
   // now we need to find all the set of joints within this group
   // that root distinct subtrees
-  for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
+  for (const JointModel* active_joint_model : active_joint_model_vector_)
   {
     // if we find that an ancestor is also in the group, then the joint is not a root
-    if (!includesParent(active_joint_model_vector_[i], this))
-      joint_roots_.push_back(active_joint_model_vector_[i]);
+    if (!includesParent(active_joint_model, this))
+      joint_roots_.push_back(active_joint_model);
   }
 
   // when updating this group within a state, it is useful to know
@@ -182,32 +182,32 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
       }
 
   // when updating/sampling a group state only, only mimic joints that have their parent within the group get updated.
-  for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
+  for (const JointModel* mimic_joint : mimic_joints_)
     // if the joint we mimic is also in this group, we will need to do updates when sampling
-    if (hasJointModel(mimic_joints_[i]->getMimic()->getName()))
+    if (hasJointModel(mimic_joint->getMimic()->getName()))
     {
-      int src = joint_variables_index_map_[mimic_joints_[i]->getMimic()->getName()];
-      int dest = joint_variables_index_map_[mimic_joints_[i]->getName()];
-      GroupMimicUpdate mu(src, dest, mimic_joints_[i]->getMimicFactor(), mimic_joints_[i]->getMimicOffset());
+      int src = joint_variables_index_map_[mimic_joint->getMimic()->getName()];
+      int dest = joint_variables_index_map_[mimic_joint->getName()];
+      GroupMimicUpdate mu(src, dest, mimic_joint->getMimicFactor(), mimic_joint->getMimicOffset());
       group_mimic_update_.push_back(mu);
     }
 
   // now we need to make another pass for group links (we include the fixed joints here)
   std::set<const LinkModel*> group_links_set;
-  for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
-    group_links_set.insert(joint_model_vector_[i]->getChildLinkModel());
-  for (std::set<const LinkModel*>::iterator it = group_links_set.begin(); it != group_links_set.end(); ++it)
-    link_model_vector_.push_back(*it);
+  for (const JointModel* joint_model : joint_model_vector_)
+    group_links_set.insert(joint_model->getChildLinkModel());
+  for (const LinkModel* group_link : group_links_set)
+    link_model_vector_.push_back(group_link);
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), OrderLinksByIndex());
 
-  for (std::size_t i = 0; i < link_model_vector_.size(); ++i)
+  for (const LinkModel* link_model : link_model_vector_)
   {
-    link_model_map_[link_model_vector_[i]->getName()] = link_model_vector_[i];
-    link_model_name_vector_.push_back(link_model_vector_[i]->getName());
-    if (!link_model_vector_[i]->getShapes().empty())
+    link_model_map_[link_model->getName()] = link_model;
+    link_model_name_vector_.push_back(link_model->getName());
+    if (!link_model->getShapes().empty())
     {
-      link_model_with_geometry_vector_.push_back(link_model_vector_[i]);
-      link_model_with_geometry_name_vector_.push_back(link_model_vector_[i]->getName());
+      link_model_with_geometry_vector_.push_back(link_model);
+      link_model_with_geometry_name_vector_.push_back(link_model->getName());
     }
   }
 
@@ -220,30 +220,29 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
   }
 
   // compute updated links
-  for (std::size_t i = 0; i < joint_roots_.size(); ++i)
+  for (const JointModel* joint_root : joint_roots_)
   {
-    const std::vector<const LinkModel*>& links = joint_roots_[i]->getDescendantLinkModels();
+    const std::vector<const LinkModel*>& links = joint_root->getDescendantLinkModels();
     updated_link_model_set_.insert(links.begin(), links.end());
   }
-  for (std::set<const LinkModel*>::iterator it = updated_link_model_set_.begin(); it != updated_link_model_set_.end();
-       ++it)
+  for (const LinkModel* updated_link_model : updated_link_model_set_)
   {
-    updated_link_model_name_set_.insert((*it)->getName());
-    updated_link_model_vector_.push_back(*it);
-    if (!(*it)->getShapes().empty())
+    updated_link_model_name_set_.insert(updated_link_model->getName());
+    updated_link_model_vector_.push_back(updated_link_model);
+    if (!updated_link_model->getShapes().empty())
     {
-      updated_link_model_with_geometry_vector_.push_back(*it);
-      updated_link_model_with_geometry_set_.insert(*it);
-      updated_link_model_with_geometry_name_set_.insert((*it)->getName());
+      updated_link_model_with_geometry_vector_.push_back(updated_link_model);
+      updated_link_model_with_geometry_set_.insert(updated_link_model);
+      updated_link_model_with_geometry_name_set_.insert(updated_link_model->getName());
     }
   }
   std::sort(updated_link_model_vector_.begin(), updated_link_model_vector_.end(), OrderLinksByIndex());
   std::sort(updated_link_model_with_geometry_vector_.begin(), updated_link_model_with_geometry_vector_.end(),
             OrderLinksByIndex());
-  for (std::size_t i = 0; i < updated_link_model_vector_.size(); ++i)
-    updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
-  for (std::size_t i = 0; i < updated_link_model_with_geometry_vector_.size(); ++i)
-    updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
+  for (const LinkModel* updated_link_model : updated_link_model_vector_)
+    updated_link_model_name_vector_.push_back(updated_link_model->getName());
+  for (const LinkModel* updated_link_model_with_geometry : updated_link_model_with_geometry_vector_)
+    updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry->getName());
 
   // check if this group should actually be a chain
   if (joint_roots_.size() == 1 && !active_joint_model_vector_.empty())
@@ -268,8 +267,8 @@ void JointModelGroup::setSubgroupNames(const std::vector<std::string>& subgroups
 {
   subgroup_names_ = subgroups;
   subgroup_names_set_.clear();
-  for (std::size_t i = 0; i < subgroup_names_.size(); ++i)
-    subgroup_names_set_.insert(subgroup_names_[i]);
+  for (const std::string& subgroup_name : subgroup_names_)
+    subgroup_names_set_.insert(subgroup_name);
 }
 
 void JointModelGroup::getSubgroups(std::vector<const JointModelGroup*>& sub_groups) const
@@ -430,9 +429,9 @@ void JointModelGroup::interpolate(const double* from, const double* to, double t
 void JointModelGroup::updateMimicJoints(double* values) const
 {
   // update mimic (only local joints as we are dealing with a local group state)
-  for (std::size_t i = 0; i < group_mimic_update_.size(); ++i)
-    values[group_mimic_update_[i].dest] =
-        values[group_mimic_update_[i].src] * group_mimic_update_[i].factor + group_mimic_update_[i].offset;
+  for (const GroupMimicUpdate& mimic_update : group_mimic_update_)
+    values[mimic_update.dest] =
+        values[mimic_update.src] * mimic_update.factor + mimic_update.offset;
 }
 
 void JointModelGroup::addDefaultState(const std::string& name, const std::map<std::string, double>& default_state)
@@ -552,28 +551,28 @@ void JointModelGroup::setDefaultIKTimeout(double ik_timeout)
   group_kinematics_.first.default_ik_timeout_ = ik_timeout;
   if (group_kinematics_.first.solver_instance_)
     group_kinematics_.first.solver_instance_->setDefaultTimeout(ik_timeout);
-  for (KinematicsSolverMap::iterator it = group_kinematics_.second.begin(); it != group_kinematics_.second.end(); ++it)
-    it->second.default_ik_timeout_ = ik_timeout;
+  for (std::pair<const JointModelGroup* const, KinematicsSolver>& it : group_kinematics_.second)
+    it.second.default_ik_timeout_ = ik_timeout;
 }
 
 bool JointModelGroup::computeIKIndexBijection(const std::vector<std::string>& ik_jnames,
                                               std::vector<unsigned int>& joint_bijection) const
 {
   joint_bijection.clear();
-  for (std::size_t i = 0; i < ik_jnames.size(); ++i)
+  for (const std::string& ik_jname : ik_jnames)
   {
-    VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jnames[i]);
+    VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jname);
     if (it == joint_variables_index_map_.end())
     {
       // skip reported fixed joints
-      if (hasJointModel(ik_jnames[i]) && getJointModel(ik_jnames[i])->getType() == JointModel::FIXED)
+      if (hasJointModel(ik_jname) && getJointModel(ik_jname)->getType() == JointModel::FIXED)
         continue;
       ROS_ERROR_NAMED(LOGNAME, "IK solver computes joint values for joint '%s' "
                                "but group '%s' does not contain such a joint.",
-                      ik_jnames[i].c_str(), getName().c_str());
+                      ik_jname.c_str(), getName().c_str());
       return false;
     }
-    const JointModel* jm = getJointModel(ik_jnames[i]);
+    const JointModel* jm = getJointModel(ik_jname);
     for (unsigned int k = 0; k < jm->getVariableCount(); ++k)
       joint_bijection.push_back(it->second + k);
   }
@@ -596,12 +595,12 @@ void JointModelGroup::setSolverAllocators(const std::pair<SolverAllocatorFn, Sol
   }
   else
     // we now compute a joint bijection only if we have a solver map
-    for (SolverAllocatorMapFn::const_iterator it = solvers.second.begin(); it != solvers.second.end(); ++it)
-      if (it->first->getSolverInstance())
+    for (const std::pair<const JointModelGroup* const, SolverAllocatorFn>& it : solvers.second)
+      if (it.first->getSolverInstance())
       {
-        KinematicsSolver& ks = group_kinematics_.second[it->first];
-        ks.allocator_ = it->second;
-        ks.solver_instance_ = const_cast<JointModelGroup*>(it->first)->getSolverInstance();
+        KinematicsSolver& ks = group_kinematics_.second[it.first];
+        ks.allocator_ = it.second;
+        ks.solver_instance_ = const_cast<JointModelGroup*>(it.first)->getSolverInstance();
         ks.default_ik_timeout_ = group_kinematics_.first.default_ik_timeout_;
         if (!computeIKIndexBijection(ks.solver_instance_->getJointNames(), ks.bijection_))
         {
@@ -626,11 +625,11 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
   }
 
   // loop through all tip frames supported by the JMG
-  for (std::size_t i = 0; i < tip_frames.size(); ++i)
+  for (const std::string& tip_frame : tip_frames)
   {
     // remove frame reference, if specified
     const std::string& tip_local = tip[0] == '/' ? tip.substr(1) : tip;
-    const std::string& tip_frame_local = tip_frames[i][0] == '/' ? tip_frames[i].substr(1) : tip_frames[i];
+    const std::string& tip_frame_local = tip_frame[0] == '/' ? tip_frame.substr(1) : tip_frame;
     ROS_DEBUG_NAMED(LOGNAME, "comparing input tip: %s to this groups tip: %s ", tip_local.c_str(),
                     tip_frame_local.c_str());
 
@@ -643,9 +642,9 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
         const LinkModel* lm = getLinkModel(tip_frame_local);
         const LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
         // Check if our frame of inquiry is located anywhere further down the chain (towards the tip of the arm)
-        for (LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
+        for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
         {
-          if (it->first->getName() == tip_local)
+          if (fixed_link.first->getName() == tip_local)
             return true;
         }
       }
@@ -662,26 +661,26 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
 {
   out << "Group '" << name_ << "' using " << variable_count_ << " variables" << std::endl;
   out << "  * Joints:" << std::endl;
-  for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
-    out << "    '" << joint_model_vector_[i]->getName() << "' (" << joint_model_vector_[i]->getTypeName() << ")"
+  for (const JointModel* joint_model : joint_model_vector_)
+    out << "    '" << joint_model->getName() << "' (" << joint_model->getTypeName() << ")"
         << std::endl;
   out << "  * Variables:" << std::endl;
-  for (std::size_t i = 0; i < variable_names_.size(); ++i)
+  for (const std::string& variable_name : variable_names_)
   {
-    int local_idx = joint_variables_index_map_.find(variable_names_[i])->second;
-    const JointModel* jm = parent_model_->getJointOfVariable(variable_names_[i]);
-    out << "    '" << variable_names_[i] << "', index "
-        << (jm->getFirstVariableIndex() + jm->getLocalVariableIndex(variable_names_[i])) << " in full state, index "
+    int local_idx = joint_variables_index_map_.find(variable_name)->second;
+    const JointModel* jm = parent_model_->getJointOfVariable(variable_name);
+    out << "    '" << variable_name << "', index "
+        << (jm->getFirstVariableIndex() + jm->getLocalVariableIndex(variable_name)) << " in full state, index "
         << local_idx << " in group state";
     if (jm->getMimic())
       out << ", mimic '" << jm->getMimic()->getName() << "'";
     out << std::endl;
-    out << "        " << parent_model_->getVariableBounds(variable_names_[i]) << std::endl;
+    out << "        " << parent_model_->getVariableBounds(variable_name) << std::endl;
   }
   out << "  * Variables Index List:" << std::endl;
   out << "    ";
-  for (std::size_t i = 0; i < variable_index_list_.size(); ++i)
-    out << variable_index_list_[i] << " ";
+  for (int variable_index : variable_index_list_)
+    out << variable_index << " ";
   if (is_contiguous_index_list_)
     out << "(contiguous)";
   else
@@ -691,19 +690,18 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   {
     out << "  * Kinematics solver bijection:" << std::endl;
     out << "    ";
-    for (std::size_t i = 0; i < group_kinematics_.first.bijection_.size(); ++i)
-      out << group_kinematics_.first.bijection_[i] << " ";
+    for (unsigned int index : group_kinematics_.first.bijection_)
+      out << index << " ";
     out << std::endl;
   }
   if (!group_kinematics_.second.empty())
   {
     out << "  * Compound kinematics solver:" << std::endl;
-    for (KinematicsSolverMap::const_iterator it = group_kinematics_.second.begin();
-         it != group_kinematics_.second.end(); ++it)
+    for (const std::pair<const JointModelGroup* const, KinematicsSolver>& it : group_kinematics_.second)
     {
-      out << "    " << it->first->getName() << ":";
-      for (std::size_t i = 0; i < it->second.bijection_.size(); ++i)
-        out << " " << it->second.bijection_[i];
+      out << "    " << it.first->getName() << ":";
+      for (unsigned int index : it.second.bijection_)
+        out << " " << index;
       out << std::endl;
     }
   }
@@ -711,9 +709,9 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   if (!group_mimic_update_.empty())
   {
     out << "  * Local Mimic Updates:" << std::endl;
-    for (std::size_t i = 0; i < group_mimic_update_.size(); ++i)
-      out << "    [" << group_mimic_update_[i].dest << "] = " << group_mimic_update_[i].factor << " * ["
-          << group_mimic_update_[i].src << "] + " << group_mimic_update_[i].offset << std::endl;
+    for (const GroupMimicUpdate& mimic_update : group_mimic_update_)
+      out << "    [" << mimic_update.dest << "] = " << mimic_update.factor << " * ["
+          << mimic_update.src << "] + " << mimic_update.offset << std::endl;
   }
   out << std::endl;
 }

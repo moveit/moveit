@@ -136,8 +136,8 @@ void Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
 
 void Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
 {
-  for (std::size_t i = 0; i < transforms.size(); ++i)
-    setTransform(transforms[i]);
+  for (const geometry_msgs::TransformStamped& transform : transforms)
+    setTransform(transform);
 }
 
 void Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const
