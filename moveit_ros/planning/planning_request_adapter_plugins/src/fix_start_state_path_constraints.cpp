@@ -98,8 +98,8 @@ public:
         if (solved2)
         {
           // since we add a prefix, we need to correct any existing index positions
-          for (std::size_t i = 0; i < added_path_index.size(); ++i)
-            added_path_index[i] += res2.trajectory_->getWayPointCount();
+          for (std::size_t& added_index : added_path_index)
+            added_index += res2.trajectory_->getWayPointCount();
 
           // we mark the fact we insert a prefix path (we specify the index position we just added)
           for (std::size_t i = 0; i < res2.trajectory_->getWayPointCount(); ++i)

@@ -400,8 +400,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 
   // callbacks, if needed
   if (update)
-    for (std::size_t i = 0; i < update_callbacks_.size(); ++i)
-      update_callbacks_[i](joint_state);
+    for (JointStateUpdateCallback& update_callback : update_callbacks_)
+      update_callback(joint_state);
 
   // notify waitForCurrentState() *after* potential update callbacks
   state_update_condition_.notify_all();
@@ -417,9 +417,8 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
   {
     boost::mutex::scoped_lock _(state_update_lock_);
 
-    for (size_t i = 0; i < multi_dof_joints.size(); i++)
+    for (const moveit::core::JointModel* joint : multi_dof_joints)
     {
-      const moveit::core::JointModel* joint = multi_dof_joints[i];
       const std::string& child_frame = joint->getChildLinkModel()->getName();
       const std::string& parent_frame =
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
@@ -468,8 +467,8 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
     // stub joint state: multi-dof joints are not modelled in the message,
     // but we should still trigger the update callbacks
     sensor_msgs::JointStatePtr joint_state(new sensor_msgs::JointState);
-    for (std::size_t i = 0; i < update_callbacks_.size(); ++i)
-      update_callbacks_[i](joint_state);
+    for (JointStateUpdateCallback& update_callback : update_callbacks_)
+      update_callback(joint_state);
   }
 
   if (update)
