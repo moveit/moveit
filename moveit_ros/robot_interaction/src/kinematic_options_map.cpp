@@ -78,9 +78,9 @@ void robot_interaction::KinematicOptionsMap::setOptions(const std::string& key, 
     }
 
     defaults_.setOptions(options_delta, fields);
-    for (M_options::iterator it = options_.begin(); it != options_.end(); ++it)
+    for (std::pair<const std::string, KinematicOptions>& option : options_)
     {
-      it->second.setOptions(options_delta, fields);
+      option.second.setOptions(options_delta, fields);
     }
     return;
   }
@@ -123,9 +123,9 @@ void robot_interaction::KinematicOptionsMap::merge(const KinematicOptionsMap& ot
   boost::mutex::scoped_lock lock2(*m2);
 
   defaults_ = other.defaults_;
-  for (M_options::const_iterator it = other.options_.begin(); it != other.options_.end(); ++it)
+  for (const std::pair<const std::string, KinematicOptions>& option : other.options_)
   {
-    options_[it->first] = it->second;
+    options_[option.first] = option.second;
   }
 }
 
