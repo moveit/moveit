@@ -4,9 +4,9 @@
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
-  <arg name="config" default="false" />
-  <arg unless="$(arg config)" name="command_args" value="" />
-  <arg     if="$(arg config)" name="command_args" value="-d $(find [GENERATED_PACKAGE_NAME])/launch/moveit.rviz" />
+  <arg name="rviz_config" default="" />
+  <arg     if="$(eval rviz_config=='')" name="command_args" value="" />
+  <arg unless="$(eval rviz_config=='')" name="command_args" value="-d $(arg rviz_config)" />
 
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
 	args="$(arg command_args)" output="screen">
