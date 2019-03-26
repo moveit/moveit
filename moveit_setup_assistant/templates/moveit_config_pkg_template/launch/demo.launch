@@ -1,5 +1,8 @@
 <launch>
 
+  <!-- specify the planning pipeline -->
+  <arg name="pipeline" default="ompl" />
+
   <!-- By default, we do not start a database (it can be large) -->
   <arg name="db" default="false" />
   <!-- Allow user to specify database location -->
@@ -41,11 +44,12 @@
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
+    <arg name="pipeline" value="$(arg pipeline)"/>
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch">
-    <arg name="config" value="true"/>
+    <arg name="rviz_config" value="$(find [GENERATED_PACKAGE_NAME])/launch/moveit.rviz"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 

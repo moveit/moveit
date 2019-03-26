@@ -1,7 +1,5 @@
 <launch>
 
-  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch" />
-
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
@@ -14,6 +12,7 @@
   <arg     if="$(arg info)" name="command_args" value="--debug" />
 
   <!-- move_group settings -->
+  <arg name="pipeline" default="ompl" />
   <arg name="allow_trajectory_execution" default="true"/>
   <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
@@ -38,9 +37,15 @@
                 " />
   -->
 
+  <arg name="load_robot_description" default="true" />
+  <!-- load URDF, SRDF and joint_limits configuration -->
+  <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
+    <arg name="load_robot_description" value="$(arg load_robot_description)" />
+  </include>
+
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="ompl" />
+    <arg name="pipeline" value="$(arg pipeline)" />
   </include>
 
   <!-- Trajectory Execution Functionality -->
