@@ -163,8 +163,8 @@ int main(int argc, char** argv)
   else
   {
     ROS_INFO("Previously stored scenes:");
-    for (std::size_t i = 0; i < names.size(); ++i)
-      ROS_INFO(" * %s", names[i].c_str());
+    for (const std::string& name : names)
+      ROS_INFO(" * %s", name.c_str());
   }
   cs.getKnownConstraints(names);
   if (names.empty())
@@ -172,8 +172,8 @@ int main(int argc, char** argv)
   else
   {
     ROS_INFO("Previously stored constraints:");
-    for (std::size_t i = 0; i < names.size(); ++i)
-      ROS_INFO(" * %s", names[i].c_str());
+    for (const std::string& name : names)
+      ROS_INFO(" * %s", name.c_str());
   }
   rs.getKnownRobotStates(names);
   if (names.empty())
@@ -181,8 +181,8 @@ int main(int argc, char** argv)
   else
   {
     ROS_INFO("Previously stored robot states:");
-    for (std::size_t i = 0; i < names.size(); ++i)
-      ROS_INFO(" * %s", names[i].c_str());
+    for (const std::string& name : names)
+      ROS_INFO(" * %s", name.c_str());
   }
 
   psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));

@@ -97,11 +97,11 @@ void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(st
 {
   names.clear();
   Query::Ptr q = planning_scene_world_collection_->createQuery();
-  std::vector<PlanningSceneWorldWithMetadata> constr =
+  std::vector<PlanningSceneWorldWithMetadata> planning_scene_worlds =
       planning_scene_world_collection_->queryList(q, true, PLANNING_SCENE_WORLD_ID_NAME, true);
-  for (std::size_t i = 0; i < constr.size(); ++i)
-    if (constr[i]->lookupField(PLANNING_SCENE_WORLD_ID_NAME))
-      names.push_back(constr[i]->lookupString(PLANNING_SCENE_WORLD_ID_NAME));
+  for (PlanningSceneWorldWithMetadata& planning_scene_world : planning_scene_worlds)
+    if (planning_scene_world->lookupField(PLANNING_SCENE_WORLD_ID_NAME))
+      names.push_back(planning_scene_world->lookupString(PLANNING_SCENE_WORLD_ID_NAME));
 }
 
 bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(PlanningSceneWorldWithMetadata& msg_m,

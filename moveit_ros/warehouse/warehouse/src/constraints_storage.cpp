@@ -113,9 +113,9 @@ void moveit_warehouse::ConstraintsStorage::getKnownConstraints(std::vector<std::
   if (!group.empty())
     q->append(CONSTRAINTS_GROUP_NAME, group);
   std::vector<ConstraintsWithMetadata> constr = constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
-  for (std::size_t i = 0; i < constr.size(); ++i)
-    if (constr[i]->lookupField(CONSTRAINTS_ID_NAME))
-      names.push_back(constr[i]->lookupString(CONSTRAINTS_ID_NAME));
+  for (const ConstraintsWithMetadata& it : constr)
+    if (it->lookupField(CONSTRAINTS_ID_NAME))
+      names.push_back(it->lookupString(CONSTRAINTS_ID_NAME));
 }
 
 bool moveit_warehouse::ConstraintsStorage::getConstraints(ConstraintsWithMetadata& msg_m, const std::string& name,

@@ -120,9 +120,9 @@ void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstrain
     q->append(CONSTRAINTS_GROUP_NAME, group);
   std::vector<TrajectoryConstraintsWithMetadata> constr =
       constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
-  for (std::size_t i = 0; i < constr.size(); ++i)
-    if (constr[i]->lookupField(CONSTRAINTS_ID_NAME))
-      names.push_back(constr[i]->lookupString(CONSTRAINTS_ID_NAME));
+  for (TrajectoryConstraintsWithMetadata& traj_constraint : constr)
+    if (traj_constraint->lookupField(CONSTRAINTS_ID_NAME))
+      names.push_back(traj_constraint->lookupString(CONSTRAINTS_ID_NAME));
 }
 
 bool moveit_warehouse::TrajectoryConstraintsStorage::getTrajectoryConstraints(TrajectoryConstraintsWithMetadata& msg_m,
