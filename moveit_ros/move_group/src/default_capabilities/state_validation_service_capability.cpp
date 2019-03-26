@@ -81,10 +81,10 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
     res.valid = false;
     for (collision_detection::CollisionResult::ContactMap::const_iterator it = cres.contacts.begin();
          it != cres.contacts.end(); ++it)
-      for (std::size_t k = 0; k < it->second.size(); ++k)
+      for (const collision_detection::Contact& contact : it->second)
       {
         res.contacts.resize(res.contacts.size() + 1);
-        collision_detection::contactToMsg(it->second[k], res.contacts.back());
+        collision_detection::contactToMsg(contact, res.contacts.back());
         res.contacts.back().header.frame_id = ls->getPlanningFrame();
         res.contacts.back().header.stamp = time_now;
       }
@@ -92,11 +92,10 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
 
   // copy cost sources
   res.cost_sources.reserve(cres.cost_sources.size());
-  for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin();
-       it != cres.cost_sources.end(); ++it)
+  for (const collision_detection::CostSource& cost_source : cres.cost_sources)
   {
     res.cost_sources.resize(res.cost_sources.size() + 1);
-    collision_detection::costSourceToMsg(*it, res.cost_sources.back());
+    collision_detection::costSourceToMsg(cost_source, res.cost_sources.back());
   }
 
   // evaluate constraints
