@@ -201,8 +201,8 @@ void TrajectoryVisualization::reset()
 
 void TrajectoryVisualization::clearTrajectoryTrail()
 {
-  for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-    delete trajectory_trail_[i];
+  for (rviz::Robot* waypoint_state : trajectory_trail_)
+    delete waypoint_state;
   trajectory_trail_.clear();
 }
 
@@ -254,8 +254,8 @@ void TrajectoryVisualization::changedTrailStepSize()
 void TrajectoryVisualization::changedRobotPathAlpha()
 {
   display_path_robot_->setAlpha(robot_path_alpha_property_->getFloat());
-  for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-    trajectory_trail_[i]->setAlpha(robot_path_alpha_property_->getFloat());
+  for (rviz::Robot* waypoint_state : trajectory_trail_)
+    waypoint_state->setAlpha(robot_path_alpha_property_->getFloat());
 }
 
 void TrajectoryVisualization::changedTrajectoryTopic()
@@ -275,8 +275,8 @@ void TrajectoryVisualization::changedDisplayPathVisualEnabled()
   {
     display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
     display_path_robot_->setVisible(display_->isEnabled() && displaying_trajectory_message_ && animating_path_);
-    for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-      trajectory_trail_[i]->setVisualVisible(display_path_visual_enabled_property_->getBool());
+    for (rviz::Robot* waypoint_state : trajectory_trail_)
+      waypoint_state->setVisualVisible(display_path_visual_enabled_property_->getBool());
   }
 }
 
@@ -290,8 +290,8 @@ void TrajectoryVisualization::changedDisplayPathCollisionEnabled()
   {
     display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
     display_path_robot_->setVisible(display_->isEnabled() && displaying_trajectory_message_ && animating_path_);
-    for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-      trajectory_trail_[i]->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    for (rviz::Robot* waypoint_state : trajectory_trail_)
+      waypoint_state->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   }
 }
 
@@ -302,11 +302,11 @@ void TrajectoryVisualization::onEnable()
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(displaying_trajectory_message_ && animating_path_);
-  for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
+  for (rviz::Robot* waypoint_state : trajectory_trail_)
   {
-    trajectory_trail_[i]->setVisualVisible(display_path_visual_enabled_property_->getBool());
-    trajectory_trail_[i]->setCollisionVisible(display_path_collision_enabled_property_->getBool());
-    trajectory_trail_[i]->setVisible(true);
+    waypoint_state->setVisualVisible(display_path_visual_enabled_property_->getBool());
+    waypoint_state->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    waypoint_state->setVisible(true);
   }
 
   changedTrajectoryTopic();  // load topic at startup if default used
@@ -315,8 +315,8 @@ void TrajectoryVisualization::onEnable()
 void TrajectoryVisualization::onDisable()
 {
   display_path_robot_->setVisible(false);
-  for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-    trajectory_trail_[i]->setVisible(false);
+  for (rviz::Robot* waypoint_state : trajectory_trail_)
+    waypoint_state->setVisible(false);
   displaying_trajectory_message_.reset();
   animating_path_ = false;
   if (trajectory_slider_panel_)
