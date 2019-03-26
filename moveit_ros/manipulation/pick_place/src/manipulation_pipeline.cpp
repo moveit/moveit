@@ -88,8 +88,8 @@ void ManipulationPipeline::reset()
 void ManipulationPipeline::setVerbose(bool flag)
 {
   verbose_ = flag;
-  for (std::size_t i = 0; i < stages_.size(); ++i)
-    stages_[i]->setVerbose(flag);
+  for (pick_place::ManipulationStagePtr& stage : stages_)
+    stage->setVerbose(flag);
 }
 
 void ManipulationPipeline::clear()
@@ -110,8 +110,8 @@ void ManipulationPipeline::start()
 {
   stop_processing_ = false;
   empty_queue_threads_ = 0;
-  for (std::size_t i = 0; i < stages_.size(); ++i)
-    stages_[i]->resetStopSignal();
+  for (pick_place::ManipulationStagePtr& stage : stages_)
+    stage->resetStopSignal();
   for (std::size_t i = 0; i < processing_threads_.size(); ++i)
     if (!processing_threads_[i])
       processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
@@ -119,8 +119,8 @@ void ManipulationPipeline::start()
 
 void ManipulationPipeline::signalStop()
 {
-  for (std::size_t i = 0; i < stages_.size(); ++i)
-    stages_[i]->signalStop();
+  for (pick_place::ManipulationStagePtr& stage : stages_)
+    stage->signalStop();
   stop_processing_ = true;
   queue_access_cond_.notify_all();
 }
@@ -128,12 +128,12 @@ void ManipulationPipeline::signalStop()
 void ManipulationPipeline::stop()
 {
   signalStop();
-  for (std::size_t i = 0; i < processing_threads_.size(); ++i)
-    if (processing_threads_[i])
+  for (boost::thread*& processing_thread : processing_threads_)
+    if (processing_thread)
     {
-      processing_threads_[i]->join();
-      delete processing_threads_[i];
-      processing_threads_[i] = nullptr;
+      processing_thread->join();
+      delete processing_thread;
+      processing_thread = nullptr;
     }
 }
 
