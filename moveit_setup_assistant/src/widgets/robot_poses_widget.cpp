@@ -465,10 +465,9 @@ void RobotPosesWidget::loadGroupsComboBox()
   group_name_field_->clear();
 
   // Add all group names to combo box
-  for (std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it)
+  for (srdf::Model::Group& group : config_data_->srdf_->groups_)
   {
-    group_name_field_->addItem(group_it->name_.c_str());
+    group_name_field_->addItem(group.name_.c_str());
   }
 }
 

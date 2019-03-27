@@ -361,10 +361,9 @@ void computeConnectionGraph(const robot_model::LinkModel* start_link, LinkGraph&
         std::vector<const robot_model::LinkModel*> temp_list;
 
         // Copy link's parent and child links to temp_list
-        for (std::set<const robot_model::LinkModel*>::const_iterator adj_it = edge_it->second.begin();
-             adj_it != edge_it->second.end(); ++adj_it)
+        for (const moveit::core::LinkModel* adj_it : edge_it->second)
         {
-          temp_list.push_back(*adj_it);
+          temp_list.push_back(adj_it);
         }
 
         // Make all preceeding and succeeding links to the no-shape link fully connected
@@ -581,17 +580,17 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
   }
 
   // Loop through every possible link pair and check if it has ever been seen in collision
-  for (LinkPairMap::iterator pair_it = link_pairs.begin(); pair_it != link_pairs.end(); ++pair_it)
+  for (std::pair<const std::pair<std::string, std::string>, LinkPairData>& link_pair : link_pairs)
   {
-    if (!pair_it->second.disable_check)  // is not disabled yet
+    if (!link_pair.second.disable_check)  // is not disabled yet
     {
       // Check if current pair has been seen colliding ever. If it has never been seen colliding, add it to disabled
       // list
-      if (links_seen_colliding.find(pair_it->first) == links_seen_colliding.end())
+      if (links_seen_colliding.find(link_pair.first) == links_seen_colliding.end())
       {
         // Add to disabled list using pair ordering
-        pair_it->second.reason = NEVER;
-        pair_it->second.disable_check = true;
+        link_pair.second.reason = NEVER;
+        link_pair.second.disable_check = true;
 
         // Count it
         ++num_disabled;

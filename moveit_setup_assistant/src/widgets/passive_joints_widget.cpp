@@ -95,16 +95,16 @@ void PassiveJointsWidget::focusGiven()
     return;
   }
   std::vector<std::string> active_joints;
-  for (std::size_t i = 0; i < joints.size(); ++i)
-    if (model->getJointModel(joints[i])->getVariableCount() > 0)
-      active_joints.push_back(joints[i]);
+  for (const std::string& joint : joints)
+    if (model->getJointModel(joint)->getVariableCount() > 0)
+      active_joints.push_back(joint);
 
   // Set the available joints (left box)
   joints_widget_->setAvailable(active_joints);
 
   std::vector<std::string> passive_joints;
-  for (std::size_t i = 0; i < config_data_->srdf_->passive_joints_.size(); ++i)
-    passive_joints.push_back(config_data_->srdf_->passive_joints_[i].name_);
+  for (srdf::Model::PassiveJoint& passive_joint : config_data_->srdf_->passive_joints_)
+    passive_joints.push_back(passive_joint.name_);
   joints_widget_->setSelected(passive_joints);
 }
 
@@ -131,9 +131,9 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (std::size_t i = 0; i < joints.size(); ++i)
+  for (const std::string& joint : joints)
   {
-    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
+    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
 
     // Check that a joint model was found
     if (!joint_model)
