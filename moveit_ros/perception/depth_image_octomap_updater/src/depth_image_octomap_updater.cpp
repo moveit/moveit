@@ -526,16 +526,16 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   tree_->unlockRead();
 
   /* cells that overlap with the model are not occupied */
-  for (octomap::KeySet::iterator it = model_cells.begin(), end = model_cells.end(); it != end; ++it)
-    occupied_cells.erase(*it);
+  for (const octomap::OcTreeKey& model_cell : model_cells)
+    occupied_cells.erase(model_cell);
 
   // mark occupied cells
   tree_->lockWrite();
   try
   {
     /* now mark all occupied cells */
-    for (octomap::KeySet::iterator it = occupied_cells.begin(), end = occupied_cells.end(); it != end; ++it)
-      tree_->updateNode(*it, true);
+    for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
+      tree_->updateNode(occupied_cell, true);
   }
   catch (...)
   {

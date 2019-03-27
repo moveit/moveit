@@ -327,9 +327,9 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
     else if (table.convex_hull[j].y > y_max)
       y_max = table.convex_hull[j].y;
   }
-  for (std::size_t j = 0; j < table.convex_hull.size(); ++j)
+  for (const geometry_msgs::Point& vertex : table.convex_hull)
     table_contour.push_back(
-        cv::Point((table.convex_hull[j].x - x_min) * scale_factor, (table.convex_hull[j].y - y_min) * scale_factor));
+        cv::Point((vertex.x - x_min) * scale_factor, (vertex.y - y_min) * scale_factor));
 
   double x_range = fabs(x_max - x_min);
   double y_range = fabs(y_max - y_min);
@@ -405,9 +405,9 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   }
   const int scale_factor = 100;
   std::vector<cv::Point2f> table_contour;
-  for (std::size_t j = 0; j < table.convex_hull.size(); ++j)
+  for (const geometry_msgs::Point& vertex : table.convex_hull)
     table_contour.push_back(
-        cv::Point((table.convex_hull[j].x - x_min) * scale_factor, (table.convex_hull[j].y - y_min) * scale_factor));
+        cv::Point((vertex.x - x_min) * scale_factor, (vertex.y - y_min) * scale_factor));
 
   double x_range = fabs(x_max - x_min);
   double y_range = fabs(y_max - y_min);
@@ -477,26 +477,26 @@ void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr& 
 
 void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& table_array) const
 {
-  for (std::size_t i = 0; i < table_array.tables.size(); ++i)
+  for (object_recognition_msgs::Table& table : table_array.tables)
   {
-    std::string original_frame = table_array.tables[i].header.frame_id;
-    if (table_array.tables[i].convex_hull.empty())
+    std::string original_frame = table.header.frame_id;
+    if (table.convex_hull.empty())
       continue;
-    ROS_INFO_STREAM("Original pose: " << table_array.tables[i].pose.position.x << ","
-                                      << table_array.tables[i].pose.position.y << ","
-                                      << table_array.tables[i].pose.position.z);
+    ROS_INFO_STREAM("Original pose: " << table.pose.position.x << ","
+                                      << table.pose.position.y << ","
+                                      << table.pose.position.z);
     std::string error_text;
     const Eigen::Isometry3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
     Eigen::Isometry3d original_pose;
-    tf2::fromMsg(table_array.tables[i].pose, original_pose);
+    tf2::fromMsg(table.pose, original_pose);
     original_pose = original_transform * original_pose;
-    table_array.tables[i].pose = tf2::toMsg(original_pose);
-    table_array.tables[i].header.frame_id = planning_scene_->getTransforms().getTargetFrame();
+    table.pose = tf2::toMsg(original_pose);
+    table.header.frame_id = planning_scene_->getTransforms().getTargetFrame();
     ROS_INFO_STREAM("Successfully transformed table array from " << original_frame << "to "
-                                                                 << table_array.tables[i].header.frame_id);
-    ROS_INFO_STREAM("Transformed pose: " << table_array.tables[i].pose.position.x << ","
-                                         << table_array.tables[i].pose.position.y << ","
-                                         << table_array.tables[i].pose.position.z);
+                                                                 << table.header.frame_id);
+    ROS_INFO_STREAM("Transformed pose: " << table.pose.position.x << ","
+                                         << table.pose.position.y << ","
+                                         << table.pose.position.z);
   }
 }
 

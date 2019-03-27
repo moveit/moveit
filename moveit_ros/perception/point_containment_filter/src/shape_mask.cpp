@@ -51,8 +51,8 @@ point_containment_filter::ShapeMask::~ShapeMask()
 
 void point_containment_filter::ShapeMask::freeMemory()
 {
-  for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end(); ++it)
-    delete it->body;
+  for (const SeeShape& body : bodies_)
+    delete body.body;
   bodies_.clear();
 }
 

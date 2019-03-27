@@ -40,6 +40,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <boost/thread.hpp>
 #include <deque>
+#include <unordered_map>
 
 namespace occupancy_map_monitor
 {
@@ -54,6 +55,8 @@ public:
 
 private:
 #ifdef __APPLE__
+  typedef std::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
+#elif __cplusplus >= 201103L
   typedef std::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
 #else
   typedef std::tr1::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
