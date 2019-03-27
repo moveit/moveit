@@ -1751,8 +1751,14 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     shapes::Shape* s = shapes::constructShapeFromMsg(object.primitives[i]);
     if (s)
     {
-      Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      Eigen::Quaterniond object_orientation;
+      tf2::fromMsg(object.primitive_poses[i].orientation, object_orientation);
+      Eigen::Translation3d object_translation(object.primitive_poses[i].position.x,
+                                              object.primitive_poses[i].position.y,
+                                              object.primitive_poses[i].position.z);
+      object_orientation.normalize();
+      Eigen::Isometry3d object_pose(object_translation * object_orientation);
+
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1761,8 +1767,14 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     shapes::Shape* s = shapes::constructShapeFromMsg(object.meshes[i]);
     if (s)
     {
-      Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      Eigen::Quaterniond object_orientation;
+      tf2::fromMsg(object.primitive_poses[i].orientation, object_orientation);
+      Eigen::Translation3d object_translation(object.primitive_poses[i].position.x,
+                                              object.primitive_poses[i].position.y,
+                                              object.primitive_poses[i].position.z);
+      object_orientation.normalize();
+      Eigen::Isometry3d object_pose(object_translation * object_orientation);
+
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1771,8 +1783,14 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     shapes::Shape* s = shapes::constructShapeFromMsg(object.planes[i]);
     if (s)
     {
-      Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.plane_poses[i], object_pose);
+      Eigen::Quaterniond object_orientation;
+      tf2::fromMsg(object.primitive_poses[i].orientation, object_orientation);
+      Eigen::Translation3d object_translation(object.primitive_poses[i].position.x,
+                                              object.primitive_poses[i].position.y,
+                                              object.primitive_poses[i].position.z);
+      object_orientation.normalize();
+      Eigen::Isometry3d object_pose(object_translation * object_orientation);
+
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
