@@ -410,7 +410,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
               }
               else
               {
-                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)
+                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j) // NOLINT(modernize-loop-convert)
                 {
                   ROS_ASSERT(ksolver_ik_links[j].getType() == XmlRpc::XmlRpcValue::TypeString);
                   ROS_DEBUG_STREAM_NAMED(LOGNAME, "found tip " << static_cast<std::string>(ksolver_ik_links[j])

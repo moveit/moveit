@@ -82,7 +82,7 @@ public:
     }
 
     /* actually create each controller */
-    for (int i = 0; i < controller_list.size(); ++i)
+    for (int i = 0; i < controller_list.size(); ++i) // NOLINT(modernize-loop-convert)
     {
       if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
       {

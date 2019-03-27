@@ -423,7 +423,7 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
     // refer to http://wiki.ros.org/ROS/Master_API#Name_service_and_system_state
     XmlRpc::XmlRpcValue services = system_state[2];
 
-    for (int i = 0; i < services.size(); ++i)
+    for (int i = 0; i < services.size(); ++i) // NOLINT(modernize-loop-convert)
     {
       std::string service = services[i][0];
       std::size_t found = service.find("controller_manager/list_controllers");

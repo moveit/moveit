@@ -1745,7 +1745,7 @@ void TrajectoryExecutionManager::loadControllerParams()
   if (node_handle_.getParam("controller_list", controller_list) &&
       controller_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
   {
-    for (int i = 0; i < controller_list.size(); ++i)
+    for (int i = 0; i < controller_list.size(); ++i) // NOLINT(modernize-loop-convert)
     {
       XmlRpc::XmlRpcValue& controller = controller_list[i];
       if (controller.hasMember("name"))

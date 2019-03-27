@@ -1347,7 +1347,7 @@ void PlanningSceneMonitor::configureCollisionMatrix(const planning_scene::Planni
       return;
     }
 
-    for (int i = 0; i < coll_ops.size(); ++i)
+    for (int i = 0; i < coll_ops.size(); ++i) // NOLINT(modernize-loop-convert)
     {
       if (!coll_ops[i].hasMember("object1") || !coll_ops[i].hasMember("object2") || !coll_ops[i].hasMember("operation"))
       {

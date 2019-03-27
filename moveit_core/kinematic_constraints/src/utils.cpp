@@ -484,7 +484,7 @@ static bool collectConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constra
     return false;
   }
 
-  for (int i = 0; i < params.size(); ++i)
+  for (int i = 0; i < params.size(); ++i) // NOLINT(modernize-loop-convert)
   {
     if (!params[i].hasMember("type"))
     {
