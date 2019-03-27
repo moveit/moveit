@@ -1817,7 +1817,6 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
     for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.primitive_poses[i], object_pose);
       PlanningScene::normalizeObjectOrientation(object.primitive_poses[i], object_pose);
       new_poses.push_back(t * object_pose);
     }
