@@ -82,8 +82,8 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
 {
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
-  for (std::size_t i = 0; i < cjnt.size(); ++i)
-    start_state->enforceBounds(cjnt[i]);
+  for (const JointModel* joint : cjnt)
+    start_state->enforceBounds(joint);
 
   // this is the Cartesian pose we start from, and we move in the direction indicated
   Eigen::Isometry3d start_pose = start_state->getGlobalLinkTransform(link);

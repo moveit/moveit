@@ -748,6 +748,7 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   }
 
   std::vector<const JointModel*> joints;
+  joints.reserve(jset.size());
   for (const JointModel* it : jset)
     joints.push_back(it);
 

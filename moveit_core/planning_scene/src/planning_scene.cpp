@@ -1653,9 +1653,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
 
     for (const moveit::core::AttachedBody* attached_body : attached_bodies)
     {
-      std::vector<shapes::ShapeConstPtr> shapes = attached_body->getShapes();
-      EigenSTL::vector_Isometry3d poses = attached_body->getGlobalCollisionBodyTransforms();
-      std::string name = attached_body->getName();
+      const std::vector<shapes::ShapeConstPtr>& shapes = attached_body->getShapes();
+      const EigenSTL::vector_Isometry3d& poses = attached_body->getGlobalCollisionBodyTransforms();
+      const std::string& name = attached_body->getName();
 
       robot_state_->clearAttachedBody(name);
 
