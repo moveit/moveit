@@ -117,7 +117,7 @@ void BackgroundProcessing::clear()
     action_names_.swap(removed);
   }
   if (update && queue_change_event_)
-    for (const std::string & it : removed)
+    for (const std::string& it : removed)
       queue_change_event_(REMOVE, it);
 }
 

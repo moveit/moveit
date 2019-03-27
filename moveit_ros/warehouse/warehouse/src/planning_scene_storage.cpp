@@ -113,8 +113,8 @@ std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
 
   for (MotionPlanRequestWithMetadata& existing_request : existing_requests)
   {
-    const size_t serial_size = ros::serialization::serializationLength(
-        static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_request));
+    const size_t serial_size =
+        ros::serialization::serializationLength(static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_request));
     if (serial_size != serial_size_arg)
       continue;
     boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);

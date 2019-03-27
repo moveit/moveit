@@ -369,7 +369,8 @@ void ompl_interface::ConstraintsLibrary::clearConstraintApproximations()
 
 void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostream& out) const
 {
-  for (const std::pair<std::string, ConstraintApproximationPtr>& constraint_approximation : constraint_approximations_)
+  for (const std::pair<std::string, ConstraintApproximationPtr>& constraint_approximation :
+       constraint_approximations_)
   {
     out << constraint_approximation.second->getGroup() << std::endl;
     out << constraint_approximation.second->getStateSpaceParameterization() << std::endl;

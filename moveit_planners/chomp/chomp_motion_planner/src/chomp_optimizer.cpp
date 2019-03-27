@@ -211,9 +211,7 @@ void ChompOptimizer::initialize()
   // TODO - is this just the joint_roots_?
   for (const moveit::core::LinkModel* link : joint_model_group_->getUpdatedLinkModels())
   {
-    if (fixed_link_resolution_map.find(
-            link->getParentJointModel()->getName()) ==
-        fixed_link_resolution_map.end())
+    if (fixed_link_resolution_map.find(link->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
       const moveit::core::JointModel* parent_model = nullptr;
       bool found_root = false;
@@ -236,8 +234,7 @@ void ChompOptimizer::initialize()
           }
         }
       }
-      fixed_link_resolution_map[link->getParentJointModel()->getName()] =
-          parent_model->getName();
+      fixed_link_resolution_map[link->getParentJointModel()->getName()] = parent_model->getName();
     }
   }
 

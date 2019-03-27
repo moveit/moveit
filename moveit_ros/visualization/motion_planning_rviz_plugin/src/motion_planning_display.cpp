@@ -1172,8 +1172,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   dynamics_solver_.clear();
   for (const std::string& group : groups)
     if (getRobotModel()->getJointModelGroup(group)->isChain())
-      dynamics_solver_[group].reset(
-          new dynamics_solver::DynamicsSolver(getRobotModel(), group, gravity_vector));
+      dynamics_solver_[group].reset(new dynamics_solver::DynamicsSolver(getRobotModel(), group, gravity_vector));
 
   if (frame_)
     frame_->fillPlanningGroupOptions();

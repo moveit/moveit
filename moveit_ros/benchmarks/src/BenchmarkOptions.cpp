@@ -248,7 +248,7 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
       return;
     }
 
-    for (int i = 0; i < planner_configs.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < planner_configs.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (planner_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {

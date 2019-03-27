@@ -382,7 +382,7 @@ srdf::Model::VirtualJoint* VirtualJointsWidget::findVJointByName(const std::stri
     if (virtual_joint.name_ == name)  // string match
     {
       searched_group = &virtual_joint;  // convert to pointer from iterator
-      break;                           // we are done searching
+      break;                            // we are done searching
     }
   }
 

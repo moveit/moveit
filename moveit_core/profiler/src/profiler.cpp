@@ -260,8 +260,8 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
 
     double t_s = to_seconds(d.shortest);
     double t_l = to_seconds(d.longest);
-    out << time_block.name_ << ": " << time_block.value_ << "s (" << (100.0 * time_block.value_ / total) << "%), [" << t_s
-        << "s --> " << t_l << " s], " << d.parts << " parts";
+    out << time_block.name_ << ": " << time_block.value_ << "s (" << (100.0 * time_block.value_ / total) << "%), ["
+        << t_s << "s --> " << t_l << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
       double pavg = to_seconds(d.total) / (double)d.parts;

@@ -302,7 +302,8 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   std::vector<std::map<std::string, GenericParameter> > sensors_vec_map = config_data_->getSensorPluginConfig();
   for (std::map<std::string, GenericParameter>& sensor_plugin_config : sensors_vec_map)
   {
-    if (sensor_plugin_config["sensor_plugin"].getValue() == std::string("occupancy_map_monitor/PointCloudOctomapUpdater"))
+    if (sensor_plugin_config["sensor_plugin"].getValue() ==
+        std::string("occupancy_map_monitor/PointCloudOctomapUpdater"))
     {
       sensor_plugin_field_->setCurrentIndex(1);
       point_cloud_topic_field_->setText(QString(sensor_plugin_config["point_cloud_topic"].getValue().c_str()));

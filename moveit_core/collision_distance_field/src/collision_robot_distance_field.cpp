@@ -288,8 +288,7 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
           }
           else
           {
-            con.pos =
-                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[col];
+            con.pos = gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[col];
             con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i - gsr->dfce_->link_names_.size()];
           }
@@ -927,13 +926,15 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       // now we need to actually set the points
       // TODO - deal with shifted robot
       EigenSTL::vector_Vector3d all_points;
-      for (collision_detection::PosedBodyPointDecompositionPtr& non_group_link_decomposition : non_group_link_decompositions)
+      for (collision_detection::PosedBodyPointDecompositionPtr& non_group_link_decomposition :
+           non_group_link_decompositions)
       {
         all_points.insert(all_points.end(), non_group_link_decomposition->getCollisionPoints().begin(),
                           non_group_link_decomposition->getCollisionPoints().end());
       }
 
-      for (collision_detection::PosedBodyPointDecompositionVectorPtr& non_group_attached_body_decomposition : non_group_attached_body_decompositions)
+      for (collision_detection::PosedBodyPointDecompositionVectorPtr& non_group_attached_body_decomposition :
+           non_group_attached_body_decompositions)
       {
         all_points.insert(all_points.end(), non_group_attached_body_decomposition->getCollisionPoints().begin(),
                           non_group_attached_body_decomposition->getCollisionPoints().end());
@@ -1049,9 +1050,8 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
       continue;
     }
 
-    BodyDecompositionPtr bd(new BodyDecomposition(link_model->getShapes(),
-                                                  link_model->getCollisionOriginTransforms(), resolution,
-                                                  getLinkPadding(link_model->getName())));
+    BodyDecompositionPtr bd(new BodyDecomposition(link_model->getShapes(), link_model->getCollisionOriginTransforms(),
+                                                  resolution, getLinkPadding(link_model->getName())));
 
     ROS_DEBUG("Generated model for %s", link_model->getName().c_str());
 

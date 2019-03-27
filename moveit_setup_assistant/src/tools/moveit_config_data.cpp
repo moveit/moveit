@@ -240,8 +240,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << group.name_;
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
-    emitter << YAML::Key << "default_planner_config" << YAML::Value
-            << group_meta_data_[group.name_].default_planner_;
+    emitter << YAML::Key << "default_planner_config" << YAML::Value << group_meta_data_[group.name_].default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (const std::string& pconfig : pconfigs)
@@ -1707,7 +1706,7 @@ srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
     if (group.name_ == name)  // string match
     {
       searched_group = &group;  // convert to pointer from iterator
-      break;                          // we are done searching
+      break;                    // we are done searching
     }
   }
 
@@ -1732,7 +1731,7 @@ ROSControlConfig* MoveItConfigData::findROSControllerByName(const std::string& c
     if (ros_control_config.name_ == controller_name)  // string match
     {
       searched_ros_controller = &ros_control_config;  // convert to pointer from iterator
-      break;                                        // we are done searching
+      break;                                          // we are done searching
     }
   }
 

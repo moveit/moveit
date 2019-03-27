@@ -96,8 +96,7 @@ bool SrvKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   {
     if (!joint_model_group_->hasLinkModel(tip_frame))
     {
-      ROS_ERROR_NAMED("srv", "Could not find tip name '%s' in joint group '%s'", tip_frame.c_str(),
-                      group_name.c_str());
+      ROS_ERROR_NAMED("srv", "Could not find tip name '%s' in joint group '%s'", tip_frame.c_str(), group_name.c_str());
       return false;
     }
     ik_group_info_.link_names.push_back(tip_frame);

@@ -419,7 +419,7 @@ static void parseVector(XmlRpc::XmlRpcValue& vec, std::vector<double>& values, s
   }
   values.reserve(vec.size());
   values.clear();
-  for (int i = 0; i < vec.size(); ++i) // NOLINT(modernize-loop-convert)
+  for (int i = 0; i < vec.size(); ++i)  // NOLINT(modernize-loop-convert)
     values.push_back(parseDouble(vec[i]));
 }
 static bool parseGoal(const std::string& name, XmlRpc::XmlRpcValue& value, Eigen::Isometry3d& goal, std::string& desc)
@@ -512,7 +512,7 @@ TEST_F(KinematicsTest, unitIK)
      - pos.y: -0.1
        joints: [0, 0, 0, 0, 0, 0]
   */
-  for (int i = 0; i < tests.size(); ++i) // NOLINT(modernize-loop-convert)
+  for (int i = 0; i < tests.size(); ++i)  // NOLINT(modernize-loop-convert)
   {
     goal = initial;  // reset goal to initial
     ground_truth.clear();

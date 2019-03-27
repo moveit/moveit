@@ -409,7 +409,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
       if (group.name_ == *subgroup_it)  // this is the group we are looking for
       {
         searched_group = &group;  // convert to pointer from iterator
-        break;                           // we are done searching
+        break;                    // we are done searching
       }
     }
 

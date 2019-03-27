@@ -229,7 +229,7 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
   }
 
   const std::vector<const robot_model::JointModel*>& joints = jmg->getJointModels();
-  for (const robot_model::JointModel* joint: joints)
+  for (const robot_model::JointModel* joint : joints)
   {
     if ((joint->getType() == robot_model::JointModel::PLANAR ||
          joint->getType() == robot_model::JointModel::FLOATING) &&
@@ -308,7 +308,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   }
   else if (!smap.second.empty())
   {
-    for (const std::pair<const moveit::core::JointModelGroup* const, moveit::core::JointModelGroup::KinematicsSolver>& it : smap.second)
+    for (const std::pair<const moveit::core::JointModelGroup* const, moveit::core::JointModelGroup::KinematicsSolver>&
+             it : smap.second)
     {
       for (const srdf::Model::EndEffector& eef : eefs)
       {
@@ -332,11 +333,10 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   {
     // if we have a separate group for the eef, we compute the scale based on it;
     // otherwise, we use the size of the parent_link
-    eef.size = (eef.eef_group == eef.parent_group) ?
-                              computeLinkMarkerSize(eef.parent_link) :
-                              computeGroupMarkerSize(eef.eef_group);
-    ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf",
-                    eef.eef_group.c_str(), eef.size);
+    eef.size = (eef.eef_group == eef.parent_group) ? computeLinkMarkerSize(eef.parent_link) :
+                                                     computeGroupMarkerSize(eef.eef_group);
+    ROS_DEBUG_NAMED("robot_interaction", "Found active end-effector '%s', of scale %lf", eef.eef_group.c_str(),
+                    eef.size);
   }
   // if there is only a single end effector marker, we can safely use a larger marker
   if (active_eef_.size() == 1)

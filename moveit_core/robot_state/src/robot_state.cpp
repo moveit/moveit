@@ -281,8 +281,8 @@ void RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const 
   for (const JointModel* joint : joints)
   {
     const int idx = joint->getFirstVariableIndex();
-    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(),
-                                                near.position_ + idx, distance);
+    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(), near.position_ + idx,
+                                            distance);
   }
   updateMimicJoints(group);
 }

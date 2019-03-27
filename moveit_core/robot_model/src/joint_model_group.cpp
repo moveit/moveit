@@ -430,8 +430,7 @@ void JointModelGroup::updateMimicJoints(double* values) const
 {
   // update mimic (only local joints as we are dealing with a local group state)
   for (const GroupMimicUpdate& mimic_update : group_mimic_update_)
-    values[mimic_update.dest] =
-        values[mimic_update.src] * mimic_update.factor + mimic_update.offset;
+    values[mimic_update.dest] = values[mimic_update.src] * mimic_update.factor + mimic_update.offset;
 }
 
 void JointModelGroup::addDefaultState(const std::string& name, const std::map<std::string, double>& default_state)
@@ -662,8 +661,7 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   out << "Group '" << name_ << "' using " << variable_count_ << " variables" << std::endl;
   out << "  * Joints:" << std::endl;
   for (const JointModel* joint_model : joint_model_vector_)
-    out << "    '" << joint_model->getName() << "' (" << joint_model->getTypeName() << ")"
-        << std::endl;
+    out << "    '" << joint_model->getName() << "' (" << joint_model->getTypeName() << ")" << std::endl;
   out << "  * Variables:" << std::endl;
   for (const std::string& variable_name : variable_names_)
   {
@@ -710,8 +708,8 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   {
     out << "  * Local Mimic Updates:" << std::endl;
     for (const GroupMimicUpdate& mimic_update : group_mimic_update_)
-      out << "    [" << mimic_update.dest << "] = " << mimic_update.factor << " * ["
-          << mimic_update.src << "] + " << mimic_update.offset << std::endl;
+      out << "    [" << mimic_update.dest << "] = " << mimic_update.factor << " * [" << mimic_update.src << "] + "
+          << mimic_update.offset << std::endl;
   }
   out << std::endl;
 }

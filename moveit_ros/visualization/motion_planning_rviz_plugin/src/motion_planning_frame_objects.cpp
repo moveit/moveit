@@ -651,8 +651,7 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
             {
               std::map<std::string, double> vals;
               for (const moveit_msgs::JointConstraint& joint_constraint : goal_constraint.joint_constraints)
-                vals[joint_constraint.joint_name] =
-                    joint_constraint.position;
+                vals[joint_constraint.joint_name] = joint_constraint.position;
               goal_state->setVariablePositions(vals);
               break;
             }

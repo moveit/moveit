@@ -125,8 +125,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr& plan) const
       continue;
     if (first)
     {
-      robot_state::robotStateToRobotStateMsg(traj.trajectory_->getFirstWayPoint(),
-                                             dtraj.trajectory_start);
+      robot_state::robotStateToRobotStateMsg(traj.trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
       first = false;
     }
     dtraj.trajectory.resize(dtraj.trajectory.size() + 1);

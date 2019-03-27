@@ -374,8 +374,7 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
           }
           else
           {
-            con.pos =
-                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[col];
+            con.pos = gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[col];
             con.body_type_1 = BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i - gsr->dfce_->link_names_.size()];
           }

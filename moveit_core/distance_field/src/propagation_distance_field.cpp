@@ -131,8 +131,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   for (const Eigen::Vector3d& old_point : old_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(old_point.x(), old_point.y(), old_point.z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(old_point.x(), old_point.y(), old_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       old_point_set.insert(voxel_loc);
@@ -143,8 +142,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   for (const Eigen::Vector3d& new_point : new_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(new_point.x(), new_point.y(), new_point.z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(new_point.x(), new_point.y(), new_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       new_point_set.insert(voxel_loc);

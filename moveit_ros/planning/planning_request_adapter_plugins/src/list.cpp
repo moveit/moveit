@@ -66,7 +66,8 @@ int main(int argc, char** argv)
     }
     catch (pluginlib::PluginlibException& ex)
     {
-      std::cout << " \t\t  Exception while planning adapter plugin '" << adapter_plugin_name << "': " << ex.what() << std::endl;
+      std::cout << " \t\t  Exception while planning adapter plugin '" << adapter_plugin_name << "': " << ex.what()
+                << std::endl;
     }
     if (ad)
       std::cout << " \t\t  " << ad->getDescription() << std::endl;

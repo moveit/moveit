@@ -164,7 +164,7 @@ void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& confi
   }
   else if (isArray(config))  // or an array of JointTolerance msgs
   {
-    for (int i = 0; i < config.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < config.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       control_msgs::JointTolerance& tol = getTolerance(tolerances, config[i]["name"]);
       for (ToleranceVariables var : { POSITION, VELOCITY, ACCELERATION })

@@ -266,8 +266,7 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<Benchmark
     {
       if (!it->second->canServiceRequest(request.request))
       {
-        ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(),
-                  request.name.c_str());
+        ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(), request.name.c_str());
         return false;
       }
     }
@@ -969,8 +968,8 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
       // Create a list of the benchmark properties for this planner
       std::set<std::string> properties_set;
       for (PlannerRunData& planner_run_data : benchmark_data_[run_id])  // each run of this planner
-        for (PlannerRunData::const_iterator pit = planner_run_data.begin();
-             pit != planner_run_data.end(); ++pit)  // each benchmark property of the given run
+        for (PlannerRunData::const_iterator pit = planner_run_data.begin(); pit != planner_run_data.end();
+             ++pit)  // each benchmark property of the given run
           properties_set.insert(pit->first);
 
       // Writing property list

@@ -233,7 +233,8 @@ public:
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover();
 
-    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& managed_controller : managed_controllers_)
+    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& managed_controller :
+         managed_controllers_)
     {
       names.push_back(managed_controller.first);
     }
@@ -248,7 +249,8 @@ public:
     boost::mutex::scoped_lock lock(controllers_mutex_);
     discover();
 
-    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& managed_controller : managed_controllers_)
+    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& managed_controller :
+         managed_controllers_)
     {
       if (isActive(managed_controller.second))
         names.push_back(managed_controller.first);
@@ -314,7 +316,8 @@ public:
     resources_bimap claimed_resources;
 
     // fill bimap with active controllers and their resources
-    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller : active_controllers_)
+    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller :
+         active_controllers_)
     {
 #if defined(MOVEIT_ROS_CONTROL_INTERFACE_OLD_ROS_CONTROL)
       for (std::vector<std::string>::iterator r = c->second.resources.begin(); r != c->second.resources.end(); ++r)
@@ -423,7 +426,7 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
     // refer to http://wiki.ros.org/ROS/Master_API#Name_service_and_system_state
     XmlRpc::XmlRpcValue services = system_state[2];
 
-    for (int i = 0; i < services.size(); ++i) // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < services.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       std::string service = services[i][0];
       std::size_t found = service.find("controller_manager/list_controllers");
@@ -481,7 +484,8 @@ public:
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
     discover();
 
-    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager : controller_managers_)
+    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager :
+         controller_managers_)
     {
       controller_manager.second->getControllersList(names);
     }
@@ -496,7 +500,8 @@ public:
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
     discover();
 
-    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager : controller_managers_)
+    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager :
+         controller_managers_)
     {
       controller_manager.second->getActiveControllers(names);
     }
@@ -547,7 +552,8 @@ public:
   {
     boost::mutex::scoped_lock lock(controller_managers_mutex_);
 
-    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager : controller_managers_)
+    for (std::pair<const std::string, moveit_ros_control_interface::MoveItControllerManagerPtr>& controller_manager :
+         controller_managers_)
     {
       if (!controller_manager.second->switchControllers(activate, deactivate))
         return false;

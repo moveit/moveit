@@ -424,8 +424,7 @@ void collision_detection::getCollisionSphereMarkers(
         sphere.id = count++;
         sphere.lifetime = dur;
         sphere.color = color;
-        sphere.scale.x = sphere.scale.y = sphere.scale.z =
-            posed_decomposition->getCollisionSpheres()[j].radius_ * 2.0;
+        sphere.scale.x = sphere.scale.y = sphere.scale.z = posed_decomposition->getCollisionSpheres()[j].radius_ * 2.0;
         sphere.pose.position.x = posed_decomposition->getSphereCenters()[j].x();
         sphere.pose.position.y = posed_decomposition->getSphereCenters()[j].y();
         sphere.pose.position.z = posed_decomposition->getSphereCenters()[j].z();
