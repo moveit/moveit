@@ -982,6 +982,7 @@ private:
   bool processCollisionObjectAdd(const moveit_msgs::CollisionObject& object);
   bool processCollisionObjectRemove(const moveit_msgs::CollisionObject& object);
   bool processCollisionObjectMove(const moveit_msgs::CollisionObject& object);
+  void normalizeObjectOrientation(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out);
 
   MOVEIT_STRUCT_FORWARD(CollisionDetector);
 
