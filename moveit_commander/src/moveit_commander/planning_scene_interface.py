@@ -88,7 +88,8 @@ class PlanningSceneInterface(object):
         """
         Add a cylinder to the planning scene
         """
-        self._pub_co.publish(self.__make_cylinder(name, pose, height, radius))
+        co = self.__make_cylinder(name, pose, height, radius)
+        self.__submit(co, attach=False)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """
@@ -150,7 +151,7 @@ class PlanningSceneInterface(object):
         co.operation = CollisionObject.REMOVE
         if name is not None:
             co.id = name
-        self.__submit(co, attach=True)
+        self.__submit(co, attach=False)
 
     def remove_attached_object(self, link, name=None):
         """
