@@ -157,8 +157,8 @@ public:
               0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
           res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
           // we add a prefix point, so we need to bump any previously added index positions
-          for (std::size_t i = 0; i < added_path_index.size(); ++i)
-            added_path_index[i]++;
+          for (std::size_t& added_index : added_path_index)
+            added_index++;
           added_path_index.push_back(0);
         }
         return solved;

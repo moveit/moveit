@@ -157,16 +157,16 @@ void RobotStateDisplay::changedEnableLinkHighlight()
 {
   if (enable_link_highlight_->getBool())
   {
-    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin(); it != highlights_.end(); ++it)
+    for (std::pair<const std::string, std_msgs::ColorRGBA>& highlight : highlights_)
     {
-      setHighlight(it->first, it->second);
+      setHighlight(highlight.first, highlight.second);
     }
   }
   else
   {
-    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin(); it != highlights_.end(); ++it)
+    for (std::pair<const std::string, std_msgs::ColorRGBA>& highlight : highlights_)
     {
-      unsetHighlight(it->first);
+      unsetHighlight(highlight.first);
     }
   }
 }
@@ -192,10 +192,9 @@ void RobotStateDisplay::setRobotHighlights(const moveit_msgs::DisplayRobotState:
     return;
 
   std::map<std::string, std_msgs::ColorRGBA> highlights;
-  for (moveit_msgs::DisplayRobotState::_highlight_links_type::const_iterator it = highlight_links.begin();
-       it != highlight_links.end(); ++it)
+  for (const moveit_msgs::ObjectColor& highlight_link : highlight_links)
   {
-    highlights[it->id] = it->color;
+    highlights[highlight_link.id] = highlight_link.color;
   }
 
   if (enable_link_highlight_->getBool())

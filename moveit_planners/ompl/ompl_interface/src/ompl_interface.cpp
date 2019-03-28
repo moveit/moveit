@@ -295,7 +295,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         continue;
       }
 
-      for (int j = 0; j < config_names.size(); ++j)
+      for (int j = 0; j < config_names.size(); ++j)  // NOLINT(modernize-loop-convert)
       {
         if (config_names[j].getType() != XmlRpc::XmlRpcValue::TypeString)
         {
@@ -312,11 +312,11 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     }
   }
 
-  for (const std::pair<std::string, planning_interface::PlannerConfigurationSettings>& config : pconfig)
+  for (const std::pair<const std::string, planning_interface::PlannerConfigurationSettings>& config : pconfig)
   {
     ROS_DEBUG_STREAM_NAMED("parameters", "Parameters for configuration '" << config.first << "'");
 
-    for (const std::pair<std::string, std::string>& parameters : config.second.config)
+    for (const std::pair<const std::string, std::string>& parameters : config.second.config)
       ROS_DEBUG_STREAM_NAMED("parameters", " - " << parameters.first << " = " << parameters.second);
   }
 

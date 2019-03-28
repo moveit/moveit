@@ -123,8 +123,8 @@ private:
     std::set<std::string> capabilities;
 
     // add default capabilities
-    for (size_t i = 0; i < sizeof(DEFAULT_CAPABILITIES) / sizeof(DEFAULT_CAPABILITIES[0]); ++i)
-      capabilities.insert(DEFAULT_CAPABILITIES[i]);
+    for (const char* capability : DEFAULT_CAPABILITIES)
+      capabilities.insert(capability);
 
     // add capabilities listed in ROS parameter
     std::string capability_plugins;
@@ -145,19 +145,19 @@ private:
         capabilities.erase(*cap_name);
     }
 
-    for (std::set<std::string>::iterator plugin = capabilities.cbegin(); plugin != capabilities.cend(); ++plugin)
+    for (const std::string& capability : capabilities)
     {
       try
       {
-        printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin->c_str());
-        MoveGroupCapabilityPtr cap = capability_plugin_loader_->createUniqueInstance(*plugin);
+        printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, capability.c_str());
+        MoveGroupCapabilityPtr cap = capability_plugin_loader_->createUniqueInstance(capability);
         cap->setContext(context_);
         cap->initialize();
         capabilities_.push_back(cap);
       }
       catch (pluginlib::PluginlibException& ex)
       {
-        ROS_ERROR_STREAM("Exception while loading move_group capability '" << *plugin << "': " << ex.what());
+        ROS_ERROR_STREAM("Exception while loading move_group capability '" << capability << "': " << ex.what());
       }
     }
 
@@ -166,8 +166,8 @@ private:
     ss << std::endl;
     ss << "********************************************************" << std::endl;
     ss << "* MoveGroup using: " << std::endl;
-    for (std::size_t i = 0; i < capabilities_.size(); ++i)
-      ss << "*     - " << capabilities_[i]->getName() << std::endl;
+    for (const MoveGroupCapabilityPtr& cap : capabilities_)
+      ss << "*     - " << cap->getName() << std::endl;
     ss << "********************************************************" << std::endl;
     ROS_INFO_STREAM(ss.str());
   }

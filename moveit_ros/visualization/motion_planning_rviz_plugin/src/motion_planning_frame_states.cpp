@@ -49,9 +49,9 @@ namespace moveit_rviz_plugin
 void MotionPlanningFrame::populateRobotStatesList()
 {
   ui_->list_states->clear();
-  for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
+  for (std::pair<const std::string, moveit_msgs::RobotState>& robot_state : robot_states_)
   {
-    QListWidgetItem* item = new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem* item = new QListWidgetItem(QString(robot_state.first.c_str()));
     ui_->list_states->addItem(item);
   }
 }
@@ -92,13 +92,13 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
   // Clear the current list
   clearStatesButtonClicked();
 
-  for (std::size_t i = 0; i < names.size(); ++i)
+  for (const std::string& name : names)
   {
     moveit_warehouse::RobotStateWithMetadata rs;
     bool got_state = false;
     try
     {
-      got_state = robot_state_storage_->getRobotState(rs, names[i]);
+      got_state = robot_state_storage_->getRobotState(rs, name);
     }
     catch (std::exception& ex)
     {
@@ -108,13 +108,13 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
       continue;
 
     // Overwrite if exists.
-    if (robot_states_.find(names[i]) != robot_states_.end())
+    if (robot_states_.find(name) != robot_states_.end())
     {
-      robot_states_.erase(names[i]);
+      robot_states_.erase(name);
     }
 
     // Store the current start state
-    robot_states_.insert(RobotStatePair(names[i], *rs));
+    robot_states_.insert(RobotStatePair(name, *rs));
   }
   populateRobotStatesList();
 }
@@ -223,9 +223,9 @@ void MotionPlanningFrame::removeStateButtonClicked()
       case QMessageBox::Yes:
       {
         QList<QListWidgetItem*> found_items = ui_->list_states->selectedItems();
-        for (int i = 0; i < found_items.size(); ++i)
+        for (QListWidgetItem* found_item : found_items)
         {
-          const std::string& name = found_items[i]->text().toStdString();
+          const std::string& name = found_item->text().toStdString();
           try
           {
             robot_state_storage_->removeRobotState(name);

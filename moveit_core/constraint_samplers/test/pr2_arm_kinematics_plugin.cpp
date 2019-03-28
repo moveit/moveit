@@ -298,20 +298,17 @@ bool PR2ArmKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
 
     if (verbose)
     {
-      for (unsigned int i = 0; i < ik_solver_info_.joint_names.size(); i++)
+      for (const std::string& joint_name : ik_solver_info_.joint_names)
       {
-        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics:: joint name: %s",
-                        ik_solver_info_.joint_names[i].c_str());
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics:: joint name: %s", joint_name.c_str());
       }
-      for (unsigned int i = 0; i < ik_solver_info_.link_names.size(); i++)
+      for (const std::string& link_name : ik_solver_info_.link_names)
       {
-        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics can solve IK for %s",
-                        ik_solver_info_.link_names[i].c_str());
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics can solve IK for %s", link_name.c_str());
       }
-      for (unsigned int i = 0; i < fk_solver_info_.link_names.size(); i++)
+      for (const std::string& link_name : fk_solver_info_.link_names)
       {
-        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics can solve FK for %s",
-                        fk_solver_info_.link_names[i].c_str());
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2Kinematics can solve FK for %s", link_name.c_str());
       }
       ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "PR2KinematicsPlugin::active for %s", group_name.c_str());
     }

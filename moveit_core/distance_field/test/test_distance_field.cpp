@@ -307,9 +307,9 @@ void check_distance_field(const PropagationDistanceField& df, const EigenSTL::ve
         if (dsq == 0)
         {
           bool found = false;
-          for (unsigned int i = 0; i < points_ind.size(); i++)
+          for (Eigen::Vector3i& point : points_ind)
           {
-            if (points_ind[i].x() == x && points_ind[i].y() == y && points_ind[i].z() == z)
+            if (point.x() == x && point.y() == y && point.z() == z)
             {
               found = true;
               break;
@@ -487,11 +487,11 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   // testing equality with initial add of points without the center point
   PropagationDistanceField test_df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
   EigenSTL::vector_Vector3d test_points;
-  for (unsigned int i = 0; i < points.size(); i++)
+  for (const Eigen::Vector3d& point : points)
   {
-    if (points[i].x() != center_point.x() || points[i].y() != center_point.y() || points[i].z() != center_point.z())
+    if (point.x() != center_point.x() || point.y() != center_point.y() || point.z() != center_point.z())
     {
-      test_points.push_back(points[i]);
+      test_points.push_back(point);
     }
   }
   test_df.addPointsToField(test_points);

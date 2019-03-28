@@ -299,10 +299,10 @@ public:
     req.planner_config = planner_id;
     req.group = group;
     req.replace = replace;
-    for (std::map<std::string, std::string>::const_iterator it = params.begin(), end = params.end(); it != end; ++it)
+    for (const std::pair<const std::string, std::string>& param : params)
     {
-      req.params.keys.push_back(it->first);
-      req.params.values.push_back(it->second);
+      req.params.keys.push_back(param.first);
+      req.params.values.push_back(param.second);
     }
     set_params_service_.call(req, res);
   }
@@ -449,9 +449,9 @@ public:
     {
       const std::vector<std::string>& possible_eefs =
           getRobotModel()->getJointModelGroup(opt_.group_name_)->getAttachedEndEffectorNames();
-      for (std::size_t i = 0; i < possible_eefs.size(); ++i)
-        if (getRobotModel()->getEndEffector(possible_eefs[i])->hasLinkModel(end_effector_link_))
-          return possible_eefs[i];
+      for (const std::string& possible_eef : possible_eefs)
+        if (getRobotModel()->getEndEffector(possible_eef)->hasLinkModel(end_effector_link_))
+          return possible_eef;
     }
     static std::string empty;
     return empty;
@@ -470,8 +470,8 @@ public:
       pose_targets_[eef] = poses;
       // make sure we don't store an actual stamp, since that will become stale can potentially cause tf errors
       std::vector<geometry_msgs::PoseStamped>& stored_poses = pose_targets_[eef];
-      for (std::size_t i = 0; i < stored_poses.size(); ++i)
-        stored_poses[i].header.stamp = ros::Time(0);
+      for (geometry_msgs::PoseStamped& stored_pose : stored_poses)
+        stored_pose.header.stamp = ros::Time(0);
     }
     return true;
   }
@@ -581,7 +581,7 @@ public:
                         bool plan_only = false)
   {
     std::vector<moveit_msgs::PlaceLocation> locations;
-    for (std::size_t i = 0; i < poses.size(); ++i)
+    for (const geometry_msgs::PoseStamped& pose : poses)
     {
       moveit_msgs::PlaceLocation location;
       location.pre_place_approach.direction.vector.z = -1.0;
@@ -595,7 +595,7 @@ public:
       location.post_place_retreat.desired_distance = 0.2;
       // location.post_place_posture is filled by the pick&place lib with the getDetachPosture from the AttachedBody
 
-      location.place_pose = poses[i];
+      location.place_pose = pose;
       locations.push_back(location);
     }
     ROS_DEBUG_NAMED("move_group_interface", "Move group interface has %u place locations",
@@ -936,9 +936,9 @@ public:
     {
       // we only want to detach objects for this group
       const std::vector<std::string>& lnames = joint_model_group_->getLinkModelNames();
-      for (std::size_t i = 0; i < lnames.size(); ++i)
+      for (const std::string& lname : lnames)
       {
-        aco.link_name = lnames[i];
+        aco.link_name = lname;
         attached_object_publisher_.publish(aco);
       }
     }

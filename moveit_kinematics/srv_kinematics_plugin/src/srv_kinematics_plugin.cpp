@@ -92,15 +92,14 @@ bool SrvKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   }
 
   // Make sure all the tip links are in the link_names vector
-  for (std::size_t i = 0; i < tip_frames_.size(); ++i)
+  for (const std::string& tip_frame : tip_frames_)
   {
-    if (!joint_model_group_->hasLinkModel(tip_frames_[i]))
+    if (!joint_model_group_->hasLinkModel(tip_frame))
     {
-      ROS_ERROR_NAMED("srv", "Could not find tip name '%s' in joint group '%s'", tip_frames_[i].c_str(),
-                      group_name.c_str());
+      ROS_ERROR_NAMED("srv", "Could not find tip name '%s' in joint group '%s'", tip_frame.c_str(), group_name.c_str());
       return false;
     }
-    ik_group_info_.link_names.push_back(tip_frames_[i]);
+    ik_group_info_.link_names.push_back(tip_frame);
   }
 
   // Choose what ROS service to send IK requests to
@@ -146,8 +145,8 @@ bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
 
 bool SrvKinematicsPlugin::isRedundantJoint(unsigned int index) const
 {
-  for (std::size_t j = 0; j < redundant_joint_indices_.size(); ++j)
-    if (redundant_joint_indices_[j] == index)
+  for (const unsigned int& redundant_joint_indice : redundant_joint_indices_)
+    if (redundant_joint_indice == index)
       return true;
   return false;
 }

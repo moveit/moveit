@@ -128,9 +128,9 @@ bool KinematicsBase::initialize(const moveit::core::RobotModel& robot_model, con
 
 bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
-  for (std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
+  for (const unsigned int& redundant_joint_index : redundant_joint_indices)
   {
-    if (redundant_joint_indices[i] >= getJointNames().size())
+    if (redundant_joint_index >= getJointNames().size())
     {
       return false;
     }
@@ -145,9 +145,9 @@ bool KinematicsBase::setRedundantJoints(const std::vector<std::string>& redundan
 {
   const std::vector<std::string>& jnames = getJointNames();
   std::vector<unsigned int> redundant_joint_indices;
-  for (std::size_t i = 0; i < redundant_joint_names.size(); ++i)
+  for (const std::string& redundant_joint_name : redundant_joint_names)
     for (std::size_t j = 0; j < jnames.size(); ++j)
-      if (jnames[j] == redundant_joint_names[i])
+      if (jnames[j] == redundant_joint_name)
       {
         redundant_joint_indices.push_back(j);
         break;

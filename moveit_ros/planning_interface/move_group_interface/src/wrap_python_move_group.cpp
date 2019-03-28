@@ -171,8 +171,8 @@ public:
   {
     const std::map<std::string, std::vector<double>>& rv = getRememberedJointValues();
     bp::dict d;
-    for (std::map<std::string, std::vector<double>>::const_iterator it = rv.begin(); it != rv.end(); ++it)
-      d[it->first] = py_bindings_tools::listFromDouble(it->second);
+    for (const std::pair<const std::string, std::vector<double>>& it : rv)
+      d[it.first] = py_bindings_tools::listFromDouble(it.second);
     return d;
   }
 

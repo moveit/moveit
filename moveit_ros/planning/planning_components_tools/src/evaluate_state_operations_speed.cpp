@@ -98,13 +98,13 @@ int main(int argc, char** argv)
     }
 
     const std::vector<std::string>& groups = robot_model->getJointModelGroupNames();
-    for (std::size_t j = 0; j < groups.size(); ++j)
+    for (const std::string& group : groups)
     {
       printf("\n");
-      const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(groups[j]);
+      const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
 
-      printf("%s: Evaluating FK Random ...\n", groups[j].c_str());
-      std::string pname = groups[j] + ":FK Random";
+      printf("%s: Evaluating FK Random ...\n", group.c_str());
+      std::string pname = group + ":FK Random";
       for (int i = 0; i < N; ++i)
       {
         moveit::tools::Profiler::Begin(pname);

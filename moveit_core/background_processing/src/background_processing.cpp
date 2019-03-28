@@ -117,8 +117,8 @@ void BackgroundProcessing::clear()
     action_names_.swap(removed);
   }
   if (update && queue_change_event_)
-    for (std::deque<std::string>::iterator it = removed.begin(); it != removed.end(); ++it)
-      queue_change_event_(REMOVE, *it);
+    for (const std::string& it : removed)
+      queue_change_event_(REMOVE, it);
 }
 
 std::size_t BackgroundProcessing::getJobCount() const

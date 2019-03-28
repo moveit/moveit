@@ -82,7 +82,7 @@ public:
     }
 
     /* actually create each controller */
-    for (int i = 0; i < controller_list.size(); ++i)
+    for (int i = 0; i < controller_list.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
       {
@@ -163,22 +163,21 @@ public:
         ROS_INFO_NAMED("loadInitialJointValues", "Set joints of group '%s' to pose '%s'.", group_name.c_str(),
                        pose_name.c_str());
 
-        for (std::vector<std::string>::const_iterator jit = joint_names.begin(), end = joint_names.end(); jit != end;
-             ++jit)
+        for (const std::string& joint_name : joint_names)
         {
-          const moveit::core::JointModel* jm = robot_state.getJointModel(*jit);
+          const moveit::core::JointModel* jm = robot_state.getJointModel(joint_name);
           if (!jm)
           {
-            ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint: " << *jit);
+            ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint: " << joint_name);
             continue;
           }
           if (jm->getVariableCount() != 1)
           {
-            ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Cannot handle multi-variable joint: " << *jit);
+            ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Cannot handle multi-variable joint: " << joint_name);
             continue;
           }
 
-          joints[*jit] = robot_state.getJointPositions(jm)[0];
+          joints[joint_name] = robot_state.getJointPositions(jm)[0];
         }
       }
       catch (...)

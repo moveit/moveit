@@ -210,8 +210,8 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
 void OccupancyMapMonitor::publishDebugInformation(bool flag)
 {
   debug_info_ = flag;
-  for (std::size_t i = 0; i < map_updaters_.size(); ++i)
-    map_updaters_[i]->publishDebugInformation(debug_info_);
+  for (OccupancyMapUpdaterPtr& map_updater : map_updaters_)
+    map_updater->publishDebugInformation(debug_info_);
 }
 
 void OccupancyMapMonitor::setMapFrame(const std::string& frame)
@@ -275,16 +275,16 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
     ShapeTransformCache temp_cache;
     if (transform_cache_callback_(target_frame, target_time, temp_cache))
     {
-      for (ShapeTransformCache::iterator it = temp_cache.begin(); it != temp_cache.end(); ++it)
+      for (std::pair<const ShapeHandle, Eigen::Isometry3d>& it : temp_cache)
       {
-        std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
+        std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it.first);
         if (jt == mesh_handles_[index].end())
         {
           ROS_ERROR_THROTTLE(1, "Incorrect mapping of mesh handles");
           return false;
         }
         else
-          cache[jt->second] = it->second;
+          cache[jt->second] = it.second;
       }
       return true;
     }
@@ -337,15 +337,15 @@ void OccupancyMapMonitor::startMonitor()
 {
   active_ = true;
   /* initialize all of the occupancy map updaters */
-  for (std::size_t i = 0; i < map_updaters_.size(); ++i)
-    map_updaters_[i]->start();
+  for (OccupancyMapUpdaterPtr& map_updater : map_updaters_)
+    map_updater->start();
 }
 
 void OccupancyMapMonitor::stopMonitor()
 {
   active_ = false;
-  for (std::size_t i = 0; i < map_updaters_.size(); ++i)
-    map_updaters_[i]->stop();
+  for (OccupancyMapUpdaterPtr& map_updater : map_updaters_)
+    map_updater->stop();
 }
 
 OccupancyMapMonitor::~OccupancyMapMonitor()

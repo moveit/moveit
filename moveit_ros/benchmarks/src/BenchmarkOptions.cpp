@@ -150,9 +150,8 @@ const std::map<std::string, std::vector<std::string>>& BenchmarkOptions::getPlan
 void BenchmarkOptions::getPlannerPluginList(std::vector<std::string>& plugin_list) const
 {
   plugin_list.clear();
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners_.begin(); it != planners_.end();
-       ++it)
-    plugin_list.push_back(it->first);
+  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners_)
+    plugin_list.push_back(planner.first);
 }
 
 const std::string& BenchmarkOptions::getWorkspaceFrameID() const
@@ -249,7 +248,7 @@ void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
       return;
     }
 
-    for (int i = 0; i < planner_configs.size(); ++i)
+    for (int i = 0; i < planner_configs.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (planner_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {

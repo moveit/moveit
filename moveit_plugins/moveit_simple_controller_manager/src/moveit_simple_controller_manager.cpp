@@ -70,7 +70,7 @@ public:
     }
 
     /* actually create each controller */
-    for (int i = 0; i < controller_list.size(); ++i)
+    for (int i = 0; i < controller_list.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
       if (!isStruct(controller_list[i], { "name", "joints", "action_ns", "type" }))
       {

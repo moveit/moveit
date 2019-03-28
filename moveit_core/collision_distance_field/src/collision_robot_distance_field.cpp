@@ -114,15 +114,13 @@ void CollisionRobotDistanceField::initialize(
   planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
 
   const std::vector<const moveit::core::JointModelGroup*>& jmg = robot_model_->getJointModelGroups();
-  for (std::vector<const moveit::core::JointModelGroup*>::const_iterator it = jmg.begin(); it != jmg.end(); it++)
+  for (const moveit::core::JointModelGroup* jm : jmg)
   {
-    const moveit::core::JointModelGroup* jm = *it;
-
     std::map<std::string, bool> updated_group_entry;
     std::vector<std::string> links = jm->getUpdatedLinkModelsWithGeometryNames();
-    for (unsigned int i = 0; i < links.size(); i++)
+    for (const std::string& link : links)
     {
-      updated_group_entry[links[i]] = true;
+      updated_group_entry[link] = true;
     }
     in_group_update_map_[jm->getName()] = updated_group_entry;
     state.updateLinkTransforms();
@@ -279,19 +277,18 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
       if (coll)
       {
         res.collision = true;
-        for (unsigned int j = 0; j < colls.size(); j++)
+        for (unsigned int col : colls)
         {
           collision_detection::Contact con;
           if (is_link)
           {
-            con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
+            con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[col];
             con.body_type_1 = collision_detection::BodyTypes::ROBOT_LINK;
             con.body_name_1 = gsr->dfce_->link_names_[i];
           }
           else
           {
-            con.pos =
-                gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[colls[j]];
+            con.pos = gsr->attached_body_decompositions_[i - gsr->dfce_->link_names_.size()]->getSphereCenters()[col];
             con.body_type_1 = collision_detection::BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i - gsr->dfce_->link_names_.size()];
           }
@@ -302,7 +299,7 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
           con.body_name_2 = "self";
           res.contact_count++;
           res.contacts[std::pair<std::string, std::string>(con.body_name_1, con.body_name_2)].push_back(con);
-          gsr->gradients_[i].types[colls[j]] = SELF;
+          gsr->gradients_[i].types[col] = SELF;
         }
         gsr->gradients_[i].collision = true;
 
@@ -867,23 +864,22 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
   {
     const std::vector<const moveit::core::JointModel*>& child_joint_models =
         dfce->state_->getJointModelGroup(dfce->group_name_)->getActiveJointModels();
-    for (unsigned int i = 0; i < child_joint_models.size(); i++)
+    for (const moveit::core::JointModel* child_joint_model : child_joint_models)
     {
-      updated_map[child_joint_models[i]->getName()] = true;
-      ROS_DEBUG_STREAM("Joint " << child_joint_models[i]->getName() << " has been added to updated list");
+      updated_map[child_joint_model->getName()] = true;
+      ROS_DEBUG_STREAM("Joint " << child_joint_model->getName() << " has been added to updated list");
     }
   }
 
   const std::vector<std::string>& state_variable_names = state.getVariableNames();
-  for (std::vector<std::string>::const_iterator name_iter = state_variable_names.begin();
-       name_iter != state_variable_names.end(); name_iter++)
+  for (const std::string& state_variable_name : state_variable_names)
   {
-    double val = state.getVariablePosition(*name_iter);
+    double val = state.getVariablePosition(state_variable_name);
     dfce->state_values_.push_back(val);
-    if (updated_map.count(*name_iter) == 0)
+    if (updated_map.count(state_variable_name) == 0)
     {
       dfce->state_check_indices_.push_back(dfce->state_values_.size() - 1);
-      ROS_DEBUG_STREAM("Non-group joint " << *name_iter << " will be checked for state changes");
+      ROS_DEBUG_STREAM("Non-group joint " << state_variable_name << " will be checked for state changes");
     }
   }
 
@@ -899,9 +895,9 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       std::vector<PosedBodyPointDecompositionPtr> non_group_link_decompositions;
       std::vector<PosedBodyPointDecompositionVectorPtr> non_group_attached_body_decompositions;
       const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
-      for (unsigned int i = 0; i < robot_model_->getLinkModelsWithCollisionGeometry().size(); i++)
+      for (const moveit::core::LinkModel* link_model : robot_model_->getLinkModelsWithCollisionGeometry())
       {
-        std::string link_name = robot_model_->getLinkModelsWithCollisionGeometry()[i]->getName();
+        const std::string& link_name = link_model->getName();
         const moveit::core::LinkModel* link_state = dfce->state_->getLinkModel(link_name);
         if (updated_group_map.find(link_name) != updated_group_map.end())
         {
@@ -914,10 +910,10 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
 
         std::vector<const moveit::core::AttachedBody*> attached_bodies;
         dfce->state_->getAttachedBodies(attached_bodies, link_state);
-        for (unsigned int j = 0; j < attached_bodies.size(); j++)
+        for (const moveit::core::AttachedBody* attached_body : attached_bodies)
         {
           non_group_attached_body_decompositions.push_back(
-              getAttachedBodyPointDecomposition(attached_bodies[j], resolution_));
+              getAttachedBodyPointDecomposition(attached_body, resolution_));
         }
       }
       dfce->distance_field_.reset(new distance_field::PropagationDistanceField(
@@ -930,16 +926,18 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
       // now we need to actually set the points
       // TODO - deal with shifted robot
       EigenSTL::vector_Vector3d all_points;
-      for (unsigned int i = 0; i < non_group_link_decompositions.size(); i++)
+      for (collision_detection::PosedBodyPointDecompositionPtr& non_group_link_decomposition :
+           non_group_link_decompositions)
       {
-        all_points.insert(all_points.end(), non_group_link_decompositions[i]->getCollisionPoints().begin(),
-                          non_group_link_decompositions[i]->getCollisionPoints().end());
+        all_points.insert(all_points.end(), non_group_link_decomposition->getCollisionPoints().begin(),
+                          non_group_link_decomposition->getCollisionPoints().end());
       }
 
-      for (unsigned int i = 0; i < non_group_attached_body_decompositions.size(); i++)
+      for (collision_detection::PosedBodyPointDecompositionVectorPtr& non_group_attached_body_decomposition :
+           non_group_attached_body_decompositions)
       {
-        all_points.insert(all_points.end(), non_group_attached_body_decompositions[i]->getCollisionPoints().begin(),
-                          non_group_attached_body_decompositions[i]->getCollisionPoints().end());
+        all_points.insert(all_points.end(), non_group_attached_body_decomposition->getCollisionPoints().begin(),
+                          non_group_attached_body_decomposition->getCollisionPoints().end());
       }
 
       dfce->distance_field_->addPointsToField(all_points);
@@ -952,20 +950,20 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
 void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution)
 {
   const std::vector<const moveit::core::LinkModel*>& link_models = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (unsigned int i = 0; i < link_models.size(); i++)
+  for (const moveit::core::LinkModel* link_model : link_models)
   {
-    if (link_models[i]->getShapes().empty())
+    if (link_model->getShapes().empty())
     {
-      ROS_WARN("No collision geometry for link model %s though there should be", link_models[i]->getName().c_str());
+      ROS_WARN("No collision geometry for link model %s though there should be", link_model->getName().c_str());
       continue;
     }
 
-    ROS_DEBUG("Generating model for %s", link_models[i]->getName().c_str());
-    BodyDecompositionConstPtr bd(new BodyDecomposition(link_models[i]->getShapes(),
-                                                       link_models[i]->getCollisionOriginTransforms(), resolution,
-                                                       getLinkPadding(link_models[i]->getName())));
+    ROS_DEBUG("Generating model for %s", link_model->getName().c_str());
+    BodyDecompositionConstPtr bd(new BodyDecomposition(link_model->getShapes(),
+                                                       link_model->getCollisionOriginTransforms(), resolution,
+                                                       getLinkPadding(link_model->getName())));
     link_body_decomposition_vector_.push_back(bd);
-    link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size() - 1;
+    link_body_decomposition_index_map_[link_model->getName()] = link_body_decomposition_vector_.size() - 1;
   }
 }
 
@@ -1043,27 +1041,26 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
   ROS_ASSERT_MSG(robot_model_, "RobotModelPtr is invalid");
   const std::vector<const moveit::core::LinkModel*>& link_models = robot_model_->getLinkModelsWithCollisionGeometry();
 
-  for (unsigned int i = 0; i < link_models.size(); i++)
+  for (const moveit::core::LinkModel* link_model : link_models)
   {
-    if (link_models[i]->getShapes().empty())
+    if (link_model->getShapes().empty())
     {
-      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName()
+      ROS_WARN_STREAM("Skipping model generation for link " << link_model->getName()
                                                             << " since it contains no geometries");
       continue;
     }
 
-    BodyDecompositionPtr bd(new BodyDecomposition(link_models[i]->getShapes(),
-                                                  link_models[i]->getCollisionOriginTransforms(), resolution,
-                                                  getLinkPadding(link_models[i]->getName())));
+    BodyDecompositionPtr bd(new BodyDecomposition(link_model->getShapes(), link_model->getCollisionOriginTransforms(),
+                                                  resolution, getLinkPadding(link_model->getName())));
 
-    ROS_DEBUG("Generated model for %s", link_models[i]->getName().c_str());
+    ROS_DEBUG("Generated model for %s", link_model->getName().c_str());
 
-    if (link_spheres.find(link_models[i]->getName()) != link_spheres.end())
+    if (link_spheres.find(link_model->getName()) != link_spheres.end())
     {
-      bd->replaceCollisionSpheres(link_spheres.find(link_models[i]->getName())->second, Eigen::Isometry3d::Identity());
+      bd->replaceCollisionSpheres(link_spheres.find(link_model->getName())->second, Eigen::Isometry3d::Identity());
     }
     link_body_decomposition_vector_.push_back(bd);
-    link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size() - 1;
+    link_body_decomposition_index_map_[link_model->getName()] = link_body_decomposition_vector_.size() - 1;
   }
   ROS_DEBUG_STREAM(__FUNCTION__ << " Finished ");
 }

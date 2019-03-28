@@ -107,9 +107,8 @@ void RobotModelLoader::configure(const Options& opt)
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
 
-    for (std::size_t i = 0; i < model_->getJointModels().size(); ++i)
+    for (moveit::core::JointModel* jmodel : model_->getJointModels())
     {
-      robot_model::JointModel* jmodel = model_->getJointModels()[i];
       std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableBoundsMsg();
       for (std::size_t j = 0; j < jlim.size(); ++j)
       {
@@ -186,13 +185,13 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
       ROS_WARN("No kinematics plugins defined. Fill and load kinematics.yaml!");
 
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
-    for (std::size_t i = 0; i < groups.size(); ++i)
+    for (const std::string& group : groups)
     {
       // Check if a group in kinematics.yaml exists in the srdf
-      if (!model_->hasJointModelGroup(groups[i]))
+      if (!model_->hasJointModelGroup(group))
         continue;
 
-      const robot_model::JointModelGroup* jmg = model_->getJointModelGroup(groups[i]);
+      const robot_model::JointModelGroup* jmg = model_->getJointModelGroup(group);
 
       kinematics::KinematicsBasePtr solver = kinematics_allocator(jmg);
       if (solver)
@@ -200,29 +199,29 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
         std::string error_msg;
         if (solver->supportsGroup(jmg, &error_msg))
         {
-          imap[groups[i]] = kinematics_allocator;
+          imap[group] = kinematics_allocator;
         }
         else
         {
           ROS_ERROR("Kinematics solver %s does not support joint group %s.  Error: %s", typeid(*solver).name(),
-                    groups[i].c_str(), error_msg.c_str());
+                    group.c_str(), error_msg.c_str());
         }
       }
       else
       {
-        ROS_ERROR("Kinematics solver could not be instantiated for joint group %s.", groups[i].c_str());
+        ROS_ERROR("Kinematics solver could not be instantiated for joint group %s.", group.c_str());
       }
     }
     model_->setKinematicsAllocators(imap);
 
     // set the default IK timeouts
     const std::map<std::string, double>& timeout = kinematics_loader_->getIKTimeout();
-    for (std::map<std::string, double>::const_iterator it = timeout.begin(); it != timeout.end(); ++it)
+    for (const std::pair<const std::string, double>& it : timeout)
     {
-      if (!model_->hasJointModelGroup(it->first))
+      if (!model_->hasJointModelGroup(it.first))
         continue;
-      robot_model::JointModelGroup* jmg = model_->getJointModelGroup(it->first);
-      jmg->setDefaultIKTimeout(it->second);
+      robot_model::JointModelGroup* jmg = model_->getJointModelGroup(it.first);
+      jmg->setDefaultIKTimeout(it.second);
     }
   }
 }

@@ -68,9 +68,9 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
   planning_scene->getCollisionDetectorNames(cd_names);
 
   ROS_INFO_STREAM("The following collision detectors are available in the planning scene.");
-  for (std::size_t i = 0; i < cd_names.size(); i++)
+  for (const std::string& cd_name : cd_names)
   {
-    ROS_INFO_STREAM(cd_names[i]);
+    ROS_INFO_STREAM(cd_name);
   }
 
   ROS_INFO_STREAM("Active collision detector is: " + planning_scene->getActiveCollisionDetectorName());
@@ -111,9 +111,9 @@ void ChompOptimizer::initialize()
                                    &planning_scene_->getAllowedCollisionMatrix(), gsr_);
   ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now() - wt));
   num_collision_points_ = 0;
-  for (size_t i = 0; i < gsr_->gradients_.size(); i++)
+  for (const collision_detection::GradientInfo& gradient : gsr_->gradients_)
   {
-    num_collision_points_ += gsr_->gradients_[i].gradients.size();
+    num_collision_points_ += gradient.gradients.size();
   }
 
   // set up the joint costs:
@@ -209,11 +209,9 @@ void ChompOptimizer::initialize()
   }
 
   // TODO - is this just the joint_roots_?
-  for (size_t i = 0; i < joint_model_group_->getUpdatedLinkModels().size(); i++)
+  for (const moveit::core::LinkModel* link : joint_model_group_->getUpdatedLinkModels())
   {
-    if (fixed_link_resolution_map.find(
-            joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel()->getName()) ==
-        fixed_link_resolution_map.end())
+    if (fixed_link_resolution_map.find(link->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
       const moveit::core::JointModel* parent_model = nullptr;
       bool found_root = false;
@@ -222,22 +220,21 @@ void ChompOptimizer::initialize()
       {
         if (parent_model == nullptr)
         {
-          parent_model = joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel();
+          parent_model = link->getParentJointModel();
         }
         else
         {
           parent_model = parent_model->getParentLinkModel()->getParentJointModel();
-          for (size_t j = 0; j < joint_names_.size(); j++)
+          for (const std::string& joint_name : joint_names_)
           {
-            if (parent_model->getName() == joint_names_[j])
+            if (parent_model->getName() == joint_name)
             {
               found_root = true;
             }
           }
         }
       }
-      fixed_link_resolution_map[joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel()->getName()] =
-          parent_model->getName();
+      fixed_link_resolution_map[link->getParentJointModel()->getName()] = parent_model->getName();
     }
   }
 
@@ -246,10 +243,8 @@ void ChompOptimizer::initialize()
   for (int i = start; i <= end; ++i)
   {
     size_t j = 0;
-    for (size_t g = 0; g < gsr_->gradients_.size(); g++)
+    for (const collision_detection::GradientInfo& info : gsr_->gradients_)
     {
-      collision_detection::GradientInfo& info = gsr_->gradients_[g];
-
       for (size_t k = 0; k < info.sphere_locations.size(); k++)
       {
         if (fixed_link_resolution_map.find(info.joint_name) != fixed_link_resolution_map.end())
@@ -857,16 +852,16 @@ void ChompOptimizer::handleJointLimits()
     double joint_max = -DBL_MAX;
     double joint_min = DBL_MAX;
 
-    for (moveit::core::JointModel::Bounds::const_iterator it = bounds.begin(); it != bounds.end(); it++)
+    for (const moveit::core::VariableBounds& bound : bounds)
     {
-      if (it->min_position_ < joint_min)
+      if (bound.min_position_ < joint_min)
       {
-        joint_min = it->min_position_;
+        joint_min = bound.min_position_;
       }
 
-      if (it->max_position_ > joint_max)
+      if (bound.max_position_ > joint_max)
       {
-        joint_max = it->max_position_;
+        joint_max = bound.max_position_;
       }
     }
 
@@ -953,10 +948,8 @@ void ChompOptimizer::performForwardKinematics()
     // Keep vars in scope
     {
       size_t j = 0;
-      for (size_t g = 0; g < gsr_->gradients_.size(); g++)
+      for (const collision_detection::GradientInfo& info : gsr_->gradients_)
       {
-        collision_detection::GradientInfo& info = gsr_->gradients_[g];
-
         for (size_t k = 0; k < info.sphere_locations.size(); k++)
         {
           collision_point_pos_eigen_[i][j][0] = info.sphere_locations[k].x();

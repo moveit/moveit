@@ -91,10 +91,10 @@ rviz::Property* MotionPlanningParamWidget::createPropertyTree()
   const std::map<std::string, std::string>& params = move_group_->getPlannerParams(planner_id_, group_name_);
 
   rviz::Property* root = new rviz::Property(QString::fromStdString(planner_id_ + " parameters"));
-  for (std::map<std::string, std::string>::const_iterator it = params.begin(), end = params.end(); it != end; ++it)
+  for (const std::pair<const std::string, std::string>& param : params)
   {
-    const QString key = QString::fromStdString(it->first);
-    const QString value = QString::fromStdString(it->second);
+    const QString key = QString::fromStdString(param.first);
+    const QString value = QString::fromStdString(param.second);
     long value_long;
     double value_double;
 

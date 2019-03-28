@@ -89,7 +89,7 @@ public:
             planning_scene->getRobotModel()->getJointModels();
 
     bool change_req = false;
-    for (std::size_t i = 0; i < jmodels.size(); ++i)
+    for (const moveit::core::JointModel* jm : jmodels)
     {
       // Check if we have a revolute, continuous joint. If we do, then we only need to make sure
       // it is within de model's declared bounds (usually -Pi, Pi), since the values wrap around.
@@ -97,7 +97,6 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
 
-      const robot_model::JointModel* jm = jmodels[i];
       if (jm->getType() == robot_model::JointModel::REVOLUTE)
       {
         if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
@@ -137,34 +136,34 @@ public:
 
     // pointer to a prefix state we could possibly add, if we detect we have to make changes
     robot_state::RobotStatePtr prefix_state;
-    for (std::size_t i = 0; i < jmodels.size(); ++i)
+    for (const moveit::core::JointModel* jmodel : jmodels)
     {
-      if (!start_state.satisfiesBounds(jmodels[i]))
+      if (!start_state.satisfiesBounds(jmodel))
       {
-        if (start_state.satisfiesBounds(jmodels[i], bounds_dist_))
+        if (start_state.satisfiesBounds(jmodel, bounds_dist_))
         {
           if (!prefix_state)
             prefix_state.reset(new robot_state::RobotState(start_state));
-          start_state.enforceBounds(jmodels[i]);
+          start_state.enforceBounds(jmodel);
           change_req = true;
           ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.",
-                   jmodels[i]->getName().c_str());
+                   jmodel->getName().c_str());
         }
         else
         {
           std::stringstream joint_values;
           std::stringstream joint_bounds_low;
           std::stringstream joint_bounds_hi;
-          const double* p = start_state.getJointPositions(jmodels[i]);
-          for (std::size_t k = 0; k < jmodels[i]->getVariableCount(); ++k)
+          const double* p = start_state.getJointPositions(jmodel);
+          for (std::size_t k = 0; k < jmodel->getVariableCount(); ++k)
             joint_values << p[k] << " ";
-          const robot_model::JointModel::Bounds& b = jmodels[i]->getVariableBounds();
-          for (std::size_t k = 0; k < b.size(); ++k)
+          const robot_model::JointModel::Bounds& b = jmodel->getVariableBounds();
+          for (const moveit::core::VariableBounds& variable_bounds : b)
           {
-            joint_bounds_low << b[k].min_position_ << " ";
-            joint_bounds_hi << b[k].max_position_ << " ";
+            joint_bounds_low << variable_bounds.min_position_ << " ";
+            joint_bounds_hi << variable_bounds.max_position_ << " ";
           }
-          ROS_WARN_STREAM("Joint '" << jmodels[i]->getName()
+          ROS_WARN_STREAM("Joint '" << jmodel->getName()
                                     << "' from the starting state is outside bounds by a significant margin: [ "
                                     << joint_values.str() << "] should be in the range [ " << joint_bounds_low.str()
                                     << "], [ " << joint_bounds_hi.str() << "] but the error above the ~"
@@ -193,8 +192,8 @@ public:
           0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
       res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
       // we add a prefix point, so we need to bump any previously added index positions
-      for (std::size_t i = 0; i < added_path_index.size(); ++i)
-        added_path_index[i]++;
+      for (std::size_t& added_index : added_path_index)
+        added_index++;
       added_path_index.push_back(0);
     }
 

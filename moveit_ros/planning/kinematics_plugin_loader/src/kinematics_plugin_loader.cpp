@@ -117,8 +117,8 @@ public:
     // Debug tip choices
     std::stringstream tip_debug;
     tip_debug << "Planning group '" << jmg->getName() << "' has tip(s): ";
-    for (std::size_t i = 0; i < tips.size(); ++i)
-      tip_debug << tips[i] << ", ";
+    for (const std::string& tip : tips)
+      tip_debug << tip << ", ";
     ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", tip_debug.str());
 
     return tips;
@@ -293,16 +293,16 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
         ros::NodeHandle nh("~");
 
         // read the list of plugin names for possible kinematics solvers
-        for (std::size_t i = 0; i < known_groups.size(); ++i)
+        for (const srdf::Model::Group& known_group : known_groups)
         {
-          std::string base_param_name = known_groups[i].name_;
+          std::string base_param_name = known_group.name_;
           ROS_DEBUG_NAMED("kinematics_plugin_loader", "Looking for param %s ",
                           (base_param_name + "/kinematics_solver").c_str());
           std::string ksolver_param_name;
           bool found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           if (!found || !nh.hasParam(ksolver_param_name))
           {
-            base_param_name = robot_description_ + "_kinematics/" + known_groups[i].name_;
+            base_param_name = robot_description_ + "_kinematics/" + known_group.name_;
             ROS_DEBUG_NAMED(LOGNAME, "Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
             found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           }
@@ -319,13 +319,13 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
                 if (first)
                 {
                   first = false;
-                  groups_.push_back(known_groups[i].name_);
+                  groups_.push_back(known_group.name_);
                 }
                 std::string solver;
                 ss >> solver >> std::ws;
-                possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
+                possible_kinematics_solvers[known_group.name_].push_back(solver);
                 ROS_DEBUG_NAMED(LOGNAME, "Using kinematics solver '%s' for group '%s'.", solver.c_str(),
-                                known_groups[i].name_.c_str());
+                                known_group.name_.c_str());
               }
             }
           }
@@ -335,12 +335,12 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
           {
             double ksolver_timeout;
             if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
-              ik_timeout_[known_groups[i].name_] = ksolver_timeout;
+              ik_timeout_[known_group.name_] = ksolver_timeout;
             else
             {  // just in case this is an int
               int ksolver_timeout_i;
               if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout_i))
-                ik_timeout_[known_groups[i].name_] = ksolver_timeout_i;
+                ik_timeout_[known_group.name_] = ksolver_timeout_i;
             }
           }
 
@@ -364,19 +364,19 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
               {
                 double res;
                 ss >> res >> std::ws;
-                search_res[known_groups[i].name_].push_back(res);
+                search_res[known_group.name_].push_back(res);
               }
             }
             else
             {  // handle the case this param is just one value and parsed as a double
               double res;
               if (nh.getParam(ksolver_res_param_name, res))
-                search_res[known_groups[i].name_].push_back(res);
+                search_res[known_group.name_].push_back(res);
               else
               {
                 int res_i;
                 if (nh.getParam(ksolver_res_param_name, res_i))
-                  search_res[known_groups[i].name_].push_back(res_i);
+                  search_res[known_group.name_].push_back(res_i);
               }
             }
           }
@@ -392,7 +392,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
               ROS_WARN_STREAM_NAMED(LOGNAME, "Using kinematics_solver_ik_link rosparam is "
                                              "deprecated in favor of kinematics_solver_ik_links "
                                              "rosparam array.");
-              iksolver_to_tip_links[known_groups[i].name_].push_back(ksolver_ik_link);
+              iksolver_to_tip_links[known_group.name_].push_back(ksolver_ik_link);
             }
           }
 
@@ -410,12 +410,12 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
               }
               else
               {
-                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)
+                for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)  // NOLINT(modernize-loop-convert)
                 {
                   ROS_ASSERT(ksolver_ik_links[j].getType() == XmlRpc::XmlRpcValue::TypeString);
                   ROS_DEBUG_STREAM_NAMED(LOGNAME, "found tip " << static_cast<std::string>(ksolver_ik_links[j])
-                                                               << " for group " << known_groups[i].name_);
-                  iksolver_to_tip_links[known_groups[i].name_].push_back(static_cast<std::string>(ksolver_ik_links[j]));
+                                                               << " for group " << known_group.name_);
+                  iksolver_to_tip_links[known_group.name_].push_back(static_cast<std::string>(ksolver_ik_links[j]));
                 }
               }
             }
@@ -423,19 +423,19 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
 
           // make sure there is a default resolution at least specified for every solver (in case it was not specified
           // on the param server)
-          while (search_res[known_groups[i].name_].size() < possible_kinematics_solvers[known_groups[i].name_].size())
-            search_res[known_groups[i].name_].push_back(default_search_resolution_);
+          while (search_res[known_group.name_].size() < possible_kinematics_solvers[known_group.name_].size())
+            search_res[known_group.name_].push_back(default_search_resolution_);
         }
       }
       else
       {
         ROS_DEBUG_NAMED(LOGNAME, "Using specified default settings for kinematics solvers ...");
-        for (std::size_t i = 0; i < known_groups.size(); ++i)
+        for (const srdf::Model::Group& known_group : known_groups)
         {
-          possible_kinematics_solvers[known_groups[i].name_].resize(1, default_solver_plugin_);
-          search_res[known_groups[i].name_].resize(1, default_search_resolution_);
-          ik_timeout_[known_groups[i].name_] = default_solver_timeout_;
-          groups_.push_back(known_groups[i].name_);
+          possible_kinematics_solvers[known_group.name_].resize(1, default_solver_plugin_);
+          search_res[known_group.name_].resize(1, default_search_resolution_);
+          ik_timeout_[known_group.name_] = default_solver_timeout_;
+          groups_.push_back(known_group.name_);
         }
       }
     }

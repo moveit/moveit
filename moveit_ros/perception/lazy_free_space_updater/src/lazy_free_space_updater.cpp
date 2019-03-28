@@ -133,40 +133,34 @@ void LazyFreeSpaceUpdater::processThread()
 #pragma omp section
       {
         /* compute the free cells along each ray that ends at an occupied cell */
-        for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(),
-                                         end = process_occupied_cells_set_->end();
-             it != end; ++it)
-          if (tree_->computeRayKeys(process_sensor_origin_, tree_->keyToCoord(it->first), key_ray1))
-            for (octomap::KeyRay::iterator jt = key_ray1.begin(), end = key_ray1.end(); jt != end; ++jt)
-              free_cells1[*jt] += it->second;
+        for (std::pair<const octomap::OcTreeKey, unsigned int>& it : *process_occupied_cells_set_)
+          if (tree_->computeRayKeys(process_sensor_origin_, tree_->keyToCoord(it.first), key_ray1))
+            for (octomap::OcTreeKey& jt : key_ray1)
+              free_cells1[jt] += it.second;
       }
 
 #pragma omp section
       {
         /* compute the free cells along each ray that ends at a model cell */
-        for (octomap::KeySet::iterator it = process_model_cells_set_->begin(), end = process_model_cells_set_->end();
-             it != end; ++it)
-          if (tree_->computeRayKeys(process_sensor_origin_, tree_->keyToCoord(*it), key_ray2))
-            for (octomap::KeyRay::iterator jt = key_ray2.begin(), end = key_ray2.end(); jt != end; ++jt)
-              free_cells2[*jt]++;
+        for (const octomap::OcTreeKey& it : *process_model_cells_set_)
+          if (tree_->computeRayKeys(process_sensor_origin_, tree_->keyToCoord(it), key_ray2))
+            for (octomap::OcTreeKey& jt : key_ray2)
+              free_cells2[jt]++;
       }
     }
 
     tree_->unlockRead();
 
-    for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(),
-                                     end = process_occupied_cells_set_->end();
-         it != end; ++it)
+    for (std::pair<const octomap::OcTreeKey, unsigned int>& it : *process_occupied_cells_set_)
     {
-      free_cells1.erase(it->first);
-      free_cells2.erase(it->first);
+      free_cells1.erase(it.first);
+      free_cells2.erase(it.first);
     }
 
-    for (octomap::KeySet::iterator it = process_model_cells_set_->begin(), end = process_model_cells_set_->end();
-         it != end; ++it)
+    for (const octomap::OcTreeKey& it : *process_model_cells_set_)
     {
-      free_cells1.erase(*it);
-      free_cells2.erase(*it);
+      free_cells1.erase(it);
+      free_cells2.erase(it);
     }
     ROS_DEBUG("Marking %lu cells as free...", (long unsigned int)(free_cells1.size() + free_cells2.size()));
 
@@ -175,15 +169,14 @@ void LazyFreeSpaceUpdater::processThread()
     try
     {
       // set the logodds to the minimum for the cells that are part of the model
-      for (octomap::KeySet::iterator it = process_model_cells_set_->begin(), end = process_model_cells_set_->end();
-           it != end; ++it)
-        tree_->updateNode(*it, lg_0);
+      for (const octomap::OcTreeKey& it : *process_model_cells_set_)
+        tree_->updateNode(it, lg_0);
 
       /* mark free cells only if not seen occupied in this cloud */
-      for (OcTreeKeyCountMap::iterator it = free_cells1.begin(), end = free_cells1.end(); it != end; ++it)
-        tree_->updateNode(it->first, it->second * lg_miss);
-      for (OcTreeKeyCountMap::iterator it = free_cells2.begin(), end = free_cells2.end(); it != end; ++it)
-        tree_->updateNode(it->first, it->second * lg_miss);
+      for (std::pair<const octomap::OcTreeKey, unsigned int>& it : free_cells1)
+        tree_->updateNode(it.first, it.second * lg_miss);
+      for (std::pair<const octomap::OcTreeKey, unsigned int>& it : free_cells2)
+        tree_->updateNode(it.first, it.second * lg_miss);
     }
     catch (...)
     {
@@ -222,8 +215,8 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       occupied_cells_set = new OcTreeKeyCountMap();
       octomap::KeySet* s = occupied_cells_sets_.front();
       occupied_cells_sets_.pop_front();
-      for (octomap::KeySet::iterator it = s->begin(), end = s->end(); it != end; ++it)
-        (*occupied_cells_set)[*it]++;
+      for (const octomap::OcTreeKey& it : *s)
+        (*occupied_cells_set)[it]++;
       delete s;
       model_cells_set = model_cells_sets_.front();
       model_cells_sets_.pop_front();
@@ -244,8 +237,8 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       sensor_origins_.pop_front();
 
       octomap::KeySet* add_occ = occupied_cells_sets_.front();
-      for (octomap::KeySet::iterator it = add_occ->begin(), end = add_occ->end(); it != end; ++it)
-        (*occupied_cells_set)[*it]++;
+      for (const octomap::OcTreeKey& it : *add_occ)
+        (*occupied_cells_set)[it]++;
       occupied_cells_sets_.pop_front();
       delete add_occ;
       octomap::KeySet* mod_occ = model_cells_sets_.front();

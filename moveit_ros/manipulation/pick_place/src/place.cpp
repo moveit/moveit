@@ -110,10 +110,10 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
       }
       else
         // check to see if there is an end effector that has attached objects associaded, so we can complete the place
-        for (std::size_t i = 0; i < eef_names.size(); ++i)
+        for (const std::string& eef_name : eef_names)
         {
           std::vector<const robot_state::AttachedBody*> attached_bodies;
-          const robot_model::JointModelGroup* eg = planning_scene->getRobotModel()->getEndEffector(eef_names[i]);
+          const robot_model::JointModelGroup* eg = planning_scene->getRobotModel()->getEndEffector(eef_name);
           if (eg)
           {
             // see if there are objects attached to links in the eef
@@ -139,8 +139,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
             if (!attached_object_name.empty())
             {
               bool found = false;
-              for (std::size_t j = 0; j < attached_bodies.size(); ++j)
-                if (attached_bodies[j]->getName() == attached_object_name)
+              for (const moveit::core::AttachedBody* attached_body : attached_bodies)
+                if (attached_body->getName() == attached_object_name)
                 {
                   found = true;
                   break;
@@ -162,7 +162,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
               return false;
             }
             // set the end effector (this was initialized to NULL above)
-            eef = planning_scene->getRobotModel()->getEndEffector(eef_names[i]);
+            eef = planning_scene->getRobotModel()->getEndEffector(eef_name);
           }
         }
     }
@@ -179,8 +179,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
       const robot_model::LinkModel* link = attached_body->getAttachedLink();
       // check to see if there is a unique end effector containing the link
       const std::vector<const robot_model::JointModelGroup*>& eefs = planning_scene->getRobotModel()->getEndEffectors();
-      for (std::size_t i = 0; i < eefs.size(); ++i)
-        if (eefs[i]->hasLinkModel(link->getName()))
+      for (const moveit::core::JointModelGroup* end_effector : eefs)
+        if (end_effector->hasLinkModel(link->getName()))
         {
           if (eef)
           {
@@ -191,7 +191,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
             error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
             return false;
           }
-          eef = eefs[i];
+          eef = end_effector;
         }
     }
     // if the group is also unknown, but we just found out the eef

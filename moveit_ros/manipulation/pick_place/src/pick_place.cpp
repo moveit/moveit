@@ -119,18 +119,17 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr& plan) const
   moveit_msgs::DisplayTrajectory dtraj;
   dtraj.model_id = getRobotModel()->getName();
   bool first = true;
-  for (std::size_t i = 0; i < plan->trajectories_.size(); ++i)
+  for (const plan_execution::ExecutableTrajectory& traj : plan->trajectories_)
   {
-    if (!plan->trajectories_[i].trajectory_ || plan->trajectories_[i].trajectory_->empty())
+    if (!traj.trajectory_ || traj.trajectory_->empty())
       continue;
     if (first)
     {
-      robot_state::robotStateToRobotStateMsg(plan->trajectories_[i].trajectory_->getFirstWayPoint(),
-                                             dtraj.trajectory_start);
+      robot_state::robotStateToRobotStateMsg(traj.trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
       first = false;
     }
     dtraj.trajectory.resize(dtraj.trajectory.size() + 1);
-    plan->trajectories_[i].trajectory_->getRobotTrajectoryMsg(dtraj.trajectory.back());
+    traj.trajectory_->getRobotTrajectoryMsg(dtraj.trajectory.back());
   }
   display_path_publisher_.publish(dtraj);
 }
@@ -184,15 +183,15 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
 
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());
   visualization_msgs::MarkerArray ma;
-  for (std::size_t i = 0; i < plans.size(); ++i)
+  for (const ManipulationPlanPtr& plan : plans)
   {
-    const robot_model::JointModelGroup* jmg = plans[i]->shared_data_->end_effector_group_;
+    const robot_model::JointModelGroup* jmg = plan->shared_data_->end_effector_group_;
     if (jmg)
     {
-      unsigned int type = std::min(plans[i]->processing_stage_, colors.size() - 1);
-      state.updateStateWithLinkAt(plans[i]->shared_data_->ik_link_, plans[i]->transformed_goal_pose_);
+      unsigned int type = std::min(plan->processing_stage_, colors.size() - 1);
+      state.updateStateWithLinkAt(plan->shared_data_->ik_link_, plan->transformed_goal_pose_);
       state.getRobotMarkers(ma, jmg->getLinkModelNames(), colors[type],
-                            "moveit_grasps:stage_" + boost::lexical_cast<std::string>(plans[i]->processing_stage_),
+                            "moveit_grasps:stage_" + boost::lexical_cast<std::string>(plan->processing_stage_),
                             ros::Duration(60));
     }
   }

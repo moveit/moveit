@@ -295,14 +295,14 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
             std::reverse(approach_states.begin(), approach_states.end());
             robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(
                 planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
-            for (std::size_t k = 0; k < approach_states.size(); ++k)
-              approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
+            for (const moveit::core::RobotStatePtr& approach_state : approach_states)
+              approach_traj->addSuffixWayPoint(approach_state, 0.0);
 
             // Create retreat trajectory
             robot_trajectory::RobotTrajectoryPtr retreat_traj(new robot_trajectory::RobotTrajectory(
                 planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
-            for (std::size_t k = 0; k < retreat_states.size(); ++k)
-              retreat_traj->addSuffixWayPoint(retreat_states[k], 0.0);
+            for (const moveit::core::RobotStatePtr& retreat_state : retreat_states)
+              retreat_traj->addSuffixWayPoint(retreat_state, 0.0);
 
             // Add timestamps to approach|retreat trajectories
             time_param_.computeTimeStamps(*approach_traj);
@@ -334,8 +334,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
           std::reverse(approach_states.begin(), approach_states.end());
           robot_trajectory::RobotTrajectoryPtr approach_traj(new robot_trajectory::RobotTrajectory(
               planning_scene_->getRobotModel(), plan->shared_data_->planning_group_->getName()));
-          for (std::size_t k = 0; k < approach_states.size(); ++k)
-            approach_traj->addSuffixWayPoint(approach_states[k], 0.0);
+          for (const moveit::core::RobotStatePtr& approach_state : approach_states)
+            approach_traj->addSuffixWayPoint(approach_state, 0.0);
 
           // Add timestamps to approach trajectories
           time_param_.computeTimeStamps(*approach_traj);

@@ -174,8 +174,8 @@ int main(int argc, char** argv)
   else
   {
     ROS_INFO("Previously stored robot states:");
-    for (std::size_t i = 0; i < names.size(); ++i)
-      ROS_INFO(" * %s", names[i].c_str());
+    for (const std::string& name : names)
+      ROS_INFO(" * %s", name.c_str());
   }
 
   boost::function<bool(moveit_msgs::SaveRobotStateToWarehouse::Request & request,

@@ -128,11 +128,10 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                                                    const EigenSTL::vector_Vector3d& new_points)
 {
   VoxelSet old_point_set;
-  for (unsigned int i = 0; i < old_points.size(); i++)
+  for (const Eigen::Vector3d& old_point : old_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(old_points[i].x(), old_points[i].y(), old_points[i].z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(old_point.x(), old_point.y(), old_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       old_point_set.insert(voxel_loc);
@@ -140,11 +139,10 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   }
 
   VoxelSet new_point_set;
-  for (unsigned int i = 0; i < new_points.size(); i++)
+  for (const Eigen::Vector3d& new_point : new_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(new_points[i].x(), new_points[i].y(), new_points[i].z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(new_point.x(), new_point.y(), new_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       new_point_set.insert(voxel_loc);
@@ -161,11 +159,11 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                       std::inserter(new_not_old, new_not_old.end()), comp);
 
   EigenSTL::vector_Vector3i new_not_in_current;
-  for (unsigned int i = 0; i < new_not_old.size(); i++)
+  for (Eigen::Vector3i& voxel_loc : new_not_old)
   {
-    if (voxel_grid_->getCell(new_not_old[i].x(), new_not_old[i].y(), new_not_old[i].z()).distance_square_ != 0)
+    if (voxel_grid_->getCell(voxel_loc.x(), voxel_loc.y(), voxel_loc.z()).distance_square_ != 0)
     {
-      new_not_in_current.push_back(new_not_old[i]);
+      new_not_in_current.push_back(voxel_loc);
     }
     // ROS_INFO_NAMED("distance_field", "Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
@@ -186,11 +184,11 @@ void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d&
 {
   EigenSTL::vector_Vector3i voxel_points;
 
-  for (unsigned int i = 0; i < points.size(); i++)
+  for (const Eigen::Vector3d& point : points)
   {
     // Convert to voxel coordinates
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
+    bool valid = worldToGrid(point.x(), point.y(), point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
 
     if (valid)
     {
@@ -208,11 +206,11 @@ void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vect
   EigenSTL::vector_Vector3i voxel_points;
   // VoxelSet voxel_locs;
 
-  for (unsigned int i = 0; i < points.size(); i++)
+  for (const Eigen::Vector3d& point : points)
   {
     // Convert to voxel coordinates
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(points[i].x(), points[i].y(), points[i].z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
+    bool valid = worldToGrid(point.x(), point.y(), point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
 
     if (valid)
     {
@@ -237,10 +235,10 @@ void PropagationDistanceField::addNewObstacleVoxels(const EigenSTL::vector_Vecto
     negative_bucket_queue_[0].reserve(voxel_points.size());
   }
 
-  for (unsigned int i = 0; i < voxel_points.size(); i++)
+  for (const Eigen::Vector3i& voxel_point : voxel_points)
   {
-    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
-    const Eigen::Vector3i& loc = voxel_points[i];
+    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_point.x(), voxel_point.y(), voxel_point.z());
+    const Eigen::Vector3i& loc = voxel_point;
     voxel.distance_square_ = 0;
     voxel.closest_point_ = loc;
     voxel.update_direction_ = initial_update_direction;
@@ -331,19 +329,19 @@ void PropagationDistanceField::removeObstacleVoxels(const EigenSTL::vector_Vecto
   //   bool valid = isCellValid( loc.x(), loc.y(), loc.z());
   //   if (!valid)
   //     continue;
-  for (unsigned int i = 0; i < voxel_points.size(); i++)
+  for (const Eigen::Vector3i& voxel_point : voxel_points)
   {
-    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_points[i].x(), voxel_points[i].y(), voxel_points[i].z());
+    PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_point.x(), voxel_point.y(), voxel_point.z());
     voxel.distance_square_ = max_distance_sq_;
-    voxel.closest_point_ = voxel_points[i];
+    voxel.closest_point_ = voxel_point;
     voxel.update_direction_ = initial_update_direction;  // not needed?
-    stack.push_back(voxel_points[i]);
+    stack.push_back(voxel_point);
     if (propagate_negative_)
     {
       voxel.negative_distance_square_ = 0.0;
-      voxel.closest_negative_point_ = voxel_points[i];
+      voxel.closest_negative_point_ = voxel_point;
       voxel.negative_update_direction_ = initial_update_direction;
-      negative_bucket_queue_[0].push_back(voxel_points[i]);
+      negative_bucket_queue_[0].push_back(voxel_point);
     }
   }
 
@@ -423,9 +421,8 @@ void PropagationDistanceField::propagatePositive()
 
       neighborhood = &neighborhoods_[d][vptr->update_direction_];
 
-      for (unsigned int n = 0; n < neighborhood->size(); n++)
+      for (const Eigen::Vector3i& diff : *neighborhood)
       {
-        Eigen::Vector3i diff = (*neighborhood)[n];
         Eigen::Vector3i nloc(loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z());
         if (!isCellValid(nloc.x(), nloc.y(), nloc.z()))
           continue;
@@ -482,9 +479,8 @@ void PropagationDistanceField::propagateNegative()
 
       neighborhood = &neighborhoods_[d][vptr->negative_update_direction_];
 
-      for (unsigned int n = 0; n < neighborhood->size(); n++)
+      for (const Eigen::Vector3i& diff : *neighborhood)
       {
-        Eigen::Vector3i diff = (*neighborhood)[n];
         Eigen::Vector3i nloc(loc.x() + diff.x(), loc.y() + diff.y(), loc.z() + diff.z());
         if (!isCellValid(nloc.x(), nloc.y(), nloc.z()))
           continue;
