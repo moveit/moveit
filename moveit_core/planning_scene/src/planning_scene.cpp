@@ -1713,7 +1713,7 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
   return false;
 }
 
-void PlanningScene::normalizeObjectOrientation(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out)
+void PlanningScene::poseMsgToEigen(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out)
 {
   Eigen::Translation3d translation(msg.position.x, msg.position.y, msg.position.z);
   Eigen::Quaterniond quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z);
@@ -1760,7 +1760,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.primitive_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.primitive_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1770,7 +1770,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.mesh_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.mesh_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1780,7 +1780,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.plane_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.plane_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1817,19 +1817,19 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
     for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.primitive_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.primitive_poses[i], object_pose);
       new_poses.push_back(t * object_pose);
     }
     for (std::size_t i = 0; i < object.mesh_poses.size(); ++i)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.mesh_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.mesh_poses[i], object_pose);
       new_poses.push_back(t * object_pose);
     }
     for (std::size_t i = 0; i < object.plane_poses.size(); ++i)
     {
       Eigen::Isometry3d object_pose;
-      PlanningScene::normalizeObjectOrientation(object.plane_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.plane_poses[i], object_pose);
       new_poses.push_back(t * object_pose);
     }
 
