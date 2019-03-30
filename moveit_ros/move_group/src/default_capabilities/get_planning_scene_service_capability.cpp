@@ -54,7 +54,16 @@ bool move_group::MoveGroupGetPlanningSceneService::getPlanningSceneService(movei
   if (req.components.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
     context_->planning_scene_monitor_->updateFrameTransforms();
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
-  ps->getPlanningSceneMsg(res.scene, req.components);
+
+  if (!req.components.components)
+  {
+    ps->getPlanningSceneMsg(res.scene);
+  }
+  else
+  {
+    ps->getPlanningSceneMsg(res.scene, req.components);
+  }
+
   return true;
 }
 
