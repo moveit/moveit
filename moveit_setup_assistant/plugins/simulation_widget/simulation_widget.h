@@ -102,8 +102,8 @@ private:
   // Functions
   // ******************************************************************************************
 
-  /// Helper function to correct the order of creation of the widget contents
-  void createMainWidget();
+  /// Helper function to create the widget contents
+  void setupUI();
 };
 
 }  // namespace moveit_setup_assistant

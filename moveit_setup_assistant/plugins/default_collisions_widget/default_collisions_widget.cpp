@@ -58,11 +58,8 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget()
+DefaultCollisionsWidget::DefaultCollisionsWidget() : model_(nullptr), selection_model_(nullptr), worker_(nullptr)
 {
-  model_ = nullptr;
-  selection_model_ = nullptr;
-  worker_ = nullptr;
   // Basic widget container
   layout_ = new QVBoxLayout(this);
 

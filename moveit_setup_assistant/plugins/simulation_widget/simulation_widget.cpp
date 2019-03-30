@@ -60,9 +60,9 @@ SimulationWidget::SimulationWidget()
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void SimulationWidget::createMainWidget()
+void SimulationWidget::setupUI()
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -132,7 +132,7 @@ void SimulationWidget::initializeWidget(QWidget* parent, moveit_setup_assistant:
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************

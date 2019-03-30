@@ -70,9 +70,9 @@ ConfigurationFilesWidget::ConfigurationFilesWidget() : has_generated_pkg_(false)
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void ConfigurationFilesWidget::createMainWidget()
+void ConfigurationFilesWidget::setupUI()
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -185,7 +185,7 @@ void ConfigurationFilesWidget::initializeWidget(QWidget* parent,
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************

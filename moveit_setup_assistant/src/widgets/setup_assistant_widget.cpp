@@ -231,20 +231,16 @@ void SetupAssistantWidget::progressPastStartScreen()
 {
   // Load all widgets ------------------------------------------------
 
-  if (!plugins_loader_)
+  try
   {
-    try
-    {
-      plugins_loader_.reset(
-          new pluginlib::ClassLoader<SetupScreenWidget>("moveit_setup_assistant", "SetupScreenWidget"));
-    }
-    catch (pluginlib::PluginlibException& ex)
-    {
-      ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
-    }
+    plugins_loader_.reset(new pluginlib::ClassLoader<SetupScreenWidget>("moveit_setup_assistant", "SetupScreenWidget"));
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
   }
 
-  // Declared classes with setup screen widget as their base class
+  // Declared classes with setup screen widget as their base class, sorted by name
   std::vector<std::string> classes = plugins_loader_->getDeclaredClasses();
 
   SetupScreenWidget* widget;

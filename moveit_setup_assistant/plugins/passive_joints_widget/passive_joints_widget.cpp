@@ -53,9 +53,9 @@ PassiveJointsWidget::PassiveJointsWidget()
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void PassiveJointsWidget::createMainWidget()
+void PassiveJointsWidget::setupUI()
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -92,7 +92,7 @@ void PassiveJointsWidget::initializeWidget(QWidget* parent, MoveItConfigDataPtr 
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************

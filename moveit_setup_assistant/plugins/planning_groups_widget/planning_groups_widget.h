@@ -186,8 +186,8 @@ private:
   // Private Functions
   // ******************************************************************************************
 
-  /// Helper function to correct the order of creation of the widget contents
-  void createMainWidget();
+  /// Helper function to create the widget contents
+  void setupUI();
 
   /// Builds the main screen list widget
   QWidget* createContentsWidget();

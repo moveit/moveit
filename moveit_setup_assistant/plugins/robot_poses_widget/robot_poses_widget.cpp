@@ -60,9 +60,9 @@ RobotPosesWidget::RobotPosesWidget()
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void RobotPosesWidget::createMainWidget()
+void RobotPosesWidget::setupUI()
 {
   // Set pointer to null so later we can tell if we need to delete it
   joint_list_layout_ = nullptr;
@@ -121,7 +121,7 @@ void RobotPosesWidget::initializeWidget(QWidget* parent, moveit_setup_assistant:
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************

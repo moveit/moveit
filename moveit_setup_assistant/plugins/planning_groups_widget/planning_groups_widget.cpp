@@ -100,9 +100,9 @@ PlanningGroupsWidget::PlanningGroupsWidget()
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void PlanningGroupsWidget::createMainWidget()
+void PlanningGroupsWidget::setupUI()
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -194,7 +194,7 @@ void PlanningGroupsWidget::initializeWidget(QWidget* parent, MoveItConfigDataPtr
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************

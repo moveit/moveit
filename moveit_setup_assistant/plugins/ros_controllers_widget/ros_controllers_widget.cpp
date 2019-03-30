@@ -60,9 +60,9 @@ ROSControllersWidget::ROSControllersWidget()
 }
 
 // ******************************************************************************************
-// Helper function to correct the order of creation of the widget contents
+// Helper function to create the widget contents
 // ******************************************************************************************
-void ROSControllersWidget::createMainWidget()
+void ROSControllersWidget::setupUI()
 {
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
@@ -129,7 +129,7 @@ void ROSControllersWidget::initializeWidget(QWidget* parent, moveit_setup_assist
 {
   config_data_ = config_data;
   this->setParent(parent);
-  createMainWidget();
+  setupUI();
 }
 
 // ******************************************************************************************
