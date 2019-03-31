@@ -57,7 +57,18 @@ bool move_group::MoveGroupGetPlanningSceneService::getPlanningSceneService(movei
 
   if (!req.components.components)
   {
-    ps->getPlanningSceneMsg(res.scene);
+    moveit_msgs::PlanningSceneComponents all_components;
+    all_components.components = moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS |
+                                moveit_msgs::PlanningSceneComponents::ROBOT_STATE |
+                                moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS |
+                                moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES |
+                                moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY |
+                                moveit_msgs::PlanningSceneComponents::OCTOMAP |
+                                moveit_msgs::PlanningSceneComponents::TRANSFORMS |
+                                moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX |
+                                moveit_msgs::PlanningSceneComponents::LINK_PADDING_AND_SCALING |
+                                moveit_msgs::PlanningSceneComponents::OBJECT_COLORS;
+    ps->getPlanningSceneMsg(res.scene, all_components);
   }
   else
   {
