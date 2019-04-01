@@ -481,6 +481,7 @@ bool PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_
   if (client.call(srv))
   {
     newPlanningSceneMessage(srv.response.scene);
+    ROS_INFO_STREAM(srv.response.scene);
   }
   else
   {
