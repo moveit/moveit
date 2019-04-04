@@ -153,8 +153,6 @@ public:
 
   void setWorld(const WorldPtr& world) override;
 
-  void generateEnvironmentDistanceField(bool redo = true);
-
   distance_field::DistanceFieldConstPtr getDistanceField() const
   {
     return distance_field_cache_entry_->distance_field_;
