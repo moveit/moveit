@@ -533,7 +533,8 @@ void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_chan
   {
     // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is
     // scaled uniformly to match expected motion
-    calculated_joint_change = calculated_joint_change * parameters_.joint_scale * parameters_.publish_period / maximum_joint_change;
+    calculated_joint_change =
+        calculated_joint_change * parameters_.joint_scale * parameters_.publish_period / maximum_joint_change;
   }
 }
 
@@ -703,7 +704,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
     if (parameters_.command_in_type == "unitless")
-      result[c] = command.velocities[m] * parameters_.joint_scale  * parameters_.publish_period;
+      result[c] = command.velocities[m] * parameters_.joint_scale * parameters_.publish_period;
     // Otherwise, commands are in m/s and rad/s
     else if (parameters_.command_in_type == "speed_units")
       result[c] = command.velocities[m] * parameters_.publish_period;
