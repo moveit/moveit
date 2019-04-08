@@ -55,18 +55,11 @@ bool move_group::MoveGroupGetPlanningSceneService::getPlanningSceneService(movei
     context_->planning_scene_monitor_->updateFrameTransforms();
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
 
+  // all scene components are returned if none are specified
   if (!req.components.components)
   {
     moveit_msgs::PlanningSceneComponents all_components;
-    all_components.components =
-        moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS | moveit_msgs::PlanningSceneComponents::ROBOT_STATE |
-        moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS |
-        moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES |
-        moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY | moveit_msgs::PlanningSceneComponents::OCTOMAP |
-        moveit_msgs::PlanningSceneComponents::TRANSFORMS |
-        moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX |
-        moveit_msgs::PlanningSceneComponents::LINK_PADDING_AND_SCALING |
-        moveit_msgs::PlanningSceneComponents::OBJECT_COLORS;
+    all_components.components = UINT_MAX;
     ps->getPlanningSceneMsg(res.scene, all_components);
   }
   else

@@ -468,9 +468,8 @@ bool PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_
 {
   // use global namespace for service
   ros::ServiceClient client = ros::NodeHandle().serviceClient<moveit_msgs::GetPlanningScene>(service_name);
+  // all scene components are returned if none are specified
   moveit_msgs::GetPlanningScene srv;
-  // Requests all components if 0 is specified
-  srv.request.components.components = 0;
 
   // Make sure client is connected to server
   if (!client.exists())
