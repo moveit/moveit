@@ -115,11 +115,6 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_unlock(&mutex);
   }
 
-  // Track the number of cycles during which motion has not occurred.
-  // Will avoid re-publishing zero velocities endlessly.
-  int zero_velocity_count = 0;
-  int num_zero_cycles_to_publish = 4;
-
   // Now do jogging calcs
   while (ros::ok())
   {
@@ -180,34 +175,12 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       zero_joint_cmd_flag = true;
     }
 
-    // Has the velocity command been zero for several cycles in a row?
-    // If so, stop publishing so other controllers can take over
-    bool valid_nonzero_command =
-        !((zero_velocity_count > num_zero_cycles_to_publish) && zero_cartesian_cmd_flag && zero_joint_cmd_flag);
-
     // Send the newest target joints
     if (!outgoing_command_.joint_names.empty())
     {
       pthread_mutex_lock(&mutex);
-      // If everything normal, share the new traj to be published
-      if (valid_nonzero_command)
-      {
-        shared_variables.outgoing_command = outgoing_command_;
-        shared_variables.ok_to_publish = true;
-      }
-      // Skip the jogging publication if all inputs have been zero for several cycles in a row
-      else if (zero_velocity_count > num_zero_cycles_to_publish)
-      {
-        shared_variables.ok_to_publish = false;
-      }
+      shared_variables.outgoing_command = outgoing_command_;
       pthread_mutex_unlock(&mutex);
-
-      // Store last zero-velocity message flag to prevent superfluous warnings.
-      // Cartesian and joint commands must both be zero.
-      if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
-        zero_velocity_count += 1;
-      else
-        zero_velocity_count = 0;
     }
 
     // Add a small sleep to avoid 100% CPU usage

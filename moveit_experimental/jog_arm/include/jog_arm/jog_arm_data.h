@@ -76,9 +76,6 @@ struct JogArmShared
 
   // Timestamp of incoming commands
   ros::Time incoming_cmd_stamp = ros::Time(0.);
-
-  // Indicates no collision, etc, so outgoing commands can be sent
-  bool ok_to_publish = false;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

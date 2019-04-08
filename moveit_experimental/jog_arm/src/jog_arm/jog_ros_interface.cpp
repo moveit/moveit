@@ -115,35 +115,23 @@ JogROSInterface::JogROSInterface()
       shared_variables_.command_is_stale = true;
     }
 
-    // Publish the most recent trajectory, unless the jogging calculation thread tells not to
-    if (shared_variables_.ok_to_publish)
+    // Put the outgoing msg in the right format
+    // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
+    if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     {
-      // Put the outgoing msg in the right format
-      // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-      if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-      {
-        outgoing_command.header.stamp = ros::Time::now();
-        outgoing_cmd_pub.publish(outgoing_command);
-      }
-      else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
-      {
-        std_msgs::Float64MultiArray joints;
-        if (ros_parameters_.publish_joint_positions)
-          joints.data = outgoing_command.points[0].positions;
-        else if (ros_parameters_.publish_joint_velocities)
-          joints.data = outgoing_command.points[0].velocities;
-        outgoing_cmd_pub.publish(joints);
-      }
+      outgoing_command.header.stamp = ros::Time::now();
+      outgoing_cmd_pub.publish(outgoing_command);
     }
-    else if (shared_variables_.command_is_stale)
+    else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale command. "
-                                                 "Try a larger 'incoming_command_timeout' parameter?");
+      std_msgs::Float64MultiArray joints;
+      if (ros_parameters_.publish_joint_positions)
+        joints.data = outgoing_command.points[0].positions;
+      else if (ros_parameters_.publish_joint_velocities)
+        joints.data = outgoing_command.points[0].velocities;
+      outgoing_cmd_pub.publish(joints);
     }
-    else
-    {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "All-zero command. Doing nothing.");
-    }
+
     pthread_mutex_unlock(&shared_variables_mutex_);
 
     main_rate.sleep();
