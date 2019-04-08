@@ -281,7 +281,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
                        decelerateForSingularity(delta_x, svd_));
 
-  if (!checkIfJointsWithinBounds(outgoing_command_))
+  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
   {
     halt(outgoing_command_);
     publishWarning(true);
@@ -332,7 +332,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
 
   // check if new joint state is valid
-  if (!checkIfJointsWithinBounds(outgoing_command_))
+  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
   {
     halt(outgoing_command_);
     publishWarning(true);
@@ -537,7 +537,7 @@ void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_chan
   }
 }
 
-bool JogCalcs::checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory& new_jt_traj)
+bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_jt_traj)
 {
   bool halting = false;
   for (auto joint : joint_model_group_->getJointModels())

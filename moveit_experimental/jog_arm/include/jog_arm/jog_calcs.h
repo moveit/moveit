@@ -88,7 +88,7 @@ protected:
 
   void publishWarning(bool active) const;
 
-  bool checkIfJointsWithinBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_jt_traj);
+  bool checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_jt_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
