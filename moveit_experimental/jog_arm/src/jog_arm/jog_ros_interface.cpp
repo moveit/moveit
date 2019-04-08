@@ -54,7 +54,7 @@ JogROSInterface::JogROSInterface()
 {
   ros::NodeHandle nh;
 
-  pthread_mutex_init(&shared_variables_mutex_, NULL);
+  pthread_mutex_init(&shared_variables_mutex_, nullptr);
 
   // Read ROS parameters, typically from YAML file
   if (!readParameters(nh))
@@ -222,7 +222,7 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   // Specified in the launch file. All other parameters will be read from this namespace.
   std::string parameter_ns;
   ros::param::get("~parameter_ns", parameter_ns);
-  if (parameter_ns == "")
+  if (parameter_ns.empty())
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "A namespace must be specified in the launch file, like:");
     ROS_ERROR_STREAM_NAMED(LOGNAME, "<param name=\"parameter_ns\" "

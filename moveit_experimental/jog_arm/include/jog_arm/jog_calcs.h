@@ -55,7 +55,7 @@ class JogCalcs
 {
 public:
   JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
-           const robot_model_loader::RobotModelLoaderPtr model_loader_ptr);
+           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
 protected:
   ros::NodeHandle nh_;
@@ -92,7 +92,7 @@ protected:
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
-  double decelerateForSingularity(const Eigen::VectorXd commanded_velocity,
+  double decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
                                   const Eigen::JacobiSVD<Eigen::MatrixXd>& svd);
 
   // Apply velocity scaling for proximity of collisions and singularities

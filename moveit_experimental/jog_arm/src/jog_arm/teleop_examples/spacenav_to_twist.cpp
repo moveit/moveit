@@ -57,7 +57,7 @@ private:
   ros::Publisher twist_pub_, joint_delta_pub_;
   ros::AsyncSpinner spinner_;
 };
-}  // end jog_arm namespace
+}  // namespace jog_arm
 
 int main(int argc, char** argv)
 {

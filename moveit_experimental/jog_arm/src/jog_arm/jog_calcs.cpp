@@ -43,7 +43,7 @@ namespace jog_arm
 {
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
-                   const robot_model_loader::RobotModelLoaderPtr model_loader_ptr)
+                   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
   : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_), parameters_(parameters)
 {
   // Publish collision status
@@ -301,9 +301,9 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
-  for (std::size_t i = 0; i < cmd.velocities.size(); ++i)
+  for (double velocity : cmd.velocities)
   {
-    if (std::isnan(cmd.velocities[i]) || (fabs(cmd.velocities[i]) > 1))
+    if (std::isnan(velocity) || (fabs(velocity) > 1))
     {
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
       return false;
@@ -451,7 +451,7 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, pthread_mute
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double JogCalcs::decelerateForSingularity(const Eigen::VectorXd commanded_velocity,
+double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
                                           const Eigen::JacobiSVD<Eigen::MatrixXd>& svd)
 {
   double velocity_scale = 1;
@@ -575,7 +575,7 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
       const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
 
       // Joint limits are not defined for some joints. Skip them.
-      if (limits.size() > 0)
+      if (!limits.empty())
       {
         if ((kinematic_state_->getJointVelocities(joint)[0] < 0 &&
              (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||

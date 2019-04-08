@@ -75,4 +75,4 @@ double LowPassFilter::filter(double new_measurement)
 
   return new_filtered_msrmt;
 }
-}
+}  // namespace jog_arm
