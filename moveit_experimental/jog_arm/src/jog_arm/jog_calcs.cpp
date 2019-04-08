@@ -526,14 +526,14 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd commanded_veloci
   return velocity_scale;
 }
 
-void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_velocity)
+void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_change)
 {
-  double maximum_joint_vel = calculated_joint_velocity.cwiseAbs().maxCoeff();
-  if (maximum_joint_vel > parameters_.joint_scale)
+  double maximum_joint_change = calculated_joint_change.cwiseAbs().maxCoeff();
+  if (maximum_joint_change > parameters_.joint_scale * parameters_.publish_period)
   {
     // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is
     // scaled uniformly to match expected motion
-    calculated_joint_velocity = calculated_joint_velocity * parameters_.joint_scale / maximum_joint_vel;
+    calculated_joint_change = calculated_joint_change * parameters_.joint_scale * parameters_.publish_period / maximum_joint_change;
   }
 }
 
@@ -657,12 +657,12 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
   // Apply user-defined scaling if inputs are unitless [-1:1]
   if (parameters_.command_in_type == "unitless")
   {
-    result[0] = parameters_.linear_scale * command.twist.linear.x;
-    result[1] = parameters_.linear_scale * command.twist.linear.y;
-    result[2] = parameters_.linear_scale * command.twist.linear.z;
-    result[3] = parameters_.rotational_scale * command.twist.angular.x;
-    result[4] = parameters_.rotational_scale * command.twist.angular.y;
-    result[5] = parameters_.rotational_scale * command.twist.angular.z;
+    result[0] = parameters_.linear_scale * parameters_.publish_period * command.twist.linear.x;
+    result[1] = parameters_.linear_scale * parameters_.publish_period * command.twist.linear.y;
+    result[2] = parameters_.linear_scale * parameters_.publish_period * command.twist.linear.z;
+    result[3] = parameters_.rotational_scale * parameters_.publish_period * command.twist.angular.x;
+    result[4] = parameters_.rotational_scale * parameters_.publish_period * command.twist.angular.y;
+    result[5] = parameters_.rotational_scale * parameters_.publish_period * command.twist.angular.z;
   }
   // Otherwise, commands are in m/s and rad/s
   else if (parameters_.command_in_type == "speed_units")
@@ -703,7 +703,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
     if (parameters_.command_in_type == "unitless")
-      result[c] = command.velocities[m] * parameters_.joint_scale;
+      result[c] = command.velocities[m] * parameters_.joint_scale  * parameters_.publish_period;
     // Otherwise, commands are in m/s and rad/s
     else if (parameters_.command_in_type == "speed_units")
       result[c] = command.velocities[m] * parameters_.publish_period;
