@@ -42,7 +42,8 @@
 #include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
 #include <moveit/ompl_interface/detail/goal_union.h>
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
-#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
+
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
@@ -80,9 +81,42 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , simplify_solutions_(true)
 {
   complete_initial_robot_state_.update();
+
+  constraints_library_ = std::make_shared<ConstraintsLibrary>(this);
+}
+
+void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle& nh,
+                                                          bool use_constraints_approximations)
+{
+  loadConstraintApproximations(nh);
+  if (!use_constraints_approximations)
+  {
+    setConstraintsApproximations(ConstraintsLibraryPtr());
+  }
+  complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
       std::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, std::placeholders::_1));
+
+  // convert the input state to the corresponding OMPL state
+  ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
+  spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+  ompl_simple_setup_->setStartState(ompl_start_state);
+  ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
+
+  if (path_constraints_ && constraints_library_)
+  {
+    const ConstraintApproximationPtr& ca = constraints_library_->getConstraintApproximation(path_constraints_msg_);
+    if (ca)
+    {
+      getOMPLStateSpace()->setInterpolationFunction(ca->getInterpolationFunction());
+      ROS_INFO_NAMED("model_based_planning_context", "Using precomputed interpolation states");
+    }
+  }
+
+  useConfig();
+  if (ompl_simple_setup_->getGoal())
+    ompl_simple_setup_->setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string& peval)
@@ -167,10 +201,9 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 
   if (path_constraints_)
   {
-    if (spec_.constraints_library_)
+    if (constraints_library_)
     {
-      const ConstraintApproximationPtr& ca =
-          spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
+      const ConstraintApproximationPtr& ca = constraints_library_->getConstraintApproximation(path_constraints_msg_);
       if (ca)
       {
         ompl::base::StateSamplerAllocator c_ssa = ca->getStateSamplerAllocator(path_constraints_msg_);
@@ -203,30 +236,6 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
   ROS_DEBUG_NAMED("model_based_planning_context", "%s: Allocating default state sampler for state space",
                   name_.c_str());
   return ss->allocDefaultStateSampler();
-}
-
-void ompl_interface::ModelBasedPlanningContext::configure()
-{
-  // convert the input state to the corresponding OMPL state
-  ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
-  spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_simple_setup_->setStartState(ompl_start_state);
-  ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
-
-  if (path_constraints_ && spec_.constraints_library_)
-  {
-    const ConstraintApproximationPtr& ca =
-        spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
-    if (ca)
-    {
-      getOMPLStateSpace()->setInterpolationFunction(ca->getInterpolationFunction());
-      ROS_INFO_NAMED("model_based_planning_context", "Using precomputed interpolation states");
-    }
-  }
-
-  useConfig();
-  if (ompl_simple_setup_->getGoal())
-    ompl_simple_setup_->setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig()
@@ -736,4 +745,31 @@ bool ompl_interface::ModelBasedPlanningContext::terminate()
   if (ptc_)
     ptc_->terminate();
   return true;
+}
+
+bool ompl_interface::ModelBasedPlanningContext::saveConstraintApproximations(const ros::NodeHandle& nh)
+{
+  std::string cpath;
+  if (nh.getParam("constraint_approximations_path", cpath))
+  {
+    constraints_library_->saveConstraintApproximations(cpath);
+    return true;
+  }
+  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  return false;
+}
+
+bool ompl_interface::ModelBasedPlanningContext::loadConstraintApproximations(const ros::NodeHandle& nh)
+{
+  std::string cpath;
+  if (nh.getParam("constraint_approximations_path", cpath))
+  {
+    loadConstraintApproximations(cpath);
+    constraints_library_->loadConstraintApproximations(cpath);
+    std::stringstream ss;
+    constraints_library_->printConstraintApproximations(ss);
+    ROS_INFO_STREAM(ss.str());
+    return true;
+  }
+  return false;
 }

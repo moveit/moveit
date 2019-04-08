@@ -65,7 +65,6 @@ struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
   ConfiguredPlannerSelector planner_selector_;
-  ConstraintsLibraryConstPtr constraints_library_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   ModelBasedStateSpacePtr state_space_;
@@ -241,9 +240,19 @@ public:
                           const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
   bool setPathConstraints(const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
 
-  void setConstraintsApproximations(const ConstraintsLibraryConstPtr& constraints_library)
+  void setConstraintsApproximations(const ConstraintsLibraryPtr& constraints_library)
   {
-    spec_.constraints_library_ = constraints_library;
+    constraints_library_ = constraints_library;
+  }
+
+  ConstraintsLibraryPtr getConstraintsLibrary()
+  {
+    return constraints_library_;
+  }
+
+  const ConstraintsLibraryPtr& getConstraintsLibrary() const
+  {
+    return constraints_library_;
   }
 
   bool useStateValidityCache() const
@@ -304,7 +313,15 @@ public:
 
   void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
-  virtual void configure();
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
+   * approximations to */
+  bool loadConstraintApproximations(const ros::NodeHandle& nh);
+
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint
+   * approximations to */
+  bool saveConstraintApproximations(const ros::NodeHandle& nh);
+
+  virtual void configure(const ros::NodeHandle& nh, bool use_constraints_approximations);
 
 protected:
   void preSolve();
@@ -372,6 +389,8 @@ protected:
   unsigned int minimum_waypoint_count_;
 
   bool use_state_validity_cache_;
+
+  ConstraintsLibraryPtr constraints_library_;
 
   bool simplify_solutions_;
 };

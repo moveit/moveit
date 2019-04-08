@@ -36,6 +36,7 @@
 /* Authors: Ioan Sucan, Michael Goerner */
 
 #include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 
@@ -119,20 +120,22 @@ void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateSta
   scene->getCurrentStateNonConst().update();
 
   ompl_interface::OMPLInterface ompl_interface(scene->getRobotModel());
+  const planning_interface::MotionPlanRequest req;  // TODO(brycew): fill?
+  ompl_interface::ModelBasedPlanningContextPtr context = ompl_interface.getPlanningContext(scene, req);
 
   ROS_INFO_STREAM_NAMED(LOGNAME, "Generating Joint Space Constraint Approximation Database for constraint:\n"
                                      << params.constraints);
 
   ompl_interface::ConstraintApproximationConstructionResults result =
-      ompl_interface.getConstraintsLibrary().addConstraintApproximation(params.constraints, params.planning_group,
-                                                                        scene, params.construction_opts);
+      context->getConstraintsLibrary()->addConstraintApproximation(params.constraints, params.planning_group, scene,
+                                                                   params.construction_opts);
 
   if (!result.approx)
   {
     ROS_FATAL_NAMED(LOGNAME, "Failed to generate approximation.");
     return;
   }
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations(params.output_folder);
+  context->getConstraintsLibrary()->saveConstraintApproximations(params.output_folder);
   ROS_INFO_STREAM_NAMED(LOGNAME,
                         "Successfully generated Joint Space Constraint Approximation Database for constraint:\n"
                             << params.constraints);

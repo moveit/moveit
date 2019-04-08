@@ -179,25 +179,6 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const std::string& config, const std::string& factory_type) const
-{
-  auto pc = planner_configs_.find(config);
-
-  if (pc != planner_configs_.end())
-  {
-    moveit_msgs::MotionPlanRequest req;  // dummy request with default values
-    return getPlanningContext(
-        pc->second,
-        std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1, factory_type), req);
-  }
-  else
-  {
-    ROS_ERROR_NAMED("planning_context_manager", "Planning configuration '%s' was not found", config.c_str());
-    return ModelBasedPlanningContextPtr();
-  }
-}
-
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
     const planning_interface::PlannerConfigurationSettings& config,
     const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& req) const
 {
@@ -320,10 +301,9 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-ompl_interface::ModelBasedPlanningContextPtr
-ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                           const moveit_msgs::MotionPlanRequest& req,
-                                                           moveit_msgs::MoveItErrorCodes& error_code) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
+    moveit_msgs::MoveItErrorCodes& error_code, const ros::NodeHandle& nh, bool use_constraints_approximation) const
 {
   if (req.group_name.empty())
   {
@@ -402,7 +382,7 @@ ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene:
 
     try
     {
-      context->configure();
+      context->configure(nh, use_constraints_approximation);
       ROS_DEBUG_NAMED("planning_context_manager", "%s: New planning context is set.", context->getName().c_str());
       error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }

@@ -3,7 +3,6 @@ set(MOVEIT_LIB_NAME moveit_ompl_interface)
 add_library(${MOVEIT_LIB_NAME}
   src/ompl_interface.cpp
   src/planning_context_manager.cpp
-  src/constraints_library.cpp
   src/model_based_planning_context.cpp
   src/parameterization/model_based_state_space.cpp
   src/parameterization/model_based_state_space_factory.cpp
@@ -15,6 +14,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/detail/state_validity_checker.cpp
   src/detail/projection_evaluators.cpp
   src/detail/goal_union.cpp
+  src/detail/constraints_library.cpp
   src/detail/constrained_sampler.cpp
   src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
@@ -31,7 +31,7 @@ add_executable(moveit_ompl_planner src/ompl_planner.cpp)
 target_link_libraries(moveit_ompl_planner ${MOVEIT_LIB_NAME})
 set_target_properties(moveit_ompl_planner PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 
-add_executable(moveit_generate_state_database src/generate_state_database.cpp)
+add_executable(moveit_generate_state_database demos/generate_state_database.cpp)
 target_link_libraries(moveit_generate_state_database ${MOVEIT_LIB_NAME})
 set_target_properties(moveit_generate_state_database PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 set_target_properties(moveit_generate_state_database PROPERTIES OUTPUT_NAME "generate_state_database")
