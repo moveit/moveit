@@ -115,21 +115,34 @@ JogROSInterface::JogROSInterface()
       shared_variables_.command_is_stale = true;
     }
 
-    // Put the outgoing msg in the right format
-    // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-    if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+    // Publish the most recent trajectory, unless the jogging calculation thread tells not to
+    if (shared_variables_.ok_to_publish)
     {
-      outgoing_command.header.stamp = ros::Time::now();
-      outgoing_cmd_pub.publish(outgoing_command);
+      // Put the outgoing msg in the right format
+      // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
+      if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+      {
+        outgoing_command.header.stamp = ros::Time::now();
+        outgoing_cmd_pub.publish(outgoing_command);
+      }
+      else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
+      {
+        std_msgs::Float64MultiArray joints;
+        if (ros_parameters_.publish_joint_positions)
+          joints.data = outgoing_command.points[0].positions;
+        else if (ros_parameters_.publish_joint_velocities)
+          joints.data = outgoing_command.points[0].velocities;
+        outgoing_cmd_pub.publish(joints);
+      }
     }
-    else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
+    else if (shared_variables_.command_is_stale)
     {
-      std_msgs::Float64MultiArray joints;
-      if (ros_parameters_.publish_joint_positions)
-        joints.data = outgoing_command.points[0].positions;
-      else if (ros_parameters_.publish_joint_velocities)
-        joints.data = outgoing_command.points[0].velocities;
-      outgoing_cmd_pub.publish(joints);
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale command. "
+                                                 "Try a larger 'incoming_command_timeout' parameter?");
+    }
+    else
+    {
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(2, LOGNAME, "All-zero command. Doing nothing.");
     }
 
     pthread_mutex_unlock(&shared_variables_mutex_);
@@ -235,6 +248,8 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_delay", ros_parameters_.publish_delay);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
+  error +=
+      !rosparam_shortcuts::get("", n, parameter_ns + "/num_halt_msgs_to_publish", ros_parameters_.num_halt_msgs_to_publish);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/linear", ros_parameters_.linear_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/rotational", ros_parameters_.rotational_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/joint", ros_parameters_.joint_scale);
@@ -273,6 +288,11 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Input checking
+  if (ros_parameters_.num_halt_msgs_to_publish < 0)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'num_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
+    return false;
+  }
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'hard_stop_singularity_threshold' "

@@ -76,6 +76,9 @@ struct JogArmShared
 
   // Timestamp of incoming commands
   ros::Time incoming_cmd_stamp = ros::Time(0.);
+
+  // Indicates no collision, etc, so outgoing commands can be sent
+  bool ok_to_publish = false;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.
@@ -86,6 +89,7 @@ struct JogArmParameters
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
       collision_proximity_threshold, low_pass_filter_coeff, publish_period, publish_delay, incoming_command_timeout,
       joint_limit_margin, collision_check_rate;
+  int num_halt_msgs_to_publish;
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 }

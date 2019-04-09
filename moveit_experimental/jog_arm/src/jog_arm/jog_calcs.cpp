@@ -115,6 +115,10 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_unlock(&mutex);
   }
 
+  // Track the number of cycles during which motion has not occurred.
+  // Will avoid re-publishing zero velocities endlessly.
+  int zero_velocity_count = 0;
+
   // Now do jogging calcs
   while (ros::ok())
   {
@@ -175,12 +179,41 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       zero_joint_cmd_flag = true;
     }
 
+    bool valid_nonzero_command = !zero_cartesian_cmd_flag && !zero_joint_cmd_flag;
+
     // Send the newest target joints
     if (!outgoing_command_.joint_names.empty())
     {
       pthread_mutex_lock(&mutex);
-      shared_variables.outgoing_command = outgoing_command_;
+      // If everything normal, share the new traj to be published
+      if (valid_nonzero_command)
+      {
+        shared_variables.outgoing_command = outgoing_command_;
+        shared_variables.ok_to_publish = true;
+      }
+      // Skip the jogging publication if all inputs have been zero for several cycles in a row.
+      // num_halt_msgs_to_publish == 0 signifies that we shoud keep republishing forever.
+      else if ( (parameters_.num_halt_msgs_to_publish != 0) && (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
+      {
+        shared_variables.ok_to_publish = false;
+      }
+      else
+      {
+        shared_variables.outgoing_command = outgoing_command_;
+        shared_variables.ok_to_publish = true;
+      }
       pthread_mutex_unlock(&mutex);
+
+      // Store last zero-velocity message flag to prevent superfluous warnings.
+      // Cartesian and joint commands must both be zero.
+      if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
+      {
+        // Avoid overflow
+        if (zero_velocity_count < INT_MAX)
+          ++zero_velocity_count;
+      }
+      else
+        zero_velocity_count = 0;
     }
 
     // Add a small sleep to avoid 100% CPU usage
