@@ -193,7 +193,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row.
       // num_halt_msgs_to_publish == 0 signifies that we shoud keep republishing forever.
-      else if ( (parameters_.num_halt_msgs_to_publish != 0) && (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
+      else if ((parameters_.num_halt_msgs_to_publish != 0) &&
+               (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
       {
         shared_variables.ok_to_publish = false;
       }

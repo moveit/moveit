@@ -248,8 +248,8 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_delay", ros_parameters_.publish_delay);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
-  error +=
-      !rosparam_shortcuts::get("", n, parameter_ns + "/num_halt_msgs_to_publish", ros_parameters_.num_halt_msgs_to_publish);
+  error += !rosparam_shortcuts::get("", n, parameter_ns + "/num_halt_msgs_to_publish",
+                                    ros_parameters_.num_halt_msgs_to_publish);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/linear", ros_parameters_.linear_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/rotational", ros_parameters_.rotational_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/joint", ros_parameters_.joint_scale);
