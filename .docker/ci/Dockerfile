@@ -1,4 +1,4 @@
-# moveit/moveit:melodic-ci
+# moveit/moveit:master-ci
 # Sets up a base image to use for running Continuous Integration on Travis
 
 FROM ros:melodic-ros-base
@@ -17,7 +17,7 @@ RUN \
     cd src && \
     #
     # Download moveit source, so that we can get necessary dependencies
-    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
+    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && \
     #
     # Update apt package list as previous containers clear the cache
     apt-get -qq update && \
