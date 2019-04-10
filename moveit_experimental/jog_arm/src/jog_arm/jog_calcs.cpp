@@ -119,6 +119,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Will avoid re-publishing zero velocities endlessly.
   int zero_velocity_count = 0;
 
+  ros::Rate loop_rate(1. / parameters_.publish_period);
+
   // Now do jogging calcs
   while (ros::ok())
   {
@@ -217,8 +219,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
         zero_velocity_count = 0;
     }
 
-    // Add a small sleep to avoid 100% CPU usage
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    loop_rate.sleep();
   }
 }
 
