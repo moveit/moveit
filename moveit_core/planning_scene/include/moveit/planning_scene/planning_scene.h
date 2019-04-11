@@ -983,6 +983,9 @@ private:
   bool processCollisionObjectRemove(const moveit_msgs::CollisionObject& object);
   bool processCollisionObjectMove(const moveit_msgs::CollisionObject& object);
 
+  /** convert Pose msg to Eigen::Isometry, normalizing the quaternion part if necessary. */
+  static void poseMsgToEigen(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out);
+
   MOVEIT_STRUCT_FORWARD(CollisionDetector);
 
   /* \brief A set of compatible collision detectors */
