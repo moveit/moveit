@@ -55,14 +55,25 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
     time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
-    # This zero-command should produce no output, other than one halt message
+
+    # Repeated zero-commands should produce no output, other than a few halt messages
+    # A subscriber in a different thread fills 'received'
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     received = []
     rospy.sleep(1)
-    assert len(received) <= 1
+    assert len(received) <= 2 # 2 is 'num_halt_msgs_to_publish' in the config file
 
     # This nonzero command should produce jogging output
+    # A subscriber in a different thread fills `received`
+    test_duration = 1
+    publish_period = 0.01 # 'publish_period' from config file
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
     received = []
-    rospy.sleep(1)
-    assert len(received) > 1
+    rospy.sleep(test_duration)
+    # test_duration/publish_period is the expected number of messages in this duration.
+    # Allow a small +/- window of 3 due to small rounding/timing errors
+    assert len(received) > test_duration/publish_period - 3
+    assert len(received) < test_duration/publish_period + 3
