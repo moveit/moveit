@@ -1713,6 +1713,14 @@ bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject
   return false;
 }
 
+void PlanningScene::poseMsgToEigen(const geometry_msgs::Pose& msg, Eigen::Isometry3d& out)
+{
+  Eigen::Translation3d translation(msg.position.x, msg.position.y, msg.position.z);
+  Eigen::Quaterniond quaternion(msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z);
+  quaternion.normalize();
+  out = translation * quaternion;
+}
+
 bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject& object)
 {
   if (object.primitives.empty() && object.meshes.empty() && object.planes.empty())
@@ -1752,7 +1760,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.primitive_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1762,7 +1770,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.mesh_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1772,7 +1780,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     if (s)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.plane_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(object.plane_poses[i], object_pose);
       world_->addToObject(object.id, shapes::ShapeConstPtr(s), object_frame_transform * object_pose);
     }
   }
@@ -1806,22 +1814,22 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
 
     const Eigen::Isometry3d& t = getTransforms().getTransform(object.header.frame_id);
     EigenSTL::vector_Isometry3d new_poses;
-    for (std::size_t i = 0; i < object.primitive_poses.size(); ++i)
+    for (const geometry_msgs::Pose& primitive_pose : object.primitive_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.primitive_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(primitive_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
-    for (std::size_t i = 0; i < object.mesh_poses.size(); ++i)
+    for (const geometry_msgs::Pose& mesh_pose : object.mesh_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.mesh_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(mesh_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
-    for (std::size_t i = 0; i < object.plane_poses.size(); ++i)
+    for (const geometry_msgs::Pose& plane_pose : object.plane_poses)
     {
       Eigen::Isometry3d object_pose;
-      tf2::fromMsg(object.plane_poses[i], object_pose);
+      PlanningScene::poseMsgToEigen(plane_pose, object_pose);
       new_poses.push_back(t * object_pose);
     }
 
