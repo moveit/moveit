@@ -14,6 +14,7 @@ COMPONENTS
   joy_teleop
   moveit_ros_planning_interface
   rosparam_shortcuts
+  spacenav_node
   tf2_ros
 )
 find_package(Eigen3 REQUIRED)
@@ -33,6 +34,7 @@ catkin_package(
     joy_teleop
     moveit_ros_planning_interface
     rosparam_shortcuts
+    spacenav_node
     tf2_ros
   DEPENDS
     EIGEN3
