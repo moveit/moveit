@@ -7,56 +7,43 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# find_package(Boost REQUIRED system filesystem date_time thread iostreams)
-find_package(catkin REQUIRED)
-# find_package(catkin REQUIRED
-# COMPONENTS
-#   moveit_core
-#   moveit_msgs
-#   resource_retriever
-#   kdl_parser
-#   geometric_shapes
-#   eigen_stl_containers
-#   tf2_eigen
-#   random_numbers
-#   visualization_msgs
-#   roslib
-#   rostime
-#   rosconsole
-#   pluginlib
-# )
-# find_package(Eigen3 REQUIRED)
-# find_package(octomap REQUIRED)
-# find_package(urdfdom REQUIRED)
-# find_package(urdfdom_headers REQUIRED)
+find_package(catkin REQUIRED
+COMPONENTS
+  control_msgs
+  geometry_msgs
+  joy_teleop
+  moveit_ros_planning_interface
+  rosparam_shortcuts
+  spacenav_node
+  tf2_ros
+)
+find_package(Eigen3 REQUIRED)
 
-set(THIS_PACKAGE_INCLUDE_DIRS)
+set(THIS_PACKAGE_INCLUDE_DIRS
+  jog_arm/include
+)
 
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
   LIBRARIES
   CATKIN_DEPENDS
-  #   moveit_core
-  #   geometric_shapes
-  #   eigen_stl_containers
-  #   moveit_msgs
-  #   kdl_parser
-  #   pluginlib
+    control_msgs
+    geometry_msgs
+    joy_teleop
+    moveit_ros_planning_interface
+    rosparam_shortcuts
+    spacenav_node
+    tf2_ros
   DEPENDS
-  #   EIGEN3
-  #   Boost
-  #   OCTOMAP
-  #   urdfdom
-  #   urdfdom_headers
+    EIGEN3
 )
 
 include_directories(
-  ${THIS_PACKAGE_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIR}
-  ${EIGEN3_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
-  ${urdfdom_INCLUDE_DIRS}
-  ${urdfdom_headers_INCLUDE_DIRS}
-  ${OCTOMAP_INCLUDE_DIRS}
-  )
+  ${EIGEN3_INCLUDE_DIRS}
+  ${THIS_PACKAGE_INCLUDE_DIRS}
+)
+
+add_subdirectory(jog_arm)
