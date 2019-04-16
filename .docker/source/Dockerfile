@@ -28,3 +28,7 @@ RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_B
     # Status rate is limited so that just enough info is shown to keep Docker from timing out,
     # but not too much such that the Docker log gets too long (another form of timeout)
     catkin build --limit-status-rate 0.001 --no-notify
+
+COPY ./docker_entrypoint.sh /
+ENTRYPOINT ["/docker_entrypoint.sh"]
+CMD ["bash"]
