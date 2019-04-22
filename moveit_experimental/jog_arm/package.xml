@@ -16,4 +16,26 @@
   <author email="andyz@utexas.edu">Andy Zelenak</author>
   <author>Blake Anderson</author>
   <author email="alex@machinekoder.com">Alexander Rössler</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>control_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>rosparam_shortcuts</build_depend>
+  <build_depend>tf2_ros</build_depend>
+
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>joy_teleop</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>rosparam_shortcuts</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <test_depend>rosunit</test_depend>
+  <test_depend>moveit_resources</test_depend>
+
+  <export>
+  </export>
+
 </package>
