@@ -375,6 +375,7 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, c
 {
   RobotStatePtr robot_state;
   robot_state.reset(new RobotState(robot_model_));
+  robot_state->setToDefaultValues();
 
   auto* from_link = robot_state->getLinkModel(from);
   auto* to_link = robot_state->getLinkModel(to);
