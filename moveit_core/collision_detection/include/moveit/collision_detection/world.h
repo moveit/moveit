@@ -111,7 +111,7 @@ public:
   std::vector<std::string> getObjectIds() const;
 
   /** \brief Get a particular object */
-  ObjectConstPtr getObject(const std::string& id) const;
+  ObjectConstPtr getObject(const std::string& object_id) const;
 
   /** iterator over the objects in the world. */
   typedef std::map<std::string, ObjectPtr>::const_iterator const_iterator;
@@ -137,28 +137,29 @@ public:
   }
 
   /** \brief Check if a particular object exists in the collision world*/
-  bool hasObject(const std::string& id) const;
+  bool hasObject(const std::string& object_id) const;
 
   /** \brief Add shapes to an object in the map.
    * This function makes repeated calls to addToObjectInternal() to add the
    * shapes one by one.
    *  \note This function does NOT call the addToObject() variant that takes
    * a single shape and a single pose as input. */
-  void addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+  void addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
                    const EigenSTL::vector_Isometry3d& poses);
 
   /** \brief Add a shape to an object.
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
-  void addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
 
   /** \brief Update the pose of a shape in an object. Shape equality is
    * verified by comparing pointers. Returns true on success. */
-  bool moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+  bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+                         const Eigen::Isometry3d& pose);
 
   /** \brief Move all shapes in an object according to the given transform specified in world frame */
-  bool moveObject(const std::string& id, const Eigen::Isometry3d& transform);
+  bool moveObject(const std::string& object_id, const Eigen::Isometry3d& transform);
 
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
@@ -166,13 +167,13 @@ public:
    * exist) if this was the last shape in the object.
    * Returns true on success and false if the object did not exist or did not
    * contain the shape. */
-  bool removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape);
+  bool removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape);
 
   /** \brief Remove a particular object.
    * If there are no external pointers to the corresponding instance of
    * Object, the memory is freed.
    * Returns true on success and false if no such object was found. */
-  bool removeObject(const std::string& id);
+  bool removeObject(const std::string& object_id);
 
   /** \brief Clear all objects.
    * If there are no other pointers to corresponding instances of Objects,
