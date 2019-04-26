@@ -116,9 +116,9 @@ std::vector<std::string> World::getObjectIds() const
   return id;
 }
 
-World::ObjectConstPtr World::getObject(const std::string& id) const
+World::ObjectConstPtr World::getObject(const std::string& object_id) const
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it == objects_.end())
     return ObjectConstPtr();
   else
@@ -131,14 +131,15 @@ void World::ensureUnique(ObjectPtr& obj)
     obj.reset(new Object(*obj));
 }
 
-bool World::hasObject(const std::string& id) const
+bool World::hasObject(const std::string& object_id) const
 {
-  return objects_.find(id) != objects_.end();
+  return objects_.find(object_id) != objects_.end();
 }
 
-bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
+bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+                              const Eigen::Isometry3d& pose)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -155,9 +156,9 @@ bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr
   return false;
 }
 
-bool World::moveObject(const std::string& id, const Eigen::Isometry3d& transform)
+bool World::moveObject(const std::string& object_id, const Eigen::Isometry3d& transform)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it == objects_.end())
     return false;
   if (transform.isApprox(Eigen::Isometry3d::Identity()))
@@ -171,9 +172,9 @@ bool World::moveObject(const std::string& id, const Eigen::Isometry3d& transform
   return true;
 }
 
-bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
+bool World::removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -199,9 +200,9 @@ bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeCons
   return false;
 }
 
-bool World::removeObject(const std::string& id)
+bool World::removeObject(const std::string& object_id)
 {
-  auto it = objects_.find(id);
+  auto it = objects_.find(object_id);
   if (it != objects_.end())
   {
     notify(it->second, DESTROY);
