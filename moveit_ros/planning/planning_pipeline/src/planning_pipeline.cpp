@@ -344,13 +344,12 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     // This should alert the user if planning failed because of contradicting constraints.
     // Could be checked more thoroughly, but it is probably not worth going to that length.
     bool stacked_constraints = false;
-    if (req.goal_constraints.size() > 1 || req.path_constraints.joint_constraints.size() > 1 ||
-        req.path_constraints.position_constraints.size() > 1 || req.path_constraints.orientation_constraints.size() > 1)
+    if (req.goal_constraints.size() > 1 || req.path_constraints.position_constraints.size() > 1 ||
+        req.path_constraints.orientation_constraints.size() > 1)
       stacked_constraints = true;
     for (auto constraint : req.goal_constraints)
     {
-      if (constraint.joint_constraints.size() > 1 || constraint.position_constraints.size() > 1 ||
-          constraint.orientation_constraints.size() > 1)
+      if (constraint.position_constraints.size() > 1 || constraint.orientation_constraints.size() > 1)
         stacked_constraints = true;
     }
     if (stacked_constraints)
