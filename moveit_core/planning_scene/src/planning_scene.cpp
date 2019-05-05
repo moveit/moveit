@@ -504,6 +504,8 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
           scene->setObjectColor(it.first, getObjectColor(it.first));
         if (hasObjectType(it.first))
           scene->setObjectType(it.first, getObjectType(it.first));
+
+        scene->world_->setSubframesOfObject(obj.id_, obj.subframe_poses_);
       }
     }
   }
@@ -836,6 +838,14 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
     if (hasObjectType(collision_obj.id))
       collision_obj.type = getObjectType(collision_obj.id);
   }
+  for (auto frame_pair : obj->subframe_poses_)
+  {
+    collision_obj.subframe_names.push_back(frame_pair.first);
+    geometry_msgs::Pose p;
+    p = tf2::toMsg(frame_pair.second);
+    collision_obj.subframe_poses.push_back(p);
+  }
+
   return true;
 }
 
@@ -1480,12 +1490,20 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       return false;
     }
 
+    if (object.object.subframe_names.size() != object.object.subframe_poses.size())
+    {
+      ROS_ERROR_NAMED(LOGNAME, "Number of frame names does not match number of frames in collision object "
+                               "message");
+      return false;
+    }
+
     const robot_model::LinkModel* link_model = getRobotModel()->getLinkModel(object.link_name);
     if (link_model)
     {
       // items to build the attached object from (filled from existing world object or message)
       std::vector<shapes::ShapeConstPtr> shapes;
       EigenSTL::vector_Isometry3d poses;
+      moveit::core::FixedTransformsMap subframe_poses;
 
       // STEP 1: Get info about object from the world. First shapes, then subframes.
       // TODO(felixvd): This code may be duplicated in robot_state/conversions.cpp
@@ -1571,6 +1589,36 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       if (!object.object.type.db.empty() || !object.object.type.key.empty())
         setObjectType(object.object.id, object.object.type);
 
+      // STEP 1.2: Get subframes from previous world object or the message
+      if (object.object.operation == moveit_msgs::CollisionObject::ADD && obj_in_world &&
+          object.object.subframe_poses.empty())
+      {
+        subframe_poses = obj_in_world->subframe_poses_;
+        // Transform subframes to the link frame
+        const Eigen::Isometry3d& inv_transform = robot_state_->getGlobalLinkTransform(link_model).inverse();
+        for (auto& subframe : subframe_poses)
+          subframe.second = inv_transform * subframe.second;
+      }
+      else  // Populate subframes from message
+      {
+        Eigen::Isometry3d p;
+        for (std::size_t i = 0; i < object.object.subframe_poses.size(); ++i)
+        {
+          tf2::fromMsg(object.object.subframe_poses[i], p);
+          std::string name = object.object.subframe_names[i];
+          subframe_poses[name] = p;
+        }
+
+        // Transform subframes to the link frame
+        if (object.object.header.frame_id != object.link_name)
+        {
+          const Eigen::Isometry3d& transform = robot_state_->getGlobalLinkTransform(link_model).inverse() *
+                                               getTransforms().getTransform(object.object.header.frame_id);
+          for (auto& subframe : subframe_poses)
+            subframe.second = transform * subframe.second;
+        }
+      }
+
       // STEP 2: Remove the object from the world
       if (obj_in_world && world_->removeObject(object.object.id))
       {
@@ -1593,7 +1641,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
                           object.object.id.c_str(), object.link_name.c_str());
 
         robot_state_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
-                                 object.detach_posture);
+                                 object.detach_posture, subframe_poses);
         ROS_DEBUG_NAMED(LOGNAME, "Attached object '%s' to link '%s'", object.object.id.c_str(),
                         object.link_name.c_str());
       }
@@ -1602,6 +1650,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         const robot_state::AttachedBody* ab = robot_state_->getAttachedBody(object.object.id);
         shapes.insert(shapes.end(), ab->getShapes().begin(), ab->getShapes().end());
         poses.insert(poses.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
+        subframe_poses.insert(ab->getSubframeTransforms().begin(), ab->getSubframeTransforms().end());
         trajectory_msgs::JointTrajectory detach_posture =
             object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
 
@@ -1610,7 +1659,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
                            std::make_move_iterator(object.touch_links.end()));
 
         robot_state_->clearAttachedBody(object.object.id);
-        robot_state_->attachBody(object.object.id, shapes, poses, touch_links, object.link_name, detach_posture);
+        robot_state_->attachBody(object.object.id, shapes, poses, touch_links, object.link_name, detach_posture,
+                                 subframe_poses);
         ROS_DEBUG_NAMED(LOGNAME, "Appended things to object '%s' attached to link '%s'", object.object.id.c_str(),
                         object.link_name.c_str());
       }
@@ -1793,6 +1843,17 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
   }
   if (!object.type.key.empty() || !object.type.db.empty())
     setObjectType(object.id, object.type);
+
+  // Add subframes
+  moveit::core::FixedTransformsMap subframes;
+  Eigen::Isometry3d frame_pose;
+  for (std::size_t i = 0; i < object.subframe_poses.size(); ++i)
+  {
+    tf2::fromMsg(object.subframe_poses[i], frame_pose);
+    std::string name = object.subframe_names[i];
+    subframes[name] = object_frame_transform * frame_pose;
+  }
+  world_->setSubframesOfObject(object.id, subframes);
   return true;
 }
 
