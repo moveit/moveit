@@ -18,8 +18,7 @@ env:
     - ROS_REPO=ros
     - UPSTREAM_WORKSPACE=moveit.rosinstall
     # moveit_ros_perception: mesh_filter_test fails due to broken Mesa OpenGL
-    # moveit_experimental: test succeeds locally, not on Travis
-    - TEST_BLACKLIST="moveit_ros_perception moveit_experimental"
+    - TEST_BLACKLIST="moveit_ros_perception"
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
   matrix:

@@ -30,5 +30,5 @@ install(
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(ros_pytest REQUIRED)
-  add_rostest(test/launch/jog_arm_integration_test.launch)
+  add_rostest(test/launch/jog_arm_integration_test.test)
 endif()
