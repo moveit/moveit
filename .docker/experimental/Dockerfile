@@ -1,11 +1,7 @@
-# moveit/moveit:melodic-experimental
+# moveit/moveit:master-experimental
 # Based on a moveit source install, adds the mongo driver and the warehouse packages
 
-FROM moveit/moveit:melodic-source
-
-ENV CATKIN_WS=/root/ws_moveit
-RUN mkdir -p $CATKIN_WS/src
-WORKDIR $CATKIN_WS/src
+FROM moveit/moveit:master-source
 
 # installing mongocxx driver for the warehouse
 RUN git clone -b 26compat https://github.com/mongodb/mongo-cxx-driver.git && \
@@ -22,7 +18,4 @@ RUN wstool set -yu warehouse_ros_mongo --git https://github.com/ros-planning/war
     wstool set -yu warehouse_ros --git https://github.com/ros-planning/warehouse_ros.git -v jade-devel
 
 # build the workspace
-RUN cd $CATKIN_WS && \
-    source /root/ws_moveit/devel/setup.bash && \
-    catkin init  && \
-    catkin build
+RUN catkin build --limit-status-rate 0.001 --no-notify
