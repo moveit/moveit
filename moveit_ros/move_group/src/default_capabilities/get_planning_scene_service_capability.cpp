@@ -55,7 +55,8 @@ bool move_group::MoveGroupGetPlanningSceneService::getPlanningSceneService(movei
     context_->planning_scene_monitor_->updateFrameTransforms();
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
 
-  static const moveit_msgs::PlanningSceneComponents all_components{ UINT_MAX };
+  static const moveit_msgs::PlanningSceneComponents all_components;
+  all_components.components = UINT_MAX;  // Return all scene components if nothing is specified.
   ps->getPlanningSceneMsg(res.scene, req.components.components ? req.components : all_components);
 
   return true;
