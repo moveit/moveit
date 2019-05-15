@@ -313,11 +313,11 @@ public:
 
   void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
-  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint
    * approximations to */
   bool loadConstraintApproximations(const ros::NodeHandle& nh);
 
-  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
    * approximations to */
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
 
