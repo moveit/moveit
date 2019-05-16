@@ -8,7 +8,7 @@ scale: # Only used if command_in_type=="unitless"
 cartesian_command_in_topic: jog_arm_server/delta_jog_cmds # Topic for xyz commands
 joint_command_in_topic: jog_arm_server/joint_delta_jog_cmds # Topic for angle commands
 command_frame: base_link  # If incoming cmds have no frame, this is the default
-incoming_command_timeout: 5  # Stop jogging if X seconds elapse without a new cmd
+incoming_command_timeout: 0.5  # Stop jogging if X seconds elapse without a new cmd
 joint_topic: joint_states
 move_group_name: arm  # Often 'manipulator' or 'arm'
 lower_singularity_threshold: 15  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity

@@ -165,7 +165,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
       joint_deltas = shared_variables.joint_command_deltas;
       pthread_mutex_unlock(&mutex);
 
-      if (!jointJogCalcs(joint_deltas, shared_variables))
+      if (!jointJogCalcs(joint_deltas, shared_variables, mutex))
         continue;
     }
 
@@ -174,27 +174,18 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     bool stale_command = shared_variables.command_is_stale;
     pthread_mutex_unlock(&mutex);
 
-    if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
-    {
-      halt(outgoing_command_);
-      zero_cartesian_cmd_flag = true;
-      zero_joint_cmd_flag = true;
-    }
-
-    bool valid_nonzero_command = !zero_cartesian_cmd_flag && !zero_joint_cmd_flag;
-
     // Send the newest target joints
     if (!outgoing_command_.joint_names.empty())
     {
       pthread_mutex_lock(&mutex);
       // If everything normal, share the new traj to be published
-      if (valid_nonzero_command)
+      if (!stale_command)
       {
         shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row.
-      // num_halt_msgs_to_publish == 0 signifies that we shoud keep republishing forever.
+      // num_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
       else if ((parameters_.num_halt_msgs_to_publish != 0) &&
                (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
       {
@@ -306,6 +297,17 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Include a velocity estimate for velocity-controlled robots
   Eigen::VectorXd joint_vel(delta_theta_ / parameters_.publish_period);
 
+  // Smoothly halt if the command is stale
+  // Positions are set to original positions, and velocities are set to zero.
+  // The filters will be applied after this.
+  pthread_mutex_lock(&mutex);
+  if (shared_variables.command_is_stale)
+  {
+    joint_vel.setZero();
+    jt_state_ = original_jt_state_;
+  }
+  pthread_mutex_unlock(&mutex);
+
   lowPassFilterVelocities(joint_vel);
   lowPassFilterPositions();
 
@@ -318,7 +320,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   if (!checkIfJointsWithinURDFBounds(outgoing_command_))
   {
-    halt(outgoing_command_);
+    suddenHalt(outgoing_command_);
     publishWarning(true);
   }
   else
@@ -333,7 +335,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   return true;
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
@@ -357,6 +359,17 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   // Include a velocity estimate for velocity-controlled robots
   Eigen::VectorXd joint_vel(delta / parameters_.publish_period);
 
+  // Smoothly halt if the command is stale
+  // Positions are set to original positions, and velocities are set to zero.
+  // The filters will be applied after this.
+  pthread_mutex_lock(&mutex);
+  if (shared_variables.command_is_stale)
+  {
+    joint_vel.setZero();
+    jt_state_ = original_jt_state_;
+  }
+  pthread_mutex_unlock(&mutex);
+
   lowPassFilterVelocities(joint_vel);
   lowPassFilterPositions();
 
@@ -369,7 +382,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   // check if new joint state is valid
   if (!checkIfJointsWithinURDFBounds(outgoing_command_))
   {
-    halt(outgoing_command_);
+    suddenHalt(outgoing_command_);
     publishWarning(true);
   }
   else
@@ -636,8 +649,9 @@ void JogCalcs::publishWarning(bool active) const
   warning_pub_.publish(status);
 }
 
-// Avoid a singularity or other issue. Needs to be handled differently for position vs. velocity control
-void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
+// Suddenly halt for a joint limit or other critical issue.
+// Is handled differently for position vs. velocity control.
+void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& jt_traj)
 {
   for (std::size_t i = 0; i < num_joints_; ++i)
   {

@@ -66,7 +66,7 @@ protected:
 
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
 
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints();
@@ -83,8 +83,9 @@ protected:
   // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
   void resetVelocityFilters();
 
-  // Avoid a singularity or other issue. Is handled differently for position vs. velocity control.
-  void halt(trajectory_msgs::JointTrajectory& jt_traj);
+  // Suddenly halt for a joint limit or other critical issue.
+  // Is handled differently for position vs. velocity control.
+  void suddenHalt(trajectory_msgs::JointTrajectory& jt_traj);
 
   void publishWarning(bool active) const;
 
