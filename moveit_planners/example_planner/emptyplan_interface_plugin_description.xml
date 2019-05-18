@@ -1,0 +1,6 @@
+<library path="libmoveit_emptyplan_planner_plugin">
+  <class name="emptyplan_interface/EmptyPlanPlanner" type="emptyplan_interface::EmptyPlanPlannerManager" base_class_type="planning_interface::PlannerManager">
+    <description>
+    </description>
+  </class>
+</library>
