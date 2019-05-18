@@ -201,6 +201,19 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
  * @return was the construction successful?
  */
 bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints);
-}
 
+/**
+ * \brief Resolves frames used in constraints to links in the robot model.
+ *
+ * The link_name field of a constraint is changed from the name of an object's frame or subframe
+ * to the name of the robot link that the object is attached to.
+ *
+ * This is used in a planning request adapter which ensures that the planning problem is defined
+ * properly (the attached objects' frames are not known to the planner).
+ *
+ * @param [in] state The RobotState used to resolve frames.
+ * @param [in] constraints The constraint to resolve.
+ */
+bool resolveConstraintFrames(const robot_state::RobotState& state, moveit_msgs::Constraints& constraints);
+}
 #endif
