@@ -74,6 +74,6 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     received = []
     rospy.sleep(test_duration)
     # test_duration/publish_period is the expected number of messages in this duration.
-    # Allow a small +/- window of 3 due to small rounding/timing errors
-    assert len(received) > test_duration/publish_period - 3
-    assert len(received) < test_duration/publish_period + 3
+     # Allow a small +/- window due to rounding/timing errors
+    assert len(received) >= test_duration/publish_period - 5
+    assert len(received) <= test_duration/publish_period + 5
