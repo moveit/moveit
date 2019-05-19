@@ -505,22 +505,14 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   // direction. Start with a scaled version of the singular vector
   Eigen::VectorXd delta_x(6);
   double scale = 100;
-  delta_x[0] = vector_toward_singularity[0] / scale;
-  delta_x[1] = vector_toward_singularity[1] / scale;
-  delta_x[2] = vector_toward_singularity[2] / scale;
-  delta_x[3] = vector_toward_singularity[3] / scale;
-  delta_x[4] = vector_toward_singularity[4] / scale;
-  delta_x[5] = vector_toward_singularity[5] / scale;
+  delta_x = vector_toward_singularity / scale;
 
   // Calculate a small change in joints
-  Eigen::VectorXd new_delta_theta = pseudo_inverse_ * delta_x;
+  Eigen::VectorXd new_theta;
+  kinematic_state_->copyJointGroupPositions(joint_model_group_, new_theta);
+  new_theta += pseudo_inverse_ * delta_x;
+  kinematic_state_->setJointGroupPositions(joint_model_group_, new_theta);
 
-  double theta[6];
-  const double* prev_joints = kinematic_state_->getVariablePositions();
-  for (std::size_t i = 0, size = static_cast<std::size_t>(num_joints_); i < size; ++i)
-    theta[i] = prev_joints[i] + new_delta_theta(i);
-
-  kinematic_state_->setVariablePositions(theta);
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
   Eigen::JacobiSVD<Eigen::MatrixXd> new_svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
