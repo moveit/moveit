@@ -1658,7 +1658,6 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& rstate)
 {
-  ROS_WARN("Use of setJointValueTarget(RobotState) is deprecated!");
   impl_->setTargetType(JOINT);
   impl_->getTargetRobotState() = rstate;
   return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
