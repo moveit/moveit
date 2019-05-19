@@ -237,7 +237,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   create_time = ros::WallTime::now();
   // assume that the trajectory is now optimized, fill in the output structure:
 
-  ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %d joints", trajectory.getNumJoints());
+  ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %zd joints", trajectory.getNumJoints());
 
   res.trajectory.resize(1);
 

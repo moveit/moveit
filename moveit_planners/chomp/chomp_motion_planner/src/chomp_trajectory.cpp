@@ -42,11 +42,11 @@ namespace chomp
 {
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration,
                                  double discretization, const std::string& group_name)
-  : ChompTrajectory(robot_model, static_cast<unsigned int>(duration / discretization) + 1, discretization, group_name)
+  : ChompTrajectory(robot_model, static_cast<size_t>(duration / discretization) + 1, discretization, group_name)
 {
 }
 
-ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, unsigned int num_points,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, size_t num_points,
                                  double discretization, const std::string& group_name)
   : planning_group_name_(group_name)
   , num_points_(num_points)
@@ -82,18 +82,15 @@ ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::
   full_trajectory_index_.resize(num_points_);
 
   // now copy the trajectories over:
-  for (int i = 0; i < num_points_; i++)
+  for (size_t i = 0; i < num_points_; i++)
   {
     int source_traj_point = i - start_extra;
     if (source_traj_point < 0)
       source_traj_point = 0;
-    if (source_traj_point >= source_traj.num_points_)
+    if (static_cast<size_t>(source_traj_point) >= source_traj.num_points_)
       source_traj_point = source_traj.num_points_ - 1;
     full_trajectory_index_[i] = source_traj_point;
-    for (int j = 0; j < num_joints_; j++)
-    {
-      (*this)(i, j) = source_traj(source_traj_point, j);
-    }
+    getTrajectoryPoint(i) = const_cast<ChompTrajectory&>(source_traj).getTrajectoryPoint(source_traj_point);
   }
 }
 
@@ -104,7 +101,7 @@ void ChompTrajectory::init()
 
 void ChompTrajectory::updateFromGroupTrajectory(const ChompTrajectory& group_trajectory)
 {
-  int num_vars_free = end_index_ - start_index_ + 1;
+  size_t num_vars_free = end_index_ - start_index_ + 1;
   trajectory_.block(start_index_, 0, num_vars_free, num_joints_) =
       group_trajectory.trajectory_.block(group_trajectory.start_index_, 0, num_vars_free, num_joints_);
 }
@@ -113,10 +110,10 @@ void ChompTrajectory::fillInLinearInterpolation()
 {
   double start_index = start_index_ - 1;
   double end_index = end_index_ + 1;
-  for (int i = 0; i < num_joints_; i++)
+  for (size_t i = 0; i < num_joints_; i++)
   {
     double theta = ((*this)(end_index, i) - (*this)(start_index, i)) / (end_index - 1);
-    for (int j = start_index + 1; j < end_index; j++)
+    for (size_t j = start_index + 1; j < end_index; j++)
     {
       (*this)(j, i) = (*this)(start_index, i) + j * theta;
     }
@@ -130,14 +127,14 @@ void ChompTrajectory::fillInCubicInterpolation()
   double dt = 0.001;
   std::vector<double> coeffs(4, 0);
   double total_time = (end_index - 1) * dt;
-  for (int i = 0; i < num_joints_; i++)
+  for (size_t i = 0; i < num_joints_; i++)
   {
     coeffs[0] = (*this)(start_index, i);
     coeffs[2] = (3 / (pow(total_time, 2))) * ((*this)(end_index, i) - (*this)(start_index, i));
     coeffs[3] = (-2 / (pow(total_time, 3))) * ((*this)(end_index, i) - (*this)(start_index, i));
 
     double t;
-    for (int j = start_index + 1; j < end_index; j++)
+    for (size_t j = start_index + 1; j < end_index; j++)
     {
       t = j * dt;
       (*this)(j, i) = coeffs[0] + coeffs[2] * pow(t, 2) + coeffs[3] * pow(t, 3);
@@ -153,13 +150,13 @@ void ChompTrajectory::fillInMinJerk()
   td[0] = 1.0;
   td[1] = (end_index - start_index) * discretization_;
 
-  for (int i = 2; i <= 5; i++)
+  for (unsigned int i = 2; i <= 5; i++)
     td[i] = td[i - 1] * td[1];
 
   // calculate the spline coefficients for each joint:
   // (these are for the special case of zero start and end vel and acc)
   double coeff[num_joints_][6];
-  for (int i = 0; i < num_joints_; i++)
+  for (size_t i = 0; i < num_joints_; i++)
   {
     double x0 = (*this)(start_index, i);
     double x1 = (*this)(end_index, i);
@@ -172,18 +169,18 @@ void ChompTrajectory::fillInMinJerk()
   }
 
   // now fill in the joint positions at each time step
-  for (int i = start_index + 1; i < end_index; i++)
+  for (size_t i = start_index + 1; i < end_index; i++)
   {
     double ti[6];  // powers of the time index point
     ti[0] = 1.0;
     ti[1] = (i - start_index) * discretization_;
-    for (int k = 2; k <= 5; k++)
+    for (unsigned int k = 2; k <= 5; k++)
       ti[k] = ti[k - 1] * ti[1];
 
-    for (int j = 0; j < num_joints_; j++)
+    for (size_t j = 0; j < num_joints_; j++)
     {
       (*this)(i, j) = 0.0;
-      for (int k = 0; k <= 5; k++)
+      for (unsigned int k = 0; k <= 5; k++)
       {
         (*this)(i, j) += ti[k] * coeff[j][k];
       }
@@ -197,30 +194,30 @@ bool ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedRespon
   moveit_msgs::RobotTrajectory trajectory_msg = res.trajectory[0];
 
   // get the default number of points in the CHOMP trajectory
-  int num_chomp_trajectory_points = (*this).getNumPoints();
+  size_t num_chomp_trajectory_points = (*this).getNumPoints();
   // get the number of points in the response trajectory obtained from OMPL
-  int num_response_points = trajectory_msg.joint_trajectory.points.size();
+  size_t num_response_points = trajectory_msg.joint_trajectory.points.size();
 
   // check if input trajectory has less than two states (start and goal), function returns false if condition is true
   if (num_response_points < 2)
     return false;
 
   // get the number of joints for each robot state
-  int num_joints_trajectory = trajectory_msg.joint_trajectory.points[0].positions.size();
+  size_t num_joints_trajectory = trajectory_msg.joint_trajectory.points[0].positions.size();
 
   // variables for populating the CHOMP trajectory with correct number of trajectory points
-  int repeated_factor = num_chomp_trajectory_points / num_response_points;
-  int repeated_balance_factor = num_chomp_trajectory_points % num_response_points;
+  unsigned int repeated_factor = num_chomp_trajectory_points / num_response_points;
+  unsigned int repeated_balance_factor = num_chomp_trajectory_points % num_response_points;
 
   // response_point_id stores the point at the stored index location.
-  int response_point_id = 0;
+  size_t response_point_id = 0;
   if (num_chomp_trajectory_points >= num_response_points)
   {
-    for (int i = 0; i < num_response_points; i++)
+    for (size_t i = 0; i < num_response_points; i++)
     {
       // following for loop repeats each OMPL trajectory pose/row 'repeated_factor' times; alternatively, there could
       // also be a linear interpolation between these points later if required
-      for (int k = 0; k < repeated_factor; k++)
+      for (unsigned int k = 0; k < repeated_factor; k++)
       {
         assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory_msg, num_joints_trajectory, i, response_point_id);
         response_point_id++;
@@ -240,9 +237,9 @@ bool ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedRespon
     // res object is more than the number of points in the CHOMP trajectory
     double decimation_sampling_factor = ((double)num_response_points) / ((double)num_chomp_trajectory_points);
 
-    for (int i = 0; i < num_chomp_trajectory_points; i++)
+    for (size_t i = 0; i < num_chomp_trajectory_points; i++)
     {
-      int sampled_point = floor(i * decimation_sampling_factor);
+      size_t sampled_point = floor(i * decimation_sampling_factor);
       assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory_msg, num_joints_trajectory, sampled_point, i);
     }
   }  // end of else
@@ -250,13 +247,13 @@ bool ChompTrajectory::fillInFromTrajectory(moveit_msgs::MotionPlanDetailedRespon
 }
 
 void ChompTrajectory::assignCHOMPTrajectoryPointFromInputTrajectoryPoint(moveit_msgs::RobotTrajectory trajectory_msg,
-                                                                         int num_joints_trajectory,
-                                                                         int trajectory_msgs_point_index,
-                                                                         int chomp_trajectory_point_index)
+                                                                         size_t num_joints_trajectory,
+                                                                         size_t trajectory_msgs_point_index,
+                                                                         size_t chomp_trajectory_point_index)
 {
   // following loop iterates over all joints for a single robot pose, it assigns the corresponding input trajectory
   // points into CHOMP trajectory points
-  for (int j = 0; j < num_joints_trajectory; j++)
+  for (size_t j = 0; j < num_joints_trajectory; j++)
     (*this)(chomp_trajectory_point_index, j) =
         trajectory_msg.joint_trajectory.points[trajectory_msgs_point_index].positions[j];
 }

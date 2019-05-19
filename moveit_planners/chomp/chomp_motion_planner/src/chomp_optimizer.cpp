@@ -540,10 +540,10 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory.joint_names = joint_names_;
 
-  for (int i = 0; i < group_trajectory_.getNumPoints(); i++)
+  for (size_t i = 0; i < group_trajectory_.getNumPoints(); i++)
   {
     trajectory_msgs::JointTrajectoryPoint point;
-    for (int j = 0; j < group_trajectory_.getNumJoints(); j++)
+    for (size_t j = 0; j < group_trajectory_.getNumJoints(); j++)
     {
       point.positions.push_back(best_group_trajectory_(i, j));
     }
@@ -1014,7 +1014,7 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
 
   std::vector<double> joint_states;
   joint_states.reserve(group_trajectory.getNumJoints());
-  for (int j = 0; j < group_trajectory.getNumJoints(); j++)
+  for (size_t j = 0; j < group_trajectory.getNumJoints(); j++)
     joint_states.emplace_back(point(0, j));
 
   state_.setJointGroupPositions(planning_group_, joint_states);
