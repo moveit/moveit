@@ -52,23 +52,13 @@ static const double DIFF_RULES[3][DIFF_RULE_LENGTH] = {
   { 0, 1 / 12.0, -17 / 12.0, 46 / 12.0, -46 / 12.0, 17 / 12.0, -1 / 12.0 }  // jerk
 };
 
-static inline void jointStateToArray(const moveit::core::RobotModelConstPtr& robot_model,
-                                     const sensor_msgs::JointState& joint_state, const std::string& planning_group_name,
+static inline void robotStateToArray(const moveit::core::RobotState& state, const std::string& planning_group_name,
                                      Eigen::MatrixXd::RowXpr joint_array)
 {
-  const moveit::core::JointModelGroup* group = robot_model->getJointModelGroup(planning_group_name);
-  std::vector<const moveit::core::JointModel*> models = group->getActiveJointModels();
-
-  for (unsigned int i = 0; i < joint_state.position.size(); i++)
-  {
-    for (size_t j = 0; j < models.size(); j++)
-    {
-      if (models[j]->getName() == joint_state.name[i])
-      {
-        joint_array(0, j) = joint_state.position[i];
-      }
-    }
-  }
+  const moveit::core::JointModelGroup* group = state.getJointModelGroup(planning_group_name);
+  size_t joint_index = 0;
+  for (const moveit::core::JointModel* jm : group->getActiveJointModels())
+    joint_array[joint_index++] = state.getVariablePosition(jm->getFirstVariableIndex());
 }
 
 // copied from geometry/angles/angles.h
