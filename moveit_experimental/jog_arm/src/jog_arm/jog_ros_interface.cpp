@@ -137,12 +137,12 @@ JogROSInterface::JogROSInterface()
     }
     else if (shared_variables_.command_is_stale)
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Stale command. "
+      ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
                                                  "Try a larger 'incoming_command_timeout' parameter?");
     }
     else
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(2, LOGNAME, "All-zero command. Doing nothing.");
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
 
     pthread_mutex_unlock(&shared_variables_mutex_);
@@ -189,7 +189,7 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
     shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
   }
 
-  // Check if input is all zeros. Flag it if so to skip calculations/publication
+  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_halt_msgs_to_publish
   shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.y == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.z == 0.0 &&

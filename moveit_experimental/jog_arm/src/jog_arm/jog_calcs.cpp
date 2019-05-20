@@ -124,15 +124,11 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
   // Now do jogging calcs
   while (ros::ok())
   {
-    // If user commands are all zero, reset the low-pass filters when commands resume
+    // Flag that incoming commands are all zero. May be used to skip calculations/publication
     pthread_mutex_lock(&mutex);
     bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
     bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
     pthread_mutex_unlock(&mutex);
-
-    if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
-      // Reset low-pass filters
-      resetVelocityFilters();
 
     // Pull data from the shared variables.
     pthread_mutex_lock(&mutex);
@@ -169,7 +165,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
         continue;
     }
 
-    // Halt if the command is stale or inputs are all zero, or commands were zero
+    // Halt if the command is stale or inputs are all zero
     pthread_mutex_lock(&mutex);
     bool stale_command = shared_variables.command_is_stale;
     pthread_mutex_unlock(&mutex);
@@ -190,7 +186,10 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
                (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
       {
         shared_variables.ok_to_publish = false;
+        // Reset the velocity filters so robot doesn't jump when commands resume
+        resetVelocityFilters();
       }
+      // The command is stale but we are publishing num_halt_msgs_to_publish
       else
       {
         shared_variables.outgoing_command = outgoing_command_;
