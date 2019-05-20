@@ -93,7 +93,7 @@ TEST_F(CHOMPMoveitTest, noStartState)
   move_group_.setJointValueTarget(std::vector<double>({ 0.2, 0.2 }));
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
-  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::SUCCESS);
 }
 
 TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
