@@ -202,7 +202,7 @@ void FollowJointTrajectoryControllerHandle::controllerDoneCallback(
   else if (result->error_code == control_msgs::FollowJointTrajectoryResult::SUCCESSFUL)
     ROS_INFO_STREAM_NAMED(LOGNAME, "Controller " << name_ << " successfully finished");
   else
-    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller " << name_ << "failed with error "
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Controller " << name_ << " failed with error "
                                                  << errorCodeToMessage(result->error_code) << ": "
                                                  << result->error_string);
   finishControllerExecution(state);
