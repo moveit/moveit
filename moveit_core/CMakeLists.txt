@@ -32,6 +32,7 @@ find_library(LIBFCL_LIBRARIES fcl HINTS ${LIBFCL_PC_LIBRARY_DIRS})
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
+find_package(Bullet REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
@@ -55,6 +56,8 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
+  tesseract_core
+  tesseract_collision
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
@@ -70,6 +73,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     backtrace/include
     collision_detection/include
     collision_detection_fcl/include
+    collision_detection_bullet/include
     constraint_samplers/include
     controller_manager/include
     distance_field/include
@@ -106,6 +110,7 @@ catkin_package(
     moveit_planning_interface
     moveit_collision_detection
     moveit_collision_detection_fcl
+    moveit_collision_detection_bullet
     moveit_kinematic_constraints
     moveit_planning_scene
     moveit_constraint_samplers
@@ -135,6 +140,8 @@ catkin_package(
     tf2_geometry_msgs
     trajectory_msgs
     visualization_msgs
+    tesseract_core
+    tesseract_collision
   DEPENDS
     Boost
     EIGEN3
@@ -142,6 +149,7 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
+    BULLET
     )
 
 
@@ -156,6 +164,7 @@ endif()
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
+                           ${BULLET_INCLUDE_DIRS}
                            )
 
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
@@ -195,6 +204,7 @@ add_subdirectory(robot_state)
 add_subdirectory(robot_trajectory)
 add_subdirectory(collision_detection)
 add_subdirectory(collision_detection_fcl)
+add_subdirectory(collision_detection_bullet)
 add_subdirectory(kinematic_constraints)
 add_subdirectory(planning_scene)
 add_subdirectory(constraint_samplers)
