@@ -75,7 +75,7 @@ public:
   void getPlanningAlgorithms(std::vector<std::string>& algs) const override
   {
     algs.clear();
-    algs.push_back("trajopt");
+    algs.push_back("emptyplan");
   }
 
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
