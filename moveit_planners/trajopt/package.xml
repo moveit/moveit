@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package format="2">
-  <name>moveit_planners_emptyplan</name>
+  <name>moveit_planners_trajopt</name>
   <version>1.0.1</version>
-  <description>Example planning plugin template</description>
+  <description>TrajOpt planning plugin</description>
 
-  <author email="dave@picknik.ai">Dave Coleman</author>
+  <author email="omid@picknik.ai">Omid Heidari</author>
 
-  <maintainer email="dave@picknik.ai">Dave Coleman</maintainer>
+  <maintainer email="omid@picknik.ai">Omid Heidari</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>

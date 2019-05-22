@@ -56,7 +56,7 @@ public:
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
-    //emptyplan_interface_.reset(new TrajOptInterface(model, nh_));
+    //trajopt_interface_.reset(new TrajOptInterface(model, nh_));
     std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
     //config_settings_ = trajopt_interface_->getPlannerConfigurations();
     return true;
@@ -82,7 +82,7 @@ public:
                                                             const planning_interface::MotionPlanRequest& req,
                                                             moveit_msgs::MoveItErrorCodes& error_code) const override
   {
-    // TODO(ommmid): this is the key thing to implement
+    // This is the key thing to implement
     return planning_interface::PlanningContextPtr();
     //return trajopt_interface_->getPlanningContext(planning_scene, req, error_code);
   }
