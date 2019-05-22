@@ -47,6 +47,8 @@
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
+  <depend>tesseract_core</depend>
+  <depend>tesseract_collision</depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>angles</test_depend>
