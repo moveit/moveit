@@ -159,6 +159,7 @@ void PlanningScene::initialize()
 
   robot_state_.reset(new robot_state::RobotState(robot_model_));
   robot_state_->setToDefaultValues();
+  robot_state_->update();
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix());
   // Use default collision operations in the SRDF to setup the acm
