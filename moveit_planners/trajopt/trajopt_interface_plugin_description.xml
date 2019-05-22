@@ -1,0 +1,6 @@
+<library path="libmoveit_trajopt_planner_plugin">
+  <class name="trajopt_interface/TrajOptPlanner" type="trajopt_interface::TrajOptPlannerManager" base_class_type="planning_interface::PlannerManager">
+    <description>
+    </description>
+  </class>
+</library>

@@ -42,13 +42,13 @@
 
 #include <class_loader/class_loader.hpp>
 
-namespace emptyplan_interface
+namespace trajopt_interface
 {
 
-class EmptyPlanPlannerManager : public planning_interface::PlannerManager
+class TrajOptPlannerManager : public planning_interface::PlannerManager
 {
 public:
-  EmptyPlanPlannerManager() : planning_interface::PlannerManager(), nh_("~")
+  TrajOptPlannerManager() : planning_interface::PlannerManager(), nh_("~")
   {
   }
 
@@ -56,9 +56,9 @@ public:
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
-    //emptyplan_interface_.reset(new EmptyPlanInterface(model, nh_));
-    std::string emptyplan_ns = ns.empty() ? "emptyplan" : ns + "/emptyplan";
-    //config_settings_ = emptyplan_interface_->getPlannerConfigurations();
+    //emptyplan_interface_.reset(new TrajOptInterface(model, nh_));
+    std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
+    //config_settings_ = trajopt_interface_->getPlannerConfigurations();
     return true;
   }
 
@@ -69,7 +69,7 @@ public:
 
   std::string getDescription() const override
   {
-    return "EmptyPlan";
+    return "TrajOpt";
   }
 
   void getPlanningAlgorithms(std::vector<std::string>& algs) const override
@@ -84,7 +84,7 @@ public:
   {
     // TODO(ommmid): this is the key thing to implement
     return planning_interface::PlanningContextPtr();
-    //return emptyplan_interface_->getPlanningContext(planning_scene, req, error_code);
+    //return trajopt_interface_->getPlanningContext(planning_scene, req, error_code);
   }
 
 private:
@@ -93,7 +93,7 @@ private:
   ros::NodeHandle nh_;
 };
 
-}  // namespace emptyplan_interface
+}  // namespace trajopt_interface
 
-// register the EmptyPlanPlannerManager class as a plugin
-CLASS_LOADER_REGISTER_CLASS(emptyplan_interface::EmptyPlanPlannerManager, planning_interface::PlannerManager);
+// register the TrajOptPlannerManager class as a plugin
+CLASS_LOADER_REGISTER_CLASS(trajopt_interface::TrajOptPlannerManager, planning_interface::PlannerManager);
