@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman
-   Desc:   Example planning plugin template
+/* Author: Omid Heidari
+   Desc:   TrajOpt planning plugin
 */
 
 #include <moveit/planning_interface/planning_interface.h>
@@ -56,9 +56,7 @@ public:
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
-    //trajopt_interface_.reset(new TrajOptInterface(model, nh_));
     std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
-    //config_settings_ = trajopt_interface_->getPlannerConfigurations();
     return true;
   }
 
@@ -82,9 +80,8 @@ public:
                                                             const planning_interface::MotionPlanRequest& req,
                                                             moveit_msgs::MoveItErrorCodes& error_code) const override
   {
-    // This is the key thing to implement
+    // TODO(ommmid): Actually implement
     return planning_interface::PlanningContextPtr();
-    //return trajopt_interface_->getPlanningContext(planning_scene, req, error_code);
   }
 
 private:
