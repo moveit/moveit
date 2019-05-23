@@ -34,11 +34,11 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
+#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
+#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
 
-#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
-#include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <moveit/collision_detection_bullet/collision_robot_bt.h>
+#include <moveit/collision_detection_bullet/fcl_compat.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/broadphase/broadphase_collision_manager.h>
@@ -47,16 +47,17 @@
 #endif
 
 #include <memory>
+#include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
 
 namespace collision_detection
 {
-class CollisionWorldFCL : public CollisionWorld
+class CollisionWorldBt : public CollisionWorld
 {
 public:
-  CollisionWorldFCL();
-  explicit CollisionWorldFCL(const WorldPtr& world);
-  CollisionWorldFCL(const CollisionWorldFCL& other, const WorldPtr& world);
-  ~CollisionWorldFCL() override;
+  CollisionWorldBt();
+  explicit CollisionWorldBt(const WorldPtr& world);
+  CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world);
+  ~CollisionWorldBt() override;
 
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                            const robot_state::RobotState& state) const override;
@@ -89,6 +90,7 @@ protected:
   void updateFCLObject(const std::string& id);
 
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+  std::unique_ptr<tesseract::tesseract_bullet::BulletDiscreteSimpleManager> bt_manager_;
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:

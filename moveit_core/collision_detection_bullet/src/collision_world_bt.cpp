@@ -34,9 +34,9 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/collision_detection_fcl/collision_world_fcl.h>
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
-#include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <moveit/collision_detection_bullet/collision_world_bt.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
+#include <moveit/collision_detection_bullet/fcl_compat.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/geometry/geometric_shape_to_BVH_model.h>
@@ -56,30 +56,30 @@
 
 namespace collision_detection
 {
-const std::string CollisionDetectorAllocatorFCL::NAME("FCL");
+const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
 
-CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
+CollisionWorldBt::CollisionWorldBt() : CollisionWorld()
 {
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager_.reset(m);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 }
 
-CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) : CollisionWorld(world)
+CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world)
 {
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager_.reset(m);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL& other, const WorldPtr& world)
+CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world)
   : CollisionWorld(other, world)
 {
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
@@ -92,35 +92,35 @@ CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL& other, const World
   // manager_->update();
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 }
 
-CollisionWorldFCL::~CollisionWorldFCL()
+CollisionWorldBt::~CollisionWorldBt()
 {
   getWorld()->removeObserver(observer_handle_);
 }
 
-void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionRobot& robot, const robot_state::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, nullptr);
 }
 
-void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionRobot& robot, const robot_state::RobotState& state,
                                             const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionRobot& robot, const robot_state::RobotState& state1,
                                             const robot_state::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionRobot& robot, const robot_state::RobotState& state1,
                                             const robot_state::RobotState& state2,
                                             const AllowedCollisionMatrix& acm) const
@@ -128,11 +128,11 @@ void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, Collisi
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                   const CollisionRobot& robot, const robot_state::RobotState& state,
                                                   const AllowedCollisionMatrix* acm) const
 {
-  const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
+  const CollisionRobotBt& robot_fcl = dynamic_cast<const CollisionRobotBt&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
 
@@ -154,23 +154,23 @@ void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req, C
   }
 }
 
-void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionWorld& other_world) const
 {
   checkWorldCollisionHelper(req, res, other_world, nullptr);
 }
 
-void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                             const CollisionWorld& other_world, const AllowedCollisionMatrix& acm) const
 {
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
-void CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                   const CollisionWorld& other_world,
                                                   const AllowedCollisionMatrix* acm) const
 {
-  const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
+  const CollisionWorldBt& other_fcl_world = dynamic_cast<const CollisionWorldBt&>(other_world);
   CollisionData cd(&req, &res, acm);
   manager_->collide(other_fcl_world.manager_.get(), &cd, &collisionCallback);
 
@@ -186,7 +186,7 @@ void CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req, C
   }
 }
 
-void CollisionWorldFCL::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
+void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
 {
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
@@ -200,7 +200,7 @@ void CollisionWorldFCL::constructFCLObject(const World::Object* obj, FCLObject& 
   }
 }
 
-void CollisionWorldFCL::updateFCLObject(const std::string& id)
+void CollisionWorldBt::updateFCLObject(const std::string& id)
 {
   // remove FCL objects that correspond to this object
   auto jt = fcl_objs_.find(id);
@@ -235,7 +235,7 @@ void CollisionWorldFCL::updateFCLObject(const std::string& id)
   // manager_->update();
 }
 
-void CollisionWorldFCL::setWorld(const WorldPtr& world)
+void CollisionWorldBt::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;
@@ -251,13 +251,13 @@ void CollisionWorldFCL::setWorld(const WorldPtr& world)
   CollisionWorld::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
+void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
   if (action == World::DESTROY)
   {
@@ -278,10 +278,10 @@ void CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Act
   }
 }
 
-void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                                       const robot_state::RobotState& state) const
 {
-  const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
+  const CollisionRobotBt& robot_fcl = dynamic_cast<const CollisionRobotBt&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
 
@@ -290,10 +290,10 @@ void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult
     manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
 
-void CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res,
+void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res,
                                       const CollisionWorld& world) const
 {
-  const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
+  const CollisionWorldBt& other_fcl_world = dynamic_cast<const CollisionWorldBt&>(world);
   DistanceData drd(&req, &res);
   manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceCallback);
 }

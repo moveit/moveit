@@ -36,8 +36,8 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/collision_detection_bullet/collision_world_fcl.h>
-#include <moveit/collision_detection_bullet/collision_robot_fcl.h>
+#include <moveit/collision_detection_bullet/collision_world_bt.h>
+#include <moveit/collision_detection_bullet/collision_robot_bt.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
 #include <urdf_parser/urdf_parser.h>
@@ -49,8 +49,8 @@
 #include <ctype.h>
 #include <fstream>
 
-typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
-typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
+typedef collision_detection::CollisionWorldBt DefaultCWorldType;
+typedef collision_detection::CollisionRobotBt DefaultCRobotType;
 
 class FclCollisionDetectionTester : public testing::Test
 {
@@ -60,6 +60,8 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("pr2");
     robot_model_ok_ = static_cast<bool>(robot_model_);
     kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
+
+    ROS_INFO("Test");
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
@@ -343,8 +345,8 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  collision_detection::CollisionRobotFCL new_crobot(
-      *(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
+  collision_detection::CollisionRobotBt new_crobot(
+      *(dynamic_cast<collision_detection::CollisionRobotBt*>(crobot_.get())));
 
   ros::WallTime before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req, res, robot_state);
@@ -376,8 +378,8 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   // the first check is going to take a while, as data must be constructed
   EXPECT_LT(second_check, .1);
 
-  collision_detection::CollisionRobotFCL other_new_crobot(
-      *(dynamic_cast<collision_detection::CollisionRobotFCL*>(crobot_.get())));
+  collision_detection::CollisionRobotBt other_new_crobot(
+      *(dynamic_cast<collision_detection::CollisionRobotBt*>(crobot_.get())));
   before = ros::WallTime::now();
   new_crobot.checkSelfCollision(req, res, robot_state);
   first_check = (ros::WallTime::now() - before).toSec();

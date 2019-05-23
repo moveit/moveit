@@ -34,13 +34,13 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
+#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_COMMON_
+#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_COMMON_
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <moveit/collision_detection_bullet/fcl_compat.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/broadphase/broadphase_collision_manager.h>

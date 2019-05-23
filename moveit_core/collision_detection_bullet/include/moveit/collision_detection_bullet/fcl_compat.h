@@ -34,8 +34,8 @@
 
 /* Author: Benjamin Scholz */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COMPAT_
-#define MOVEIT_COLLISION_DETECTION_FCL_COMPAT_
+#ifndef MOVEIT_COLLISION_DETECTION_BT_COMPAT_
+#define MOVEIT_COLLISION_DETECTION_BT_COMPAT_
 
 #include <fcl/config.h>
 #include <bullet/btBulletCollisionCommon.h>
