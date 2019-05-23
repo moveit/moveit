@@ -128,6 +128,23 @@ install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
+# Install plugins
+install(
+  FILES
+    plugins/virtual_joints_widget/virtual_joints_widget.xml
+    plugins/simulation_widget/simulation_widget.xml
+    plugins/ros_controllers_widget/ros_controllers_widget.xml
+    plugins/robot_poses_widget/robot_poses_widget.xml
+    plugins/planning_groups_widget/planning_groups_widget.xml
+    plugins/perception_widget/perception_widget.xml
+    plugins/end_effectors_widget/end_effectors_widget.xml
+    plugins/default_collisions_widget/default_collisions_widget.xml
+    plugins/configuration_files_widget/configuration_files_widget.xml
+    plugins/author_information_widget/author_information_widget.xml
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+
 # Unit tests
 if(CATKIN_ENABLE_TESTING)
   find_package(moveit_resources REQUIRED)

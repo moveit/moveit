@@ -21,10 +21,3 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES}
 )
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
-
-install(
-  FILES
-    planning_groups_widget.xml
-  DESTINATION
-    ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
