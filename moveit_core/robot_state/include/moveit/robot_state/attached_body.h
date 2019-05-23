@@ -38,6 +38,7 @@
 #define MOVEIT_ROBOT_STATE_ATTACHED_BODY_
 
 #include <moveit/robot_model/link_model.h>
+#include <moveit/transforms/transforms.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <boost/function.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -62,7 +63,8 @@ public:
      object is specified by \e touch_links. */
   AttachedBody(const LinkModel* link, const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                const EigenSTL::vector_Isometry3d& attach_trans, const std::set<std::string>& touch_links,
-               const trajectory_msgs::JointTrajectory& attach_posture);
+               const trajectory_msgs::JointTrajectory& attach_posture,
+               const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap());
 
   ~AttachedBody();
 
@@ -104,11 +106,33 @@ public:
     return detach_posture_;
   }
 
-  /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
+  /** \brief Get the fixed transforms (the transforms to the shapes associated with this body) */
   const EigenSTL::vector_Isometry3d& getFixedTransforms() const
   {
     return attach_trans_;
   }
+
+  /** \brief Get subframes of this object. */
+  const moveit::core::FixedTransformsMap& getSubframeTransforms() const
+  {
+    return subframe_poses_;
+  }
+
+  /** \brief Set all subframes of this object. */
+  void setSubframeTransforms(const moveit::core::FixedTransformsMap& subframe_poses)
+  {
+    subframe_poses_ = subframe_poses;
+  }
+
+  /** \brief Get the fixed transform to a named subframe on this body.
+   * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
+   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false). */
+  const Eigen::Isometry3d& getSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
+
+  /** \brief Check whether a subframe of given @frame_name is present in this object.
+   * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
+   * name is "screwdriver"). */
+  bool hasSubframeTransform(const std::string& frame_name) const;
 
   /** \brief Get the global transforms for the collision bodies */
   const EigenSTL::vector_Isometry3d& getGlobalCollisionBodyTransforms() const
@@ -151,6 +175,12 @@ private:
 
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Isometry3d global_collision_body_transforms_;
+
+  /** \brief Transforms to subframes on the object. Transforms are relative to the link.
+   *  Use these to define points of interest on the object to plan with
+   *  (e.g. screwdriver/tip, kettle/spout, mug/base).
+   * */
+  moveit::core::FixedTransformsMap subframe_poses_;
 };
 }
 }

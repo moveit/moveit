@@ -40,6 +40,7 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/attached_body.h>
+#include <moveit/transforms/transforms.h>
 #include <moveit/macros/deprecation.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -1545,6 +1546,8 @@ as the new values that correspond to the group */
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
+   * @param detach_posture The posture of the gripper when placing the object
+   * @param subframe_poses Transforms to points of interest on the object (can be used as end effector link)
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1554,9 +1557,10 @@ as the new values that correspond to the group */
    * corresponding object from that world to avoid having collisions
    * detected against it. */
   void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                  const EigenSTL::vector_Isometry3d& attach_trans, const std::set<std::string>& touch_links,
+                  const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                   const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory());
+                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap());
 
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
@@ -1564,6 +1568,8 @@ as the new values that correspond to the group */
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
+   * @param detach_posture The posture of the gripper when placing the object
+   * @param subframe_poses Transforms to points of interest on the object (can be used as end effector link)
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1573,12 +1579,13 @@ as the new values that correspond to the group */
    * corresponding object from that world to avoid having collisions
    * detected against it. */
   void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                  const EigenSTL::vector_Isometry3d& attach_trans, const std::vector<std::string>& touch_links,
+                  const EigenSTL::vector_Isometry3d& shape_poses, const std::vector<std::string>& touch_links,
                   const std::string& link_name,
-                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory())
+                  const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory(),
+                  const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap())
   {
     std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
-    attachBody(id, shapes, attach_trans, touch_links_set, link_name, detach_posture);
+    attachBody(id, shapes, shape_poses, touch_links_set, link_name, detach_posture, subframe_poses);
   }
 
   /** \brief Get all bodies attached to the model corresponding to this state */
