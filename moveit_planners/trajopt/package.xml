@@ -17,6 +17,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roscpp</depend>
+  <depend>moveit_core</depend>
 
   <export>
     <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>

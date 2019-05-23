@@ -44,7 +44,6 @@
 
 namespace trajopt_interface
 {
-
 class TrajOptPlannerManager : public planning_interface::PlannerManager
 {
 public:
@@ -85,8 +84,6 @@ public:
   }
 
 private:
-
-
   ros::NodeHandle nh_;
 };
 
