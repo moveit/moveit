@@ -18,6 +18,9 @@
 
   <depend>roscpp</depend>
   <depend>moveit_core</depend>
+  <depend>trajopt</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
+
 
   <export>
     <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>
