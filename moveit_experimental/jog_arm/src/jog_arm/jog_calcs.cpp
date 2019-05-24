@@ -168,8 +168,10 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     // Skip publishing if the command is stale and outgoing velocities are all nearly zero.
     // (It takes some time for the low-pass velocity filters to settle at zero.)
     pthread_mutex_lock(&mutex);
-    bool skip_publication = shared_variables.command_is_stale &&
-        (std::all_of(outgoing_command_.points[0].velocities.begin(), outgoing_command_.points[0].velocities.end(), [](double i){return i < 0.000001;}));
+    bool skip_publication =
+        shared_variables.command_is_stale &&
+        (std::all_of(outgoing_command_.points[0].velocities.begin(), outgoing_command_.points[0].velocities.end(),
+                     [](double i) { return i < 0.000001; }));
     pthread_mutex_unlock(&mutex);
 
     // Send the newest target joints
