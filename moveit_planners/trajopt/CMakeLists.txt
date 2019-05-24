@@ -19,7 +19,8 @@ catkin_package(
 )
 
 # The following include_directory should have include folder of the new planner.
-include_directories(${Boost_INCLUDE_DIRS}
+include_directories(include
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${TrajOpt_INCLUDE_DIRS})
 
