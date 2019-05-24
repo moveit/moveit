@@ -19,8 +19,7 @@ catkin_package(
 )
 
 # The following include_directory should have include folder of the new planner.
-include_directories(include
-                    ${Boost_INCLUDE_DIRS}
+include_directories(${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${TrajOpt_INCLUDE_DIRS})
 
@@ -32,8 +31,6 @@ install(TARGETS
   moveit_trajopt_planner_plugin
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(FILES trajopt_interface_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
