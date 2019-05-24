@@ -2,7 +2,7 @@
 
 #### Quick Start Guide
 
-Clone https://github.com/ros-industrial/universal_robot.git        (kinetic-devel branch is fine)
+Clone and build https://github.com/ros-industrial/universal_robot.git        (kinetic-devel branch is fine)
 
 `roslaunch ur_gazebo ur5.launch`
 
