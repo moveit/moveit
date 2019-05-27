@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
 
 #include <moveit/collision_detection_bullet/collision_common.h>
+#include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
 
 namespace collision_detection
 {
@@ -94,6 +95,8 @@ protected:
 
   std::vector<FCLGeometryConstPtr> geoms_;
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
+
+  mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 };
 }
 

@@ -36,6 +36,7 @@
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
 #include <moveit/collision_detection_bullet/fcl_compat.h>
+#include <tesseract_ros/ros_tesseract_utils.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
@@ -71,6 +72,43 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
         ROS_ERROR_NAMED("collision_detection.fcl", "Unable to construct collision geometry for link '%s'",
                         link->getName().c_str());
     }
+
+  // this is from tesseract when creating a new KDLenv
+  // ---------------
+  for (const auto& link : robot_model_->getURDF()->links_)
+  {
+    if (link.second->collision_array.size() > 0)
+    {
+      const std::vector<urdf::CollisionSharedPtr>& col_array =
+          link.second->collision_array.empty() ? std::vector<urdf::CollisionSharedPtr>(1, link.second->collision) :
+                                                 link.second->collision_array;
+
+      std::vector<shapes::ShapeConstPtr> shapes;
+      tesseract::VectorIsometry3d shape_poses;
+      tesseract::CollisionObjectTypeVector collision_object_types;
+
+      for (std::size_t i = 0; i < col_array.size(); ++i)
+      {
+        if (col_array[i] && col_array[i]->geometry)
+        {
+          shapes::ShapeConstPtr s = tesseract::tesseract_ros::constructShape(col_array[i]->geometry.get());
+          if (s)
+          {
+            shapes.push_back(s);
+            shape_poses.push_back(tesseract::tesseract_ros::urdfPose2Eigen(col_array[i]->origin));
+
+            if (s->type == shapes::MESH)
+              collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
+            else
+              collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
+          }
+        }
+      }
+      bt_manager_.addCollisionObject(
+          link.second->name, BodyType::ROBOT_LINK, shapes, shape_poses, collision_object_types, true);
+    }
+  }
+  // ---------------
 }
 
 CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRobot(other)
@@ -173,6 +211,35 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                  const robot_state::RobotState& state,
                                                  const AllowedCollisionMatrix* acm) const
 {
+  std::vector<std::string> names;
+  acm->getAllEntryNames(names);
+
+//  ROS_INFO_STREAM("These are ACM names");
+//  for (auto name : names) {
+//    ROS_INFO_STREAM(name);
+//  }
+
+  // updating the link position with the current robot state
+  for (std::size_t i = 0; i < geoms_.size(); ++i)
+    if (geoms_[i] && geoms_[i]->collision_geometry_)
+    {
+      bt_manager_.setCollisionObjectsTransform(geoms_[i]->collision_geometry_data_->ptr.link->getName(),
+                                               state.getCollisionBodyTransform(
+                                                  geoms_[i]->collision_geometry_data_->ptr.link,
+                                                  geoms_[i]->collision_geometry_data_->shape_index));
+    }
+
+  tesseract::ContactResultMap contact_map;
+  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm);
+  tesseract::ContactResultVector contact_vector;
+  tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
+
+//  for (auto cont : contact_vector) {
+//    ROS_INFO_STREAM(cont.link_names[0] + cont.link_names[1]);
+//  }
+
+  // -----------------
+
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
@@ -189,6 +256,9 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
     distanceSelf(dreq, dres, state);
     res.distance = dres.minimum_distance.distance;
   }
+
+  //overwrite result from fcl with bullet result
+  res.collision = !contact_vector.empty();
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,

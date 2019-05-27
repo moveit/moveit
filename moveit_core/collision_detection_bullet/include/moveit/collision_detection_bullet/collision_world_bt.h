@@ -47,7 +47,6 @@
 #endif
 
 #include <memory>
-#include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
 
 namespace collision_detection
 {
@@ -90,7 +89,6 @@ protected:
   void updateFCLObject(const std::string& id);
 
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
-  std::unique_ptr<tesseract::tesseract_bullet::BulletDiscreteSimpleManager> bt_manager_;
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
