@@ -49,6 +49,8 @@
   <depend>xmlrpcpp</depend>
   <depend>tesseract_core</depend>
   <depend>tesseract_collision</depend>
+  <depend>tesseract_msgs</depend>
+  <depend>tesseract_ros</depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>angles</test_depend>

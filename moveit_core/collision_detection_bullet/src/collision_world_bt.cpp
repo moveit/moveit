@@ -52,7 +52,6 @@
 
 #include <boost/bind.hpp>
 #include <bullet/btBulletCollisionCommon.h>
-#include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
 
 namespace collision_detection
 {

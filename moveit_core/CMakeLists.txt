@@ -58,6 +58,8 @@ COMPONENTS
   xmlrpcpp
   tesseract_core
   tesseract_collision
+  tesseract_msgs
+  tesseract_ros
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
@@ -142,6 +144,8 @@ catkin_package(
     visualization_msgs
     tesseract_core
     tesseract_collision
+    tesseract_msgs
+    tesseract_ros
   DEPENDS
     Boost
     EIGEN3

@@ -61,8 +61,6 @@ protected:
     robot_model_ok_ = static_cast<bool>(robot_model_);
     kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 
-    ROS_INFO("Test");
-
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
     crobot_.reset(new DefaultCRobotType(robot_model_));
