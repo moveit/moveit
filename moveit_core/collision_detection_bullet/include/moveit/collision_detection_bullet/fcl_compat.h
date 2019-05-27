@@ -46,7 +46,6 @@
 #if (MOVEIT_FCL_VERSION < FCL_VERSION_CHECK(0, 6, 0))
 namespace fcl
 {
-
 class CollisionGeometry;
 using CollisionGeometryd = fcl::CollisionGeometry;
 class CollisionObject;

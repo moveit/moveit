@@ -104,8 +104,8 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
           }
         }
       }
-      bt_manager_.addCollisionObject(
-          link.second->name, BodyType::ROBOT_LINK, shapes, shape_poses, collision_object_types, true);
+      bt_manager_.addCollisionObject(link.second->name, BodyType::ROBOT_LINK, shapes, shape_poses,
+                                     collision_object_types, true);
     }
   }
   // ---------------
@@ -118,7 +118,7 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRob
 }
 
 void CollisionRobotBt::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
-                                               std::vector<FCLGeometryConstPtr>& geoms) const
+                                              std::vector<FCLGeometryConstPtr>& geoms) const
 {
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
   for (std::size_t i = 0; i < shapes.size(); ++i)
@@ -142,7 +142,7 @@ void CollisionRobotBt::constructFCLObject(const robot_state::RobotState& state, 
                     fcl_tf);
       std::string test;
       test = geoms_[i]->collision_geometry_data_->ptr.link->getName();
-      //ROS_ERROR_NAMED("collision_detection.fcl", "link '%s'", test.c_str());
+      // ROS_ERROR_NAMED("collision_detection.fcl", "link '%s'", test.c_str());
       auto coll_obj = new fcl::CollisionObjectd(*fcl_objs_[i]);
       coll_obj->setTransform(fcl_tf);
       coll_obj->computeAABB();
@@ -181,52 +181,51 @@ void CollisionRobotBt::allocSelfCollisionBroadPhase(const robot_state::RobotStat
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state) const
+                                          const robot_state::RobotState& state) const
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state,
-                                           const AllowedCollisionMatrix& acm) const
+                                          const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state1,
-                                           const robot_state::RobotState& state2) const
+                                          const robot_state::RobotState& state1,
+                                          const robot_state::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
-                                           const AllowedCollisionMatrix& acm) const
+                                          const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                          const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                 const robot_state::RobotState& state,
-                                                 const AllowedCollisionMatrix* acm) const
+                                                const robot_state::RobotState& state,
+                                                const AllowedCollisionMatrix* acm) const
 {
   std::vector<std::string> names;
   acm->getAllEntryNames(names);
 
-//  ROS_INFO_STREAM("These are ACM names");
-//  for (auto name : names) {
-//    ROS_INFO_STREAM(name);
-//  }
+  //  ROS_INFO_STREAM("These are ACM names");
+  //  for (auto name : names) {
+  //    ROS_INFO_STREAM(name);
+  //  }
 
   // updating the link position with the current robot state
   for (std::size_t i = 0; i < geoms_.size(); ++i)
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
-      bt_manager_.setCollisionObjectsTransform(geoms_[i]->collision_geometry_data_->ptr.link->getName(),
-                                               state.getCollisionBodyTransform(
-                                                  geoms_[i]->collision_geometry_data_->ptr.link,
-                                                  geoms_[i]->collision_geometry_data_->shape_index));
+      bt_manager_.setCollisionObjectsTransform(
+          geoms_[i]->collision_geometry_data_->ptr.link->getName(),
+          state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
+                                          geoms_[i]->collision_geometry_data_->shape_index));
     }
 
   tesseract::ContactResultMap contact_map;
@@ -246,62 +245,62 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
     res.distance = dres.minimum_distance.distance;
   }
 
-  //overwrite result from fcl with bullet result
+  // overwrite result from fcl with bullet result
   res.clear();
   res.collision = !contact_vector.empty();
 
-//  for (auto contact : contact_vector) {
-//    Contact result;
-//    result.body_name_1 = contact.link_names[0];
-//    result.body_name_2 = contact.link_names[1];
-//    result.normal = contact.normal;
-//    result.depth = contact.distance;
-//    result.pos = contact.nearest_points[0];
-//    std::pair<std::string, std::string> key {result.body_name_1, result.body_name_2};
-//    std::vector<Contact> result_vec {result};
-//    res.contacts.insert(std::pair< std::pair< std::string, std::string>, std::vector<Contact>> (key, result_vec));
-//  }
+  //  for (auto contact : contact_vector) {
+  //    Contact result;
+  //    result.body_name_1 = contact.link_names[0];
+  //    result.body_name_2 = contact.link_names[1];
+  //    result.normal = contact.normal;
+  //    result.depth = contact.distance;
+  //    result.pos = contact.nearest_points[0];
+  //    std::pair<std::string, std::string> key {result.body_name_1, result.body_name_2};
+  //    std::vector<Contact> result_vec {result};
+  //    res.contacts.insert(std::pair< std::pair< std::string, std::string>, std::vector<Contact>> (key, result_vec));
+  //  }
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                            const robot_state::RobotState& other_state) const
+                                           const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                           const robot_state::RobotState& other_state) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, nullptr);
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                            const robot_state::RobotState& other_state,
-                                            const AllowedCollisionMatrix& acm) const
+                                           const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                           const robot_state::RobotState& other_state,
+                                           const AllowedCollisionMatrix& acm) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state1,
-                                            const robot_state::RobotState& state2, const CollisionRobot& other_robot,
-                                            const robot_state::RobotState& other_state1,
-                                            const robot_state::RobotState& other_state2) const
+                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                           const CollisionRobot& other_robot,
+                                           const robot_state::RobotState& other_state1,
+                                           const robot_state::RobotState& other_state2) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state1,
-                                            const robot_state::RobotState& state2, const CollisionRobot& other_robot,
-                                            const robot_state::RobotState& other_state1,
-                                            const robot_state::RobotState& other_state2,
-                                            const AllowedCollisionMatrix& acm) const
+                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                           const CollisionRobot& other_robot,
+                                           const robot_state::RobotState& other_state1,
+                                           const robot_state::RobotState& other_state2,
+                                           const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                  const robot_state::RobotState& state,
-                                                  const CollisionRobot& other_robot,
-                                                  const robot_state::RobotState& other_state,
-                                                  const AllowedCollisionMatrix* acm) const
+                                                 const robot_state::RobotState& state,
+                                                 const CollisionRobot& other_robot,
+                                                 const robot_state::RobotState& other_state,
+                                                 const AllowedCollisionMatrix* acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Other collision not implemented yet.");
 }
@@ -332,14 +331,14 @@ void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& l
 }
 
 void CollisionRobotBt::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                     const robot_state::RobotState& state) const
+                                    const robot_state::RobotState& state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to self not implemented yet.");
 }
 
 void CollisionRobotBt::distanceOther(const DistanceRequest& req, DistanceResult& res,
-                                      const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                      const robot_state::RobotState& other_state) const
+                                     const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                     const robot_state::RobotState& other_state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to other not implemented yet.");
 }
