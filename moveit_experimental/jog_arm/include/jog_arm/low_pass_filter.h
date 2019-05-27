@@ -55,8 +55,8 @@ public:
   void reset(double data);
 
 private:
-  double previous_measurements_[3] = { 0., 0., 0. };
-  double previous_filtered_measurements_[2] = { 0., 0. };
+  double previous_measurements_[2] = { 0., 0. };
+  double previous_filtered_measurement = 0.;
   // Larger filter_coeff-> more smoothing of jog commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
