@@ -69,7 +69,7 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
         fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(g->collision_geometry_));
       }
       else
-        ROS_ERROR_NAMED("collision_detection.fcl", "Unable to construct collision geometry for link '%s'",
+        ROS_ERROR_NAMED("collision_detection.bullet", "Unable to construct collision geometry for link '%s'",
                         link->getName().c_str());
     }
 
@@ -197,14 +197,14 @@ void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, Collision
                                            const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                            const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -234,17 +234,6 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
   tesseract::ContactResultVector contact_vector;
   tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
 
-//  for (auto cont : contact_vector) {
-//    ROS_INFO_STREAM(cont.link_names[0] + cont.link_names[1]);
-//  }
-
-  // -----------------
-
-  FCLManager manager;
-  allocSelfCollisionBroadPhase(state, manager);
-  CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getRobotModel());
-  manager.manager_->collide(&cd, &collisionCallback);
   if (req.distance)
   {
     DistanceRequest dreq;
@@ -258,7 +247,20 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
   }
 
   //overwrite result from fcl with bullet result
+  res.clear();
   res.collision = !contact_vector.empty();
+
+//  for (auto contact : contact_vector) {
+//    Contact result;
+//    result.body_name_1 = contact.link_names[0];
+//    result.body_name_2 = contact.link_names[1];
+//    result.normal = contact.normal;
+//    result.depth = contact.distance;
+//    result.pos = contact.nearest_points[0];
+//    std::pair<std::string, std::string> key {result.body_name_1, result.body_name_2};
+//    std::vector<Contact> result_vec {result};
+//    res.contacts.insert(std::pair< std::pair< std::string, std::string>, std::vector<Contact>> (key, result_vec));
+//  }
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -282,7 +284,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                             const robot_state::RobotState& other_state1,
                                             const robot_state::RobotState& other_state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -292,7 +294,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                             const robot_state::RobotState& other_state2,
                                             const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -301,29 +303,7 @@ void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, Co
                                                   const robot_state::RobotState& other_state,
                                                   const AllowedCollisionMatrix* acm) const
 {
-  FCLManager manager;
-  allocSelfCollisionBroadPhase(state, manager);
-
-  const CollisionRobotBt& fcl_rob = dynamic_cast<const CollisionRobotBt&>(other_robot);
-  FCLObject other_fcl_obj;
-  fcl_rob.constructFCLObject(other_state, other_fcl_obj);
-
-  CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getRobotModel());
-  for (std::size_t i = 0; !cd.done_ && i < other_fcl_obj.collision_objects_.size(); ++i)
-    manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
-
-  if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    dreq.enableGroup(getRobotModel());
-    distanceOther(dreq, dres, state, other_robot, other_state);
-    res.distance = dres.minimum_distance.distance;
-  }
+  ROS_ERROR_NAMED("collision_detection.bullet", "Other collision not implemented yet.");
 }
 
 void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& links)
@@ -347,34 +327,21 @@ void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& l
       }
     }
     else
-      ROS_ERROR_NAMED("collision_detection.fcl", "Updating padding or scaling for unknown link: '%s'", link.c_str());
+      ROS_ERROR_NAMED("collision_detection.bullet", "Updating padding or scaling for unknown link: '%s'", link.c_str());
   }
 }
 
 void CollisionRobotBt::distanceSelf(const DistanceRequest& req, DistanceResult& res,
                                      const robot_state::RobotState& state) const
 {
-  FCLManager manager;
-  allocSelfCollisionBroadPhase(state, manager);
-  DistanceData drd(&req, &res);
-
-  manager.manager_->distance(&drd, &distanceCallback);
+  ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to self not implemented yet.");
 }
 
 void CollisionRobotBt::distanceOther(const DistanceRequest& req, DistanceResult& res,
                                       const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                       const robot_state::RobotState& other_state) const
 {
-  FCLManager manager;
-  allocSelfCollisionBroadPhase(state, manager);
-
-  const CollisionRobotBt& fcl_rob = dynamic_cast<const CollisionRobotBt&>(other_robot);
-  FCLObject other_fcl_obj;
-  fcl_rob.constructFCLObject(other_state, other_fcl_obj);
-
-  DistanceData drd(&req, &res);
-  for (std::size_t i = 0; !drd.done && i < other_fcl_obj.collision_objects_.size(); ++i)
-    manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
+  ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to other not implemented yet.");
 }
 
 }  // end of namespace collision_detection
