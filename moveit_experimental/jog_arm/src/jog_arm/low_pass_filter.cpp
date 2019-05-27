@@ -61,9 +61,8 @@ double LowPassFilter::filter(double new_measurement)
   previous_measurements_[0] = new_measurement;
 
   double new_filtered_msrmt =
-      (1. / (1. + filter_coeff_)) *
-      (previous_measurements_[1] + previous_measurements_[0] -
-       (-1. * filter_coeff_ + 1.) * previous_filtered_measurement);
+      (1. / (1. + filter_coeff_)) * (previous_measurements_[1] + previous_measurements_[0] -
+                                     (-1. * filter_coeff_ + 1.) * previous_filtered_measurement);
 
   // Store the new filtered measurement
   previous_filtered_measurement = new_filtered_msrmt;
