@@ -115,6 +115,21 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRob
 {
   geoms_ = other.geoms_;
   fcl_objs_ = other.fcl_objs_;
+  const CollisionRobotBt& other_bt = dynamic_cast<const CollisionRobotBt&>(other);
+  tesseract::DiscreteContactManagerBasePtr test = other_bt.bt_manager_.clone();
+
+  for (const auto& cow : other_bt.bt_manager_.getCollisionObjects())
+  {
+    tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
+    new_cow->setWorldTransform(cow.second->getWorldTransform());
+
+    new_cow->setContactProcessingThreshold(static_cast<btScalar>(other_bt.bt_manager_.getContactDistanceThreshold()));
+    bt_manager_.addCollisionObject(new_cow);
+
+    bt_manager_.setActiveCollisionObjects(other_bt.bt_manager_.getActiveCollisionObjects());
+    bt_manager_.setContactDistanceThreshold(other_bt.bt_manager_.getContactDistanceThreshold());
+    bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
+  }
 }
 
 void CollisionRobotBt::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
@@ -210,13 +225,6 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-  std::vector<std::string> names;
-  acm->getAllEntryNames(names);
-
-  //  ROS_INFO_STREAM("These are ACM names");
-  //  for (auto name : names) {
-  //    ROS_INFO_STREAM(name);
-  //  }
 
   // updating the link position with the current robot state
   for (std::size_t i = 0; i < geoms_.size(); ++i)
@@ -230,6 +238,7 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
 
   tesseract::ContactResultMap contact_map;
   bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm);
+
   tesseract::ContactResultVector contact_vector;
   tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
 

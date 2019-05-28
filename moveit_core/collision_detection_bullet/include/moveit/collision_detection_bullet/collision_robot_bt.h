@@ -96,6 +96,7 @@ protected:
   std::vector<FCLGeometryConstPtr> geoms_;
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
 
+  /** @brief Bullet collision manager taken from tesseract*/
   mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 };
 }
