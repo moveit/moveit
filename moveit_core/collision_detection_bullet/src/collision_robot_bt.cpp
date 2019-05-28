@@ -225,7 +225,6 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-
   // updating the link position with the current robot state
   for (std::size_t i = 0; i < geoms_.size(); ++i)
     if (geoms_[i] && geoms_[i]->collision_geometry_)
