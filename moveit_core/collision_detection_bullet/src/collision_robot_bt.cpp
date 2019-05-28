@@ -237,7 +237,7 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
     }
 
   tesseract::ContactResultMap contact_map;
-  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm);
+  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm, req);
 
   tesseract::ContactResultVector contact_vector;
   tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);

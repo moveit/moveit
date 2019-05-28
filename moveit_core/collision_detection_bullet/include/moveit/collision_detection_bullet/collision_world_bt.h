@@ -39,6 +39,7 @@
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
 #include <moveit/collision_detection_bullet/fcl_compat.h>
+#include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/broadphase/broadphase_collision_manager.h>
@@ -90,6 +91,8 @@ protected:
 
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
   std::map<std::string, FCLObject> fcl_objs_;
+
+  mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 
 private:
   void initialize();
