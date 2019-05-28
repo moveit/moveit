@@ -136,13 +136,16 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
   tesseract::tesseract_bullet::Link2Cow link2cow;
   link2cow = robot_bt.bt_manager_.getCollisionObjects();
 
-  for (const auto& cow : link2cow) {
+  for (const auto& cow : link2cow)
+  {
     if (!bt_manager_.hasCollisionObject(cow.first))
-        bt_manager_.addCollisionObject(cow.second);
+      bt_manager_.addCollisionObject(cow.second);
   }
 
-  for (const auto& cow : bt_manager_.getCollisionObjects()) {
-    if (cow.first == "box") {
+  for (const auto& cow : bt_manager_.getCollisionObjects())
+  {
+    if (cow.first == "box")
+    {
       ROS_INFO_STREAM(cow.first);
       ROS_INFO_STREAM(cow.second);
     }
@@ -190,10 +193,10 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
 
 void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
 {
-
   tesseract::CollisionObjectTypeVector collision_object_types;
 
-  for (auto shape : obj->shapes_) {
+  for (auto shape : obj->shapes_)
+  {
     if (shape->type == shapes::MESH)
       collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
     else
@@ -201,7 +204,6 @@ void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& f
   }
 
   bt_manager_.addCollisionObject(obj->id_, 0, obj->shapes_, obj->shape_poses_, collision_object_types, true);
-
 
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
