@@ -290,6 +290,11 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
 
   res = collision_detection::CollisionResult();
+  req.verbose = true;
+  req.contacts = true;
+  req.max_contacts = 10;
+  req.max_contacts_per_pair = 1;
+
   cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 

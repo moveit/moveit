@@ -37,6 +37,7 @@
 #include <moveit/collision_detection_bullet/collision_world_bt.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
 #include <moveit/collision_detection_bullet/fcl_compat.h>
+#include <tesseract_ros/ros_tesseract_utils.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/geometry/geometric_shape_to_BVH_model.h>
@@ -115,7 +116,7 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -123,21 +124,34 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                  const CollisionRobot& robot, const robot_state::RobotState& state,
                                                  const AllowedCollisionMatrix* acm) const
 {
-  const CollisionRobotBt& robot_fcl = dynamic_cast<const CollisionRobotBt&>(robot);
-  FCLObject fcl_obj;
-  robot_fcl.constructFCLObject(state, fcl_obj);
+  const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
 
-  CollisionData cd(&req, &res, acm);
-  cd.enableGroup(robot.getRobotModel());
-  for (std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
-    manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
+  tesseract::tesseract_bullet::Link2Cow link2cow;
+  link2cow = robot_bt.bt_manager_.getCollisionObjects();
+
+  for (const auto& cow : link2cow) {
+    if (!bt_manager_.hasCollisionObject(cow.first))
+        bt_manager_.addCollisionObject(cow.second);
+  }
+
+  for (const auto& cow : bt_manager_.getCollisionObjects()) {
+    if (cow.first == "box") {
+      ROS_INFO_STREAM(cow.first);
+      ROS_INFO_STREAM(cow.second);
+    }
+  }
+
+  tesseract::ContactResultMap contact_map;
+  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm, req);
+  tesseract::ContactResultVector contact_vector;
+  tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
 
   if (req.distance)
   {
@@ -150,6 +164,9 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
     distanceRobot(dreq, dres, robot, state);
     res.distance = dres.minimum_distance.distance;
   }
+
+  res.clear();
+  res.collision = !contact_vector.empty();
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
@@ -168,24 +185,24 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
                                                  const CollisionWorld& other_world,
                                                  const AllowedCollisionMatrix* acm) const
 {
-  const CollisionWorldBt& other_fcl_world = dynamic_cast<const CollisionWorldBt&>(other_world);
-  CollisionData cd(&req, &res, acm);
-  manager_->collide(other_fcl_world.manager_.get(), &cd, &collisionCallback);
-
-  if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    distanceWorld(dreq, dres, other_world);
-    res.distance = dres.minimum_distance.distance;
-  }
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
 void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
 {
+
+  tesseract::CollisionObjectTypeVector collision_object_types;
+
+  for (auto shape : obj->shapes_) {
+    if (shape->type == shapes::MESH)
+      collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
+    else
+      collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
+  }
+
+  bt_manager_.addCollisionObject(obj->id_, 0, obj->shapes_, obj->shape_poses_, collision_object_types, true);
+
+
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
     FCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
@@ -259,6 +276,8 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
 {
   if (action == World::DESTROY)
   {
+    bt_manager_.removeCollisionObject(obj->id_);
+
     auto it = fcl_objs_.find(obj->id_);
     if (it != fcl_objs_.end())
     {
@@ -279,20 +298,12 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
 void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                                      const robot_state::RobotState& state) const
 {
-  const CollisionRobotBt& robot_fcl = dynamic_cast<const CollisionRobotBt&>(robot);
-  FCLObject fcl_obj;
-  robot_fcl.constructFCLObject(state, fcl_obj);
-
-  DistanceData drd(&req, &res);
-  for (std::size_t i = 0; !drd.done && i < fcl_obj.collision_objects_.size(); ++i)
-    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
 void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
-  const CollisionWorldBt& other_fcl_world = dynamic_cast<const CollisionWorldBt&>(world);
-  DistanceData drd(&req, &res);
-  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceCallback);
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
 }  // end of namespace collision_detection

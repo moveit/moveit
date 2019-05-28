@@ -286,10 +286,15 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   crobot_->checkSelfCollision(req, res, robot_state, *acm_);
   ASSERT_FALSE(res.collision);
 
-  shapes::Shape* shape = new shapes::Box(.1, .1, .1);
+  shapes::Shape* shape = new shapes::Box(.2, .2, .2);
   cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
 
   res = collision_detection::CollisionResult();
+  req.verbose = true;
+  req.contacts = true;
+  req.max_contacts = 10;
+  req.max_contacts_per_pair = 1;
+
   cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 
