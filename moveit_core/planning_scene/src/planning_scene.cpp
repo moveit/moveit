@@ -74,9 +74,9 @@ public:
     if (Transforms::isFixedFrame(frame))
       return true;
     if (frame[0] == '/')
-      return knowsObject(frame.substr(1));
+      return knowsObjectFrame(frame.substr(1));
     else
-      return knowsObject(frame);
+      return knowsObjectFrame(frame);
   }
 
   const Eigen::Isometry3d& getTransform(const std::string& from_frame) const override
@@ -85,14 +85,10 @@ public:
   }
 
 private:
-  bool knowsObject(const std::string& object_id) const
+  // Returns true if frame_id is the name of an object or the name of a subframe on an object
+  bool knowsObjectFrame(const std::string& frame_id) const
   {
-    if (scene_->getWorld()->hasObject(object_id))
-    {
-      collision_detection::World::ObjectConstPtr obj = scene_->getWorld()->getObject(object_id);
-      return obj->shape_poses_.size() == 1;
-    }
-    return false;
+    return scene_->getWorld()->knowsTransform(frame_id);
   }
 
   const PlanningScene* scene_;
@@ -1884,23 +1880,16 @@ const Eigen::Isometry3d& PlanningScene::getFrameTransform(const robot_state::Rob
 {
   if (!frame_id.empty() && frame_id[0] == '/')
     // Recursively call itself without the slash in front of frame name
-    // TODO: minor cleanup, but likely getFrameTransform(state, frame_id.substr(1)); can be used, but requires further
-    // testing
     return getFrameTransform(frame_id.substr(1));
-  if (state.knowsFrameTransform(frame_id))
-    return state.getFrameTransform(frame_id);
-  if (getWorld()->hasObject(frame_id))
-  {
-    collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(frame_id);
-    if (obj->shape_poses_.size() > 1)
-    {
-      ROS_WARN_NAMED(LOGNAME, "More than one shapes in object '%s'. Using first one to decide transform",
-                     frame_id.c_str());
-      return obj->shape_poses_[0];
-    }
-    else if (obj->shape_poses_.size() == 1)
-      return obj->shape_poses_[0];
-  }
+
+  bool frame_found;
+  const Eigen::Isometry3d& t1 = state.getFrameTransform(frame_id, &frame_found);
+  if (frame_found)
+    return t1;
+
+  const Eigen::Isometry3d& t2 = getWorld()->getTransform(frame_id, frame_found);
+  if (frame_found)
+    return t2;
   return getTransforms().Transforms::getTransform(frame_id);
 }
 
@@ -1913,14 +1902,11 @@ bool PlanningScene::knowsFrameTransform(const robot_state::RobotState& state, co
 {
   if (!frame_id.empty() && frame_id[0] == '/')
     return knowsFrameTransform(frame_id.substr(1));
+
   if (state.knowsFrameTransform(frame_id))
     return true;
-
-  collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(frame_id);
-  if (obj)
-  {
-    return obj->shape_poses_.size() == 1;
-  }
+  if (getWorld()->knowsTransform(frame_id))
+    return true;
   return getTransforms().Transforms::canTransform(frame_id);
 }
 

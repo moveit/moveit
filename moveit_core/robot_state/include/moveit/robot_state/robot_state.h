@@ -1639,11 +1639,22 @@ as the new values that correspond to the group */
     return *rng_;
   }
 
-  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id */
-  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id);
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id
+   *
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id, bool* frame_found = nullptr);
 
-  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id */
-  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id) const;
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id
+   *
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id, bool* frame_found = nullptr) const;
+
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id
+   *
+   * If this frame is attached to a robot link, the link pointer is returned in \e robot_link.
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+  const Eigen::Isometry3d& getFrameInfo(const std::string& frame_id, const LinkModel*& robot_link,
+                                        bool& frame_found) const;
 
   /** \brief Check if a transformation matrix from the model frame to frame \e frame_id is known */
   bool knowsFrameTransform(const std::string& frame_id) const;
