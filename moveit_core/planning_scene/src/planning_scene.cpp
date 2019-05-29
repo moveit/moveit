@@ -1654,7 +1654,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         trajectory_msgs::JointTrajectory detach_posture =
             object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
 
-        std::set<std::string> touch_links = std::move(ab->getTouchLinks());
+        std::set<std::string> touch_links = ab->getTouchLinks();
         touch_links.insert(std::make_move_iterator(object.touch_links.begin()),
                            std::make_move_iterator(object.touch_links.end()));
 
