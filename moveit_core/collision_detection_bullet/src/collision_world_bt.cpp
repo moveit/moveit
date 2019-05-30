@@ -142,19 +142,8 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
       bt_manager_.addCollisionObject(cow.second);
   }
 
-  for (const auto& cow : bt_manager_.getCollisionObjects())
-  {
-    if (cow.first == "box")
-    {
-      ROS_INFO_STREAM(cow.first);
-      ROS_INFO_STREAM(cow.second);
-    }
-  }
-
   tesseract::ContactResultMap contact_map;
-  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm, req);
-  tesseract::ContactResultVector contact_vector;
-  tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
+  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, acm, req);
 
   if (req.distance)
   {
@@ -168,8 +157,7 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
     res.distance = dres.minimum_distance.distance;
   }
 
-  res.clear();
-  res.collision = !contact_vector.empty();
+
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
