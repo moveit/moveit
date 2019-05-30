@@ -156,8 +156,6 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
     distanceRobot(dreq, dres, robot, state);
     res.distance = dres.minimum_distance.distance;
   }
-
-
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
