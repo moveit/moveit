@@ -235,11 +235,7 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                           geoms_[i]->collision_geometry_data_->shape_index));
     }
 
-  tesseract::ContactResultMap contact_map;
-  bt_manager_.contactTest(contact_map, tesseract::ContactTestType::FIRST, acm, req);
-
-  tesseract::ContactResultVector contact_vector;
-  tesseract::moveContactResultsMapToContactResultsVector(contact_map, contact_vector);
+  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, acm, req);
 
   if (req.distance)
   {
@@ -253,21 +249,6 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
     res.distance = dres.minimum_distance.distance;
   }
 
-  // overwrite result from fcl with bullet result
-  res.clear();
-  res.collision = !contact_vector.empty();
-
-  //  for (auto contact : contact_vector) {
-  //    Contact result;
-  //    result.body_name_1 = contact.link_names[0];
-  //    result.body_name_2 = contact.link_names[1];
-  //    result.normal = contact.normal;
-  //    result.depth = contact.distance;
-  //    result.pos = contact.nearest_points[0];
-  //    std::pair<std::string, std::string> key {result.body_name_1, result.body_name_2};
-  //    std::vector<Contact> result_vec {result};
-  //    res.contacts.insert(std::pair< std::pair< std::string, std::string>, std::vector<Contact>> (key, result_vec));
-  //  }
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,

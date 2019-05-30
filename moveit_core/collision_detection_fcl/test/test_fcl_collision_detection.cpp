@@ -298,6 +298,13 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   cworld_->checkRobotCollision(req, res, *crobot_, robot_state, *acm_);
   ASSERT_TRUE(res.collision);
 
+  for (auto& contact : res.contacts) {
+    ROS_INFO_STREAM("Collision between " << contact.first.first << " and " << contact.first.second);
+    for (auto& con : contact.second) {
+      ROS_INFO_STREAM("Distance " << con.depth);
+    }
+  }
+
   // deletes shape
   cworld_->getWorld()->removeObject("box");
 
