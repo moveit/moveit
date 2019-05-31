@@ -223,5 +223,4 @@ void cleanCollisionGeometryCache();
 bool acm_evaluate(const collision_detection::AllowedCollisionMatrix* acm);
 }
 
-
 #endif

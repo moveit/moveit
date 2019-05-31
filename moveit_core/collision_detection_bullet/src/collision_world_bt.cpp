@@ -60,7 +60,7 @@ CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world
 
 CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
 {
-  //TODO add copy constructor for new manager
+  // TODO add copy constructor for new manager
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
@@ -168,7 +168,7 @@ void CollisionWorldBt::updateManagedObject(const std::string& id)
 {
   // we have three cases: 1) the object is part of the manager and not of world --> delete it
   //                      2) the object is not in the manager, therefore register to manager,
-  //                      3) the object is in the manager then delete and add the modified 
+  //                      3) the object is in the manager then delete and add the modified
   auto it = getWorld()->find(id);
   if (it != getWorld()->end())
   {
