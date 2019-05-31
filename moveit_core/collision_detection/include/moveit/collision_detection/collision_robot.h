@@ -55,13 +55,13 @@ class CollisionRobot
 {
 public:
   /** @brief Constructor
-   *  @param model A robot model to construct the collision robot from
-   *  @param padding The padding to use for all objects/links on the robot
-   *  @scale scale A common scaling to use for all objects/links on the robot
+   *  \param model A robot model to construct the collision robot from
+   *  \param padding The padding to use for all objects/links on the robot
+   *  \param scale A common scaling to use for all objects/links on the robot
    */
   CollisionRobot(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
-  /**  @brief A copy constructor*/
+  /**  \brief A copy constructor*/
   CollisionRobot(const CollisionRobot& other);
 
   virtual ~CollisionRobot()
@@ -76,7 +76,7 @@ public:
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                   const robot_state::RobotState& state) const = 0;
 
-  /** \brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
+  /** @brief Check for self collision. Allowed collisions specified by the allowed collision matrix are
    *   taken into account.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result

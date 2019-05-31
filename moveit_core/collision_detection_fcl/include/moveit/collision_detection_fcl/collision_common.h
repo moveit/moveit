@@ -236,8 +236,22 @@ struct FCLManager
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
 };
 
+/** \brief Callback function used by the FCLManager used for each pair of collision objects to
+*   calculate object distances.
+*
+*   \param o1 First FCL collision object
+*   \param o2 Second FCL collision object
+*   \data General pointer to arbitrary data which is used during the callback
+*   \return True terminates the distance check, false let it continue to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
+/** \brief Callback function used by the FCLManager used for each pair of collision objects to
+*   calculate collisions and distances.
+*
+*   \param o1 First FCL collision object
+*   \param o2 Second FCL collision object
+*   \data General pointer to arbitrary data which is used during the callback
+*   \return True terminates the collision check, false let it continue to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
@@ -254,6 +268,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
                                             const World::Object* obj);
 void cleanCollisionGeometryCache();
 
+/** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
 inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
@@ -265,6 +280,7 @@ inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 #endif
 }
 
+/** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
 inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
 {
   fcl::Transform3d t;
@@ -272,6 +288,7 @@ inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
   return t;
 }
 
+/** \brief Transforms an FCL contact into a MoveIt contact point. */
 inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
 {
   c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
