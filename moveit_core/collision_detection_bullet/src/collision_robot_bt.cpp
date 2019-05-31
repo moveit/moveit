@@ -155,7 +155,8 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const AllowedCollisionMatrix* acm) const
 {
   // updating link positions with the current robot state
-  for (auto & link : bt_manager_.getCollisionObjects()) {
+  for (auto& link : bt_manager_.getCollisionObjects())
+  {
     // select the first of the transformations for each link (composed of multiple shapes...)
     // TODO: further investigate if this brings problems
     bt_manager_.setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
