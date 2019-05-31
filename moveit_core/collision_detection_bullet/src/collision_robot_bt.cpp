@@ -35,46 +35,13 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
-#include <moveit/collision_detection_bullet/fcl_compat.h>
 #include <tesseract_ros/ros_tesseract_utils.h>
-
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
-#endif
 
 namespace collision_detection
 {
 CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
-  std::size_t index;
-  geoms_.resize(robot_model_->getLinkGeometryCount());
-  fcl_objs_.resize(robot_model_->getLinkGeometryCount());
-  // we keep the same order of objects as what RobotState *::getLinkState() returns
-  for (auto link : links)
-    for (std::size_t j = 0; j < link->getShapes().size(); ++j)
-    {
-      FCLGeometryConstPtr g = createCollisionGeometry(link->getShapes()[j], getLinkScale(link->getName()),
-                                                      getLinkPadding(link->getName()), link, j);
-      if (g)
-      {
-        index = link->getFirstCollisionBodyTransformIndex() + j;
-        geoms_[index] = g;
-
-        // Need to store the FCL object so the AABB does not get recreated every time.
-        // Every time this object is created, g->computeLocalAABB() is called  which is
-        // very expensive and should only be calculated once. To update the AABB, use the
-        // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
-        fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(g->collision_geometry_));
-      }
-      else
-        ROS_ERROR_NAMED("collision_detection.bullet", "Unable to construct collision geometry for link '%s'",
-                        link->getName().c_str());
-    }
-
-  // this is from tesseract when creating a new KDLenv
-  // ---------------
   for (const auto& link : robot_model_->getURDF()->links_)
   {
     if (link.second->collision_array.size() > 0)
@@ -108,16 +75,14 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
                                      collision_object_types, true);
     }
   }
-  // ---------------
 }
 
 CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRobot(other)
 {
-  geoms_ = other.geoms_;
-  fcl_objs_ = other.fcl_objs_;
   const CollisionRobotBt& other_bt = dynamic_cast<const CollisionRobotBt&>(other);
   tesseract::DiscreteContactManagerBasePtr test = other_bt.bt_manager_.clone();
 
+  // TODO: use clone method of manager
   for (const auto& cow : other_bt.bt_manager_.getCollisionObjects())
   {
     tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
@@ -135,36 +100,16 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRob
 void CollisionRobotBt::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
                                               std::vector<FCLGeometryConstPtr>& geoms) const
 {
+  // TODO: Rewrite for using bullet add alll shapes to a single bullet COW
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
   for (std::size_t i = 0; i < shapes.size(); ++i)
   {
-    FCLGeometryConstPtr co = createCollisionGeometry(shapes[i], ab, i);
-    if (co)
-      geoms.push_back(co);
   }
 }
 
-void CollisionRobotBt::constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const
+void CollisionRobotBt::addAttachedOjectsToManager(const robot_state::RobotState& state) const
 {
-  fcl_obj.collision_objects_.reserve(geoms_.size());
-  fcl::Transform3d fcl_tf;
-
-  for (std::size_t i = 0; i < geoms_.size(); ++i)
-    if (geoms_[i] && geoms_[i]->collision_geometry_)
-    {
-      transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
-                                                    geoms_[i]->collision_geometry_data_->shape_index),
-                    fcl_tf);
-      std::string test;
-      test = geoms_[i]->collision_geometry_data_->ptr.link->getName();
-      // ROS_ERROR_NAMED("collision_detection.fcl", "link '%s'", test.c_str());
-      auto coll_obj = new fcl::CollisionObjectd(*fcl_objs_[i]);
-      coll_obj->setTransform(fcl_tf);
-      coll_obj->computeAABB();
-      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(coll_obj));
-    }
-
-  // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
+  // TODO: add attached objects to the manager with correct flags using Bullet
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
   for (auto& body : ab)
@@ -175,24 +120,8 @@ void CollisionRobotBt::constructFCLObject(const robot_state::RobotState& state, 
     for (std::size_t k = 0; k < objs.size(); ++k)
       if (objs[k]->collision_geometry_)
       {
-        transform2fcl(ab_t[k], fcl_tf);
-        fcl_obj.collision_objects_.push_back(
-            FCLCollisionObjectPtr(new fcl::CollisionObjectd(objs[k]->collision_geometry_, fcl_tf)));
-        // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
-        // and would be destroyed when objs goes out of scope.
-        fcl_obj.collision_geometry_.push_back(objs[k]);
       }
   }
-}
-
-void CollisionRobotBt::allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const
-{
-  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
-  // m->tree_init_level = 2;
-  manager.manager_.reset(m);
-  constructFCLObject(state, manager.object_);
-  manager.object_.registerTo(manager.manager_.get());
-  // manager.manager_->update();
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -225,17 +154,14 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-  // updating the link position with the current robot state
-  for (std::size_t i = 0; i < geoms_.size(); ++i)
-    if (geoms_[i] && geoms_[i]->collision_geometry_)
-    {
-      bt_manager_.setCollisionObjectsTransform(
-          geoms_[i]->collision_geometry_data_->ptr.link->getName(),
-          state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
-                                          geoms_[i]->collision_geometry_data_->shape_index));
-    }
+  // updating link positions with the current robot state
+  for (auto & link : bt_manager_.getCollisionObjects()) {
+    // select the first of the transformations for each link (composed of multiple shapes...)
+    // TODO: further investigate if this brings problems
+    bt_manager_.setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
+  }
 
-  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, acm, req);
+  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, acm, req);
 
   if (req.distance)
   {
@@ -295,7 +221,8 @@ void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, Co
 
 void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& links)
 {
-  std::size_t index;
+  // TODO: add for bullet manager -> iterate through each input link and then construct new object
+  // out of the geometry from the robot
   for (const auto& link : links)
   {
     const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(link);
@@ -303,14 +230,6 @@ void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& l
     {
       for (std::size_t j = 0; j < lmodel->getShapes().size(); ++j)
       {
-        FCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShapes()[j], getLinkScale(lmodel->getName()),
-                                                        getLinkPadding(lmodel->getName()), lmodel, j);
-        if (g)
-        {
-          index = lmodel->getFirstCollisionBodyTransformIndex() + j;
-          geoms_[index] = g;
-          fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(g->collision_geometry_));
-        }
       }
     }
     else

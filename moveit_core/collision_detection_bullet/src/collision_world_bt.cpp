@@ -36,20 +36,7 @@
 
 #include <moveit/collision_detection_bullet/collision_world_bt.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
-#include <moveit/collision_detection_bullet/fcl_compat.h>
 #include <tesseract_ros/ros_tesseract_utils.h>
-
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/geometry/geometric_shape_to_BVH_model.h>
-#include <fcl/narrowphase/detail/traversal/collision/bvh_collision_traversal_node.h>
-#include <fcl/narrowphase/detail/traversal/collision_node.h>
-#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
-#else
-#include <fcl/shape/geometric_shape_to_BVH_model.h>
-#include <fcl/traversal/traversal_node_bvhs.h>
-#include <fcl/traversal/traversal_node_setup.h>
-#include <fcl/collision_node.h>
-#endif
 
 #include <boost/bind.hpp>
 #include <bullet/btBulletCollisionCommon.h>
@@ -60,20 +47,12 @@ const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
 
 CollisionWorldBt::CollisionWorldBt() : CollisionWorld()
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
-  // m->tree_init_level = 2;
-  manager_.reset(m);
-
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 }
 
 CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world)
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
-  // m->tree_init_level = 2;
-  manager_.reset(m);
-
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
@@ -81,14 +60,7 @@ CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world
 
 CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
 {
-  auto m = new fcl::DynamicAABBTreeCollisionManagerd();
-  // m->tree_init_level = 2;
-  manager_.reset(m);
-
-  fcl_objs_ = other.fcl_objs_;
-  for (auto& fcl_obj : fcl_objs_)
-    fcl_obj.second.registerTo(manager_.get());
-  // manager_->update();
+  //TODO add copy constructor for new manager
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
@@ -142,8 +114,7 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
       bt_manager_.addCollisionObject(cow.second);
   }
 
-  tesseract::ContactResultMap contact_map;
-  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, acm, req);
+  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, acm, req);
 
   if (req.distance)
   {
@@ -177,7 +148,7 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
-void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
+void CollisionWorldBt::addToManager(const World::Object* obj) const
 {
   tesseract::CollisionObjectTypeVector collision_object_types;
 
@@ -189,53 +160,34 @@ void CollisionWorldBt::constructFCLObject(const World::Object* obj, FCLObject& f
       collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
   }
 
+  // TODO: Mask id -> 0 what exactly do with it
   bt_manager_.addCollisionObject(obj->id_, 0, obj->shapes_, obj->shape_poses_, collision_object_types, true);
-
-  for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
-  {
-    FCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
-    if (g)
-    {
-      auto co = new fcl::CollisionObjectd(g->collision_geometry_, transform2fcl(obj->shape_poses_[i]));
-      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(co));
-      fcl_obj.collision_geometry_.push_back(g);
-    }
-  }
 }
 
-void CollisionWorldBt::updateFCLObject(const std::string& id)
+void CollisionWorldBt::updateManagedObject(const std::string& id)
 {
-  // remove FCL objects that correspond to this object
-  auto jt = fcl_objs_.find(id);
-  if (jt != fcl_objs_.end())
-  {
-    jt->second.unregisterFrom(manager_.get());
-    jt->second.clear();
-  }
-
-  // check to see if we have this object
+  // we have three cases: 1) the object is part of the manager and not of world --> delete it
+  //                      2) the object is not in the manager, therefore register to manager,
+  //                      3) the object is in the manager then delete and add the modified 
   auto it = getWorld()->find(id);
   if (it != getWorld()->end())
   {
-    // construct FCL objects that correspond to this object
-    if (jt != fcl_objs_.end())
+    if (bt_manager_.hasCollisionObject(id))
     {
-      constructFCLObject(it->second.get(), jt->second);
-      jt->second.registerTo(manager_.get());
+      bt_manager_.removeCollisionObject(id);
+      // construct FCL objects that correspond to this object
+      addToManager(it->second.get());
     }
     else
     {
-      constructFCLObject(it->second.get(), fcl_objs_[id]);
-      fcl_objs_[id].registerTo(manager_.get());
+      addToManager(it->second.get());
     }
   }
   else
   {
-    if (jt != fcl_objs_.end())
-      fcl_objs_.erase(jt);
+    if (bt_manager_.hasCollisionObject(id))
+      bt_manager_.removeCollisionObject(id);
   }
-
-  // manager_->update();
 }
 
 void CollisionWorldBt::setWorld(const WorldPtr& world)
@@ -247,8 +199,6 @@ void CollisionWorldBt::setWorld(const WorldPtr& world)
   getWorld()->removeObserver(observer_handle_);
 
   // clear out objects from old world
-  manager_->clear();
-  fcl_objs_.clear();
   cleanCollisionGeometryCache();
 
   CollisionWorld::setWorld(world);
@@ -265,19 +215,12 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
   if (action == World::DESTROY)
   {
     bt_manager_.removeCollisionObject(obj->id_);
-
-    auto it = fcl_objs_.find(obj->id_);
-    if (it != fcl_objs_.end())
-    {
-      it->second.unregisterFrom(manager_.get());
-      it->second.clear();
-      fcl_objs_.erase(it);
-    }
+    // TODO: What exactly is this?
     cleanCollisionGeometryCache();
   }
   else
   {
-    updateFCLObject(obj->id_);
+    updateManagedObject(obj->id_);
     if (action & (World::DESTROY | World::REMOVE_SHAPE))
       cleanCollisionGeometryCache();
   }

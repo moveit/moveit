@@ -38,14 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
-#include <moveit/collision_detection_bullet/fcl_compat.h>
 #include <tesseract_collision/bullet/bullet_discrete_simple_manager.h>
-
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/broadphase/broadphase_collision_manager.h>
-#else
-#include <fcl/broadphase/broadphase.h>
-#endif
 
 #include <memory>
 
@@ -86,11 +79,8 @@ protected:
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
-  void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
-  void updateFCLObject(const std::string& id);
-
-  std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
-  std::map<std::string, FCLObject> fcl_objs_;
+  void addToManager(const World::Object* obj) const;
+  void updateManagedObject(const std::string& id);
 
   mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 
