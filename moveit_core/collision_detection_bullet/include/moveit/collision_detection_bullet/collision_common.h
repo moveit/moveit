@@ -43,11 +43,9 @@
 #include <moveit/collision_detection_bullet/fcl_compat.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/broadphase/broadphase_collision_manager.h>
 #include <fcl/narrowphase/collision.h>
 #include <fcl/narrowphase/distance.h>
 #else
-#include <fcl/broadphase/broadphase.h>
 #include <fcl/collision.h>
 #include <fcl/distance.h>
 #endif
@@ -220,83 +218,10 @@ struct FCLGeometry
 typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
 
-struct FCLObject
-{
-  void registerTo(fcl::BroadPhaseCollisionManagerd* manager);
-  void unregisterFrom(fcl::BroadPhaseCollisionManagerd* manager);
-  void clear();
-
-  std::vector<FCLCollisionObjectPtr> collision_objects_;
-  std::vector<FCLGeometryConstPtr> collision_geometry_;
-};
-
-struct FCLManager
-{
-  FCLObject object_;
-  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
-};
-
-bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
-
-bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
-
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
-                                            int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_state::AttachedBody* ab,
-                                            int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
-
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const robot_model::LinkModel* link, int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const robot_state::AttachedBody* ab, int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const World::Object* obj);
 void cleanCollisionGeometryCache();
 
-inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
-{
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-  f = b.matrix();
-#else
-  Eigen::Quaterniond q(b.rotation());
-  f.setTranslation(fcl::Vector3d(b.translation().x(), b.translation().y(), b.translation().z()));
-  f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
-#endif
+bool acm_evaluate(const collision_detection::AllowedCollisionMatrix* acm);
 }
 
-inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
-{
-  fcl::Transform3d t;
-  transform2fcl(b, t);
-  return t;
-}
-
-inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
-{
-  c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
-  c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
-  c.depth = fc.penetration_depth;
-  const CollisionGeometryData* cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
-  c.body_name_1 = cgd1->getID();
-  c.body_type_1 = cgd1->type;
-  const CollisionGeometryData* cgd2 = static_cast<const CollisionGeometryData*>(fc.o2->getUserData());
-  c.body_name_2 = cgd2->getID();
-  c.body_type_2 = cgd2->type;
-}
-
-inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
-{
-  cs.aabb_min[0] = fcs.aabb_min[0];
-  cs.aabb_min[1] = fcs.aabb_min[1];
-  cs.aabb_min[2] = fcs.aabb_min[2];
-
-  cs.aabb_max[0] = fcs.aabb_max[0];
-  cs.aabb_max[1] = fcs.aabb_max[1];
-  cs.aabb_max[2] = fcs.aabb_max[2];
-
-  cs.cost = fcs.cost_density;
-}
-}
 
 #endif
