@@ -226,17 +226,19 @@ public:
     return getRootLink()->getName();
   }
 
-  /** \brief Check if a link exists. Return true if it does. */
+  /** \brief Check if a link exists. Return true if it does.
+   *
+   * If this is followed by a call to getLinkModel(), better use the latter with the has_link argument */
   bool hasLinkModel(const std::string& name) const;
 
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
-  const LinkModel* getLinkModel(const std::string& link) const;
+  const LinkModel* getLinkModel(const std::string& link, bool* has_link = nullptr) const;
 
   /** \brief Get a link by its index. Output error and return NULL when the link is missing. */
   const LinkModel* getLinkModel(int index) const;
 
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
-  LinkModel* getLinkModel(const std::string& link);
+  LinkModel* getLinkModel(const std::string& link, bool* has_link = nullptr);
 
   /** \brief Get the latest link upwards the kinematic tree, which is only connected via fixed joints
    *

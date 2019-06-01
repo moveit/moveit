@@ -36,27 +36,33 @@
 
 #include <moveit/robot_state/attached_body.h>
 #include <geometric_shapes/shapes.h>
+#include <boost/algorithm/string/predicate.hpp>
 
-moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id,
-                                         const std::vector<shapes::ShapeConstPtr>& shapes,
-                                         const EigenSTL::vector_Isometry3d& attach_trans,
-                                         const std::set<std::string>& touch_links,
-                                         const trajectory_msgs::JointTrajectory& detach_posture)
+namespace moveit
+{
+namespace core
+{
+AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id,
+                           const std::vector<shapes::ShapeConstPtr>& shapes,
+                           const EigenSTL::vector_Isometry3d& attach_trans, const std::set<std::string>& touch_links,
+                           const trajectory_msgs::JointTrajectory& detach_posture,
+                           const FixedTransformsMap& subframe_poses)
   : parent_link_model_(parent_link_model)
   , id_(id)
   , shapes_(shapes)
   , attach_trans_(attach_trans)
   , touch_links_(touch_links)
   , detach_posture_(detach_posture)
+  , subframe_poses_(subframe_poses)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
   for (Eigen::Isometry3d& global_collision_body_transform : global_collision_body_transforms_)
     global_collision_body_transform.setIdentity();
 }
 
-moveit::core::AttachedBody::~AttachedBody() = default;
+AttachedBody::~AttachedBody() = default;
 
-void moveit::core::AttachedBody::setScale(double scale)
+void AttachedBody::setScale(double scale)
 {
   for (shapes::ShapeConstPtr& shape : shapes_)
   {
@@ -73,7 +79,7 @@ void moveit::core::AttachedBody::setScale(double scale)
   }
 }
 
-void moveit::core::AttachedBody::setPadding(double padding)
+void AttachedBody::setPadding(double padding)
 {
   for (shapes::ShapeConstPtr& shape : shapes_)
   {
@@ -89,3 +95,30 @@ void moveit::core::AttachedBody::setPadding(double padding)
     }
   }
 }
+
+const Eigen::Isometry3d& AttachedBody::getSubframeTransform(const std::string& frame_name, bool* found) const
+{
+  if (boost::starts_with(frame_name, id_) && frame_name[id_.length()] == '/')
+  {
+    auto it = subframe_poses_.find(frame_name.substr(id_.length() + 1));
+    if (it != subframe_poses_.end())
+    {
+      if (found)
+        *found = true;
+      return it->second;
+    }
+  }
+  static const Eigen::Isometry3d IDENTITY_TRANSFORM = Eigen::Isometry3d::Identity();
+  if (found)
+    *found = false;
+  return IDENTITY_TRANSFORM;
+}
+
+bool AttachedBody::hasSubframeTransform(const std::string& frame_name) const
+{
+  bool found;
+  getSubframeTransform(frame_name, &found);
+  return found;
+}
+}  // namespace core
+}  // namespace moveit

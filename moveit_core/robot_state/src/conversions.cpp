@@ -216,6 +216,15 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
       sv.addToObject(sm, p);
     }
   }
+  aco.object.subframe_names.clear();
+  aco.object.subframe_poses.clear();
+  for (auto frame_pair : attached_body.getSubframeTransforms())
+  {
+    aco.object.subframe_names.push_back(frame_pair.first);
+    geometry_msgs::Pose pose;
+    pose = tf2::toMsg(frame_pair.second);
+    aco.object.subframe_poses.push_back(pose);
+  }
 }
 
 static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::AttachedCollisionObject& aco, RobotState& state)
@@ -240,6 +249,12 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
       if (aco.object.planes.size() != aco.object.plane_poses.size())
       {
         ROS_ERROR_NAMED(LOGNAME, "Number of planes does not match number of poses in collision object message");
+        return;
+      }
+
+      if (aco.object.subframe_poses.size() != aco.object.subframe_names.size())
+      {
+        ROS_ERROR_NAMED(LOGNAME, "Number of subframe poses does not match number of subframe names in message");
         return;
       }
 
@@ -284,24 +299,38 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           }
         }
 
-        // transform poses to link frame
+        moveit::core::FixedTransformsMap subframe_poses;
+        for (std::size_t i = 0; i < aco.object.subframe_poses.size(); ++i)
+        {
+          Eigen::Isometry3d p;
+          tf2::fromMsg(aco.object.subframe_poses[i], p);
+          std::string name = aco.object.subframe_names[i];
+          subframe_poses[name] = p;
+        }
+
+        // Transform shape poses and subframes to link frame
         if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
         {
+          bool frame_found = false;
           Eigen::Isometry3d t0;
-          if (state.knowsFrameTransform(aco.object.header.frame_id))
-            t0 = state.getFrameTransform(aco.object.header.frame_id);
-          else if (tf && tf->canTransform(aco.object.header.frame_id))
-            t0 = tf->getTransform(aco.object.header.frame_id);
-          else
+          t0 = state.getFrameTransform(aco.object.header.frame_id, &frame_found);
+          if (!frame_found)
           {
-            t0.setIdentity();
-            ROS_ERROR_NAMED(LOGNAME, "Cannot properly transform from frame '%s'. "
-                                     "The pose of the attached body may be incorrect",
-                            aco.object.header.frame_id.c_str());
+            if (tf && tf->canTransform(aco.object.header.frame_id))
+              t0 = tf->getTransform(aco.object.header.frame_id);
+            else
+            {
+              t0.setIdentity();
+              ROS_ERROR_NAMED(LOGNAME, "Cannot properly transform from frame '%s'. "
+                                       "The pose of the attached body may be incorrect",
+                              aco.object.header.frame_id.c_str());
+            }
           }
           Eigen::Isometry3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (Eigen::Isometry3d& pose : poses)
             pose = t * pose;
+          for (auto& subframe_pose : subframe_poses)
+            subframe_pose.second = t * subframe_pose.second;
         }
 
         if (shapes.empty())
@@ -313,7 +342,8 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
             ROS_DEBUG_NAMED(LOGNAME, "The robot state already had an object named '%s' attached to link '%s'. "
                                      "The object was replaced.",
                             aco.object.id.c_str(), aco.link_name.c_str());
-          state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
+          state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture,
+                           subframe_poses);
           ROS_DEBUG_NAMED(LOGNAME, "Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
       }

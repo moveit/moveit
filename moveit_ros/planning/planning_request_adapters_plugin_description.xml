@@ -25,6 +25,12 @@
     </description>
   </class>
 
+  <class name="default_planner_request_adapters/ResolveConstraintFrames" type="default_planner_request_adapters::ResolveConstraintFrames" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+      Resolves constraints that are defined in collision objects or subframes to robot links, because the former are not known to the planner.
+    </description>
+  </class>
+
   <class name="default_planner_request_adapters/AddTimeParameterization" type="default_planner_request_adapters::AddTimeParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
