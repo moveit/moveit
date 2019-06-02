@@ -31,12 +31,10 @@ namespace
 unsigned int countMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints)
 {
   unsigned int num_mimic = 0;
-  unsigned int index = 0;
   for (const auto& item : mimic_joints)
   {
-    if (item.map_index != index)
+    if (!item.active)
       ++num_mimic;
-    ++index;
   }
   return num_mimic;
 }
