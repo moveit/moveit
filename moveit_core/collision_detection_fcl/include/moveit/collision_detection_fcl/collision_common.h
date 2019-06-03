@@ -310,6 +310,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const World::Object* obj);
 
+/** \brief Increases the counter of the caches which can possibly trigger the cleaning of the them. */
 void cleanCollisionGeometryCache();
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
