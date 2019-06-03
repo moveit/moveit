@@ -43,7 +43,7 @@
 
 namespace collision_detection
 {
-/** \brief An allocator for FCL collision detectors */
+/** \brief An allocator for Bullet collision detectors */
 class CollisionDetectorAllocatorBt
     : public CollisionDetectorAllocatorTemplate<CollisionWorldBt, CollisionRobotBt, CollisionDetectorAllocatorBt>
 {
