@@ -659,6 +659,8 @@ struct IfSameType<T, T>
   };
 };
 
+/** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
+ *  volume (BV). */
 template <typename BV, typename T>
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
 {
@@ -839,7 +841,6 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   return FCLGeometryConstPtr();
 }
 
-/////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
                                             int shape_index)
 {
@@ -857,6 +858,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
   return createCollisionGeometry<fcl::OBBRSSd, World::Object>(shape, obj, 0);
 }
 
+/** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
+ *  volume (BV). This can include padding and scaling. */
 template <typename BV, typename T>
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const T* data, int shape_index)
@@ -901,9 +904,8 @@ void cleanCollisionGeometryCache()
     cache2.bumpUseCount(true);
   }
 }
-}  // namespace collision_detection
 
-void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& robot_model)
+void CollisionData::enableGroup(const robot_model::RobotModelConstPtr& robot_model)
 {
   if (robot_model->hasJointModelGroup(req_->group_name))
     active_components_only_ = &robot_model->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
@@ -911,7 +913,7 @@ void collision_detection::CollisionData::enableGroup(const robot_model::RobotMod
     active_components_only_ = nullptr;
 }
 
-void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManagerd* manager)
+void FCLObject::registerTo(fcl::BroadPhaseCollisionManagerd* manager)
 {
   std::vector<fcl::CollisionObjectd*> collision_objects(collision_objects_.size());
   for (std::size_t i = 0; i < collision_objects_.size(); ++i)
@@ -920,14 +922,15 @@ void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManagerd
     manager->registerObjects(collision_objects);
 }
 
-void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManagerd* manager)
+void FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManagerd* manager)
 {
   for (auto& collision_object : collision_objects_)
     manager->unregisterObject(collision_object.get());
 }
 
-void collision_detection::FCLObject::clear()
+void FCLObject::clear()
 {
   collision_objects_.clear();
   collision_geometry_.clear();
 }
+}  // namespace collision_detection
