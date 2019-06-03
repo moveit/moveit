@@ -32,6 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
+
 /* Author: Ioan Sucan */
 
 #ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
@@ -268,7 +269,7 @@ struct FCLManager
 };
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
-*   calculate object distances.
+*   calculate object contact information.
 *
 *   \param o1 First FCL collision object
 *   \param o2 Second FCL collision object
@@ -310,7 +311,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const World::Object* obj);
 
-/** \brief Increases the counter of the caches which can possibly trigger the cleaning of the them. */
+/** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */
 void cleanCollisionGeometryCache();
 
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
