@@ -39,13 +39,7 @@
 
 namespace collision_detection
 {
-void CollisionData::enableGroup(const robot_model::RobotModelConstPtr& robot_model)
-{
-  if (robot_model->hasJointModelGroup(req_->group_name))
-    active_components_only_ = &robot_model->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
-  else
-    active_components_only_ = nullptr;
-}
+// TODO: Enable group functionality with active components like in FCL
 
 bool acmEvaluate(const collision_detection::AllowedCollisionMatrix* acm)
 {
