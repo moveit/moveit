@@ -88,7 +88,7 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -96,7 +96,7 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -175,7 +175,6 @@ void CollisionWorldBt::updateManagedObject(const std::string& id)
     if (bt_manager_.hasCollisionObject(id))
     {
       bt_manager_.removeCollisionObject(id);
-      // construct FCL objects that correspond to this object
       addToManager(it->second.get());
     }
     else
@@ -198,9 +197,6 @@ void CollisionWorldBt::setWorld(const WorldPtr& world)
   // turn off notifications about old world
   getWorld()->removeObserver(observer_handle_);
 
-  // clear out objects from old world
-  cleanCollisionGeometryCache();
-
   CollisionWorld::setWorld(world);
 
   // request notifications about changes to new world
@@ -215,14 +211,10 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
   if (action == World::DESTROY)
   {
     bt_manager_.removeCollisionObject(obj->id_);
-    // TODO: What exactly is this?
-    cleanCollisionGeometryCache();
   }
   else
   {
     updateManagedObject(obj->id_);
-    if (action & (World::DESTROY | World::REMOVE_SHAPE))
-      cleanCollisionGeometryCache();
   }
 }
 

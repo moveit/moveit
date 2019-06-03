@@ -39,87 +39,11 @@
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
-#include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection_bullet/fcl_compat.h>
 
-#if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
-#include <fcl/narrowphase/collision.h>
-#include <fcl/narrowphase/distance.h>
-#else
-#include <fcl/collision.h>
-#include <fcl/distance.h>
-#endif
-
-#include <memory>
 #include <set>
 
 namespace collision_detection
 {
-MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
-
-struct CollisionGeometryData
-{
-  CollisionGeometryData(const robot_model::LinkModel* link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
-  {
-    ptr.link = link;
-  }
-
-  CollisionGeometryData(const robot_state::AttachedBody* ab, int index)
-    : type(BodyTypes::ROBOT_ATTACHED), shape_index(index)
-  {
-    ptr.ab = ab;
-  }
-
-  CollisionGeometryData(const World::Object* obj, int index) : type(BodyTypes::WORLD_OBJECT), shape_index(index)
-  {
-    ptr.obj = obj;
-  }
-
-  const std::string& getID() const
-  {
-    switch (type)
-    {
-      case BodyTypes::ROBOT_LINK:
-        return ptr.link->getName();
-      case BodyTypes::ROBOT_ATTACHED:
-        return ptr.ab->getName();
-      default:
-        break;
-    }
-    return ptr.obj->id_;
-  }
-
-  std::string getTypeString() const
-  {
-    switch (type)
-    {
-      case BodyTypes::ROBOT_LINK:
-        return "Robot link";
-      case BodyTypes::ROBOT_ATTACHED:
-        return "Robot attached";
-      default:
-        break;
-    }
-    return "Object";
-  }
-
-  /** \brief Check if two CollisionGeometryData objects point to the same source object */
-  bool sameObject(const CollisionGeometryData& other) const
-  {
-    return type == other.type && ptr.raw == other.ptr.raw;
-  }
-
-  BodyType type;
-  int shape_index;
-  union
-  {
-    const robot_model::LinkModel* link;
-    const robot_state::AttachedBody* ab;
-    const World::Object* obj;
-    const void* raw;
-  } ptr;
-};
-
 struct CollisionData
 {
   CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
@@ -175,52 +99,7 @@ struct DistanceData
   bool done;
 };
 
-MOVEIT_STRUCT_FORWARD(FCLGeometry);
-
-struct FCLGeometry
-{
-  FCLGeometry()
-  {
-  }
-
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_model::LinkModel* link, int shape_index)
-    : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
-  {
-    collision_geometry_->setUserData(collision_geometry_data_.get());
-  }
-
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_state::AttachedBody* ab, int shape_index)
-    : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
-  {
-    collision_geometry_->setUserData(collision_geometry_data_.get());
-  }
-
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
-    : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
-  {
-    collision_geometry_->setUserData(collision_geometry_data_.get());
-  }
-
-  template <typename T>
-  void updateCollisionGeometryData(const T* data, int shape_index, bool newType)
-  {
-    if (!newType && collision_geometry_data_)
-      if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
-        return;
-    collision_geometry_data_.reset(new CollisionGeometryData(data, shape_index));
-    collision_geometry_->setUserData(collision_geometry_data_.get());
-  }
-
-  std::shared_ptr<fcl::CollisionGeometryd> collision_geometry_;
-  CollisionGeometryDataPtr collision_geometry_data_;
-};
-
-typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
-typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
-
-void cleanCollisionGeometryCache();
-
-bool acm_evaluate(const collision_detection::AllowedCollisionMatrix* acm);
+bool acmEvaluate(const collision_detection::AllowedCollisionMatrix* acm);
 }
 
 #endif
