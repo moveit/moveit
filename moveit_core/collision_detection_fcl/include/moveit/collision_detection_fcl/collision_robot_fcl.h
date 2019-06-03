@@ -81,18 +81,51 @@ public:
                      const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const override;
 
 protected:
+  /** \brief Updates the FCL collision geometry and objects saved in the CollisionRobotFCL members to reflect a new
+  *   padding or scaling of the robot links.
+  *
+  *   It searches for the the link through the pointed to robot model of the CollisionRobot and then constructs new FCL
+  *   collision objects and geometries depending on the changed robot model.
+  *
+  *   \param links The names of the links which have been updated in the robot model */
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
+
+  /** \brief Out of the current robot state and its attached bodies construct an FCLObject which can then be used to
+  *   check for collision.
+  *
+  *   The current state is used to recalculate the AABB of the FCL collision objects. However they are not computed from
+  *   scratch (which would require call to computeLocalAABB()) but are only transformed according to the joint states.
+  *
+  *   \param state The current robot state
+  *   \param fcl_obj The newly filled object */
   void constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const;
+
+  /** \brief Prepares for the collision check through constructing an FCL collision object out of the current robot
+  *   state and specifying a broadphase collision manager of FCL where the constructed object is registered to. */
   void allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const;
+
+  /** \brief Converts all shapes which make up an atttached body into a vector of FCLGeometryConstPtr.
+  *
+  *   When they are converted, they can be added to the FCL representation of the robot for collision checking.
+  *
+  *   \param ab Pointer to the attached body
+  *   \param geoms Output vector of geometries
+  */
   void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<FCLGeometryConstPtr>& geoms) const;
 
+  /** \brief Bundles the different checkSelfCollision functions into a single function. */
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
+
+  /** \brief Bundles the different checkOtherCollision functions into a single function. */
   void checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Vector of shared pointers to the FCL geometry for the objects in fcl_objs_. */
   std::vector<FCLGeometryConstPtr> geoms_;
+
+  /** \brief Vector of shared pointers to the FCL collision objects which make up the robot */
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
 };
 }
