@@ -396,7 +396,7 @@ struct FCLShapeCache
   /** \brief Map of weak pointers to the FCLGeometry. */
   ShapeMap map_;
 
-  /** \brief Indicates how often the cache has been used and triggers possibly cleaning of the cache. */
+  /** \brief Indicates how often the cache has been used and, depending on \m MAX_CLEAN_COUNT triggers cleaning of the cache. */
   unsigned int clean_count_;
 };
 
