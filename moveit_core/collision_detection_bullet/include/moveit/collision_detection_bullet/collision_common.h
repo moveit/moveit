@@ -40,65 +40,8 @@
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
 
-#include <set>
-
 namespace collision_detection
 {
-struct CollisionData
-{
-  CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
-  {
-  }
-
-  CollisionData(const CollisionRequest* req, CollisionResult* res, const AllowedCollisionMatrix* acm)
-    : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
-  {
-  }
-
-  ~CollisionData()
-  {
-  }
-
-  /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
-
-  /// The collision request passed by the user
-  const CollisionRequest* req_;
-
-  /// If the collision request includes a group name, this set contains the pointers to the link models that are
-  /// considered for collision;
-  /// If the pointer is NULL, all collisions are considered.
-  const std::set<const robot_model::LinkModel*>* active_components_only_;
-
-  /// The user specified response location
-  CollisionResult* res_;
-
-  /// The user specified collision matrix (may be NULL)
-  const AllowedCollisionMatrix* acm_;
-
-  /// Flag indicating whether collision checking is complete
-  bool done_;
-};
-
-struct DistanceData
-{
-  DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
-  {
-  }
-  ~DistanceData()
-  {
-  }
-
-  /// Distance query request information
-  const DistanceRequest* req;
-
-  /// Distance query results information
-  DistanceResult* res;
-
-  /// Indicates if distance query is finished.
-  bool done;
-};
-
 bool acmEvaluate(const collision_detection::AllowedCollisionMatrix* acm);
 }
 
