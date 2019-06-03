@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 /* Author: Ioan Sucan */
 
 #ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
