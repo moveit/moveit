@@ -98,9 +98,9 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRob
 }
 
 void CollisionRobotBt::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
-                                              std::vector<FCLGeometryConstPtr>& geoms) const
+                                              std::vector<void*>& geoms) const
 {
-  // TODO: Rewrite for using bullet add alll shapes to a single bullet COW
+  // TODO: Rewrite for using bullet add alll shapes to a single bullet COW. use geoms as output!
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
   for (std::size_t i = 0; i < shapes.size(); ++i)
   {
@@ -114,13 +114,10 @@ void CollisionRobotBt::addAttachedOjectsToManager(const robot_state::RobotState&
   state.getAttachedBodies(ab);
   for (auto& body : ab)
   {
-    std::vector<FCLGeometryConstPtr> objs;
+    std::vector<void*> objs;
     getAttachedBodyObjects(body, objs);
     const EigenSTL::vector_Isometry3d& ab_t = body->getGlobalCollisionBodyTransforms();
-    for (std::size_t k = 0; k < objs.size(); ++k)
-      if (objs[k]->collision_geometry_)
-      {
-      }
+    for (std::size_t k = 0; k < objs.size(); ++k) {}
   }
 }
 
@@ -140,14 +137,14 @@ void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, Collision
                                           const robot_state::RobotState& state1,
                                           const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                           const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -198,7 +195,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& other_state1,
                                            const robot_state::RobotState& other_state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -208,7 +205,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& other_state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "FCL continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,

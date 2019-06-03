@@ -84,7 +84,7 @@ public:
 protected:
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
   void addAttachedOjectsToManager(const robot_state::RobotState& state) const;
-  void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<FCLGeometryConstPtr>& geoms) const;
+  void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<void*>& geoms) const;
 
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
