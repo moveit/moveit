@@ -42,44 +42,26 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
+void runCollisionDetection(unsigned int trials, const planning_scene::PlanningScene* scene,
                            const robot_state::RobotState state)
 {
-  ROS_INFO("Starting thread %u", id);
+  ROS_INFO("Starting...");
   collision_detection::CollisionRequest req;
   ros::WallTime start = ros::WallTime::now();
   for (unsigned int i = 0; i < trials; ++i)
   {
     collision_detection::CollisionResult res;
-    scene->checkCollision(req, res, state);
+    scene->checkSelfCollision(req, res, state);
   }
   double duration = (ros::WallTime::now() - start).toSec();
-  ROS_INFO("Thread %u performed %lf collision checks per second", id, (double)trials / duration);
+  ROS_INFO("Performed %lf collision checks per second", (double)trials / duration);
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "compare_collision_checking_speed");
 
-  unsigned int nthreads = 2;
-  unsigned int trials = 10000;
-  boost::program_options::options_description desc;
-  desc.add_options()("nthreads", boost::program_options::value<unsigned int>(&nthreads)->default_value(nthreads),
-                     "Number of threads to use")(
-      "trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials),
-      "Number of collision checks to perform with each thread")("wait",
-                                                                "Wait for a user command (so the planning scene can be "
-                                                                "updated in thre background)")("help", "this screen");
-  boost::program_options::variables_map vm;
-  boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
-  boost::program_options::store(po, vm);
-  boost::program_options::notify(vm);
-
-  if (vm.count("help"))
-  {
-    std::cout << desc << std::endl;
-    return 0;
-  }
+  unsigned int trials = 1000000;
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -94,49 +76,30 @@ int main(int argc, char** argv)
 
   if (psm.getPlanningScene())
   {
-    if (vm.count("wait"))
-    {
-      psm.startWorldGeometryMonitor();
-      psm.startSceneMonitor();
-      std::cout << "Listening to planning scene updates. Press Enter to continue ..." << std::endl;
-      std::cin.get();
-    }
-    else
-      ros::Duration(0.5).sleep();
-
+    ros::Duration(0.5).sleep();
     std::vector<robot_state::RobotState> states;
-    ROS_INFO("Sampling %u valid states...", nthreads);
-    for (unsigned int i = 0; i < nthreads; ++i)
+    ROS_INFO("Sampling valid states...");
+
+    // sample a valid state
+    robot_state::RobotState& current_state = planning_scene->getCurrentStateNonConst();
+    collision_detection::CollisionRequest req;
+    do
     {
-      // sample a valid state
-      robot_state::RobotState& current_state = planning_scene->getCurrentStateNonConst();
+      current_state.setToRandomPositions();
+      current_state.update();
+      collision_detection::CollisionResult res;
+      psm.getPlanningScene()->checkSelfCollision(req, res);
+      ROS_INFO_STREAM("Found state " << (res.collision ? "in collision" : "not in collision"));
+      if (!res.collision)
+        break;
+    } while (true);
 
-      collision_detection::CollisionRequest req;
-      do
-      {
-        current_state.setToRandomPositions();
-        current_state.update();
-        collision_detection::CollisionResult res;
-        res.clear();
-        psm.getPlanningScene()->checkSelfCollision(req, res);
-        ROS_INFO_STREAM((res.collision ? "In collision" : "Not in collision") << " for thread " << i);
-        if (!res.collision)
-          break;
-      } while (true);
-      states.push_back(robot_state::RobotState(current_state));
-    }
+    ROS_INFO_STREAM("Using Bullet");
+    runCollisionDetection(trials, planning_scene.get(), current_state);
 
-    std::vector<boost::thread*> threads;
-
-    for (unsigned int i = 0; i < states.size(); ++i)
-      threads.push_back(new boost::thread(
-          boost::bind(&runCollisionDetection, i, trials, psm.getPlanningScene().get(), states[i])));
-
-    for (unsigned int i = 0; i < states.size(); ++i)
-    {
-      threads[i]->join();
-      delete threads[i];
-    }
+    planning_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
+    ROS_INFO_STREAM("Using FCL");
+    runCollisionDetection(trials, planning_scene.get(), current_state);
   }
   else
     ROS_ERROR("Planning scene not configured");
