@@ -53,9 +53,6 @@ public:
 
   bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
   {
-    if (!ns.empty())
-      nh_ = ros::NodeHandle(ns);
-    std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
     return true;
   }
 
