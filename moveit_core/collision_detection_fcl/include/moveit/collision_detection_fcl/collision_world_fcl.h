@@ -80,20 +80,41 @@ public:
   void setWorld(const WorldPtr& world) override;
 
 protected:
+  /** \brief Bundles the world collision function calls. */
   void checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                  const AllowedCollisionMatrix* acm) const;
+
+  /** \brief Bundles the robot collision function calls.
+   *
+   *  Out of the CollisionRobot a new \e FCLObject is created which is then iteratively checked with through the
+   *  manager */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Transforms a world object into a FCLObject which can then be collision checked. */
   void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
+
+  /** \brief Updates the specified object in \m fcl_objs_ and in the manager through looking up its new data in the
+   *  world representation.
+   *
+   *  If it does not exist anymore in world, it is deleted. If it is not yet in the \m fcl_objs_ map, add it to it. */
   void updateFCLObject(const std::string& id);
 
+  /** \brief FCL collision manager which handles the collision checking process. */
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+
+  /** \brief Bundles the FCL compatible collision object representation. */
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
+  /** \brief TODO: Seems to be not defined - remove? */
   void initialize();
+
+  /** \brief Callback function used in the world representation. It is added to an observer of the world and
+   *  subsequently called on each action to the world. */
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+
+  /** \brief Pointer to the observer. */
   World::ObserverHandle observer_handle_;
 };
 }
