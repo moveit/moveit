@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Omid Heidari
-   Desc:   TrajOpt planning plugin
+   Desc:   Main TrajOpt planning plugin interface to MoveIt
 */
 
 #include <moveit/planning_interface/planning_interface.h>
