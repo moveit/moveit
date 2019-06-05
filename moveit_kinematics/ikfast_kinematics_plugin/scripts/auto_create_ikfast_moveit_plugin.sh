@@ -75,7 +75,7 @@ function set_option_defaults {
       exit 1
    fi
    # Define default PKG_NAME if not yet defined
-   PKG_NAME=${PKG_NAME:-$ROBOT_NAME_$PLANNING_GROUP_ikfast_plugin}
+   PKG_NAME=${PKG_NAME:-${ROBOT_NAME}_${PLANNING_GROUP}_ikfast_plugin}
 }
 
 function cleanup {
@@ -167,7 +167,7 @@ EOF
 
 function create_plugin {
    echo
-   echo "Running $(dirname $0)/create_ikfast_moveit_plugin.py"
+   echo "Running $(dirname $0)/create_ikfast_moveit_plugin.py \"$ROBOT_NAME\" \"$PLANNING_GROUP\" \"$PKG_NAME\" \"$BASE_LINK\" \"$EEF_LINK\" \"$INPUT\""
    $(dirname "$0")/create_ikfast_moveit_plugin.py "$ROBOT_NAME" "$PLANNING_GROUP" "$PKG_NAME" "$BASE_LINK" "$EEF_LINK" "$INPUT"
 }
 
