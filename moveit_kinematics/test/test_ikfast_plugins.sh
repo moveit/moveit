@@ -12,10 +12,6 @@ travis_run git clone -q --depth=1 https://github.com/ros-planning/moveit_resourc
 fanuc=/tmp/resources/fanuc_description/urdf/fanuc.urdf
 panda=/tmp/resources/panda_description/urdf/panda.urdf
 
-# Install lxml required for create_ikfast_moveit_plugin.py
-travis_run_true sudo apt-get -qq update
-travis_run sudo apt-get -qq install -y python-lxml
-
 # Translate environment variable QUIET=[0 | 1] into actual option
 test ${QUIET:-1} -eq 0 && QUIET="" || QUIET="--quiet"
 

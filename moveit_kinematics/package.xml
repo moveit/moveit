@@ -31,10 +31,12 @@
   <depend>orocos_kdl</depend>
 
   <exec_depend>python-lxml</exec_depend>
+  <exec_depend>liburdfdom-tools</exec_depend> <!-- provides check_urdf required by ikfast scripts -->
 
   <test_depend>rostest</test_depend>
   <test_depend>moveit_resources</test_depend>
   <test_depend>xmlrpcpp</test_depend>
+  
 
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
