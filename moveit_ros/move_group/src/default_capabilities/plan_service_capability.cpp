@@ -38,20 +38,22 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupPlanService::MoveGroupPlanService() : MoveGroupCapability("MotionPlanService")
+namespace move_group
+{
+MoveGroupPlanService::MoveGroupPlanService() : MoveGroupCapability("MotionPlanService")
 {
 }
 
-void move_group::MoveGroupPlanService::initialize()
+void MoveGroupPlanService::initialize()
 {
   plan_service_ =
       root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
 }
 
-bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request& req,
-                                                          moveit_msgs::GetMotionPlan::Response& res)
+bool MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request& req,
+                                              moveit_msgs::GetMotionPlan::Response& res)
 {
-  ROS_INFO("Received new planning service request...");
+  ROS_INFO_NAMED(getName(), "Received new planning service request...");
   // before we start planning, ensure that we have the latest robot state received...
   if (static_cast<bool>(req.motion_plan_request.start_state.is_diff))
     context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
@@ -66,12 +68,13 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
   }
   catch (std::exception& ex)
   {
-    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
+    ROS_ERROR_NAMED(getName(), "Planning pipeline threw an exception: %s", ex.what());
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
 
   return true;
 }
+}  // namespace move_group
 
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupPlanService, move_group::MoveGroupCapability)

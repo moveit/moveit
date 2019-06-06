@@ -91,7 +91,7 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(const moveit_msgs::Ex
 void MoveGroupExecuteTrajectoryAction::executePath(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
                                                    moveit_msgs::ExecuteTrajectoryResult& action_res)
 {
-  ROS_INFO_NAMED(capability_name_, "Execution request received");
+  ROS_INFO_NAMED(getName(), "Execution request received");
 
   context_->trajectory_execution_manager_->clear();
   if (context_->trajectory_execution_manager_->push(goal->trajectory))
@@ -115,7 +115,7 @@ void MoveGroupExecuteTrajectoryAction::executePath(const moveit_msgs::ExecuteTra
     {
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     }
-    ROS_INFO_STREAM_NAMED(capability_name_, "Execution completed: " << status.asString());
+    ROS_INFO_STREAM_NAMED(getName(), "Execution completed: " << status.asString());
   }
   else
   {

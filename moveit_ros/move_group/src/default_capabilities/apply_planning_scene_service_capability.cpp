@@ -37,28 +37,31 @@
 #include "apply_planning_scene_service_capability.h"
 #include <moveit/move_group/capability_names.h>
 
-move_group::ApplyPlanningSceneService::ApplyPlanningSceneService() : MoveGroupCapability("ApplyPlanningSceneService")
+namespace move_group
+{
+ApplyPlanningSceneService::ApplyPlanningSceneService() : MoveGroupCapability("ApplyPlanningSceneService")
 {
 }
 
-void move_group::ApplyPlanningSceneService::initialize()
+void ApplyPlanningSceneService::initialize()
 {
   service_ = root_node_handle_.advertiseService(APPLY_PLANNING_SCENE_SERVICE_NAME,
                                                 &ApplyPlanningSceneService::applyScene, this);
 }
 
-bool move_group::ApplyPlanningSceneService::applyScene(moveit_msgs::ApplyPlanningScene::Request& req,
-                                                       moveit_msgs::ApplyPlanningScene::Response& res)
+bool ApplyPlanningSceneService::applyScene(moveit_msgs::ApplyPlanningScene::Request& req,
+                                           moveit_msgs::ApplyPlanningScene::Response& res)
 {
   if (!context_->planning_scene_monitor_)
   {
-    ROS_ERROR("Cannot apply PlanningScene as no scene is monitored.");
+    ROS_ERROR_NAMED(getName(), "Cannot apply PlanningScene as no scene is monitored.");
     return true;
   }
   context_->planning_scene_monitor_->updateFrameTransforms();
   res.success = context_->planning_scene_monitor_->newPlanningSceneMessage(req.scene);
   return true;
 }
+}  // namespace move_group
 
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::ApplyPlanningSceneService, move_group::MoveGroupCapability)
