@@ -58,7 +58,7 @@ protected:
     std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
-      while (xml_file.good())
+      while (xXml_file.good())
       {
         std::string line;
         std::getline(xml_file, line);

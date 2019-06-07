@@ -1,7 +1,7 @@
 <package format="2">
   <name>moveit_planners_trajopt</name>
   <version>1.0.1</version>
-  <description>TrajOpt planning plugin</description>
+  <description>TrajOpt planning plugin, an optimization based motion planner </description>
 
   <author email="omid@picknik.ai">Omid Heidari</author>
 
@@ -16,9 +16,22 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>roscpp</depend>
-  <depend>moveit_core</depend>
-  <depend>pluginlib</depend>
+    <depend>pluginlib</depend>
+
+    <depend>moveit_core</depend>
+    <depend>moveit_ros_planning</depend>
+    <depend>moveit_ros_planning_interface</depend>
+
+    <depend>interactive_markers</depend>
+
+    <depend>moveit_visual_tools</depend>
+
+    <depend>roscpp</depend>
+
+    <depend>trajopt</depend>
+    <depend>tesseract_ros</depend>
+    <depend>tesseract_planning</depend>
+
 
   <export>
     <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>
