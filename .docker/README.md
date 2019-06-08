@@ -1,3 +1,3 @@
 # MoveIt! Docker Containers
 
-For more information see [Continuous Integration and Docker](http://moveit.ros.org/documentation/contributing/continuous_integration.html) documentation.
+For more information see [Docker](https://moveit.ros.org/install/docker/) and [Continuous Integration](http://moveit.ros.org/documentation/contributing/continuous_integration.html) documentation.

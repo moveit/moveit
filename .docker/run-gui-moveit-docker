@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# This script is used to create and run a persistent docker container with settings for GUI. See the instructions online.
+# Delete/restart the container by running `docker stop local_moveit_container && docker rm local_moveit_container`
+
+#!/bin/bash
+
+XAUTH=/tmp/.docker.xauth
+if [ ! -f $XAUTH ]
+then
+    xauth_list=$(xauth nlist :0 | sed -e 's/^..../ffff/')
+    if [ ! -z "$xauth_list" ]
+    then
+        echo $xauth_list | xauth -f $XAUTH nmerge -
+    else
+        touch $XAUTH
+    fi
+    chmod a+r $XAUTH
+fi
+
+if [ ! "$(docker ps -aq -f name=local_moveit_container)" ]
+then
+    echo "Docker container does not exist yet. Running from scratch"
+    docker run -it \
+    --env="DISPLAY=$DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    -env="XAUTHORITY=$XAUTH" \
+    --volume="$XAUTH:$XAUTH" \
+    --volume="/home/parallels/moveit-dev/catkin_ws:/root/linked_ws_moveit" \
+    --runtime=runc \
+    --name local_moveit_container \
+#    -v /home/your_username/moveit_ms:/root/ws_moveit_linked \
+    -w /root/linked_ws_moveit \
+    my_moveit_image
+    bash
+else
+    if [ "$(docker ps -aq -f name=local_moveit_container)" ]
+    then
+        echo "Docker container has already been created. Restarting and entering it."
+        docker start local_moveit_container
+        docker exec -it local_moveit_container bash
+    fi
+fi
