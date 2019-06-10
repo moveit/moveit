@@ -246,14 +246,14 @@ public:
   /** \brief Set a scaling factor for optionally reducing the maximum joint velocity.
       Allowed values are in (0,1]. The maximum joint velocity specified
       in the robot model is multiplied by the factor. If outside valid range
-      (imporantly, this includes it being set to 0.0), the factor is set to a
+      (importantly, this includes it being set to 0.0), the factor is set to a
       default value of 1.0 internally (i.e. maximum joint velocity) */
   void setMaxVelocityScalingFactor(double max_velocity_scaling_factor);
 
   /** \brief Set a scaling factor for optionally reducing the maximum joint acceleration.
       Allowed values are in (0,1]. The maximum joint acceleration specified
       in the robot model is multiplied by the factor. If outside valid range
-      (imporantly, this includes it being set to 0.0), the factor is set to a
+      (importantly, this includes it being set to 0.0), the factor is set to a
       default value of 1.0 internally (i.e. maximum joint acceleration) */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
 
@@ -310,6 +310,14 @@ public:
   /** \brief For pick/place operations, the name of the support surface is used to specify the fact that attached
    * objects are allowed to touch the support surface */
   void setSupportSurfaceName(const std::string& name);
+
+  /** \brief For place operations, either the location of the object can be specified ( \e place_eef = false,
+   * this is the default ) or the location of the end effector ( \e place_eef = true ) */
+  void setPlaceEEF(const bool place_eef);
+
+  /** \brief For pick/place operations, specify whether collisions between the gripper and the support surface should
+   * be acceptable. By default, this is true */
+  void setAllowGripperSupportCollision(const bool allow_gripper_support_collision);
 
   /**
    * \name Setting a joint state target (goal)
@@ -958,7 +966,7 @@ private:
   class MoveGroupInterfaceImpl;
   MoveGroupInterfaceImpl* impl_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif
