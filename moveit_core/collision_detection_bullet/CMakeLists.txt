@@ -4,13 +4,10 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_common.cpp
   src/collision_robot_bt.cpp
   src/collision_world_bt.cpp
-  src/tesseract/bullet_discrete_simple_manager.cpp
-  src/tesseract/bullet_utils.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection
-    moveit_collision_detection_fcl ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${LIBFCL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${LIBFCL_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 add_library(collision_detector_bullet_plugin src/collision_detector_bt_plugin_loader.cpp)
@@ -29,10 +26,4 @@ install(FILES ../collision_detector_bullet_description.xml DESTINATION ${CATKIN_
 if(CATKIN_ENABLE_TESTING)
   find_package(moveit_resources REQUIRED)
   include_directories(${moveit_resources_INCLUDE_DIRS})
-
-  catkin_add_gtest(test_bullet_collision_detection test/test_bt_collision_detection.cpp)
-  target_link_libraries(test_bullet_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
-
-  catkin_add_gtest(test_bullet_collision_detection_panda test/test_bt_collision_detection_panda.cpp)
-  target_link_libraries(test_bullet_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()
