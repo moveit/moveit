@@ -39,4 +39,6 @@
 
 namespace collision_detection
 {
+// TODO: Enable group functionality with active components like in FCL
+
 }  // namespace collision_detection

@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
 
 #include <moveit/collision_detection_bullet/collision_common.h>
+#include <moveit/collision_detection_bullet/tesseract/bullet_discrete_simple_manager.h>
 
 namespace collision_detection
 {
@@ -81,13 +82,23 @@ public:
                      const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const override;
 
 protected:
+  /** \brief Updates the poses of the objects in the manager according to given robot state. */
+  void updateTransformsFromState(const robot_state::RobotState& state) const;
+
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
+
+  void addAttachedOjectsToManager(const robot_state::RobotState& state) const;
+
+  void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<void*>& geoms) const;
 
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
   void checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
+
+  /** @brief Bullet collision manager taken from tesseract*/
+  mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 };
 }
 
