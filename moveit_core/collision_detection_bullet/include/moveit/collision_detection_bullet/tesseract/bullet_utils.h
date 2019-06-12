@@ -511,8 +511,12 @@ struct DiscreteBroadphaseContactResultCallback : public BroadphaseContactResultC
                            int /*index1*/) override
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
+    {
+      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
       return 0;
+    }
 
+    ROS_DEBUG_STREAM("We have a collision with " << cp.m_distance1);
     return addDiscreteSingleResult(cp, colObj0Wrap, colObj1Wrap, collisions_);
   }
 };
@@ -977,6 +981,7 @@ inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
 inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                            const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
+  ROS_DEBUG_STREAM("Added " << cow->getName());
   btVector3 aabb_min, aabb_max;
   cow->getAABB(aabb_min, aabb_max);
 

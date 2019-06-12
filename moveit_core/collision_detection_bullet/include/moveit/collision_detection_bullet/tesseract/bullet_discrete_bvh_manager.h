@@ -1,6 +1,6 @@
 /**
- * @file bullet_discrete_simple_manager.h
- * @brief Tesseract ROS Bullet discrete simple collision manager.
+ * @file bullet_discrete_bvh_manager.h
+ * @brief Tesseract ROS Bullet discrete BVH collision manager.
  *
  * @author Levi Armstrong
  * @date Dec 18, 2017
@@ -38,22 +38,21 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef TESSERACT_COLLISION_BULLET_DISCRETE_SIMPLE_MANAGERS_H
-#define TESSERACT_COLLISION_BULLET_DISCRETE_SIMPLE_MANAGERS_H
+#ifndef TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H
+#define TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H
 
 #include <moveit/collision_detection_bullet/tesseract/bullet_utils.h>
 #include <moveit/collision_detection_bullet/tesseract/discrete_contact_manager_base.h>
-#include <moveit/collision_detection_bullet/tesseract/macros.h>
-#include <moveit/collision_detection/collision_matrix.h>
 namespace tesseract
 {
 namespace tesseract_bullet
 {
-/** @brief A simple implementaiton of a bullet manager which does not use BHV */
-class BulletDiscreteSimpleManager : public DiscreteContactManagerBase
+/** @brief A BVH implementaiton of a bullet manager */
+class BulletDiscreteBVHManager : public DiscreteContactManagerBase
 {
 public:
-  BulletDiscreteSimpleManager();
+  BulletDiscreteBVHManager();
+  ~BulletDiscreteBVHManager() override;
 
   DiscreteContactManagerBasePtr clone() const override;
 
@@ -111,10 +110,17 @@ private:
                                                          object to object collison algorithm */
   btDispatcherInfo dispatch_info_;              /**< @brief The bullet collision dispatcher configuration information */
   btDefaultCollisionConfiguration coll_config_; /**< @brief The bullet collision configuration */
-  Link2Cow link2cow_;        /**< @brief A map of all (static and active) collision objects being managed */
-  std::vector<COWPtr> cows_; /**< @brief A vector of collision objects (active followed by static) */
+  std::unique_ptr<btBroadphaseInterface> broadphase_; /**< @brief The bullet broadphase interface */
+  Link2Cow link2cow_; /**< @brief A map of all (static and active) collision objects being managed */
+
+  /**
+   * @brief Perform a contact test for the provided object which is not part of the manager
+   * @param cow The Collision object
+   * @param collisions The collision results
+   */
+  void contactTest(const COWPtr& cow, ContactTestData& collisions);
 };
-typedef std::shared_ptr<BulletDiscreteSimpleManager> BulletDiscreteSimpleManagerPtr;
+typedef std::shared_ptr<BulletDiscreteBVHManager> BulletDiscreteBVHManagerPtr;
 }
 }
-#endif  // TESSERACT_COLLISION_BULLET_DISCRETE_SIMPLE_MANAGERS_H
+#endif  // TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H

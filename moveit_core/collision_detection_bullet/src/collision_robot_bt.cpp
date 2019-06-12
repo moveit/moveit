@@ -75,6 +75,9 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
                                      collision_object_types, true);
     }
   }
+
+  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionRobotBt::allowedCollisionCheck, this,
+                                              std::placeholders::_1, std::placeholders::_2));
 }
 
 CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRobot(other)
@@ -95,6 +98,8 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRob
     bt_manager_.setContactDistanceThreshold(other_bt.bt_manager_.getContactDistanceThreshold());
     bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
   }
+
+  bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
 }
 
 void CollisionRobotBt::getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<void*>& geoms) const
@@ -152,8 +157,10 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
+  acm_ = acm;
+
   updateTransformsFromState(state);
-  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, acm, req);
+  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, req);
 
   if (req.distance)
   {
@@ -250,6 +257,38 @@ void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& 
     // select the first of the transformations for each link (composed of multiple shapes...)
     // TODO: further investigate if this brings problems
     bt_manager_.setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
+  }
+}
+
+bool CollisionRobotBt::allowedCollisionCheck(std::string body_1, std::string body_2)
+{
+  collision_detection::AllowedCollision::Type allowed_type;
+
+  if (acm_ != nullptr)
+  {
+    if (acm_->getEntry(body_1, body_2, allowed_type))
+    {
+      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
+      {
+        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
+        return false;
+      }
+      else
+      {
+        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
+        return true;
+      }
+    }
+    else
+    {
+      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
+      return false;
+    }
+  }
+  else
+  {
+    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
+    return false;
   }
 }
 

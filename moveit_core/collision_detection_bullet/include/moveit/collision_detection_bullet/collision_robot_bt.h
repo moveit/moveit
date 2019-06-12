@@ -39,6 +39,7 @@
 
 #include <moveit/collision_detection_bullet/collision_common.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_simple_manager.h>
+#include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
 
 namespace collision_detection
 {
@@ -98,7 +99,12 @@ protected:
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
   /** @brief Bullet collision manager taken from tesseract*/
-  mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
+  mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
+  // mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
+
+  mutable const AllowedCollisionMatrix* acm_;
+
+  bool allowedCollisionCheck(std::string body_1, std::string body_2);
 };
 }
 

@@ -7,6 +7,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_world_bt.cpp
   src/tesseract/bullet_discrete_simple_manager.cpp
   src/tesseract/bullet_utils.cpp
+  src/tesseract/bullet_discrete_bvh_manager.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 

@@ -70,14 +70,14 @@ inline bool isLinkActive(const std::vector<std::string>& active, const std::stri
  * @param verbose If true print debug informaton
  * @return True if contact is allowed between the two object, otherwise false.
  */
-inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn acm,
+inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn acm_fn,
                              bool verbose = false)
 {
   // do not distance check geoms part of the same object / link / attached body
   if (name1 == name2)
     return true;
 
-  if (acm != nullptr && acm(name1, name2))
+  if (acm_fn != nullptr && acm_fn(name1, name2))
   {
     if (verbose)
     {
@@ -99,11 +99,12 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
 {
   if (!found)
   {
+    ROS_DEBUG_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
+
     std::vector<collision_detection::Contact> data;
     if (cdata.type == ContactTestType::FIRST)
     {
       data.emplace_back(contact);
-      ROS_INFO_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
       cdata.done = true;
     }
     else

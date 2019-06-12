@@ -51,16 +51,21 @@
 #include <ctype.h>
 #include <fstream>
 
-// typedef collision_detection::CollisionWorldBt DefaultCWorldType;
-typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
-// typedef collision_detection::CollisionRobotBt DefaultCRobotType;
-typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
+typedef collision_detection::CollisionWorldBt DefaultCWorldType;
+// typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
+typedef collision_detection::CollisionRobotBt DefaultCRobotType;
+// typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 
 class BulletCollisionDetectionTester : public testing::Test
 {
 protected:
   void SetUp() override
   {
+    if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug))
+    {
+      ros::console::notifyLoggerLevelsChanged();
+    }
+
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
@@ -98,8 +103,8 @@ protected:
 
   robot_model::RobotModelPtr robot_model_;
 
-  collision_detection::CollisionRobotPtr crobot_;
   collision_detection::CollisionWorldPtr cworld_;
+  collision_detection::CollisionRobotPtr crobot_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
@@ -138,7 +143,7 @@ TEST_F(BulletCollisionDetectionTester, WorldToWorldCollision)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  shapes::Shape* shape = new shapes::Box(.3, .3, .3);
+  shapes::Shape* shape = new shapes::Box(.5, .5, .5);
   shapes::ShapeConstPtr shape_ptr(shape);
 
   Eigen::Isometry3d pos_1 = Eigen::Isometry3d::Identity();
@@ -181,7 +186,6 @@ TEST_F(BulletCollisionDetectionTester, RobotWorldCollision_1)
   res.clear();
 
   cworld_->getWorld()->moveObject("box", pos1);
-  cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
   ASSERT_FALSE(res.collision);
 }
 

@@ -49,6 +49,9 @@ CollisionWorldBt::CollisionWorldBt() : CollisionWorld()
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+
+  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionWorldBt::allowedCollisionCheck, this,
+                                              std::placeholders::_1, std::placeholders::_2));
 }
 
 CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world)
@@ -56,6 +59,9 @@ CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
+
+  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionWorldBt::allowedCollisionCheck, this,
+                                              std::placeholders::_1, std::placeholders::_2));
 }
 
 CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
@@ -64,6 +70,8 @@ CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+
+  bt_manager_.setIsContactAllowedFn(other.bt_manager_.getIsContactAllowedFn());
 }
 
 CollisionWorldBt::~CollisionWorldBt()
@@ -110,16 +118,26 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
   tesseract::tesseract_bullet::Link2Cow link2cow;
   link2cow = robot_bt.bt_manager_.getCollisionObjects();
 
-  for (const auto& cow : link2cow)
+  for (const auto cow : link2cow)
   {
+    tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
+    new_cow->setWorldTransform(cow.second->getWorldTransform());
+
+    ROS_DEBUG_STREAM("Added " << cow.first << " to the bullet manager from robot");
     if (!bt_manager_.hasCollisionObject(cow.first))
     {
-      bt_manager_.addCollisionObject(cow.second);
-      ROS_DEBUG_STREAM("Added " << cow.first << " to the bullet manager from robot");
+      bt_manager_.addCollisionObject(new_cow);
+    }
+    else
+    {
+      bt_manager_.removeCollisionObject(cow.first);
+      bt_manager_.addCollisionObject(new_cow);
     }
   }
 
-  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, acm, req);
+  acm_ = acm;
+
+  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, req);
 
   if (req.distance)
   {
@@ -235,6 +253,38 @@ void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult&
 void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
+}
+
+bool CollisionWorldBt::allowedCollisionCheck(const std::string body_1, const std::string body_2) const
+{
+  collision_detection::AllowedCollision::Type allowed_type;
+
+  if (acm_ != nullptr)
+  {
+    if (acm_->getEntry(body_1, body_2, allowed_type))
+    {
+      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
+      {
+        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
+        return false;
+      }
+      else
+      {
+        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
+        return true;
+      }
+    }
+    else
+    {
+      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
+      return false;
+    }
+  }
+  else
+  {
+    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
+    return false;
+  }
 }
 
 }  // end of namespace collision_detection

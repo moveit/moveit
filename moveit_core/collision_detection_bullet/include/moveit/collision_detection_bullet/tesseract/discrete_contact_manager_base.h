@@ -147,8 +147,12 @@ public:
   /**
    * @brief Perform a contact test for all objects based
    * @param collisions The Contact results data
+   * @param type The type of check (ALL, FIRST...)
+   * @param acm The allowed collision matrix
+   * @param req The contact request
    */
-  virtual void contactTest(ContactResultMap& collisions, const ContactTestType& type) = 0;
+  virtual void contactTest(collision_detection::CollisionResult& collisions, const ContactTestType& type,
+                           const collision_detection::CollisionRequest& req) = 0;
 };
 typedef std::shared_ptr<DiscreteContactManagerBase> DiscreteContactManagerBasePtr;
 typedef std::shared_ptr<const DiscreteContactManagerBase> DiscreteContactManagerBaseConstPtr;

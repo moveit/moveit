@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Open Source Robotics Foundation, Inc.
+ *  Copyright (c) 2019, Jens Petit
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the copyright holder nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -38,8 +38,6 @@
 #include <moveit/collision_plugin_loader/collision_plugin_loader.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
 #include <random>
 #include <geometric_shapes/shape_operations.h>
 
@@ -48,63 +46,77 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-enum class robot_state_selector
+enum class RobotStateSelector
 {
   IN_COLLISION,
   NOT_IN_COLLISION,
   RANDOM,
 };
 
-enum class collision_detector
+enum class CollisionDetector
 {
   FCL,
   BULLET,
 };
 
-/*! \enum object_type
- *
- *  Options for cluttering the scene.
- */
 enum class CollisionObjectType
 {
   MESH,
   BOX,
 };
 
-void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigned int num_objects, CollisionObjectType type)
+/** \brief Clutters the world of the planning scene with random objects in a certain area around the origin. All added
+ *  objects are not in collision.
+*
+*   \param planning_scene The planning scene
+*   \param num_objects The number of objects to be cluttered
+*   \param CollisionObjectType Type of object to clutter (mesh or box) */
+void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigned int num_objects,
+                  CollisionObjectType type)
 {
   ROS_INFO("Cluttering scene...");
+
   std::random_device rd;  // obtain a random number from hardware
   unsigned int test = rd();
-  ROS_INFO_STREAM(test);
   std::mt19937 eng(test);  // seed the generator
 
   std::uniform_real_distribution<> distr_position(-1, 1);
   std::uniform_real_distribution<> distr_position_z(0.0, 1);
-  //std::uniform_real_distribution<> distr_size(0.3, 1); MESH
-  std::uniform_real_distribution<> distr_size(0.05, 0.2);
+  std::uniform_real_distribution<> distr_size;
 
+  if (type == CollisionObjectType::MESH)
+  {
+    distr_size = std::uniform_real_distribution<>(0.3, 1);
+  }
+  else
+  {
+    distr_size = std::uniform_real_distribution<>(0.05, 0.2);
+  }
+
+  // allow all robot links to be in collision for world check
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
       planning_scene->getRobotModel()->getLinkModelNames(), true) };
 
+  // set the robot state to home position
   robot_state::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
   collision_detection::CollisionRequest req;
   current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
   current_state.update();
 
+  // load panda link5 as world collision object
   std::string name{ "" };
   shapes::ShapeConstPtr shape;
   std::string kinect = "package://moveit_resources/panda_description/meshes/collision/link5.stl";
 
   Eigen::Quaterniond quat;
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
 
   int added_objects{ 0 };
   int i{ 0 };
+  // create random objects until as many added as desired or quit if too many attempts
   while (added_objects < num_objects && i < num_objects * 3)
   {
-
     // add with random size and random position
-    Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
     pos.translation().x() = distr_position(eng);
     pos.translation().y() = distr_position(eng);
     pos.translation().z() = distr_position_z(eng);
@@ -147,7 +159,7 @@ void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigne
     }
     else
     {
-      ROS_INFO_STREAM("Object was in collision, remove");
+      ROS_DEBUG_STREAM("Object was in collision, remove");
       planning_scene->getWorldNonConst()->removeObject(name);
     }
 
@@ -156,15 +168,22 @@ void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigne
   ROS_INFO_STREAM("Cluttered the planning scene with " << added_objects << " objects");
 }
 
+/** \brief Runs a collision detection benchmark and measures the time.
+*
+*   \param trials The number of repeated collision checks for each state
+*   \param scene The planning scene
+*   \param CollisionDetector The type of collision detector
+*   \param only_self Flag for only self collision check performed */
 void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr scene,
-                           const std::vector<robot_state::RobotState>& states, const collision_detector col_detector,
+                           const std::vector<robot_state::RobotState>& states, const CollisionDetector col_detector,
                            bool only_self)
 {
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
       scene->getRobotModel()->getLinkModelNames(), true) };
 
-  ROS_INFO_STREAM("Starting detection using " << (col_detector == collision_detector::FCL ? "FCL" : "Bullet"));
-  if (col_detector == collision_detector::FCL)
+  ROS_INFO_STREAM("Starting detection using " << (col_detector == CollisionDetector::FCL ? "FCL" : "Bullet"));
+
+  if (col_detector == CollisionDetector::FCL)
   {
     scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
   }
@@ -175,12 +194,15 @@ void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr
 
   collision_detection::CollisionResult res;
   collision_detection::CollisionRequest req;
+
+  // for world collision request detailed information
   if (!only_self)
   {
     req.contacts = true;
     req.max_contacts = 99;
     req.max_contacts_per_pair = 99;
   }
+
   ros::WallTime start = ros::WallTime::now();
   for (unsigned int i = 0; i < trials; ++i)
   {
@@ -196,7 +218,6 @@ void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr
       {
         scene->checkCollision(req, res, state, acm);
       }
-
     }
   }
   double duration = (ros::WallTime::now() - start).toSec();
@@ -205,7 +226,9 @@ void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr
   ROS_INFO_STREAM("We had " << states.size() << " different robot states which were "
                             << (res.collision ? "in collison " : "not in collision ") << "with " << res.contact_count);
 
-  for (auto contact : res.contacts) {
+  // color collided objects red
+  for (auto contact : res.contacts)
+  {
     ROS_INFO_STREAM("Between: " << contact.first.first << " and " << contact.first.second);
     std_msgs::ColorRGBA red;
     red.a = 0.8;
@@ -215,18 +238,23 @@ void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr
     scene->setObjectColor(contact.first.first, red);
     scene->setObjectColor(contact.first.second, red);
   }
+
   scene->setCurrentState(states.back());
 }
 
-/** \brief Samples valid states of the robot which can be in collision if desired. */
-void findStates(const robot_state_selector desired_states, unsigned int num_states, planning_scene::PlanningScenePtr scene,
-                std::vector<robot_state::RobotState>& robot_states)
+/** \brief Samples valid states of the robot which can be in collision if desired.
+ *  \param desired_states Specifier for type for desired state
+ *  \param num_states Number of desired states
+ *  \param scene The planning scene
+ *  \param robot_states Result vector */
+void findStates(const RobotStateSelector desired_states, unsigned int num_states,
+                planning_scene::PlanningScenePtr scene, std::vector<robot_state::RobotState>& robot_states)
 {
   robot_state::RobotState& current_state{ scene->getCurrentStateNonConst() };
   collision_detection::CollisionRequest req;
 
   int i{ 0 };
-  do
+  while (robot_states.size() < num_states && i < num_states * 30)
   {
     current_state.setToRandomPositions();
     current_state.update();
@@ -236,22 +264,20 @@ void findStates(const robot_state_selector desired_states, unsigned int num_stat
 
     switch (desired_states)
     {
-      case robot_state_selector::IN_COLLISION:
+      case RobotStateSelector::IN_COLLISION:
         if (res.collision)
           robot_states.push_back(current_state);
         break;
-      case robot_state_selector::NOT_IN_COLLISION:
+      case RobotStateSelector::NOT_IN_COLLISION:
         if (!res.collision)
           robot_states.push_back(current_state);
         break;
-      case robot_state_selector::RANDOM:
+      case RobotStateSelector::RANDOM:
         robot_states.push_back(current_state);
         break;
     }
     i++;
-    if (i > num_states * 30)
-      break;
-  } while (robot_states.size() < num_states);
+  }
 
   if (robot_states.size() > 0)
   {
@@ -268,7 +294,6 @@ int main(int argc, char** argv)
   robot_model::RobotModelPtr robot_model;
   ros::init(argc, argv, "compare_collision_checking_speed");
   ros::NodeHandle node_handle;
-
 
   ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 
@@ -299,45 +324,27 @@ int main(int argc, char** argv)
     ros::Duration(0.5).sleep();
 
     robot_state::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
-    //current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
-    current_state.setToDefaultValues();
-    //current_state.setToRandomPositions();
-    //planning_scene->setCurrentState(current_state);
+    current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
 
     current_state.update();
     std::vector<robot_state::RobotState> sampled_states;
-    //sampled_states.push_back(current_state);
+    sampled_states.push_back(current_state);
 
-    findStates(robot_state_selector::NOT_IN_COLLISION, 1, planning_scene, sampled_states);
+    //findStates(RobotStateSelector::NOT_IN_COLLISION, 1, planning_scene, sampled_states);
 
-    ROS_ERROR_STREAM("finding done");
-    clutterWorld(planning_scene, 100, CollisionObjectType::BOX);
+    clutterWorld(planning_scene, 100, CollisionObjectType::MESH);
 
-    runCollisionDetection(trials, planning_scene, sampled_states, collision_detector::BULLET, false);
-    runCollisionDetection(trials, planning_scene, sampled_states, collision_detector::FCL, false);
+    runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::BULLET, false);
+    runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::FCL, false);
 
     moveit_msgs::PlanningScene planning_scene_msg;
     planning_scene->getPlanningSceneMsg(planning_scene_msg);
     planning_scene_diff_publisher.publish(planning_scene_msg);
-
-    //std::vector<robot_state::RobotState> sampled_states_2;
-    //findStates(robot_state_selector::NOT_IN_COLLISION, 1, planning_scene, sampled_states_2);
-
-    //runCollisionDetection(trials, planning_scene, sampled_states_2, collision_detector::BULLET, false);
-    //runCollisionDetection(trials, planning_scene, sampled_states_2, collision_detector::FCL, false);
-
-    //planning_scene->setCurrentState(sampled_states_2[0]);
-
-    //planning_scene->getPlanningSceneMsg(planning_scene_msg);
-    //planning_scene_diff_publisher.publish(planning_scene_msg);
-
   }
   else
   {
     ROS_ERROR("Planning scene not configured");
   }
-
-  ROS_INFO("Reached end.");
 
   return 0;
 }

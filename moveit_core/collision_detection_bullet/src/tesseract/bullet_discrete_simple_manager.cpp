@@ -208,14 +208,9 @@ IsContactAllowedFn BulletDiscreteSimpleManager::getIsContactAllowedFn() const
 {
   return fn_;
 }
-void BulletDiscreteSimpleManager::contactTest(ContactResultMap& collisions, const ContactTestType& type)
-{
-  ROS_ERROR_STREAM("Not implemented, superseeded by adapted version for moveit");
-}
 
 void BulletDiscreteSimpleManager::contactTest(collision_detection::CollisionResult& collisions,
                                               const ContactTestType& type,
-                                              const collision_detection::AllowedCollisionMatrix* acm,
                                               const collision_detection::CollisionRequest& req)
 {
   ContactTestData cdata(active_, contact_distance_, fn_, type, collisions);
@@ -249,40 +244,12 @@ void BulletDiscreteSimpleManager::contactTest(collision_detection::CollisionResu
 
     DiscreteCollisionCollector cc(cdata, cow1, static_cast<double>(cow1->getContactProcessingThreshold()));
 
-    collision_detection::AllowedCollision::Type allowed_type;
     for (auto cow2_iter = cow1_iter + 1; cow2_iter != cows_.end(); cow2_iter++)
     {
       assert(!cdata.done);
 
       const COWPtr& cow2 = *cow2_iter;
       cow2->getAABB(min_aabb[1], max_aabb[1]);
-
-      if (acm)
-      {
-        if (acm->getEntry(cow1->getName(), cow2->getName(), allowed_type))
-        {
-          if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
-          {
-            ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << cow1->getName() << " and "
-                                                                                        << cow2->getName());
-          }
-          else
-          {
-            ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << cow1->getName() << " and "
-                                                                                        << cow2->getName());
-            continue;
-          }
-        }
-        else
-        {
-          ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << cow1->getName() << " and "
-                                                                             << cow2->getName());
-        }
-      }
-      else
-      {
-        ROS_DEBUG_STREAM("No ACM, collision check between " << cow1->getName() << " and " << cow2->getName());
-      }
 
       bool aabb_check = (min_aabb[0][0] <= max_aabb[1][0] && max_aabb[0][0] >= min_aabb[1][0]) &&
                         (min_aabb[0][1] <= max_aabb[1][1] && max_aabb[0][1] >= min_aabb[1][1]) &&
@@ -336,7 +303,7 @@ void BulletDiscreteSimpleManager::contactTest(collision_detection::CollisionResu
         }
         ROS_INFO_NAMED("collision_detection.fcl",
                        "Collision checking is considered complete (collision was found and %u contacts are stored)",
-                       (unsigned int) collisions.contact_count);
+                       (unsigned int)collisions.contact_count);
       }
 
       if (cdata.done)
