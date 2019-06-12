@@ -1,0 +1,27 @@
+<package format="2">
+  <name>moveit_planners_trajopt</name>
+  <version>1.0.1</version>
+  <description>TrajOpt planning plugin</description>
+
+  <author email="omid@picknik.ai">Omid Heidari</author>
+
+  <maintainer email="omid@picknik.ai">Omid Heidari</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>moveit_core</depend>
+  <depend>pluginlib</depend>
+
+  <export>
+    <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>
+  </export>
+
+</package>
