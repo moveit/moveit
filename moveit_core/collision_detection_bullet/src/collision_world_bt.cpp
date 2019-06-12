@@ -99,6 +99,7 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
                                                  const CollisionRobot& robot, const robot_state::RobotState& state,
                                                  const AllowedCollisionMatrix* acm) const
 {
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet robot world collision checking not yet implemented");
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
