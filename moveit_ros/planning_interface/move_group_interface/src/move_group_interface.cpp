@@ -174,8 +174,8 @@ public:
 
     plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
 
-    ROS_INFO_STREAM_NAMED("move_group_interface",
-                          "Ready to take commands for planning group " << opt.group_name_ << ".");
+    ROS_INFO_STREAM_NAMED("move_group_interface", "Ready to take commands for planning group " << opt.group_name_
+                                                                                               << ".");
   }
 
   template <typename T>
@@ -711,8 +711,8 @@ public:
 
     if (objects.empty())
     {
-      ROS_ERROR_STREAM_NAMED("move_group_interface",
-                             "Asked for grasps for the object '" << object << "', but the object could not be found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
+                                                         << object << "', but the object could not be found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
