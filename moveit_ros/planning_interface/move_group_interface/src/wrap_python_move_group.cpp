@@ -45,6 +45,7 @@
 #include <tf_conversions/tf_eigen.h>
 
 #include <boost/python.hpp>
+#include <eigenpy/eigenpy.hpp>
 #include <boost/shared_ptr.hpp>
 #include <Python.h>
 
@@ -514,7 +515,7 @@ public:
     }
   }
 
-  bp::list getJacobianMatrixPython(bp::list& joint_values)
+  Eigen::MatrixXd getJacobianMatrixPython(bp::list& joint_values)
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
     robot_state::RobotState state(getRobotModel());
@@ -522,17 +523,7 @@ public:
     auto group = state.getJointModelGroup(getName());
     state.setJointGroupPositions(group, v);
     Eigen::MatrixXd matrix = state.getJacobian(group);
-    bp::list py_mat;
-    for (size_t row = 0; row < matrix.rows(); row++)
-    {
-      bp::list py_row;
-      for (size_t col = 0; col < matrix.cols(); col++)
-      {
-        py_row.append(matrix(row,col));
-      }
-      py_mat.append(py_row);
-    }
-    return py_mat;
+    return matrix;
   }
 };
 
@@ -551,6 +542,7 @@ static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
       "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
+  eigenpy::enableEigenPy();
 
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);

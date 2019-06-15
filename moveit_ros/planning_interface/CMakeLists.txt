@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_manipulation
   moveit_ros_move_group
   eigen_conversions
+  eigenpy
   tf_conversions
   tf
   roscpp
