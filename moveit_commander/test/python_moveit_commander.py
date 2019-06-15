@@ -94,12 +94,6 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     def test_planning_scene_interface(self):
         planning_scene = PlanningSceneInterface()
 
-    def test_get_jacobian_matrix(self):
-        current = self.group.get_current_joint_values()
-        matrix = np.array(self.group.get_jacobian_matrix(current))
-        self.assertEqual(matrix.shape[0], 6)
-        self.assertEqual(matrix.shape[1], 6)
-
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
     NODENAME = 'moveit_test_python_moveit_commander'
