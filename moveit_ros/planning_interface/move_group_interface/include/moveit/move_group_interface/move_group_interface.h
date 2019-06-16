@@ -47,6 +47,8 @@
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
+#include <moveit_msgs/PickupGoal.h>
+#include <moveit_msgs/PlaceGoal.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MoveGroupAction.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -783,6 +785,16 @@ public:
       in \e request */
   void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request);
 
+  /** \brief Build a PickupGoal for an object named \e object and store it in \e goal_out
+
+      Any options previously set, e.g. with setSupportSurfaceName() or allowReplanning(), are used for the goal */
+  void constructPickupGoal(moveit_msgs::PickupGoal& goal_out, const std::string& object);
+
+  /** \brief Build a PlaceGoal for an object named \e object and store it in \e goal_out
+
+      Any options previously set, e.g. with setSupportSurfaceName() or allowReplanning(), are used for the goal */
+  void constructPlaceGoal(moveit_msgs::PlaceGoal& goal_out, const std::string& object);
+
   /**@}*/
 
   /**
@@ -803,6 +815,12 @@ public:
       if the vector is left empty this behaves like pick(const std::string &object) */
   MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps,
                        bool plan_only = false);
+
+  /** \brief Pick up an object given a PickupGoal
+
+      Use as follows: first create the goal with constructPickupGoal(), then set \e possible_grasps and any other
+      desired variable in the goal, and finally pass it on to this function */
+  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal);
 
   /** \brief Pick up an object
 
@@ -827,6 +845,12 @@ public:
 
   /** \brief Place an object at one of the specified possible location */
   MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false);
+
+  /** \brief Place an object given a PlaceGoal
+
+      Use as follows: first create the goal with constructPlaceGoal(), then set \e place_locations and any other
+      desired variable in the goal, and finally pass it on to this function */
+  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal);
 
   /** \brief Given the name of an object in the planning scene, make
       the object attached to a link of the robot.  If no link name is
@@ -916,7 +940,7 @@ public:
     return remembered_joint_values_;
   }
 
-  /** \brief Forget the joint values remebered under \e name */
+  /** \brief Forget the joint values remembered under \e name */
   void forgetJointValues(const std::string& name);
 
   /**@}*/
