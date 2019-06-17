@@ -536,7 +536,7 @@ public:
   {
     allow_gripper_support_collision_ = allow_gripper_support_collision;
     ROS_DEBUG_NAMED("move_group_interface", "Allow gripper support collision: %s",
-                   allow_gripper_support_collision ? "yes" : "no");
+                    allow_gripper_support_collision ? "yes" : "no");
   }
 
   const std::string& getPoseReferenceFrame() const
@@ -1491,7 +1491,7 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::pick(const moveit_msgs::PickupGoal& goal)
 {
-    return impl_->pick(goal);
+  return impl_->pick(goal);
 }
 
 moveit::planning_interface::MoveItErrorCode
