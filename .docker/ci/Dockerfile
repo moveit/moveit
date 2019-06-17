@@ -30,7 +30,7 @@ RUN wstool init . && \
         ros-$ROS_DISTRO-rosbash \
         ros-$ROS_DISTRO-rospack && \
     # Download all dependencies of MoveIt!
-    rosdep update && \
+    rosdep update --include-eol-distros && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     # Remove the source code from this container. TODO: in the future we may want to keep this here for further optimization of later containers
     cd .. && \

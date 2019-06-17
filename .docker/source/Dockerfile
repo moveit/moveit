@@ -20,7 +20,7 @@ RUN wstool init . && \
 RUN apt-get -qq update && \
     apt-get -qq install -y \
         wget && \
-    rosdep update && \
+    rosdep update --include-eol-distros && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     rm -rf /var/lib/apt/lists/*
 
