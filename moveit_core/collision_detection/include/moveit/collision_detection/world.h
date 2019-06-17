@@ -239,6 +239,7 @@ private:
   class Observer;
 
 public:
+  /** \brief Handle of an observer */
   class ObserverHandle
   {
   public:
@@ -288,7 +289,7 @@ private:
   /** The objects maintained in the world */
   std::map<std::string, ObjectPtr> objects_;
 
-  /* observers to call when something changes */
+  /** \brief The observer observes the world representation. If something changes it executes the callback. */
   class Observer
   {
   public:
@@ -297,6 +298,8 @@ private:
     }
     ObserverCallbackFn callback_;
   };
+
+  /** \brief All observers of the world representation. */
   std::vector<Observer*> observers_;
 };
 }
