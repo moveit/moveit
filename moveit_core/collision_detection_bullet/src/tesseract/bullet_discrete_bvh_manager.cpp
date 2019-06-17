@@ -260,6 +260,7 @@ const Link2Cow& BulletDiscreteBVHManager::getCollisionObjects() const
 {
   return link2cow_;
 }
+
 void BulletDiscreteBVHManager::contactTest(const COWPtr& cow, ContactTestData& collisions)
 {
   btVector3 min_aabb, max_aabb;

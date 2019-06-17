@@ -210,6 +210,93 @@ TEST_F(BulletCollisionDetectionTester, RobotWorldCollision_2)
   res.clear();
 }
 
+// Continous self collision checks are not supported yet by tesseract
+TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
+{
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  robot_state::RobotState state1(robot_model_);
+  robot_state::RobotState state2(robot_model_);
+
+  state1.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  double joint2 = 0.15;
+  double joint4 = -3.0;
+  double joint5 = -0.8;
+  double joint7 = -0.785;
+  state1.setJointPositions("panda_joint2", &joint2);
+  state1.setJointPositions("panda_joint4", &joint4);
+  state1.setJointPositions("panda_joint5", &joint5);
+  state1.setJointPositions("panda_joint7", &joint7);
+  state1.update();
+
+  crobot_->checkSelfCollision(req, res, state1, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  state2.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  double joint_5_other = 0.8;
+  state2.setJointPositions("panda_joint2", &joint2);
+  state2.setJointPositions("panda_joint4", &joint4);
+  state2.setJointPositions("panda_joint5", &joint_5_other);
+  state2.setJointPositions("panda_joint7", &joint7);
+  state2.update();
+
+  crobot_->checkSelfCollision(req, res, state2, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  crobot_->checkSelfCollision(req, res, state1, state2, *acm_);
+  ROS_INFO_STREAM("Continous to continous collisions are not supported yet, therefore fail here.");
+  ASSERT_TRUE(res.collision);
+  res.clear();
+}
+
+TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
+{
+  collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
+
+  robot_state::RobotState state1(robot_model_);
+  robot_state::RobotState state2(robot_model_);
+
+  state1.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  state1.update();
+
+  state2.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  double joint_2 {0.05};
+  double joint_4 {-1.6};
+  state2.setJointPositions("panda_joint2", &joint_2);
+  state2.setJointPositions("panda_joint4", &joint_4);
+  state2.update();
+
+  cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  // Adding the box which is not in collision with the individual states but with the casted one.
+  shapes::Shape* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.43;
+  pos.translation().y() = 0;
+  pos.translation().z() = 0.55;
+  cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  cworld_->checkRobotCollision(req, res, *crobot_, state1, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  cworld_->checkRobotCollision(req, res, *crobot_, state2, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
+  ASSERT_TRUE(res.collision);
+  res.clear();
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

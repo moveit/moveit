@@ -50,6 +50,18 @@ namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 
+namespace ContinouseCollisionTypes
+{
+enum ContinouseCollisionType
+{
+  CCType_None,
+  CCType_Time0,
+  CCType_Time1,
+  CCType_Between
+};
+}
+typedef ContinouseCollisionTypes::ContinouseCollisionType ContinouseCollisionType;
+
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
 {
@@ -95,6 +107,17 @@ struct Contact
 
   /** \brief The type of the second body involved in the contact */
   BodyType body_type_2;
+
+  /** \brief The time until collision */
+  double cc_time;
+
+  /** \brief The continous collision type */
+  ContinouseCollisionType cc_type;
+
+  Eigen::Vector3d nearest_points[2];
+  Eigen::Vector3d cc_nearest_points[2];
+
+
 };
 
 /** \brief When collision costs are computed, this structure contains information about the partial cost incurred in a
@@ -384,6 +407,7 @@ struct DistanceResult
     distances.clear();
   }
 };
+
 }
 
 #endif

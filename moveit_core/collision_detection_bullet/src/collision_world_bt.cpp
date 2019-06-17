@@ -96,7 +96,7 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  checkRobotCollisionHelperCCD(req, res, robot, state1, state2, nullptr);
 }
 
 void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -104,7 +104,44 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  checkRobotCollisionHelperCCD(req, res, robot, state1, state2, &acm);
+}
+
+void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
+                                                    const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                                    const robot_state::RobotState& state2,
+                                                    const AllowedCollisionMatrix* acm) const
+{
+  const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
+
+  tesseract::tesseract_bullet::Link2Cow link2cow;
+  link2cow = bt_manager_.getCollisionObjects();
+
+  for (const auto cow : link2cow)
+  {
+
+    tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
+    new_cow->setWorldTransform(cow.second->getWorldTransform());
+
+    if (!robot_bt.bt_manager_CCD_.hasCollisionObject(cow.first))
+    {
+      robot_bt.bt_manager_CCD_.addCollisionObject(new_cow);
+    }
+    else
+    {
+      robot_bt.bt_manager_CCD_.removeCollisionObject(cow.first);
+      robot_bt.bt_manager_CCD_.addCollisionObject(new_cow);
+    }
+    ROS_DEBUG_STREAM("Added " << cow.first << " to the bullet manager from world");
+  }
+
+  robot_bt.bt_manager_CCD_.setActiveCollisionObjects(robot_bt.getRobotModel()->getLinkModelNames());
+  robot_bt.bt_manager_CCD_.setContactDistanceThreshold(0.1);
+
+  robot_bt.updateTransformsFromStateCCD(state1, state2);
+
+  robot_bt.acm_ = acm;
+  robot_bt.bt_manager_CCD_.contactTest(res, tesseract::ContactTestType::ALL, req);
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -138,6 +175,11 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
   acm_ = acm;
 
   bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, req);
+
+  for (const auto cow : link2cow)
+  {
+    bt_manager_.removeCollisionObject(cow.first);
+  }
 
   if (req.distance)
   {

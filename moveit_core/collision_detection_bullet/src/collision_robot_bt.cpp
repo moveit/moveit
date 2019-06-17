@@ -42,7 +42,12 @@ namespace collision_detection
 CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
-  for (const auto& link : robot_model_->getURDF()->links_)
+  auto fun = std::bind(&collision_detection::CollisionRobotBt::allowedCollisionCheck, this, std::placeholders::_1, std::placeholders::_2);
+
+  bt_manager_.setIsContactAllowedFn(fun);
+  bt_manager_CCD_.setIsContactAllowedFn(fun);
+
+  for (const auto link : robot_model_->getURDF()->links_)
   {
     if (link.second->collision_array.size() > 0)
     {
@@ -65,40 +70,38 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
             shape_poses.push_back(tesseract::tesseract_ros::urdfPose2Eigen(col_array[i]->origin));
 
             if (s->type == shapes::MESH)
+            {
               collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
+            }
             else
+            {
               collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
+            }
           }
         }
       }
-      bt_manager_.addCollisionObject(link.second->name, BodyType::ROBOT_LINK, shapes, shape_poses,
-                                     collision_object_types, true);
+      bt_manager_CCD_.addCollisionObject(link.second->name, 0, shapes, shape_poses, collision_object_types, true);
+      bt_manager_.addCollisionObject(link.second->name, 0, shapes, shape_poses, collision_object_types, true);
     }
   }
-
-  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionRobotBt::allowedCollisionCheck, this,
-                                              std::placeholders::_1, std::placeholders::_2));
+  bt_manager_CCD_.setActiveCollisionObjects(robot_model_->getLinkModelNames());
 }
 
 CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRobot(other)
 {
   const CollisionRobotBt& other_bt = dynamic_cast<const CollisionRobotBt&>(other);
-  tesseract::DiscreteContactManagerBasePtr test = other_bt.bt_manager_.clone();
 
   // TODO: use clone method of manager
   for (const auto& cow : other_bt.bt_manager_.getCollisionObjects())
   {
     tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
     new_cow->setWorldTransform(cow.second->getWorldTransform());
-
     new_cow->setContactProcessingThreshold(static_cast<btScalar>(other_bt.bt_manager_.getContactDistanceThreshold()));
     bt_manager_.addCollisionObject(new_cow);
-
-    bt_manager_.setActiveCollisionObjects(other_bt.bt_manager_.getActiveCollisionObjects());
-    bt_manager_.setContactDistanceThreshold(other_bt.bt_manager_.getContactDistanceThreshold());
-    bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
   }
 
+  bt_manager_.setActiveCollisionObjects(other_bt.bt_manager_.getActiveCollisionObjects());
+  bt_manager_.setContactDistanceThreshold(other_bt.bt_manager_.getContactDistanceThreshold());
   bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
 }
 
@@ -143,14 +146,25 @@ void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, Collision
                                           const robot_state::RobotState& state1,
                                           const robot_state::RobotState& state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet self continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                           const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet self continuous collision checking not yet implemented");
+}
+
+void CollisionRobotBt::checkSelfCollisionCCDHelper(const CollisionRequest& req, CollisionResult& res,
+                                                   const robot_state::RobotState& state1,
+                                                   const robot_state::RobotState& state2,
+                                                   const AllowedCollisionMatrix* acm) const
+{
+  // TODO: Not in tesseract yet
+  acm_ = acm;
+  updateTransformsFromStateCCD(state1, state2);
+  bt_manager_CCD_.contactTest(res, tesseract::ContactTestTypes::CLOSEST, req);
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -257,6 +271,17 @@ void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& 
     // select the first of the transformations for each link (composed of multiple shapes...)
     // TODO: further investigate if this brings problems
     bt_manager_.setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
+  }
+}
+
+void CollisionRobotBt::updateTransformsFromStateCCD(const robot_state::RobotState& state1, const robot_state::RobotState& state2) const
+{
+  // updating link positions with the current robot state
+  for (auto& link : bt_manager_CCD_.getActiveCollisionObjects())
+  {
+    // select the first of the transformations for each link (composed of multiple shapes...)
+    // TODO: further investigate if this brings problems
+    bt_manager_CCD_.setCollisionObjectsTransform(link, state1.getCollisionBodyTransform(link, 0), state2.getCollisionBodyTransform(link, 0));
   }
 }
 

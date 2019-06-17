@@ -40,6 +40,7 @@
 #include <moveit/collision_detection_bullet/collision_common.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_simple_manager.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
+#include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
 
 namespace collision_detection
 {
@@ -85,6 +86,7 @@ public:
 protected:
   /** \brief Updates the poses of the objects in the manager according to given robot state. */
   void updateTransformsFromState(const robot_state::RobotState& state) const;
+  void updateTransformsFromStateCCD(const robot_state::RobotState& state1, const robot_state::RobotState& state2) const;
 
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
@@ -94,6 +96,11 @@ protected:
 
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
+
+  void checkSelfCollisionCCDHelper(const CollisionRequest& req, CollisionResult& res,
+                                   const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                   const AllowedCollisionMatrix* acm) const;
+
   void checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
@@ -102,9 +109,12 @@ protected:
   mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
   // mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 
+  mutable tesseract::tesseract_bullet::BulletCastBVHManager bt_manager_CCD_;
+
   mutable const AllowedCollisionMatrix* acm_;
 
   bool allowedCollisionCheck(std::string body_1, std::string body_2);
+
 };
 }
 

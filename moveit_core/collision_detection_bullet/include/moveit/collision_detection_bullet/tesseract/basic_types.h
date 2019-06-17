@@ -38,6 +38,7 @@ TESSERACT_IGNORE_WARNINGS_PUSH
 #include <functional>
 #include <map>
 #include <moveit/collision_detection/collision_common.h>
+
 TESSERACT_IGNORE_WARNINGS_POP
 
 namespace tesseract

@@ -80,6 +80,10 @@ protected:
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
+  void checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                    const AllowedCollisionMatrix* acm) const;
+
   void addToManager(const World::Object* obj) const;
   void updateManagedObject(const std::string& id);
 
