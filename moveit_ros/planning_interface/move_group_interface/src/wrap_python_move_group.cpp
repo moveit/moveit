@@ -489,7 +489,7 @@ public:
   }
 
   std::string retimeTrajectory(const std::string& ref_state_str, const std::string& traj_str,
-                               double velocity_scaling_factor)
+                               double velocity_scaling_factor, double acceleration_scaling_factor)
   {
     // Convert reference state message to object
     moveit_msgs::RobotState ref_state_msg;
@@ -505,7 +505,7 @@ public:
 
       // Do the actual retiming
       trajectory_processing::IterativeParabolicTimeParameterization time_param;
-      time_param.computeTimeStamps(traj_obj, velocity_scaling_factor);
+      time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
 
       // Convert the retimed trajectory back into a message
       traj_obj.getRobotTrajectoryMsg(traj_msg);
