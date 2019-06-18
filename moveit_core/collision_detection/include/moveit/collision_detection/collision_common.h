@@ -164,8 +164,7 @@ struct CollisionResult
 
   /** \brief Mapping of the pairs of bodies in contact, plus information about the contacts themselves.
    *
-   *  Each contact pair can consist of multiple contacts.
-   */
+   *  Each body pair can include multiple contacts. */
   ContactMap contacts;
 
   /** \brief The individual cost sources when costs are computed */
@@ -227,10 +226,14 @@ namespace DistanceRequestTypes
 /** \brief Type of distance request */
 enum DistanceRequestType
 {
-  GLOBAL,   /// Find the global minimum
-  SINGLE,   /// Find the global minimum for each pair
-  LIMITED,  /// Find a limited(max_contacts_per_body) set of contacts for a given pair
-  ALL,      /// Find all the contacts for a given pair
+  /// Find the global minimum
+  GLOBAL,
+  /// Find the global minimum for each pair
+  SINGLE,
+  /// Find a limited(max_contacts_per_body) set of contacts for a given pair
+  LIMITED,
+  /// Find all the contacts for a given pair
+  ALL
 };
 }
 typedef DistanceRequestTypes::DistanceRequestType DistanceRequestType;
@@ -295,7 +298,8 @@ struct DistanceRequest
   bool compute_gradient;
 };
 
-/** \brief Representation of the distance information for a pair of objects. */
+/** \brief General representation of the distance information for a pair of objects. It is independent of the collision
+ *  checker. */
 struct DistanceResultsData
 {
   DistanceResultsData()

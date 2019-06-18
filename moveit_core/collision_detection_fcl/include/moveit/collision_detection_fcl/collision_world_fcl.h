@@ -86,8 +86,7 @@ protected:
 
   /** \brief Bundles the robot collision function calls.
    *
-   *  Out of the CollisionRobot a new \e FCLObject is created which is then iteratively checked with through the
-   *  manager */
+   *  Out of the CollisionRobot a new \e FCLObject is created which is then iteratively checked using the manager */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
@@ -107,9 +106,6 @@ protected:
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
-  /** \brief TODO: Seems to be not defined - remove? */
-  void initialize();
-
   /** \brief Callback function used in the world representation. It is added to an observer of the world and
    *  subsequently called on each action to the world. */
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
