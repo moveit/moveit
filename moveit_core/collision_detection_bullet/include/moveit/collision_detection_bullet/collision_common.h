@@ -42,7 +42,7 @@
 
 namespace collision_detection
 {
-  //TODO: Add common functionality for all Bullet collision checkers.
+// TODO: Add common functionality for all Bullet collision checkers.
 }
 
 #endif
