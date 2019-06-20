@@ -777,6 +777,9 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
     {
       // This container stores all of the benchmark data for this planner
       PlannerBenchmarkData planner_data(runs);
+      // This vector stores all motion plan results for further evaluation
+      std::vector<planning_interface::MotionPlanDetailedResponse> mp_res(runs);
+      std::vector<bool> solved(runs);
 
       request.planner_id = planner.second[i];
 
@@ -793,9 +796,8 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
           pre_event_fn(request);
 
         // Solve problem
-        planning_interface::MotionPlanDetailedResponse mp_res;
         ros::WallTime start = ros::WallTime::now();
-        bool solved = context->solve(mp_res);
+        solved[j] = context->solve(mp_res[j]);
         double total_time = (ros::WallTime::now() - start).toSec();
 
         // Collect data
@@ -803,13 +805,15 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
 
         // Post-run events
         for (PostRunEventFunction& post_event_fn : post_event_fns_)
-          post_event_fn(request, mp_res, planner_data[j]);
-        collectMetrics(planner_data[j], mp_res, solved, total_time);
+          post_event_fn(request, mp_res[j], planner_data[j]);
+        collectMetrics(planner_data[j], mp_res[j], solved[j], total_time);
         double metrics_time = (ros::WallTime::now() - start).toSec();
         ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
 
         ++progress;
       }
+
+      computeResultPathSimilarity(planner_data, mp_res, solved);
 
       // Planner completion events
       for (PlannerCompletionEventFunction& planner_completion_fn : planner_completion_fns_)
@@ -916,6 +920,95 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
       process_time = 0.0;
     metrics["process_time REAL"] = moveit::core::toString(process_time);
   }
+}
+
+void BenchmarkExecutor::computeResultPathSimilarity(PlannerBenchmarkData& planner_data,
+                                                    const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
+                                                    const std::vector<bool>& solved)
+{
+  ROS_INFO("Computing result path similarity");
+  const size_t result_count = planner_data.size();
+  size_t unsolved = std::count_if(solved.begin(), solved.end(), [](bool s){return !s;});
+  std::vector<double> average_distances(mp_res.size());
+  for (size_t i = 0; i < result_count; ++i)
+  {
+    if (!solved[i])
+    {
+      average_distances[i] = std::numeric_limits<double>::max();
+      continue;
+    }
+    for (size_t j = i+1; j < result_count; ++j)
+    {
+      if (!solved[j])
+        continue;
+
+      // Abort if there are no trajectories
+      if (mp_res[i].trajectory_.empty() || mp_res[j].trajectory_.empty())
+        continue;
+
+      // Access trajectories
+      const robot_trajectory::RobotTrajectory& traj_first = *mp_res[i].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_second = *mp_res[j].trajectory_.back();
+
+      // Abort if trajectories are empty
+      if (traj_first.empty() || traj_second.empty())
+        continue;
+
+      // Waypoint counter
+      size_t pos_first = 0;
+      size_t pos_second = 0;
+      const size_t max_pos_first = traj_first.getWayPointCount() - 1;
+      const size_t max_pos_second = traj_second.getWayPointCount() - 1;
+
+      // compute average distance
+      double average_distance = 0;
+      size_t steps = 0;
+      double current_distance = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second));
+      while(true)
+      {
+        average_distance += current_distance;
+        ++steps;
+        if (pos_first == max_pos_first && pos_second == max_pos_second) // end reached
+          break;
+
+        // Test next step (both, first, or second)
+        bool can_up_first = pos_first < max_pos_first;
+        bool can_up_second = pos_second < max_pos_second;
+        bool can_up_both = can_up_first && can_up_second;
+        double up_first, up_second, up_both = std::numeric_limits<double>::max();
+        if (can_up_both)
+          up_both = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second + 1));
+        if (can_up_first)
+          up_first = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second));
+        if (can_up_second)
+          up_second = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second + 1));
+
+        // Move up trajectory positions
+        if (can_up_both && up_both < up_first && up_both < up_second)
+        {
+          ++pos_first;
+          ++pos_second;
+          current_distance = up_both;
+        }
+        else if ((can_up_first && up_first < up_second) || !can_up_second)
+        {
+          ++pos_first;
+          current_distance = up_first;
+        }
+        else if (can_up_second)
+        {
+          ++pos_second;
+          current_distance = up_second;
+        }
+      }
+      average_distances[i] += average_distance / steps;
+      average_distances[j] += average_distance / steps;
+    }
+    average_distances[i] /= result_count - unsolved - 1;
+  }
+  for (size_t i = 0; i < result_count; ++i)
+    planner_data[i]["average_waypoint_distance REAL"] = moveit::core::toString(average_distances[i]);
+
 }
 
 void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std::string& start_time,

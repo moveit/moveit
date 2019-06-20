@@ -152,6 +152,10 @@ protected:
   virtual void collectMetrics(PlannerRunData& metrics, const planning_interface::MotionPlanDetailedResponse& mp_res,
                               bool solved, double total_time);
 
+  void computeResultPathSimilarity(PlannerBenchmarkData& planner_data,
+                                   const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
+                                   const std::vector<bool>& solved);
+
   virtual void writeOutput(const BenchmarkRequest& brequest, const std::string& start_time, double benchmark_duration);
 
   void shiftConstraintsByOffset(moveit_msgs::Constraints& constraints, const std::vector<double>& offset);
