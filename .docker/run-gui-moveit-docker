@@ -32,7 +32,7 @@ then
     --name local_moveit_container \
 #    -v /home/your_username/moveit_ms:/root/ws_moveit_linked \
     -w /root/linked_ws_moveit \
-    my_moveit_image
+    local_moveit_image
     bash
 else
     if [ "$(docker ps -aq -f name=local_moveit_container)" ]
