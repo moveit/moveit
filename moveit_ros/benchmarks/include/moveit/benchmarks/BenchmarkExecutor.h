@@ -141,6 +141,14 @@ protected:
   virtual bool initializeBenchmarks(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                     std::vector<BenchmarkRequest>& queries);
 
+  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts,
+                                      moveit_msgs::PlanningScene& scene_msg,
+                                      std::vector<StartState>& start_states,
+                                      std::vector<PathConstraints>& path_constraints,
+                                      std::vector<PathConstraints>& goal_constraints,
+                                      std::vector<TrajectoryConstraints>& traj_constraints,
+                                      std::vector<BenchmarkRequest>& queries);
+
   virtual void collectMetrics(PlannerRunData& metrics, const planning_interface::MotionPlanDetailedResponse& mp_res,
                               bool solved, double total_time);
 

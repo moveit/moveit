@@ -281,45 +281,15 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   if (!plannerConfigurationsExist(opts.getPlannerConfigurations(), opts.getGroupName()))
     return false;
 
-  try
-  {
-    warehouse_ros::DatabaseConnection::Ptr conn = dbloader.loadDatabase();
-    conn->setParams(opts.getHostName(), opts.getPort(), 20);
-    if (conn->connect())
-    {
-      pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
-      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
-      rs_ = new moveit_warehouse::RobotStateStorage(conn);
-      cs_ = new moveit_warehouse::ConstraintsStorage(conn);
-      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
-    }
-    else
-    {
-      ROS_ERROR("Failed to connect to DB");
-      return false;
-    }
-  }
-  catch (std::exception& e)
-  {
-    ROS_ERROR("Failed to initialize benchmark server: '%s'", e.what());
-    return false;
-  }
-
   std::vector<StartState> start_states;
   std::vector<PathConstraints> path_constraints;
   std::vector<PathConstraints> goal_constraints;
   std::vector<TrajectoryConstraints> traj_constraints;
   std::vector<BenchmarkRequest> queries;
 
-  bool ok = loadPlanningScene(opts.getSceneName(), scene_msg) && loadStates(opts.getStartStateRegex(), start_states) &&
-            loadPathConstraints(opts.getGoalConstraintRegex(), goal_constraints) &&
-            loadPathConstraints(opts.getPathConstraintRegex(), path_constraints) &&
-            loadTrajectoryConstraints(opts.getTrajectoryConstraintRegex(), traj_constraints) &&
-            loadQueries(opts.getQueryRegex(), opts.getSceneName(), queries);
-
-  if (!ok)
+  if (!loadBenchmarkQueryData(opts, scene_msg, start_states, path_constraints, goal_constraints, traj_constraints, queries))
   {
-    ROS_ERROR("Failed to load benchmark stuff");
+    ROS_ERROR("Failed to load benchmark query data");
     return false;
   }
 
@@ -429,6 +399,45 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   return true;
 }
 
+bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts,
+                                               moveit_msgs::PlanningScene& scene_msg,
+                                               std::vector<StartState>& start_states,
+                                               std::vector<PathConstraints>& path_constraints,
+                                               std::vector<PathConstraints>& goal_constraints,
+                                               std::vector<TrajectoryConstraints>& traj_constraints,
+                                               std::vector<BenchmarkRequest>& queries)
+{
+  try
+  {
+    warehouse_ros::DatabaseConnection::Ptr conn = dbloader.loadDatabase();
+    conn->setParams(opts.getHostName(), opts.getPort(), 20);
+    if (conn->connect())
+    {
+      pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
+      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
+      rs_ = new moveit_warehouse::RobotStateStorage(conn);
+      cs_ = new moveit_warehouse::ConstraintsStorage(conn);
+      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
+    }
+    else
+    {
+      ROS_ERROR("Failed to connect to DB");
+      return false;
+    }
+  }
+  catch (std::exception& e)
+  {
+    ROS_ERROR("Failed to initialize benchmark server: '%s'", e.what());
+    return false;
+  }
+
+  return loadPlanningScene(opts.getSceneName(), scene_msg) && loadStates(opts.getStartStateRegex(), start_states) &&
+         loadPathConstraints(opts.getGoalConstraintRegex(), goal_constraints) &&
+         loadPathConstraints(opts.getPathConstraintRegex(), path_constraints) &&
+         loadTrajectoryConstraints(opts.getTrajectoryConstraintRegex(), traj_constraints) &&
+         loadQueries(opts.getQueryRegex(), opts.getSceneName(), queries);
+}
+
 void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& constraints,
                                                  const std::vector<double>& offset)
 {
@@ -481,9 +490,12 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
       // Duplicate the request for each of the path constraints
       for (const PathConstraints& path_constraint : path_constraints)
       {
-        new_brequest.request.path_constraints = path_constraint.constraints[0];
-        new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
-        requests.push_back(new_brequest);
+        if (start_state.name != path_constraint.name)
+        {
+          new_brequest.request.path_constraints = path_constraint.constraints[0];
+          new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
+          requests.push_back(new_brequest);
+        }
       }
 
       if (path_constraints.empty())
