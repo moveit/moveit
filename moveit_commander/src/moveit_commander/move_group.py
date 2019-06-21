@@ -585,3 +585,8 @@ class MoveGroupCommander(object):
         traj_out = RobotTrajectory()
         traj_out.deserialize(ser_traj_out)
         return traj_out
+
+    def get_jacobian_matrix(self, joint_values):
+        """ Get the jacobian matrix of the group as a list"""
+        return self._g.get_jacobian_matrix(joint_values)
+

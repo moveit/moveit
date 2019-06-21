@@ -56,6 +56,18 @@ class PythonMoveGroupTest(unittest.TestCase):
         plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
+    def test_get_jacobian_matrix(self):
+        current = self.group.get_current_joint_values()
+        result = self.group.get_jacobian_matrix(current)
+        # Value check by known value at the initial pose
+        expected = np.array([[ 0.  ,  0.8 , -0.2 ,  0.  ,  0.  ,  0.  ],
+                             [ 0.89,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+                             [ 0.  , -0.74,  0.74,  0.  ,  0.1 ,  0.  ],
+                             [ 0.  ,  0.  ,  0.  , -1.  ,  0.  , -1.  ],
+                             [ 0.  ,  1.  , -1.  ,  0.  , -1.  ,  0.  ],
+                             [ 1.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+        self.assertTrue(np.allclose(result, expected))
+
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'

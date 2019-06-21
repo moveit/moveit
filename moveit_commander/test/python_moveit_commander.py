@@ -94,6 +94,7 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     def test_planning_scene_interface(self):
         planning_scene = PlanningSceneInterface()
 
+
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
     NODENAME = 'moveit_test_python_moveit_commander'

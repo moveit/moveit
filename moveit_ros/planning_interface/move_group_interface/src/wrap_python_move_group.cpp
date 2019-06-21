@@ -47,6 +47,7 @@
 #include <tf2_ros/buffer.h>
 
 #include <boost/python.hpp>
+#include <eigenpy/eigenpy.hpp>
 #include <memory>
 #include <Python.h>
 
@@ -520,10 +521,22 @@ public:
       return "";
     }
   }
+
+  Eigen::MatrixXd getJacobianMatrixPython(bp::list& joint_values)
+  {
+    std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
+    robot_state::RobotState state(getRobotModel());
+    state.setToDefaultValues();
+    auto group = state.getJointModelGroup(getName());
+    state.setJointGroupPositions(group, v);
+    return state.getJacobian(group);
+  }
 };
 
 static void wrap_move_group_interface()
 {
+  eigenpy::enableEigenPy();
+
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
       "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
 
@@ -653,6 +666,7 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
   MoveGroupInterfaceClass.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   MoveGroupInterfaceClass.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
+  MoveGroupInterfaceClass.def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython);
 }
 }  // namespace planning_interface
 }  // namespace moveit
