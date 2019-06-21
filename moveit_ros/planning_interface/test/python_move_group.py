@@ -59,9 +59,6 @@ class PythonMoveGroupTest(unittest.TestCase):
     def test_get_jacobian_matrix(self):
         current = self.group.get_current_joint_values()
         result = self.group.get_jacobian_matrix(current)
-        # Size check of the jacoban matrix
-        self.assertEqual(result.shape[0], 6)
-        self.assertEqual(result.shape[1], 6)
         # Value check by known value at the initial pose 
         expected = np.array([[ 0.  ,  0.8 , -0.2 ,  0.  ,  0.  ,  0.  ],
                              [ 0.89,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
@@ -69,9 +66,7 @@ class PythonMoveGroupTest(unittest.TestCase):
                              [ 0.  ,  0.  ,  0.  , -1.  ,  0.  , -1.  ],
                              [ 0.  ,  1.  , -1.  ,  0.  , -1.  ,  0.  ],
                              [ 1.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-        for row in range(result.shape[0]):
-            for col in range(result.shape[1]):
-                self.assertAlmostEqual(result[row, col], expected[row, col])
+        self.assertTrue(np.allclose(result, expected))
 
 
 if __name__ == '__main__':

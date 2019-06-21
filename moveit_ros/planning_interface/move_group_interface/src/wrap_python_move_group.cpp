@@ -522,8 +522,7 @@ public:
     state.setToDefaultValues();
     auto group = state.getJointModelGroup(getName());
     state.setJointGroupPositions(group, v);
-    Eigen::MatrixXd matrix = state.getJacobian(group);
-    return matrix;
+    return state.getJacobian(group);
   }
 };
 
