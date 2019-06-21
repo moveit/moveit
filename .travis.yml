@@ -23,7 +23,6 @@ env:
     - WARNINGS_OK=false
   matrix:
     - TEST="clang-format catkin_lint"
-    - TEST=clang-tidy-fix
     - ROS_DISTRO=melodic
     - ROS_DISTRO=kinetic
 
@@ -32,6 +31,7 @@ matrix: # Add a separate config to the matrix, using clang as compiler
     # add a config to the matrix using clang as compiler and also test ikfast plugin creation
     - compiler: clang
       env: ROS_REPO=ros-shadow-fixed
+           TEST=clang-tidy-fix
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
