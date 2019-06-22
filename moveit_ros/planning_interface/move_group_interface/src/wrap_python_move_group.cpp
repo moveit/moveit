@@ -261,7 +261,7 @@ public:
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
-    return place(object_name, locations, plan_only) == MoveItErrorCode::SUCCESS;
+    return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
   }
 
   bool placeAnywhere(const std::string& object_name, bool plan_only = false)
@@ -464,7 +464,7 @@ public:
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
-    return pick(object, grasps, plan_only).val;
+    return pick(object, std::move(grasps), plan_only).val;
   }
 
   void setPathConstraintsFromMsg(const std::string& constraints_str)
