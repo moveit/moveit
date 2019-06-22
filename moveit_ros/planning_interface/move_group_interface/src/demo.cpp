@@ -68,7 +68,7 @@ void demoPick(moveit::planning_interface::MoveGroupInterface& group)
 
     grasps.push_back(g);
   }
-  group.pick("bubu", grasps);
+  group.pick("bubu", std::move(grasps));
 }
 
 void demoPlace(moveit::planning_interface::MoveGroupInterface& group)
@@ -98,7 +98,7 @@ void demoPlace(moveit::planning_interface::MoveGroupInterface& group)
 
     loc.push_back(g);
   }
-  group.place("bubu", loc);
+  group.place("bubu", std::move(loc));
 }
 
 void attachObject()
