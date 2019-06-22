@@ -313,14 +313,6 @@ public:
    * objects are allowed to touch the support surface */
   void setSupportSurfaceName(const std::string& name);
 
-  /** \brief For place operations, either the location of the object can be specified ( \e place_eef = false,
-   * this is the default ) or the location of the end effector ( \e place_eef = true ) */
-  void setPlaceEEF(const bool place_eef);
-
-  /** \brief For pick/place operations, specify whether collisions between the gripper and the support surface should
-   * be acceptable. By default, this is true */
-  void setAllowGripperSupportCollision(const bool allow_gripper_support_collision);
-
   /**
    * \name Setting a joint state target (goal)
    *

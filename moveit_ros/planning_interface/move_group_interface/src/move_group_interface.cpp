@@ -127,8 +127,6 @@ public:
     max_velocity_scaling_factor_ = 1.0;
     max_acceleration_scaling_factor_ = 1.0;
     initializing_constraints_ = false;
-    place_eef_ = false;
-    allow_gripper_support_collision_ = true;
 
     if (joint_model_group_->isChain())
       end_effector_link_ = joint_model_group_->getLinkModelNames().back();
@@ -524,19 +522,6 @@ public:
   void setSupportSurfaceName(const std::string& support_surface)
   {
     support_surface_ = support_surface;
-  }
-
-  void setPlaceEEF(bool place_eef)
-  {
-    place_eef_ = place_eef;
-    ROS_DEBUG_NAMED("move_group_interface", "Place EEF: %s", place_eef_ ? "yes" : "no");
-  }
-
-  void setAllowGripperSupportCollision(bool allow_gripper_support_collision)
-  {
-    allow_gripper_support_collision_ = allow_gripper_support_collision;
-    ROS_DEBUG_NAMED("move_group_interface", "Allow gripper support collision: %s",
-                    allow_gripper_support_collision ? "yes" : "no");
   }
 
   const std::string& getPoseReferenceFrame() const
@@ -1082,8 +1067,6 @@ public:
     goal.group_name = opt_.group_name_;
     goal.end_effector = getEndEffector();
     goal.support_surface_name = support_surface_;
-    if (!support_surface_.empty())
-      goal.allow_gripper_support_collision = allow_gripper_support_collision_;
 
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;
@@ -1104,10 +1087,7 @@ public:
     moveit_msgs::PlaceGoal goal;
     goal.group_name = opt_.group_name_;
     goal.attached_object_name = object;
-    goal.place_eef = place_eef_;
     goal.support_surface_name = support_surface_;
-    if (!support_surface_.empty())
-      goal.allow_gripper_support_collision = allow_gripper_support_collision_;
 
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;
@@ -1272,8 +1252,6 @@ private:
   std::string end_effector_link_;
   std::string pose_reference_frame_;
   std::string support_surface_;
-  bool allow_gripper_support_collision_;
-  bool place_eef_;
 
   // ROS communication
   ros::Publisher trajectory_event_publisher_;
@@ -2265,17 +2243,6 @@ double moveit::planning_interface::MoveGroupInterface::getPlanningTime() const
 void moveit::planning_interface::MoveGroupInterface::setSupportSurfaceName(const std::string& name)
 {
   impl_->setSupportSurfaceName(name);
-}
-
-void moveit::planning_interface::MoveGroupInterface::setPlaceEEF(const bool place_eef)
-{
-  impl_->setPlaceEEF(place_eef);
-}
-
-void moveit::planning_interface::MoveGroupInterface::setAllowGripperSupportCollision(
-    const bool allow_gripper_support_collision)
-{
-  impl_->setAllowGripperSupportCollision(allow_gripper_support_collision);
 }
 
 const std::string& moveit::planning_interface::MoveGroupInterface::getPlanningFrame() const
