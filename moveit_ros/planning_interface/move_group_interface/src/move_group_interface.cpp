@@ -1439,13 +1439,13 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 }
 
 moveit_msgs::PickupGoal moveit::planning_interface::MoveGroupInterface::constructPickupGoal(
-    const std::string& object, std::vector<moveit_msgs::Grasp>&& grasps, bool plan_only = false)
+    const std::string& object, std::vector<moveit_msgs::Grasp> grasps, bool plan_only = false)
 {
   return impl_->constructPickupGoal(object, std::move(grasps), plan_only);
 }
 
 moveit_msgs::PlaceGoal moveit::planning_interface::MoveGroupInterface::constructPlaceGoal(
-    const std::string& object, std::vector<moveit_msgs::PlaceLocation>&& locations, bool plan_only = false)
+    const std::string& object, std::vector<moveit_msgs::PlaceLocation> locations, bool plan_only = false)
 {
   return impl_->constructPlaceGoal(object, std::move(locations), plan_only);
 }

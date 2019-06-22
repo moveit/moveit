@@ -778,12 +778,12 @@ public:
   void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request);
 
   /** \brief Build a PickupGoal for an object named \e object and store it in \e goal_out */
-  moveit_msgs::PickupGoal constructPickupGoal(const std::string& object, std::vector<moveit_msgs::Grasp>&& grasps,
+  moveit_msgs::PickupGoal constructPickupGoal(const std::string& object, std::vector<moveit_msgs::Grasp> grasps,
                                               bool plan_only);
 
   /** \brief Build a PlaceGoal for an object named \e object and store it in \e goal_out */
   moveit_msgs::PlaceGoal constructPlaceGoal(const std::string& object,
-                                            std::vector<moveit_msgs::PlaceLocation>&& locations, bool plan_only);
+                                            std::vector<moveit_msgs::PlaceLocation> locations, bool plan_only);
 
   /** \brief Convert a vector of PoseStamped to a vector of PlaceLocation */
   std::vector<moveit_msgs::PlaceLocation> posesToPlaceLocations(const std::vector<geometry_msgs::PoseStamped>& poses);
@@ -810,7 +810,7 @@ public:
   }
 
   /** \brief Pick up an object given possible grasp poses */
-  MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp>&& grasps, bool plan_only = false)
+  MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp> grasps, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, std::move(grasps), plan_only));
   }
@@ -838,7 +838,7 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, std::vector<moveit_msgs::PlaceLocation>&& locations,
+  MoveItErrorCode place(const std::string& object, std::vector<moveit_msgs::PlaceLocation> locations,
                         bool plan_only = false)
   {
     return place(constructPlaceGoal(object, std::move(locations), plan_only));
