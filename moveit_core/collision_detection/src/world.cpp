@@ -146,7 +146,7 @@ bool World::knowsTransform(const std::string& name) const
     return it->second->shape_poses_.size() == 1;
   else  // Then objects' subframes
   {
-    for (const std::pair<std::string, ObjectPtr>& object : objects_)
+    for (const auto& object : objects_)
     {
       // if "object name/" matches start of object_id, we found the matching object
       if (boost::starts_with(name, object.first) && name[object.first.length()] == '/')
@@ -174,7 +174,7 @@ const Eigen::Isometry3d& World::getTransform(const std::string& name, bool& fram
     return it->second->shape_poses_[0];
   else  // Search within subframes
   {
-    for (const std::pair<std::string, ObjectPtr>& object : objects_)
+    for (const auto& object : objects_)
     {
       // if "object name/" matches start of object_id, we found the matching object
       if (boost::starts_with(name, object.first) && name[object.first.length()] == '/')
