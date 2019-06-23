@@ -511,7 +511,7 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
 void KDLKinematicsPlugin::clipToJointLimits(const KDL::JntArray& q, KDL::JntArray& q_delta,
                                             Eigen::ArrayXd& weighting) const
 {
-  weighting.setOnes(q_delta.rows());
+  weighting.setOnes();
   for (std::size_t i = 0; i < q.rows(); ++i)
   {
     const double delta_max = joint_max_(i) - q(i);
