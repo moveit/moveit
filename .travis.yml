@@ -32,11 +32,10 @@ matrix: # Add a separate config to the matrix, using clang as compiler
     - compiler: clang
       env: ROS_REPO=ros-shadow-fixed
            TEST=clang-tidy-fix
-           BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
 before_script:
-  - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
+  - git clone -q --depth=1 https://github.com/rhaschke/moveit_ci.git .moveit_ci
 
 script:
   - .moveit_ci/travis.sh
