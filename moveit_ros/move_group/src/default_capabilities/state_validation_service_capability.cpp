@@ -40,19 +40,20 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupStateValidationService::MoveGroupStateValidationService()
-  : MoveGroupCapability("StateValidationService")
+namespace move_group
+{
+MoveGroupStateValidationService::MoveGroupStateValidationService() : MoveGroupCapability("StateValidationService")
 {
 }
 
-void move_group::MoveGroupStateValidationService::initialize()
+void MoveGroupStateValidationService::initialize()
 {
   validity_service_ = root_node_handle_.advertiseService(STATE_VALIDITY_SERVICE_NAME,
                                                          &MoveGroupStateValidationService::computeService, this);
 }
 
-bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidity::Request& req,
-                                                                 moveit_msgs::GetStateValidity::Response& res)
+bool MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidity::Request& req,
+                                                     moveit_msgs::GetStateValidity::Response& res)
 {
   planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
   robot_state::RobotState rs = ls->getCurrentState();
@@ -120,6 +121,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
 
   return true;
 }
+}  // namespace move_group
 
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupStateValidationService, move_group::MoveGroupCapability)
