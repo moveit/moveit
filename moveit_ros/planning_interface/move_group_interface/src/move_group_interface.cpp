@@ -1065,6 +1065,8 @@ public:
     goal.end_effector = getEndEffector();
     goal.support_surface_name = support_surface_;
     goal.possible_grasps = std::move(grasps);
+    if (!support_surface_.empty())
+      goal.allow_gripper_support_collision = true;
 
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;
@@ -1089,6 +1091,8 @@ public:
     goal.attached_object_name = object;
     goal.support_surface_name = support_surface_;
     goal.place_locations = std::move(locations);
+    if (!support_surface_.empty())
+      goal.allow_gripper_support_collision = true;
 
     if (path_constraints_)
       goal.path_constraints = *path_constraints_;
