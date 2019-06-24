@@ -43,7 +43,6 @@
 
 #include "moveit/collision_detection_bullet/tesseract/bullet_utils.h"
 
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>
 #include <BulletCollision/Gimpact/btGImpactShape.h>
@@ -52,7 +51,6 @@ TESSERACT_IGNORE_WARNINGS_PUSH
 #include <memory>
 #include <octomap/octomap.h>
 #include <ros/console.h>
-TESSERACT_IGNORE_WARNINGS_POP
 
 namespace tesseract
 {
@@ -105,8 +103,8 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
       case CollisionObjectType::ConvexHull:
       {
         // Create a convex hull shape to approximate Trimesh
-        tesseract::VectorVector3d input;
-        tesseract::VectorVector3d vertices;
+        tesseract::AlignedVector<Eigen::Vector3d> input;
+        tesseract::AlignedVector<Eigen::Vector3d> vertices;
         std::vector<int> faces;
 
         input.reserve(geom->vertex_count);
@@ -275,10 +273,10 @@ btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
   }
 }
 
-CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const int& type_id,
+CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                                                const std::vector<shapes::ShapeConstPtr>& shapes,
-                                               const VectorIsometry3d& shape_poses,
-                                               const CollisionObjectTypeVector& collision_object_types)
+                                               const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                               const std::vector<CollisionObjectType>& collision_object_types)
   : m_name(name)
   , m_type_id(type_id)
   , m_shapes(shapes)
@@ -330,10 +328,10 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const in
   setWorldTransform(trans);
 }
 
-CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const int& type_id,
+CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                                                const std::vector<shapes::ShapeConstPtr>& shapes,
-                                               const VectorIsometry3d& shape_poses,
-                                               const CollisionObjectTypeVector& collision_object_types,
+                                               const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                               const std::vector<CollisionObjectType>& collision_object_types,
                                                const std::vector<std::shared_ptr<void>>& data)
   : m_name(name)
   , m_type_id(type_id)

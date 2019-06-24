@@ -56,9 +56,10 @@ public:
 
   DiscreteContactManagerBasePtr clone() const override;
 
-  bool addCollisionObject(const std::string& name, const int& mask_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                          const VectorIsometry3d& shape_poses, const CollisionObjectTypeVector& collision_object_types,
-                          bool enabled = true) override;
+  bool addCollisionObject(const std::string& name, const collision_detection::BodyType& mask_id,
+                          const std::vector<shapes::ShapeConstPtr>& shapes,
+                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                          const std::vector<CollisionObjectType>& collision_object_types, bool enabled = true) override;
 
   bool hasCollisionObject(const std::string& name) const override;
 
@@ -70,9 +71,10 @@ public:
 
   void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose) override;
 
-  void setCollisionObjectsTransform(const std::vector<std::string>& names, const VectorIsometry3d& poses) override;
+  void setCollisionObjectsTransform(const std::vector<std::string>& names,
+                                    const AlignedVector<Eigen::Isometry3d>& poses) override;
 
-  void setCollisionObjectsTransform(const TransformMap& transforms) override;
+  void setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& transforms) override;
 
   void setActiveCollisionObjects(const std::vector<std::string>& names) override;
 
@@ -86,8 +88,8 @@ public:
 
   IsContactAllowedFn getIsContactAllowedFn() const override;
 
-  void contactTest(collision_detection::CollisionResult& collisions, const ContactTestType& type,
-                   const collision_detection::CollisionRequest& req) override;
+  void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
+                   const collision_detection::AllowedCollisionMatrix* acm) override;
 
   /**
    * @brief A a bullet collision object to the manager

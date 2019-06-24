@@ -1,8 +1,5 @@
-#include <moveit/collision_detection_bullet/tesseract/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <gtest/gtest.h>
 #include <ros/ros.h>
-TESSERACT_IGNORE_WARNINGS_POP
 
 #include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
@@ -18,13 +15,14 @@ void addCollisionObjects(tesseract::ContinuousContactManagerBase& checker)
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  tesseract::VectorIsometry3d obj1_poses;
-  tesseract::CollisionObjectTypeVector obj1_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<tesseract::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
   obj1_types.push_back(tesseract::CollisionObjectType::UseShapeType);
 
-  checker.addCollisionObject("static_box_link", 0, obj1_shapes, obj1_poses, obj1_types);
+  checker.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses,
+                             obj1_types);
 
   ////////////////////////////
   // Add moving box to checker
@@ -36,13 +34,14 @@ void addCollisionObjects(tesseract::ContinuousContactManagerBase& checker)
   moving_box_pose.translation() = Eigen::Vector3d(0.5, -0.5, 0);
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  tesseract::VectorIsometry3d obj2_poses;
-  tesseract::CollisionObjectTypeVector obj2_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<tesseract::CollisionObjectType> obj2_types;
   obj2_shapes.push_back(moving_box);
   obj2_poses.push_back(moving_box_pose);
   obj2_types.push_back(tesseract::CollisionObjectType::UseShapeType);
 
-  checker.addCollisionObject("moving_box_link", 0, obj2_shapes, obj2_poses, obj2_types);
+  checker.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses,
+                             obj2_types);
 }
 
 void addCollisionObjectsMesh(tesseract::ContinuousContactManagerBase& checker)
@@ -55,21 +54,22 @@ void addCollisionObjectsMesh(tesseract::ContinuousContactManagerBase& checker)
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  tesseract::VectorIsometry3d obj1_poses;
-  tesseract::CollisionObjectTypeVector obj1_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<tesseract::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
   obj1_types.push_back(tesseract::CollisionObjectType::UseShapeType);
 
-  checker.addCollisionObject("static_box_link", 0, obj1_shapes, obj1_poses, obj1_types);
+  checker.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses,
+                             obj1_types);
 
   ////////////////////////////
   // Add moving mesh to checker
   ////////////////////////////
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  tesseract::VectorIsometry3d obj2_poses;
-  tesseract::CollisionObjectTypeVector obj2_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<tesseract::CollisionObjectType> obj2_types;
 
   obj1_poses.push_back(static_box_pose);
   obj1_types.push_back(tesseract::CollisionObjectType::UseShapeType);
@@ -84,11 +84,13 @@ void addCollisionObjectsMesh(tesseract::ContinuousContactManagerBase& checker)
   obj2_types.push_back(tesseract::CollisionObjectType::ConvexHull);
   obj2_poses.push_back(s_pose);
 
-  checker.addCollisionObject("moving_box_link", 0, obj2_shapes, obj2_poses, obj2_types);
+  checker.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses,
+                             obj2_types);
 }
 
 void runTest(tesseract::ContinuousContactManagerBase& checker, collision_detection::CollisionResult& result,
-    std::vector<collision_detection::Contact>& result_vector, Eigen::Isometry3d& start_pos, Eigen::Isometry3d& end_pos)
+             std::vector<collision_detection::Contact>& result_vector, Eigen::Isometry3d& start_pos,
+             Eigen::Isometry3d& end_pos)
 {
   //////////////////////////////////////
   // Test when object is inside another
@@ -103,8 +105,9 @@ void runTest(tesseract::ContinuousContactManagerBase& checker, collision_detecti
 
   // Perform collision check
   collision_detection::CollisionRequest request;
-  //tesseract::ContactResultMap result;
-  checker.contactTest(result, tesseract::ContactTestType::CLOSEST, request);
+  request.contacts = true;
+  // tesseract::ContactResultMap result;
+  checker.contactTest(result, request, nullptr);
 
   for (auto const contacts_all : result.contacts)
   {
@@ -134,7 +137,7 @@ TEST(TesseractCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
   ASSERT_TRUE(!result_vector.empty());
   EXPECT_NEAR(result_vector[0].depth, -0.2475, 0.001);
   EXPECT_NEAR(result_vector[0].cc_time, 0.25, 0.001);
-  EXPECT_TRUE(result_vector[0].cc_type == collision_detection::ContinouseCollisionTypes::CCType_Between);
+  EXPECT_TRUE(result_vector[0].cc_type == collision_detection::ContinuousCollisionType::CCType_Between);
 
   EXPECT_NEAR(result_vector[0].nearest_points[0][0], -0.5, 0.001);
   EXPECT_NEAR(result_vector[0].nearest_points[0][1], 0.5, 0.001);
@@ -185,14 +188,16 @@ TEST(TesseractCollisionUnit, TwoManagers)
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  tesseract::VectorIsometry3d obj1_poses;
-  tesseract::CollisionObjectTypeVector obj1_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<tesseract::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
   obj1_types.push_back(tesseract::CollisionObjectType::UseShapeType);
 
-  checker_continuous.addCollisionObject("static_box_link", 0, obj1_shapes, obj1_poses, obj1_types);
-  checker_discrete.addCollisionObject("static_box_link", 0, obj1_shapes, obj1_poses, obj1_types);
+  checker_continuous.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes,
+                                        obj1_poses, obj1_types);
+  checker_discrete.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes,
+                                      obj1_poses, obj1_types);
 
   ////////////////////////
   // Add moving sphere to checker
@@ -204,14 +209,16 @@ TEST(TesseractCollisionUnit, TwoManagers)
   sphere_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  tesseract::VectorIsometry3d obj2_poses;
-  tesseract::CollisionObjectTypeVector obj2_types;
+  tesseract::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<tesseract::CollisionObjectType> obj2_types;
   obj2_shapes.push_back(sphere);
   obj2_poses.push_back(sphere_pose);
   obj2_types.push_back(tesseract::CollisionObjectType::ConvexHull);
 
-  checker_continuous.addCollisionObject("moving_box_link", 0, obj2_shapes, obj2_poses, obj2_types);
-  checker_discrete.addCollisionObject("moving_box_link", 0, obj2_shapes, obj2_poses, obj2_types);
+  checker_continuous.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes,
+                                        obj2_poses, obj2_types);
+  checker_discrete.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes,
+                                      obj2_poses, obj2_types);
 
   checker_continuous.setActiveCollisionObjects({ "moving_box_link" });
   checker_continuous.setContactDistanceThreshold(0.1);
@@ -237,8 +244,8 @@ TEST(TesseractCollisionUnit, TwoManagers)
   collision_detection::CollisionRequest request;
 
   // Perform collision check
-  checker_discrete.contactTest(result_2, tesseract::ContactTestType::CLOSEST, request);
-  checker_continuous.contactTest(result, tesseract::ContactTestType::CLOSEST, request);
+  checker_discrete.contactTest(result_2, request, nullptr);
+  checker_continuous.contactTest(result, request, nullptr);
 
   ASSERT_TRUE(result.collision);
   ASSERT_FALSE(result_2.collision);

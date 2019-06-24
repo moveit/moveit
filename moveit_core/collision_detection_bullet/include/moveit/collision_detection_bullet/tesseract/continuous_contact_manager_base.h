@@ -28,11 +28,8 @@
 #ifndef TESSERACT_COLLISION_CONTINUOUS_CONTACT_MANAGER_BASE_H
 #define TESSERACT_COLLISION_CONTINUOUS_CONTACT_MANAGER_BASE_H
 
-#include <moveit/collision_detection_bullet/tesseract/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <geometric_shapes/shapes.h>
 #include <memory>
-TESSERACT_IGNORE_WARNINGS_POP
 
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
 #include <moveit/collision_detection/collision_common.h>
@@ -70,11 +67,10 @@ public:
    * @param enabled         Indicate if the object is enabled for collision checking.
    * @return true if successfully added, otherwise false.
    */
-  virtual bool addCollisionObject(const std::string& name,
-                                  const int& mask_id,
+  virtual bool addCollisionObject(const std::string& name, const collision_detection::BodyType& mask_id,
                                   const std::vector<shapes::ShapeConstPtr>& shapes,
-                                  const VectorIsometry3d& shape_poses,
-                                  const CollisionObjectTypeVector& collision_object_types,
+                                  const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                  const std::vector<CollisionObjectType>& collision_object_types,
                                   bool enabled = true) = 0;
 
   /**
@@ -115,13 +111,14 @@ public:
    * @param names The name of the object
    * @param poses The tranformation in world
    */
-  virtual void setCollisionObjectsTransform(const std::vector<std::string>& names, const VectorIsometry3d& poses) = 0;
+  virtual void setCollisionObjectsTransform(const std::vector<std::string>& names,
+                                            const AlignedVector<Eigen::Isometry3d>& poses) = 0;
 
   /**
    * @brief Set a series of static collision object's tranforms
    * @param transforms A transform map <name, pose>
    */
-  virtual void setCollisionObjectsTransform(const TransformMap& transforms) = 0;
+  virtual void setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& transforms) = 0;
 
   /**
    * @brief Set a single cast(moving) collision object's tansforms
@@ -133,8 +130,7 @@ public:
    * @param pose1 The start tranformation in world
    * @param pose2 The end tranformation in world
    */
-  virtual void setCollisionObjectsTransform(const std::string& name,
-                                            const Eigen::Isometry3d& pose1,
+  virtual void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose1,
                                             const Eigen::Isometry3d& pose2) = 0;
 
   /**
@@ -148,8 +144,8 @@ public:
    * @param pose2 The end tranformations in world
    */
   virtual void setCollisionObjectsTransform(const std::vector<std::string>& names,
-                                            const VectorIsometry3d& pose1,
-                                            const VectorIsometry3d& pose2) = 0;
+                                            const AlignedVector<Eigen::Isometry3d>& pose1,
+                                            const AlignedVector<Eigen::Isometry3d>& pose2) = 0;
 
   /**
    * @brief Set a series of cast(moving) collision object's tranforms
@@ -160,7 +156,8 @@ public:
    * @param pose1 A start transform map <name, pose>
    * @param pose2 A end transform map <name, pose>
    */
-  virtual void setCollisionObjectsTransform(const TransformMap& pose1, const TransformMap& pose2) = 0;
+  virtual void setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& pose1,
+                                            const AlignedMap<std::string, Eigen::Isometry3d>& pose2) = 0;
 
   /**
    * @brief Set which collision objects can move
@@ -197,7 +194,9 @@ public:
    * @param collisions The Contact results data
    * @param type The type of contact test
    */
-  virtual void contactTest(collision_detection::CollisionResult& collisions, const ContactTestType& type, const collision_detection::CollisionRequest& req) = 0;
+  virtual void contactTest(collision_detection::CollisionResult& collisions,
+                           const collision_detection::CollisionRequest& req,
+                           const collision_detection::AllowedCollisionMatrix* acm) = 0;
 };
 typedef std::shared_ptr<ContinuousContactManagerBase> ContinuousContactManagerBasePtr;
 typedef std::shared_ptr<const ContinuousContactManagerBase> ContinuousContactManagerBaseConstPtr;

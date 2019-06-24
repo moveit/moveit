@@ -26,16 +26,14 @@
 #ifndef TESSERACT_COLLISION_CONTACT_CHECKER_COMMON_H
 #define TESSERACT_COLLISION_CONTACT_CHECKER_COMMON_H
 
-#include <moveit/collision_detection_bullet/tesseract/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>
 #include <Eigen/Geometry>
 #include <fstream>
-TESSERACT_IGNORE_WARNINGS_POP
 
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/collision_detection/collision_matrix.h>
 
 namespace tesseract
 {
@@ -71,13 +69,13 @@ inline bool isLinkActive(const std::vector<std::string>& active, const std::stri
  * @return True if contact is allowed between the two object, otherwise false.
  */
 inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn acm_fn,
-                             bool verbose = false)
+                             const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
   // do not distance check geoms part of the same object / link / attached body
   if (name1 == name2)
     return true;
 
-  if (acm_fn != nullptr && acm_fn(name1, name2))
+  if (acm_fn != nullptr && acm_fn(name1, name2, acm))
   {
     if (verbose)
     {
@@ -94,50 +92,44 @@ inline bool isContactAllowed(const std::string& name1, const std::string& name2,
   return false;
 }
 
+/** \brief Stores a single contact result in the requested way.
+*   \param found Indicates if a contact for this pair of objects has already been found
+*   \return Pointer to the newly inserted contact */
 inline collision_detection::Contact* processResult(ContactTestData& cdata, collision_detection::Contact& contact,
                                                    const std::pair<std::string, std::string>& key, bool found)
 {
+  // TODO: Add check for max_number_contact between single pair how to skip those two objects then
   if (!found)
   {
     ROS_DEBUG_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
-
+    cdata.res.collision = true;
     std::vector<collision_detection::Contact> data;
-    if (cdata.type == ContactTestType::FIRST)
+    if (!cdata.req.contacts)
     {
-      data.emplace_back(contact);
       cdata.done = true;
+      return nullptr;
     }
     else
     {
-      data.reserve(100);  // TODO: Need better way to initialize this
+      data.reserve(cdata.req.max_contacts);
       data.emplace_back(contact);
+      cdata.res.contact_count++;
     }
 
     return &(cdata.res.contacts.insert(std::make_pair(key, data)).first->second.back());
   }
   else
   {
-    assert(cdata.type != ContactTestType::FIRST);
     std::vector<collision_detection::Contact>& dr = cdata.res.contacts[key];
-    if (cdata.type == ContactTestType::ALL)
+    dr.emplace_back(contact);
+    cdata.res.contact_count++;
+
+    if (cdata.res.contact_count == cdata.req.max_contacts)
     {
-      dr.emplace_back(contact);
-      return &(dr.back());
+      cdata.done = true;
     }
-    else if (cdata.type == ContactTestType::CLOSEST)
-    {
-      if (contact.depth < dr[0].depth)
-      {
-        dr[0] = contact;
-        return &(dr[0]);
-      }
-    }
-    //    else if (cdata.cdata.condition == DistanceRequestType::LIMITED)
-    //    {
-    //      assert(dr.size() < cdata.req->max_contacts_per_body);
-    //      dr.emplace_back(contact);
-    //      return &(dr.back());
-    //    }
+
+    return &(dr.back());
   }
 
   return nullptr;
@@ -155,8 +147,8 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
  *                "innerRadius" is the minimum distance of a face to the center of the convex hull.
  * @return The number of faces. If less than zero an error occured when trying to create the convex hull
  */
-inline int createConvexHull(VectorVector3d& vertices, std::vector<int>& faces, const VectorVector3d& input,
-                            double shrink = -1, double shrinkClamp = -1)
+inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vector<int>& faces,
+                            const AlignedVector<Eigen::Vector3d>& input, double shrink = -1, double shrinkClamp = -1)
 {
   vertices.clear();
   faces.clear();
@@ -219,84 +211,37 @@ inline int createConvexHull(VectorVector3d& vertices, std::vector<int>& faces, c
   return num_faces;
 }
 
-/**
- * @brief Write a simple ply file given vertices and faces
- * @param path The file path
- * @param vertices A vector of vertices
- * @param faces The first values indicates the number of vertices that define the face followed by the vertice index
- * @param num_faces The number of faces
- * @return False if failed to write file, otherwise true
- */
-inline bool writeSimplePlyFile(const std::string& path, const VectorVector3d& vertices, const std::vector<int>& faces,
-                               int num_faces)
+inline bool allowedCollisionCheck(const std::string body_1, const std::string body_2,
+                                  const collision_detection::AllowedCollisionMatrix* acm)
 {
-  //  ply
-  //  format ascii 1.0           { ascii/binary, format version number }
-  //  comment made by Greg Turk  { comments keyword specified, like all lines }
-  //  comment this file is a cube
-  //  element vertex 8           { define "vertex" element, 8 of them in file }
-  //  property float x           { vertex contains float "x" coordinate }
-  //  property float y           { y coordinate is also a vertex property }
-  //  property float z           { z coordinate, too }
-  //  element face 6             { there are 6 "face" elements in the file }
-  //  property list uchar int vertex_index { "vertex_indices" is a list of ints }
-  //  end_header                 { delimits the end of the header }
-  //  0 0 0                      { start of vertex list }
-  //  0 0 1
-  //  0 1 1
-  //  0 1 0
-  //  1 0 0
-  //  1 0 1
-  //  1 1 1
-  //  1 1 0
-  //  4 0 1 2 3                  { start of face list }
-  //  4 7 6 5 4
-  //  4 0 4 5 1
-  //  4 1 5 6 2
-  //  4 2 6 7 3
-  //  4 3 7 4 0
-  std::ofstream myfile;
-  myfile.open(path);
-  if (myfile.fail())
+  collision_detection::AllowedCollision::Type allowed_type;
+
+  if (acm != nullptr)
   {
-    ROS_ERROR("Failed to open file: %s", path.c_str());
+    if (acm->getEntry(body_1, body_2, allowed_type))
+    {
+      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
+      {
+        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
+        return false;
+      }
+      else
+      {
+        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
+        return true;
+      }
+    }
+    else
+    {
+      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
+      return false;
+    }
+  }
+  else
+  {
+    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
     return false;
   }
-
-  myfile << "ply\n";
-  myfile << "format ascii 1.0\n";
-  myfile << "comment made by tesseract\n";
-  myfile << "element vertex " << vertices.size() << "\n";
-  myfile << "property double x\n";
-  myfile << "property double y\n";
-  myfile << "property double z\n";
-  myfile << "element face " << num_faces << "\n";
-  myfile << "property list uchar uint vertex_indices\n";
-  myfile << "end_header\n";
-
-  // Add vertices
-  for (const auto& v : vertices)
-  {
-    myfile << std::fixed << std::setprecision(std::numeric_limits<double>::digits10 + 1) << v[0] << " " << v[1] << " "
-           << v[2] << "\n";
-  }
-
-  // Add faces
-  size_t idx = 0;
-  for (size_t i = 0; i < static_cast<size_t>(num_faces); ++i)
-  {
-    size_t num_vert = static_cast<size_t>(faces[idx]);
-    for (size_t j = 0; j < num_vert; ++j)
-    {
-      myfile << faces[idx] << " ";
-      ++idx;
-    }
-    myfile << faces[idx] << "\n";
-    ++idx;
-  }
-
-  myfile.close();
-  return true;
 }
 }
 

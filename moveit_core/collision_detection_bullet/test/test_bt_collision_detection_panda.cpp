@@ -255,6 +255,8 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
 TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
 {
   collision_detection::CollisionRequest req;
+  req.contacts = true;
+  req.max_contacts = 10;
   collision_detection::CollisionResult res;
 
   robot_state::RobotState state1(robot_model_);
@@ -264,8 +266,8 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   state1.update();
 
   state2.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
-  double joint_2 {0.05};
-  double joint_4 {-1.6};
+  double joint_2{ 0.05 };
+  double joint_4{ -1.6 };
   state2.setJointPositions("panda_joint2", &joint_2);
   state2.setJointPositions("panda_joint4", &joint_4);
   state2.update();

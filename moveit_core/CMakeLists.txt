@@ -20,6 +20,7 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
+find_package(Bullet REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL_PC REQUIRED fcl)
@@ -53,9 +54,7 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
-  tesseract_msgs
   eigen_conversions
-  bullet3_ros
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
@@ -138,9 +137,7 @@ catkin_package(
     tf2_geometry_msgs
     trajectory_msgs
     visualization_msgs
-    tesseract_msgs
     eigen_conversions
-    bullet3_ros
   DEPENDS
     Boost
     EIGEN3
@@ -148,6 +145,7 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
+    BULLET
     )
 
 
@@ -161,7 +159,9 @@ if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
 endif()
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
-                           ${LIBFCL_INCLUDE_DIRS})
+                           ${LIBFCL_INCLUDE_DIRS}
+                           ${BULLET_INCLUDE_DIRS}
+                           )
 
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}

@@ -22,6 +22,7 @@
   <depend>assimp</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
+  <depend>bullet</depend>
   <depend>eigen_stl_containers</depend>
   <depend>libfcl-dev</depend>
   <depend version_gte="0.5.2">geometric_shapes</depend>
@@ -47,9 +48,7 @@
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
-  <depend>tesseract_msgs</depend>
   <depend>eigen_conversions</depend>
-  <depend>bullet3_ros</depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>angles</test_depend>

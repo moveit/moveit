@@ -42,11 +42,13 @@ namespace collision_detection
 CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
-  auto fun = std::bind(&collision_detection::CollisionRobotBt::allowedCollisionCheck, this, std::placeholders::_1, std::placeholders::_2);
+  auto fun =
+      std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
   bt_manager_.setIsContactAllowedFn(fun);
   bt_manager_CCD_.setIsContactAllowedFn(fun);
 
+  // TODO: For the first link some memory error occurs
   for (const auto link : robot_model_->getURDF()->links_)
   {
     if (link.second->collision_array.size() > 0)
@@ -56,14 +58,15 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
                                                  link.second->collision_array;
 
       std::vector<shapes::ShapeConstPtr> shapes;
-      tesseract::VectorIsometry3d shape_poses;
-      tesseract::CollisionObjectTypeVector collision_object_types;
+      tesseract::AlignedVector<Eigen::Isometry3d> shape_poses;
+      std::vector<tesseract::CollisionObjectType> collision_object_types;
 
       for (std::size_t i = 0; i < col_array.size(); ++i)
       {
         if (col_array[i] && col_array[i]->geometry)
         {
           shapes::ShapeConstPtr s = tesseract::tesseract_ros::constructShape(col_array[i]->geometry.get());
+
           if (s)
           {
             shapes.push_back(s);
@@ -80,8 +83,10 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
           }
         }
       }
-      bt_manager_CCD_.addCollisionObject(link.second->name, 0, shapes, shape_poses, collision_object_types, true);
-      bt_manager_.addCollisionObject(link.second->name, 0, shapes, shape_poses, collision_object_types, true);
+      bt_manager_CCD_.addCollisionObject(link.first, collision_detection::BodyType::ROBOT_LINK, shapes, shape_poses,
+                                         collision_object_types, true);
+      bt_manager_.addCollisionObject(link.first, collision_detection::BodyType::ROBOT_LINK, shapes, shape_poses,
+                                     collision_object_types, true);
     }
   }
   bt_manager_CCD_.setActiveCollisionObjects(robot_model_->getLinkModelNames());
@@ -162,19 +167,16 @@ void CollisionRobotBt::checkSelfCollisionCCDHelper(const CollisionRequest& req, 
                                                    const AllowedCollisionMatrix* acm) const
 {
   // TODO: Not in tesseract yet
-  acm_ = acm;
   updateTransformsFromStateCCD(state1, state2);
-  bt_manager_CCD_.contactTest(res, tesseract::ContactTestTypes::CLOSEST, req);
+  bt_manager_CCD_.contactTest(res, req, acm);
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-  acm_ = acm;
-
   updateTransformsFromState(state);
-  bt_manager_.contactTest(res, tesseract::ContactTestType::FIRST, req);
+  bt_manager_.contactTest(res, req, acm);
 
   if (req.distance)
   {
@@ -274,46 +276,16 @@ void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& 
   }
 }
 
-void CollisionRobotBt::updateTransformsFromStateCCD(const robot_state::RobotState& state1, const robot_state::RobotState& state2) const
+void CollisionRobotBt::updateTransformsFromStateCCD(const robot_state::RobotState& state1,
+                                                    const robot_state::RobotState& state2) const
 {
   // updating link positions with the current robot state
   for (auto& link : bt_manager_CCD_.getActiveCollisionObjects())
   {
     // select the first of the transformations for each link (composed of multiple shapes...)
     // TODO: further investigate if this brings problems
-    bt_manager_CCD_.setCollisionObjectsTransform(link, state1.getCollisionBodyTransform(link, 0), state2.getCollisionBodyTransform(link, 0));
-  }
-}
-
-bool CollisionRobotBt::allowedCollisionCheck(std::string body_1, std::string body_2)
-{
-  collision_detection::AllowedCollision::Type allowed_type;
-
-  if (acm_ != nullptr)
-  {
-    if (acm_->getEntry(body_1, body_2, allowed_type))
-    {
-      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
-      {
-        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
-        return false;
-      }
-      else
-      {
-        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
-        return true;
-      }
-    }
-    else
-    {
-      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
-      return false;
-    }
-  }
-  else
-  {
-    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
-    return false;
+    bt_manager_CCD_.setCollisionObjectsTransform(link, state1.getCollisionBodyTransform(link, 0),
+                                                 state2.getCollisionBodyTransform(link, 0));
   }
 }
 

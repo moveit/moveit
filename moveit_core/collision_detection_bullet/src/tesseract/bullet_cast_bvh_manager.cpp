@@ -96,10 +96,11 @@ ContinuousContactManagerBasePtr BulletCastBVHManager::clone() const
   return manager;
 }
 
-bool BulletCastBVHManager::addCollisionObject(const std::string& name, const int& mask_id,
+bool BulletCastBVHManager::addCollisionObject(const std::string& name, const collision_detection::BodyType& mask_id,
                                               const std::vector<shapes::ShapeConstPtr>& shapes,
-                                              const VectorIsometry3d& shape_poses,
-                                              const CollisionObjectTypeVector& collision_object_types, bool enabled)
+                                              const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                              const std::vector<CollisionObjectType>& collision_object_types,
+                                              bool enabled)
 {
   COWPtr new_cow = createCollisionObject(name, mask_id, shapes, shape_poses, collision_object_types, enabled);
   if (new_cow != nullptr)
@@ -182,14 +183,14 @@ void BulletCastBVHManager::setCollisionObjectsTransform(const std::string& name,
 }
 
 void BulletCastBVHManager::setCollisionObjectsTransform(const std::vector<std::string>& names,
-                                                        const VectorIsometry3d& poses)
+                                                        const AlignedVector<Eigen::Isometry3d>& poses)
 {
   assert(names.size() == poses.size());
   for (auto i = 0u; i < names.size(); ++i)
     setCollisionObjectsTransform(names[i], poses[i]);
 }
 
-void BulletCastBVHManager::setCollisionObjectsTransform(const TransformMap& transforms)
+void BulletCastBVHManager::setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& transforms)
 {
   for (const auto& transform : transforms)
     setCollisionObjectsTransform(transform.first, transform.second);
@@ -269,7 +270,8 @@ void BulletCastBVHManager::setCollisionObjectsTransform(const std::string& name,
 }
 
 void BulletCastBVHManager::setCollisionObjectsTransform(const std::vector<std::string>& names,
-                                                        const VectorIsometry3d& pose1, const VectorIsometry3d& pose2)
+                                                        const AlignedVector<Eigen::Isometry3d>& pose1,
+                                                        const AlignedVector<Eigen::Isometry3d>& pose2)
 {
   assert(names.size() == pose1.size());
   assert(names.size() == pose2.size());
@@ -277,7 +279,8 @@ void BulletCastBVHManager::setCollisionObjectsTransform(const std::vector<std::s
     setCollisionObjectsTransform(names[i], pose1[i], pose2[i]);
 }
 
-void BulletCastBVHManager::setCollisionObjectsTransform(const TransformMap& pose1, const TransformMap& pose2)
+void BulletCastBVHManager::setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& pose1,
+                                                        const AlignedMap<std::string, Eigen::Isometry3d>& pose2)
 {
   assert(pose1.size() == pose2.size());
   auto it1 = pose1.begin();
@@ -350,6 +353,7 @@ const std::vector<std::string>& BulletCastBVHManager::getActiveCollisionObjects(
 {
   return active_;
 }
+
 void BulletCastBVHManager::setContactDistanceThreshold(double contact_distance)
 {
   contact_distance_ = contact_distance;
@@ -375,6 +379,7 @@ double BulletCastBVHManager::getContactDistanceThreshold() const
 {
   return contact_distance_;
 }
+
 void BulletCastBVHManager::setIsContactAllowedFn(IsContactAllowedFn fn)
 {
   fn_ = fn;
@@ -385,9 +390,11 @@ IsContactAllowedFn BulletCastBVHManager::getIsContactAllowedFn() const
   return fn_;
 }
 
-void BulletCastBVHManager::contactTest(collision_detection::CollisionResult& collisions, const ContactTestType& type, const collision_detection::CollisionRequest& req)
+void BulletCastBVHManager::contactTest(collision_detection::CollisionResult& collisions,
+                                       const collision_detection::CollisionRequest& req,
+                                       const collision_detection::AllowedCollisionMatrix* acm)
 {
-  ContactTestData cdata(active_, contact_distance_, fn_, type, collisions);
+  ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
 
@@ -398,9 +405,6 @@ void BulletCastBVHManager::contactTest(collision_detection::CollisionResult& col
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
 
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
-
-  collisions.collision = !collisions.contacts.empty();
-  collisions.contact_count = collisions.contacts.size();
 }
 
 void BulletCastBVHManager::addCollisionObject(const COWPtr& cow)

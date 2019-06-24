@@ -186,7 +186,6 @@ TEST_F(BulletCollisionDetectionTester, ContactReporting)
   EXPECT_EQ(res.contacts.begin()->second.size(), 1u);
 
   res.contacts.clear();
-  res.contact_count = 0;
 
   req.max_contacts = 10;
   req.max_contacts_per_pair = 2;

@@ -37,6 +37,7 @@
 #include <moveit/collision_detection_bullet/collision_world_bt.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
+#include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
 
 #include <boost/bind.hpp>
 #include <bullet/btBulletCollisionCommon.h>
@@ -50,8 +51,9 @@ CollisionWorldBt::CollisionWorldBt() : CollisionWorld()
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 
-  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionWorldBt::allowedCollisionCheck, this,
-                                              std::placeholders::_1, std::placeholders::_2));
+  auto fun =
+      std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  bt_manager_.setIsContactAllowedFn(fun);
 }
 
 CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world)
@@ -60,8 +62,8 @@ CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 
-  bt_manager_.setIsContactAllowedFn(std::bind(&collision_detection::CollisionWorldBt::allowedCollisionCheck, this,
-                                              std::placeholders::_1, std::placeholders::_2));
+  bt_manager_.setIsContactAllowedFn(std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1,
+                                              std::placeholders::_2, std::placeholders::_3));
 }
 
 CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
@@ -119,7 +121,6 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
 
   for (const auto cow : link2cow)
   {
-
     tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
     new_cow->setWorldTransform(cow.second->getWorldTransform());
 
@@ -140,8 +141,7 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
 
   robot_bt.updateTransformsFromStateCCD(state1, state2);
 
-  robot_bt.acm_ = acm;
-  robot_bt.bt_manager_CCD_.contactTest(res, tesseract::ContactTestType::ALL, req);
+  robot_bt.bt_manager_CCD_.contactTest(res, req, acm);
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -172,9 +172,7 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
     }
   }
 
-  acm_ = acm;
-
-  bt_manager_.contactTest(res, tesseract::ContactTestType::ALL, req);
+  bt_manager_.contactTest(res, req, acm);
 
   for (const auto cow : link2cow)
   {
@@ -215,7 +213,7 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
 
 void CollisionWorldBt::addToManager(const World::Object* obj) const
 {
-  tesseract::CollisionObjectTypeVector collision_object_types;
+  std::vector<tesseract::CollisionObjectType> collision_object_types;
 
   for (auto shape : obj->shapes_)
   {
@@ -226,7 +224,8 @@ void CollisionWorldBt::addToManager(const World::Object* obj) const
   }
 
   // TODO: Mask id -> 0 what exactly do with it
-  bt_manager_.addCollisionObject(obj->id_, 0, obj->shapes_, obj->shape_poses_, collision_object_types, true);
+  bt_manager_.addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_, obj->shape_poses_,
+                                 collision_object_types, true);
 }
 
 void CollisionWorldBt::updateManagedObject(const std::string& id)
@@ -295,38 +294,6 @@ void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult&
 void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
-}
-
-bool CollisionWorldBt::allowedCollisionCheck(const std::string body_1, const std::string body_2) const
-{
-  collision_detection::AllowedCollision::Type allowed_type;
-
-  if (acm_ != nullptr)
-  {
-    if (acm_->getEntry(body_1, body_2, allowed_type))
-    {
-      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
-      {
-        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
-        return false;
-      }
-      else
-      {
-        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
-        return true;
-      }
-    }
-    else
-    {
-      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
-      return false;
-    }
-  }
-  else
-  {
-    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
-    return false;
-  }
 }
 
 }  // end of namespace collision_detection

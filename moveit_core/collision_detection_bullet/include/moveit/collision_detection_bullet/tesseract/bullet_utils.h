@@ -43,12 +43,9 @@
 #ifndef TESSERACT_COLLISION_BULLET_UTILS_H
 #define TESSERACT_COLLISION_BULLET_UTILS_H
 
-#include <moveit/collision_detection_bullet/tesseract/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
 #include <btBulletCollisionCommon.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <ros/console.h>
-TESSERACT_IGNORE_WARNINGS_POP
 
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
 #include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
@@ -111,8 +108,10 @@ class CollisionObjectWrapper : public btCollisionObject
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  CollisionObjectWrapper(const std::string& name, const int& type_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                         const VectorIsometry3d& shape_poses, const CollisionObjectTypeVector& collision_object_types);
+  CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
+                         const std::vector<shapes::ShapeConstPtr>& shapes,
+                         const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                         const std::vector<CollisionObjectType>& collision_object_types);
 
   short int m_collisionFilterGroup;
   short int m_collisionFilterMask;
@@ -124,7 +123,7 @@ public:
     return m_name;
   }
   /** @brief Get a user defined type */
-  const int& getTypeID() const
+  const collision_detection::BodyType& getTypeID() const
   {
     return m_type_id;
   }
@@ -182,52 +181,21 @@ public:
 
 protected:
   /** @brief This is a special constructor used by the clone method */
-  CollisionObjectWrapper(const std::string& name, const int& type_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                         const VectorIsometry3d& shape_poses, const CollisionObjectTypeVector& collision_object_types,
+  CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
+                         const std::vector<shapes::ShapeConstPtr>& shapes,
+                         const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                         const std::vector<CollisionObjectType>& collision_object_types,
                          const std::vector<std::shared_ptr<void>>& data);
 
-  std::string m_name;                                 /**< @brief The name of the collision object */
-  int m_type_id;                                      /**< @brief A user defined type id */
-  std::vector<shapes::ShapeConstPtr> m_shapes;        /**< @brief The shapes that define the collison object */
-  VectorIsometry3d m_shape_poses;                     /**< @brief The shpaes poses information */
-  CollisionObjectTypeVector m_collision_object_types; /**< @brief The shape collision object type to be used */
+  std::string m_name; /**< @brief The name of the collision object */
+  collision_detection::BodyType m_type_id;
+  std::vector<shapes::ShapeConstPtr> m_shapes;               /**< @brief The shapes that define the collison object */
+  AlignedVector<Eigen::Isometry3d> m_shape_poses;            /**< @brief The shpaes poses information */
+  std::vector<CollisionObjectType> m_collision_object_types; /**< @brief The shape collision object type to be used */
 
   std::vector<std::shared_ptr<void>>
       m_data; /**< @brief This manages the collision shape pointer so they get destroyed */
 };
-
-inline void translateObjectType(const CollisionObjectWrapper* cd0, const CollisionObjectWrapper* cd1, collision_detection::Contact& contact)
-{
-  switch (cd0->getTypeID())
-  {
-    case 0:
-      contact.body_type_1 = collision_detection::BodyType::ROBOT_LINK;
-      break;
-    case 1:
-      contact.body_type_1 = collision_detection::BodyType::ROBOT_ATTACHED;
-      break;
-    case 2:
-      contact.body_type_1 = collision_detection::BodyType::WORLD_OBJECT;
-      break;
-    default:
-      ROS_ERROR_STREAM("No known body type");
-  }
-
-  switch (cd1->getTypeID())
-  {
-    case 0:
-      contact.body_type_2 = collision_detection::BodyType::ROBOT_LINK;
-      break;
-    case 1:
-      contact.body_type_2 = collision_detection::BodyType::ROBOT_ATTACHED;
-      break;
-    case 2:
-      contact.body_type_2 = collision_detection::BodyType::WORLD_OBJECT;
-      break;
-    default:
-      ROS_ERROR_STREAM("No known body type");
-  }
-}
 
 typedef CollisionObjectWrapper COW;
 typedef std::shared_ptr<CollisionObjectWrapper> COWPtr;
@@ -371,11 +339,13 @@ inline void GetAverageSupport(const btConvexShape* shape, const btVector3& local
  * @param verbose Indicate if verbose information should be printed to the terminal
  * @return True if the two collision objects should be checked for collision, otherwise false
  */
-inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn acm, bool verbose = false)
+inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn allowed_fn,
+                                const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
-  bool contact_allowed = isContactAllowed(cow1.getName(), cow2.getName(), acm, verbose);
+  bool contact_allowed = isContactAllowed(cow1.getName(), cow2.getName(), allowed_fn, acm, verbose);
   bool enabled = cow1.m_enabled && cow2.m_enabled;
-  bool filter_group_mask = (cow2.m_collisionFilterGroup & cow1.m_collisionFilterMask) && (cow1.m_collisionFilterGroup & cow2.m_collisionFilterMask);
+  bool filter_group_mask = (cow2.m_collisionFilterGroup & cow1.m_collisionFilterMask) &&
+                           (cow1.m_collisionFilterGroup & cow2.m_collisionFilterMask);
 
   bool combined = enabled && filter_group_mask && !contact_allowed;
 
@@ -404,7 +374,8 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   contact.normal = convertBtToEigen(-1 * cp.m_normalWorldOnB);
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
 
-  translateObjectType(cd0, cd1, contact);
+  contact.body_type_1 = cd0->getTypeID();
+  contact.body_type_2 = cd0->getTypeID();
 
   // contact.nearest_points[2] = convertBtToEigen(cp.m_positionWorldOnB);
 
@@ -438,13 +409,14 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   contact.normal = convertBtToEigen(-1 * cp.m_normalWorldOnB);
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
 
-
   contact.nearest_points[0] = convertBtToEigen(cp.m_positionWorldOnA);
   contact.nearest_points[1] = convertBtToEigen(cp.m_positionWorldOnB);
 
-  translateObjectType(cd0, cd1, contact);
+  contact.body_type_1 = cd0->getTypeID();
+  contact.body_type_2 = cd0->getTypeID();
 
   collision_detection::Contact* col = processResult(collisions, contact, pc, found);
+
   if (!col)
   {
     return 0;
@@ -494,12 +466,12 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   if (sup0 - sup1 > BULLET_SUPPORT_FUNC_TOLERANCE)
   {
     col->cc_time = 0;
-    col->cc_type = collision_detection::ContinouseCollisionType::CCType_Time0;
+    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Time0;
   }
   else if (sup1 - sup0 > BULLET_SUPPORT_FUNC_TOLERANCE)
   {
     col->cc_time = 1;
-    col->cc_type = collision_detection::ContinouseCollisionType::CCType_Time1;
+    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Time1;
   }
   else
   {
@@ -511,7 +483,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
     col->nearest_points[1] = convertBtToEigen(ptWorld0);
 
     col->cc_nearest_points[1] = convertBtToEigen(ptWorld1);
-    col->cc_type = collision_detection::ContinouseCollisionType::CCType_Between;
+    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Between;
 
     if (l0c + l1c < BULLET_LENGTH_TOLERANCE)
     {
@@ -599,7 +571,7 @@ struct BroadphaseContactResultCallback
 
   virtual bool needsCollision(const CollisionObjectWrapper* cow0, const CollisionObjectWrapper* cow1) const
   {
-    return !collisions_.done && needsCollisionCheck(*cow0, *cow1, collisions_.fn, verbose_);
+    return !collisions_.done && needsCollisionCheck(*cow0, *cow1, collisions_.fn, collisions_.acm, verbose_);
   }
 
   virtual btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0,
@@ -852,10 +824,10 @@ inline void updateCollisionObjectFilters(const std::vector<std::string>& active,
   }
 }
 
-inline COWPtr createCollisionObject(const std::string& name, const int& type_id,
+inline COWPtr createCollisionObject(const std::string& name, const collision_detection::BodyType& type_id,
                                     const std::vector<shapes::ShapeConstPtr>& shapes,
-                                    const VectorIsometry3d& shape_poses,
-                                    const CollisionObjectTypeVector& collision_object_types, bool enabled = true)
+                                    const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                    const std::vector<CollisionObjectType>& collision_object_types, bool enabled = true)
 {
   // dont add object that does not have geometry
   if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
@@ -907,7 +879,7 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
   {
     return !collisions_.done &&
            needsCollisionCheck(*cow_, *(static_cast<CollisionObjectWrapper*>(proxy0->m_clientObject)), collisions_.fn,
-                               verbose_);
+                               collisions_.acm, verbose_);
   }
 };
 
@@ -932,7 +904,7 @@ struct CastCollisionCollector : public btCollisionWorld::ContactResultCallback
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
       ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
-      return 0;
+    return 0;
 
     ROS_DEBUG_STREAM("We have a collision with " << cp.m_distance1);
     return addCastSingleResult(cp, colObj0Wrap, index0, colObj1Wrap, index1, collisions_);
@@ -942,7 +914,7 @@ struct CastCollisionCollector : public btCollisionWorld::ContactResultCallback
   {
     return !collisions_.done &&
            needsCollisionCheck(*cow_, *(static_cast<CollisionObjectWrapper*>(proxy0->m_clientObject)), collisions_.fn,
-                               verbose_);
+                               collisions_.acm, verbose_);
   }
 };
 
@@ -1100,8 +1072,6 @@ inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_
   cow->setBroadphaseHandle(broadphase->createProxy(aabb_min, aabb_max, type, cow.get(), cow->m_collisionFilterGroup,
                                                    cow->m_collisionFilterMask, dispatcher.get()));
 }
-
-
 }
 }
 #endif  // TESSERACT_COLLISION_BULLET_UTILS_H

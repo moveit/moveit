@@ -66,7 +66,6 @@ BulletDiscreteBVHManager::~BulletDiscreteBVHManager()
   // clean up remaining objects
   for (auto& co : link2cow_)
   {
-    ROS_DEBUG_STREAM("Removing " << co.first);
     removeCollisionObjectFromBroadphase(co.second, broadphase_, dispatcher_);
   }
 }
@@ -95,10 +94,11 @@ DiscreteContactManagerBasePtr BulletDiscreteBVHManager::clone() const
   return manager;
 }
 
-bool BulletDiscreteBVHManager::addCollisionObject(const std::string& name, const int& mask_id,
+bool BulletDiscreteBVHManager::addCollisionObject(const std::string& name, const collision_detection::BodyType& mask_id,
                                                   const std::vector<shapes::ShapeConstPtr>& shapes,
-                                                  const VectorIsometry3d& shape_poses,
-                                                  const CollisionObjectTypeVector& collision_object_types, bool enabled)
+                                                  const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                                  const std::vector<CollisionObjectType>& collision_object_types,
+                                                  bool enabled)
 {
   COWPtr new_cow = createCollisionObject(name, mask_id, shapes, shape_poses, collision_object_types, enabled);
   if (new_cow != nullptr)
@@ -119,7 +119,6 @@ bool BulletDiscreteBVHManager::hasCollisionObject(const std::string& name) const
 
 bool BulletDiscreteBVHManager::removeCollisionObject(const std::string& name)
 {
-  ROS_DEBUG_STREAM("Removing " << name);
   auto it = link2cow_.find(name);  // Levi TODO: Should these check be removed?
   if (it != link2cow_.end())
   {
@@ -169,14 +168,15 @@ void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::string& n
 }
 
 void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::vector<std::string>& names,
-                                                            const VectorIsometry3d& poses)
+                                                            const AlignedVector<Eigen::Isometry3d>& poses)
 {
   assert(names.size() == poses.size());
   for (auto i = 0u; i < names.size(); ++i)
     setCollisionObjectsTransform(names[i], poses[i]);
 }
 
-void BulletDiscreteBVHManager::setCollisionObjectsTransform(const TransformMap& transforms)
+void BulletDiscreteBVHManager::setCollisionObjectsTransform(
+    const AlignedMap<std::string, Eigen::Isometry3d>& transforms)
 {
   for (const auto& transform : transforms)
     setCollisionObjectsTransform(transform.first, transform.second);
@@ -226,10 +226,10 @@ IsContactAllowedFn BulletDiscreteBVHManager::getIsContactAllowedFn() const
 }
 
 void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult& collisions,
-                                           const ContactTestType& type,
-                                           const collision_detection::CollisionRequest& req)
+                                           const collision_detection::CollisionRequest& req,
+                                           const collision_detection::AllowedCollisionMatrix* acm)
 {
-  ContactTestData cdata(active_, contact_distance_, fn_, type, collisions);
+  ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
 
@@ -240,9 +240,6 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
 
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
-
-  collisions.collision = !collisions.contacts.empty();
-  collisions.contact_count = collisions.contacts.size();
 
   ROS_DEBUG_STREAM((collisions.collision ? "In" : "No") << " collision with " << collisions.contact_count << " collisio"
                                                                                                              "ns");

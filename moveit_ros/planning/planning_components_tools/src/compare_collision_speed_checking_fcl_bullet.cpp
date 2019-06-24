@@ -330,7 +330,7 @@ int main(int argc, char** argv)
     std::vector<robot_state::RobotState> sampled_states;
     sampled_states.push_back(current_state);
 
-    //findStates(RobotStateSelector::NOT_IN_COLLISION, 1, planning_scene, sampled_states);
+    // findStates(RobotStateSelector::NOT_IN_COLLISION, 1, planning_scene, sampled_states);
 
     clutterWorld(planning_scene, 100, CollisionObjectType::MESH);
 
