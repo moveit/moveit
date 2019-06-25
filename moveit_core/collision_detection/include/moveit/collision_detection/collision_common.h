@@ -360,7 +360,7 @@ struct DistanceResultsData
   }
 };
 
-/** \brief Mapping between the names of the collision objects and the distance results data. */
+/** \brief Mapping between the names of the collision objects and the DistanceResultData. */
 typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData> > DistanceMap;
 
 /** \brief Result of a distance request. */
