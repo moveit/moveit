@@ -45,9 +45,7 @@ namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
 
-/** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair.
- *
- *  It ensures that a valid CollisionWorld / CollisionRobot combination is used in the planning scene. */
+/** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair. */
 class CollisionDetectorAllocator
 {
 public:
@@ -103,10 +101,7 @@ public:
     return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
   }
 
-  /** Create an allocator for FCL collision detectors.
-   *
-   *  The function is used in the planning scene to allocate the new detector with the corresponding CollisionWorld /
-   *  CollisionRobot pair. */
+  /** Create an allocator for collision detectors. */
   static CollisionDetectorAllocatorPtr create()
   {
     return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());

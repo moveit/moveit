@@ -239,7 +239,6 @@ private:
   class Observer;
 
 public:
-  /** \brief Handle of an observer */
   class ObserverHandle
   {
   public:

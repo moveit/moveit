@@ -223,22 +223,17 @@ struct CollisionRequest
 
 namespace DistanceRequestTypes
 {
-/** \brief Type of distance request */
 enum DistanceRequestType
 {
-  /// Find the global minimum
-  GLOBAL,
-  /// Find the global minimum for each pair
-  SINGLE,
-  /// Find a limited(max_contacts_per_body) set of contacts for a given pair
-  LIMITED,
-  /// Find all the contacts for a given pair
-  ALL
+  GLOBAL,   ///< Find the global minimum
+  SINGLE,   ///< Find the global minimum for each pair
+  LIMITED,  ///< Find a limited(max_contacts_per_body) set of contacts for a given pair
+  ALL       ///< Find all the contacts for a given pair
 };
 }
 typedef DistanceRequestTypes::DistanceRequestType DistanceRequestType;
 
-/** \brief Representation of a distance reporting request */
+/** \brief Representation of a distance-reporting request */
 struct DistanceRequest
 {
   DistanceRequest()
@@ -280,7 +275,7 @@ struct DistanceRequest
   /// The group name
   std::string group_name;
 
-  /// The set of active components to check. Active refers to components which move.
+  /// The set of active components to check
   const std::set<const robot_model::LinkModel*>* active_components_only;
 
   /// The allowed collision matrix used to filter checks
@@ -298,8 +293,8 @@ struct DistanceRequest
   bool compute_gradient;
 };
 
-/** \brief General representation of the distance information for a pair of objects. It is independent of the collision
- *  checker. */
+/** \brief Generic representation of the distance information for a pair of objects (independent of the collision
+ * checker). */
 struct DistanceResultsData
 {
   DistanceResultsData()
@@ -365,10 +360,10 @@ struct DistanceResultsData
   }
 };
 
-/** \brief Mapping between the name of the collision objects and the distance results data. */
+/** \brief Mapping between the names of the collision objects and the distance results data. */
 typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData> > DistanceMap;
 
-/** \brief Results of a distance request. */
+/** \brief Result of a distance request. */
 struct DistanceResult
 {
   DistanceResult() : collision(false)
