@@ -80,11 +80,11 @@ public:
   void setWorld(const WorldPtr& world) override;
 
 protected:
-  /** \brief Bundles the world collision function calls. */
+  /** \brief Bundles the different checkWorldCollision functions into a single function. */
   void checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                  const AllowedCollisionMatrix* acm) const;
 
-  /** \brief Bundles the robot collision function calls.
+  /** \brief Bundles the different checkRobotCollision functions into a single function.
    *
    *  Out of the CollisionRobot a new \e FCLObject is created which is then iteratively checked using the manager */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
@@ -106,11 +106,10 @@ protected:
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
-  /** \brief Callback function used in the world representation. It is added to an observer of the world and
-   *  subsequently called on each action to the world. */
+  /** \brief Callback function which is added to an observer of the world and subsequently called on each action to the
+   *  world. */
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
 
-  /** \brief Pointer to the observer. */
   World::ObserverHandle observer_handle_;
 };
 }
