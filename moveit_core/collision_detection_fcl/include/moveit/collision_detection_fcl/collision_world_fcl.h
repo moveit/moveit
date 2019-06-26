@@ -80,34 +80,29 @@ public:
   void setWorld(const WorldPtr& world) override;
 
 protected:
-  /** \brief Bundles the different checkWorldCollision functions into a single function. */
+  /** \brief Common helper used by the different checkWorldCollision functions. */
   void checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                  const AllowedCollisionMatrix* acm) const;
 
-  /** \brief Bundles the different checkRobotCollision functions into a single function.
-   *
-   *  Out of the CollisionRobot a new \e FCLObject is created which is then iteratively checked using the manager */
+  /** \brief Common helper used by the different checkRobotCollision functions. */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
-  /** \brief Transforms a world object into a FCLObject which can then be collision checked. */
+  /** \brief Construct an FCL collision object from MoveIt's World::Object. */
   void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
 
-  /** \brief Updates the specified object in \m fcl_objs_ and in the manager through looking up its new data in the
-   *  world representation.
+  /** \brief Updates the specified object in \m fcl_objs_ and in the manager from new data available in the World.
    *
-   *  If it does not exist anymore in world, it is deleted. If it is not yet in the \m fcl_objs_ map, add it to it. */
+   *  If it does not exist in world, it is deleted. If it's not existing in \m fcl_objs_ yet, it's added there. */
   void updateFCLObject(const std::string& id);
 
-  /** \brief FCL collision manager which handles the collision checking process. */
+  /// FCL collision manager which handles the collision checking process
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
 
-  /** \brief Bundles the FCL compatible collision object representation. */
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
-  /** \brief Callback function which is added to an observer of the world and subsequently called on each action to the
-   *  world. */
+  /// Callback function that is called on any change to the world
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
 
   World::ObserverHandle observer_handle_;

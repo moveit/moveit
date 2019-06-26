@@ -162,12 +162,10 @@ struct CollisionResult
   /** \brief Number of contacts returned */
   std::size_t contact_count;
 
-  /** \brief Mapping of the pairs of bodies in contact, plus information about the contacts themselves.
-   *
-   *  Each body pair can include multiple contacts. */
+  /** \brief A map returning the pairs of body ids in contact, plus their contact details */
   ContactMap contacts;
 
-  /** \brief The individual cost sources when costs are computed */
+  /** \brief These are the individual cost sources when costs are computed */
   std::set<CostSource> cost_sources;
 };
 
@@ -198,7 +196,7 @@ struct CollisionRequest
   /** \brief If true, a collision cost is computed */
   bool cost;
 
-  /** \brief If true, compute contacts. Otherwise only collision yes or no is reported. */
+  /** \brief If true, compute contacts. Otherwise only a binary collision yes/no is reported. */
   bool contacts;
 
   /** \brief Overall maximum number of contacts to compute */
@@ -293,8 +291,7 @@ struct DistanceRequest
   bool compute_gradient;
 };
 
-/** \brief Generic representation of the distance information for a pair of objects (independent of the collision
- * checker). */
+/** \brief Generic representation of the distance information for a pair of objects */
 struct DistanceResultsData
 {
   DistanceResultsData()
