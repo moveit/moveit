@@ -38,6 +38,9 @@
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
+#include <moveit/collision_detection_bullet/tesseract/bullet_discrete_simple_manager.h>
+
+#include <memory>
 
 namespace collision_detection
 {
@@ -75,6 +78,11 @@ protected:
                                  const AllowedCollisionMatrix* acm) const;
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
+
+  void addToManager(const World::Object* obj) const;
+  void updateManagedObject(const std::string& id);
+
+  mutable tesseract::tesseract_bullet::BulletDiscreteSimpleManager bt_manager_;
 
 private:
   void initialize();

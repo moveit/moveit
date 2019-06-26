@@ -1,0 +1,3 @@
+<launch>
+  <node name="collision_benchmark_node_1" pkg="collision_benchmark" type="collision_benchmark_node" respawn="false" output="screen"> </node>
+</launch>

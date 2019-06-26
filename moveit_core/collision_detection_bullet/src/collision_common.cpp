@@ -39,5 +39,5 @@
 
 namespace collision_detection
 {
-// TODO: Add common functionality for all collision detection here.
+// TODO: Add common functionality for all collision detection here. For example group functionality with active components like in FCL
 }  // namespace collision_detection
