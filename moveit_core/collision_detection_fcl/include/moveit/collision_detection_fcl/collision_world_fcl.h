@@ -80,20 +80,31 @@ public:
   void setWorld(const WorldPtr& world) override;
 
 protected:
+  /** \brief Common helper used by the different checkWorldCollision functions. */
   void checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                  const AllowedCollisionMatrix* acm) const;
+
+  /** \brief Common helper used by the different checkRobotCollision functions. */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Construct an FCL collision object from MoveIt's World::Object. */
   void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
+
+  /** \brief Updates the specified object in \m fcl_objs_ and in the manager from new data available in the World.
+   *
+   *  If it does not exist in world, it is deleted. If it's not existing in \m fcl_objs_ yet, it's added there. */
   void updateFCLObject(const std::string& id);
 
+  /// FCL collision manager which handles the collision checking process
   std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+
   std::map<std::string, FCLObject> fcl_objs_;
 
 private:
-  void initialize();
+  /// Callback function that is called on any change to the world
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+
   World::ObserverHandle observer_handle_;
 };
 }
