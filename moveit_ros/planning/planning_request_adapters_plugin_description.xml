@@ -47,4 +47,9 @@
     </description>
   </class>
 
+  <class name="default_planner_request_adapters/PublishIntermediateTrajectory" type="default_planner_request_adapters::PublishIntermediateTrajectory" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
 </library>
