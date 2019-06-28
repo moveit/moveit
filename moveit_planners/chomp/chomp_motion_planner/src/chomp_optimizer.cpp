@@ -361,15 +361,13 @@ bool ChompOptimizer::optimize()
     {
       best_group_trajectory_ = group_trajectory_.getTrajectory();
       best_group_trajectory_cost_ = cost;
+      last_improvement_iteration_ = iteration_;
     }
-    else
+    else if (cost < best_group_trajectory_cost_)
     {
-      if (cost < best_group_trajectory_cost_)
-      {
-        best_group_trajectory_ = group_trajectory_.getTrajectory();
-        best_group_trajectory_cost_ = cost;
-        last_improvement_iteration_ = iteration_;
-      }
+      best_group_trajectory_ = group_trajectory_.getTrajectory();
+      best_group_trajectory_cost_ = cost;
+      last_improvement_iteration_ = iteration_;
     }
     calculateSmoothnessIncrements();
     calculateCollisionIncrements();
