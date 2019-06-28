@@ -46,11 +46,5 @@ if(ur_kinematics_FOUND)
     endforeach()
 endif()
 
-add_executable(measure_ik_call_cost src/measure_ik_call_cost.cpp)
-target_link_libraries(measure_ik_call_cost
-    ${catkin_LIBRARIES}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY})
-install(TARGETS measure_ik_call_cost DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
