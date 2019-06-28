@@ -61,7 +61,6 @@ private:
   void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig& config, uint32_t level)
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
-    owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
   }
 
   PlanExecution* owner_;
@@ -390,14 +389,6 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
     }
   }
 
-  if (!trajectory_monitor_ && planning_scene_monitor_->getStateMonitor())
-    trajectory_monitor_.reset(
-        new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
-
-  // start recording trajectory states
-  if (trajectory_monitor_)
-    trajectory_monitor_->startTrajectoryMonitor();
-
   // start a trajectory execution thread
   trajectory_execution_manager_->execute(
       boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
@@ -438,10 +429,6 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
                                      "Possibly the node is about to shut down.");
     trajectory_execution_manager_->stopExecution();
   }
-
-  // stop recording trajectory states
-  if (trajectory_monitor_)
-    trajectory_monitor_->stopTrajectoryMonitor();
 
   // decide return value
   if (path_became_invalid_)

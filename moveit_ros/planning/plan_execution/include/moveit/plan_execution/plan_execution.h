@@ -103,20 +103,6 @@ public:
     return trajectory_execution_manager_;
   }
 
-  double getTrajectoryStateRecordingFrequency() const
-  {
-    if (trajectory_monitor_)
-      return trajectory_monitor_->getSamplingFrequency();
-    else
-      return 0.0;
-  }
-
-  void setTrajectoryStateRecordingFrequency(double freq)
-  {
-    if (trajectory_monitor_)
-      trajectory_monitor_->setSamplingFrequency(freq);
-  }
-
   void setMaxReplanAttempts(unsigned int attempts)
   {
     default_max_replan_attempts_ = attempts;
@@ -152,7 +138,6 @@ private:
   ros::NodeHandle node_handle_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
-  planning_scene_monitor::TrajectoryMonitorPtr trajectory_monitor_;
 
   unsigned int default_max_replan_attempts_;
 
