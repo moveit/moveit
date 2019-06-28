@@ -145,8 +145,8 @@ public:
    * @param trajectory_msgs_point index of the input trajectory_msg's point to get joint values from
    * @param chomp_trajectory_point index of the chomp_trajectory's point to get joint values from
    */
-  void assignCHOMPTrajectoryPointFromInputTrajectoryPoint(const robot_trajectory::RobotTrajectory& trajectory,
-                                                          size_t trajectory_point_index, size_t chomp_trajectory_point);
+  void assignCHOMPTrajectoryPointFromRobotState(const moveit::core::RobotState& source, size_t chomp_trajectory_point,
+                                                const moveit::core::JointModelGroup* group);
 
   /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
