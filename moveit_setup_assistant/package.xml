@@ -31,9 +31,26 @@
   <depend>urdf</depend>
   <depend>yaml-cpp</depend>
   <depend version_gt="0.3.1">srdfdom</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
+  <!-- Optional: Gazebo integration. This is a heavy dependency so is disabled by default -->
+  <!-- depend>gazebo_ros</depend -->
 
   <exec_depend>xacro</exec_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>rosunit</test_depend>
+
+  <export>
+    <moveit_setup_assistant plugin="${prefix}/plugins/author_information_widget/author_information_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/default_collisions_widget/default_collisions_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/end_effectors_widget/end_effectors_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/configuration_files_widget/configuration_files_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/passive_joints_widget/passive_joints_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/perception_widget/perception_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/planning_groups_widget/planning_groups_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/robot_poses_widget/robot_poses_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/ros_controllers_widget/ros_controllers_widget.xml"/>
+    <moveit_setup_assistant plugin="${prefix}/plugins/simulation_widget/simulation_widget.xml"/>  
+    <moveit_setup_assistant plugin="${prefix}/plugins/virtual_joints_widget/virtual_joints_widget.xml"/>  
+  </export>
 </package>

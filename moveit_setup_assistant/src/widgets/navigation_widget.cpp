@@ -34,7 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#include "navigation_widget.h"
+#include <moveit/setup_assistant/navigation_widget.h>
 #include <QApplication>
 #include <iostream>
 

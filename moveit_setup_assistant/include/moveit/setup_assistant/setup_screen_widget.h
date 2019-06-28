@@ -34,18 +34,49 @@
 
 /* Author: Dave Coleman */
 
-#include <moveit/setup_assistant/setup_screen_widget.h>
-#include <iostream>
+#pragma once
 
-void SetupScreenWidget::focusGiven()
-{
-}
+#include <QWidget>
+#ifndef Q_MOC_RUN
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
 
-bool SetupScreenWidget::focusLost()
+// ******************************************************************************************
+// Provides the title and instructions
+// ******************************************************************************************
+class SetupScreenWidget : public QWidget
 {
-  return true;  // accept switching by default
-}
+  Q_OBJECT
 
-void SetupScreenWidget::initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
-{
-}
+public:
+  SetupScreenWidget()
+  {
+  }
+
+  /// function called when widget is activated, allows to update/initialize GUI
+  virtual void focusGiven();
+
+  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
+  virtual bool focusLost();
+
+  /// used to set data and parent of the widget after construction
+  virtual void initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+
+  // ******************************************************************************************
+  // Emitted Signal Functions
+  // ******************************************************************************************
+
+Q_SIGNALS:
+
+  /// Event for when the current screen is in modal view. Essential disabled the left navigation
+  void isModal(bool isModal);
+
+  /// Event for telling rviz to highlight a link of the robot
+  void highlightLink(const std::string& name, const QColor&);
+
+  /// Event for telling rviz to highlight a group of the robot
+  void highlightGroup(const std::string& name);
+
+  /// Event for telling rviz to unhighlight all links of the robot
+  void unhighlightAll();
+};

@@ -32,20 +32,58 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Dave Coleman, Michael 'v4hn' Goerner */
 
-#include <moveit/setup_assistant/setup_screen_widget.h>
-#include <iostream>
+#pragma once
 
-void SetupScreenWidget::focusGiven()
+#include <QWidget>
+#include <QString>
+#include <QLineEdit>
+
+#ifndef Q_MOC_RUN
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
+
+#include <moveit/setup_assistant/header_widget.h>
+#include <moveit/setup_assistant/setup_screen_widget.h>  // a base class for screens in the setup assistant
+
+namespace moveit_setup_assistant
 {
-}
-
-bool SetupScreenWidget::focusLost()
+class AuthorInformationWidget : public SetupScreenWidget
 {
-  return true;  // accept switching by default
-}
+  Q_OBJECT
 
-void SetupScreenWidget::initializeWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
-{
-}
+public:
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
+
+  AuthorInformationWidget();
+
+  virtual void initializeWidget(QWidget* parent, MoveItConfigDataPtr config_data) override;
+
+  /// Received when this widget is chosen from the navigation menu
+  void focusGiven() override;
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+
+  QLineEdit* name_edit_;
+
+  QLineEdit* email_edit_;
+
+private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+  void editedName();
+  void editedEmail();
+
+private:
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
+};
+
+}  // namespace moveit_setup_assistant

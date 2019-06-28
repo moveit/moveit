@@ -1,0 +1,8 @@
+<library path="libvirtual_joints_widget">
+  <class name="02.Virtual Joints"
+         type="moveit_setup_assistant::VirtualJointsWidget"
+         base_class_type="SetupScreenWidget">
+    <description>
+    </description>
+  </class>
+</library>

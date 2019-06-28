@@ -38,7 +38,7 @@
 #include <QFont>
 #include <QFileDialog>
 #include <QVBoxLayout>
-#include "header_widget.h"
+#include <moveit/setup_assistant/header_widget.h>
 
 namespace moveit_setup_assistant
 {

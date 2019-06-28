@@ -34,7 +34,8 @@
 
 /* Author: Robert Haschke */
 
-#pragma once
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_LINEAR_MODEL_H
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_LINEAR_MODEL_H
 
 #include <QAbstractProxyModel>
 #include <QSortFilterProxyModel>
@@ -99,3 +100,5 @@ private:
   QVector<int> sort_columns_;  // sorting history
   QVector<int> sort_orders_;   // corresponding sort orders
 };
+
+#endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_LINEAR_MODEL_H
