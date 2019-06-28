@@ -187,7 +187,7 @@ public:
     if (planning_success)
     {
       res.trajectory_ = res_detailed.trajectory_[0];
-      res.planning_time_ = res_detailed.processing_time_[0];
+      res.planning_time_ += res_detailed.processing_time_[0];
     }
     res.error_code_ = res_detailed.error_code_;
 

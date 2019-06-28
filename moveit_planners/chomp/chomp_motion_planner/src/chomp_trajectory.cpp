@@ -190,68 +190,38 @@ void ChompTrajectory::fillInMinJerk()
 
 bool ChompTrajectory::fillInFromTrajectory(const robot_trajectory::RobotTrajectory& trajectory)
 {
-  // get the default number of points in the CHOMP trajectory
-  const size_t num_chomp_trajectory_points = (*this).getNumPoints();
-  // get the number of points in the input trajectory
-  const size_t num_input_points = trajectory.getWayPointCount();
-
   // check if input trajectory has less than two states (start and goal), function returns false if condition is true
-  if (num_input_points < 2)
+  if (trajectory.getWayPointCount() < 2)
     return false;
 
-  // variables for populating the CHOMP trajectory with correct number of trajectory points
-  const unsigned int repeated_factor = num_chomp_trajectory_points / num_input_points;
-  const unsigned int repeated_balance_factor = num_chomp_trajectory_points % num_input_points;
+  const size_t max_output_index = getNumPoints() - 1;
+  const size_t max_input_index = trajectory.getWayPointCount() - 1;
 
-  // response_point_id stores the point at the stored index location.
-  size_t response_point_id = 0;
-  if (num_chomp_trajectory_points >= num_input_points)
+  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  robot_state::RobotState interpolated(trajectory.getRobotModel());
+  for (size_t i = 0; i <= max_output_index; i++)
   {
-    for (size_t i = 0; i < num_input_points; i++)
-    {
-      // following for loop repeats each OMPL trajectory pose/row 'repeated_factor' times; alternatively, there could
-      // also be a linear interpolation between these points later if required
-      for (unsigned int k = 0; k < repeated_factor; k++)
-      {
-        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, i, response_point_id);
-        response_point_id++;
-      }
-
-      // this populates the CHOMP trajectory row  for the remainder number of rows.
-      if (i < repeated_balance_factor)
-      {
-        assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, i, response_point_id);
-        response_point_id++;
-      }  // end of if
-    }    // end of for loop for loading in the trajectory poses/rows
+    double fraction = static_cast<double>(i * max_input_index) / max_output_index;
+    const size_t prev_idx = std::trunc(fraction);  // integer part
+    fraction = fraction - prev_idx;                // fractional part
+    const size_t next_idx = prev_idx == max_input_index ? prev_idx : prev_idx + 1;
+    trajectory.getWayPoint(prev_idx).interpolate(trajectory.getWayPoint(next_idx), fraction, interpolated, group);
+    assignCHOMPTrajectoryPointFromRobotState(interpolated, i, group);
   }
-  else
-  {
-    // perform a decimation sampling in this block if the number of trajectory points in the MotionPlanDetailedResponse
-    // res object is more than the number of points in the CHOMP trajectory
-    const double decimation_sampling_factor = ((double)num_input_points) / ((double)num_chomp_trajectory_points);
-
-    for (size_t i = 0; i < num_chomp_trajectory_points; i++)
-    {
-      size_t sampled_point = floor(i * decimation_sampling_factor);
-      assignCHOMPTrajectoryPointFromInputTrajectoryPoint(trajectory, sampled_point, i);
-    }
-  }  // end of else
   return true;
 }
 
-void ChompTrajectory::assignCHOMPTrajectoryPointFromInputTrajectoryPoint(
-    const robot_trajectory::RobotTrajectory& trajectory, size_t trajectory_point_index,
-    size_t chomp_trajectory_point_index)
+void ChompTrajectory::assignCHOMPTrajectoryPointFromRobotState(const robot_state::RobotState& source,
+                                                               size_t chomp_trajectory_point_index,
+                                                               const robot_model::JointModelGroup* group)
 {
-  const robot_state::RobotState& source = trajectory.getWayPoint(trajectory_point_index);
   Eigen::MatrixXd::RowXpr target = getTrajectoryPoint(chomp_trajectory_point_index);
-  assert(trajectory.getGroup()->getActiveJointModels().size() == static_cast<size_t>(target.cols()));
+  assert(group->getActiveJointModels().size() == static_cast<size_t>(target.cols()));
   size_t joint_index = 0;
-  for (const robot_state::JointModel* jm : trajectory.getGroup()->getActiveJointModels())
+  for (const robot_state::JointModel* jm : group->getActiveJointModels())
   {
     assert(jm->getVariableCount() == 1);
-    target[joint_index++] = source.getVariablePosition(jm->getJointIndex());
+    target[joint_index++] = source.getVariablePosition(jm->getFirstVariableIndex());
   }
 }
 
