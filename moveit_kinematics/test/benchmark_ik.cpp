@@ -43,6 +43,7 @@
 
 namespace po = boost::program_options;
 
+/** Benchmark program measuring time to solve inverse kinematics of robot described in robot_description */
 int main(int argc, char* argv[])
 {
   std::string group;
@@ -50,13 +51,16 @@ int main(int argc, char* argv[])
   unsigned int num;
   bool reset_to_default;
   po::options_description desc("Options");
-  desc.add_options()("help", "show help message")("group", po::value<std::string>(&group)->default_value("all"),
-                                                  "name of planning group")(
-      "tip", po::value<std::string>(&tip)->default_value("default"), "name of the end effector in the planning group")(
-      "num", po::value<unsigned int>(&num)->default_value(100000),
-      "number of IK solutions to compute")("reset_to_default", po::value<bool>(&reset_to_default)->default_value(true),
-                                           "wether to reset IK seed to default state. If set to false, the seed is the "
-                                           "correct IK solution (to accelerate filling the cache).");
+  // clang-format off
+  desc.add_options()
+      ("help", "show help message")
+      ("group", po::value<std::string>(&group)->default_value("all"), "name of planning group")
+      ("tip", po::value<std::string>(&tip)->default_value("default"), "name of the end effector in the planning group")
+      ("num", po::value<unsigned int>(&num)->default_value(100000), "number of IK solutions to compute")
+      ("reset_to_default", po::value<bool>(&reset_to_default)->default_value(true),
+       "whether to reset IK seed to default state. If set to false, the seed is the "
+       "correct IK solution (to accelerate filling the cache).");
+  // clang-format on
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -68,7 +72,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  ros::init(argc, argv, "measure_ik_call_cost");
+  ros::init(argc, argv, "benchmark_ik");
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
