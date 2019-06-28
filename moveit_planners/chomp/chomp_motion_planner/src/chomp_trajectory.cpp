@@ -194,7 +194,7 @@ bool ChompTrajectory::fillInFromTrajectory(const robot_trajectory::RobotTrajecto
   if (trajectory.getWayPointCount() < 2)
     return false;
 
-  const size_t max_output_index = (*this).getNumPoints() - 1;
+  const size_t max_output_index = getNumPoints() - 1;
   const size_t max_input_index = trajectory.getWayPointCount() - 1;
 
   const robot_model::JointModelGroup* group = trajectory.getGroup();
@@ -202,9 +202,9 @@ bool ChompTrajectory::fillInFromTrajectory(const robot_trajectory::RobotTrajecto
   for (size_t i = 0; i <= max_output_index; i++)
   {
     double fraction = static_cast<double>(i * max_input_index) / max_output_index;
-    size_t prev_idx = std::trunc(fraction);  // integer part
-    fraction = fraction - prev_idx;          // fractional part
-    size_t next_idx = prev_idx == max_input_index ? prev_idx : prev_idx + 1;
+    const size_t prev_idx = std::trunc(fraction);  // integer part
+    fraction = fraction - prev_idx;                // fractional part
+    const size_t next_idx = prev_idx == max_input_index ? prev_idx : prev_idx + 1;
     trajectory.getWayPoint(prev_idx).interpolate(trajectory.getWayPoint(next_idx), fraction, interpolated, group);
     assignCHOMPTrajectoryPointFromRobotState(interpolated, i, group);
   }

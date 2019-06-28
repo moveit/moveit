@@ -138,12 +138,11 @@ public:
   bool fillInFromTrajectory(const robot_trajectory::RobotTrajectory& trajectory);
 
   /**
-   * This function assigns the chomp_trajectory row / robot pose at index 'chomp_trajectory_point' obtained from input
-   * trajectory_msgs at index 'trajectory_msgs_point'
-   * @param trajectory_msg the input trajectory_msg
-   * @param num_joints_trajectory number of joints in the given robot trajectory
-   * @param trajectory_msgs_point index of the input trajectory_msg's point to get joint values from
-   * @param chomp_trajectory_point index of the chomp_trajectory's point to get joint values from
+   * \brief This function assigns the given \a source RobotState to the row at index \a chomp_trajectory_point
+   *
+   * @param source The source RobotState
+   * @param chomp_trajectory_point index of the chomp_trajectory's point (row)
+   * @param group  JointModelGroup determining the joints to copy
    */
   void assignCHOMPTrajectoryPointFromRobotState(const moveit::core::RobotState& source, size_t chomp_trajectory_point,
                                                 const moveit::core::JointModelGroup* group);
