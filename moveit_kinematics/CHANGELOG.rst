@@ -2,6 +2,13 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+* [fix] KDL IK solver: fix handling of mimic joints (`#1490 <https://github.com/ros-planning/moveit/issues/1490>`_)
+* [fix] Fix ROS apt-key in OpenRAVE docker image (`#1503 <https://github.com/ros-planning/moveit/issues/1503>`_)
+* [fix] Fix ikfast plugin-generator script (`#1492 <https://github.com/ros-planning/moveit/issues/1492>`_, `#1449 <https://github.com/ros-planning/moveit/issues/1449>`_)
+* Contributors: Immanuel Martini, Michael Görner, Robert Haschke
+
 1.0.1 (2019-03-08)
 ------------------
 * [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)

@@ -2,6 +2,12 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+* [fix]     static transform publisher does not take a rate (`#1494 <https://github.com/ros-planning/moveit/issues/1494>`_)
+* [feature] Add arguments `load_robot_description`, `pipeline`, `rviz config_file`  to launch file templates (`#1397 <https://github.com/ros-planning/moveit/issues/1397>`_)
+* Contributors: Mike Lautman, Robert Haschke, jschleicher
+
 1.0.1 (2019-03-08)
 ------------------
 * [fix] re-add required build dependencies (`#1373 <https://github.com/ros-planning/moveit/issues/1373>`_)

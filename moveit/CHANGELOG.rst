@@ -2,6 +2,9 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+
 1.0.1 (2019-03-08)
 ------------------
 * [fix] segfault in chomp adapter (`#1377 <https://github.com/ros-planning/moveit/issues/1377>`_)

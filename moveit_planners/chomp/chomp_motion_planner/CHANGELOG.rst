@@ -2,6 +2,13 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+* [fix] Fix chomp planner (`#1512 <https://github.com/ros-planning/moveit/issues/1512>`_)
+  * Fix start-state handling
+  * remove time parameterization from planning code
+* Contributors: Robert Haschke
+
 1.0.1 (2019-03-08)
 ------------------
 * [improve] Apply clang tidy fix to entire code base (Part 1) (`#1366 <https://github.com/ros-planning/moveit/issues/1366>`_)

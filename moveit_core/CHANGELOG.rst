@@ -2,6 +2,17 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+* [fix] Removed MessageFilter for /collision_object messages (`#1406 <https://github.com/ros-planning/moveit/issues/1406>`_)
+* [fix] Update robot state transforms when initializing a planning scene (`#1474 <https://github.com/ros-planning/moveit/issues/1474>`_)
+* [fix] Fix segfault when detaching attached collision object (`#1438 <https://github.com/ros-planning/moveit/issues/1438>`_)
+* [fix] Normalize quaternions when adding new or moving collision objects (`#1420 <https://github.com/ros-planning/moveit/issues/1420>`_)
+* [fix] Minor bug fixes in (collision) distance field (`#1392 <https://github.com/ros-planning/moveit/issues/1392>`_)
+* [fix] Remove obsolete moveit_resources/config.h ()
+* [fix] Fix test utilities in moveit_core (`#1391 <https://github.com/ros-planning/moveit/issues/1391>`_, `#1409 <https://github.com/ros-planning/moveit/issues/1409>`_, `#1412 <https://github.com/ros-planning/moveit/issues/1412>`_)
+* Contributors: Bryce Willey, Henning Kayser, Mike Lautman, Robert Haschke, tsijs
+
 1.0.1 (2019-03-08)
 ------------------
 * [capability] Graphically print current robot joint states with joint limits (`#1358 <https://github.com/ros-planning/moveit/issues/1358>`_)

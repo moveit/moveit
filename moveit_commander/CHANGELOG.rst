@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2019-06-28)
+------------------
+* [feature]     Add get_jacobian_matrix to moveit_commander (`#1501 <https://github.com/ros-planning/moveit/issues/1501>`_)
+* [maintanance] Cleanup Python PlanningSceneInterface (`#1405 <https://github.com/ros-planning/moveit/issues/1405>`_, `#789 <https://github.com/ros-planning/moveit/issues/789>`_)
+* Contributors: Bence Magyar, Robert Haschke, Ryosuke Tajima
+
 1.0.1 (2019-03-08)
 ------------------
 * [capability] python PlanningSceneInterface.add_cylinder() (`#1372 <https://github.com/ros-planning/moveit/issues/1372>`_)
