@@ -32,9 +32,9 @@ if(CATKIN_ENABLE_TESTING)
   endif()
 
   # Benchmarking program for cached_ik_kinematics
-  add_executable(measure_ik_call_cost measure_ik_call_cost.cpp)
-  target_link_libraries(measure_ik_call_cost
+  add_executable(benchmark_ik benchmark_ik.cpp)
+  target_link_libraries(benchmark_ik
       ${catkin_LIBRARIES} ${moveit_ros_planning_LIBRARIES}
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  install(TARGETS measure_ik_call_cost DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  install(TARGETS benchmark_ik DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
