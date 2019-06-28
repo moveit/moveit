@@ -87,6 +87,7 @@ protected:
   void updateManagedObject(const std::string& id);
 
   mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
+  mutable tesseract::tesseract_bullet::BulletCastBVHManager bt_manager_CCD_;
 
 private:
   void initialize();

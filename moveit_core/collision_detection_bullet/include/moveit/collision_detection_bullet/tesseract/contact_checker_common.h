@@ -111,9 +111,14 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
     }
     else
     {
-      data.reserve(cdata.req.max_contacts);
+      data.reserve(cdata.req.max_contacts_per_pair);
       data.emplace_back(contact);
       cdata.res.contact_count++;
+    }
+
+    if (cdata.res.contact_count >= cdata.req.max_contacts)
+    {
+      cdata.done = true;
     }
 
     return &(cdata.res.contacts.insert(std::make_pair(key, data)).first->second.back());
@@ -124,7 +129,12 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
     dr.emplace_back(contact);
     cdata.res.contact_count++;
 
-    if (cdata.res.contact_count == cdata.req.max_contacts)
+    if (dr.size() >= cdata.req.max_contacts_per_pair)
+    {
+      // TODO: Somehow abort collision check between this pair of objects
+    }
+
+    if (cdata.res.contact_count >= cdata.req.max_contacts)
     {
       cdata.done = true;
     }

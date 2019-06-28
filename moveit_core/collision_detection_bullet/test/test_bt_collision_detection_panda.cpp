@@ -206,7 +206,7 @@ TEST_F(BulletCollisionDetectionTester, RobotWorldCollision_2)
   cworld_->getWorld()->addToObject("box", shape_ptr, pos1);
   cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
   ASSERT_TRUE(res.collision);
-  ASSERT_EQ(4, res.contact_count);
+  ASSERT_GE(res.contact_count, 3);
   res.clear();
 }
 

@@ -40,6 +40,7 @@
 #include <moveit/collision_detection_bullet/collision_common.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
+#include <urdf/model.h>
 
 namespace collision_detection
 {
@@ -89,9 +90,8 @@ protected:
 
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
-  void addAttachedOjectsToManager(const robot_state::RobotState& state) const;
-
-  void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<void*>& geoms) const;
+  void addAttachedOjects(const robot_state::RobotState& state,
+                         std::vector<tesseract::tesseract_bullet::COWPtr>& cows) const;
 
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
@@ -104,9 +104,13 @@ protected:
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
+  void addLinkAsCOW(const urdf::LinkSharedPtr link);
+
   /** @brief Bullet collision manager taken from tesseract*/
   mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
-  mutable tesseract::tesseract_bullet::BulletCastBVHManager bt_manager_CCD_;
+
+  tesseract::tesseract_bullet::Link2Cow link2cow_;
+  tesseract::tesseract_bullet::Link2Cow link2cow_CCD_;
 };
 }
 

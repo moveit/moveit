@@ -167,6 +167,21 @@ void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::string& n
   }
 }
 
+void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::string& name, const btTransform& pose)
+{
+  // TODO: Find a way to remove this check. Need to store information in Tesseract EnvState indicating transforms with
+  // geometry
+  auto it = link2cow_.find(name);
+  if (it != link2cow_.end())
+  {
+    COWPtr& cow = it->second;
+    cow->setWorldTransform(pose);
+
+    // Update Collision Object Broadphase AABB
+    updateBroadphaseAABB(cow, broadphase_, dispatcher_);
+  }
+}
+
 void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::vector<std::string>& names,
                                                             const AlignedVector<Eigen::Isometry3d>& poses)
 {
@@ -240,6 +255,32 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
 
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
+
+  ROS_DEBUG_STREAM((collisions.collision ? "In" : "No") << " collision with " << collisions.contact_count << " collisio"
+                                                                                                             "ns");
+}
+
+void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult& collisions,
+                                           const collision_detection::CollisionRequest& req,
+                                           const collision_detection::AllowedCollisionMatrix* acm,
+                                           const std::vector<tesseract::tesseract_bullet::COWPtr> cows_external)
+{
+  ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
+
+  broadphase_->calculateOverlappingPairs(dispatcher_.get());
+
+  btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
+
+  DiscreteBroadphaseContactResultCallback cc(cdata, contact_distance_);
+
+  TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
+
+  pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
+
+  for (auto& cow : cows_external)
+  {
+    contactTest(cow, cdata);
+  }
 
   ROS_DEBUG_STREAM((collisions.collision ? "In" : "No") << " collision with " << collisions.contact_count << " collisio"
                                                                                                              "ns");

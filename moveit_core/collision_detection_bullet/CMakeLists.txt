@@ -40,6 +40,6 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_bullet_collision_detection_panda test/test_bt_collision_detection_panda.cpp)
   target_link_libraries(test_bullet_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 
-  catkin_add_gtest(test_bullet_continous_collision_checking test/test_bt_continous_collision_checking.cpp)
-  target_link_libraries(test_bullet_continous_collision_checking moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+  catkin_add_gtest(test_bullet_continuous_collision_checking test/test_bt_continuous_collision_checking.cpp)
+  target_link_libraries(test_bullet_continuous_collision_checking moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()

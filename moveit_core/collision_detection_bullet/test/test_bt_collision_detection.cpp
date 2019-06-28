@@ -419,7 +419,7 @@ TEST_F(BulletCollisionDetectionTester, ConvertObjectToAttached)
   cworld_->checkRobotCollision(req, res, *crobot_, robot_state);
   double second_check = (ros::WallTime::now() - before).toSec();
 
-  EXPECT_LT(second_check, .05);
+  EXPECT_LT(second_check, .1);
 
   collision_detection::CollisionWorld::ObjectConstPtr object = cworld_->getWorld()->getObject("kinect");
   cworld_->getWorld()->removeObject("kinect");
@@ -471,7 +471,7 @@ TEST_F(BulletCollisionDetectionTester, TestCollisionMapAdditionSpeed)
   ros::WallTime start = ros::WallTime::now();
   cworld_->getWorld()->addToObject("map", shapes, poses);
   double t = (ros::WallTime::now() - start).toSec();
-  EXPECT_GE(1.0, t);
+  EXPECT_GE(5.0, t);
   // this is not really a failure; it is just that slow;
   // looking into doing collision checking with a voxel grid.
   ROS_INFO_NAMED("collision_detection.bullet", "Adding boxes took %g", t);

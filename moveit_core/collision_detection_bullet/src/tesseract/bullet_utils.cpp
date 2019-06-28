@@ -332,6 +332,16 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
                                                const std::vector<shapes::ShapeConstPtr>& shapes,
                                                const AlignedVector<Eigen::Isometry3d>& shape_poses,
                                                const std::vector<CollisionObjectType>& collision_object_types,
+                                               const std::set<std::string>& touch_links)
+  : CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types)
+{
+  m_touch_links = touch_links;
+}
+
+CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
+                                               const std::vector<shapes::ShapeConstPtr>& shapes,
+                                               const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                               const std::vector<CollisionObjectType>& collision_object_types,
                                                const std::vector<std::shared_ptr<void>>& data)
   : m_name(name)
   , m_type_id(type_id)

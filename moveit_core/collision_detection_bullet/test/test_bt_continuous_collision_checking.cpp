@@ -203,7 +203,7 @@ TEST(TesseractCollisionUnit, TwoManagers)
   // Add moving sphere to checker
   ////////////////////////
   shapes::ShapePtr sphere;
-  sphere.reset(shapes::createMeshFromResource("package://moveit_resources/clutter/sphere_p25m.stl"));
+  sphere.reset(shapes::createMeshFromResource("package://moveit_resources/panda_description/meshes/collision/link0.stl"));
 
   Eigen::Isometry3d sphere_pose;
   sphere_pose.setIdentity();
@@ -254,6 +254,5 @@ TEST(TesseractCollisionUnit, TwoManagers)
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-
   return RUN_ALL_TESTS();
 }

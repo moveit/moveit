@@ -32,6 +32,7 @@
 #include <memory>
 
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
+#include <btBulletCollisionCommon.h>
 
 namespace tesseract
 {
@@ -99,6 +100,8 @@ public:
    * @param pose The tranformation in world
    */
   virtual void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose) = 0;
+
+  virtual void setCollisionObjectsTransform(const std::string& name, const btTransform& pose) = 0;
 
   /**
    * @brief Set a series of collision object's tranforms

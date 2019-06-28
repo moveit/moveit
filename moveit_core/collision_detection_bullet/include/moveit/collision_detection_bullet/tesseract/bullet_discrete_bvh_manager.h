@@ -71,6 +71,8 @@ public:
 
   void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose) override;
 
+  void setCollisionObjectsTransform(const std::string& name, const btTransform& pose) override;
+
   void setCollisionObjectsTransform(const std::vector<std::string>& names,
                                     const AlignedVector<Eigen::Isometry3d>& poses) override;
 
@@ -91,10 +93,14 @@ public:
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
                    const collision_detection::AllowedCollisionMatrix* acm) override;
 
+  void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
+                   const collision_detection::AllowedCollisionMatrix* acm,
+                   const std::vector<tesseract::tesseract_bullet::COWPtr> cows_external);
+
   /**
-   * @brief A a bullet collision object to the manager
-   * @param cow The tesseract bullet collision object
-   */
+  * @brief A a bullet collision object to the manager
+  * @param cow The tesseract bullet collision object
+  */
   void addCollisionObject(const COWPtr& cow);
 
   /**

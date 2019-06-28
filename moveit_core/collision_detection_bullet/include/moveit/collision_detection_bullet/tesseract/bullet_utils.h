@@ -61,7 +61,8 @@ const btScalar BULLET_MARGIN = 0.0f;
 const btScalar BULLET_SUPPORT_FUNC_TOLERANCE = 0.01f METERS;
 const btScalar BULLET_LENGTH_TOLERANCE = 0.001f METERS;
 const btScalar BULLET_EPSILON = 1e-3f;
-const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.05f;
+// All pairs closer than this distance get reported
+const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
 inline btVector3 convertEigenToBt(const Eigen::Vector3d& v)
@@ -113,9 +114,16 @@ public:
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
                          const std::vector<CollisionObjectType>& collision_object_types);
 
+  CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
+                         const std::vector<shapes::ShapeConstPtr>& shapes,
+                         const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                         const std::vector<CollisionObjectType>& collision_object_types,
+                         const std::set<std::string>& touch_links);
+
   short int m_collisionFilterGroup;
   short int m_collisionFilterMask;
   bool m_enabled;
+  std::set<std::string> m_touch_links;
 
   /** @brief Get the collision object name */
   const std::string& getName() const
@@ -342,16 +350,33 @@ inline void GetAverageSupport(const btConvexShape* shape, const btVector3& local
 inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn allowed_fn,
                                 const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
-  bool contact_allowed = isContactAllowed(cow1.getName(), cow2.getName(), allowed_fn, acm, verbose);
-  bool enabled = cow1.m_enabled && cow2.m_enabled;
-  bool filter_group_mask = (cow2.m_collisionFilterGroup & cow1.m_collisionFilterMask) &&
-                           (cow1.m_collisionFilterGroup & cow2.m_collisionFilterMask);
+  if (!cow1.m_enabled)
+    return false;
 
-  bool combined = enabled && filter_group_mask && !contact_allowed;
+  if (!cow2.m_enabled)
+    return false;
 
-  ROS_DEBUG_STREAM((combined ? "Checking " : "Not checking ") << cow1.getName() << " vs " << cow2.getName());
+  if (!((cow2.m_collisionFilterGroup & cow1.m_collisionFilterMask) &&
+        (cow1.m_collisionFilterGroup & cow2.m_collisionFilterMask)))
+    return false;
 
-  return combined;
+  if (isContactAllowed(cow1.getName(), cow2.getName(), allowed_fn, acm, verbose))
+    return false;
+
+  if (cow1.getTypeID() == collision_detection::BodyType::ROBOT_ATTACHED &&
+      cow2.getTypeID() == collision_detection::BodyType::ROBOT_LINK)
+    if (cow1.m_touch_links.find(cow2.getName()) != cow1.m_touch_links.end())
+      return false;
+
+  if (cow2.getTypeID() == collision_detection::BodyType::ROBOT_ATTACHED &&
+      cow1.getTypeID() == collision_detection::BodyType::ROBOT_LINK)
+    if (cow2.m_touch_links.find(cow1.getName()) == cow2.m_touch_links.end())
+      return false;
+
+  // TODO: Add check for two objects attached to the same link
+  ROS_DEBUG_STREAM("Checking collision btw" << cow1.getName() << " vs " << cow2.getName());
+
+  return true;
 }
 
 inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap,
@@ -837,6 +862,28 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   }
 
   COWPtr new_cow(new COW(name, type_id, shapes, shape_poses, collision_object_types));
+
+  new_cow->m_enabled = enabled;
+  new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
+
+  ROS_DEBUG("Created collision object for link %s", new_cow->getName().c_str());
+  return new_cow;
+}
+
+inline COWPtr createCollisionObject(const std::string& name, const collision_detection::BodyType& type_id,
+                                    const std::vector<shapes::ShapeConstPtr>& shapes,
+                                    const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                    const std::vector<CollisionObjectType>& collision_object_types,
+                                    const std::set<std::string>& touch_links, bool enabled = true)
+{
+  // dont add object that does not have geometry
+  if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
+  {
+    ROS_DEBUG("ignoring link %s", name.c_str());
+    return nullptr;
+  }
+
+  COWPtr new_cow(new COW(name, type_id, shapes, shape_poses, collision_object_types, touch_links));
 
   new_cow->m_enabled = enabled;
   new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
