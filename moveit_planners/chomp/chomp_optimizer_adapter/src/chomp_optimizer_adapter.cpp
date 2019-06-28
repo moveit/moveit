@@ -198,9 +198,8 @@ public:
       res_detailed.trajectory_[0] = robot_trajectory::RobotTrajectoryPtr(
           new robot_trajectory::RobotTrajectory(res.trajectory_->getRobotModel(), res.trajectory_->getGroup()));
 
-      moveit::core::RobotState start_state(planning_scene->getRobotModel());
-      robot_state::robotStateMsgToRobotState(res_detailed_moveit_msgs.trajectory_start, start_state);
-      res_detailed.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_detailed_moveit_msgs.trajectory[0]);
+      res_detailed.trajectory_[0]->setRobotTrajectoryMsg(res.trajectory_->getFirstWayPoint(),
+                                                         res_detailed_moveit_msgs.trajectory[0]);
       res_detailed.description_.push_back("plan");
       res_detailed.processing_time_ = res_detailed_moveit_msgs.processing_time;
       res_detailed.error_code_ = res_detailed_moveit_msgs.error_code;
