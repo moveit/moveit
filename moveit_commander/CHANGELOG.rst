@@ -2,6 +2,13 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [feature]     Add get_jacobian_matrix to moveit_commander (`#1501 <https://github.com/ros-planning/moveit/issues/1501>`_)
+* [feature]     Expose get_named_targets and get_named_target_values functions (`#1300 <https://github.com/ros-planning/moveit/issues/1300>`_)
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* Contributors: Keerthana Subramanian Manivannan, Ludovic Delval, Ryosuke Tajima
+
 0.9.15 (2018-10-29)
 -------------------
 

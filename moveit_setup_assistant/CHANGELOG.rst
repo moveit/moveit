@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* [maintanance] Fix clang issues (`#1233 <https://github.com/ros-planning/moveit/issues/1233>`_)
+* [feature]     Added demo_gazebo.launch (`#1051 <https://github.com/ros-planning/moveit/issues/1051>`_)
+* Contributors: Ludovic Delval, Michael Görner, Mohmmad Ayman, Robert Haschke
+
 0.9.15 (2018-10-29)
 -------------------
 

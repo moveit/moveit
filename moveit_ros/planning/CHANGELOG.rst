@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [maintanance] Cleanup Chomp packages (`#1282 <https://github.com/ros-planning/moveit/issues/1282>`_)
+* [maintanance] Disable (unused) dependencies (`#1256 <https://github.com/ros-planning/moveit/issues/1256>`_)
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* [maintanance] Improve clang-format (`#1214 <https://github.com/ros-planning/moveit/issues/1214>`_)
+* [maintanance] Change dynamic reconfigure limits for allowed_goal_duration_margin to 30s (`#993 <https://github.com/ros-planning/moveit/issues/993>`_)
+* [fix]         Use correct trajectory_initialization_method param (`#1237 <https://github.com/ros-planning/moveit/issues/1237>`_)
+* Contributors: Hamal Marino, Ludovic Delval, Michael Görner, Robert Haschke, Stephan
+
 0.9.15 (2018-10-29)
 -------------------
 * [fix] Build regression (`#1134 <https://github.com/ros-planning/moveit/issues/1134>`_) 

@@ -2,6 +2,24 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [fix]         Invert waypoint velocities on reverse (`#1335 <https://github.com/ros-planning/moveit/issues/1335>`_)
+* [fix]         Added missing robot state update to iterative spline parameterization (`#1298 <https://github.com/ros-planning/moveit/issues/1298>`_)
+* [fix]         Fix race condition when world object was removed (`#1306 <https://github.com/ros-planning/moveit/issues/1306>`_)
+* [fix]         Fixed calculation of Jacobian for prismatic joints (`#1192 <https://github.com/ros-planning/moveit/issues/1192>`_)
+* [maintanance] Improve code quality (`#1340 <https://github.com/ros-planning/moveit/issues/1340>`_)
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* [maintanance] Cleanup Chomp packages (`#1282 <https://github.com/ros-planning/moveit/issues/1282>`_)
+                Moved collision_distance_field to moveit_core
+                Add dependency moveit_core -> moveit_experimental
+* [maintanance] Add (manual) coverage analysis (`#1133 <https://github.com/ros-planning/moveit/issues/1133>`_)
+* [maintanance] ConstraintSampler cleanup (`#1247 <https://github.com/ros-planning/moveit/issues/1247>`_)
+* [maintanance] Fix clang issues (`#1233 <https://github.com/ros-planning/moveit/issues/1233>`_, `#1214 <https://github.com/ros-planning/moveit/issues/1214>`_)
+* [feature]     Helper function to construct constraints from ROS params (`#1253 <https://github.com/ros-planning/moveit/issues/1253>`_)
+* [feature]     Allow appending of only a part of a trajectory (`#1213 <https://github.com/ros-planning/moveit/issues/1213>`_)
+* Contributors: Alexander Gutenkunst, Ludovic Delval, Martin Oehler, Michael Görner, Mike Lautman, Milutin Nikolic, Robert Haschke
+
 0.9.15 (2018-10-29)
 -------------------
 * [improvement] Exploit the fact that our transforms are isometries (instead of general affine transformations). `#1091 <https://github.com/ros-planning/moveit/issues/1091>`_

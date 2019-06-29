@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* [maintanance] Reduce log spamming: list capabilities only once (`#1250 <https://github.com/ros-planning/moveit/issues/1250>`_)
+* Contributors: Ludovic Delval, Robert Haschke
+
 0.9.15 (2018-10-29)
 -------------------
 

@@ -2,6 +2,13 @@
 Changelog for package chomp_motion_planner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [maintanance] Cleanup Chomp packages (`#1282 <https://github.com/ros-planning/moveit/issues/1282>`_, `#1221 <https://github.com/ros-planning/moveit/issues/1221>`_)
+* [maintanance] Fix clang issues (`#1233 <https://github.com/ros-planning/moveit/issues/1233>`_, `#1214 <https://github.com/ros-planning/moveit/issues/1214>`_)
+* [fix]         Set last_state only for active joints in chomp_planner (`#1222 <https://github.com/ros-planning/moveit/issues/1222>`_)
+* Contributors: Michael Görner, Robert Haschke, Shingo Kitagawa
+
 0.9.15 (2018-10-29)
 -------------------
 

@@ -2,6 +2,13 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.16 (2019-06-29)
+-------------------
+* [feature]     Helper function to construct constraints from ROS params (`#1253 <https://github.com/ros-planning/moveit/issues/1253>`_)
+* [maintanance] Resolve catkin lint issues (`#1137 <https://github.com/ros-planning/moveit/issues/1137>`_)
+* [maintanance] Improve clang format (`#1214 <https://github.com/ros-planning/moveit/issues/1214>`_)
+* Contributors: Ludovic Delval, Robert Haschke, v4hn
+
 0.9.15 (2018-10-29)
 -------------------
 * [code] cleanup, improvements (`#1099 <https://github.com/ros-planning/moveit/issues/1099>`_)
