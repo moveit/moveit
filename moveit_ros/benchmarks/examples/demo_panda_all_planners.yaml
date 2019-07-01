@@ -18,16 +18,16 @@ benchmark_config:
         output_directory: /tmp/moveit_benchmarks/
         queries: .*
         start_states: .*
-    planners:
-        - plugin: ompl_interface/OMPLPlanner
+    planning_pipelines:
+        - name: ompl
           planners:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault
             - KPIECEkConfigDefault
-        - plugin: chomp_interface/CHOMPPlanner
+        - name: chomp
           planners:
             - CHOMP
-        - plugin: stomp_moveit/StompPlannerManager
+        - name: stomp
           planners:
             - STOMP
 

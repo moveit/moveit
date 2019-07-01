@@ -69,8 +69,8 @@ public:
   const std::string& getPathConstraintRegex() const;
   const std::string& getTrajectoryConstraintRegex() const;
   void getGoalOffsets(std::vector<double>& offsets) const;
-  const std::map<std::string, std::vector<std::string>>& getPlannerConfigurations() const;
-  void getPlannerPluginList(std::vector<std::string>& plugin_list) const;
+  const std::map<std::string, std::vector<std::string>>& getPlanningPipelineConfigurations() const;
+  void getPlanningPipelineNames(std::vector<std::string>& planning_pipeline_names) const;
 
   const std::string& getWorkspaceFrameID() const;
   const moveit_msgs::WorkspaceParameters& getWorkspaceParameters() const;
@@ -104,7 +104,7 @@ protected:
   double goal_offsets[6];
 
   /// planner configurations
-  std::map<std::string, std::vector<std::string>> planners_;
+  std::map<std::string, std::vector<std::string>> planning_pipelines_;
 
   moveit_msgs::WorkspaceParameters workspace_;
 };

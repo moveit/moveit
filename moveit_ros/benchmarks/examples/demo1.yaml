@@ -18,8 +18,8 @@ benchmark_config:
         output_directory: /tmp/moveit_benchmarks/
         queries: Pick1
         start_states: Start1
-    planners:
-        - plugin: ompl_interface/OMPLPlanner
+    planning_pipelines:
+        - name: ompl
           planners:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault

@@ -71,17 +71,6 @@ BenchmarkExecutor::BenchmarkExecutor(const std::string& robot_description_param)
   tcs_ = nullptr;
   psm_ = new planning_scene_monitor::PlanningSceneMonitor(robot_description_param);
   planning_scene_ = psm_->getPlanningScene();
-
-  // Initialize the class loader for planner plugins
-  try
-  {
-    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
-        "moveit_core", "planning_interface::PlannerManager"));
-  }
-  catch (pluginlib::PluginlibException& ex)
-  {
-    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-  }
 }
 
 BenchmarkExecutor::~BenchmarkExecutor()
@@ -94,46 +83,39 @@ BenchmarkExecutor::~BenchmarkExecutor()
   delete psm_;
 }
 
-void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classes)
+void BenchmarkExecutor::initialize(const std::vector<std::string>& planning_pipeline_names)
 {
-  planner_interfaces_.clear();
+  planning_pipelines_.clear();
 
-  // Load the planning plugins
-  const std::vector<std::string>& classes = planner_plugin_loader_->getDeclaredClasses();
-
-  for (const std::string& planner_plugin_name : plugin_classes)
+  ros::NodeHandle pnh("~");
+  for (const std::string& planning_pipeline_name : planning_pipeline_names)
   {
-    std::vector<std::string>::const_iterator it = std::find(classes.begin(), classes.end(), planner_plugin_name);
-    if (it == classes.end())
+    // Initialize planning pipelines from configured child namespaces
+    ros::NodeHandle child_nh(pnh, planning_pipeline_name);
+    planning_pipeline::PlanningPipelinePtr pipeline(new planning_pipeline::PlanningPipeline(
+        planning_scene_->getRobotModel(), child_nh, "planning_plugin", "request_adapters"));
+
+    // Verify the pipeline has successfully initialized a planner
+    if (!pipeline->getPlannerManager())
     {
-      ROS_ERROR("Failed to find plugin_class %s", planner_plugin_name.c_str());
-      return;
+      ROS_ERROR("Failed to initialize planning pipeline '%s'", planning_pipeline_name.c_str());
+      continue;
     }
 
-    try
-    {
-      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(planner_plugin_name);
-      p->initialize(planning_scene_->getRobotModel(), "");
-
-      p->getPlannerConfigurations();
-      planner_interfaces_[planner_plugin_name] = p;
-    }
-    catch (pluginlib::PluginlibException& ex)
-    {
-      ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name << "': " << ex.what());
-    }
+    // Disable visualizations and store pipeline
+    pipeline->displayComputedMotionPlans(false);
+    pipeline->checkSolutionPaths(false);
+    planning_pipelines_[planning_pipeline_name] = pipeline;
   }
 
-  // error check
-  if (planner_interfaces_.empty())
-    ROS_ERROR("No planning plugins have been loaded. Nothing to do for the benchmarking service.");
+  // Error check
+  if (planning_pipelines_.empty())
+    ROS_ERROR("No planning pipelines have been loaded. Nothing to do for the benchmarking service.");
   else
   {
-    std::stringstream ss;
-    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin();
-         it != planner_interfaces_.end(); ++it)
-      ss << it->first << " ";
-    ROS_INFO("Available planner instances: %s", ss.str().c_str());
+    ROS_INFO("Available planning pipelines:");
+    for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& entry : planning_pipelines_)
+      ROS_INFO_STREAM("Pipeline: " << entry.first << ", Planner: " << entry.second->getPlannerPluginName());
   }
 }
 
@@ -206,9 +188,9 @@ void BenchmarkExecutor::addQueryCompletionEvent(const QueryCompletionEventFuncti
 
 bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
 {
-  if (planner_interfaces_.empty())
+  if (planning_pipelines_.empty())
   {
-    ROS_ERROR("No planning interfaces configured.  Did you call BenchmarkExecutor::initialize?");
+    ROS_ERROR("No planning pipelines configured.  Did you call BenchmarkExecutor::initialize?");
     return false;
   }
 
@@ -217,7 +199,7 @@ bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
 
   if (initializeBenchmarks(opts, scene_msg, queries))
   {
-    if (!queriesAndPlannersCompatible(queries, opts.getPlannerConfigurations()))
+    if (!queriesAndPlannersCompatible(queries, opts.getPlanningPipelineConfigurations()))
       return false;
 
     for (std::size_t i = 0; i < queries.size(); ++i)
@@ -241,7 +223,7 @@ bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
 
       ROS_INFO("Benchmarking query '%s' (%lu of %lu)", queries[i].name.c_str(), i + 1, queries.size());
       ros::WallTime start_time = ros::WallTime::now();
-      runBenchmark(queries[i].request, options_.getPlannerConfigurations(), options_.getNumRuns());
+      runBenchmark(queries[i].request, options_.getPlanningPipelineConfigurations(), options_.getNumRuns());
       double duration = (ros::WallTime::now() - start_time).toSec();
 
       for (QueryCompletionEventFunction& query_end_fn : query_end_fns_)
@@ -259,14 +241,15 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<Benchmark
                                                      const std::map<std::string, std::vector<std::string>>& planners)
 {
   // Make sure that the planner interfaces can service the desired queries
-  for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin();
-       it != planner_interfaces_.end(); ++it)
+  for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
   {
     for (const BenchmarkRequest& request : requests)
     {
-      if (!it->second->canServiceRequest(request.request))
+      if (!pipeline_entry.second->getPlannerManager()->canServiceRequest(request.request))
       {
-        ROS_ERROR("Interface '%s' cannot service the benchmark request '%s'", it->first.c_str(), request.name.c_str());
+        ROS_ERROR("Interface '%s' in pipeline '%s' cannot service the benchmark request '%s'",
+                  pipeline_entry.second->getPlannerPluginName().c_str(), pipeline_entry.first.c_str(),
+                  request.name.c_str());
         return false;
       }
     }
@@ -278,7 +261,7 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<Benchmark
 bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                              std::vector<BenchmarkRequest>& requests)
 {
-  if (!plannerConfigurationsExist(opts.getPlannerConfigurations(), opts.getGroupName()))
+  if (!plannerConfigurationsExist(opts.getPlanningPipelineConfigurations(), opts.getGroupName()))
     return false;
 
   std::vector<StartState> start_states;
@@ -484,6 +467,10 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
   {
     for (const StartState& start_state : start_states)
     {
+      // Skip start states that have the same name as the goal
+      if (start_state.name == brequest.name)
+        continue;
+
       BenchmarkRequest new_brequest = brequest;
       new_brequest.request.start_state = start_state.state;
 
@@ -504,33 +491,29 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
   }
 }
 
-bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, std::vector<std::string>>& planners,
-                                                   const std::string& group_name)
+bool BenchmarkExecutor::plannerConfigurationsExist(
+    const std::map<std::string, std::vector<std::string>>& pipeline_configurations, const std::string& group_name)
 {
   // Make sure planner plugins exist
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
+  for (const std::pair<std::string, std::vector<std::string>>& pipeline_config_entry : pipeline_configurations)
   {
-    bool plugin_exists = false;
-    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator planner_it =
-             planner_interfaces_.begin();
-         planner_it != planner_interfaces_.end() && !plugin_exists; ++planner_it)
+    bool pipeline_exists = false;
+    for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
     {
-      plugin_exists = planner_it->first == it->first;
+      pipeline_exists = pipeline_entry.first == pipeline_config_entry.first;
     }
 
-    if (!plugin_exists)
+    if (!pipeline_exists)
     {
-      ROS_ERROR("Planning plugin '%s' does NOT exist", it->first.c_str());
+      ROS_ERROR("Planning pipeline '%s' does NOT exist", pipeline_config_entry.first.c_str());
       return false;
     }
   }
 
-  // Make sure planning algorithms exist within those plugins
-  for (std::map<std::string, std::vector<std::string>>::const_iterator it = planners.begin(); it != planners.end();
-       ++it)
+  // Make sure planners exist within those pipelines
+  for (const std::pair<std::string, std::vector<std::string>>& entry : pipeline_configurations)
   {
-    planning_interface::PlannerManagerPtr pm = planner_interfaces_[it->first];
+    planning_interface::PlannerManagerPtr pm = planning_pipelines_[entry.first]->getPlannerManager();
     const planning_interface::PlannerConfigurationMap& config_map = pm->getPlannerConfigurations();
 
     // if the planner is chomp or stomp skip this function and return true for checking planner configurations for the
@@ -539,24 +522,22 @@ bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, s
     if (pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
       continue;
 
-    for (std::size_t i = 0; i < it->second.size(); ++i)
+    for (std::size_t i = 0; i < entry.second.size(); ++i)
     {
       bool planner_exists = false;
-      for (planning_interface::PlannerConfigurationMap::const_iterator map_it = config_map.begin();
-           map_it != config_map.end() && !planner_exists; ++map_it)
+      for (const std::pair<std::string, planning_interface::PlannerConfigurationSettings>& config_entry : config_map)
       {
-        std::string planner_name = group_name + "[" + it->second[i] + "]";
-        planner_exists = (map_it->second.group == group_name && map_it->second.name == planner_name);
+        std::string planner_name = group_name + "[" + entry.second[i] + "]";
+        planner_exists = (config_entry.second.group == group_name && config_entry.second.name == planner_name);
       }
 
       if (!planner_exists)
       {
-        ROS_ERROR("Planner '%s' does NOT exist for group '%s' in pipeline '%s'", it->second[i].c_str(),
-                  group_name.c_str(), it->first.c_str());
+        ROS_ERROR("Planner '%s' does NOT exist for group '%s' in pipeline '%s'", entry.second[i].c_str(),
+                  group_name.c_str(), entry.first.c_str());
         std::cout << "There are " << config_map.size() << " planner entries: " << std::endl;
-        for (planning_interface::PlannerConfigurationMap::const_iterator map_it = config_map.begin();
-             map_it != config_map.end() && !planner_exists; ++map_it)
-          std::cout << map_it->second.name << std::endl;
+        for (const auto& config_map_entry : config_map)
+          std::cout << config_map_entry.second.name << std::endl;
         return false;
       }
     }
@@ -756,21 +737,24 @@ bool BenchmarkExecutor::loadTrajectoryConstraints(const std::string& regex,
 }
 
 void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
-                                     const std::map<std::string, std::vector<std::string>>& planners, int runs)
+                                     const std::map<std::string, std::vector<std::string>>& pipeline_map, int runs)
 {
   benchmark_data_.clear();
 
   unsigned int num_planners = 0;
-  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
-    num_planners += planner.second.size();
+  for (const std::pair<const std::string, std::vector<std::string>>& pipeline_entry : pipeline_map)
+    num_planners += pipeline_entry.second.size();
 
   boost::progress_display progress(num_planners * runs, std::cout);
 
-  // Iterate through all planner plugins
-  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
+  // Iterate through all planning pipelines
+  for (const std::pair<const std::string, std::vector<std::string>>& pipeline_entry : pipeline_map)
   {
-    // Iterate through all planners associated with the plugin
-    for (std::size_t i = 0; i < planner.second.size(); ++i)
+    planning_pipeline::PlanningPipelinePtr planning_pipeline = planning_pipelines_[pipeline_entry.first];
+    // Use the planning context if the pipeline only contains the planner plugin
+    bool use_planning_context = planning_pipeline->getAdapterPluginNames().empty();
+    // Iterate through all planners configured for the pipeline
+    for (const std::string& planner_id : pipeline_entry.second)
     {
       // This container stores all of the benchmark data for this planner
       PlannerBenchmarkData planner_data(runs);
@@ -778,14 +762,17 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
       std::vector<planning_interface::MotionPlanDetailedResponse> responses(runs);
       std::vector<bool> solved(runs);
 
-      request.planner_id = planner.second[i];
+      request.planner_id = planner_id;
 
       // Planner start events
       for (PlannerStartEventFunction& planner_start_fn : planner_start_fns_)
         planner_start_fn(request, planner_data);
 
-      planning_interface::PlanningContextPtr context =
-          planner_interfaces_[planner.first]->getPlanningContext(planning_scene_, request);
+      planning_interface::PlanningContextPtr planning_context;
+      if (use_planning_context)
+        planning_context = planning_pipeline->getPlannerManager()->getPlanningContext(planning_scene_, request);
+
+      // Iterate runs
       for (int j = 0; j < runs; ++j)
       {
         // Pre-run events
@@ -794,7 +781,23 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
 
         // Solve problem
         ros::WallTime start = ros::WallTime::now();
-        solved[j] = context->solve(responses[j]);
+        if (use_planning_context)
+        {
+          solved[j] = planning_context->solve(responses[j]);
+        }
+        else
+        {
+          // The planning pipeline does not support MotionPlanDetailedResponse
+          planning_interface::MotionPlanResponse response;
+          solved[j] = planning_pipeline->generatePlan(planning_scene_, request, response);
+          responses[j].error_code_ = response.error_code_;
+          if (response.trajectory_)
+          {
+            responses[j].description_.push_back("plan");
+            responses[j].trajectory_.push_back(response.trajectory_);
+            responses[j].processing_time_.push_back(response.planning_time_);
+          }
+        }
         double total_time = (ros::WallTime::now() - start).toSec();
 
         // Collect data
@@ -1037,11 +1040,11 @@ bool BenchmarkExecutor::computeTrajectoryDistance(const robot_trajectory::RobotT
 void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std::string& start_time,
                                     double benchmark_duration)
 {
-  const std::map<std::string, std::vector<std::string>>& planners = options_.getPlannerConfigurations();
+  const std::map<std::string, std::vector<std::string>>& pipelines = options_.getPlanningPipelineConfigurations();
 
   size_t num_planners = 0;
-  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
-    num_planners += planner.second.size();
+  for (const std::pair<const std::string, std::vector<std::string>>& pipeline : pipelines)
+    num_planners += pipeline.second.size();
 
   std::string hostname = getHostname();
   if (hostname.empty())
@@ -1091,12 +1094,12 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
   out << num_planners << " planners" << std::endl;
 
   size_t run_id = 0;
-  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners)
+  for (const std::pair<const std::string, std::vector<std::string>>& pipeline : pipelines)
   {
-    for (std::size_t i = 0; i < planner.second.size(); ++i, ++run_id)
+    for (std::size_t i = 0; i < pipeline.second.size(); ++i, ++run_id)
     {
-      // Write the name of the planner.
-      out << planner.second[i] << std::endl;
+      // Write the name of the planner and the used pipeline
+      out << pipeline.second[i] << " (" << pipeline.first << ")" << std::endl;
 
       // in general, we could have properties specific for a planner;
       // right now, we do not include such properties
