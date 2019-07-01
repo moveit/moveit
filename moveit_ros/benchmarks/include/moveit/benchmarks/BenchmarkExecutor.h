@@ -141,8 +141,8 @@ protected:
   virtual bool initializeBenchmarks(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                     std::vector<BenchmarkRequest>& queries);
 
-  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts,
-                                      moveit_msgs::PlanningScene& scene_msg,
+  /// Initialize benchmark query data from start states and constraints
+  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                       std::vector<StartState>& start_states,
                                       std::vector<PathConstraints>& path_constraints,
                                       std::vector<PathConstraints>& goal_constraints,
@@ -152,6 +152,7 @@ protected:
   virtual void collectMetrics(PlannerRunData& metrics, const planning_interface::MotionPlanDetailedResponse& mp_res,
                               bool solved, double total_time);
 
+  /// Computes a similarity measure for all trajectories of an experiment and writes the result to planner_data metrics
   void computeResultPathSimilarity(PlannerBenchmarkData& planner_data,
                                    const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
                                    const std::vector<bool>& solved);

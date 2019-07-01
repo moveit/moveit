@@ -287,7 +287,8 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   std::vector<TrajectoryConstraints> traj_constraints;
   std::vector<BenchmarkRequest> queries;
 
-  if (!loadBenchmarkQueryData(opts, scene_msg, start_states, path_constraints, goal_constraints, traj_constraints, queries))
+  if (!loadBenchmarkQueryData(opts, scene_msg, start_states, path_constraints, goal_constraints, traj_constraints,
+                              queries))
   {
     ROS_ERROR("Failed to load benchmark query data");
     return false;
@@ -399,8 +400,7 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   return true;
 }
 
-bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts,
-                                               moveit_msgs::PlanningScene& scene_msg,
+bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                                std::vector<StartState>& start_states,
                                                std::vector<PathConstraints>& path_constraints,
                                                std::vector<PathConstraints>& goal_constraints,
@@ -409,15 +409,15 @@ bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts,
 {
   try
   {
-    warehouse_ros::DatabaseConnection::Ptr conn = dbloader.loadDatabase();
-    conn->setParams(opts.getHostName(), opts.getPort(), 20);
-    if (conn->connect())
+    warehouse_ros::DatabaseConnection::Ptr warehouse_connection = dbloader.loadDatabase();
+    warehouse_connection->setParams(opts.getHostName(), opts.getPort(), 20);
+    if (warehouse_connection->connect())
     {
-      pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
-      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
-      rs_ = new moveit_warehouse::RobotStateStorage(conn);
-      cs_ = new moveit_warehouse::ConstraintsStorage(conn);
-      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
+      pss_ = new moveit_warehouse::PlanningSceneStorage(warehouse_connection);
+      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(warehouse_connection);
+      rs_ = new moveit_warehouse::RobotStateStorage(warehouse_connection);
+      cs_ = new moveit_warehouse::ConstraintsStorage(warehouse_connection);
+      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(warehouse_connection);
     }
     else
     {
@@ -922,33 +922,36 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   }
 }
 
-void BenchmarkExecutor::computeResultPathSimilarity(PlannerBenchmarkData& planner_data,
-                                                    const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
-                                                    const std::vector<bool>& solved)
+void BenchmarkExecutor::computeResultPathSimilarity(
+    PlannerBenchmarkData& planner_data, const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
+    const std::vector<bool>& solved)
 {
   ROS_INFO("Computing result path similarity");
   const size_t result_count = planner_data.size();
-  size_t unsolved = std::count_if(solved.begin(), solved.end(), [](bool s){return !s;});
+  size_t unsolved = std::count_if(solved.begin(), solved.end(), [](bool s) { return !s; });
   std::vector<double> average_distances(mp_res.size());
-  for (size_t i = 0; i < result_count; ++i)
+  for (size_t first_traj_i = 0; first_traj_i < result_count; ++first_traj_i)
   {
-    if (!solved[i])
+    // If trajectory was not solved there is no valid average distance so it's set to max double only
+    if (!solved[first_traj_i])
     {
-      average_distances[i] = std::numeric_limits<double>::max();
+      average_distances[first_traj_i] = std::numeric_limits<double>::max();
       continue;
     }
-    for (size_t j = i+1; j < result_count; ++j)
+    // Iterate all result trajectories that haven't been compared yet
+    for (size_t second_traj_i = first_traj_i + 1; second_traj_i < result_count; ++second_traj_i)
     {
-      if (!solved[j])
+      // Ignore if other result has not been solved
+      if (!solved[second_traj_i])
         continue;
 
-      // Abort if there are no trajectories
-      if (mp_res[i].trajectory_.empty() || mp_res[j].trajectory_.empty())
+      // Abort if there are no result trajectories
+      if (mp_res[first_traj_i].trajectory_.empty() || mp_res[second_traj_i].trajectory_.empty())
         continue;
 
       // Access trajectories
-      const robot_trajectory::RobotTrajectory& traj_first = *mp_res[i].trajectory_.back();
-      const robot_trajectory::RobotTrajectory& traj_second = *mp_res[j].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_first = *mp_res[first_traj_i].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_second = *mp_res[second_traj_i].trajectory_.back();
 
       // Abort if trajectories are empty
       if (traj_first.empty() || traj_second.empty())
@@ -960,22 +963,32 @@ void BenchmarkExecutor::computeResultPathSimilarity(PlannerBenchmarkData& planne
       const size_t max_pos_first = traj_first.getWayPointCount() - 1;
       const size_t max_pos_second = traj_second.getWayPointCount() - 1;
 
-      // compute average distance
-      double average_distance = 0;
+      // Compute total distance between pairwise waypoints of both trajectories.
+      // The selection of waypoint pairs is based on what steps results in the minimal distance between the next pair of
+      // waypoints. We first check what steps are still possible or if we reached the end of the trajectories. Then we
+      // compute the pairwise waypoint distances of the pairs from increasing both, the first, or the second trajectory.
+      // Finally we select the pair that results in the minimal distance, summarize the total distance and iterate
+      // accordingly. After that we compute the average trajectory distance by normalizing over the number of steps.
+      double total_distance = 0;
       size_t steps = 0;
       double current_distance = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second));
-      while(true)
+      while (true)
       {
-        average_distance += current_distance;
+        // Keep track of total distance and number of comparisons
+        total_distance += current_distance;
         ++steps;
-        if (pos_first == max_pos_first && pos_second == max_pos_second) // end reached
+        if (pos_first == max_pos_first && pos_second == max_pos_second)  // end reached
           break;
 
-        // Test next step (both, first, or second)
+        // Determine what steps are still possible
         bool can_up_first = pos_first < max_pos_first;
         bool can_up_second = pos_second < max_pos_second;
         bool can_up_both = can_up_first && can_up_second;
-        double up_first, up_second, up_both = std::numeric_limits<double>::max();
+
+        // Compute pair-wise waypoint distances (increasing both, first, or second trajectories).
+        double up_both = std::numeric_limits<double>::max();
+        double up_first = std::numeric_limits<double>::max();
+        double up_second = std::numeric_limits<double>::max();
         if (can_up_both)
           up_both = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second + 1));
         if (can_up_first)
@@ -983,7 +996,7 @@ void BenchmarkExecutor::computeResultPathSimilarity(PlannerBenchmarkData& planne
         if (can_up_second)
           up_second = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second + 1));
 
-        // Move up trajectory positions
+        // Select actual step, store new distance value and iterate trajectory positions
         if (can_up_both && up_both < up_first && up_both < up_second)
         {
           ++pos_first;
@@ -1001,14 +1014,17 @@ void BenchmarkExecutor::computeResultPathSimilarity(PlannerBenchmarkData& planne
           current_distance = up_second;
         }
       }
-      average_distances[i] += average_distance / steps;
-      average_distances[j] += average_distance / steps;
+      // Add average distance to counters of both trajectories
+      average_distances[first_traj_i] += total_distance / steps;
+      average_distances[second_traj_i] += total_distance / steps;
     }
-    average_distances[i] /= result_count - unsolved - 1;
+    // Normalize average distance by number of actual comparisons
+    average_distances[first_traj_i] /= result_count - unsolved - 1;
   }
+
+  // Store results in planner_data
   for (size_t i = 0; i < result_count; ++i)
     planner_data[i]["average_waypoint_distance REAL"] = moveit::core::toString(average_distances[i]);
-
 }
 
 void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std::string& start_time,
