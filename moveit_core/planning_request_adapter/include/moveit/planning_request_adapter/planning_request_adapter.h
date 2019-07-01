@@ -63,6 +63,11 @@ public:
   {
   }
 
+  /// Initialize parameters using the passed NodeHandle
+  virtual void initialize(const ros::NodeHandle& node_handle)
+  {
+  }
+
   /// Get a short string that identifies the planning request adapter
   virtual std::string getDescription() const
   {

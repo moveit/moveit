@@ -142,10 +142,10 @@ void planning_pipeline::PlanningPipeline::configure()
     if (adapter_plugin_loader_)
       for (const std::string& adapter_plugin_name : adapter_plugin_names_)
       {
-        planning_request_adapter::PlanningRequestAdapterConstPtr ad;
+        planning_request_adapter::PlanningRequestAdapter* ad;
         try
         {
-          ad = adapter_plugin_loader_->createUniqueInstance(adapter_plugin_name);
+          ad = adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_name);
         }
         catch (pluginlib::PluginlibException& ex)
         {
@@ -153,7 +153,10 @@ void planning_pipeline::PlanningPipeline::configure()
                                                                                << "': " << ex.what());
         }
         if (ad)
-          ads.push_back(ad);
+        {
+          ad->initialize(nh_);
+          ads.emplace_back(ad);
+        }
       }
     if (!ads.empty())
     {
