@@ -19,12 +19,20 @@ TESSERACT_IGNORE_WARNINGS_PUSH
 TESSERACT_IGNORE_WARNINGS_POP
 
 #include <tesseract_planning/trajopt/trajopt_planner.h>
-
 #include <tesseract_planning/basic_planner_types.h>
 
 #include <trajopt_sco/solver_interface.hpp>
+#include <trajopt/trajectory_costs.hpp>
+
+
+#include <trajopt_utils/eigen_conversions.hpp>
+#include <trajopt_utils/eigen_slicing.hpp>
+#include <trajopt_utils/vector_ops.hpp>
+
 
 #include <vector>
+#include <eigen3/Eigen/Geometry>
+
 
 //using namespace trajopt;
 
@@ -34,79 +42,27 @@ trajopt_interface::TrajOptPlanningContext::TrajOptPlanningContext(const std::str
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
   std::cout << "===>>> TrajOptPlanningContext is constructed" << std::endl;
-
-  dof = robot_model_->getJointModelGroup(group_)->getActiveJointModelNames().size();
+  std::cout << "======================= group name ==================: " << group_  << std::endl;
+  dof_ = robot_model_->getJointModelGroup(group_)->getActiveJointModelNames().size();
+  std::cout << "dof from planning context constructor " << dof_ << std::endl;
   robot_state_ = robot_state::RobotStatePtr(new robot_state::RobotState(robot_model_));
-  // plot the jointvalues here
+  // print the jointvalues here
   robot_state_->setToDefaultValues();
   robot_state_->update();
 
 }
 
 
-/*
-bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& resp)
-{
-  std::cout << "====>>> solve() is called" << std::endl;
 
-  // get the start state joint values
-  std::vector<double> start_joint_values = request_.start_state.joint_state.position;
+bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res){
 
-  std::vector<moveit_msgs::Constraints> goal_constraints = request_.goal_constraints;
-
-  std::vector<moveit_msgs::JointConstraint> goal_joint_constraint =
-      goal_constraints[0].joint_constraints;
-
-  std::vector<double> goal_joint_values;
-  for (auto x : goal_joint_constraint)
-  {
-    goal_joint_values.push_back(x.position);
-  }
-
-  resp.trajectory_ = robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, group_));
-
-  trajectory_msgs::JointTrajectory rob_joint_traj = interpolateMultDOF(start_joint_values, goal_joint_values, 40);
-
-  resp.trajectory_->setRobotTrajectoryMsg(*robot_state_, rob_joint_traj);
-
-  return true;
-};
-*/
-
- /*
-// solve function from tesseract
-bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& response)
-{
-  Json::Value root;
-  Json::Reader reader;
-  if (request_.config_format == "json")
-  {
-    bool parse_success = reader.parse(request_.config.c_str(), root);
-    if (!parse_success)
-    {
-      ROS_FATAL("Failed to pass valid json file in the request");
-      // response.error_code = -2;
-      // response.status_description = status_code_map_[-2];
-      return false;
-    }
-  }
-  else
-  {
-    ROS_FATAL("Invalid config format: %s. Only json format is currently "
-              "support for this planner.",
-              request_.config_format.c_str());
-    // response.status_code = -1;
-    // response.status_description = status_code_map_[-1];
-    return false;
-  }
-
-  TrajOptProbPtr prob = ConstructProblem(root, request_.env);
-  return solve(response, prob);
 }
-*/
+
+
 
 bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& resp)
 {
+  std::cout << "====> soooooooooooooooooooooooooooooolve "  << std::endl;
 
   //=== Response ===>>> PlannerResponse.trajectory from tesseract a is row-major matrix from Eigen
   // typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> TrajArray
@@ -125,20 +81,23 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
   // So I need to get a planning_interface::MotionPlanRequest and internally
   // convert it to an OptProb so I can pass it to sco::BasicTrustRegionSQP
   // in tesseract, everything is provided by config parameter, the request_ is not used as much ???
+  // We can not reallu convert MotionPlanRequest to OptProb. I just set OptProb internally
+  // BTW, MotionPlanRequest from planning_interface is the same as that from moveit_msgs
+
+  // get the constraints from req and add them to spec_.prob.addCons
 
   // Create optimizer
   //   sco::OptProbPtr opt_prob_ptr = sco::OptProbPtr(new sco::OptProb(sco::ModelType::AUTO_SOLVER));
-
-
-
+  //  trajopt_interface::TrajOptPlanningContext::setTrajOptPlannerConfiguration();
+  
 
    sco::BasicTrustRegionSQP opt(spec_.prob);
 
    opt.setParameters(trajopt_interface::spec_.params);
 
-   // I think this trajectory (as the initial) can be kept empty
-   trajopt::TrajArray m_init_traj;
-   opt.initialize(trajopt::trajToDblVec(m_init_traj)); // DblVec: a vector of double elements
+
+   opt.initialize(trajopt::trajToDblVec(spec_.prob->GetInitTraj())); // DblVec: a vector of double elements
+
 
   // Add all callbacks
 //  for (const sco::Optimizer::Callback& callback : config.callbacks)
@@ -153,15 +112,24 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
 
   // Optimize
   ros::Time tStart = ros::Time::now();
+
+
+  std::cout << "beforeeeeeeeeeeeeeeeeeeeeeeeeeeeeee "  << std::endl;
+
   opt.optimize();
+
+  std::cout << "aftreeeeeeeeeeeeeeeeeeeeeeeeeeeeeer  "  << std::endl;
+
+
   ROS_INFO("planning time: %.3f", (ros::Time::now() - tStart).toSec());
+
 
   // ????????
   // how do I pass arguments that can not be parts of MotionPlannerRequest and are not string so they could be passed
   // to the setPlannerConfigurations(). I could make some functions in TrajOptPlannerManager
   // but we can not call these functins from a poitner to the base class unless they are virtual
 
-  /*
+/*
   // Check and report collisions
   std::vector<tesseract::ContactResultMap> collisions;
   ContinuousContactManagerBasePtr manager = config.prob->GetEnv()->getContinuousContactManager();
@@ -187,80 +155,75 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
   // response.joint_names = config.prob->GetKin()->getJointNames();
   //response.status_description = sco::statusToString(opt.results().status);
 
+  trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), spec_.prob->GetVars());
+
+  std::cout << "************* solution ************** " << std::endl;
+  std::cout << opt_solution << std::endl;
+  // resp.trajectory_ = trajopt_interface::TrajOptPlanningContext::convertTrajArrayToJointTrajectory(opt_solution);
+
+  trajectory_msgs::JointTrajectory traj_msgs = trajopt_interface::TrajOptPlanningContext::convertTrajArrayToJointTrajectory(opt_solution);
+
+  
+  robot_trajectory::RobotTrajectoryPtr traj =  robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, "panda_arm"));
+
+  traj->setRobotTrajectoryMsg(*robot_state_, traj_msgs);
+
+  std::cout << " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww 1 "  << std::endl;
+  
+  resp.trajectory_ = traj;
+  
+  std::cout << " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww 2  "  << std::endl;
+  
   return true;
 }
-/*
-bool trajopt_interface::TrajOptPlanningContext::terminate() { return false; }
-void trajopt_interface::TrajOptPlanningContest::clear() { request_ = PlannerRequest(); }
-*/
+
+void trajopt_interface::callBackFunc(sco::OptProb* oprob, sco::OptResults& ores){
+  
+}
+
+bool trajopt_interface::TrajOptPlanningContext::terminate() { /*return false;*/ }
+void trajopt_interface::TrajOptPlanningContext::clear() { /*request_ = PlannerRequest();*/ }
+
+//=== Response ===>>> PlannerResponse.trajectory from tesseract a is row-major matrix from Eigen
+// typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> TrajArray
+// two of Eigen::Dynamic means that both row and column are dynamic. columns are the number of DOF and rows are number of timesteps
+//  Eigen::Matrix.leftCols(p) containts the first p columns
+// I have to make a function that can convert TrajArray to robot_trajectory::RobotTrajectory from planning_interface::MotionPlanResponse
+//  we can convert  moveit_msgs::RobotTrajectory to  moveit_msgs::Robot_trajectory by a function call getMessage() from planning_interface::MotionPlanResponse
 
 // a function to convert TrajArray (TrajArray has no dependency on tesseract) from trajopt_ros to trajectory_msgs::JointTrajectory.Points
 
-trajectory_msgs::JointTrajectory trajopt_interface::TrajOptPlanningContext::convert_TrajArray_to_JointTrajectory(const trajopt::TrajArray& traj_array){
-
-  trajectory_msgs::JointTrajectory joint_traj;
-  return joint_traj;
-}
-
-
-
-
-
-
-
-
-
-
-/*
-trajectory_msgs::JointTrajectory trajopt_interface::TrajOptPlanningContext::interpolateMultDOF(const std::vector<double>& v1,
-                                                                            const std::vector<double>& v2,
-                                                                            const int& num)
-{
-  trajectory_msgs::JointTrajectory traj;
+trajectory_msgs::JointTrajectory trajopt_interface::TrajOptPlanningContext::convertTrajArrayToJointTrajectory(const trajopt::TrajArray& traj_array){
+ 
+  trajectory_msgs::JointTrajectory traj_msgs;
 
   const robot_state::JointModelGroup* joint_model_group = robot_state_->getJointModelGroup(group_);
-
   const std::vector<std::string> j_names = joint_model_group->getVariableNames();
 
-  // robot_model_->getJointModelGroup(group_);
+  double timesteps_num =  traj_array.rows();
+  double dofs_num =  traj_array.cols();
 
-  std::cout << "===>>> degrees of freedom " << dof << std::endl;
+  traj_msgs.points.resize(timesteps_num);
 
-  traj.points.resize(num + 1);
-  std::cout << "===>>> traj.point.size: " << traj.points.size() << std::endl;
 
-  std::vector<double> dt_vector;
-  for (int j = 0; j < dof; ++j)
+  for (int step = 0; step < timesteps_num ; ++step)
   {
-    double dt = (v2[j] - v1[j]) / num;
-    dt_vector.push_back(dt);
-  }
-
-  for (int i = 0; i <= num; ++i)
-  {
-    std::vector<double> v;
-    for (int k = 0; k < dof; ++k)
-    {
-      double j_value = v1[k] + i * dt_vector[k];
-      v.push_back(j_value);
-
-      robot_state_->setJointPositions(j_names[k], &j_value);
-      robot_state_->update();
+    std::vector<double> joints_values;
+    for(int joint_at_step = 0; joint_at_step < dofs_num; ++joint_at_step){
+      joints_values.push_back(traj_array(step,joint_at_step));
     }
-    bool isValid = planning_scene_->isStateValid(*robot_state_, group_, false);
-    printf("the robot at state %i is valid ? %s", i, isValid ? "true" : "false \n");
 
-    plotVector("===>>> ", v);
-    traj.joint_names = j_names;
-    traj.points[i].positions = v;
-    ros::Duration t(i * 0.5);
-    traj.points[i].time_from_start = t;
+    //    plotVector("===>>> ", v);
+    traj_msgs.joint_names = j_names;
+    traj_msgs.points[step].positions = joints_values;
+    //    ros::Duration t(step * 0.5);
+    //traj_msgs.points[step].time_from_start = t;
   }
 
-  return traj;
+  return traj_msgs;
 }
 
-
+/*
 void trajopt_interface::TrajOptPlanningContext::plotVector(const std::string& str, const std::vector<double>& v)
 {
   std::cout << str << " ";
@@ -272,52 +235,95 @@ void trajopt_interface::TrajOptPlanningContext::plotVector(const std::string& st
 }
 */
 
-<<<<<<< HEAD
 
-void trajopt_interface::TrajOptPlanningContext::registerDefaultPlanners(){
+// inspired by the same functin in trajopt/trajopt/problem_description.cpp
+trajopt::TrajArray trajopt_interface::generateInitialTrajectory(const int& num_steps){
 
+  // Stationary initial trajectory
+  // we can get the current joint values here
+  Eigen::VectorXd start_pos(dof_); // dof
+
+  for (int k = 0; k < dof_; ++k){
+   start_pos[k] = 0;
+  }
+
+  trajopt::TrajArray init_traj = start_pos.transpose().replicate(num_steps,1); // replicate(n_steps,1)
+
+  return init_traj;
 }
 
 
-
-=======
-// Create parameters, callback functions and
 void trajopt_interface::TrajOptPlanningContext::setTrajOptPlannerConfiguration(){
 
-  spec_.model_type = sco::ModelType::AUTO_SOLVER;
+  // spec_.model_type = sco::ModelType::AUTO_SOLVER;
+
+  int num_steps = 10;
+  bool u_time = false;
+  trajopt_interface::TrajOptProblem traj_prob(num_steps, u_time, robot_model_);
+  *spec_.prob = traj_prob;
 
   sco::BasicTrustRegionSQPParameters params; // all members in params are double
-
-  params.improve_ratio_threshold = 0.9;  // minimum ratio true_improve/approx_improve
-                                   // to accept step
-  params.min_trust_box_size = 0.2;       // if trust region gets any smaller, exit and
-                                   // report convergence
-  params.min_approx_improve = 0.1;       // if model improves less than this, exit and
-                                   // report convergence
-  params.min_approx_improve_frac = 0.1;  // if model improves less than this, exit and
-                                   // report convergence
-  params.max_iter = 1000;                 // The max number of iterations
-  params.trust_shrink_ratio = 0.5;       // if improvement is less than
-  // improve_ratio_threshold, shrink trust region by
-  // this ratio
-  params.trust_expand_ratio = 0.5;  // if improvement is less than
-                              // improve_ratio_threshold, shrink trust region by
-                              // this ratio
-  params.cnt_tolerance = 0.2;       // after convergence of penalty subproblem, if
-  // constraint violation is less than this, we're done
-  params. max_merit_coeff_increases = 10;   // number of times that we jack up penalty
-                                      // coefficient
-  params.merit_coeff_increase_ratio = 2;  // ratio that we increate coeff each time
-  params.max_time = 60;                    // not yet implemented
-  params.merit_error_coeff = 3;           // initial penalty coefficient
-  params.trust_box_size = 5;              // current size of trust region (component-wise)
-
+  // It has a constructor that sets all these paramters to default values
+  /*
+  params.improve_ratio_threshold = 0.25;
+  params.min_trust_box_size = 1e-4;
+  params.min_approx_improve = 1e-4;
+  params.min_approx_improve_frac = -INFINITY;
+  params.max_iter = 50;
+  params.trust_shrink_ratio = 0.1;
+  params.trust_expand_ratio = 1.5;
+  params.cnt_tolerance = 1e-4;
+  params.max_merit_coeff_increases = 5;
+  params.merit_coeff_increase_ratio = 10;
+  params.max_time = INFINITY;
+  params.merit_error_coeff = 10;
+  params.trust_box_size = 1e-1;
+  */
   trajopt_interface::spec_.params = params;
 
 
+  std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>. before calling generateInitialTrajectory " << dof_ << std::endl;
+  trajopt::TrajArray traj_array_initial = generateInitialTrajectory(num_steps);
+  std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>. after calling generateInitialTrajectory " << dof_ << std::endl;
 
-  sco::Optimizer::Callback callback;
+  spec_.prob->SetInitTraj(traj_array_initial);
+
+  // cartesina pose cnt at final oint
+  /* Eigen::Quaterniond rotation(final_pose.linear());
+  std::shared_ptr<trajopt::CartPoseTermInfo> pose_constraint =
+    std::shared_ptr<trajopt::CartPoseTermInfo>(new trajopt::CartPoseTermInfo);
+  pose_constraint->term_type = trajopt::TT_CNT;
+  pose_constraint->link = end_effector;
+  pose_constraint->timestep = 2 * steps_per_phase - 1;
+  pose_constraint->xyz = final_pose.translation();
+
+  pose_constraint->wxyz = Eigen::Vector4d(rotation.w(), rotation.x(), rotation.y(), rotation.z());
+  pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+  pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+  pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
+  pci.cnt_infos.push_back(pose_constraint);
+  */  
+
+  // DblVec => std::vector<double>
+  sco::DblVec coeffs(dof_, 1);
+  sco::DblVec targets(dof_, 1);
+  int first_step = 0;
+  int last_step = 0; // what are these first and last for
+
+  trajopt::VarArray vars = spec_.prob->GetVars(); // columns are dof and rows are waypoints
+  std::cout << "varsssssssssssssssssssssss "  << vars.at(0,0) << std::endl;
+  trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(dof_));
+
+
+
+  sco::ConstraintPtr cptr = sco::ConstraintPtr(new trajopt::JointPosEqConstraint(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step));
+
+  std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+  
+  spec_.prob->addConstraint(cptr);
+
+
+  // Make callback
+  sco::Optimizer::Callback callback = callBackFunc;
   trajopt_interface::spec_.callbacks = callback;
-
 }
->>>>>>> got rid of "using" namespace trajopt

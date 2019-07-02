@@ -76,14 +76,6 @@ public:
   {
   }
 
-  //  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
-  //  {
-  //    if (!ns.empty())
-  //      nh_ = ros::NodeHandle(ns);
-  //    std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
-  //    return true;
-  //  }
-
   bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
   {
     std::cout << "===>>> initialize gets called " << std::endl;
@@ -92,12 +84,16 @@ public:
       nh_ = ros::NodeHandle(ns);
     std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
 
-    for (const std::string& gpName : model->getJointModelGroupNames())
-    {
-      std::cout << "group name " << gpName << std::endl << "robot model  " << model->getName() << std::endl;
-      planning_contexts_[gpName] =
-          TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
-    }
+    // for (const std::string& gpName : model->getJointModelGroupNames())
+    // {
+    //   std::cout << "group name " << gpName << std::endl << "robot model  " << model->getName() << std::endl;
+    //   planning_contexts_[gpName] =
+    //       TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
+    // }
+
+     planning_contexts_["panda_arm"] =
+       TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", "panda_arm", model));
+    
     return true;
   }
 
@@ -141,29 +137,28 @@ public:
     // create PlanningScene using hybrid collision detector
     planning_scene::PlanningScenePtr ps = planning_scene->diff();
 
-    // set FCL as the allocaotor
+    // set FCL for the collision
     ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
 
     // retrieve and configure existing context
     const TrajOptPlanningContextPtr& context = planning_contexts_.at(req.group_name);
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " << req.group_name  << std::endl;
     std::cout << "===>>> context is made " << std::endl;
 
     context->setPlanningScene(ps);
     context->setMotionPlanRequest(req);
+
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> before setConfig " << trajopt_interface::dof_  << std::endl;
     context->setTrajOptPlannerConfiguration();
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> after setConfig " << trajopt_interface::dof_  << std::endl;
+
+    std::cout << "===>>> eeeeeeeeeeeeeeend of geeeeeeeeetContext " << std::endl;
 
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
     return context;
   }
 
-  /*
-  void setTrajoptConfig(const sco::BasicTrustRegionSQPParameters& params, sco::ModelType model_type ){
-
-  }
-  void setTrajoptConfigs(){
-     ROS_INFO("Planner Configuration is set");
-  }*/
 
 private:
   ros::NodeHandle nh_;

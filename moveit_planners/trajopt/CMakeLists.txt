@@ -47,9 +47,16 @@ include_directories(
 )
 
 
+add_library(problem_description src/problem_description.cpp)
+set_target_properties(problem_description PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(problem_description ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+#add_library(problem_description INTERFACE)
+#target_include_directories(problem_description INTERFACE include/)
+
 add_library(${PROJECT_NAME} src/trajopt_planning_context.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description)
 
 # TrajOpt planning plugin
 add_library(moveit_trajopt_planner_plugin src/trajopt_planner_manager.cpp)
