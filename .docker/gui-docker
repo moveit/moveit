@@ -1,56 +1,33 @@
 #!/usr/bin/env bash
 
-# This script is used to create and run a docker container with settings for gui interactions
+# This script is used to run a docker container with an NVIDIA runtime.
+# It requires the package nvidia-docker2 to be installed on the host.
+# https://github.com/NVIDIA/nvidia-docker/wiki
+# http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration#nvidia-docker2
+
 # All arguments to this script will be appended to a docker run command.
 # Example command line:
-# ./gui-docker -ti --rm moveit/moveit /bin/bash
+# ./gui-docker -it --rm moveit/moveit:master-source /bin/bash
 
-# XAUTH=/tmp/.docker.xauth
-# xauth nlist :0 | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-if [ ! -f /tmp/.docker.xauth ]
-then
-  export XAUTH=/tmp/.docker.xauth
-  xauth nlist :0 | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-fi
+# store X11 access rights in temp file
+XAUTH=/tmp/.docker.xauth
+touch $XAUTH
+xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 
-# Use lspci to check for the presence of an nvidia graphics card
-has_nvidia=`lspci | grep -i nvidia | wc -l`
-has_nvidia_docker=`which nvidia-docker > /dev/null 2>&1; echo $?`
+# Set docker runtime: if you have an NVIDIA card and nvidia-docker2 installed, nvidia is fine
+# Otherwise use the default runc
+RUNTIME=${RUNTIME:-nvidia}
 
-# Check if nvidia-docker is avaialble
-if [ ${has_nvidia_docker} -eq 0 ] && [ ${has_nvidia} -gt 0 ]
-then
-  DOCKER_COMMAND=nvidia-docker
-  # Set docker gpu parameters
-  # check if nvidia-modprobe is installed
-  if ! which nvidia-modprobe > /dev/null
-  then
-    echo nvidia-docker-plugin requires nvidia-modprobe
-    echo please install nvidia-modprobe
-    exit -1
-  fi
-  # check if nvidia-docker-plugin is installed
-  if curl -s http://localhost:3476/docker/cli > /dev/null
-  then
-    DOCKER_GPU_PARAMS=" $(curl -s http://localhost:3476/docker/cli)"
-  else
-    echo nvidia-docker-plugin not responding on http://localhost:3476/docker/cli
-    echo please install nvidia-docker-plugin
-    echo https://github.com/NVIDIA/nvidia-docker/wiki/Installation
-    exit -1
-  fi
-else
-  DOCKER_COMMAND=docker
-  DOCKER_GPU_PARAMS=""
-fi
+docker run \
+    --env="NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}" \
+    --env="NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics" \
+    --env="DISPLAY=$DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --env="XAUTHORITY=$XAUTH" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume="$XAUTH:$XAUTH" \
+    --runtime=$RUNTIME \
+    $@
 
-DISPLAY="${DISPLAY:-:0}"
-
-${DOCKER_COMMAND} run \
-  -e DISPLAY=unix$DISPLAY \
-  -e XAUTHORITY=/tmp/.docker.xauth \
-  -v "/etc/localtime:/etc/localtime:ro" \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v "/tmp/.docker.xauth:/tmp/.docker.xauth" \
-  ${DOCKER_GPU_PARAMS} \
-  $@
+# cleanup
+rm $XAUTH
