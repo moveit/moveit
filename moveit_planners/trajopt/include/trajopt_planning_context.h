@@ -15,6 +15,11 @@
 
 #include <trajopt_sco/solver_interface.hpp>
 
+#include <trajopt_sco/optimizers.hpp>
+#include <trajopt_sco/sco_common.hpp>
+
+#include "problem_description.h"
+
 //using namespace trajopt;
 
 namespace trajopt_interface
@@ -24,15 +29,20 @@ MOVEIT_CLASS_FORWARD(TrajOptPlanningContext);
 
 struct TrajOptPlannerConfiguration{
 
-  TrajOptPlannerConfiguration() {}
+  // TrajOptPlannerConfiguration(trajopt::TrajOptProbPtr prob) : prob(prob) {}
+
+  TrajOptPlannerConfiguration() {prob.reset(new TrajOptProblem());}
+
   virtual ~TrajOptPlannerConfiguration() {}
 
-  /** @brief Trajopt problem to be solved (Required) */
+  //  std::string model_type = sco::ModelType::AUTO_SOLVER
   //  sco::OptProbPtr prob = sco::OptProbPtr(new sco::OptProb(sco::ModelType::AUTO_SOLVER));
 
-  std::string model_type; // sco::ModelType::AUTO_SOLVER
-  sco::OptProbPtr prob = sco::OptProbPtr(new sco::OptProb(model_type));
+  /** @brief Trajopt problem to be solved (Required) */
+  TrajOptProblemPtr prob;
 
+  //    TrajOptProblemPtr prob(new TrajOptProblem());
+  //  std::shared_ptr<TrajOptProblem> prob = std::shared_ptr(new TrajOptProblem);
 
   /** @brief Optimization parameters to be used (Optional) */
   sco::BasicTrustRegionSQPParameters params;
@@ -43,8 +53,12 @@ struct TrajOptPlannerConfiguration{
 
 };
 
+trajopt::TrajArray generateInitialTrajectory(const int& num_steps);
 TrajOptPlannerConfiguration spec_;
+int dof_;
 
+void callBackFunc(sco::OptProb* oprob, sco::OptResults& ores);
+ 
 class TrajOptPlanningContext : public planning_interface::PlanningContext
 {
 public:
@@ -62,20 +76,18 @@ public:
 
   void setTrajOptPlannerConfiguration();
 
-
-
 protected:
 
 private:
-  //  trajectory_msgs::JointTrajectory interpolateMultDOF(const std::vector<double>& v1, const std::vector<double>& v2,
-  //                                                   const int& num);
-  //  std::vector<double> interpolateSingleDOF(const double& d1, const double& d2, const int& num);
-   int dof;
 
   moveit::core::RobotModelConstPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
 
-  trajectory_msgs::JointTrajectory convert_TrajArray_to_JointTrajectory(const trajopt::TrajArray& traj_array);
+ 
+  
+  trajectory_msgs::JointTrajectory convertTrajArrayToJointTrajectory(const trajopt::TrajArray& traj_array);
+
+  //  sco::VarArray convertVarVectorToVarArray(const VarVector& vv);
 
   tesseract::tesseract_planning::PlannerRequest tess_request_;
 };

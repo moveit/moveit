@@ -17,6 +17,12 @@
   <arg unless="$(arg valgrind)" name="launch_prefix3" value="" />
   <arg     if="$(arg valgrind)" name="launch_prefix3" value="valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all" />
 
+  <!-- Run Panda launch -->
+  <include file="$(find panda_moveit_config)/launch/demo.launch">
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="planner" value="trajopt"/>
+  </include>
+
   <!-- Launch main node -->
   <node name="$(anon moveit_planners_trajopt)" launch-prefix="$(arg launch_prefix) $(arg launch_prefix2) $(arg launch_prefix3)" pkg="moveit_planners_trajopt" type="test_trajopt" respawn="false" output="screen">
 
