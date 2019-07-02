@@ -64,7 +64,7 @@ public:
   }
 
   /// Initialize parameters using the passed NodeHandle
-  // TODO - Make initialize() a pure virtual function
+  // TODO - Make initialize() a pure virtual function in O-turtle
   virtual void initialize(const ros::NodeHandle& node_handle)
   {
     ROS_WARN_NAMED("planning_request_adapter",
