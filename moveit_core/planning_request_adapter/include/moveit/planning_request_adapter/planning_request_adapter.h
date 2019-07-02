@@ -64,8 +64,12 @@ public:
   }
 
   /// Initialize parameters using the passed NodeHandle
+  // TODO - Make initialize() a pure virtual function
   virtual void initialize(const ros::NodeHandle& node_handle)
   {
+    ROS_WARN_NAMED("planning_request_adapter",
+                   "Function initialize() is not implemented. All parameters should be"
+                   "loaded from the passed NodeHandle. Using a private NodeHandle for this is deprecated.");
   }
 
   /// Get a short string that identifies the planning request adapter
