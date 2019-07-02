@@ -2,7 +2,7 @@ set(MOVEIT_LIB_NAME moveit_depth_image_octomap_updater)
 
 add_library(${MOVEIT_LIB_NAME}_core src/depth_image_octomap_updater.cpp)
 set_target_properties(${MOVEIT_LIB_NAME}_core PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${MOVEIT_LIB_NAME}_core moveit_lazy_free_space_updater moveit_mesh_filter moveit_occupancy_map_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME}_core moveit_lazy_free_space_updater moveit_mesh_filter ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(${MOVEIT_LIB_NAME}_core ${sensor_msgs_EXPORTED_TARGETS})
 
