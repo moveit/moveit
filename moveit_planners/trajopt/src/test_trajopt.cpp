@@ -31,7 +31,9 @@ int main(int argc, char** argv)
       robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
       const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(PLANNING_GROUP);
 
-      const std::vector<std::string>& joint_names = joint_model_group->getVariableNames();
+
+      const std::vector<std::string>& joint_names = joint_model_group->getActiveJointModelNames();
+      std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> dof: " << joint_names.size()  << std::endl;
 
       planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model));
 
@@ -43,9 +45,9 @@ int main(int argc, char** argv)
       psm->startStateMonitor();
       psm->startSceneMonitor();
 
-        while (!psm->getStateMonitor()->haveCompleteState() && ros::ok())
-        {
-          ROS_INFO_STREAM_THROTTLE_NAMED(1, node_name, "Waiting for complete state from topic ");
+      while (!psm->getStateMonitor()->haveCompleteState() && ros::ok())
+       {
+         ROS_INFO_STREAM_THROTTLE_NAMED(1, node_name, "Waiting for complete state from topic ");
         }
       // We will now construct a loader to load a planner, by name.
       // Note that we are using the ROS pluginlib library here.
@@ -56,7 +58,7 @@ int main(int argc, char** argv)
 
       planner_plugin_name = "trajopt_interface/TrajOptPlanner";
       node_handle.setParam("planning_plugin", planner_plugin_name);
-
+      
       // We will get the name of planning plugin we want to load
     // from the ROS parameter server, and then load the planner
     // making sure to catch all exceptions.
@@ -192,39 +194,48 @@ int main(int argc, char** argv)
       std::cout << "==>> joint position at goal " << x.position << std::endl;
     }
 
-
+    
     //------
     // We now construct a planning context that encapsulate the scene,
     // the request and the response. We call the planner using this
     // planning context
-    planning_interface::PlanningContextPtr context =
+         planning_interface::PlanningContextPtr context =
         planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
-
-    context->solve(res);
-    if (res.error_code_.val != res.error_code_.SUCCESS)
+	 
+	       context->solve(res);
+	          if (res.error_code_.val != res.error_code_.SUCCESS)
     {
       ROS_ERROR("Could not compute plan successfully");
       return 0;
   }
 
+ visual_tools.prompt("Press 'next' to visualize the reslt ");
+ 
+// Visualize the result
+  // ^^^^^^^^^^^^^^^^^^^^
+  ros::Publisher display_publisher =
+      node_handle.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
+  moveit_msgs::DisplayTrajectory display_trajectory;
 
+  /* Visualize the trajectory */
+  moveit_msgs::MotionPlanResponse response;
+  res.getMessage(response);
 
+  display_trajectory.trajectory_start = response.trajectory_start;
+  display_trajectory.trajectory.push_back(response.trajectory);
+  visual_tools.publishTrajectoryLine(display_trajectory.trajectory.back(), joint_model_group);
+  visual_tools.trigger();
+  display_publisher.publish(display_trajectory);
+  /*
+  // Set the state in the planning scene to the final state of the last plan 
+  robot_state->setJointGroupPositions(joint_model_group, response.trajectory.joint_trajectory.points.back().positions);
+  planning_scene->setCurrentState(*robot_state.get());
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // Display the goal state
+  visual_tools.publishRobotState(planning_scene->getCurrentStateNonConst(), rviz_visual_tools::GREEN);
+  visual_tools.publishAxisLabeled(pose.pose, "goal_1");
+  visual_tools.publishText(text_pose, "Pose Goal (1)", rvt::WHITE, rvt::XLARGE);
+  visual_tools.trigger();      
+*/	   
 
 }
