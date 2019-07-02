@@ -49,6 +49,10 @@ public:
   {
   }
 
+  void initialize(const ros::NodeHandle& nh) override
+  {
+  }
+
   std::string getDescription() const override
   {
     return "Add Time Parameterization";

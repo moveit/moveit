@@ -48,6 +48,10 @@ public:
   {
   }
 
+  void initialize(const ros::NodeHandle& nh) override
+  {
+  }
+
   std::string getDescription() const override
   {
     return "Resolve constraint frames to robot links";
