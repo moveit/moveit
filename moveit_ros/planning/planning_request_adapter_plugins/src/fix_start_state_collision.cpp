@@ -49,9 +49,13 @@ public:
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
 
-  FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateCollision() : planning_request_adapter::PlanningRequestAdapter()
   {
-    if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
+  }
+
+  void initialize(const ros::NodeHandle& nh) override
+  {
+    if (!nh.getParam(DT_PARAM_NAME, max_dt_offset_))
     {
       max_dt_offset_ = 0.5;
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was not set. Using default value: " << max_dt_offset_);
@@ -59,7 +63,7 @@ public:
     else
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was set to " << max_dt_offset_);
 
-    if (!nh_.getParam(JIGGLE_PARAM_NAME, jiggle_fraction_))
+    if (!nh.getParam(JIGGLE_PARAM_NAME, jiggle_fraction_))
     {
       jiggle_fraction_ = 0.02;
       ROS_INFO_STREAM("Param '" << JIGGLE_PARAM_NAME << "' was not set. Using default value: " << jiggle_fraction_);
@@ -67,7 +71,7 @@ public:
     else
       ROS_INFO_STREAM("Param '" << JIGGLE_PARAM_NAME << "' was set to " << jiggle_fraction_);
 
-    if (!nh_.getParam(ATTEMPTS_PARAM_NAME, sampling_attempts_))
+    if (!nh.getParam(ATTEMPTS_PARAM_NAME, sampling_attempts_))
     {
       sampling_attempts_ = 100;
       ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' was not set. Using default value: " << sampling_attempts_);
@@ -182,7 +186,6 @@ public:
   }
 
 private:
-  ros::NodeHandle nh_;
   double max_dt_offset_;
   double jiggle_fraction_;
   int sampling_attempts_;

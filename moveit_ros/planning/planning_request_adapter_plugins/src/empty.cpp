@@ -53,6 +53,10 @@ public:
   {
     return planner(planning_scene, req, res);
   }
+
+  void initialize(const ros::NodeHandle& node_handle) override
+  {
+  }
 };
 }  // namespace default_planner_request_adapters
 

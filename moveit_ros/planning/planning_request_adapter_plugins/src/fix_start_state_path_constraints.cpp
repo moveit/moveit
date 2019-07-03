@@ -50,6 +50,10 @@ public:
   {
   }
 
+  void initialize(const ros::NodeHandle& nh) override
+  {
+  }
+
   std::string getDescription() const override
   {
     return "Fix Start State Path Constraints";

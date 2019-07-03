@@ -49,9 +49,13 @@ public:
   static const std::string BOUNDS_PARAM_NAME;
   static const std::string DT_PARAM_NAME;
 
-  FixStartStateBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  FixStartStateBounds() : planning_request_adapter::PlanningRequestAdapter()
   {
-    if (!nh_.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
+  }
+
+  void initialize(const ros::NodeHandle& nh) override
+  {
+    if (!nh.getParam(BOUNDS_PARAM_NAME, bounds_dist_))
     {
       bounds_dist_ = 0.05;
       ROS_INFO_STREAM("Param '" << BOUNDS_PARAM_NAME << "' was not set. Using default value: " << bounds_dist_);
@@ -59,7 +63,7 @@ public:
     else
       ROS_INFO_STREAM("Param '" << BOUNDS_PARAM_NAME << "' was set to " << bounds_dist_);
 
-    if (!nh_.getParam(DT_PARAM_NAME, max_dt_offset_))
+    if (!nh.getParam(DT_PARAM_NAME, max_dt_offset_))
     {
       max_dt_offset_ = 0.5;
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was not set. Using default value: " << max_dt_offset_);
@@ -201,7 +205,6 @@ public:
   }
 
 private:
-  ros::NodeHandle nh_;
   double bounds_dist_;
   double max_dt_offset_;
 };
