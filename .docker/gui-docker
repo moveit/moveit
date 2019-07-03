@@ -1,32 +1,66 @@
-#!/usr/bin/env bash
+#!/bin/bash -u
 
-# This script is used to run a docker container with an NVIDIA runtime.
-# It requires the package nvidia-docker2 to be installed on the host.
-# https://github.com/NVIDIA/nvidia-docker/wiki
-# http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration#nvidia-docker2
+# This script is used to run a docker container with graphics support.
+# http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
 
 # All arguments to this script will be appended to a docker run command.
 # Example command line:
 # ./gui-docker -it --rm moveit/moveit:master-source /bin/bash
+
+function check_nvidia2() {
+    # If we don't have an NVIDIA graphics card, bail out
+    lspci | grep -qi "vga .*nvidia" || return 1
+    # If we don't have the nvidia runtime, bail out
+    if ! docker -D info | grep -qi "runtimes.* nvidia" ; then
+       echo "nvidia-docker v2 not installed (see https://github.com/NVIDIA/nvidia-docker/wiki)"
+       return 2
+    fi
+    echo "found nvidia-docker v2"
+    DOCKER_PARAMS="\
+      --runtime=nvidia \
+      --env=NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} \
+      --env=NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}all"
+    return 0
+}
+
+function check_nvidia1() {
+    # If we don't have an NVIDIA graphics card, bail out
+    lspci | grep -qi "vga .*nvidia" || return 1
+    # Check whether nvidia-docker is available
+    if ! which nvidia-docker > /dev/null ; then
+       echo "nvidia-docker v1 not installed either"
+       return 2
+    fi
+    # Check that nvidia-modprobe is installed
+    if ! which nvidia-modprobe > /dev/null ; then
+       echo "nvidia-docker-plugin requires nvidia-modprobe. Please install it!"
+       return 3
+    fi
+    # Retrieve device parameters from nvidia-docker-plugin
+    if ! DOCKER_PARAMS=$(curl -s http://localhost:3476/docker/cli) ; then
+       echo "nvidia-docker-plugin not responding on http://localhost:3476/docker/cli"
+       echo "See https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-1.0)"
+       return 3
+    fi
+    echo "found nvidia-docker v1"
+    DOCKER_EXECUTABLE=nvidia-docker
+}
 
 # store X11 access rights in temp file
 XAUTH=/tmp/.docker.xauth
 touch $XAUTH
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 
-# Set docker runtime: if you have an NVIDIA card and nvidia-docker2 installed, nvidia is fine
-# Otherwise use the default runc
-RUNTIME=${RUNTIME:-nvidia}
+# Probe for nvidia-docker (version 2 or 1)
+check_nvidia2 || check_nvidia1
 
-docker run \
-    --env="NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}" \
-    --env="NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics" \
+${DOCKER_EXECUTABLE:-docker} run \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --env="XAUTHORITY=$XAUTH" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --volume="$XAUTH:$XAUTH" \
-    --runtime=$RUNTIME \
+    ${DOCKER_PARAMS:-} \
     $@
 
 # cleanup
