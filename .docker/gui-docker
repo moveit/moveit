@@ -46,13 +46,19 @@ function check_nvidia1() {
     DOCKER_EXECUTABLE=nvidia-docker
 }
 
+function check_dri() {
+    # If there is no /dev/dri, bail out
+    test -d /dev/dri || return 1
+    DOCKER_PARAMS="--device=/dev/dri --group-add video"
+}
+
 # store X11 access rights in temp file
 XAUTH=/tmp/.docker.xauth
 touch $XAUTH
 xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 
 # Probe for nvidia-docker (version 2 or 1)
-check_nvidia2 || check_nvidia1
+check_nvidia2 || check_nvidia1 || check_dri || echo "No supported graphics card found"
 
 ${DOCKER_EXECUTABLE:-docker} run \
     --env="DISPLAY=$DISPLAY" \
