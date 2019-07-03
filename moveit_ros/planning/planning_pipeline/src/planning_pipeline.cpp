@@ -142,7 +142,7 @@ void planning_pipeline::PlanningPipeline::configure()
     if (adapter_plugin_loader_)
       for (const std::string& adapter_plugin_name : adapter_plugin_names_)
       {
-        pluginlib::UniquePtr<planning_request_adapter::PlanningRequestAdapter> ad;
+        planning_request_adapter::PlanningRequestAdapterPtr ad;
         try
         {
           ad = adapter_plugin_loader_->createUniqueInstance(adapter_plugin_name);
