@@ -194,6 +194,10 @@ TEST_F(BulletCollisionDetectionTester, ContactReporting)
   ASSERT_TRUE(res.collision);
   EXPECT_LE(res.contacts.size(), 10u);
   EXPECT_LE(res.contact_count, 10u);
+  for (auto contact : res.contacts)
+  {
+    EXPECT_LE(contact.second.size(), 2u);
+  }
 }
 
 TEST_F(BulletCollisionDetectionTester, ContactPositions)

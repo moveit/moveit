@@ -46,15 +46,12 @@
 #include <BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>
 #include <BulletCollision/Gimpact/btGImpactShape.h>
-#include <boost/thread/mutex.hpp>
 #include <geometric_shapes/shapes.h>
 #include <memory>
 #include <octomap/octomap.h>
 #include <ros/console.h>
 
 namespace tesseract
-{
-namespace tesseract_bullet
 {
 btCollisionShape* createShapePrimitive(const shapes::Box* geom, const CollisionObjectType& collision_object_type)
 {
@@ -115,7 +112,7 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
           return nullptr;
 
         btConvexHullShape* subshape = new btConvexHullShape();
-        for (const auto& v : vertices)
+        for (const Eigen::Vector3d& v : vertices)
           subshape->addPoint(
               btVector3(static_cast<btScalar>(v[0]), static_cast<btScalar>(v[1]), static_cast<btScalar>(v[2])));
 
@@ -125,9 +122,8 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
       {
         btCompoundShape* compound =
             new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(geom->triangle_count));
-        compound->setMargin(BULLET_MARGIN);  // margin: compound. seems to have no
-                                             // effect when positive but has an
-                                             // effect when negative
+        compound->setMargin(
+            BULLET_MARGIN);  // margin: compound seems to have no effect when positive but has an effect when negative
 
         for (unsigned i = 0; i < geom->triangle_count; ++i)
         {
@@ -305,9 +301,8 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
     btCompoundShape* compound =
         new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(m_shapes.size()));
     manage(compound);
-    compound->setMargin(BULLET_MARGIN);  // margin: compound. seems to have no
-                                         // effect when positive but has an
-                                         // effect when negative
+    compound->setMargin(
+        BULLET_MARGIN);  // margin: compound seems to have no effect when positive but has an effect when negative
     setCollisionShape(compound);
 
     for (std::size_t j = 0; j < m_shapes.size(); ++j)
@@ -350,6 +345,5 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   , m_collision_object_types(collision_object_types)
   , m_data(data)
 {
-}
 }
 }

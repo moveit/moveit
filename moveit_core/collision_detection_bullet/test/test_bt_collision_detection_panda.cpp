@@ -52,9 +52,22 @@
 #include <fstream>
 
 typedef collision_detection::CollisionWorldBt DefaultCWorldType;
-// typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotBt DefaultCRobotType;
-// typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
+
+/** \brief Brings the panda robot in user defined home position */
+inline void setToHome(robot_state::RobotState& panda_state)
+{
+  panda_state.setToDefaultValues();
+  double joint2 = -0.785;
+  double joint4 = -2.356;
+  double joint6 = 1.571;
+  double joint7 = 0.785;
+  panda_state.setJointPositions("panda_joint2", &joint2);
+  panda_state.setJointPositions("panda_joint4", &joint4);
+  panda_state.setJointPositions("panda_joint6", &joint6);
+  panda_state.setJointPositions("panda_joint7", &joint7);
+  panda_state.update();
+}
 
 class BulletCollisionDetectionTester : public testing::Test
 {
@@ -206,7 +219,7 @@ TEST_F(BulletCollisionDetectionTester, RobotWorldCollision_2)
   cworld_->getWorld()->addToObject("box", shape_ptr, pos1);
   cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
   ASSERT_TRUE(res.collision);
-  ASSERT_GE(res.contact_count, 3);
+  ASSERT_GE(res.contact_count, 3u);
   res.clear();
 }
 
@@ -219,7 +232,7 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   robot_state::RobotState state1(robot_model_);
   robot_state::RobotState state2(robot_model_);
 
-  state1.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  setToHome(state1);
   double joint2 = 0.15;
   double joint4 = -3.0;
   double joint5 = -0.8;
@@ -234,7 +247,7 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  state2.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  setToHome(state2);
   double joint_5_other = 0.8;
   state2.setJointPositions("panda_joint2", &joint2);
   state2.setJointPositions("panda_joint4", &joint4);
@@ -262,10 +275,10 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   robot_state::RobotState state1(robot_model_);
   robot_state::RobotState state2(robot_model_);
 
-  state1.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  setToHome(state1);
   state1.update();
 
-  state2.setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
+  setToHome(state2);
   double joint_2{ 0.05 };
   double joint_4{ -1.6 };
   state2.setJointPositions("panda_joint2", &joint_2);

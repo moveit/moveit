@@ -50,10 +50,10 @@
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
 #include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/macros/declare_ptr.h>
+#include <moveit/macros/class_forward.h>
 
 namespace tesseract
-{
-namespace tesseract_bullet
 {
 #define METERS
 
@@ -64,6 +64,10 @@ const btScalar BULLET_EPSILON = 1e-3f;
 // All pairs closer than this distance get reported
 const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
+
+MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
+typedef CollisionObjectWrapper COW;
+MOVEIT_DECLARE_PTR(COW, CollisionObjectWrapper)
 
 inline btVector3 convertEigenToBt(const Eigen::Vector3d& v)
 {
@@ -173,6 +177,7 @@ public:
     clone_cow->m_collisionFilterMask = m_collisionFilterMask;
     clone_cow->m_enabled = m_enabled;
     clone_cow->setBroadphaseHandle(nullptr);
+    clone_cow->m_touch_links = m_touch_links;
     return clone_cow;
   }
 
@@ -205,32 +210,26 @@ protected:
       m_data; /**< @brief This manages the collision shape pointer so they get destroyed */
 };
 
-typedef CollisionObjectWrapper COW;
-typedef std::shared_ptr<CollisionObjectWrapper> COWPtr;
-typedef std::shared_ptr<const CollisionObjectWrapper> COWConstPtr;
-typedef std::map<std::string, COWPtr> Link2Cow;
-typedef std::map<std::string, COWConstPtr> Link2ConstCow;
-
 /** @brief This is a casted collision shape used for checking if an object is collision free between two transforms */
 struct CastHullShape : public btConvexShape
 {
 public:
   btConvexShape* m_shape;
-  btTransform m_t01;
+  btTransform m_shape_transform;
 
-  CastHullShape(btConvexShape* shape, const btTransform& t01) : m_shape(shape), m_t01(t01)
+  CastHullShape(btConvexShape* shape, const btTransform& t01) : m_shape(shape), m_shape_transform(t01)
   {
     m_shapeType = CUSTOM_CONVEX_SHAPE_TYPE;
   }
 
   void updateCastTransform(const btTransform& t01)
   {
-    m_t01 = t01;
+    m_shape_transform = t01;
   }
   btVector3 localGetSupportingVertex(const btVector3& vec) const override
   {
     btVector3 sv0 = m_shape->localGetSupportingVertex(vec);
-    btVector3 sv1 = m_t01 * m_shape->localGetSupportingVertex(vec * m_t01.getBasis());
+    btVector3 sv1 = m_shape_transform * m_shape->localGetSupportingVertex(vec * m_shape_transform.getBasis());
     return (vec.dot(sv0) > vec.dot(sv1)) ? sv0 : sv1;
   }
 
@@ -247,7 +246,7 @@ public:
   {
     m_shape->getAabb(t_w0, aabbMin, aabbMax);
     btVector3 min1, max1;
-    m_shape->getAabb(t_w0 * m_t01, min1, max1);
+    m_shape->getAabb(t_w0 * m_shape_transform, min1, max1);
     aabbMin.setMin(min1);
     aabbMax.setMax(max1);
   }
@@ -374,7 +373,7 @@ inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContac
       return false;
 
   // TODO: Add check for two objects attached to the same link
-  ROS_DEBUG_STREAM("Checking collision btw" << cow1.getName() << " vs " << cow2.getName());
+  ROS_DEBUG_STREAM("Checking collision btw " << cow1.getName() << " vs " << cow2.getName());
 
   return true;
 }
@@ -387,7 +386,7 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   const CollisionObjectWrapper* cd0 = static_cast<const CollisionObjectWrapper*>(colObj0Wrap->getCollisionObject());
   const CollisionObjectWrapper* cd1 = static_cast<const CollisionObjectWrapper*>(colObj1Wrap->getCollisionObject());
 
-  ObjectPairKey pc = getObjectPairKey(cd0->getName(), cd1->getName());
+  std::pair<std::string, std::string> pc = getObjectPairKey(cd0->getName(), cd1->getName());
 
   const auto& it = collisions.res.contacts.find(pc);
   bool found = (it != collisions.res.contacts.end());
@@ -422,7 +421,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   const CollisionObjectWrapper* cd0 = static_cast<const CollisionObjectWrapper*>(colObj0Wrap->getCollisionObject());
   const CollisionObjectWrapper* cd1 = static_cast<const CollisionObjectWrapper*>(colObj1Wrap->getCollisionObject());
 
-  ObjectPairKey pc = getObjectPairKey(cd0->getName(), cd1->getName());
+  std::pair<std::string, std::string> pc = getObjectPairKey(cd0->getName(), cd1->getName());
 
   const auto& it = collisions.res.contacts.find(pc);
   bool found = (it != collisions.res.contacts.end());
@@ -433,9 +432,6 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   contact.depth = static_cast<double>(cp.m_distance1);
   contact.normal = convertBtToEigen(-1 * cp.m_normalWorldOnB);
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
-
-  contact.nearest_points[0] = convertBtToEigen(cp.m_positionWorldOnA);
-  contact.nearest_points[1] = convertBtToEigen(cp.m_positionWorldOnB);
 
   contact.body_type_1 = cd0->getTypeID();
   contact.body_type_2 = cd0->getTypeID();
@@ -450,14 +446,15 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   assert(!((cd0->m_collisionFilterGroup == btBroadphaseProxy::KinematicFilter) &&
            (cd1->m_collisionFilterGroup == btBroadphaseProxy::KinematicFilter)));
 
-  bool castShapeIsFirst = (cd0->m_collisionFilterGroup == btBroadphaseProxy::KinematicFilter) ? true : false;
+  bool castShapeIsFirst = cd0->m_collisionFilterGroup == btBroadphaseProxy::KinematicFilter;
 
   btVector3 normalWorldFromCast = -(castShapeIsFirst ? 1 : -1) * cp.m_normalWorldOnB;
   const btCollisionObjectWrapper* firstColObjWrap = (castShapeIsFirst ? colObj0Wrap : colObj1Wrap);
 
+  // we want the contact information of the non-casted object come first, therefore swap values
   if (castShapeIsFirst)
   {
-    std::swap(col->nearest_points[0], col->nearest_points[1]);
+    // std::swap(col->nearest_points[0], col->nearest_points[1]);
     contact.pos = convertBtToEigen(cp.m_positionWorldOnB);
     std::swap(col->body_name_1, col->body_name_2);
     std::swap(col->body_type_1, col->body_type_2);
@@ -465,12 +462,10 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   }
 
   btTransform tfWorld0, tfWorld1;
-  assert(dynamic_cast<const CastHullShape*>(firstColObjWrap->getCollisionShape()) != nullptr);
   const CastHullShape* shape = static_cast<const CastHullShape*>(firstColObjWrap->getCollisionShape());
-  assert(shape != nullptr);
 
   tfWorld0 = firstColObjWrap->getWorldTransform();
-  tfWorld1 = firstColObjWrap->getWorldTransform() * shape->m_t01;
+  tfWorld1 = firstColObjWrap->getWorldTransform() * shape->m_shape_transform;
 
   btVector3 normalLocal0 = normalWorldFromCast * tfWorld0.getBasis();
   btVector3 normalLocal1 = normalWorldFromCast * tfWorld1.getBasis();
@@ -490,13 +485,13 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   // TODO: this section is potentially problematic. think hard about the math
   if (sup0 - sup1 > BULLET_SUPPORT_FUNC_TOLERANCE)
   {
-    col->cc_time = 0;
-    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Time0;
+    col->percent_interpolation = 0;
+    col->cc_type = collision_detection::ContinuousCollisionType::Time0;
   }
   else if (sup1 - sup0 > BULLET_SUPPORT_FUNC_TOLERANCE)
   {
-    col->cc_time = 1;
-    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Time1;
+    col->percent_interpolation = 1;
+    col->cc_type = collision_detection::ContinuousCollisionType::Time1;
   }
   else
   {
@@ -504,19 +499,19 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
     float l0c = (ptOnCast - ptWorld0).length();
     float l1c = (ptOnCast - ptWorld1).length();
 
-    col->cc_nearest_points[0] = col->nearest_points[1];
-    col->nearest_points[1] = convertBtToEigen(ptWorld0);
+    // col->cc_nearest_points[0] = col->nearest_points[1];
+    // col->nearest_points[1] = convertBtToEigen(ptWorld0);
 
-    col->cc_nearest_points[1] = convertBtToEigen(ptWorld1);
-    col->cc_type = collision_detection::ContinuousCollisionType::CCType_Between;
+    // col->cc_nearest_points[1] = convertBtToEigen(ptWorld1);
+    col->cc_type = collision_detection::ContinuousCollisionType::Between;
 
     if (l0c + l1c < BULLET_LENGTH_TOLERANCE)
     {
-      col->cc_time = .5;
+      col->percent_interpolation = .5;
     }
     else
     {
-      col->cc_time = static_cast<double>(l0c / (l0c + l1c));
+      col->percent_interpolation = static_cast<double>(l0c / (l0c + l1c));
     }
   }
 
@@ -580,7 +575,8 @@ struct TesseractBridgedManifoldResult : public btManifoldResult
   }
 };
 
-/** @brief The BroadphaseContactResultCallback is used to report contact points */
+/** @brief The BroadphaseContactResultCallback is the abstract interface for both discrete and continuous reporting
+ *  of contact points */
 struct BroadphaseContactResultCallback
 {
   ContactTestData& collisions_;
@@ -604,6 +600,7 @@ struct BroadphaseContactResultCallback
                                    int index1) = 0;
 };
 
+/** \brief addSingleResult of this struct is called each time the broadphase check indicates a collision. */
 struct DiscreteBroadphaseContactResultCallback : public BroadphaseContactResultCallback
 {
   DiscreteBroadphaseContactResultCallback(ContactTestData& collisions, double contact_distance, bool verbose = false)
@@ -621,11 +618,11 @@ struct DiscreteBroadphaseContactResultCallback : public BroadphaseContactResultC
       return 0;
     }
 
-    ROS_DEBUG_STREAM("We have a collision with " << cp.m_distance1);
     return addDiscreteSingleResult(cp, colObj0Wrap, colObj1Wrap, collisions_);
   }
 };
 
+/** \brief addSingleResult of this struct is called each time the broadphase check indicates a collision. */
 struct CastBroadphaseContactResultCallback : public BroadphaseContactResultCallback
 {
   CastBroadphaseContactResultCallback(ContactTestData& collisions, double contact_distance, bool verbose = false)
@@ -638,7 +635,10 @@ struct CastBroadphaseContactResultCallback : public BroadphaseContactResultCallb
                            int index1) override
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
+    {
+      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
       return 0;
+    }
 
     return addCastSingleResult(cp, colObj0Wrap, index0, colObj1Wrap, index1, collisions_);
   }
@@ -703,13 +703,10 @@ struct TesseractBroadphaseBridgedManifoldResult : public btManifoldResult
   }
 };
 
-/**
- * @brief This is copied directly out of BulletWorld
+/** @brief This is copied directly out of BulletWorld
  *
- * This is currently not used but will remain because it is needed
- * to check a collision object not in the broadphase to the broadphase
- * which may eventually be exposed.
-*/
+ *  This is currently not used but will remain because it is needed to check a collision object not in the broadphase to
+ * the broadphase which may eventually be exposed. */
 struct TesseractSingleContactCallback : public btBroadphaseAabbCallback
 {
   btCollisionObject* m_collisionObject;    /**< @brief The bullet collision object */
@@ -759,7 +756,7 @@ struct TesseractSingleContactCallback : public btBroadphaseAabbCallback
 };
 
 /**
- * @brief A callback function that is called as part of the broadphase collision checking.
+ * @brief A callback function that is called as part of the broadphase collision checking.  *
  *
  * If the AABB of two collision objects are overlapping the processOverlap method is called
  * and they are checked for collision/distance and the results are stored in collision_.
@@ -782,7 +779,15 @@ public:
   bool processOverlap(btBroadphasePair& pair) override
   {
     if (results_callback_.collisions_.done)
+    {
       return false;
+    }
+
+    if (results_callback_.collisions_.pair_done)
+    {
+      results_callback_.collisions_.pair_done = false;
+      return false;
+    }
 
     const CollisionObjectWrapper* cow0 = static_cast<const CollisionObjectWrapper*>(pair.m_pProxy0->m_clientObject);
     const CollisionObjectWrapper* cow1 = static_cast<const CollisionObjectWrapper*>(pair.m_pProxy1->m_clientObject);
@@ -857,7 +862,7 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   // dont add object that does not have geometry
   if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
   {
-    ROS_DEBUG("ignoring link %s", name.c_str());
+    ROS_DEBUG_NAMED("collision_detection.bullet", "ignoring link %s", name.c_str());
     return nullptr;
   }
 
@@ -866,7 +871,7 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   new_cow->m_enabled = enabled;
   new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
 
-  ROS_DEBUG("Created collision object for link %s", new_cow->getName().c_str());
+  ROS_DEBUG_NAMED("collision_detection.bullet", "Created collision object for link %s", new_cow->getName().c_str());
   return new_cow;
 }
 
@@ -879,7 +884,7 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   // dont add object that does not have geometry
   if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
   {
-    ROS_DEBUG("ignoring link %s", name.c_str());
+    ROS_DEBUG_NAMED("collision_detection.bullet", "ignoring link %s", name.c_str());
     return nullptr;
   }
 
@@ -888,7 +893,7 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   new_cow->m_enabled = enabled;
   new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
 
-  ROS_DEBUG("Created collision object for link %s", new_cow->getName().c_str());
+  ROS_DEBUG_NAMED("collision_detection.bullet", "Created collision object for link %s", new_cow->getName().c_str());
   return new_cow;
 }
 
@@ -918,7 +923,6 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
       return 0;
     }
 
-    ROS_DEBUG_STREAM("We have a collision with " << cp.m_distance1);
     return addDiscreteSingleResult(cp, colObj0Wrap, colObj1Wrap, collisions_);
   }
 
@@ -950,10 +954,11 @@ struct CastCollisionCollector : public btCollisionWorld::ContactResultCallback
                            int index1) override
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
+    {
       ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
-    return 0;
+      return 0;
+    }
 
-    ROS_DEBUG_STREAM("We have a collision with " << cp.m_distance1);
     return addCastSingleResult(cp, colObj0Wrap, index0, colObj1Wrap, index1, collisions_);
   }
 
@@ -976,18 +981,17 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
   {
     assert(dynamic_cast<btConvexShape*>(new_cow->getCollisionShape()) != nullptr);
     btConvexShape* convex = static_cast<btConvexShape*>(new_cow->getCollisionShape());
-    assert(convex->getShapeType() !=
-           CUSTOM_CONVEX_SHAPE_TYPE);  // This checks if the collision object is already a cast collision object
+
+    // This checks if the collision object is already a cast collision object
+    assert(convex->getShapeType() != CUSTOM_CONVEX_SHAPE_TYPE);
 
     CastHullShape* shape = new CastHullShape(convex, tf);
-    assert(shape != nullptr);
 
     new_cow->manage(shape);
     new_cow->setCollisionShape(shape);
   }
   else if (btBroadphaseProxy::isCompound(new_cow->getCollisionShape()->getShapeType()))
   {
-    assert(dynamic_cast<btCompoundShape*>(new_cow->getCollisionShape()) != nullptr);
     btCompoundShape* compound = static_cast<btCompoundShape*>(new_cow->getCollisionShape());
     btCompoundShape* new_compound =
         new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, compound->getNumChildShapes());
@@ -1002,7 +1006,6 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
         btTransform geomTrans = compound->getChildTransform(i);
 
         btCollisionShape* subshape = new CastHullShape(convex, tf);
-        assert(subshape != nullptr);
 
         new_cow->manage(subshape);
         subshape->setMargin(BULLET_MARGIN);
@@ -1016,7 +1019,6 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
         for (int j = 0; j < second_compound->getNumChildShapes(); ++j)
         {
           assert(!btBroadphaseProxy::isCompound(second_compound->getChildShape(j)->getShapeType()));
-          assert(dynamic_cast<btConvexShape*>(second_compound->getChildShape(j)) != nullptr);
 
           btConvexShape* convex = static_cast<btConvexShape*>(second_compound->getChildShape(j));
           assert(convex->getShapeType() != CUSTOM_CONVEX_SHAPE_TYPE);  // This checks if already a cast collision object
@@ -1024,7 +1026,6 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
           btTransform geomTrans = second_compound->getChildTransform(j);
 
           btCollisionShape* subshape = new CastHullShape(convex, tf);
-          assert(subshape != nullptr);
 
           new_cow->manage(subshape);
           subshape->setMargin(BULLET_MARGIN);
@@ -1034,45 +1035,41 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
         btTransform geomTrans = compound->getChildTransform(i);
 
         new_cow->manage(new_second_compound);
-        new_second_compound->setMargin(BULLET_MARGIN);  // margin: compound. seems to
-                                                        // have no effect when positive
-                                                        // but has an effect when
-                                                        // negative
-
+        new_second_compound->setMargin(
+            BULLET_MARGIN);  // margin: compound. seems to have no effect when positive but has an effect when negative
         new_compound->addChildShape(geomTrans, new_second_compound);
       }
       else
       {
+        ROS_ERROR_NAMED("collision_detection.bullet",
+                        "I can only collision check convex shapes and compound shapes made of convex shapes");
         throw std::runtime_error("I can only collision check convex shapes and compound shapes made of convex shapes");
       }
     }
 
-    new_compound->setMargin(BULLET_MARGIN);  // margin: compound. seems to
-                                             // have no effect when positive
-                                             // but has an effect when
-                                             // negative
+    new_compound->setMargin(
+        BULLET_MARGIN);  // margin: compound. seems to have no effect when positive but has an effect when negative
     new_cow->manage(new_compound);
     new_cow->setCollisionShape(new_compound);
     new_cow->setWorldTransform(cow->getWorldTransform());
   }
   else
   {
+    ROS_ERROR_NAMED("collision_detection.bullet",
+                    "I can only collision check convex shapes and compound shapes made of convex shapes");
     throw std::runtime_error("I can only collision check convex shapes and compound shapes made of convex shapes");
   }
 
   return new_cow;
 }
 
-/**
- * @brief Update the Broadphase AABB for the input collision object
- * @param cow The collision objects
- * @param broadphase The bullet broadphase interface
- * @param dispatcher The bullet collision dispatcher
- */
+/** @brief Update the Broadphase AABB for the input collision object
+ *  @param cow The collision objects
+ *  @param broadphase The bullet broadphase interface
+ *  @param dispatcher The bullet collision dispatcher */
 inline void updateBroadphaseAABB(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                  const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
-  // Calculate the aabb
   btVector3 aabb_min, aabb_max;
   cow->getAABB(aabb_min, aabb_max);
 
@@ -1081,12 +1078,10 @@ inline void updateBroadphaseAABB(const COWPtr& cow, const std::unique_ptr<btBroa
   broadphase->setAabb(cow->getBroadphaseHandle(), aabb_min, aabb_max, dispatcher.get());
 }
 
-/**
- * @brief Remove the collision object from broadphase
- * @param cow The collision objects
- * @param broadphase The bullet broadphase interface
- * @param dispatcher The bullet collision dispatcher
- */
+/** @brief Remove the collision object from broadphase
+ *  @param cow The collision objects
+ *  @param broadphase The bullet broadphase interface
+ *  @param dispatcher The bullet collision dispatcher */
 inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
                                                 const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                                 const std::unique_ptr<btCollisionDispatcher>& dispatcher)
@@ -1101,12 +1096,10 @@ inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
   }
 }
 
-/**
- * @brief Add the collision object to broadphase
- * @param cow The collision objects
- * @param broadphase The bullet broadphase interface
- * @param dispatcher The bullet collision dispatcher
- */
+/** @brief Add the collision object to broadphase
+ *  @param cow The collision objects
+ *  @param broadphase The bullet broadphase interface
+ *  @param dispatcher The bullet collision dispatcher */
 inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                            const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
@@ -1118,7 +1111,6 @@ inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_
   int type = cow->getCollisionShape()->getShapeType();
   cow->setBroadphaseHandle(broadphase->createProxy(aabb_min, aabb_max, type, cow.get(), cow->m_collisionFilterGroup,
                                                    cow->m_collisionFilterMask, dispatcher.get()));
-}
 }
 }
 #endif  // TESSERACT_COLLISION_BULLET_UTILS_H

@@ -43,8 +43,6 @@
 
 namespace tesseract
 {
-namespace tesseract_bullet
-{
 BulletDiscreteBVHManager::BulletDiscreteBVHManager()
 {
   dispatcher_.reset(new btCollisionDispatcher(&coll_config_));
@@ -64,17 +62,17 @@ BulletDiscreteBVHManager::BulletDiscreteBVHManager()
 BulletDiscreteBVHManager::~BulletDiscreteBVHManager()
 {
   // clean up remaining objects
-  for (auto& co : link2cow_)
+  for (std::pair<const std::string, COWPtr>& co : link2cow_)
   {
     removeCollisionObjectFromBroadphase(co.second, broadphase_, dispatcher_);
   }
 }
 
-DiscreteContactManagerBasePtr BulletDiscreteBVHManager::clone() const
+BulletDiscreteBVHManagerPtr BulletDiscreteBVHManager::clone() const
 {
   BulletDiscreteBVHManagerPtr manager(new BulletDiscreteBVHManager());
 
-  for (const auto& cow : link2cow_)
+  for (const std::pair<std::string, COWPtr>& cow : link2cow_)
   {
     COWPtr new_cow = cow.second->clone();
 
@@ -106,10 +104,7 @@ bool BulletDiscreteBVHManager::addCollisionObject(const std::string& name, const
     addCollisionObject(new_cow);
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 bool BulletDiscreteBVHManager::hasCollisionObject(const std::string& name) const
@@ -186,14 +181,14 @@ void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::vector<st
                                                             const AlignedVector<Eigen::Isometry3d>& poses)
 {
   assert(names.size() == poses.size());
-  for (auto i = 0u; i < names.size(); ++i)
+  for (size_t i = 0u; i < names.size(); ++i)
     setCollisionObjectsTransform(names[i], poses[i]);
 }
 
 void BulletDiscreteBVHManager::setCollisionObjectsTransform(
     const AlignedMap<std::string, Eigen::Isometry3d>& transforms)
 {
-  for (const auto& transform : transforms)
+  for (const std::pair<std::string, Eigen::Isometry3d>& transform : transforms)
     setCollisionObjectsTransform(transform.first, transform.second);
 }
 
@@ -202,7 +197,7 @@ void BulletDiscreteBVHManager::setActiveCollisionObjects(const std::vector<std::
   active_ = names;
 
   // Now need to update the broadphase with correct aabb
-  for (auto& co : link2cow_)
+  for (std::pair<const std::string, COWPtr>& co : link2cow_)
   {
     COWPtr& cow = co.second;
 
@@ -214,11 +209,12 @@ const std::vector<std::string>& BulletDiscreteBVHManager::getActiveCollisionObje
 {
   return active_;
 }
+
 void BulletDiscreteBVHManager::setContactDistanceThreshold(double contact_distance)
 {
   contact_distance_ = contact_distance;
 
-  for (auto& co : link2cow_)
+  for (std::pair<const std::string, COWPtr>& co : link2cow_)
   {
     COWPtr& cow = co.second;
     cow->setContactProcessingThreshold(static_cast<btScalar>(contact_distance));
@@ -231,10 +227,12 @@ double BulletDiscreteBVHManager::getContactDistanceThreshold() const
 {
   return contact_distance_;
 }
+
 void BulletDiscreteBVHManager::setIsContactAllowedFn(IsContactAllowedFn fn)
 {
   fn_ = fn;
 }
+
 IsContactAllowedFn BulletDiscreteBVHManager::getIsContactAllowedFn() const
 {
   return fn_;
@@ -263,7 +261,7 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
 void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult& collisions,
                                            const collision_detection::CollisionRequest& req,
                                            const collision_detection::AllowedCollisionMatrix* acm,
-                                           const std::vector<tesseract::tesseract_bullet::COWPtr> cows_external)
+                                           const std::vector<tesseract::COWPtr> cows_external)
 {
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
@@ -277,7 +275,7 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
 
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
 
-  for (auto& cow : cows_external)
+  for (const COWPtr& cow : cows_external)
   {
     contactTest(cow, cdata);
   }
@@ -294,7 +292,7 @@ void BulletDiscreteBVHManager::addCollisionObject(const COWPtr& cow)
   addCollisionObjectToBroadphase(cow, broadphase_, dispatcher_);
 }
 
-const Link2Cow& BulletDiscreteBVHManager::getCollisionObjects() const
+const std::map<std::string, COWPtr>& BulletDiscreteBVHManager::getCollisionObjects() const
 {
   return link2cow_;
 }
@@ -309,6 +307,5 @@ void BulletDiscreteBVHManager::contactTest(const COWPtr& cow, ContactTestData& c
   TesseractSingleContactCallback contactCB(cow.get(), dispatcher_.get(), dispatch_info_, cc);
 
   broadphase_->aabbTest(min_aabb, max_aabb, contactCB);
-}
 }
 }

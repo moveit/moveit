@@ -37,15 +37,13 @@
 
 namespace tesseract
 {
-typedef std::pair<std::string, std::string> ObjectPairKey;
-
 /**
  * @brief Get a key for two object to search the collision matrix
  * @param obj1 First collision object name
  * @param obj2 Second collision object name
  * @return The collision pair key
  */
-inline ObjectPairKey getObjectPairKey(const std::string& obj1, const std::string& obj2)
+inline std::pair<std::string, std::string> getObjectPairKey(const std::string& obj1, const std::string& obj2)
 {
   return obj1 < obj2 ? std::make_pair(obj1, obj2) : std::make_pair(obj2, obj1);
 }
@@ -98,10 +96,16 @@ inline bool isContactAllowed(const std::string& name1, const std::string& name2,
 inline collision_detection::Contact* processResult(ContactTestData& cdata, collision_detection::Contact& contact,
                                                    const std::pair<std::string, std::string>& key, bool found)
 {
-  // TODO: Add check for max_number_contact between single pair how to skip those two objects then
+  if (cdata.req.distance)
+  {
+    if (contact.depth < cdata.res.distance)
+    {
+      cdata.res.distance = contact.depth;
+    }
+  }
+  ROS_DEBUG_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
   if (!found)
   {
-    ROS_DEBUG_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
     cdata.res.collision = true;
     std::vector<collision_detection::Contact> data;
     if (!cdata.req.contacts)
@@ -121,6 +125,11 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
       cdata.done = true;
     }
 
+    if (cdata.req.max_contacts_per_pair == 1u)
+    {
+      cdata.pair_done = true;
+    }
+
     return &(cdata.res.contacts.insert(std::make_pair(key, data)).first->second.back());
   }
   else
@@ -131,7 +140,7 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
 
     if (dr.size() >= cdata.req.max_contacts_per_pair)
     {
-      // TODO: Somehow abort collision check between this pair of objects
+      cdata.pair_done = true;
     }
 
     if (cdata.res.contact_count >= cdata.req.max_contacts)
@@ -166,7 +175,7 @@ inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vecto
   btConvexHullComputer conv;
   btAlignedObjectArray<btVector3> points;
   points.reserve(static_cast<int>(input.size()));
-  for (const auto& v : input)
+  for (const Eigen::Vector3d& v : input)
   {
     points.push_back(btVector3(static_cast<btScalar>(v[0]), static_cast<btScalar>(v[1]), static_cast<btScalar>(v[2])));
   }

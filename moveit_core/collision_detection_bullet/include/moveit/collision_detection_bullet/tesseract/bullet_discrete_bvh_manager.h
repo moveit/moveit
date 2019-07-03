@@ -42,93 +42,157 @@
 #define TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H
 
 #include <moveit/collision_detection_bullet/tesseract/bullet_utils.h>
-#include <moveit/collision_detection_bullet/tesseract/discrete_contact_manager_base.h>
+#include <moveit/macros/class_forward.h>
+
 namespace tesseract
 {
-namespace tesseract_bullet
-{
-/** @brief A BVH implementaiton of a bullet manager */
-class BulletDiscreteBVHManager : public DiscreteContactManagerBase
+MOVEIT_CLASS_FORWARD(BulletDiscreteBVHManager)
+
+/** @brief A bounding volume hierarchy (BVH) implementaiton of a discrete bullet manager */
+class BulletDiscreteBVHManager
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  /** \brief Constructor */
   BulletDiscreteBVHManager();
-  ~BulletDiscreteBVHManager() override;
 
-  DiscreteContactManagerBasePtr clone() const override;
+  ~BulletDiscreteBVHManager();
 
+  /**@brief Clone the manager
+   *
+   * This is to be used for multi threaded applications. A user should make a clone for each thread. */
+  BulletDiscreteBVHManagerPtr clone() const;
+
+  /**@brief Add a object to the checker
+   * @param name            The name of the object, must be unique.
+   * @param mask_id         User defined id which gets stored in the results structure.
+   * @param shapes          A vector of shapes that make up the collision object.
+   * @param shape_poses     A vector of poses for each shape, must be same length as shapes
+   * @param shape_types     A vector of shape types for encode the collision object. If the vector is of length 1 it is
+   * used for all shapes.
+   * @param collision_object_types A int identifying a conversion mode for the object. (ex. convert meshes to convex
+   * hulls)
+   * @return true if successfully added, otherwise false. */
   bool addCollisionObject(const std::string& name, const collision_detection::BodyType& mask_id,
                           const std::vector<shapes::ShapeConstPtr>& shapes,
                           const AlignedVector<Eigen::Isometry3d>& shape_poses,
-                          const std::vector<CollisionObjectType>& collision_object_types, bool enabled = true) override;
+                          const std::vector<CollisionObjectType>& collision_object_types, bool enabled = true);
 
-  bool hasCollisionObject(const std::string& name) const override;
+  /**@brief Find if a collision object already exists
+   * @param name The name of the collision object
+   * @return true if it exists, otherwise false. */
+  bool hasCollisionObject(const std::string& name) const;
 
-  bool removeCollisionObject(const std::string& name) override;
+  /**@brief Remove an object from the checker
+   * @param name The name of the object
+   * @return true if successfully removed, otherwise false. */
+  bool removeCollisionObject(const std::string& name);
 
-  bool enableCollisionObject(const std::string& name) override;
+  /**@brief Enable an object
+   * @param name The name of the object */
+  bool enableCollisionObject(const std::string& name);
 
-  bool disableCollisionObject(const std::string& name) override;
+  /**@brief Disable an object
+   * @param name The name of the object */
+  bool disableCollisionObject(const std::string& name);
 
-  void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose) override;
+  /**@brief Set a single collision object's tansform
+   * @param name The name of the object
+   * @param pose The tranformation in world */
+  void setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose);
 
-  void setCollisionObjectsTransform(const std::string& name, const btTransform& pose) override;
+  /**@brief Set a single collision object's tansform
+   * @param name The name of the object
+   * @param pose The tranformation in world */
+  void setCollisionObjectsTransform(const std::string& name, const btTransform& pose);
 
+  /**@brief Set a series of collision objects' tranforms
+   * @param names The names of the object
+   * @param poses The tranformations in world */
   void setCollisionObjectsTransform(const std::vector<std::string>& names,
-                                    const AlignedVector<Eigen::Isometry3d>& poses) override;
+                                    const AlignedVector<Eigen::Isometry3d>& poses);
 
-  void setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& transforms) override;
+  /**@brief Set a series of collision objects' tranforms
+   * @param transforms A transform map <name, pose> */
+  void setCollisionObjectsTransform(const AlignedMap<std::string, Eigen::Isometry3d>& transforms);
 
-  void setActiveCollisionObjects(const std::vector<std::string>& names) override;
+  /**@brief Set which collision objects can move
+   * @param names A vector of collision object names */
+  void setActiveCollisionObjects(const std::vector<std::string>& names);
 
-  const std::vector<std::string>& getActiveCollisionObjects() const override;
+  /**@brief Get which collision objects can move
+   * @return A list of collision object names */
+  const std::vector<std::string>& getActiveCollisionObjects() const;
 
-  void setContactDistanceThreshold(double contact_distance) override;
+  /**@brief Set the contact distance threshold for which collision should be considered.
+   * @param contact_distance The contact distance */
+  void setContactDistanceThreshold(double contact_distance);
 
-  double getContactDistanceThreshold() const override;
+  /**@brief Get the contact distance threshold
+   * @return The contact distance */
+  double getContactDistanceThreshold() const;
 
-  void setIsContactAllowedFn(IsContactAllowedFn fn) override;
+  /** @brief Set the active function for determining if two links are allowed to be in collision */
+  void setIsContactAllowedFn(IsContactAllowedFn fn);
 
-  IsContactAllowedFn getIsContactAllowedFn() const override;
+  /** @brief Get the active function for determining if two links are allowed to be in collision */
+  IsContactAllowedFn getIsContactAllowedFn() const;
 
+  /**@brief Perform a contact test for all objects in the manager
+   * @param collisions The Contact results data
+   * @param acm The allowed collision matrix
+   * @param req The contact request */
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
-                   const collision_detection::AllowedCollisionMatrix* acm) override;
+                   const collision_detection::AllowedCollisionMatrix* acm);
 
+  /**@brief Perform a contact test for all objects in the manager and the external ones provided
+   * @param collisions The Contact results data
+   * @param req The contact request
+   * @param acm The allowed collision matrix
+   * @param req The contact request
+   * @param cows_external Objects to check which are not part of the manager */
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
                    const collision_detection::AllowedCollisionMatrix* acm,
-                   const std::vector<tesseract::tesseract_bullet::COWPtr> cows_external);
+                   const std::vector<tesseract::COWPtr> cows_external);
 
-  /**
-  * @brief A a bullet collision object to the manager
-  * @param cow The tesseract bullet collision object
-  */
+  /**@brief Add a tesseract collision object to the manager
+  *  @param cow The tesseract bullet collision object */
   void addCollisionObject(const COWPtr& cow);
 
-  /**
-   * @brief Return collision objects
-   * @return A map of collision objects <name, collision object>
-   */
-  const Link2Cow& getCollisionObjects() const;
+  /**@brief Return collision objects
+   * @return A map of collision objects <name, collision object> */
+  const std::map<std::string, COWPtr>& getCollisionObjects() const;
 
 private:
-  std::vector<std::string> active_; /**< @brief A list of the active collision objects */
-  double contact_distance_;         /**< @brief The contact distance threshold */
-  IsContactAllowedFn fn_;           /**< @brief The is allowed collision function */
+  /** @brief A list of the active collision objects */
+  std::vector<std::string> active_;
 
-  std::unique_ptr<btCollisionDispatcher> dispatcher_; /**< @brief The bullet collision dispatcher used for getting
-                                                         object to object collison algorithm */
-  btDispatcherInfo dispatch_info_;              /**< @brief The bullet collision dispatcher configuration information */
-  btDefaultCollisionConfiguration coll_config_; /**< @brief The bullet collision configuration */
-  std::unique_ptr<btBroadphaseInterface> broadphase_; /**< @brief The bullet broadphase interface */
-  Link2Cow link2cow_; /**< @brief A map of all (static and active) collision objects being managed */
+  /** @brief The contact distance threshold */
+  double contact_distance_;
 
-  /**
-   * @brief Perform a contact test for the provided object which is not part of the manager
+  /** @brief The is allowed collision function */
+  IsContactAllowedFn fn_;
+
+  /** @brief The bullet collision dispatcher used for getting object to object collison algorithm */
+  std::unique_ptr<btCollisionDispatcher> dispatcher_;
+
+  /** @brief The bullet collision dispatcher configuration information */
+  btDispatcherInfo dispatch_info_;
+
+  /** @brief The bullet collision configuration */
+  btDefaultCollisionConfiguration coll_config_;
+
+  /** @brief The bullet broadphase interface */
+  std::unique_ptr<btBroadphaseInterface> broadphase_;
+
+  /** @brief A map of all (static and active) collision objects being managed */
+  std::map<std::string, COWPtr> link2cow_;
+
+  /**@brief Perform a contact test for the provided object which is not part of the manager
    * @param cow The Collision object
-   * @param collisions The collision results
-   */
+   * @param collisions The collision results */
   void contactTest(const COWPtr& cow, ContactTestData& collisions);
 };
-typedef std::shared_ptr<BulletDiscreteBVHManager> BulletDiscreteBVHManagerPtr;
-}
 }
 #endif  // TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H

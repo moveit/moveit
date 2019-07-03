@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 set(MOVEIT_LIB_NAME moveit_collision_detection_bullet)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/collision_common.cpp
   src/collision_robot_bt.cpp
   src/collision_world_bt.cpp
   src/tesseract/bullet_utils.cpp

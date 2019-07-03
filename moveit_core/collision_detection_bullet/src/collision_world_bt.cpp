@@ -38,7 +38,6 @@
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
 #include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
-
 #include <boost/bind.hpp>
 #include <bullet/btBulletCollisionCommon.h>
 
@@ -46,18 +45,24 @@ namespace collision_detection
 {
 const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
 
-CollisionWorldBt::CollisionWorldBt() : CollisionWorld()
+CollisionWorldBt::CollisionWorldBt()
+  : CollisionWorld()
+  , bt_manager_(new tesseract::BulletDiscreteBVHManager)
+  , bt_manager_CCD_(new tesseract::BulletCastBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 
   auto fun =
       std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-  bt_manager_.setIsContactAllowedFn(fun);
-  bt_manager_CCD_.setIsContactAllowedFn(fun);
+  bt_manager_->setIsContactAllowedFn(fun);
+  bt_manager_CCD_->setIsContactAllowedFn(fun);
 }
 
-CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world)
+CollisionWorldBt::CollisionWorldBt(const WorldPtr& world)
+  : CollisionWorld(world)
+  , bt_manager_(new tesseract::BulletDiscreteBVHManager)
+  , bt_manager_CCD_(new tesseract::BulletCastBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
@@ -65,19 +70,17 @@ CollisionWorldBt::CollisionWorldBt(const WorldPtr& world) : CollisionWorld(world
 
   auto fun =
       std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-  bt_manager_.setIsContactAllowedFn(fun);
-  bt_manager_CCD_.setIsContactAllowedFn(fun);
+  bt_manager_->setIsContactAllowedFn(fun);
+  bt_manager_CCD_->setIsContactAllowedFn(fun);
 }
 
 CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
 {
-  // TODO add copy constructor for new manager
+  bt_manager_ = other.bt_manager_->clone();
+  bt_manager_CCD_ = other.bt_manager_CCD_->clone();
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
-
-  bt_manager_.setIsContactAllowedFn(other.bt_manager_.getIsContactAllowedFn());
-  bt_manager_CCD_.setIsContactAllowedFn(other.bt_manager_CCD_.getIsContactAllowedFn());
 }
 
 CollisionWorldBt::~CollisionWorldBt()
@@ -118,22 +121,22 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
                                                     const robot_state::RobotState& state2,
                                                     const AllowedCollisionMatrix* acm) const
 {
-  //TODO: CCD for the attached objects
+  // TODO: CCD for the attached objects
   const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
 
-  for (const auto& cow : robot_bt.link2cow_CCD_)
+  tesseract::BulletCastBVHManagerPtr temp_clone_manager = bt_manager_CCD_->clone();
+
+  for (const std::pair<std::string, tesseract::COWPtr>& cow : robot_bt.bt_manager_->getCollisionObjects())
   {
-    if (!bt_manager_CCD_.hasCollisionObject(cow.first))
-    {
-      ROS_DEBUG_STREAM("First added " << cow.first << " to the bullet manager from robot");
-      bt_manager_CCD_.addCollisionObject(cow.second);
-    }
-    bt_manager_CCD_.setCollisionObjectsTransform(cow.first, state1.getCollisionBodyTransform(cow.first, 0),
-                                                 state2.getCollisionBodyTransform(cow.first, 0));
+    tesseract::COWPtr new_cow = cow.second->clone();
+    temp_clone_manager->addCollisionObject(new_cow);
+    temp_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
+                                                     state1.getCollisionBodyTransform(new_cow->getName(), 0),
+                                                     state2.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  bt_manager_CCD_.setActiveCollisionObjects(robot_bt.getRobotModel()->getLinkModelNames());
-  bt_manager_CCD_.contactTest(res, req, acm);
+  temp_clone_manager->setActiveCollisionObjects(robot_bt.getRobotModel()->getLinkModelNames());
+  temp_clone_manager->contactTest(res, req, acm);
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -142,29 +145,17 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
 {
   const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
 
-  for (const auto& cow : robot_bt.link2cow_)
+  tesseract::BulletDiscreteBVHManagerPtr temp_clone_manager = bt_manager_->clone();
+
+  for (const std::pair<std::string, tesseract::COWPtr>& cow : robot_bt.bt_manager_->getCollisionObjects())
   {
-    if (!bt_manager_.hasCollisionObject(cow.first))
-    {
-      ROS_DEBUG_STREAM("First added " << cow.first << " to the bullet manager from robot");
-      bt_manager_.addCollisionObject(cow.second);
-    }
-    bt_manager_.setCollisionObjectsTransform(cow.first, state.getCollisionBodyTransform(cow.first, 0));
+    tesseract::COWPtr new_cow = cow.second->clone();
+    temp_clone_manager->addCollisionObject(new_cow);
+    temp_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
+                                                     state.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  bt_manager_.contactTest(res, req, acm);
-
-  if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    dreq.enableGroup(robot.getRobotModel());
-    distanceRobot(dreq, dres, robot, state);
-    res.distance = dres.minimum_distance.distance;
-  }
+  temp_clone_manager->contactTest(res, req, acm);
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
@@ -186,11 +177,11 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
-void CollisionWorldBt::addToManager(const World::Object* obj) const
+void CollisionWorldBt::addToManager(const World::Object* obj)
 {
   std::vector<tesseract::CollisionObjectType> collision_object_types;
 
-  for (auto const& shape : obj->shapes_)
+  for (const shapes::ShapeConstPtr& shape : obj->shapes_)
   {
     if (shape->type == shapes::MESH)
       collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
@@ -198,26 +189,22 @@ void CollisionWorldBt::addToManager(const World::Object* obj) const
       collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
   }
 
-  bt_manager_.addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_, obj->shape_poses_,
-                                 collision_object_types, true);
+  bt_manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
+                                  obj->shape_poses_, collision_object_types, true);
 
-  bt_manager_CCD_.addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
-                                     obj->shape_poses_, collision_object_types, true);
+  bt_manager_CCD_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
+                                      obj->shape_poses_, collision_object_types, true);
 }
 
 void CollisionWorldBt::updateManagedObject(const std::string& id)
 {
-  // we have three cases: 1) the object is part of the manager and not of world --> delete it
-  //                      2) the object is not in the manager, therefore register to manager,
-  //                      3) the object is in the manager then delete and add the modified
-
   if (getWorld()->hasObject(id))
   {
     auto it = getWorld()->find(id);
-    if (bt_manager_.hasCollisionObject(id))
+    if (bt_manager_->hasCollisionObject(id))
     {
-      bt_manager_.removeCollisionObject(id);
-      bt_manager_CCD_.removeCollisionObject(id);
+      bt_manager_->removeCollisionObject(id);
+      bt_manager_CCD_->removeCollisionObject(id);
       addToManager(it->second.get());
     }
     else
@@ -227,10 +214,10 @@ void CollisionWorldBt::updateManagedObject(const std::string& id)
   }
   else
   {
-    if (bt_manager_.hasCollisionObject(id))
+    if (bt_manager_->hasCollisionObject(id))
     {
-      bt_manager_.removeCollisionObject(id);
-      bt_manager_CCD_.removeCollisionObject(id);
+      bt_manager_->removeCollisionObject(id);
+      bt_manager_CCD_->removeCollisionObject(id);
     }
   }
 }
@@ -256,8 +243,8 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
 {
   if (action == World::DESTROY)
   {
-    bt_manager_.removeCollisionObject(obj->id_);
-    bt_manager_CCD_.removeCollisionObject(obj->id_);
+    bt_manager_->removeCollisionObject(obj->id_);
+    bt_manager_CCD_->removeCollisionObject(obj->id_);
   }
   else
   {
@@ -268,12 +255,12 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
 void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                                      const robot_state::RobotState& state) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }
 
 void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }
 
 }  // end of namespace collision_detection

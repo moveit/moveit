@@ -36,56 +36,44 @@
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
+#include <urdf/model.h>
 
 namespace collision_detection
 {
 CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model, double padding, double scale)
-  : CollisionRobot(model, padding, scale)
+  : CollisionRobot(model, padding, scale), bt_manager_(new tesseract::BulletDiscreteBVHManager)
 {
   auto fun =
       std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-  bt_manager_.setIsContactAllowedFn(fun);
+  bt_manager_->setIsContactAllowedFn(fun);
 
   // TODO: For the first link some memory error occurs
-  for (const auto& link : robot_model_->getURDF()->links_)
+  for (const std::pair<std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
     addLinkAsCOW(link.second);
   }
 }
 
-CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other) : CollisionRobot(other)
+CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other)
+  : CollisionRobot(other), bt_manager_(other.bt_manager_->clone())
 {
-  const CollisionRobotBt& other_bt = dynamic_cast<const CollisionRobotBt&>(other);
-
-  // TODO: use clone method of manager
-  for (const auto& cow : other_bt.bt_manager_.getCollisionObjects())
-  {
-    tesseract::tesseract_bullet::COWPtr new_cow = cow.second->clone();
-    new_cow->setWorldTransform(cow.second->getWorldTransform());
-    new_cow->setContactProcessingThreshold(static_cast<btScalar>(other_bt.bt_manager_.getContactDistanceThreshold()));
-    bt_manager_.addCollisionObject(new_cow);
-  }
-
-  bt_manager_.setActiveCollisionObjects(other_bt.bt_manager_.getActiveCollisionObjects());
-  bt_manager_.setContactDistanceThreshold(other_bt.bt_manager_.getContactDistanceThreshold());
-  bt_manager_.setIsContactAllowedFn(other_bt.bt_manager_.getIsContactAllowedFn());
 }
 
 void CollisionRobotBt::addAttachedOjects(const robot_state::RobotState& state,
-                                         std::vector<tesseract::tesseract_bullet::COWPtr>& cows) const
+                                         std::vector<tesseract::COWPtr>& cows) const
 {
-  std::vector<const robot_state::AttachedBody*> ab;
-  state.getAttachedBodies(ab);
-  for (auto& body : ab)
+  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  state.getAttachedBodies(attached_bodies);
+  for (const robot_state::AttachedBody*& body : attached_bodies)
   {
     const EigenSTL::vector_Isometry3d& attached_body_transform = body->getGlobalCollisionBodyTransforms();
     std::vector<tesseract::CollisionObjectType> collision_object_types(attached_body_transform.size(),
                                                                        tesseract::CollisionObjectType::UseShapeType);
 
-    cows.emplace_back(tesseract::tesseract_bullet::createCollisionObject(
-        body->getName(), collision_detection::BodyType::ROBOT_ATTACHED, body->getShapes(), attached_body_transform,
-        collision_object_types, body->getTouchLinks(), true));
+    cows.emplace_back(tesseract::createCollisionObject(body->getName(), collision_detection::BodyType::ROBOT_ATTACHED,
+                                                       body->getShapes(), attached_body_transform,
+                                                       collision_object_types, body->getTouchLinks(), true));
   }
 }
 
@@ -121,30 +109,17 @@ void CollisionRobotBt::checkSelfCollisionCCDHelper(const CollisionRequest& req, 
                                                    const AllowedCollisionMatrix* acm) const
 {
   // TODO: Not in tesseract yet
-  // updateTransformsFromStateCCD(state1, state2);
-  // bt_manager_CCD_.contactTest(res, req, acm);
 }
 
 void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-  updateTransformsFromState(state);
-  std::vector<tesseract::tesseract_bullet::COWPtr> cows;
+  std::vector<tesseract::COWPtr> cows;
   addAttachedOjects(state, cows);
-  bt_manager_.contactTest(res, req, acm, cows);
-
-  if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    dreq.enableGroup(getRobotModel());
-    distanceSelf(dreq, dres, state);
-    res.distance = dres.minimum_distance.distance;
-  }
+  tesseract::BulletDiscreteBVHManagerPtr temp_clone_manager = bt_manager_->clone();
+  updateTransformsFromState(state, temp_clone_manager);
+  temp_clone_manager->contactTest(res, req, acm, cows);
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -168,7 +143,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& other_state1,
                                            const robot_state::RobotState& other_state2) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet other robot continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -178,7 +153,7 @@ void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, Collisio
                                            const robot_state::RobotState& other_state2,
                                            const AllowedCollisionMatrix& acm) const
 {
-  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet continuous collision checking not yet implemented");
+  ROS_ERROR_NAMED("collision_detection.bullet", "Bullet other robot continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -192,9 +167,7 @@ void CollisionRobotBt::checkOtherCollisionHelper(const CollisionRequest& req, Co
 
 void CollisionRobotBt::updatedPaddingOrScaling(const std::vector<std::string>& links)
 {
-  // TODO: add for bullet manager -> iterate through each input link and then construct new object
-  // out of the geometry from the robot
-  for (const auto& link : links)
+  for (const std::string& link : links)
   {
     if (robot_model_->getURDF()->links_.find(link) != robot_model_->getURDF()->links_.end())
     {
@@ -220,14 +193,14 @@ void CollisionRobotBt::distanceOther(const DistanceRequest& req, DistanceResult&
   ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to other not implemented yet.");
 }
 
-void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& state) const
+void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& state,
+                                                 tesseract::BulletDiscreteBVHManagerPtr manager) const
 {
   // updating link positions with the current robot state
-  for (auto& link : bt_manager_.getCollisionObjects())
+  for (const std::pair<std::string, tesseract::COWPtr>& link : manager->getCollisionObjects())
   {
     // select the first of the transformations for each link (composed of multiple shapes...)
-    // TODO: further investigate if this brings problems
-    bt_manager_.setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
+    manager->setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
   }
 }
 
@@ -247,7 +220,7 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
     {
       if (col_array[i] && col_array[i]->geometry)
       {
-        shapes::ShapePtr s = tesseract::tesseract_ros::constructShape(col_array[i]->geometry.get());
+        shapes::ShapePtr s = tesseract::constructShape(col_array[i]->geometry.get());
 
         if (s)
         {
@@ -258,7 +231,7 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
           }
 
           shapes.push_back(s);
-          shape_poses.push_back(tesseract::tesseract_ros::urdfPose2Eigen(col_array[i]->origin));
+          shape_poses.push_back(tesseract::urdfPose2Eigen(col_array[i]->origin));
 
           if (s->type == shapes::MESH)
           {
@@ -272,17 +245,14 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
       }
     }
 
-    tesseract::tesseract_bullet::COWPtr cow = tesseract::tesseract_bullet::createCollisionObject(
-        link->name, collision_detection::BodyType::ROBOT_LINK, shapes, shape_poses, collision_object_types, true);
+    tesseract::COWPtr cow = tesseract::createCollisionObject(link->name, collision_detection::BodyType::ROBOT_LINK,
+                                                             shapes, shape_poses, collision_object_types, true);
 
-    link2cow_[link->name] = cow;
-    link2cow_CCD_[link->name] = cow->clone();
-
-    if (bt_manager_.hasCollisionObject(link->name))
+    if (bt_manager_->hasCollisionObject(link->name))
     {
-      bt_manager_.removeCollisionObject(link->name);
+      bt_manager_->removeCollisionObject(link->name);
     }
-    bt_manager_.addCollisionObject(cow->clone());
+    bt_manager_->addCollisionObject(cow);
   }
 }
 

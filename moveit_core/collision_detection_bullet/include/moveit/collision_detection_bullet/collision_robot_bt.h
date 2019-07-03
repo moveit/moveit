@@ -37,10 +37,8 @@
 #ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
 
-#include <moveit/collision_detection_bullet/collision_common.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
-#include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
-#include <urdf/model.h>
+#include <moveit/collision_detection/collision_robot.h>
 
 namespace collision_detection
 {
@@ -84,33 +82,36 @@ public:
                      const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const override;
 
 protected:
-  /** \brief Updates the poses of the objects in the manager according to given robot state. */
-  void updateTransformsFromState(const robot_state::RobotState& state) const;
-  void updateTransformsFromStateCCD(const robot_state::RobotState& state1, const robot_state::RobotState& state2) const;
+  /** \brief Updates the poses of the objects in the manager according to given robot state */
+  void updateTransformsFromState(const robot_state::RobotState& state,
+                                 tesseract::BulletDiscreteBVHManagerPtr manager) const;
 
+  /** \brief Updates the collision objects saved in the manager to reflect a new padding or scaling of the robot links
+   */
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
-  void addAttachedOjects(const robot_state::RobotState& state,
-                         std::vector<tesseract::tesseract_bullet::COWPtr>& cows) const;
+  /** \brief All of the attached objects in the robot state are wrapped into bullet collision objects */
+  void addAttachedOjects(const robot_state::RobotState& state, std::vector<tesseract::COWPtr>& cows) const;
 
+  /** \brief Bundles the different checkSelfCollision functions into a single function */
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Bundles the different continuous checkSelfCollision functions into a single function */
   void checkSelfCollisionCCDHelper(const CollisionRequest& req, CollisionResult& res,
                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                    const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Bundles the different checkOtherCollision functions into a single function */
   void checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Construts a bullet collision object out of a robot link */
   void addLinkAsCOW(const urdf::LinkSharedPtr link);
 
-  /** @brief Bullet collision manager taken from tesseract*/
-  mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
-
-  tesseract::tesseract_bullet::Link2Cow link2cow_;
-  tesseract::tesseract_bullet::Link2Cow link2cow_CCD_;
+  /** \brief Handles all self collision checks */
+  tesseract::BulletDiscreteBVHManagerPtr bt_manager_;
 };
 }
 

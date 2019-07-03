@@ -74,7 +74,14 @@ struct ContactTestData
   ContactTestData(const std::vector<std::string>& active, const double& contact_distance, const IsContactAllowedFn& fn,
                   collision_detection::CollisionResult& res, const collision_detection::CollisionRequest& req,
                   const collision_detection::AllowedCollisionMatrix* acm)
-    : active(active), contact_distance(contact_distance), fn(fn), acm(acm), res(res), req(req), done(false)
+    : active(active)
+    , contact_distance(contact_distance)
+    , fn(fn)
+    , acm(acm)
+    , res(res)
+    , req(req)
+    , done(false)
+    , pair_done(false)
   {
   }
 
@@ -93,6 +100,9 @@ struct ContactTestData
 
   /// Indicate if search is finished
   bool done;
+
+  /// Indicate if search between a single pair is finished
+  bool pair_done;
 };
 }
 

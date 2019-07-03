@@ -38,13 +38,15 @@
 #include <moveit/collision_plugin_loader/collision_plugin_loader.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
-#include <random>
 #include <geometric_shapes/shape_operations.h>
+#include <random_numbers/random_numbers.h>
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
+static const int MAX_SEARCH_FACTOR_CLUTTER = 3;
+static const int MAX_SEARCH_FACTOR_STATES = 30;
 
 enum class RobotStateSelector
 {
@@ -71,27 +73,11 @@ enum class CollisionObjectType
 *   \param planning_scene The planning scene
 *   \param num_objects The number of objects to be cluttered
 *   \param CollisionObjectType Type of object to clutter (mesh or box) */
-void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigned int num_objects,
-                  CollisionObjectType type)
+void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const size_t num_objects, CollisionObjectType type)
 {
   ROS_INFO("Cluttering scene...");
 
-  std::random_device rd;  // obtain a random number from hardware
-  unsigned int test = rd();
-  std::mt19937 eng(test);  // seed the generator
-
-  std::uniform_real_distribution<> distr_position(-1, 1);
-  std::uniform_real_distribution<> distr_position_z(0.0, 1);
-  std::uniform_real_distribution<> distr_size;
-
-  if (type == CollisionObjectType::MESH)
-  {
-    distr_size = std::uniform_real_distribution<>(0.3, 1);
-  }
-  else
-  {
-    distr_size = std::uniform_real_distribution<>(0.05, 0.2);
-  }
+  random_numbers::RandomNumberGenerator num_generator = random_numbers::RandomNumberGenerator();
 
   // allow all robot links to be in collision for world check
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
@@ -111,20 +97,20 @@ void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigne
   Eigen::Quaterniond quat;
   Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
 
-  int added_objects{ 0 };
-  int i{ 0 };
+  size_t added_objects{ 0 };
+  size_t i{ 0 };
   // create random objects until as many added as desired or quit if too many attempts
-  while (added_objects < num_objects && i < num_objects * 3)
+  while (added_objects < num_objects && i < num_objects * MAX_SEARCH_FACTOR_CLUTTER)
   {
     // add with random size and random position
-    pos.translation().x() = distr_position(eng);
-    pos.translation().y() = distr_position(eng);
-    pos.translation().z() = distr_position_z(eng);
+    pos.translation().x() = num_generator.uniformReal(-1.0, 1.0);
+    pos.translation().y() = num_generator.uniformReal(-1.0, 1.0);
+    pos.translation().z() = num_generator.uniformReal(0.0, 1.0);
 
-    quat.x() = distr_position(eng);
-    quat.y() = distr_position(eng);
-    quat.z() = distr_position(eng);
-    quat.w() = distr_position(eng);
+    quat.x() = num_generator.uniformReal(-1.0, 1.0);
+    quat.y() = num_generator.uniformReal(-1.0, 1.0);
+    quat.z() = num_generator.uniformReal(-1.0, 1.0);
+    quat.w() = num_generator.uniformReal(-1.0, 1.0);
     quat.normalize();
     pos.rotate(quat);
 
@@ -133,14 +119,15 @@ void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const unsigne
       case CollisionObjectType::MESH:
       {
         shapes::Mesh* mesh = shapes::createMeshFromResource(kinect);
-        mesh->scale(distr_size(eng));
+        mesh->scale(num_generator.uniformReal(0.3, 1.0));
         shape.reset(mesh);
         name = "mesh ";
         break;
       }
       case CollisionObjectType::BOX:
       {
-        shape.reset(new shapes::Box(distr_size(eng), distr_size(eng), distr_size(eng)));
+        shape.reset(new shapes::Box(num_generator.uniformReal(0.05, 0.2), num_generator.uniformReal(0.05, 0.2),
+                                    num_generator.uniformReal(0.05, 0.2)));
         name = "box";
         break;
       }
@@ -253,8 +240,8 @@ void findStates(const RobotStateSelector desired_states, unsigned int num_states
   robot_state::RobotState& current_state{ scene->getCurrentStateNonConst() };
   collision_detection::CollisionRequest req;
 
-  int i{ 0 };
-  while (robot_states.size() < num_states && i < num_states * 30)
+  size_t i{ 0 };
+  while (robot_states.size() < num_states && i < num_states * MAX_SEARCH_FACTOR_STATES)
   {
     current_state.setToRandomPositions();
     current_state.update();

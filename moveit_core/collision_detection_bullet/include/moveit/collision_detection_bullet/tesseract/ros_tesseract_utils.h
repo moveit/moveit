@@ -36,8 +36,6 @@
 
 namespace tesseract
 {
-namespace tesseract_ros
-{
 static inline bool isIdentical(const shapes::Shape& shape1, const shapes::Shape& shape2)
 {
   if (shape1.type != shape2.type)
@@ -204,7 +202,6 @@ inline Eigen::Isometry3d urdfPose2Eigen(const urdf::Pose& pose)
   result.translation() = Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z);
   result.linear() = q.toRotationMatrix();
   return result;
-}
 }
 }
 #endif  // TESSERACT_ROS_UTILS_H

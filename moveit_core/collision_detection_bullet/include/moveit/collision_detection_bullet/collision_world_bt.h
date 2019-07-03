@@ -38,8 +38,9 @@
 #define MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
 
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
+#include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
-
+#include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
 #include <memory>
 
 namespace collision_detection
@@ -48,8 +49,11 @@ class CollisionWorldBt : public CollisionWorld
 {
 public:
   CollisionWorldBt();
+
   explicit CollisionWorldBt(const WorldPtr& world);
+
   CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world);
+
   ~CollisionWorldBt() override;
 
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
@@ -74,24 +78,39 @@ public:
   void setWorld(const WorldPtr& world) override;
 
 protected:
+  /** \brief Bundles the different checkWorldCollision functions into a single function */
   void checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                  const AllowedCollisionMatrix* acm) const;
+
+  /** \brief Bundles the different checkRobotCollision functions into a single function */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Bundles the different continuous checkRobotCollision functions into a single function */
   void checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                     const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                     const AllowedCollisionMatrix* acm) const;
 
-  void addToManager(const World::Object* obj) const;
+  /** \brief Adds a world object to the collision managers */
+  void addToManager(const World::Object* obj);
+
+  /** \brief Updates a managed collision object with its world representation.
+   *
+   * We have three cases: 1) the object is part of the manager and not of world --> delete it
+   *                      2) the object is not in the manager, therefore register to manager,
+   *                      3) the object is in the manager then delete and add the modified */
   void updateManagedObject(const std::string& id);
 
-  mutable tesseract::tesseract_bullet::BulletDiscreteBVHManager bt_manager_;
-  mutable tesseract::tesseract_bullet::BulletCastBVHManager bt_manager_CCD_;
+  /** \brief Handles all discrete collision checks */
+  tesseract::BulletDiscreteBVHManagerPtr bt_manager_;
+
+  /** \brief Handles all continuous collision checks */
+  tesseract::BulletCastBVHManagerPtr bt_manager_CCD_;
 
 private:
-  void initialize();
+  /** \brief Callback function executed for each change to the world environment */
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+
   World::ObserverHandle observer_handle_;
 };
 }
