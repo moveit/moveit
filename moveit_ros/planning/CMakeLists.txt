@@ -11,7 +11,7 @@ find_package(Boost REQUIRED system filesystem date_time program_options thread c
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
-  moveit_ros_perception
+  moveit_ros_occupancy_map_monitor
   pluginlib
   actionlib
   roscpp
@@ -63,7 +63,7 @@ catkin_package(
   CATKIN_DEPENDS
     pluginlib
     moveit_core
-    moveit_ros_perception
+    moveit_ros_occupancy_map_monitor
     moveit_msgs
     tf2_msgs
     tf2_geometry_msgs

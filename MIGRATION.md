@@ -23,6 +23,7 @@ API changes in MoveIt! releases
 - ``RDFLoader`` / ``RobotModelLoader``: removed TinyXML-based API (https://github.com/ros-planning/moveit/pull/1254)
 - Deprecated `EndEffectorInteractionStyle` got removed from `RobotInteraction` (https://github.com/ros-planning/moveit/pull/1287)
   Use [the corresponding `InteractionStyle` definitions](https://github.com/ros-planning/moveit/pull/1287/files#diff-24e57a8ea7f2f2d8a63cfc31580d09ddL240) instead
+- `moveit_ros_plannning` no longer depends on `moveit_ros_perception`
 
 ## ROS Kinetic
 
