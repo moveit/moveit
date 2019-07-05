@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(moveit_ros_occupancy_map)
+project(moveit_ros_occupancy_map_monitor)
+set(MOVEIT_LIB_NAME moveit_ros_occupancy_map_monitor)
 
 add_compile_options(-std=c++14)
 
@@ -24,9 +25,9 @@ find_package(octomap REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
-    occupancy_map_monitor/include
+    include
   LIBRARIES
-    moveit_occupancy_map_monitor
+    ${MOVEIT_LIB_NAME}
   CATKIN_DEPENDS
     moveit_core
     moveit_msgs
@@ -35,7 +36,7 @@ catkin_package(
     OCTOMAP
 )
 
-include_directories(occupancy_map_monitor/include
+include_directories(include
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     )
@@ -44,4 +45,18 @@ include_directories(SYSTEM
                     ${X11_INCLUDE_DIR}
                     )
 
-add_subdirectory(occupancy_map_monitor)
+add_library(${MOVEIT_LIB_NAME}
+  src/occupancy_map_monitor.cpp
+  src/occupancy_map_updater.cpp
+  )
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(moveit_ros_occupancy_map_server src/occupancy_map_server.cpp)
+target_link_libraries(moveit_ros_occupancy_map_server ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+install(TARGETS ${MOVEIT_LIB_NAME} moveit_ros_occupancy_map_server
+  LIBRARY DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})

@@ -40,7 +40,7 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
   sensor_msgs
   moveit_msgs
-  moveit_ros_occupancy_map
+  moveit_ros_occupancy_map_monitor
 )
 
 find_package(Eigen3 REQUIRED)
@@ -63,7 +63,7 @@ catkin_package(
     image_transport
     moveit_core
     moveit_msgs
-    moveit_ros_occupancy_map
+    moveit_ros_occupancy_map_monitor
     object_recognition_msgs
     sensor_msgs
     tf2_geometry_msgs
