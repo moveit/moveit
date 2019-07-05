@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_occupancy_map_monitor)
-set(MOVEIT_LIB_NAME moveit_ros_occupancy_map_monitor)
+set(MOVEIT_LIB_NAME ${PROJECT_NAME})
 
 add_compile_options(-std=c++14)
 
