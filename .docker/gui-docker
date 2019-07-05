@@ -59,6 +59,24 @@ function transfer_x11_permissions() {
     xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 }
 
+function count_positional_args() {
+    while true ; do
+       case "${1:-}" in
+          # Skip common options with a subsequent positional argument
+          # This list is not exhaustive! Augment as you see fit.
+          -v|--volume) shift ;;
+          -w) shift ;;
+          -e) shift ;;
+          # Skip all other options
+          -*) ;;
+          *) break ;;
+       esac
+       shift
+    done
+    # Return remaining number of arguments
+    echo $#
+}
+
 # Check for option -c or --container in first position
 case "${1:-}" in
    -c|--container)
@@ -85,6 +103,10 @@ if [ -n "${CONTAINER_NAME:-}" ] ; then
    if [ -z "$($DOCKER_EXECUTABLE ps -aq --filter name=^$CONTAINER_NAME\$)" ] ; then
       # container not yet existing, add an option to name the container when running docker below
       NAME_OPTION="--name=$CONTAINER_NAME"
+      if [ $(count_positional_args) -eq 0 ] ; then
+         # If no further (positional) arguments were provided, start a bash in the default image (for dummy users)
+         DUMMY_DEFAULTS="-it moveit/moveit:master-source bash"
+      fi
    else
       if [ $# -ne 1 ] ; then echo "Ignoring additional arguments: $@"; fi
       if [ -z "$($DOCKER_EXECUTABLE ps -q --filter name=^$CONTAINER_NAME\$)" ] ; then
@@ -106,7 +128,7 @@ ${DOCKER_EXECUTABLE:-docker} run \
     --volume="$XAUTH:$XAUTH" \
     ${NAME_OPTION:-} \
     ${DOCKER_PARAMS:-} \
-    $@
+    $@ ${DUMMY_DEFAULTS:-}
 
 # cleanup
 rm $XAUTH
