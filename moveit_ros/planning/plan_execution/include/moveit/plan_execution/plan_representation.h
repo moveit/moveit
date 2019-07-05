@@ -73,7 +73,7 @@ struct ExecutableMotionPlan
 
   std::vector<ExecutableTrajectory> plan_components_;
 
-  // The trace of the trajectory recorded during execution
+  /// The trace of the trajectory recorded during execution
   robot_trajectory::RobotTrajectoryPtr executed_trajectory_;
 
   /// An error code reflecting what went wrong (if anything)
