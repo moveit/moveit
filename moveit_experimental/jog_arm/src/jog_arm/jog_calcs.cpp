@@ -128,10 +128,8 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
     pthread_mutex_lock(&mutex);
     bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
     bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
-    pthread_mutex_unlock(&mutex);
 
     // Pull data from the shared variables.
-    pthread_mutex_lock(&mutex);
     incoming_jts_ = shared_variables.joints;
     pthread_mutex_unlock(&mutex);
 
