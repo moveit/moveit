@@ -441,7 +441,12 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
 
   // stop recording trajectory states
   if (trajectory_monitor_)
+  {
     trajectory_monitor_->stopTrajectoryMonitor();
+    plan.executed_trajectory_ =
+        std::make_shared<robot_trajectory::RobotTrajectory>(planning_scene_monitor_->getRobotModel(), "");
+    trajectory_monitor_->swapTrajectory(*plan.executed_trajectory_);
+  }
 
   // decide return value
   if (path_became_invalid_)
