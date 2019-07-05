@@ -19,7 +19,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>moveit_core</depend>
-  <depend>moveit_ros_perception</depend>
+  <depend>moveit_ros_occupancy_map_monitor</depend>
   <depend>moveit_msgs</depend>
   <depend>message_filters</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
