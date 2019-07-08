@@ -77,9 +77,13 @@ function count_positional_args() {
     echo $#
 }
 
-# Check for option -c or --container in first position
-case "${1:-}" in
-   -c|--container)
+if [ $# -eq 0 ] ; then
+   # If not options are specified at all, just run the default_container
+   CONTAINER_NAME=default_container
+else
+  # Check for option -c or --container in first position
+  case "$1" in
+    -c|--container)
       shift
       # If next argument is not an option, use it as the container name
       if [[ "${1:-}" != -* ]] ; then
@@ -89,7 +93,8 @@ case "${1:-}" in
       # Set default container name if still undefined
       CONTAINER_NAME="${CONTAINER_NAME:-default_container}"
       ;;
-esac
+  esac
+fi
 
 transfer_x11_permissions
 
@@ -108,12 +113,12 @@ if [ -n "${CONTAINER_NAME:-}" ] ; then
          DUMMY_DEFAULTS="-it moveit/moveit:master-source bash"
       fi
    else
-      if [ $# -ne 1 ] ; then echo "Ignoring additional arguments: $@"; fi
+      if [ $# -ne 0 ] ; then echo "Ignoring additional arguments: $@"; fi
       if [ -z "$($DOCKER_EXECUTABLE ps -q --filter name=^$CONTAINER_NAME\$)" ] ; then
          echo -n "Start existing, but stopped container: "
          docker start $CONTAINER_NAME
       fi
-      echo "Entering existing container: $CONTAINER_NAME"
+      echo "Entering container: $CONTAINER_NAME"
       docker exec -it $CONTAINER_NAME bash
       rm $XAUTH
       exit 0
