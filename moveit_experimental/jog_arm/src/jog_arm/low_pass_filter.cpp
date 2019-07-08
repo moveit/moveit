@@ -38,7 +38,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <jog_arm/low_pass_filter.h>
-#include <cmath>
 
 namespace jog_arm
 {
@@ -61,9 +60,8 @@ double LowPassFilter::filter(double new_measurement)
   previous_measurements_[1] = previous_measurements_[0];
   previous_measurements_[0] = new_measurement;
 
-  double new_filtered_msrmt =
-      (1. / (1. + filter_coeff_ / (2 * M_PI))) * (previous_measurements_[1] + previous_measurements_[0] -
-                                     (-1. * filter_coeff_ / (2 * M_PI) + 1.) * previous_filtered_measurement_);
+  double new_filtered_msrmt = (1. / (1. + filter_coeff_)) * (previous_measurements_[1] + previous_measurements_[0] -
+                                                             (-filter_coeff_ + 1.) * previous_filtered_measurement_);
 
   // Store the new filtered measurement
   previous_filtered_measurement_ = new_filtered_msrmt;
