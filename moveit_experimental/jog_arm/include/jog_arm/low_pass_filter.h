@@ -44,8 +44,7 @@ namespace jog_arm
 {
 /**
  * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a second-order Butterworth low-pass filter.
- * See https://ccrma.stanford.edu/~jos/filters/Example_Second_Order_Butterworth_Lowpass.html
+ * This is a first-order Butterworth low-pass filter.
  */
 class LowPassFilter
 {
