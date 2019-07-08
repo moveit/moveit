@@ -1,56 +1,139 @@
-#!/usr/bin/env bash
+#!/bin/bash -u
 
-# This script is used to create and run a docker container with settings for gui interactions
+# This script is used to run a docker container with graphics support.
+# http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
+
 # All arguments to this script will be appended to a docker run command.
 # Example command line:
-# ./gui-docker -ti --rm moveit/moveit /bin/bash
+# ./gui-docker -it --rm moveit/moveit:master-source /bin/bash
 
-# XAUTH=/tmp/.docker.xauth
-# xauth nlist :0 | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-if [ ! -f /tmp/.docker.xauth ]
-then
-  export XAUTH=/tmp/.docker.xauth
-  xauth nlist :0 | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-fi
+function check_nvidia2() {
+    # If we don't have an NVIDIA graphics card, bail out
+    lspci | grep -qi "vga .*nvidia" || return 1
+    # If we don't have the nvidia runtime, bail out
+    if ! docker -D info | grep -qi "runtimes.* nvidia" ; then
+       echo "nvidia-docker v2 not installed (see https://github.com/NVIDIA/nvidia-docker/wiki)"
+       return 2
+    fi
+    echo "found nvidia-docker v2"
+    DOCKER_PARAMS="\
+      --runtime=nvidia \
+      --env=NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} \
+      --env=NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}all"
+    return 0
+}
 
-# Use lspci to check for the presence of an nvidia graphics card
-has_nvidia=`lspci | grep -i nvidia | wc -l`
-has_nvidia_docker=`which nvidia-docker > /dev/null 2>&1; echo $?`
+function check_nvidia1() {
+    # If we don't have an NVIDIA graphics card, bail out
+    lspci | grep -qi "vga .*nvidia" || return 1
+    # Check whether nvidia-docker is available
+    if ! which nvidia-docker > /dev/null ; then
+       echo "nvidia-docker v1 not installed either"
+       return 2
+    fi
+    # Check that nvidia-modprobe is installed
+    if ! which nvidia-modprobe > /dev/null ; then
+       echo "nvidia-docker-plugin requires nvidia-modprobe. Please install it!"
+       return 3
+    fi
+    # Retrieve device parameters from nvidia-docker-plugin
+    if ! DOCKER_PARAMS=$(curl -s http://localhost:3476/docker/cli) ; then
+       echo "nvidia-docker-plugin not responding on http://localhost:3476/docker/cli"
+       echo "See https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-1.0)"
+       return 3
+    fi
+    echo "found nvidia-docker v1"
+    DOCKER_EXECUTABLE=nvidia-docker
+}
 
-# Check if nvidia-docker is avaialble
-if [ ${has_nvidia_docker} -eq 0 ] && [ ${has_nvidia} -gt 0 ]
-then
-  DOCKER_COMMAND=nvidia-docker
-  # Set docker gpu parameters
-  # check if nvidia-modprobe is installed
-  if ! which nvidia-modprobe > /dev/null
-  then
-    echo nvidia-docker-plugin requires nvidia-modprobe
-    echo please install nvidia-modprobe
-    exit -1
-  fi
-  # check if nvidia-docker-plugin is installed
-  if curl -s http://localhost:3476/docker/cli > /dev/null
-  then
-    DOCKER_GPU_PARAMS=" $(curl -s http://localhost:3476/docker/cli)"
-  else
-    echo nvidia-docker-plugin not responding on http://localhost:3476/docker/cli
-    echo please install nvidia-docker-plugin
-    echo https://github.com/NVIDIA/nvidia-docker/wiki/Installation
-    exit -1
-  fi
+function check_dri() {
+    # If there is no /dev/dri, bail out
+    test -d /dev/dri || return 1
+    DOCKER_PARAMS="--device=/dev/dri --group-add video"
+}
+
+function transfer_x11_permissions() {
+    # store X11 access rights in temp file to be passed into docker container
+    XAUTH=/tmp/.docker.xauth
+    touch $XAUTH
+    xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+}
+
+function count_positional_args() {
+    while true ; do
+       case "${1:-}" in
+          # Skip common options with a subsequent positional argument
+          # This list is not exhaustive! Augment as you see fit.
+          -v|--volume) shift ;;
+          -w) shift ;;
+          -e) shift ;;
+          # Skip all other options
+          -*) ;;
+          *) break ;;
+       esac
+       shift
+    done
+    # Return remaining number of arguments
+    echo $#
+}
+
+if [ $# -eq 0 ] ; then
+   # If not options are specified at all, just run the default_container
+   CONTAINER_NAME=default_container
 else
-  DOCKER_COMMAND=docker
-  DOCKER_GPU_PARAMS=""
+  # Check for option -c or --container in first position
+  case "$1" in
+    -c|--container)
+      shift
+      # If next argument is not an option, use it as the container name
+      if [[ "${1:-}" != -* ]] ; then
+         CONTAINER_NAME="${1:-}"
+         shift
+      fi
+      # Set default container name if still undefined
+      CONTAINER_NAME="${CONTAINER_NAME:-default_container}"
+      ;;
+  esac
 fi
 
-DISPLAY="${DISPLAY:-:0}"
+transfer_x11_permissions
 
-${DOCKER_COMMAND} run \
-  -e DISPLAY=unix$DISPLAY \
-  -e XAUTHORITY=/tmp/.docker.xauth \
-  -v "/etc/localtime:/etc/localtime:ro" \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v "/tmp/.docker.xauth:/tmp/.docker.xauth" \
-  ${DOCKER_GPU_PARAMS} \
-  $@
+# Probe for nvidia-docker (version 2 or 1)
+check_nvidia2 || check_nvidia1 || check_dri || echo "No supported graphics card found"
+
+DOCKER_EXECUTABLE=${DOCKER_EXECUTABLE:-docker}
+
+# If CONTAINER_NAME was specified and this container already exists, continue it
+if [ -n "${CONTAINER_NAME:-}" ] ; then
+   if [ -z "$($DOCKER_EXECUTABLE ps -aq --filter name=^$CONTAINER_NAME\$)" ] ; then
+      # container not yet existing, add an option to name the container when running docker below
+      NAME_OPTION="--name=$CONTAINER_NAME"
+      if [ $(count_positional_args) -eq 0 ] ; then
+         # If no further (positional) arguments were provided, start a bash in the default image (for dummy users)
+         DUMMY_DEFAULTS="-it moveit/moveit:master-source bash"
+      fi
+   else
+      if [ $# -ne 0 ] ; then echo "Ignoring additional arguments: $@"; fi
+      if [ -z "$($DOCKER_EXECUTABLE ps -q --filter name=^$CONTAINER_NAME\$)" ] ; then
+         echo -n "Start existing, but stopped container: "
+         docker start $CONTAINER_NAME
+      fi
+      echo "Entering container: $CONTAINER_NAME"
+      docker exec -it $CONTAINER_NAME bash
+      rm $XAUTH
+      exit 0
+   fi
+fi
+
+${DOCKER_EXECUTABLE:-docker} run \
+    --env="DISPLAY=$DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --env="XAUTHORITY=$XAUTH" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume="$XAUTH:$XAUTH" \
+    ${NAME_OPTION:-} \
+    ${DOCKER_PARAMS:-} \
+    $@ ${DUMMY_DEFAULTS:-}
+
+# cleanup
+rm $XAUTH
