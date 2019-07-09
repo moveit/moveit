@@ -589,4 +589,3 @@ class MoveGroupCommander(object):
     def get_jacobian_matrix(self, joint_values):
         """ Get the jacobian matrix of the group as a list"""
         return self._g.get_jacobian_matrix(joint_values)
-    
