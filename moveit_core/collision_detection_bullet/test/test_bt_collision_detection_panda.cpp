@@ -103,8 +103,7 @@ protected:
 
     robot_state_.reset(new robot_state::RobotState(robot_model_));
 
-    robot_state_->setToDefaultValues(robot_state_->getJointModelGroup("panda_arm"), "home");
-    robot_state_->update();
+    setToHome(*robot_state_);
   }
 
   void TearDown() override
@@ -124,6 +123,7 @@ protected:
   robot_state::RobotStatePtr robot_state_;
 };
 
+/** \brief Correct setup testing. */
 TEST_F(BulletCollisionDetectionTester, InitOK)
 {
   ASSERT_TRUE(robot_model_ok_);
@@ -151,6 +151,7 @@ TEST_F(BulletCollisionDetectionTester, LinksInCollision)
   ASSERT_TRUE(res.collision);
 }
 
+/** \brief Two boxes in collision in the world environment. */
 TEST_F(BulletCollisionDetectionTester, WorldToWorldCollision)
 {
   collision_detection::CollisionRequest req;
@@ -223,7 +224,7 @@ TEST_F(BulletCollisionDetectionTester, RobotWorldCollision_2)
   res.clear();
 }
 
-// Continous self collision checks are not supported yet by tesseract
+/** \brief Continuous self collision checks are not supported yet by tesseract */
 TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
 {
   collision_detection::CollisionRequest req;
@@ -265,6 +266,7 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   res.clear();
 }
 
+/** \brief Two similar robot poses are used as start and end pose of a continuous collision check. */
 TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
 {
   collision_detection::CollisionRequest req;
@@ -310,6 +312,38 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
   ASSERT_TRUE(res.collision);
   res.clear();
+}
+
+/** \brief Tests the padding through expanding the link geometry in such a way that a collision occurs. */
+TEST_F(BulletCollisionDetectionTester, PaddingTest)
+{
+  collision_detection::CollisionRequest req;
+  req.contacts = true;
+  req.max_contacts = 10;
+  collision_detection::CollisionResult res;
+
+  cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
+  ASSERT_FALSE(res.collision);
+  res.clear();
+
+  // Adding the box right in front of the robot hand
+  shapes::Shape* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.43;
+  pos.translation().y() = 0;
+  pos.translation().z() = 0.55;
+  cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  crobot_->setLinkPadding("panda_hand", 0.08);
+  cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
+  ASSERT_TRUE(res.collision);
+  res.clear();
+
+  crobot_->setLinkPadding("panda_hand", 0.0);
+  cworld_->checkRobotCollision(req, res, *crobot_, *robot_state_, *acm_);
+  ASSERT_FALSE(res.collision);
 }
 
 int main(int argc, char** argv)

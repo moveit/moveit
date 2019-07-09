@@ -50,12 +50,12 @@ namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 
+/** \brief Different collision cases for continuous collision detection. */
 enum class ContinuousCollisionType
 {
-  None,
-  Time0,
-  Time1,
-  Between
+  Time0,   ///< collision in the start pose
+  Time1,   ///< collision in the end pose
+  Between  ///< collision between start and end pose
 };
 
 /** \brief The types of bodies that are considered for collision */
@@ -109,6 +109,8 @@ struct Contact
 
   /** \brief The continous collision type */
   ContinuousCollisionType cc_type;
+
+  Eigen::Vector3d nearest_points[2];
 };
 
 /** \brief When collision costs are computed, this structure contains information about the partial cost incurred in a

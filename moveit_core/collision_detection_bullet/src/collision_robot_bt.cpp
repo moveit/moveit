@@ -48,7 +48,6 @@ CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model,
 
   bt_manager_->setIsContactAllowedFn(fun);
 
-  // TODO: For the first link some memory error occurs
   for (const std::pair<std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
     addLinkAsCOW(link.second);
@@ -224,7 +223,7 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
 
         if (s)
         {
-          if (fabs(getLinkScale(link->name) - 1.0) >= std::numeric_limits<double>::epsilon() &&
+          if (fabs(getLinkScale(link->name) - 1.0) >= std::numeric_limits<double>::epsilon() ||
               fabs(getLinkPadding(link->name)) >= std::numeric_limits<double>::epsilon())
           {
             s->scaleAndPadd(getLinkScale(link->name), getLinkPadding(link->name));

@@ -77,14 +77,17 @@ inline bool isContactAllowed(const std::string& name1, const std::string& name2,
   {
     if (verbose)
     {
-      ROS_DEBUG("Collision between '%s' and '%s' is allowed. No contacts are computed.", name1.c_str(), name2.c_str());
+      ROS_DEBUG_NAMED("collision_detection.bullet",
+                      "Collision between '%s' and '%s' is allowed. No contacts are computed.", name1.c_str(),
+                      name2.c_str());
     }
     return true;
   }
 
   if (verbose)
   {
-    ROS_DEBUG("Actually checking collisions between %s and %s", name1.c_str(), name2.c_str());
+    ROS_DEBUG_NAMED("collision_detection.bullet", "Actually checking collisions between %s and %s", name1.c_str(),
+                    name2.c_str());
   }
 
   return false;
@@ -103,7 +106,8 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
       cdata.res.distance = contact.depth;
     }
   }
-  ROS_DEBUG_STREAM("Contact btw " << key.first << " and " << key.second << " dist: " << contact.depth);
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Contact btw " << key.first << " and " << key.second
+                                                                      << " dist: " << contact.depth);
   if (!found)
   {
     cdata.res.collision = true;
@@ -241,24 +245,28 @@ inline bool allowedCollisionCheck(const std::string body_1, const std::string bo
     {
       if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
       {
-        ROS_DEBUG_STREAM("Not allowed entry in ACM found, collision check between " << body_1 << " and " << body_2);
+        ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not allowed entry in ACM found, collision check between "
+                                                                 << body_1 << " and " << body_2);
         return false;
       }
       else
       {
-        ROS_DEBUG_STREAM("Entry in ACM found, skipping collision check as allowed " << body_1 << " and " << body_2);
+        ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Entry in ACM found, skipping collision check as allowed "
+                                                                 << body_1 << " and " << body_2);
         return true;
       }
     }
     else
     {
-      ROS_DEBUG_STREAM("No entry in ACM found, collision check between " << body_1 << " and " << body_2);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No entry in ACM found, collision check between "
+                                                               << body_1 << " and " << body_2);
       return false;
     }
   }
   else
   {
-    ROS_DEBUG_STREAM("No ACM, collision check between " << body_1 << " and " << body_2);
+    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No ACM, collision check between " << body_1 << " and "
+                                                                                            << body_2);
     return false;
   }
 }

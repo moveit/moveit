@@ -80,7 +80,6 @@ BulletDiscreteBVHManagerPtr BulletDiscreteBVHManager::clone() const
     assert(new_cow->getCollisionShape()->getShapeType() != CUSTOM_CONVEX_SHAPE_TYPE);
 
     new_cow->setWorldTransform(cow.second->getWorldTransform());
-
     new_cow->setContactProcessingThreshold(static_cast<btScalar>(contact_distance_));
     manager->addCollisionObject(new_cow);
   }
@@ -182,14 +181,18 @@ void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::vector<st
 {
   assert(names.size() == poses.size());
   for (size_t i = 0u; i < names.size(); ++i)
+  {
     setCollisionObjectsTransform(names[i], poses[i]);
+  }
 }
 
 void BulletDiscreteBVHManager::setCollisionObjectsTransform(
     const AlignedMap<std::string, Eigen::Isometry3d>& transforms)
 {
   for (const std::pair<std::string, Eigen::Isometry3d>& transform : transforms)
+  {
     setCollisionObjectsTransform(transform.first, transform.second);
+  }
 }
 
 void BulletDiscreteBVHManager::setActiveCollisionObjects(const std::vector<std::string>& names)
@@ -200,7 +203,6 @@ void BulletDiscreteBVHManager::setActiveCollisionObjects(const std::vector<std::
   for (std::pair<const std::string, COWPtr>& co : link2cow_)
   {
     COWPtr& cow = co.second;
-
     updateCollisionObjectFilters(active_, *cow, false);
   }
 }
@@ -245,17 +247,14 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
-
   btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
-
   DiscreteBroadphaseContactResultCallback cc(cdata, contact_distance_);
-
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
-
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
 
-  ROS_DEBUG_STREAM((collisions.collision ? "In" : "No") << " collision with " << collisions.contact_count << " collisio"
-                                                                                                             "ns");
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", (collisions.collision ? "In" : "No") << " collision with "
+                                                                                            << collisions.contact_count
+                                                                                            << " collisions");
 }
 
 void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult& collisions,
@@ -266,13 +265,9 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
-
   btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
-
   DiscreteBroadphaseContactResultCallback cc(cdata, contact_distance_);
-
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
-
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
 
   for (const COWPtr& cow : cows_external)
@@ -280,15 +275,14 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
     contactTest(cow, cdata);
   }
 
-  ROS_DEBUG_STREAM((collisions.collision ? "In" : "No") << " collision with " << collisions.contact_count << " collisio"
-                                                                                                             "ns");
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", (collisions.collision ? "In" : "No") << " collision with "
+                                                                                            << collisions.contact_count
+                                                                                            << " collisions");
 }
 
 void BulletDiscreteBVHManager::addCollisionObject(const COWPtr& cow)
 {
   link2cow_[cow->getName()] = cow;
-
-  // Add collision object to broadphase
   addCollisionObjectToBroadphase(cow, broadphase_, dispatcher_);
 }
 
@@ -303,9 +297,7 @@ void BulletDiscreteBVHManager::contactTest(const COWPtr& cow, ContactTestData& c
   cow->getAABB(min_aabb, max_aabb);
 
   DiscreteCollisionCollector cc(collisions, cow, static_cast<double>(cow->getContactProcessingThreshold()));
-
   TesseractSingleContactCallback contactCB(cow.get(), dispatcher_.get(), dispatch_info_, cc);
-
   broadphase_->aabbTest(min_aabb, max_aabb, contactCB);
 }
 }

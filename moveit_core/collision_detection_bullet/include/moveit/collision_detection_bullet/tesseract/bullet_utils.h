@@ -61,8 +61,7 @@ const btScalar BULLET_MARGIN = 0.0f;
 const btScalar BULLET_SUPPORT_FUNC_TOLERANCE = 0.01f METERS;
 const btScalar BULLET_LENGTH_TOLERANCE = 0.001f METERS;
 const btScalar BULLET_EPSILON = 1e-3f;
-// All pairs closer than this distance get reported
-const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;
+const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;  // All pairs closer than this distance get reported
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
 MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
@@ -103,12 +102,9 @@ inline btTransform convertEigenToBt(const Eigen::Isometry3d& t)
   return btTransform(mat, translation);
 }
 
-/**
- * @brief This is a tesseract bullet collsion object.
+/** @brief Tesseract bullet collision object.
  *
- * It is a wrapper around bullet's collision object which
- * contains specific information related to tesseract
- */
+ *  It is a wrapper around bullet's collision object which contains specific information related to tesseract */
 class CollisionObjectWrapper : public btCollisionObject
 {
 public:
@@ -124,9 +120,16 @@ public:
                          const std::vector<CollisionObjectType>& collision_object_types,
                          const std::set<std::string>& touch_links);
 
+  /** \brief Bitfield specifies to which group the object belongs */
   short int m_collisionFilterGroup;
+
+  /** \brief Bitfield specifies against which other groups the object is collision checked */
   short int m_collisionFilterMask;
+
+  /** \brief Indicates if the collision object is used for a collision check */
   bool m_enabled;
+
+  /** \brief The robot links the collision objects is allowed to touch */
   std::set<std::string> m_touch_links;
 
   /** @brief Get the collision object name */
@@ -134,11 +137,13 @@ public:
   {
     return m_name;
   }
+
   /** @brief Get a user defined type */
   const collision_detection::BodyType& getTypeID() const
   {
     return m_type_id;
   }
+
   /** \brief Check if two CollisionObjectWrapper objects point to the same source object */
   bool sameObject(const CollisionObjectWrapper& other) const
   {
@@ -149,11 +154,9 @@ public:
                       [](const Eigen::Isometry3d& t1, const Eigen::Isometry3d& t2) { return t1.isApprox(t2); });
   }
 
-  /**
-   * @brief Get the collision objects axis aligned bounding box
-   * @param aabb_min The minimum point
-   * @param aabb_max The maximum point
-   */
+  /** @brief Get the collision objects axis aligned bounding box
+   *  @param aabb_min The minimum point
+   *  @param aabb_max The maximum point */
   void getAABB(btVector3& aabb_min, btVector3& aabb_max) const
   {
     getCollisionShape()->getAabb(getWorldTransform(), aabb_min, aabb_max);
@@ -163,10 +166,8 @@ public:
     aabb_max += contactThreshold;
   }
 
-  /**
-   * @brief This clones the collision objects but not the collision shape wich is const.
-   * @return Shared Pointer to the cloned collision object
-   */
+  /** @brief Clones the collision objects but not the collision shape wich is const.
+   *  @return Shared Pointer to the cloned collision object */
   std::shared_ptr<CollisionObjectWrapper> clone()
   {
     std::shared_ptr<CollisionObjectWrapper> clone_cow(
@@ -181,11 +182,14 @@ public:
     return clone_cow;
   }
 
+  /** \brief Manage memory of a raw pointer shape */
   template <class T>
   void manage(T* t)
-  {  // manage memory of this object
+  {
     m_data.push_back(std::shared_ptr<T>(t));
   }
+
+  /** \brief Manage memory of a shared pointer shape */
   template <class T>
   void manage(std::shared_ptr<T> t)
   {
@@ -193,24 +197,30 @@ public:
   }
 
 protected:
-  /** @brief This is a special constructor used by the clone method */
+  /** @brief Special constructor used by the clone method */
   CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                          const std::vector<shapes::ShapeConstPtr>& shapes,
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
                          const std::vector<CollisionObjectType>& collision_object_types,
                          const std::vector<std::shared_ptr<void>>& data);
 
-  std::string m_name; /**< @brief The name of the collision object */
+  std::string m_name;
   collision_detection::BodyType m_type_id;
-  std::vector<shapes::ShapeConstPtr> m_shapes;               /**< @brief The shapes that define the collison object */
-  AlignedVector<Eigen::Isometry3d> m_shape_poses;            /**< @brief The shpaes poses information */
-  std::vector<CollisionObjectType> m_collision_object_types; /**< @brief The shape collision object type to be used */
 
-  std::vector<std::shared_ptr<void>>
-      m_data; /**< @brief This manages the collision shape pointer so they get destroyed */
+  /**< @brief The shapes that define the collison object */
+  std::vector<shapes::ShapeConstPtr> m_shapes;
+
+  /**< @brief The poses of the shapes */
+  AlignedVector<Eigen::Isometry3d> m_shape_poses;
+
+  /**< @brief The shape collision object type to be used */
+  std::vector<CollisionObjectType> m_collision_object_types;
+
+  /**< @brief Manages the collision shape pointer so they get destroyed */
+  std::vector<std::shared_ptr<void>> m_data;
 };
 
-/** @brief This is a casted collision shape used for checking if an object is collision free between two transforms */
+/** @brief Casted collision shape used for checking if an object is collision free between two transforms */
 struct CastHullShape : public btConvexShape
 {
 public:
@@ -226,6 +236,7 @@ public:
   {
     m_shape_transform = t01;
   }
+
   btVector3 localGetSupportingVertex(const btVector3& vec) const override
   {
     btVector3 sv0 = m_shape->localGetSupportingVertex(vec);
@@ -259,6 +270,7 @@ public:
   void setLocalScaling(const btVector3& /*scaling*/) override
   {
   }
+
   const btVector3& getLocalScaling() const override
   {
     static btVector3 out(1, 1, 1);
@@ -268,14 +280,17 @@ public:
   void setMargin(btScalar /*margin*/) override
   {
   }
+
   btScalar getMargin() const override
   {
     return 0;
   }
+
   int getNumPreferredPenetrationDirections() const override
   {
     return 0;
   }
+
   void getPreferredPenetrationDirection(int /*index*/, btVector3& /*penetrationVector*/) const override
   {
     throw std::runtime_error("not implemented");
@@ -285,6 +300,7 @@ public:
   {
     throw std::runtime_error("not implemented");
   }
+
   const char* getName() const override
   {
     return "CastHull";
@@ -295,6 +311,14 @@ public:
   }
 };
 
+/** \brief Computes the local supporting vertex of a convex shape.
+ *
+ *  If multiple vertices with equal support products exists, their average is calculated and returned.
+ *
+ *  \param shape The convex shape to check
+ *  \param localNormal The support direction to search for in shape local coordinates
+ *  \param outsupport The value of the calculated support mapping
+ *  \param outpt The computed support point */
 inline void GetAverageSupport(const btConvexShape* shape, const btVector3& localNormal, float& outsupport,
                               btVector3& outpt)
 {
@@ -338,14 +362,12 @@ inline void GetAverageSupport(const btConvexShape* shape, const btVector3& local
   }
 }
 
-/**
- * @brief This is used to check if a collision check is required between the provided two collision objects
- * @param cow1 The first collision object
- * @param cow2 The second collision object
- * @param acm  The contact allowed function pointer
- * @param verbose Indicate if verbose information should be printed to the terminal
- * @return True if the two collision objects should be checked for collision, otherwise false
- */
+/** @brief Check if a collision check is required between the provided collision objects
+ *  @param cow1 The first collision object
+ *  @param cow2 The second collision object
+ *  @param acm  The contact allowed function pointer
+ *  @param verbose Indicate if verbose information should be printed
+ *  @return True if the two collision objects should be checked for collision, otherwise false */
 inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn allowed_fn,
                                 const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
@@ -373,7 +395,8 @@ inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContac
       return false;
 
   // TODO: Add check for two objects attached to the same link
-  ROS_DEBUG_STREAM("Checking collision btw " << cow1.getName() << " vs " << cow2.getName());
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Checking collision btw " << cow1.getName() << " vs "
+                                                                                 << cow2.getName());
 
   return true;
 }
@@ -397,11 +420,11 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   contact.depth = static_cast<double>(cp.m_distance1);
   contact.normal = convertBtToEigen(-1 * cp.m_normalWorldOnB);
   contact.pos = convertBtToEigen(cp.m_positionWorldOnA);
+  contact.nearest_points[0] = contact.pos;
+  contact.nearest_points[1] = convertBtToEigen(cp.m_positionWorldOnB);
 
   contact.body_type_1 = cd0->getTypeID();
   contact.body_type_2 = cd0->getTypeID();
-
-  // contact.nearest_points[2] = convertBtToEigen(cp.m_positionWorldOnB);
 
   if (!processResult(collisions, contact, pc, found))
   {
@@ -454,7 +477,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   // we want the contact information of the non-casted object come first, therefore swap values
   if (castShapeIsFirst)
   {
-    // std::swap(col->nearest_points[0], col->nearest_points[1]);
+    std::swap(col->nearest_points[0], col->nearest_points[1]);
     contact.pos = convertBtToEigen(cp.m_positionWorldOnB);
     std::swap(col->body_name_1, col->body_name_2);
     std::swap(col->body_type_1, col->body_type_2);
@@ -467,6 +490,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
   tfWorld0 = firstColObjWrap->getWorldTransform();
   tfWorld1 = firstColObjWrap->getWorldTransform() * shape->m_shape_transform;
 
+  // transform normals into pose local coordinate systems
   btVector3 normalLocal0 = normalWorldFromCast * tfWorld0.getBasis();
   btVector3 normalLocal1 = normalWorldFromCast * tfWorld1.getBasis();
 
@@ -499,10 +523,6 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
     float l0c = (ptOnCast - ptWorld0).length();
     float l1c = (ptOnCast - ptWorld1).length();
 
-    // col->cc_nearest_points[0] = col->nearest_points[1];
-    // col->nearest_points[1] = convertBtToEigen(ptWorld0);
-
-    // col->cc_nearest_points[1] = convertBtToEigen(ptWorld1);
     col->cc_type = collision_detection::ContinuousCollisionType::Between;
 
     if (l0c + l1c < BULLET_LENGTH_TOLERANCE)
@@ -575,8 +595,7 @@ struct TesseractBridgedManifoldResult : public btManifoldResult
   }
 };
 
-/** @brief The BroadphaseContactResultCallback is the abstract interface for both discrete and continuous reporting
- *  of contact points */
+/** @brief Abstract interface for both discrete and continuous reporting of contact points */
 struct BroadphaseContactResultCallback
 {
   ContactTestData& collisions_;
@@ -614,7 +633,7 @@ struct DiscreteBroadphaseContactResultCallback : public BroadphaseContactResultC
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
     {
-      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not close enough for collision with " << cp.m_distance1);
       return 0;
     }
 
@@ -636,7 +655,7 @@ struct CastBroadphaseContactResultCallback : public BroadphaseContactResultCallb
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
     {
-      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not close enough for collision with " << cp.m_distance1);
       return 0;
     }
 
@@ -755,12 +774,10 @@ struct TesseractSingleContactCallback : public btBroadphaseAabbCallback
   }
 };
 
-/**
- * @brief A callback function that is called as part of the broadphase collision checking.  *
+/** @brief A callback function that is called as part of the broadphase collision checking.
  *
- * If the AABB of two collision objects are overlapping the processOverlap method is called
- * and they are checked for collision/distance and the results are stored in collision_.
- */
+ *  If the AABB of two collision objects are overlapping the processOverlap method is called and they are checked for
+ *  collision/distance and the results are stored in collision_. */
 class TesseractCollisionPairCallback : public btOverlapCallback
 {
   const btDispatcherInfo& dispatch_info_;
@@ -819,15 +836,14 @@ public:
 btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
                                        const CollisionObjectType& collision_object_type, CollisionObjectWrapper* cow);
 
-/**
- * @brief Update a collision objects filters
- * @param active A list of active collision objects
- * @param cow The collision object to update.
- * @param continuous Indicate if the object is a continuous collision object.
+/** @brief Update a collision objects filters
+ *  @param active A list of active collision objects
+ *  @param cow The collision object to update.
+ *  @param continuous Indicate if the object is a continuous collision object.
  *
- * Currently continuous collision objects can only be checked against static objects. Continuous to Continuous
- * collision checking is currently not supports. TODO LEVI: Add support for Continuous to Continuous collision checking.
- */
+ *  Currently continuous collision objects can only be checked against static objects. Continuous to Continuous
+ *  collision checking is currently not supports. TODO LEVI: Add support for Continuous to Continuous collision
+ * checking. */
 inline void updateCollisionObjectFilters(const std::vector<std::string>& active, COW& cow, bool continuous)
 {
   cow.m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
@@ -919,7 +935,7 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
     {
-      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not close enough for collision with " << cp.m_distance1);
       return 0;
     }
 
@@ -955,7 +971,7 @@ struct CastCollisionCollector : public btCollisionWorld::ContactResultCallback
   {
     if (cp.m_distance1 > static_cast<btScalar>(contact_distance_))
     {
-      ROS_DEBUG_STREAM("Not close enough for collision with " << cp.m_distance1);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not close enough for collision with " << cp.m_distance1);
       return 0;
     }
 
@@ -1103,7 +1119,7 @@ inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
 inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                            const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
-  ROS_DEBUG_STREAM("Added " << cow->getName() << " to broadphase");
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Added " << cow->getName() << " to broadphase");
   btVector3 aabb_min, aabb_max;
   cow->getAABB(aabb_min, aabb_max);
 

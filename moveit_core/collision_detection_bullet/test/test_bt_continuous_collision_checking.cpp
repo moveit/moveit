@@ -27,7 +27,7 @@ void addCollisionObjects(tesseract::BulletCastBVHManager& checker)
   ////////////////////////////
   // Add moving box to checker
   ////////////////////////////
-  shapes::ShapePtr moving_box(new shapes::Box(0.25, 0.25, 0.25));
+  shapes::ShapePtr moving_box(new shapes::Box(0.2, 0.2, 0.2));
   Eigen::Isometry3d moving_box_pose;
 
   moving_box_pose.setIdentity();
@@ -100,7 +100,6 @@ void runTest(tesseract::BulletCastBVHManager& checker, collision_detection::Coll
 
   // Set the collision object transforms
   checker.setCollisionObjectsTransform("static_box_link", Eigen::Isometry3d::Identity());
-
   checker.setCollisionObjectsTransform("moving_box_link", start_pos, end_pos);
 
   // Perform collision check
@@ -125,35 +124,18 @@ TEST(TesseractCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
 
   Eigen::Isometry3d start_pos, end_pos;
   start_pos.setIdentity();
-  start_pos.translation().x() = -1.9;
+  start_pos.translation().x() = -2;
   end_pos.setIdentity();
-  end_pos.translation().x() = 1.9;
-  end_pos.translation().y() = 3.8;
+  end_pos.translation().x() = 2;
 
   tesseract::BulletCastBVHManager checker;
   addCollisionObjects(checker);
   runTest(checker, result, result_vector, start_pos, end_pos);
 
-  ASSERT_TRUE(!result_vector.empty());
-  EXPECT_NEAR(result_vector[0].depth, -0.2475, 0.001);
-  EXPECT_NEAR(result_vector[0].percent_interpolation, 0.25, 0.001);
+  ASSERT_TRUE(result.collision);
+  EXPECT_NEAR(result_vector[0].depth, -0.6, 0.001);
+  EXPECT_NEAR(result_vector[0].percent_interpolation, 0.6, 0.001);
   EXPECT_TRUE(result_vector[0].cc_type == collision_detection::ContinuousCollisionType::Between);
-
-  // EXPECT_NEAR(result_vector[0].nearest_points[0][0], -0.5, 0.001);
-  // EXPECT_NEAR(result_vector[0].nearest_points[0][1], 0.5, 0.001);
-  // EXPECT_NEAR(result_vector[0].nearest_points[0][2], 0.0, 0.001);
-
-  // EXPECT_NEAR(result_vector[0].nearest_points[1][0], -1.275, 0.001);
-  // EXPECT_NEAR(result_vector[0].nearest_points[1][1], -0.625, 0.001);
-  // EXPECT_NEAR(result_vector[0].nearest_points[1][2], 0.0, 0.001);
-
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[0][0], -0.325, 0.001);
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[0][1], 0.325, 0.001);
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[0][2], 0.0, 0.001);
-
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[1][0], 2.525, 0.001);
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[1][1], 3.175, 0.001);
-  // EXPECT_NEAR(result_vector[0].cc_nearest_points[1][2], 0.0, 0.001);
 }
 
 TEST(TesseractCollisionUnit, BulletCastMeshVsBox)

@@ -289,12 +289,13 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
   m_collisionFilterMask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter;
 
-  if (shapes.size() == 1 && m_shape_poses[0].matrix().isIdentity())
+  if (shapes.size() == 1)
   {
     btCollisionShape* shape = createShapePrimitive(m_shapes[0], collision_object_types[0], this);
     shape->setMargin(BULLET_MARGIN);
     manage(shape);
     setCollisionShape(shape);
+    setWorldTransform(convertEigenToBt(m_shape_poses[0]));
   }
   else
   {
@@ -305,6 +306,9 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
         BULLET_MARGIN);  // margin: compound seems to have no effect when positive but has an effect when negative
     setCollisionShape(compound);
 
+    setWorldTransform(convertEigenToBt(m_shape_poses[0]));
+    Eigen::Isometry3d inv_world = m_shape_poses[0].inverse();
+
     for (std::size_t j = 0; j < m_shapes.size(); ++j)
     {
       btCollisionShape* subshape = createShapePrimitive(m_shapes[j], collision_object_types[j], this);
@@ -312,15 +316,11 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
       {
         manage(subshape);
         subshape->setMargin(BULLET_MARGIN);
-        btTransform geomTrans = convertEigenToBt(m_shape_poses[j]);
+        btTransform geomTrans = convertEigenToBt(inv_world * m_shape_poses[j]);
         compound->addChildShape(geomTrans, subshape);
       }
     }
   }
-
-  btTransform trans;
-  trans.setIdentity();
-  setWorldTransform(trans);
 }
 
 CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
