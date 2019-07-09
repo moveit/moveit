@@ -2,6 +2,9 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.17 (2019-07-09)
+-------------------
+
 0.9.16 (2019-06-29)
 -------------------
 * [feature]     Add get_jacobian_matrix to moveit_commander (`#1501 <https://github.com/ros-planning/moveit/issues/1501>`_)

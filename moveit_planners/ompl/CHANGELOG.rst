@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.17 (2019-07-09)
+-------------------
+
 0.9.16 (2019-06-29)
 -------------------
 * [feature]     Helper function to construct constraints from ROS params (`#1253 <https://github.com/ros-planning/moveit/issues/1253>`_)

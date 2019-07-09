@@ -2,6 +2,9 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.17 (2019-07-09)
+-------------------
+
 0.9.16 (2019-06-29)
 -------------------
 * [maintanance] Improve clang-format (`#1214 <https://github.com/ros-planning/moveit/issues/1214>`_)

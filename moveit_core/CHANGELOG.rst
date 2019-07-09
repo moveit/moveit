@@ -2,6 +2,9 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.17 (2019-07-09)
+-------------------
+
 0.9.16 (2019-06-29)
 -------------------
 * [fix]         Invert waypoint velocities on reverse (`#1335 <https://github.com/ros-planning/moveit/issues/1335>`_)

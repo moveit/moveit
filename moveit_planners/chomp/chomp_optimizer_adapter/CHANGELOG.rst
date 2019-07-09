@@ -2,6 +2,9 @@
 Changelog for package moveit_chomp_optimizer_adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.17 (2019-07-09)
+-------------------
+
 0.9.16 (2019-06-29)
 -------------------
 * [maintanance] Cleanup Chomp packages (`#1282 <https://github.com/ros-planning/moveit/issues/1282>`_)
