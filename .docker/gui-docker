@@ -106,20 +106,23 @@ DOCKER_EXECUTABLE=${DOCKER_EXECUTABLE:-docker}
 # If CONTAINER_NAME was specified and this container already exists, continue it
 if [ -n "${CONTAINER_NAME:-}" ] ; then
    if [ -z "$($DOCKER_EXECUTABLE ps -aq --filter name=^$CONTAINER_NAME\$)" ] ; then
-      # container not yet existing, add an option to name the container when running docker below
+      # container not yet existing: add an option to name the container when running docker below
       NAME_OPTION="--name=$CONTAINER_NAME"
-      if [ $(count_positional_args) -eq 0 ] ; then
+      if [ "$(count_positional_args $@)" == "0" ] ; then
          # If no further (positional) arguments were provided, start a bash in the default image (for dummy users)
          DUMMY_DEFAULTS="-it moveit/moveit:master-source bash"
       fi
    else
-      if [ $# -ne 0 ] ; then echo "Ignoring additional arguments: $@"; fi
       if [ -z "$($DOCKER_EXECUTABLE ps -q --filter name=^$CONTAINER_NAME\$)" ] ; then
          echo -n "Start existing, but stopped container: "
          docker start $CONTAINER_NAME
       fi
       echo "Entering container: $CONTAINER_NAME"
-      docker exec -it $CONTAINER_NAME bash
+      if [ $# -eq 0 ] ; then
+         docker exec -it $CONTAINER_NAME bash
+      else
+         docker exec $CONTAINER_NAME $@
+      fi
       rm $XAUTH
       exit 0
    fi
