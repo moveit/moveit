@@ -136,6 +136,16 @@ const std::string& BenchmarkOptions::getTrajectoryConstraintRegex() const
   return trajectory_constraint_regex_;
 }
 
+const std::vector<std::string>& BenchmarkOptions::getPredefinedPoses() const
+{
+  return predefined_poses_;
+}
+
+const std::string& BenchmarkOptions::getPredefinedPosesGroup() const
+{
+  return predefined_poses_group_;
+}
+
 void BenchmarkOptions::getGoalOffsets(std::vector<double>& offsets) const
 {
   offsets.resize(6);
@@ -189,6 +199,8 @@ void BenchmarkOptions::readBenchmarkParameters(ros::NodeHandle& nh)
   nh.param(std::string("benchmark_config/parameters/path_constraints"), path_constraint_regex_, std::string(""));
   nh.param(std::string("benchmark_config/parameters/trajectory_constraints"), trajectory_constraint_regex_,
            std::string(""));
+  nh.param(std::string("benchmark_config/parameters/predefined_poses"), predefined_poses_, {});
+  nh.param(std::string("benchmark_config/parameters/predefined_poses_group"), predefined_poses_group_, std::string(""));
 
   if (!nh.getParam(std::string("benchmark_config/parameters/group"), group_name_))
     ROS_WARN("Benchmark group NOT specified");

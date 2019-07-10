@@ -67,6 +67,8 @@ public:
   const std::string& getGoalConstraintRegex() const;
   const std::string& getPathConstraintRegex() const;
   const std::string& getTrajectoryConstraintRegex() const;
+  const std::vector<std::string>& getPredefinedPoses() const;
+  const std::string& getPredefinedPosesGroup() const;
   void getGoalOffsets(std::vector<double>& offsets) const;
   const std::map<std::string, std::vector<std::string>>& getPlanningPipelineConfigurations() const;
   void getPlanningPipelineNames(std::vector<std::string>& planning_pipeline_names) const;
@@ -100,6 +102,8 @@ protected:
   std::string goal_constraint_regex_;
   std::string path_constraint_regex_;
   std::string trajectory_constraint_regex_;
+  std::vector<std::string> predefined_poses_;
+  std::string predefined_poses_group_;
   double goal_offsets[6];
 
   /// planner configurations

@@ -40,10 +40,14 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_run_benchmark src/RunBenchmark.cpp)
 target_link_libraries(moveit_run_benchmark ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_executable(moveit_combine_predefined_poses_benchmark src/simple_benchmarks/CombinePredefinedPosesBenchmark.cpp)
+target_link_libraries(moveit_combine_predefined_poses_benchmark ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(
   TARGETS
     ${MOVEIT_LIB_NAME}
+    moveit_run_benchmark
+    moveit_combine_predefined_poses_benchmark
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
