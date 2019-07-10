@@ -142,7 +142,7 @@ def readBenchmarkLog(dbname, filenames):
                   (None, allExperimentsName) + tuple(allExperimentsValues.values()))
         allExperimentsId = c.lastrowid
 
-    for filename in filenames:
+    for i, filename in enumerate(filenames):
         print('Processing ' + filename)
         logfile = open(filename,'r')
         start_pos = logfile.tell()
@@ -169,7 +169,17 @@ def readBenchmarkLog(dbname, filenames):
             nrruns = int(nrrunsOrNone)
             allExperimentsValues['runcount'] += nrruns
         totaltime = float(readRequiredLogValue("total time", logfile, 0, {-3 : "collect", -2 : "the", -1 : "data"}))
+        # fill in fields of all_experiments
         allExperimentsValues['totaltime'] += totaltime
+        allExperimentsValues['memorylimit'] = max(allExperimentsValues['memorylimit'], totaltime)
+        allExperimentsValues['timelimit'] = max(allExperimentsValues['timelimit'], totaltime)
+        # copy the fields of the first file to all_experiments so that they are not empty
+        if (i==0):
+            allExperimentsValues['version'] = version
+            allExperimentsValues['date'] = date
+            allExperimentsValues['setup'] = expsetup
+            allExperimentsValues['hostname'] = hostname
+            allExperimentsValues['cpuinfo'] = cpuinfo
         numEnums = 0
         numEnumsOrNone = readOptionalLogValue(logfile, 0, {-2 : "enum"})
         if numEnumsOrNone != None:
@@ -281,7 +291,8 @@ def readBenchmarkLog(dbname, filenames):
     if addAllExperiments:
         updateString = "UPDATE experiments SET"
         for i, (key, val) in enumerate(allExperimentsValues.items()):
-            if i > 0: updateString += ","
+            if i > 0:
+                updateString += ","
             updateString += " " + str(key) + "='" + str(val) + "'"
         updateString += "WHERE id='" + str(allExperimentsId) + "'"
         c.execute(updateString)
@@ -567,7 +578,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if len(args) == 0:
-	parser.error("No arguments were provided. Please provide full path of log file")
+        parser.error("No arguments were provided. Please provide full path of log file")
 
     if len(args) > 0:
         readBenchmarkLog(options.dbname, args)
