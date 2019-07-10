@@ -311,6 +311,7 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
 
   cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
   ASSERT_TRUE(res.collision);
+  ASSERT_EQ(res.contact_count, 4u);
   res.clear();
 }
 

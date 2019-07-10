@@ -126,7 +126,7 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
   tesseract::BulletCastBVHManagerPtr temp_clone_manager = bt_manager_CCD_->clone();
   std::vector<tesseract::COWPtr> attached_cows;
   robot_bt.addAttachedOjects(state1, attached_cows);
-  std::vector<std::string> active_attached;
+  std::vector<std::string> active_objects;
 
   for (const tesseract::COWPtr& cow : attached_cows)
   {
@@ -134,7 +134,7 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
     temp_clone_manager->setCollisionObjectsTransform(
         cow->getName(), state1.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0],
         state2.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
-    active_attached.push_back(cow->getName());
+    active_objects.push_back(cow->getName());
   }
 
   for (const std::pair<std::string, tesseract::COWPtr>& cow : robot_bt.bt_manager_->getCollisionObjects())
@@ -146,16 +146,9 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
                                                      state2.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  std::vector<std::string> active_links = robot_bt.getRobotModel()->getLinkModelNames();
-  active_links.insert(active_links.end(), active_attached.begin(), active_attached.begin());
-
-  temp_clone_manager->setActiveCollisionObjects(active_links);
+  tesseract::getActiveLinkNamesRecursive(active_objects, robot_bt.getRobotModel()->getURDF()->getRoot(), false);
+  temp_clone_manager->setActiveCollisionObjects(active_objects);
   temp_clone_manager->contactTest(res, req, acm);
-
-  for (const tesseract::COWPtr& cow : attached_cows)
-  {
-    temp_clone_manager->removeCollisionObject(cow->getName());
-  }
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,

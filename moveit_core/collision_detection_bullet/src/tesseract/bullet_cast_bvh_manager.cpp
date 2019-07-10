@@ -223,6 +223,7 @@ void BulletCastBVHManager::setCollisionObjectsTransform(const std::string& name,
       else if (btBroadphaseProxy::isCompound(cow->getCollisionShape()->getShapeType()))
       {
         btCompoundShape* compound = static_cast<btCompoundShape*>(cow->getCollisionShape());
+
         for (int i = 0; i < compound->getNumChildShapes(); ++i)
         {
           if (btBroadphaseProxy::isConvex(compound->getChildShape(i)->getShapeType()))
@@ -379,6 +380,10 @@ void BulletCastBVHManager::contactTest(collision_detection::CollisionResult& col
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
   btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
+
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bulelt", "Number overlapping candidates "
+                                                           << pairCache->getNumOverlappingPairs());
+
   CastBroadphaseContactResultCallback cc(cdata, contact_distance_);
   TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
   pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());

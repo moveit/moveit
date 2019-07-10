@@ -77,7 +77,7 @@ void clutterWorld(planning_scene::PlanningScenePtr planning_scene, const size_t 
 {
   ROS_INFO("Cluttering scene...");
 
-  random_numbers::RandomNumberGenerator num_generator = random_numbers::RandomNumberGenerator();
+  random_numbers::RandomNumberGenerator num_generator = random_numbers::RandomNumberGenerator(123);
 
   // allow all robot links to be in collision for world check
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
@@ -186,7 +186,7 @@ void runCollisionDetection(unsigned int trials, planning_scene::PlanningScenePtr
   if (!only_self)
   {
     req.contacts = true;
-    req.max_contacts = 99;
+    req.max_contacts = 999;
     req.max_contacts_per_pair = 99;
   }
 
@@ -312,17 +312,34 @@ int main(int argc, char** argv)
 
     robot_state::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
     current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
-
     current_state.update();
+
     std::vector<robot_state::RobotState> sampled_states;
     sampled_states.push_back(current_state);
 
-    // findStates(RobotStateSelector::NOT_IN_COLLISION, 1, planning_scene, sampled_states);
+    ROS_INFO("Starting benchmark: Robot in empty world, only self collision check");
+    runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::BULLET, true);
+    runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::FCL, true);
+
+    planning_scene->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBt::create());
 
     clutterWorld(planning_scene, 100, CollisionObjectType::MESH);
 
+    ROS_INFO("Starting benchmark: Robot in cluttered world, no collision with world");
     runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::BULLET, false);
     runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::FCL, false);
+
+    double joint_2 = 1.5;
+    current_state.setJointPositions("panda_joint2", &joint_2);
+    current_state.update();
+
+    std::vector<robot_state::RobotState> sampled_states_2;
+    sampled_states_2.push_back(current_state);
+
+    ROS_INFO("Starting benchmark: Robot in cluttered world, in collision with world");
+    runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::BULLET, false);
+    runCollisionDetection(trials, planning_scene, sampled_states_2, CollisionDetector::BULLET, false);
+    runCollisionDetection(trials, planning_scene, sampled_states_2, CollisionDetector::FCL, false);
 
     moveit_msgs::PlanningScene planning_scene_msg;
     planning_scene->getPlanningSceneMsg(planning_scene_msg);

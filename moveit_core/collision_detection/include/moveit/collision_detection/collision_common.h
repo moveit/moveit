@@ -110,6 +110,7 @@ struct Contact
   /** \brief The continous collision type */
   ContinuousCollisionType cc_type;
 
+  /** \brief The two nearest points connecting the two bodies */
   Eigen::Vector3d nearest_points[2];
 };
 

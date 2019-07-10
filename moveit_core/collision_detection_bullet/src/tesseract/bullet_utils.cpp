@@ -279,6 +279,7 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   , m_shape_poses(shape_poses)
   , m_collision_object_types(collision_object_types)
 {
+  this->setContactProcessingThreshold(0);
   assert(!shapes.empty());
   assert(!shape_poses.empty());
   assert(!collision_object_types.empty());
@@ -302,8 +303,8 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
     btCompoundShape* compound =
         new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(m_shapes.size()));
     manage(compound);
-    compound->setMargin(
-        BULLET_MARGIN);  // margin: compound seems to have no effect when positive but has an effect when negative
+    // margin on compound seems to have no effect when positive but has an effect when negative
+    compound->setMargin(BULLET_MARGIN);
     setCollisionShape(compound);
 
     setWorldTransform(convertEigenToBt(m_shape_poses[0]));
@@ -345,5 +346,6 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   , m_collision_object_types(collision_object_types)
   , m_data(data)
 {
+  this->setContactProcessingThreshold(0);
 }
 }

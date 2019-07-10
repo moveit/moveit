@@ -99,6 +99,7 @@ inline bool isContactAllowed(const std::string& name1, const std::string& name2,
 inline collision_detection::Contact* processResult(ContactTestData& cdata, collision_detection::Contact& contact,
                                                    const std::pair<std::string, std::string>& key, bool found)
 {
+  // add deepest penetration / smallest distance to result
   if (cdata.req.distance)
   {
     if (contact.depth < cdata.res.distance)

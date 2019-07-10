@@ -40,6 +40,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #ifndef TESSERACT_COLLISION_BULLET_UTILS_H
 #define TESSERACT_COLLISION_BULLET_UTILS_H
 
@@ -60,7 +61,7 @@ namespace tesseract
 const btScalar BULLET_MARGIN = 0.0f;
 const btScalar BULLET_SUPPORT_FUNC_TOLERANCE = 0.01f METERS;
 const btScalar BULLET_LENGTH_TOLERANCE = 0.001f METERS;
-const btScalar BULLET_EPSILON = 1e-3f;
+const btScalar BULLET_EPSILON = 1e-3f;                   // numerical precision limit
 const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;  // All pairs closer than this distance get reported
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
@@ -68,22 +69,26 @@ MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
 typedef CollisionObjectWrapper COW;
 MOVEIT_DECLARE_PTR(COW, CollisionObjectWrapper)
 
+/** \brief Converts eigen vector to bullet vector */
 inline btVector3 convertEigenToBt(const Eigen::Vector3d& v)
 {
   return btVector3(static_cast<btScalar>(v[0]), static_cast<btScalar>(v[1]), static_cast<btScalar>(v[2]));
 }
 
+/** \brief Converts bullet vector to eigen vector */
 inline Eigen::Vector3d convertBtToEigen(const btVector3& v)
 {
   return Eigen::Vector3d(static_cast<double>(v.x()), static_cast<double>(v.y()), static_cast<double>(v.z()));
 }
 
+/** \brief Converts eigen quaternion to bullet quaternion */
 inline btQuaternion convertEigenToBt(const Eigen::Quaterniond& q)
 {
   return btQuaternion(static_cast<btScalar>(q.x()), static_cast<btScalar>(q.y()), static_cast<btScalar>(q.z()),
                       static_cast<btScalar>(q.w()));
 }
 
+/** \brief Converts eigen matrix to bullet matrix */
 inline btMatrix3x3 convertEigenToBt(const Eigen::Matrix3d& r)
 {
   return btMatrix3x3(static_cast<btScalar>(r(0, 0)), static_cast<btScalar>(r(0, 1)), static_cast<btScalar>(r(0, 2)),
@@ -91,6 +96,7 @@ inline btMatrix3x3 convertEigenToBt(const Eigen::Matrix3d& r)
                      static_cast<btScalar>(r(2, 0)), static_cast<btScalar>(r(2, 1)), static_cast<btScalar>(r(2, 2)));
 }
 
+/** \brief Converts bullet transform to eigen transform */
 inline btTransform convertEigenToBt(const Eigen::Isometry3d& t)
 {
   const Eigen::Matrix3d& rot = t.matrix().block<3, 3>(0, 0);
@@ -104,16 +110,19 @@ inline btTransform convertEigenToBt(const Eigen::Isometry3d& t)
 
 /** @brief Tesseract bullet collision object.
  *
- *  It is a wrapper around bullet's collision object which contains specific information related to tesseract */
+ *  A wrapper around bullet's collision object which contains specific information related to tesseract */
 class CollisionObjectWrapper : public btCollisionObject
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  /** \brief Standard constructor */
   CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                          const std::vector<shapes::ShapeConstPtr>& shapes,
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
                          const std::vector<CollisionObjectType>& collision_object_types);
 
+  /** \brief Constructor for attached robot objects */
   CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                          const std::vector<shapes::ShapeConstPtr>& shapes,
                          const AlignedVector<Eigen::Isometry3d>& shape_poses,
@@ -144,7 +153,8 @@ public:
     return m_type_id;
   }
 
-  /** \brief Check if two CollisionObjectWrapper objects point to the same source object */
+  /** \brief Check if two CollisionObjectWrapper objects point to the same source object
+   *  \return True if same objects, false otherwise */
   bool sameObject(const CollisionObjectWrapper& other) const
   {
     return m_name == other.m_name && m_type_id == other.m_type_id && m_shapes.size() == other.m_shapes.size() &&
@@ -179,6 +189,7 @@ public:
     clone_cow->m_enabled = m_enabled;
     clone_cow->setBroadphaseHandle(nullptr);
     clone_cow->m_touch_links = m_touch_links;
+    clone_cow->setContactProcessingThreshold(this->getContactProcessingThreshold());
     return clone_cow;
   }
 
@@ -207,24 +218,30 @@ protected:
   std::string m_name;
   collision_detection::BodyType m_type_id;
 
-  /**< @brief The shapes that define the collison object */
+  /** @brief The shapes that define the collison object */
   std::vector<shapes::ShapeConstPtr> m_shapes;
 
-  /**< @brief The poses of the shapes */
+  /** @brief The poses of the shapes */
   AlignedVector<Eigen::Isometry3d> m_shape_poses;
 
-  /**< @brief The shape collision object type to be used */
+  /** @brief The shape collision object type to be used */
   std::vector<CollisionObjectType> m_collision_object_types;
 
-  /**< @brief Manages the collision shape pointer so they get destroyed */
+  /** @brief Manages the collision shape pointer so they get destroyed */
   std::vector<std::shared_ptr<void>> m_data;
 };
 
-/** @brief Casted collision shape used for checking if an object is collision free between two transforms */
+/** @brief Casted collision shape used for checking if an object is collision free between two discrete poses
+ *
+ *  The cast is not explicitely computed but implicitely represented through the single shape and the transformation
+ *  between the first and second pose. */
 struct CastHullShape : public btConvexShape
 {
 public:
+  /** \brief The casted shape */
   btConvexShape* m_shape;
+
+  /** \brief Transformation from the first pose to the second pose */
   btTransform m_shape_transform;
 
   CastHullShape(btConvexShape* shape, const btTransform& t01) : m_shape(shape), m_shape_transform(t01)
@@ -237,6 +254,7 @@ public:
     m_shape_transform = t01;
   }
 
+  /** \brief From both shape poses computes the support vertex and returns the larger one. */
   btVector3 localGetSupportingVertex(const btVector3& vec) const override
   {
     btVector3 sv0 = m_shape->localGetSupportingVertex(vec);
@@ -244,7 +262,6 @@ public:
     return (vec.dot(sv0) > vec.dot(sv1)) ? sv0 : sv1;
   }
 
-  // notice that the vectors should be unit length
   void batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* /*vectors*/,
                                                          btVector3* /*supportVerticesOut*/,
                                                          int /*numVectors*/) const override
@@ -252,7 +269,9 @@ public:
     throw std::runtime_error("not implemented");
   }
 
-  /// getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
+  /** \brief Shape specific fast recalculation of the AABB at a certain pose
+   *
+   *  The AABB is not recalculated from scratch but updated depending on the given transformation. */
   void getAabb(const btTransform& t_w0, btVector3& aabbMin, btVector3& aabbMax) const override
   {
     m_shape->getAabb(t_w0, aabbMin, aabbMax);
@@ -305,6 +324,7 @@ public:
   {
     return "CastHull";
   }
+
   btVector3 localGetSupportingVertexWithoutMargin(const btVector3& v) const override
   {
     return localGetSupportingVertex(v);
@@ -676,8 +696,11 @@ struct TesseractBroadphaseBridgedManifoldResult : public btManifoldResult
 
   void addContactPoint(const btVector3& normalOnBInWorld, const btVector3& pointInWorld, btScalar depth) override
   {
-    if (result_callback_.collisions_.done || depth > static_cast<btScalar>(result_callback_.contact_distance_))
+    if (result_callback_.collisions_.done || result_callback_.collisions_.pair_done ||
+        depth > static_cast<btScalar>(result_callback_.contact_distance_))
+    {
       return;
+    }
 
     bool isSwapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
     btVector3 pointA = pointInWorld + normalOnBInWorld * depth;
@@ -795,19 +818,18 @@ public:
 
   bool processOverlap(btBroadphasePair& pair) override
   {
+    results_callback_.collisions_.pair_done = false;
+
     if (results_callback_.collisions_.done)
     {
       return false;
     }
 
-    if (results_callback_.collisions_.pair_done)
-    {
-      results_callback_.collisions_.pair_done = false;
-      return false;
-    }
-
     const CollisionObjectWrapper* cow0 = static_cast<const CollisionObjectWrapper*>(pair.m_pProxy0->m_clientObject);
     const CollisionObjectWrapper* cow1 = static_cast<const CollisionObjectWrapper*>(pair.m_pProxy1->m_clientObject);
+
+    std::pair<std::string, std::string> pair_names{ cow0->getName(), cow1->getName() };
+    ROS_DEBUG_STREAM("Processing " << cow0->getName() << " vs " << cow1->getName());
 
     if (results_callback_.needsCollision(cow0, cow1))
     {
@@ -1051,8 +1073,9 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
         btTransform geomTrans = compound->getChildTransform(i);
 
         new_cow->manage(new_second_compound);
-        new_second_compound->setMargin(
-            BULLET_MARGIN);  // margin: compound. seems to have no effect when positive but has an effect when negative
+
+        // margin on compound seems to have no effect when positive but has an effect when negative
+        new_second_compound->setMargin(BULLET_MARGIN);
         new_compound->addChildShape(geomTrans, new_second_compound);
       }
       else
@@ -1063,8 +1086,8 @@ inline COWPtr makeCastCollisionObject(const COWPtr& cow)
       }
     }
 
-    new_compound->setMargin(
-        BULLET_MARGIN);  // margin: compound. seems to have no effect when positive but has an effect when negative
+    // margin on compound seems to have no effect when positive but has an effect when negative
+    new_compound->setMargin(BULLET_MARGIN);
     new_cow->manage(new_compound);
     new_cow->setCollisionShape(new_compound);
     new_cow->setWorldTransform(cow->getWorldTransform());

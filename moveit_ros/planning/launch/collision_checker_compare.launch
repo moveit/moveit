@@ -4,7 +4,7 @@
 
   <include file="$(find panda_moveit_config)/launch/planning_context.launch"/>
 
-  <node name="compare_collision_checking_speed" pkg="moveit_ros_planning" type="moveit_compare_collision_checking_speed_fcl_bullet" respawn="false" output="log">
+  <node name="compare_collision_checking_speed" pkg="moveit_ros_planning" type="moveit_compare_collision_checking_speed_fcl_bullet" respawn="false" output="screen">
     <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
   </node>
 </launch>

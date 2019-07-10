@@ -36,107 +36,15 @@
 
 namespace tesseract
 {
-static inline bool isIdentical(const shapes::Shape& shape1, const shapes::Shape& shape2)
-{
-  if (shape1.type != shape2.type)
-    return false;
 
-  switch (shape1.type)
-  {
-    case shapes::BOX:
-    {
-      const shapes::Box& s1 = static_cast<const shapes::Box&>(shape1);
-      const shapes::Box& s2 = static_cast<const shapes::Box&>(shape2);
-
-      for (unsigned i = 0; i < 3; ++i)
-        if (std::abs(s1.size[i] - s2.size[i]) > std::numeric_limits<double>::epsilon())
-          return false;
-
-      break;
-    }
-    case shapes::SPHERE:
-    {
-      const shapes::Sphere& s1 = static_cast<const shapes::Sphere&>(shape1);
-      const shapes::Sphere& s2 = static_cast<const shapes::Sphere&>(shape2);
-
-      if (std::abs(s1.radius - s2.radius) > std::numeric_limits<double>::epsilon())
-        return false;
-
-      break;
-    }
-    case shapes::CYLINDER:
-    {
-      const shapes::Cylinder& s1 = static_cast<const shapes::Cylinder&>(shape1);
-      const shapes::Cylinder& s2 = static_cast<const shapes::Cylinder&>(shape2);
-
-      if (std::abs(s1.radius - s2.radius) > std::numeric_limits<double>::epsilon())
-        return false;
-
-      if (std::abs(s1.length - s2.length) > std::numeric_limits<double>::epsilon())
-        return false;
-
-      break;
-    }
-    case shapes::CONE:
-    {
-      const shapes::Cone& s1 = static_cast<const shapes::Cone&>(shape1);
-      const shapes::Cone& s2 = static_cast<const shapes::Cone&>(shape2);
-
-      if (std::abs(s1.radius - s2.radius) > std::numeric_limits<double>::epsilon())
-        return false;
-
-      if (std::abs(s1.length - s2.length) > std::numeric_limits<double>::epsilon())
-        return false;
-
-      break;
-    }
-    case shapes::MESH:
-    {
-      const shapes::Mesh& s1 = static_cast<const shapes::Mesh&>(shape1);
-      const shapes::Mesh& s2 = static_cast<const shapes::Mesh&>(shape2);
-
-      if (s1.vertex_count != s2.vertex_count)
-        return false;
-
-      if (s1.triangle_count != s2.triangle_count)
-        return false;
-
-      break;
-    }
-    case shapes::OCTREE:
-    {
-      const shapes::OcTree& s1 = static_cast<const shapes::OcTree&>(shape1);
-      const shapes::OcTree& s2 = static_cast<const shapes::OcTree&>(shape2);
-
-      if (s1.octree->getTreeType() != s2.octree->getTreeType())
-        return false;
-
-      if (s1.octree->size() != s2.octree->size())
-        return false;
-
-      if (s1.octree->getTreeDepth() != s2.octree->getTreeDepth())
-        return false;
-
-      if (s1.octree->memoryUsage() != s2.octree->memoryUsage())
-        return false;
-
-      if (s1.octree->memoryFullGrid() != s2.octree->memoryFullGrid())
-        return false;
-
-      break;
-    }
-    default:
-      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.type));
-      return false;
-  }
-
-  return true;
-}
-
+/** \brief Recursively traverses robot from root to get all active links
+*
+*   \param active_links Stores the active links
+*   \param urdf_link The current urdf link representation
+*   \param active Indicates if link is considered active */
 static inline void getActiveLinkNamesRecursive(std::vector<std::string>& active_links,
                                                const urdf::LinkConstSharedPtr urdf_link, bool active)
 {
-  // recursively get all active links
   if (active)
   {
     active_links.push_back(urdf_link->name);
