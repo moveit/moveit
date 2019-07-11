@@ -24,3 +24,8 @@
     local-name: moveit_tutorials
     uri: https://github.com/ros-planning/moveit_tutorials.git
     version: master
+# Temporary for running CI to test new EigenPy
+- git:
+    local-name: eigenpy
+    uri: https://github.com/wxmerkt/eigenpy.git
+    version: wxm-update-eigenpy-for-3rd-party-release
