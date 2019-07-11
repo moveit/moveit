@@ -2,7 +2,9 @@
 
 #### Quick Start Guide
 
-Clone and build https://github.com/ros-industrial/universal_robot.git        (kinetic-devel branch is fine)
+Clone https://github.com/ros-industrial/universal_robot.git        (kinetic-devel branch is fine)
+
+Run `rosdep install` from the /src folder to install dependencies. Build the repo.
 
   roslaunch ur_gazebo ur5.launch
 
