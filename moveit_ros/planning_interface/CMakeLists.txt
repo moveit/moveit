@@ -75,7 +75,6 @@ catkin_package(
     tf2_geometry_msgs
   DEPENDS
     EIGEN3
-    eigenpy
 )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
