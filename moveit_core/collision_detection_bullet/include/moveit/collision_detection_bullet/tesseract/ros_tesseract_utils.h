@@ -36,7 +36,6 @@
 
 namespace tesseract
 {
-
 /** \brief Recursively traverses robot from root to get all active links
 *
 *   \param active_links Stores the active links
