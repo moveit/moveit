@@ -19,12 +19,14 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_geometry_msgs
   tf2_ros
-  eigenpy
   roscpp
   actionlib
   rospy
   rosconsole
 )
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(eigenpy eigenpy REQUIRED)
 
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
@@ -73,10 +75,12 @@ catkin_package(
     tf2_geometry_msgs
   DEPENDS
     EIGEN3
+    eigenpy
 )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
+                    ${eigenpy_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
