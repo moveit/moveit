@@ -24,7 +24,7 @@ strictness: 2"
 
 Launch the jog node. This example uses commands from a SpaceNavigator joystick-like device.
 
-roslaunch jog_arm spacenav_cpp.launch
+roslaunch moveit_experimental spacenav_cpp.launch
 
 If you don't have a SpaceNavigor, send commands like this:
 
