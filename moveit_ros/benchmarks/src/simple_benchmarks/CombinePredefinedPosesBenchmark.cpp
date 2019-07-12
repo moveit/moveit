@@ -46,7 +46,7 @@
 
 namespace moveit_ros_benchmarks
 {
-constexpr char* LOGNAME = "combine_predefined_poses_benchmark";
+constexpr char LOGNAME[] = "combine_predefined_poses_benchmark";
 class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
 {
   public:
