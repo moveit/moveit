@@ -196,4 +196,4 @@ private:
   void contactTest(const COWPtr& cow, ContactTestData& collisions);
 };
 }
-#endif  // TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGERS_H
+#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

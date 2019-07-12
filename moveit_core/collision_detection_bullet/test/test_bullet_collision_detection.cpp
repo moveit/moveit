@@ -38,7 +38,7 @@
 #include <moveit/collision_detection/test_collision_common.h>
 
 INSTANTIATE_TYPED_TEST_CASE_P(BulletCollisionCheck, CollisionDetectorTest,
-                              collision_detection::CollisionDetectorAllocatorBt);
+                              collision_detection::CollisionDetectorAllocatorBullet);
 
 int main(int argc, char* argv[])
 {

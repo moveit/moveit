@@ -796,4 +796,4 @@ inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_
                                                    cow->m_collisionFilterMask, dispatcher.get()));
 }
 }
-#endif  // TESSERACT_COLLISION_BULLET_UTILS_H
+#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_

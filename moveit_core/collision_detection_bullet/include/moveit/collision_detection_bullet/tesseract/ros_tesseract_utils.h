@@ -112,4 +112,4 @@ inline Eigen::Isometry3d urdfPose2Eigen(const urdf::Pose& pose)
   return result;
 }
 }
-#endif  // TESSERACT_ROS_UTILS_H
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_

@@ -43,65 +43,65 @@
 
 namespace collision_detection
 {
-const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
+const std::string CollisionDetectorAllocatorBullet::NAME("Bullet");
 
-CollisionWorldBt::CollisionWorldBt()
-  : CollisionWorld(), bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+CollisionWorldBullet::CollisionWorldBullet()
+  : CollisionWorld(), manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBullet::notifyObjectChange, this, _1, _2));
 
   auto fun = std::bind(&collision_detection_bullet::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2,
                        std::placeholders::_3);
-  bt_manager_->setIsContactAllowedFn(fun);
+  manager_->setIsContactAllowedFn(fun);
 }
 
-CollisionWorldBt::CollisionWorldBt(const WorldPtr& world)
-  : CollisionWorld(world), bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+CollisionWorldBullet::CollisionWorldBullet(const WorldPtr& world)
+  : CollisionWorld(world), manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
 {
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBullet::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 
   auto fun = std::bind(&collision_detection_bullet::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2,
                        std::placeholders::_3);
-  bt_manager_->setIsContactAllowedFn(fun);
+  manager_->setIsContactAllowedFn(fun);
 }
 
-CollisionWorldBt::CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world) : CollisionWorld(other, world)
+CollisionWorldBullet::CollisionWorldBullet(const CollisionWorldBullet& other, const WorldPtr& world) : CollisionWorld(other, world)
 {
-  bt_manager_ = other.bt_manager_->clone();
+  manager_ = other.manager_->clone();
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBullet::notifyObjectChange, this, _1, _2));
 }
 
-CollisionWorldBt::~CollisionWorldBt()
+CollisionWorldBullet::~CollisionWorldBullet()
 {
   getWorld()->removeObserver(observer_handle_);
 }
 
-void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionRobot& robot, const robot_state::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, nullptr);
 }
 
-void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionRobot& robot, const robot_state::RobotState& state,
                                            const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
-void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
 {
   checkRobotCollisionHelperCCD(req, res, robot, state1, state2, nullptr);
 }
 
-void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
@@ -109,7 +109,7 @@ void CollisionWorldBt::checkRobotCollision(const CollisionRequest& req, Collisio
   checkRobotCollisionHelperCCD(req, res, robot, state1, state2, &acm);
 }
 
-void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
                                                     const CollisionRobot& robot, const robot_state::RobotState& state1,
                                                     const robot_state::RobotState& state2,
                                                     const AllowedCollisionMatrix* acm) const
@@ -117,18 +117,18 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
   ROS_ERROR_NAMED("collision_detection.bullet", "Continuous collision checking not implemented yet");
 }
 
-void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                  const CollisionRobot& robot, const robot_state::RobotState& state,
                                                  const AllowedCollisionMatrix* acm) const
 {
-  const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
+  const CollisionRobotBullet& robot_bt = dynamic_cast<const CollisionRobotBullet&>(robot);
 
-  collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = bt_manager_->clone();
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = manager_->clone();
   std::vector<collision_detection_bullet::COWPtr> attached_cows;
   robot_bt.addAttachedOjects(state, attached_cows);
 
   for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow :
-       robot_bt.bt_manager_->getCollisionObjects())
+       robot_bt.manager_->getCollisionObjects())
   {
     collision_detection_bullet::COWPtr new_cow = cow.second->clone();
     discrete_clone_manager->addCollisionObject(new_cow);
@@ -139,26 +139,26 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
   discrete_clone_manager->contactTest(res, req, acm, attached_cows);
 }
 
-void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionWorld& other_world) const
 {
   checkWorldCollisionHelper(req, res, other_world, nullptr);
 }
 
-void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                            const CollisionWorld& other_world, const AllowedCollisionMatrix& acm) const
 {
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
-void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorldBullet::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                  const CollisionWorld& other_world,
                                                  const AllowedCollisionMatrix* acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
 
-void CollisionWorldBt::addToManager(const World::Object* obj)
+void CollisionWorldBullet::addToManager(const World::Object* obj)
 {
   std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types;
 
@@ -170,18 +170,18 @@ void CollisionWorldBt::addToManager(const World::Object* obj)
       collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::UseShapeType);
   }
 
-  bt_manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
+  manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
                                   obj->shape_poses_, collision_object_types, true);
 }
 
-void CollisionWorldBt::updateManagedObject(const std::string& id)
+void CollisionWorldBullet::updateManagedObject(const std::string& id)
 {
   if (getWorld()->hasObject(id))
   {
     auto it = getWorld()->find(id);
-    if (bt_manager_->hasCollisionObject(id))
+    if (manager_->hasCollisionObject(id))
     {
-      bt_manager_->removeCollisionObject(id);
+      manager_->removeCollisionObject(id);
       addToManager(it->second.get());
     }
     else
@@ -191,14 +191,14 @@ void CollisionWorldBt::updateManagedObject(const std::string& id)
   }
   else
   {
-    if (bt_manager_->hasCollisionObject(id))
+    if (manager_->hasCollisionObject(id))
     {
-      bt_manager_->removeCollisionObject(id);
+      manager_->removeCollisionObject(id);
     }
   }
 }
 
-void CollisionWorldBt::setWorld(const WorldPtr& world)
+void CollisionWorldBullet::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;
@@ -209,17 +209,17 @@ void CollisionWorldBt::setWorld(const WorldPtr& world)
   CollisionWorld::setWorld(world);
 
   // request notifications about changes to new world
-  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
+  observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBullet::notifyObjectChange, this, _1, _2));
 
   // get notifications any objects already in the new world
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
+void CollisionWorldBullet::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
   if (action == World::DESTROY)
   {
-    bt_manager_->removeCollisionObject(obj->id_);
+    manager_->removeCollisionObject(obj->id_);
   }
   else
   {
@@ -227,13 +227,13 @@ void CollisionWorldBt::notifyObjectChange(const ObjectConstPtr& obj, World::Acti
   }
 }
 
-void CollisionWorldBt::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+void CollisionWorldBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                                      const robot_state::RobotState& state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }
 
-void CollisionWorldBt::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
+void CollisionWorldBullet::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }

@@ -44,12 +44,12 @@
 namespace collision_detection
 {
 /** \brief An allocator for Bullet collision detectors */
-class CollisionDetectorAllocatorBt
-    : public CollisionDetectorAllocatorTemplate<CollisionWorldBt, CollisionRobotBt, CollisionDetectorAllocatorBt>
+class CollisionDetectorAllocatorBullet
+    : public CollisionDetectorAllocatorTemplate<CollisionWorldBullet, CollisionRobotBullet, CollisionDetectorAllocatorBullet>
 {
 public:
-  static const std::string NAME;  // defined in collision_world_bt.cpp
+  static const std::string NAME;  // defined in collision_world_bullet.cpp
 };
 }
 
-#endif
+#endif  // MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_

@@ -274,4 +274,4 @@ inline bool allowedCollisionCheck(const std::string body_1, const std::string bo
 }
 }
 
-#endif  // TESSERACT_COLLISION_CONTACT_CHECKER_COMMON_H
+#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_

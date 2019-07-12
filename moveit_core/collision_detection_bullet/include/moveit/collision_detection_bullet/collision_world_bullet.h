@@ -44,16 +44,16 @@
 
 namespace collision_detection
 {
-class CollisionWorldBt : public CollisionWorld
+class CollisionWorldBullet : public CollisionWorld
 {
 public:
-  CollisionWorldBt();
+  CollisionWorldBullet();
 
-  explicit CollisionWorldBt(const WorldPtr& world);
+  explicit CollisionWorldBullet(const WorldPtr& world);
 
-  CollisionWorldBt(const CollisionWorldBt& other, const WorldPtr& world);
+  CollisionWorldBullet(const CollisionWorldBullet& other, const WorldPtr& world);
 
-  ~CollisionWorldBt() override;
+  ~CollisionWorldBullet() override;
 
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                            const robot_state::RobotState& state) const override;
@@ -101,7 +101,7 @@ protected:
   void updateManagedObject(const std::string& id);
 
   /** \brief Handles all discrete collision checks */
-  collision_detection_bullet::BulletDiscreteBVHManagerPtr bt_manager_;
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_;
 
 private:
   /** \brief Callback function executed for each change to the world environment */
@@ -111,4 +111,4 @@ private:
 };
 }
 
-#endif
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_WORLD_BULLET_H_

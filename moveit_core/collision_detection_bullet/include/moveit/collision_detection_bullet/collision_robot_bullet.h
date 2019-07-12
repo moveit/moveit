@@ -42,14 +42,14 @@
 
 namespace collision_detection
 {
-class CollisionRobotBt : public CollisionRobot
+class CollisionRobotBullet : public CollisionRobot
 {
-  friend class CollisionWorldBt;
+  friend class CollisionWorldBullet;
 
 public:
-  CollisionRobotBt(const robot_model::RobotModelConstPtr& robot_model, double padding = 0.0, double scale = 1.0);
+  CollisionRobotBullet(const robot_model::RobotModelConstPtr& robot_model, double padding = 0.0, double scale = 1.0);
 
-  CollisionRobotBt(const CollisionRobotBt& other);
+  CollisionRobotBullet(const CollisionRobotBullet& other);
 
   void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                           const robot_state::RobotState& state) const override;
@@ -112,8 +112,8 @@ protected:
   void addLinkAsCOW(const urdf::LinkSharedPtr link);
 
   /** \brief Handles all self collision checks */
-  collision_detection_bullet::BulletDiscreteBVHManagerPtr bt_manager_;
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_;
 };
 }
 
-#endif
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_

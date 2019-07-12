@@ -51,8 +51,8 @@
 #include <ctype.h>
 #include <fstream>
 
-typedef collision_detection::CollisionWorldBt DefaultCWorldType;
-typedef collision_detection::CollisionRobotBt DefaultCRobotType;
+typedef collision_detection::CollisionWorldBullet DefaultCWorldType;
+typedef collision_detection::CollisionRobotBullet DefaultCRobotType;
 
 /** \brief Brings the panda robot in user defined home position */
 inline void setToHome(robot_state::RobotState& panda_state)

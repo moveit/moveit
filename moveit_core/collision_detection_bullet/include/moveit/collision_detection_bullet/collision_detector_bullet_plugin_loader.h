@@ -48,4 +48,4 @@ public:
   virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
 };
 }
-#endif  // MOVEIT_COLLISION_DETECTION_BT_COLLISION_DETECTOR_BT_PLUGIN_LOADER_H_
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
