@@ -18,7 +18,7 @@ benchmark_config:
         output_directory: /tmp/moveit_benchmarks/
         queries: .*
         start_states: .*
-    planning_pipeline:
+    planning_pipelines:
         - name: ompl
           planners:
             - RRTConnectkConfigDefault
