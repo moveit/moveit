@@ -5,7 +5,6 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_world_bt.cpp
   src/tesseract/bullet_utils.cpp
   src/tesseract/bullet_discrete_bvh_manager.cpp
-  src/tesseract/bullet_cast_bvh_manager.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
@@ -37,7 +36,4 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_bullet_collision_detection_panda test/test_bt_collision_detection_panda.cpp)
   target_link_libraries(test_bullet_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
-
-  catkin_add_gtest(test_bullet_continuous_collision_checking test/test_bt_continuous_collision_checking.cpp)
-  target_link_libraries(test_bullet_continuous_collision_checking moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()

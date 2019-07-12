@@ -40,7 +40,6 @@
 #include <moveit/collision_detection_bullet/collision_robot_bt.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
-#include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
 #include <memory>
 
 namespace collision_detection
@@ -103,9 +102,6 @@ protected:
 
   /** \brief Handles all discrete collision checks */
   collision_detection_bullet::BulletDiscreteBVHManagerPtr bt_manager_;
-
-  /** \brief Handles all continuous collision checks */
-  collision_detection_bullet::BulletCastBVHManagerPtr bt_manager_CCD_;
 
 private:
   /** \brief Callback function executed for each change to the world environment */
