@@ -942,78 +942,18 @@ void BenchmarkExecutor::computeAveragePathSimilarities(
       if (!solved[second_traj_i])
         continue;
 
-      // Abort if there are no result trajectories
-      if (responses[first_traj_i].trajectory_.empty() || responses[second_traj_i].trajectory_.empty())
-        continue;
-
-      // Access trajectories
+      // Get final trajectories
       const robot_trajectory::RobotTrajectory& traj_first = *responses[first_traj_i].trajectory_.back();
       const robot_trajectory::RobotTrajectory& traj_second = *responses[second_traj_i].trajectory_.back();
 
-      // Abort if trajectories are empty
-      if (traj_first.empty() || traj_second.empty())
+      // Compute trajectory distance
+      double trajectory_distance;
+      if (!computeTrajectoryDistance(traj_first, traj_second, trajectory_distance))
         continue;
 
-      // Waypoint counter
-      size_t pos_first = 0;
-      size_t pos_second = 0;
-      const size_t max_pos_first = traj_first.getWayPointCount() - 1;
-      const size_t max_pos_second = traj_second.getWayPointCount() - 1;
-
-      // Compute total distance between pairwise waypoints of both trajectories.
-      // The selection of waypoint pairs is based on what steps results in the minimal distance between the next pair of
-      // waypoints. We first check what steps are still possible or if we reached the end of the trajectories. Then we
-      // compute the pairwise waypoint distances of the pairs from increasing both, the first, or the second trajectory.
-      // Finally we select the pair that results in the minimal distance, summarize the total distance and iterate
-      // accordingly. After that we compute the average trajectory distance by normalizing over the number of steps.
-      double total_distance = 0;
-      size_t steps = 0;
-      double current_distance = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second));
-      while (true)
-      {
-        // Keep track of total distance and number of comparisons
-        total_distance += current_distance;
-        ++steps;
-        if (pos_first == max_pos_first && pos_second == max_pos_second)  // end reached
-          break;
-
-        // Determine what steps are still possible
-        bool can_up_first = pos_first < max_pos_first;
-        bool can_up_second = pos_second < max_pos_second;
-        bool can_up_both = can_up_first && can_up_second;
-
-        // Compute pair-wise waypoint distances (increasing both, first, or second trajectories).
-        double up_both = std::numeric_limits<double>::max();
-        double up_first = std::numeric_limits<double>::max();
-        double up_second = std::numeric_limits<double>::max();
-        if (can_up_both)
-          up_both = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second + 1));
-        if (can_up_first)
-          up_first = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second));
-        if (can_up_second)
-          up_second = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second + 1));
-
-        // Select actual step, store new distance value and iterate trajectory positions
-        if (can_up_both && up_both < up_first && up_both < up_second)
-        {
-          ++pos_first;
-          ++pos_second;
-          current_distance = up_both;
-        }
-        else if ((can_up_first && up_first < up_second) || !can_up_second)
-        {
-          ++pos_first;
-          current_distance = up_first;
-        }
-        else if (can_up_second)
-        {
-          ++pos_second;
-          current_distance = up_second;
-        }
-      }
       // Add average distance to counters of both trajectories
-      average_distances[first_traj_i] += total_distance / steps;
-      average_distances[second_traj_i] += total_distance / steps;
+      average_distances[first_traj_i] += trajectory_distance;
+      average_distances[second_traj_i] += trajectory_distance;
     }
     // Normalize average distance by number of actual comparisons
     average_distances[first_traj_i] /= result_count - unsolved - 1;
@@ -1022,6 +962,76 @@ void BenchmarkExecutor::computeAveragePathSimilarities(
   // Store results in planner_data
   for (size_t i = 0; i < result_count; ++i)
     planner_data[i]["average_waypoint_distance REAL"] = moveit::core::toString(average_distances[i]);
+}
+
+bool BenchmarkExecutor::computeTrajectoryDistance(const robot_trajectory::RobotTrajectory& traj_first,
+                                                  const robot_trajectory::RobotTrajectory& traj_second,
+                                                  double& result_distance)
+{
+  // Abort if trajectories are empty
+  if (traj_first.empty() || traj_second.empty())
+    return false;
+
+  // Waypoint counter
+  size_t pos_first = 0;
+  size_t pos_second = 0;
+  const size_t max_pos_first = traj_first.getWayPointCount() - 1;
+  const size_t max_pos_second = traj_second.getWayPointCount() - 1;
+
+  // Compute total distance between pairwise waypoints of both trajectories.
+  // The selection of waypoint pairs is based on what steps results in the minimal distance between the next pair of
+  // waypoints. We first check what steps are still possible or if we reached the end of the trajectories. Then we
+  // compute the pairwise waypoint distances of the pairs from increasing both, the first, or the second trajectory.
+  // Finally we select the pair that results in the minimal distance, summarize the total distance and iterate
+  // accordingly. After that we compute the average trajectory distance by normalizing over the number of steps.
+  double total_distance = 0;
+  size_t steps = 0;
+  double current_distance = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second));
+  while (true)
+  {
+    // Keep track of total distance and number of comparisons
+    total_distance += current_distance;
+    ++steps;
+    if (pos_first == max_pos_first && pos_second == max_pos_second)  // end reached
+      break;
+
+    // Determine what steps are still possible
+    bool can_up_first = pos_first < max_pos_first;
+    bool can_up_second = pos_second < max_pos_second;
+    bool can_up_both = can_up_first && can_up_second;
+
+    // Compute pair-wise waypoint distances (increasing both, first, or second trajectories).
+    double up_both = std::numeric_limits<double>::max();
+    double up_first = std::numeric_limits<double>::max();
+    double up_second = std::numeric_limits<double>::max();
+    if (can_up_both)
+      up_both = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second + 1));
+    if (can_up_first)
+      up_first = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second));
+    if (can_up_second)
+      up_second = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second + 1));
+
+    // Select actual step, store new distance value and iterate trajectory positions
+    if (can_up_both && up_both < up_first && up_both < up_second)
+    {
+      ++pos_first;
+      ++pos_second;
+      current_distance = up_both;
+    }
+    else if ((can_up_first && up_first < up_second) || !can_up_second)
+    {
+      ++pos_first;
+      current_distance = up_first;
+    }
+    else if (can_up_second)
+    {
+      ++pos_second;
+      current_distance = up_second;
+    }
+  }
+  // Normalize trajectory distance by number of comparison steps
+  result_distance = total_distance / static_cast<double>(steps);
+  return true;
 }
 
 void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std::string& start_time,

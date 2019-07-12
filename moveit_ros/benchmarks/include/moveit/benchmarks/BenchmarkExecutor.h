@@ -158,6 +158,13 @@ protected:
                                       const std::vector<planning_interface::MotionPlanDetailedResponse>& responses,
                                       const std::vector<bool>& solved);
 
+  /// Helper function used by computeAveragePathSimilarities() for computing a heuristic distance metric between two
+  /// robot trajectories. This function aligns both trajectories in a greedy fashion and computes the mean waypoint
+  /// distance averaged over all aligned waypoints. Using a greedy approach is more efficient than dynamic time warping,
+  /// and seems to be sufficient for similar trajectories.
+  bool computeTrajectoryDistance(const robot_trajectory::RobotTrajectory& traj_first,
+                                 const robot_trajectory::RobotTrajectory& traj_second, double& result_distance);
+
   virtual void writeOutput(const BenchmarkRequest& brequest, const std::string& start_time, double benchmark_duration);
 
   void shiftConstraintsByOffset(moveit_msgs::Constraints& constraints, const std::vector<double>& offset);
