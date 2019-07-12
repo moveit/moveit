@@ -202,6 +202,8 @@ public:
 
   void clear();
 
+  double getDuration() const;
+
   double getAverageSegmentDuration() const;
 
   void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory) const;
