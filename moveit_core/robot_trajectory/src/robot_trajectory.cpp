@@ -66,13 +66,17 @@ const std::string& RobotTrajectory::getGroupName() const
   return EMPTY;
 }
 
+double RobotTrajectory::getDuration() const
+{
+  return std::accumulate(duration_from_previous_.begin(), duration_from_previous_.end(), 0.0);
+}
+
 double RobotTrajectory::getAverageSegmentDuration() const
 {
   if (duration_from_previous_.empty())
     return 0.0;
   else
-    return std::accumulate(duration_from_previous_.begin(), duration_from_previous_.end(), 0.0) /
-           (double)duration_from_previous_.size();
+    return getDuration() / static_cast<double>(duration_from_previous_.size());
 }
 
 void RobotTrajectory::swap(RobotTrajectory& other)
