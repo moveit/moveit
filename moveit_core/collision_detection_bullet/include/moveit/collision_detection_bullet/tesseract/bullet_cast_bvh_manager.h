@@ -45,7 +45,7 @@
 #include <moveit/collision_detection_bullet/tesseract/bullet_utils.h>
 #include <moveit/macros/class_forward.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 MOVEIT_CLASS_FORWARD(BulletCastBVHManager)
 

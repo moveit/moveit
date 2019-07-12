@@ -47,29 +47,29 @@ const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
 
 CollisionWorldBt::CollisionWorldBt()
   : CollisionWorld()
-  , bt_manager_(new tesseract::BulletDiscreteBVHManager)
-  , bt_manager_CCD_(new tesseract::BulletCastBVHManager)
+  , bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+  , bt_manager_CCD_(new collision_detection_bullet::BulletCastBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
 
-  auto fun =
-      std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto fun = std::bind(&collision_detection_bullet::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2,
+                       std::placeholders::_3);
   bt_manager_->setIsContactAllowedFn(fun);
   bt_manager_CCD_->setIsContactAllowedFn(fun);
 }
 
 CollisionWorldBt::CollisionWorldBt(const WorldPtr& world)
   : CollisionWorld(world)
-  , bt_manager_(new tesseract::BulletDiscreteBVHManager)
-  , bt_manager_CCD_(new tesseract::BulletCastBVHManager)
+  , bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+  , bt_manager_CCD_(new collision_detection_bullet::BulletCastBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 
-  auto fun =
-      std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto fun = std::bind(&collision_detection_bullet::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2,
+                       std::placeholders::_3);
   bt_manager_->setIsContactAllowedFn(fun);
   bt_manager_CCD_->setIsContactAllowedFn(fun);
 }
@@ -123,32 +123,34 @@ void CollisionWorldBt::checkRobotCollisionHelperCCD(const CollisionRequest& req,
 {
   const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
 
-  tesseract::BulletCastBVHManagerPtr temp_clone_manager = bt_manager_CCD_->clone();
-  std::vector<tesseract::COWPtr> attached_cows;
+  collision_detection_bullet::BulletCastBVHManagerPtr cast_clone_manager = bt_manager_CCD_->clone();
+  std::vector<collision_detection_bullet::COWPtr> attached_cows;
   robot_bt.addAttachedOjects(state1, attached_cows);
   std::vector<std::string> active_objects;
 
-  for (const tesseract::COWPtr& cow : attached_cows)
+  for (const collision_detection_bullet::COWPtr& cow : attached_cows)
   {
-    temp_clone_manager->addCollisionObject(cow);
-    temp_clone_manager->setCollisionObjectsTransform(
+    cast_clone_manager->addCollisionObject(cow);
+    cast_clone_manager->setCollisionObjectsTransform(
         cow->getName(), state1.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0],
         state2.getAttachedBody(cow->getName())->getGlobalCollisionBodyTransforms()[0]);
     active_objects.push_back(cow->getName());
   }
 
-  for (const std::pair<std::string, tesseract::COWPtr>& cow : robot_bt.bt_manager_->getCollisionObjects())
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow :
+       robot_bt.bt_manager_->getCollisionObjects())
   {
-    tesseract::COWPtr new_cow = cow.second->clone();
-    temp_clone_manager->addCollisionObject(new_cow);
-    temp_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
+    collision_detection_bullet::COWPtr new_cow = cow.second->clone();
+    cast_clone_manager->addCollisionObject(new_cow);
+    cast_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
                                                      state1.getCollisionBodyTransform(new_cow->getName(), 0),
                                                      state2.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  tesseract::getActiveLinkNamesRecursive(active_objects, robot_bt.getRobotModel()->getURDF()->getRoot(), false);
-  temp_clone_manager->setActiveCollisionObjects(active_objects);
-  temp_clone_manager->contactTest(res, req, acm);
+  collision_detection_bullet::getActiveLinkNamesRecursive(active_objects,
+                                                          robot_bt.getRobotModel()->getURDF()->getRoot(), false);
+  cast_clone_manager->setActiveCollisionObjects(active_objects);
+  cast_clone_manager->contactTest(res, req, acm);
 }
 
 void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -157,19 +159,20 @@ void CollisionWorldBt::checkRobotCollisionHelper(const CollisionRequest& req, Co
 {
   const CollisionRobotBt& robot_bt = dynamic_cast<const CollisionRobotBt&>(robot);
 
-  tesseract::BulletDiscreteBVHManagerPtr temp_clone_manager = bt_manager_->clone();
-  std::vector<tesseract::COWPtr> attached_cows;
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = bt_manager_->clone();
+  std::vector<collision_detection_bullet::COWPtr> attached_cows;
   robot_bt.addAttachedOjects(state, attached_cows);
 
-  for (const std::pair<std::string, tesseract::COWPtr>& cow : robot_bt.bt_manager_->getCollisionObjects())
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow :
+       robot_bt.bt_manager_->getCollisionObjects())
   {
-    tesseract::COWPtr new_cow = cow.second->clone();
-    temp_clone_manager->addCollisionObject(new_cow);
-    temp_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
-                                                     state.getCollisionBodyTransform(new_cow->getName(), 0));
+    collision_detection_bullet::COWPtr new_cow = cow.second->clone();
+    discrete_clone_manager->addCollisionObject(new_cow);
+    discrete_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
+                                                         state.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  temp_clone_manager->contactTest(res, req, acm, attached_cows);
+  discrete_clone_manager->contactTest(res, req, acm, attached_cows);
 }
 
 void CollisionWorldBt::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
@@ -193,14 +196,14 @@ void CollisionWorldBt::checkWorldCollisionHelper(const CollisionRequest& req, Co
 
 void CollisionWorldBt::addToManager(const World::Object* obj)
 {
-  std::vector<tesseract::CollisionObjectType> collision_object_types;
+  std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types;
 
   for (const shapes::ShapeConstPtr& shape : obj->shapes_)
   {
     if (shape->type == shapes::MESH)
-      collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
+      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::ConvexHull);
     else
-      collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
+      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::UseShapeType);
   }
 
   bt_manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,

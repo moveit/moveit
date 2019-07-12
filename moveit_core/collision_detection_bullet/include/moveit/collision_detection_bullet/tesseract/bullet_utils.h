@@ -54,7 +54,7 @@
 #include <moveit/macros/declare_ptr.h>
 #include <moveit/macros/class_forward.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 #define METERS
 

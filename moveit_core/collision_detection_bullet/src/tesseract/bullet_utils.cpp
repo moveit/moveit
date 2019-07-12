@@ -51,7 +51,7 @@
 #include <octomap/octomap.h>
 #include <ros/console.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 btCollisionShape* createShapePrimitive(const shapes::Box* geom, const CollisionObjectType& collision_object_type)
 {
@@ -100,15 +100,15 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
       case CollisionObjectType::ConvexHull:
       {
         // Create a convex hull shape to approximate Trimesh
-        tesseract::AlignedVector<Eigen::Vector3d> input;
-        tesseract::AlignedVector<Eigen::Vector3d> vertices;
+        collision_detection_bullet::AlignedVector<Eigen::Vector3d> input;
+        collision_detection_bullet::AlignedVector<Eigen::Vector3d> vertices;
         std::vector<int> faces;
 
         input.reserve(geom->vertex_count);
         for (unsigned int i = 0; i < geom->vertex_count; ++i)
           input.push_back(Eigen::Vector3d(geom->vertices[3 * i], geom->vertices[3 * i + 1], geom->vertices[3 * i + 2]));
 
-        if (tesseract::createConvexHull(vertices, faces, input) < 0)
+        if (collision_detection_bullet::createConvexHull(vertices, faces, input) < 0)
           return nullptr;
 
         btConvexHullShape* subshape = new btConvexHullShape();

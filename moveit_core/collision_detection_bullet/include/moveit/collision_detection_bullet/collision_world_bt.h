@@ -102,10 +102,10 @@ protected:
   void updateManagedObject(const std::string& id);
 
   /** \brief Handles all discrete collision checks */
-  tesseract::BulletDiscreteBVHManagerPtr bt_manager_;
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr bt_manager_;
 
   /** \brief Handles all continuous collision checks */
-  tesseract::BulletCastBVHManagerPtr bt_manager_CCD_;
+  collision_detection_bullet::BulletCastBVHManagerPtr bt_manager_CCD_;
 
 private:
   /** \brief Callback function executed for each change to the world environment */

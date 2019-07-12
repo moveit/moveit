@@ -41,7 +41,7 @@
 
 #include "moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h"
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 BulletDiscreteBVHManager::BulletDiscreteBVHManager()
 {
@@ -264,7 +264,7 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
 void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult& collisions,
                                            const collision_detection::CollisionRequest& req,
                                            const collision_detection::AllowedCollisionMatrix* acm,
-                                           const std::vector<tesseract::COWPtr> cows_external)
+                                           const std::vector<collision_detection_bullet::COWPtr> cows_external)
 {
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 

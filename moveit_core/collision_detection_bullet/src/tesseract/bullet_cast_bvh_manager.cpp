@@ -42,7 +42,7 @@
 #include <moveit/collision_detection_bullet/tesseract/bullet_cast_bvh_manager.h>
 #include <map>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 BulletCastBVHManager::BulletCastBVHManager()
 {
@@ -63,11 +63,11 @@ BulletCastBVHManager::BulletCastBVHManager()
 BulletCastBVHManager::~BulletCastBVHManager()
 {
   // clean up remaining objects
-  for (const std::pair<std::string, tesseract::COWPtr>& cow : link2cow_)
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow : link2cow_)
     removeCollisionObjectFromBroadphase(cow.second, broadphase_, dispatcher_);
 
   // clean up remaining objects
-  for (const std::pair<std::string, tesseract::COWPtr>& cow : link2castcow_)
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow : link2castcow_)
     removeCollisionObjectFromBroadphase(cow.second, broadphase_, dispatcher_);
 }
 
@@ -75,7 +75,7 @@ BulletCastBVHManagerPtr BulletCastBVHManager::clone() const
 {
   BulletCastBVHManagerPtr manager(new BulletCastBVHManager());
 
-  for (const std::pair<std::string, tesseract::COWPtr>& cow : link2cow_)
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow : link2cow_)
   {
     COWPtr new_cow = cow.second->clone();
 

@@ -34,7 +34,7 @@
 
 #include <moveit/collision_detection_bullet/tesseract/basic_types.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 /** \brief Recursively traverses robot from root to get all active links
 *

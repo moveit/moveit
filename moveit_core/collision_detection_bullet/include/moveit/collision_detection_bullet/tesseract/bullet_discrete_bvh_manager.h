@@ -44,7 +44,7 @@
 #include <moveit/collision_detection_bullet/tesseract/bullet_utils.h>
 #include <moveit/macros/class_forward.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 MOVEIT_CLASS_FORWARD(BulletDiscreteBVHManager)
 
@@ -154,7 +154,7 @@ public:
    * @param cows_external Objects to check which are not part of the manager */
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
                    const collision_detection::AllowedCollisionMatrix* acm,
-                   const std::vector<tesseract::COWPtr> cows_external);
+                   const std::vector<collision_detection_bullet::COWPtr> cows_external);
 
   /**@brief Add a tesseract collision object to the manager
   *  @param cow The tesseract bullet collision object */

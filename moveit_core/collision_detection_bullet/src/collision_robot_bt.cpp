@@ -41,10 +41,10 @@
 namespace collision_detection
 {
 CollisionRobotBt::CollisionRobotBt(const robot_model::RobotModelConstPtr& model, double padding, double scale)
-  : CollisionRobot(model, padding, scale), bt_manager_(new tesseract::BulletDiscreteBVHManager)
+  : CollisionRobot(model, padding, scale), bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
 {
-  auto fun =
-      std::bind(&tesseract::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto fun = std::bind(&collision_detection_bullet::allowedCollisionCheck, std::placeholders::_1, std::placeholders::_2,
+                       std::placeholders::_3);
 
   bt_manager_->setIsContactAllowedFn(fun);
 
@@ -60,19 +60,19 @@ CollisionRobotBt::CollisionRobotBt(const CollisionRobotBt& other)
 }
 
 void CollisionRobotBt::addAttachedOjects(const robot_state::RobotState& state,
-                                         std::vector<tesseract::COWPtr>& cows) const
+                                         std::vector<collision_detection_bullet::COWPtr>& cows) const
 {
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   state.getAttachedBodies(attached_bodies);
   for (const robot_state::AttachedBody*& body : attached_bodies)
   {
     const EigenSTL::vector_Isometry3d& attached_body_transform = body->getGlobalCollisionBodyTransforms();
-    std::vector<tesseract::CollisionObjectType> collision_object_types(attached_body_transform.size(),
-                                                                       tesseract::CollisionObjectType::UseShapeType);
+    std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types(
+        attached_body_transform.size(), collision_detection_bullet::CollisionObjectType::UseShapeType);
 
-    cows.emplace_back(tesseract::createCollisionObject(body->getName(), collision_detection::BodyType::ROBOT_ATTACHED,
-                                                       body->getShapes(), attached_body_transform,
-                                                       collision_object_types, body->getTouchLinks(), true));
+    cows.emplace_back(collision_detection_bullet::createCollisionObject(
+        body->getName(), collision_detection::BodyType::ROBOT_ATTACHED, body->getShapes(), attached_body_transform,
+        collision_object_types, body->getTouchLinks(), true));
   }
 }
 
@@ -114,11 +114,11 @@ void CollisionRobotBt::checkSelfCollisionHelper(const CollisionRequest& req, Col
                                                 const robot_state::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
-  std::vector<tesseract::COWPtr> cows;
+  std::vector<collision_detection_bullet::COWPtr> cows;
   addAttachedOjects(state, cows);
-  tesseract::BulletDiscreteBVHManagerPtr temp_clone_manager = bt_manager_->clone();
-  updateTransformsFromState(state, temp_clone_manager);
-  temp_clone_manager->contactTest(res, req, acm, cows);
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = bt_manager_->clone();
+  updateTransformsFromState(state, discrete_clone_manager);
+  discrete_clone_manager->contactTest(res, req, acm, cows);
 }
 
 void CollisionRobotBt::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -193,10 +193,10 @@ void CollisionRobotBt::distanceOther(const DistanceRequest& req, DistanceResult&
 }
 
 void CollisionRobotBt::updateTransformsFromState(const robot_state::RobotState& state,
-                                                 tesseract::BulletDiscreteBVHManagerPtr manager) const
+                                                 collision_detection_bullet::BulletDiscreteBVHManagerPtr manager) const
 {
   // updating link positions with the current robot state
-  for (const std::pair<std::string, tesseract::COWPtr>& link : manager->getCollisionObjects())
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& link : manager->getCollisionObjects())
   {
     // select the first of the transformations for each link (composed of multiple shapes...)
     manager->setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
@@ -212,14 +212,14 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
                                         link->collision_array;
 
     std::vector<shapes::ShapeConstPtr> shapes;
-    tesseract::AlignedVector<Eigen::Isometry3d> shape_poses;
-    std::vector<tesseract::CollisionObjectType> collision_object_types;
+    collision_detection_bullet::AlignedVector<Eigen::Isometry3d> shape_poses;
+    std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types;
 
     for (std::size_t i = 0; i < col_array.size(); ++i)
     {
       if (col_array[i] && col_array[i]->geometry)
       {
-        shapes::ShapePtr s = tesseract::constructShape(col_array[i]->geometry.get());
+        shapes::ShapePtr s = collision_detection_bullet::constructShape(col_array[i]->geometry.get());
 
         if (s)
         {
@@ -230,22 +230,22 @@ void CollisionRobotBt::addLinkAsCOW(const urdf::LinkSharedPtr link)
           }
 
           shapes.push_back(s);
-          shape_poses.push_back(tesseract::urdfPose2Eigen(col_array[i]->origin));
+          shape_poses.push_back(collision_detection_bullet::urdfPose2Eigen(col_array[i]->origin));
 
           if (s->type == shapes::MESH)
           {
-            collision_object_types.push_back(tesseract::CollisionObjectType::ConvexHull);
+            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::ConvexHull);
           }
           else
           {
-            collision_object_types.push_back(tesseract::CollisionObjectType::UseShapeType);
+            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::UseShapeType);
           }
         }
       }
     }
 
-    tesseract::COWPtr cow = tesseract::createCollisionObject(link->name, collision_detection::BodyType::ROBOT_LINK,
-                                                             shapes, shape_poses, collision_object_types, true);
+    collision_detection_bullet::COWPtr cow = collision_detection_bullet::createCollisionObject(
+        link->name, collision_detection::BodyType::ROBOT_LINK, shapes, shape_poses, collision_object_types, true);
 
     if (bt_manager_->hasCollisionObject(link->name))
     {

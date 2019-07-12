@@ -84,14 +84,15 @@ public:
 protected:
   /** \brief Updates the poses of the objects in the manager according to given robot state */
   void updateTransformsFromState(const robot_state::RobotState& state,
-                                 tesseract::BulletDiscreteBVHManagerPtr manager) const;
+                                 collision_detection_bullet::BulletDiscreteBVHManagerPtr manager) const;
 
   /** \brief Updates the collision objects saved in the manager to reflect a new padding or scaling of the robot links
    */
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
   /** \brief All of the attached objects in the robot state are wrapped into bullet collision objects */
-  void addAttachedOjects(const robot_state::RobotState& state, std::vector<tesseract::COWPtr>& cows) const;
+  void addAttachedOjects(const robot_state::RobotState& state,
+                         std::vector<collision_detection_bullet::COWPtr>& cows) const;
 
   /** \brief Bundles the different checkSelfCollision functions into a single function */
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
@@ -111,7 +112,7 @@ protected:
   void addLinkAsCOW(const urdf::LinkSharedPtr link);
 
   /** \brief Handles all self collision checks */
-  tesseract::BulletDiscreteBVHManagerPtr bt_manager_;
+  collision_detection_bullet::BulletDiscreteBVHManagerPtr bt_manager_;
 };
 }
 

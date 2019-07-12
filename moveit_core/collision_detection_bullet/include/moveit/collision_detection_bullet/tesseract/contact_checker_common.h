@@ -35,7 +35,7 @@
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_matrix.h>
 
-namespace tesseract
+namespace collision_detection_bullet
 {
 /**
  * @brief Get a key for two object to search the collision matrix
