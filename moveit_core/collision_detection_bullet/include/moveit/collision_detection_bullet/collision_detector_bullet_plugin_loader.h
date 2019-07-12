@@ -45,7 +45,7 @@ namespace collision_detection
 class CollisionDetectorBtPluginLoader : public CollisionPlugin
 {
 public:
-  virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
+  bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const override;
 };
 }
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_

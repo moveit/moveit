@@ -67,7 +67,7 @@ inline bool isLinkActive(const std::vector<std::string>& active, const std::stri
  * @param verbose If true print debug informaton
  * @return True if contact is allowed between the two object, otherwise false.
  */
-inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn acm_fn,
+inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn& acm_fn,
                              const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
   // do not distance check geoms part of the same object / link / attached body
@@ -209,14 +209,14 @@ inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vecto
     std::vector<int> face;
     face.reserve(3);
 
-    const btConvexHullComputer::Edge* sourceEdge = &(conv.edges[conv.faces[i]]);
-    int a = sourceEdge->getSourceVertex();
+    const btConvexHullComputer::Edge* source_edge = &(conv.edges[conv.faces[i]]);
+    int a = source_edge->getSourceVertex();
     face.push_back(a);
 
-    int b = sourceEdge->getTargetVertex();
+    int b = source_edge->getTargetVertex();
     face.push_back(b);
 
-    const btConvexHullComputer::Edge* edge = sourceEdge->getNextEdgeOfFace();
+    const btConvexHullComputer::Edge* edge = source_edge->getNextEdgeOfFace();
     int c = edge->getTargetVertex();
     face.push_back(c);
 
@@ -236,7 +236,7 @@ inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vecto
   return num_faces;
 }
 
-inline bool allowedCollisionCheck(const std::string body_1, const std::string body_2,
+inline bool allowedCollisionCheck(const std::string& body_1, const std::string& body_2,
                                   const collision_detection::AllowedCollisionMatrix* acm)
 {
   collision_detection::AllowedCollision::Type allowed_type;
@@ -272,6 +272,6 @@ inline bool allowedCollisionCheck(const std::string body_1, const std::string bo
     return false;
   }
 }
-}
+}  // namespace collision_detection_bullet
 
 #endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_

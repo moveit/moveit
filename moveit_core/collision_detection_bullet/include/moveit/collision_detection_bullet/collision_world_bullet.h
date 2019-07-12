@@ -109,6 +109,6 @@ private:
 
   World::ObserverHandle observer_handle_;
 };
-}
+}  // namespace collision_detection
 
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_WORLD_BULLET_H_

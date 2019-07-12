@@ -68,7 +68,8 @@ CollisionWorldBullet::CollisionWorldBullet(const WorldPtr& world)
   manager_->setIsContactAllowedFn(fun);
 }
 
-CollisionWorldBullet::CollisionWorldBullet(const CollisionWorldBullet& other, const WorldPtr& world) : CollisionWorld(other, world)
+CollisionWorldBullet::CollisionWorldBullet(const CollisionWorldBullet& other, const WorldPtr& world)
+  : CollisionWorld(other, world)
 {
   manager_ = other.manager_->clone();
 
@@ -82,44 +83,45 @@ CollisionWorldBullet::~CollisionWorldBullet()
 }
 
 void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionRobot& robot, const robot_state::RobotState& state) const
+                                               const CollisionRobot& robot, const robot_state::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, nullptr);
 }
 
 void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionRobot& robot, const robot_state::RobotState& state,
-                                           const AllowedCollisionMatrix& acm) const
+                                               const CollisionRobot& robot, const robot_state::RobotState& state,
+                                               const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
 void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionRobot& robot, const robot_state::RobotState& state1,
-                                           const robot_state::RobotState& state2) const
+                                               const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                               const robot_state::RobotState& state2) const
 {
   checkRobotCollisionHelperCCD(req, res, robot, state1, state2, nullptr);
 }
 
 void CollisionWorldBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionRobot& robot, const robot_state::RobotState& state1,
-                                           const robot_state::RobotState& state2,
-                                           const AllowedCollisionMatrix& acm) const
+                                               const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                               const robot_state::RobotState& state2,
+                                               const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelperCCD(req, res, robot, state1, state2, &acm);
 }
 
 void CollisionWorldBullet::checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
-                                                    const CollisionRobot& robot, const robot_state::RobotState& state1,
-                                                    const robot_state::RobotState& state2,
-                                                    const AllowedCollisionMatrix* acm) const
+                                                        const CollisionRobot& robot,
+                                                        const robot_state::RobotState& state1,
+                                                        const robot_state::RobotState& state2,
+                                                        const AllowedCollisionMatrix* acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Continuous collision checking not implemented yet");
 }
 
 void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                 const CollisionRobot& robot, const robot_state::RobotState& state,
-                                                 const AllowedCollisionMatrix* acm) const
+                                                     const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                     const AllowedCollisionMatrix* acm) const
 {
   const CollisionRobotBullet& robot_bt = dynamic_cast<const CollisionRobotBullet&>(robot);
 
@@ -127,8 +129,7 @@ void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req
   std::vector<collision_detection_bullet::COWPtr> attached_cows;
   robot_bt.addAttachedOjects(state, attached_cows);
 
-  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow :
-       robot_bt.manager_->getCollisionObjects())
+  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& cow : robot_bt.manager_->getCollisionObjects())
   {
     collision_detection_bullet::COWPtr new_cow = cow.second->clone();
     discrete_clone_manager->addCollisionObject(new_cow);
@@ -140,20 +141,21 @@ void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req
 }
 
 void CollisionWorldBullet::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionWorld& other_world) const
+                                               const CollisionWorld& other_world) const
 {
   checkWorldCollisionHelper(req, res, other_world, nullptr);
 }
 
 void CollisionWorldBullet::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const CollisionWorld& other_world, const AllowedCollisionMatrix& acm) const
+                                               const CollisionWorld& other_world,
+                                               const AllowedCollisionMatrix& acm) const
 {
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
 void CollisionWorldBullet::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                 const CollisionWorld& other_world,
-                                                 const AllowedCollisionMatrix* acm) const
+                                                     const CollisionWorld& other_world,
+                                                     const AllowedCollisionMatrix* acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet checking with other world not implemented yet.");
 }
@@ -165,13 +167,13 @@ void CollisionWorldBullet::addToManager(const World::Object* obj)
   for (const shapes::ShapeConstPtr& shape : obj->shapes_)
   {
     if (shape->type == shapes::MESH)
-      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::ConvexHull);
+      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
     else
-      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::UseShapeType);
+      collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
   }
 
-  manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_,
-                                  obj->shape_poses_, collision_object_types, true);
+  manager_->addCollisionObject(obj->id_, collision_detection::BodyType::WORLD_OBJECT, obj->shapes_, obj->shape_poses_,
+                               collision_object_types, true);
 }
 
 void CollisionWorldBullet::updateManagedObject(const std::string& id)
@@ -228,12 +230,13 @@ void CollisionWorldBullet::notifyObjectChange(const ObjectConstPtr& obj, World::
 }
 
 void CollisionWorldBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
-                                     const robot_state::RobotState& state) const
+                                         const robot_state::RobotState& state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }
 
-void CollisionWorldBullet::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
+void CollisionWorldBullet::distanceWorld(const DistanceRequest& req, DistanceResult& res,
+                                         const CollisionWorld& world) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet distance calculation not implemented yet.");
 }

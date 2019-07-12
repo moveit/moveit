@@ -55,7 +55,7 @@ namespace collision_detection_bullet
 {
 btCollisionShape* createShapePrimitive(const shapes::Box* geom, const CollisionObjectType& collision_object_type)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType);
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE);
   const double* size = geom->size;
   btScalar a = static_cast<btScalar>(size[0] / 2);
   btScalar b = static_cast<btScalar>(size[1] / 2);
@@ -66,13 +66,13 @@ btCollisionShape* createShapePrimitive(const shapes::Box* geom, const CollisionO
 
 btCollisionShape* createShapePrimitive(const shapes::Sphere* geom, const CollisionObjectType& collision_object_type)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType);
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE);
   return (new btSphereShape(static_cast<btScalar>(geom->radius)));
 }
 
 btCollisionShape* createShapePrimitive(const shapes::Cylinder* geom, const CollisionObjectType& collision_object_type)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType);
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE);
   btScalar r = static_cast<btScalar>(geom->radius);
   btScalar l = static_cast<btScalar>(geom->length / 2);
   return (new btCylinderShapeZ(btVector3(r, r, l)));
@@ -80,7 +80,7 @@ btCollisionShape* createShapePrimitive(const shapes::Cylinder* geom, const Colli
 
 btCollisionShape* createShapePrimitive(const shapes::Cone* geom, const CollisionObjectType& collision_object_type)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType);
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE);
   btScalar r = static_cast<btScalar>(geom->radius);
   btScalar l = static_cast<btScalar>(geom->length);
   return (new btConeShapeZ(r, l));
@@ -89,15 +89,16 @@ btCollisionShape* createShapePrimitive(const shapes::Cone* geom, const Collision
 btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const CollisionObjectType& collision_object_type,
                                        CollisionObjectWrapper* cow)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType ||
-         collision_object_type == CollisionObjectType::ConvexHull || collision_object_type == CollisionObjectType::SDF);
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE ||
+         collision_object_type == CollisionObjectType::CONVEX_HULL ||
+         collision_object_type == CollisionObjectType::SDF);
 
   if (geom->vertex_count > 0 && geom->triangle_count > 0)
   {
     // convert the mesh to the assigned collision object type
     switch (collision_object_type)
     {
-      case CollisionObjectType::ConvexHull:
+      case CollisionObjectType::CONVEX_HULL:
       {
         // Create a convex hull shape to approximate Trimesh
         collision_detection_bullet::AlignedVector<Eigen::Vector3d> input;
@@ -118,7 +119,7 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
 
         return subshape;
       }
-      case CollisionObjectType::UseShapeType:
+      case CollisionObjectType::USE_SHAPE_TYPE:
       {
         btCompoundShape* compound =
             new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(geom->triangle_count));
@@ -142,9 +143,9 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
           {
             cow->manage(subshape);
             subshape->setMargin(BULLET_MARGIN);
-            btTransform geomTrans;
-            geomTrans.setIdentity();
-            compound->addChildShape(geomTrans, subshape);
+            btTransform geom_trans;
+            geom_trans.setIdentity();
+            compound->addChildShape(geom_trans, subshape);
           }
         }
 
@@ -165,10 +166,10 @@ btCollisionShape* createShapePrimitive(const shapes::Mesh* geom, const Collision
 btCollisionShape* createShapePrimitive(const shapes::OcTree* geom, const CollisionObjectType& collision_object_type,
                                        CollisionObjectWrapper* cow)
 {
-  assert(collision_object_type == CollisionObjectType::UseShapeType ||
-         collision_object_type == CollisionObjectType::ConvexHull ||
+  assert(collision_object_type == CollisionObjectType::USE_SHAPE_TYPE ||
+         collision_object_type == CollisionObjectType::CONVEX_HULL ||
          collision_object_type == CollisionObjectType::SDF ||
-         collision_object_type == CollisionObjectType::MultiSphere);
+         collision_object_type == CollisionObjectType::MULTI_SPHERE);
 
   btCompoundShape* subshape =
       new btCompoundShape(BULLET_COMPOUND_USE_DYNAMIC_AABB, static_cast<int>(geom->octree->size()));
@@ -177,7 +178,7 @@ btCollisionShape* createShapePrimitive(const shapes::OcTree* geom, const Collisi
   // convert the mesh to the assigned collision object type
   switch (collision_object_type)
   {
-    case CollisionObjectType::UseShapeType:
+    case CollisionObjectType::USE_SHAPE_TYPE:
     {
       for (auto it = geom->octree->begin(static_cast<unsigned char>(geom->octree->getTreeDepth())),
                 end = geom->octree->end();
@@ -186,21 +187,21 @@ btCollisionShape* createShapePrimitive(const shapes::OcTree* geom, const Collisi
         if (it->getOccupancy() >= occupancy_threshold)
         {
           double size = it.getSize();
-          btTransform geomTrans;
-          geomTrans.setIdentity();
-          geomTrans.setOrigin(btVector3(static_cast<btScalar>(it.getX()), static_cast<btScalar>(it.getY()),
-                                        static_cast<btScalar>(it.getZ())));
+          btTransform geom_trans;
+          geom_trans.setIdentity();
+          geom_trans.setOrigin(btVector3(static_cast<btScalar>(it.getX()), static_cast<btScalar>(it.getY()),
+                                         static_cast<btScalar>(it.getZ())));
           btScalar l = static_cast<btScalar>(size / 2);
           btBoxShape* childshape = new btBoxShape(btVector3(l, l, l));
           childshape->setMargin(BULLET_MARGIN);
           cow->manage(childshape);
 
-          subshape->addChildShape(geomTrans, childshape);
+          subshape->addChildShape(geom_trans, childshape);
         }
       }
       return subshape;
     }
-    case CollisionObjectType::MultiSphere:
+    case CollisionObjectType::MULTI_SPHERE:
     {
       for (auto it = geom->octree->begin(static_cast<unsigned char>(geom->octree->getTreeDepth())),
                 end = geom->octree->end();
@@ -209,16 +210,16 @@ btCollisionShape* createShapePrimitive(const shapes::OcTree* geom, const Collisi
         if (it->getOccupancy() >= occupancy_threshold)
         {
           double size = it.getSize();
-          btTransform geomTrans;
-          geomTrans.setIdentity();
-          geomTrans.setOrigin(btVector3(static_cast<btScalar>(it.getX()), static_cast<btScalar>(it.getY()),
-                                        static_cast<btScalar>(it.getZ())));
+          btTransform geom_trans;
+          geom_trans.setIdentity();
+          geom_trans.setOrigin(btVector3(static_cast<btScalar>(it.getX()), static_cast<btScalar>(it.getY()),
+                                         static_cast<btScalar>(it.getZ())));
           btSphereShape* childshape =
               new btSphereShape(static_cast<btScalar>(std::sqrt(2 * ((size / 2) * (size / 2)))));
           childshape->setMargin(BULLET_MARGIN);
           cow->manage(childshape);
 
-          subshape->addChildShape(geomTrans, childshape);
+          subshape->addChildShape(geom_trans, childshape);
         }
       }
       return subshape;
@@ -317,8 +318,8 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
       {
         manage(subshape);
         subshape->setMargin(BULLET_MARGIN);
-        btTransform geomTrans = convertEigenToBt(inv_world * m_shape_poses[j]);
-        compound->addChildShape(geomTrans, subshape);
+        btTransform geom_trans = convertEigenToBt(inv_world * m_shape_poses[j]);
+        compound->addChildShape(geom_trans, subshape);
       }
     }
   }
@@ -348,4 +349,4 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
 {
   this->setContactProcessingThreshold(0);
 }
-}
+}  // namespace collision_detection_bullet

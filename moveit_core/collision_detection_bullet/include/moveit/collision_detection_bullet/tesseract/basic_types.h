@@ -58,13 +58,13 @@ typedef std::function<bool(const std::string&, const std::string&, const collisi
 
 enum class CollisionObjectType
 {
-  UseShapeType = 0, /**< @brief Infer the type from the type specified in the shapes::Shape class */
+  USE_SHAPE_TYPE = 0, /**< @brief Infer the type from the type specified in the shapes::Shape class */
 
   // all of the following convert the meshes to custom collision objects
-  ConvexHull = 1,  /**< @brief Use the mesh in shapes::Shape but make it a convex hulls collision object (if not convex
+  CONVEX_HULL = 1,  /**< @brief Use the mesh in shapes::Shape but make it a convex hulls collision object (if not convex
                       it will be converted) */
-  MultiSphere = 2, /**< @brief Use the mesh and represent it by multiple spheres collision object */
-  SDF = 3          /**< @brief Use the mesh and rpresent it by a signed distance fields collision object */
+  MULTI_SPHERE = 2, /**< @brief Use the mesh and represent it by multiple spheres collision object */
+  SDF = 3           /**< @brief Use the mesh and rpresent it by a signed distance fields collision object */
 };
 
 /// Contact test data and query results information
@@ -105,6 +105,6 @@ struct ContactTestData
   /// Indicate if search between a single pair is finished
   bool pair_done;
 };
-}
+}  // namespace collision_detection_bullet
 
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BASIC_TYPES_H_

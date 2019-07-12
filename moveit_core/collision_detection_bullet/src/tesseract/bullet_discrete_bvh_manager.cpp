@@ -39,6 +39,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <utility>
+
 #include "moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h"
 
 namespace collision_detection_bullet
@@ -232,7 +234,7 @@ double BulletDiscreteBVHManager::getContactDistanceThreshold() const
 
 void BulletDiscreteBVHManager::setIsContactAllowedFn(IsContactAllowedFn fn)
 {
-  fn_ = fn;
+  fn_ = std::move(fn);
 }
 
 IsContactAllowedFn BulletDiscreteBVHManager::getIsContactAllowedFn() const
@@ -247,14 +249,14 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
-  btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
+  btOverlappingPairCache* pair_cache = broadphase_->getOverlappingPairCache();
 
   ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Num overlapping candidates "
-                                                           << pairCache->getNumOverlappingPairs());
+                                                           << pair_cache->getNumOverlappingPairs());
 
   DiscreteBroadphaseContactResultCallback cc(cdata, contact_distance_);
-  TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
-  pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
+  TesseractCollisionPairCallback collision_callback(dispatch_info_, dispatcher_.get(), cc);
+  pair_cache->processAllOverlappingPairs(&collision_callback, dispatcher_.get());
 
   ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", (collisions.collision ? "In" : "No") << " collision with "
                                                                                             << collisions.contact_count
@@ -269,14 +271,14 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   ContactTestData cdata(active_, contact_distance_, fn_, collisions, req, acm);
 
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
-  btOverlappingPairCache* pairCache = broadphase_->getOverlappingPairCache();
+  btOverlappingPairCache* pair_cache = broadphase_->getOverlappingPairCache();
 
   ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Num overlapping candidates "
-                                                           << pairCache->getNumOverlappingPairs());
+                                                           << pair_cache->getNumOverlappingPairs());
 
   DiscreteBroadphaseContactResultCallback cc(cdata, contact_distance_);
-  TesseractCollisionPairCallback collisionCallback(dispatch_info_, dispatcher_.get(), cc);
-  pairCache->processAllOverlappingPairs(&collisionCallback, dispatcher_.get());
+  TesseractCollisionPairCallback collision_callback(dispatch_info_, dispatcher_.get(), cc);
+  pair_cache->processAllOverlappingPairs(&collision_callback, dispatcher_.get());
 
   for (const COWPtr& cow : cows_external)
   {
@@ -305,7 +307,7 @@ void BulletDiscreteBVHManager::contactTest(const COWPtr& cow, ContactTestData& c
   cow->getAABB(min_aabb, max_aabb);
 
   DiscreteCollisionCollector cc(collisions, cow, static_cast<double>(cow->getContactProcessingThreshold()));
-  TesseractSingleContactCallback contactCB(cow.get(), dispatcher_.get(), dispatch_info_, cc);
-  broadphase_->aabbTest(min_aabb, max_aabb, contactCB);
+  TesseractSingleContactCallback contact_cb(cow.get(), dispatcher_.get(), dispatch_info_, cc);
+  broadphase_->aabbTest(min_aabb, max_aabb, contact_cb);
 }
-}
+}  // namespace collision_detection_bullet

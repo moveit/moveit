@@ -60,7 +60,7 @@ CollisionRobotBullet::CollisionRobotBullet(const CollisionRobotBullet& other)
 }
 
 void CollisionRobotBullet::addAttachedOjects(const robot_state::RobotState& state,
-                                         std::vector<collision_detection_bullet::COWPtr>& cows) const
+                                             std::vector<collision_detection_bullet::COWPtr>& cows) const
 {
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   state.getAttachedBodies(attached_bodies);
@@ -68,7 +68,7 @@ void CollisionRobotBullet::addAttachedOjects(const robot_state::RobotState& stat
   {
     const EigenSTL::vector_Isometry3d& attached_body_transform = body->getGlobalCollisionBodyTransforms();
     std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types(
-        attached_body_transform.size(), collision_detection_bullet::CollisionObjectType::UseShapeType);
+        attached_body_transform.size(), collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
 
     cows.emplace_back(collision_detection_bullet::createCollisionObject(
         body->getName(), collision_detection::BodyType::ROBOT_ATTACHED, body->getShapes(), attached_body_transform,
@@ -77,42 +77,44 @@ void CollisionRobotBullet::addAttachedOjects(const robot_state::RobotState& stat
 }
 
 void CollisionRobotBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state) const
+                                              const robot_state::RobotState& state) const
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionRobotBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+                                              const robot_state::RobotState& state,
+                                              const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionRobotBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state1,
-                                          const robot_state::RobotState& state2) const
+                                              const robot_state::RobotState& state1,
+                                              const robot_state::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet self continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state1, const robot_state::RobotState& state2,
-                                          const AllowedCollisionMatrix& acm) const
+                                              const robot_state::RobotState& state1,
+                                              const robot_state::RobotState& state2,
+                                              const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet self continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBullet::checkSelfCollisionCCDHelper(const CollisionRequest& req, CollisionResult& res,
-                                                   const robot_state::RobotState& state1,
-                                                   const robot_state::RobotState& state2,
-                                                   const AllowedCollisionMatrix* acm) const
+                                                       const robot_state::RobotState& state1,
+                                                       const robot_state::RobotState& state2,
+                                                       const AllowedCollisionMatrix* acm) const
 {
   // TODO: Not in tesseract yet
 }
 
 void CollisionRobotBullet::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                const robot_state::RobotState& state,
-                                                const AllowedCollisionMatrix* acm) const
+                                                    const robot_state::RobotState& state,
+                                                    const AllowedCollisionMatrix* acm) const
 {
   std::vector<collision_detection_bullet::COWPtr> cows;
   addAttachedOjects(state, cows);
@@ -122,44 +124,44 @@ void CollisionRobotBullet::checkSelfCollisionHelper(const CollisionRequest& req,
 }
 
 void CollisionRobotBullet::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                           const robot_state::RobotState& other_state) const
+                                               const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                               const robot_state::RobotState& other_state) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, nullptr);
 }
 
 void CollisionRobotBullet::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                           const robot_state::RobotState& other_state,
-                                           const AllowedCollisionMatrix& acm) const
+                                               const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                               const robot_state::RobotState& other_state,
+                                               const AllowedCollisionMatrix& acm) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
 }
 
 void CollisionRobotBullet::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
-                                           const CollisionRobot& other_robot,
-                                           const robot_state::RobotState& other_state1,
-                                           const robot_state::RobotState& other_state2) const
+                                               const robot_state::RobotState& state1,
+                                               const robot_state::RobotState& state2, const CollisionRobot& other_robot,
+                                               const robot_state::RobotState& other_state1,
+                                               const robot_state::RobotState& other_state2) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet other robot continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBullet::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
-                                           const CollisionRobot& other_robot,
-                                           const robot_state::RobotState& other_state1,
-                                           const robot_state::RobotState& other_state2,
-                                           const AllowedCollisionMatrix& acm) const
+                                               const robot_state::RobotState& state1,
+                                               const robot_state::RobotState& state2, const CollisionRobot& other_robot,
+                                               const robot_state::RobotState& other_state1,
+                                               const robot_state::RobotState& other_state2,
+                                               const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Bullet other robot continuous collision checking not yet implemented");
 }
 
 void CollisionRobotBullet::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                 const robot_state::RobotState& state,
-                                                 const CollisionRobot& other_robot,
-                                                 const robot_state::RobotState& other_state,
-                                                 const AllowedCollisionMatrix* acm) const
+                                                     const robot_state::RobotState& state,
+                                                     const CollisionRobot& other_robot,
+                                                     const robot_state::RobotState& other_state,
+                                                     const AllowedCollisionMatrix* acm) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Other collision not implemented yet.");
 }
@@ -180,20 +182,20 @@ void CollisionRobotBullet::updatedPaddingOrScaling(const std::vector<std::string
 }
 
 void CollisionRobotBullet::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                    const robot_state::RobotState& state) const
+                                        const robot_state::RobotState& state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to self not implemented yet.");
 }
 
 void CollisionRobotBullet::distanceOther(const DistanceRequest& req, DistanceResult& res,
-                                     const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                                     const robot_state::RobotState& other_state) const
+                                         const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                         const robot_state::RobotState& other_state) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Collision distance to other not implemented yet.");
 }
 
-void CollisionRobotBullet::updateTransformsFromState(const robot_state::RobotState& state,
-                                                 collision_detection_bullet::BulletDiscreteBVHManagerPtr manager) const
+void CollisionRobotBullet::updateTransformsFromState(
+    const robot_state::RobotState& state, const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const
 {
   // updating link positions with the current robot state
   for (const std::pair<std::string, collision_detection_bullet::COWPtr>& link : manager->getCollisionObjects())
@@ -203,9 +205,9 @@ void CollisionRobotBullet::updateTransformsFromState(const robot_state::RobotSta
   }
 }
 
-void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr link)
+void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr& link)
 {
-  if (link->collision_array.size() > 0)
+  if (!link->collision_array.empty())
   {
     const std::vector<urdf::CollisionSharedPtr>& col_array =
         link->collision_array.empty() ? std::vector<urdf::CollisionSharedPtr>(1, link->collision) :
@@ -215,11 +217,11 @@ void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr link)
     collision_detection_bullet::AlignedVector<Eigen::Isometry3d> shape_poses;
     std::vector<collision_detection_bullet::CollisionObjectType> collision_object_types;
 
-    for (std::size_t i = 0; i < col_array.size(); ++i)
+    for (const auto& i : col_array)
     {
-      if (col_array[i] && col_array[i]->geometry)
+      if (i && i->geometry)
       {
-        shapes::ShapePtr s = collision_detection_bullet::constructShape(col_array[i]->geometry.get());
+        shapes::ShapePtr s = collision_detection_bullet::constructShape(i->geometry.get());
 
         if (s)
         {
@@ -230,15 +232,15 @@ void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr link)
           }
 
           shapes.push_back(s);
-          shape_poses.push_back(collision_detection_bullet::urdfPose2Eigen(col_array[i]->origin));
+          shape_poses.push_back(collision_detection_bullet::urdfPose2Eigen(i->origin));
 
           if (s->type == shapes::MESH)
           {
-            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::ConvexHull);
+            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
           }
           else
           {
-            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::UseShapeType);
+            collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
           }
         }
       }

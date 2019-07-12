@@ -195,5 +195,5 @@ private:
    * @param collisions The collision results */
   void contactTest(const COWPtr& cow, ContactTestData& collisions);
 };
-}
+}  // namespace collision_detection_bullet
 #endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

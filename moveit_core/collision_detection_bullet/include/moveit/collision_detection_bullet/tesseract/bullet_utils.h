@@ -171,9 +171,9 @@ public:
   {
     getCollisionShape()->getAabb(getWorldTransform(), aabb_min, aabb_max);
     const btScalar& d = getContactProcessingThreshold();
-    btVector3 contactThreshold(d, d, d);
-    aabb_min -= contactThreshold;
-    aabb_max += contactThreshold;
+    btVector3 contact_threshold(d, d, d);
+    aabb_min -= contact_threshold;
+    aabb_max += contact_threshold;
   }
 
   /** @brief Clones the collision objects but not the collision shape wich is const.
@@ -242,38 +242,38 @@ protected:
 inline void GetAverageSupport(const btConvexShape* shape, const btVector3& localNormal, float& outsupport,
                               btVector3& outpt)
 {
-  btVector3 ptSum(0, 0, 0);
-  float ptCount = 0;
-  float maxSupport = -1000;
+  btVector3 pt_sum(0, 0, 0);
+  float pt_count = 0;
+  float max_support = -1000;
 
   const btPolyhedralConvexShape* pshape = dynamic_cast<const btPolyhedralConvexShape*>(shape);
   if (pshape)
   {
-    int nPts = pshape->getNumVertices();
+    int n_pts = pshape->getNumVertices();
 
-    for (int i = 0; i < nPts; ++i)
+    for (int i = 0; i < n_pts; ++i)
     {
       btVector3 pt;
       pshape->getVertex(i, pt);
 
       float sup = pt.dot(localNormal);
-      if (sup > maxSupport + BULLET_EPSILON)
+      if (sup > max_support + BULLET_EPSILON)
       {
-        ptCount = 1;
-        ptSum = pt;
-        maxSupport = sup;
+        pt_count = 1;
+        pt_sum = pt;
+        max_support = sup;
       }
-      else if (sup < maxSupport - BULLET_EPSILON)
+      else if (sup < max_support - BULLET_EPSILON)
       {
       }
       else
       {
-        ptCount += 1;
-        ptSum += pt;
+        pt_count += 1;
+        pt_sum += pt;
       }
     }
-    outsupport = maxSupport;
-    outpt = ptSum / ptCount;
+    outsupport = max_support;
+    outpt = pt_sum / pt_count;
   }
   else
   {
@@ -288,7 +288,7 @@ inline void GetAverageSupport(const btConvexShape* shape, const btVector3& local
  *  @param acm  The contact allowed function pointer
  *  @param verbose Indicate if verbose information should be printed
  *  @return True if the two collision objects should be checked for collision, otherwise false */
-inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn allowed_fn,
+inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn& allowed_fn,
                                 const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
   if (!cow1.m_enabled)
@@ -365,49 +365,48 @@ struct TesseractBridgedManifoldResult : public btManifoldResult
   {
   }
 
-  virtual void addContactPoint(const btVector3& normalOnBInWorld, const btVector3& pointInWorld,
-                               btScalar depth) override
+  void addContactPoint(const btVector3& normalOnBInWorld, const btVector3& pointInWorld, btScalar depth) override
   {
-    bool isSwapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
-    btVector3 pointA = pointInWorld + normalOnBInWorld * depth;
-    btVector3 localA;
-    btVector3 localB;
-    if (isSwapped)
+    bool is_swapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
+    btVector3 point_a = pointInWorld + normalOnBInWorld * depth;
+    btVector3 local_a;
+    btVector3 local_b;
+    if (is_swapped)
     {
-      localA = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointA);
-      localB = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
+      local_a = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(point_a);
+      local_b = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
     }
     else
     {
-      localA = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointA);
-      localB = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
+      local_a = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(point_a);
+      local_b = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
     }
 
-    btManifoldPoint newPt(localA, localB, normalOnBInWorld, depth);
-    newPt.m_positionWorldOnA = pointA;
-    newPt.m_positionWorldOnB = pointInWorld;
+    btManifoldPoint new_pt(local_a, local_b, normalOnBInWorld, depth);
+    new_pt.m_positionWorldOnA = point_a;
+    new_pt.m_positionWorldOnB = pointInWorld;
 
     // BP mod, store contact triangles.
-    if (isSwapped)
+    if (is_swapped)
     {
-      newPt.m_partId0 = m_partId1;
-      newPt.m_partId1 = m_partId0;
-      newPt.m_index0 = m_index1;
-      newPt.m_index1 = m_index0;
+      new_pt.m_partId0 = m_partId1;
+      new_pt.m_partId1 = m_partId0;
+      new_pt.m_index0 = m_index1;
+      new_pt.m_index1 = m_index0;
     }
     else
     {
-      newPt.m_partId0 = m_partId0;
-      newPt.m_partId1 = m_partId1;
-      newPt.m_index0 = m_index0;
-      newPt.m_index1 = m_index1;
+      new_pt.m_partId0 = m_partId0;
+      new_pt.m_partId1 = m_partId1;
+      new_pt.m_index0 = m_index0;
+      new_pt.m_index1 = m_index1;
     }
 
     // experimental feature info, for per-triangle material etc.
-    const btCollisionObjectWrapper* obj0Wrap = isSwapped ? m_body1Wrap : m_body0Wrap;
-    const btCollisionObjectWrapper* obj1Wrap = isSwapped ? m_body0Wrap : m_body1Wrap;
-    m_resultCallback.addSingleResult(newPt, obj0Wrap, newPt.m_partId0, newPt.m_index0, obj1Wrap, newPt.m_partId1,
-                                     newPt.m_index1);
+    const btCollisionObjectWrapper* obj0_wrap = is_swapped ? m_body1Wrap : m_body0Wrap;
+    const btCollisionObjectWrapper* obj1_wrap = is_swapped ? m_body0Wrap : m_body1Wrap;
+    m_resultCallback.addSingleResult(new_pt, obj0_wrap, new_pt.m_partId0, new_pt.m_index0, obj1_wrap, new_pt.m_partId1,
+                                     new_pt.m_index1);
   }
 };
 
@@ -476,46 +475,46 @@ struct TesseractBroadphaseBridgedManifoldResult : public btManifoldResult
       return;
     }
 
-    bool isSwapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
-    btVector3 pointA = pointInWorld + normalOnBInWorld * depth;
-    btVector3 localA;
-    btVector3 localB;
-    if (isSwapped)
+    bool is_swapped = m_manifoldPtr->getBody0() != m_body0Wrap->getCollisionObject();
+    btVector3 point_a = pointInWorld + normalOnBInWorld * depth;
+    btVector3 local_a;
+    btVector3 local_b;
+    if (is_swapped)
     {
-      localA = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointA);
-      localB = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
+      local_a = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(point_a);
+      local_b = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
     }
     else
     {
-      localA = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(pointA);
-      localB = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
+      local_a = m_body0Wrap->getCollisionObject()->getWorldTransform().invXform(point_a);
+      local_b = m_body1Wrap->getCollisionObject()->getWorldTransform().invXform(pointInWorld);
     }
 
-    btManifoldPoint newPt(localA, localB, normalOnBInWorld, depth);
-    newPt.m_positionWorldOnA = pointA;
-    newPt.m_positionWorldOnB = pointInWorld;
+    btManifoldPoint new_pt(local_a, local_b, normalOnBInWorld, depth);
+    new_pt.m_positionWorldOnA = point_a;
+    new_pt.m_positionWorldOnB = pointInWorld;
 
     // BP mod, store contact triangles.
-    if (isSwapped)
+    if (is_swapped)
     {
-      newPt.m_partId0 = m_partId1;
-      newPt.m_partId1 = m_partId0;
-      newPt.m_index0 = m_index1;
-      newPt.m_index1 = m_index0;
+      new_pt.m_partId0 = m_partId1;
+      new_pt.m_partId1 = m_partId0;
+      new_pt.m_index0 = m_index1;
+      new_pt.m_index1 = m_index0;
     }
     else
     {
-      newPt.m_partId0 = m_partId0;
-      newPt.m_partId1 = m_partId1;
-      newPt.m_index0 = m_index0;
-      newPt.m_index1 = m_index1;
+      new_pt.m_partId0 = m_partId0;
+      new_pt.m_partId1 = m_partId1;
+      new_pt.m_index0 = m_index0;
+      new_pt.m_index1 = m_index1;
     }
 
     // experimental feature info, for per-triangle material etc.
-    const btCollisionObjectWrapper* obj0Wrap = isSwapped ? m_body1Wrap : m_body0Wrap;
-    const btCollisionObjectWrapper* obj1Wrap = isSwapped ? m_body0Wrap : m_body1Wrap;
-    result_callback_.addSingleResult(newPt, obj0Wrap, newPt.m_partId0, newPt.m_index0, obj1Wrap, newPt.m_partId1,
-                                     newPt.m_index1);
+    const btCollisionObjectWrapper* obj0_wrap = is_swapped ? m_body1Wrap : m_body0Wrap;
+    const btCollisionObjectWrapper* obj1_wrap = is_swapped ? m_body0Wrap : m_body1Wrap;
+    result_callback_.addSingleResult(new_pt, obj0_wrap, new_pt.m_partId0, new_pt.m_index0, obj1_wrap, new_pt.m_partId1,
+                                     new_pt.m_index1);
   }
 };
 
@@ -543,25 +542,25 @@ struct TesseractSingleContactCallback : public btBroadphaseAabbCallback
 
   bool process(const btBroadphaseProxy* proxy) override
   {
-    btCollisionObject* collisionObject = static_cast<btCollisionObject*>(proxy->m_clientObject);
-    if (collisionObject == m_collisionObject)
+    btCollisionObject* collision_object = static_cast<btCollisionObject*>(proxy->m_clientObject);
+    if (collision_object == m_collisionObject)
       return true;
 
-    if (m_resultCallback.needsCollision(collisionObject->getBroadphaseHandle()))
+    if (m_resultCallback.needsCollision(collision_object->getBroadphaseHandle()))
     {
       btCollisionObjectWrapper ob0(nullptr, m_collisionObject->getCollisionShape(), m_collisionObject,
                                    m_collisionObject->getWorldTransform(), -1, -1);
-      btCollisionObjectWrapper ob1(nullptr, collisionObject->getCollisionShape(), collisionObject,
-                                   collisionObject->getWorldTransform(), -1, -1);
+      btCollisionObjectWrapper ob1(nullptr, collision_object->getCollisionShape(), collision_object,
+                                   collision_object->getWorldTransform(), -1, -1);
 
       btCollisionAlgorithm* algorithm = m_dispatcher->findAlgorithm(&ob0, &ob1, nullptr, BT_CLOSEST_POINT_ALGORITHMS);
       if (algorithm)
       {
-        TesseractBridgedManifoldResult contactPointResult(&ob0, &ob1, m_resultCallback);
-        contactPointResult.m_closestPointDistanceThreshold = m_resultCallback.m_closestDistanceThreshold;
+        TesseractBridgedManifoldResult contact_point_result(&ob0, &ob1, m_resultCallback);
+        contact_point_result.m_closestPointDistanceThreshold = m_resultCallback.m_closestDistanceThreshold;
 
         // discrete collision detection query
-        algorithm->processCollision(&ob0, &ob1, m_dispatch_info, &contactPointResult);
+        algorithm->processCollision(&ob0, &ob1, m_dispatch_info, &contact_point_result);
 
         algorithm->~btCollisionAlgorithm();
         m_dispatcher->freeCollisionAlgorithm(algorithm);
@@ -607,22 +606,23 @@ public:
 
     if (results_callback_.needsCollision(cow0, cow1))
     {
-      btCollisionObjectWrapper obj0Wrap(nullptr, cow0->getCollisionShape(), cow0, cow0->getWorldTransform(), -1, -1);
-      btCollisionObjectWrapper obj1Wrap(nullptr, cow1->getCollisionShape(), cow1, cow1->getWorldTransform(), -1, -1);
+      btCollisionObjectWrapper obj0_wrap(nullptr, cow0->getCollisionShape(), cow0, cow0->getWorldTransform(), -1, -1);
+      btCollisionObjectWrapper obj1_wrap(nullptr, cow1->getCollisionShape(), cow1, cow1->getWorldTransform(), -1, -1);
 
       // dispatcher will keep algorithms persistent in the collision pair
       if (!pair.m_algorithm)
       {
-        pair.m_algorithm = dispatcher_->findAlgorithm(&obj0Wrap, &obj1Wrap, nullptr, BT_CLOSEST_POINT_ALGORITHMS);
+        pair.m_algorithm = dispatcher_->findAlgorithm(&obj0_wrap, &obj1_wrap, nullptr, BT_CLOSEST_POINT_ALGORITHMS);
       }
 
       if (pair.m_algorithm)
       {
-        TesseractBroadphaseBridgedManifoldResult contactPointResult(&obj0Wrap, &obj1Wrap, results_callback_);
-        contactPointResult.m_closestPointDistanceThreshold = static_cast<btScalar>(results_callback_.contact_distance_);
+        TesseractBroadphaseBridgedManifoldResult contact_point_result(&obj0_wrap, &obj1_wrap, results_callback_);
+        contact_point_result.m_closestPointDistanceThreshold =
+            static_cast<btScalar>(results_callback_.contact_distance_);
 
         // discrete collision detection query
-        pair.m_algorithm->processCollision(&obj0Wrap, &obj1Wrap, dispatch_info_, &contactPointResult);
+        pair.m_algorithm->processCollision(&obj0_wrap, &obj1_wrap, dispatch_info_, &contact_point_result);
       }
     }
     return false;
@@ -716,7 +716,7 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
   double contact_distance_;
   bool verbose_;
 
-  DiscreteCollisionCollector(ContactTestData& collisions, const COWPtr cow, double contact_distance,
+  DiscreteCollisionCollector(ContactTestData& collisions, const COWPtr& cow, double contact_distance,
                              bool verbose = false)
     : collisions_(collisions), cow_(cow), contact_distance_(contact_distance), verbose_(verbose)
   {
@@ -795,5 +795,5 @@ inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_
   cow->setBroadphaseHandle(broadphase->createProxy(aabb_min, aabb_max, type, cow.get(), cow->m_collisionFilterGroup,
                                                    cow->m_collisionFilterMask, dispatcher.get()));
 }
-}
+}  // namespace collision_detection_bullet
 #endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_

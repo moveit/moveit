@@ -43,14 +43,14 @@ namespace collision_detection_bullet
 *   \param urdf_link The current urdf link representation
 *   \param active Indicates if link is considered active */
 static inline void getActiveLinkNamesRecursive(std::vector<std::string>& active_links,
-                                               const urdf::LinkConstSharedPtr urdf_link, bool active)
+                                               const urdf::LinkConstSharedPtr& urdf_link, bool active)
 {
   if (active)
   {
     active_links.push_back(urdf_link->name);
-    for (std::size_t i = 0; i < urdf_link->child_links.size(); ++i)
+    for (const auto& child_link : urdf_link->child_links)
     {
-      getActiveLinkNamesRecursive(active_links, urdf_link->child_links[i], active);
+      getActiveLinkNamesRecursive(active_links, child_link, active);
     }
   }
   else
@@ -111,5 +111,5 @@ inline Eigen::Isometry3d urdfPose2Eigen(const urdf::Pose& pose)
   result.linear() = q.toRotationMatrix();
   return result;
 }
-}
+}  // namespace collision_detection_bullet
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_

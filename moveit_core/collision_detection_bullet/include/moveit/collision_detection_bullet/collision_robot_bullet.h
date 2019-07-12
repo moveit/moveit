@@ -84,7 +84,7 @@ public:
 protected:
   /** \brief Updates the poses of the objects in the manager according to given robot state */
   void updateTransformsFromState(const robot_state::RobotState& state,
-                                 collision_detection_bullet::BulletDiscreteBVHManagerPtr manager) const;
+                                 const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const;
 
   /** \brief Updates the collision objects saved in the manager to reflect a new padding or scaling of the robot links
    */
@@ -109,11 +109,11 @@ protected:
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construts a bullet collision object out of a robot link */
-  void addLinkAsCOW(const urdf::LinkSharedPtr link);
+  void addLinkAsCOW(const urdf::LinkSharedPtr& link);
 
   /** \brief Handles all self collision checks */
   collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_;
 };
-}
+}  // namespace collision_detection
 
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_
