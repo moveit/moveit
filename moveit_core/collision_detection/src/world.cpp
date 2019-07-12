@@ -168,6 +168,7 @@ const Eigen::Isometry3d& World::getTransform(const std::string& name) const
 
 const Eigen::Isometry3d& World::getTransform(const std::string& name, bool& frame_found) const
 {
+  frame_found = true;
   std::map<std::string, ObjectPtr>::const_iterator it = objects_.find(name);
   if (it != objects_.end())
     return it->second->shape_poses_[0];
@@ -180,10 +181,7 @@ const Eigen::Isometry3d& World::getTransform(const std::string& name, bool& fram
       {
         auto it = object.second->subframe_poses_.find(name.substr(object.first.length() + 1));
         if (it != object.second->subframe_poses_.end())
-        {
-          frame_found = true;
           return it->second;
-        }
       }
     }
   }
