@@ -34,22 +34,16 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_BT_H_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_BT_H_
-
-#include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_detection_bullet/collision_robot_bt.h>
-#include <moveit/collision_detection_bullet/collision_world_bt.h>
+#include <moveit/collision_detection_bullet/collision_detector_bullet_plugin_loader.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace collision_detection
 {
-/** \brief An allocator for Bullet collision detectors */
-class CollisionDetectorAllocatorBt
-    : public CollisionDetectorAllocatorTemplate<CollisionWorldBt, CollisionRobotBt, CollisionDetectorAllocatorBt>
+bool CollisionDetectorBtPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
 {
-public:
-  static const std::string NAME;  // defined in collision_world_bt.cpp
-};
+  scene->setActiveCollisionDetector(CollisionDetectorAllocatorBt::create(), exclusive);
+  return true;
+}
 }
 
-#endif
+PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorBtPluginLoader, collision_detection::CollisionPlugin)

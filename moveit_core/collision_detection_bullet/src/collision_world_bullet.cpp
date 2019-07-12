@@ -34,8 +34,8 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_world_bt.h>
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
+#include <moveit/collision_detection_bullet/collision_world_bullet.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
 #include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
 #include <boost/bind.hpp>
@@ -46,8 +46,7 @@ namespace collision_detection
 const std::string CollisionDetectorAllocatorBt::NAME("Bullet");
 
 CollisionWorldBt::CollisionWorldBt()
-  : CollisionWorld()
-  , bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+  : CollisionWorld(), bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));
@@ -58,8 +57,7 @@ CollisionWorldBt::CollisionWorldBt()
 }
 
 CollisionWorldBt::CollisionWorldBt(const WorldPtr& world)
-  : CollisionWorld(world)
-  , bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
+  : CollisionWorld(world), bt_manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldBt::notifyObjectChange, this, _1, _2));

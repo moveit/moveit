@@ -23,8 +23,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TESSERACT_CORE_BASIC_TYPES_H
-#define TESSERACT_CORE_BASIC_TYPES_H
+
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BASIC_TYPES_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BASIC_TYPES_H_
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>

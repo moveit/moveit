@@ -23,8 +23,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TESSERACT_ROS_UTILS_H
-#define TESSERACT_ROS_UTILS_H
+
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_
 
 #include <octomap_msgs/conversions.h>
 #include <geometric_shapes/shape_messages.h>

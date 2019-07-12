@@ -34,18 +34,14 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_DETECTOR_BT_PLUGIN_LOADER_H_
-#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_DETECTOR_BT_PLUGIN_LOADER_H_
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection/test_collision_common.h>
 
-#include <moveit/collision_detection/collision_plugin.h>
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
+INSTANTIATE_TYPED_TEST_CASE_P(BulletCollisionCheck, CollisionDetectorTest,
+                              collision_detection::CollisionDetectorAllocatorBt);
 
-namespace collision_detection
+int main(int argc, char* argv[])
 {
-class CollisionDetectorBtPluginLoader : public CollisionPlugin
-{
-public:
-  virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
-};
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-#endif  // MOVEIT_COLLISION_DETECTION_BT_COLLISION_DETECTOR_BT_PLUGIN_LOADER_H_

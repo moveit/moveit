@@ -34,7 +34,7 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_robot_bt.h>
+#include <moveit/collision_detection_bullet/collision_robot_bullet.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
 #include <urdf/model.h>
 

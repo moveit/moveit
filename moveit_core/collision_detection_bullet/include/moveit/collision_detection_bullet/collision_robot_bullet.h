@@ -34,8 +34,8 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
-#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_ROBOT_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_
 
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
 #include <moveit/collision_detection/collision_robot.h>

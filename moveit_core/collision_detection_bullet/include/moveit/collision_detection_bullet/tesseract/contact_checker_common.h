@@ -23,8 +23,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TESSERACT_COLLISION_CONTACT_CHECKER_COMMON_H
-#define TESSERACT_COLLISION_CONTACT_CHECKER_COMMON_H
+
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_
 
 #include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>

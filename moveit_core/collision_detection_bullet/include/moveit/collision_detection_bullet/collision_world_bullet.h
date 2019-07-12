@@ -34,10 +34,10 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
-#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_WORLD_BT_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_WORLD_BULLET_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_WORLD_BULLET_H_
 
-#include <moveit/collision_detection_bullet/collision_robot_bt.h>
+#include <moveit/collision_detection_bullet/collision_robot_bullet.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
 #include <memory>

@@ -34,16 +34,18 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_detector_bt_plugin_loader.h>
-#include <pluginlib/class_list_macros.h>
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
+
+#include <moveit/collision_detection/collision_plugin.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
 
 namespace collision_detection
 {
-bool CollisionDetectorBtPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
+class CollisionDetectorBtPluginLoader : public CollisionPlugin
 {
-  scene->setActiveCollisionDetector(CollisionDetectorAllocatorBt::create(), exclusive);
-  return true;
+public:
+  virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
+};
 }
-}
-
-PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorBtPluginLoader, collision_detection::CollisionPlugin)
+#endif  // MOVEIT_COLLISION_DETECTION_BT_COLLISION_DETECTOR_BT_PLUGIN_LOADER_H_

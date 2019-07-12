@@ -20,6 +20,7 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
+ # TODO: Move collision detection into separate packages
 find_package(Bullet REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -54,7 +55,6 @@ COMPONENTS
   urdf
   visualization_msgs
   xmlrpcpp
-  eigen_conversions
 )
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")

@@ -41,8 +41,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TESSERACT_COLLISION_BULLET_UTILS_H
-#define TESSERACT_COLLISION_BULLET_UTILS_H
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
 
 #include <btBulletCollisionCommon.h>
 #include <geometric_shapes/mesh_operations.h>
@@ -745,7 +745,6 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
                                collisions_.acm, verbose_);
   }
 };
-
 
 /** @brief Update the Broadphase AABB for the input collision object
  *  @param cow The collision objects

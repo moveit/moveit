@@ -34,14 +34,22 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_detector_allocator_bt.h>
-#include <moveit/collision_detection/test_collision_common.h>
+#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_
+#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_
 
-INSTANTIATE_TYPED_TEST_CASE_P(BulletCollisionCheck, CollisionDetectorTest,
-                              collision_detection::CollisionDetectorAllocatorBt);
+#include <moveit/collision_detection/collision_detector_allocator.h>
+#include <moveit/collision_detection_bullet/collision_robot_bullet.h>
+#include <moveit/collision_detection_bullet/collision_world_bullet.h>
 
-int main(int argc, char* argv[])
+namespace collision_detection
 {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+/** \brief An allocator for Bullet collision detectors */
+class CollisionDetectorAllocatorBt
+    : public CollisionDetectorAllocatorTemplate<CollisionWorldBt, CollisionRobotBt, CollisionDetectorAllocatorBt>
+{
+public:
+  static const std::string NAME;  // defined in collision_world_bt.cpp
+};
 }
+
+#endif
