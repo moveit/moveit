@@ -152,10 +152,11 @@ protected:
   virtual void collectMetrics(PlannerRunData& metrics, const planning_interface::MotionPlanDetailedResponse& mp_res,
                               bool solved, double total_time);
 
-  /// Computes a similarity measure for all trajectories of an experiment and writes the result to planner_data metrics
-  void computeResultPathSimilarity(PlannerBenchmarkData& planner_data,
-                                   const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
-                                   const std::vector<bool>& solved);
+  /// Compute the similarity of each (final) trajectory to all other (final) trajectories in the experiment and write
+  /// the results to planner_data metrics
+  void computeAveragePathSimilarities(PlannerBenchmarkData& planner_data,
+                                      const std::vector<planning_interface::MotionPlanDetailedResponse>& responses,
+                                      const std::vector<bool>& solved);
 
   virtual void writeOutput(const BenchmarkRequest& brequest, const std::string& start_time, double benchmark_duration);
 

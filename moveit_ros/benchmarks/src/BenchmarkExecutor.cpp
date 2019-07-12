@@ -490,12 +490,9 @@ void BenchmarkExecutor::createRequestCombinations(const BenchmarkRequest& breque
       // Duplicate the request for each of the path constraints
       for (const PathConstraints& path_constraint : path_constraints)
       {
-        if (start_state.name != path_constraint.name)
-        {
-          new_brequest.request.path_constraints = path_constraint.constraints[0];
-          new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
-          requests.push_back(new_brequest);
-        }
+        new_brequest.request.path_constraints = path_constraint.constraints[0];
+        new_brequest.name = start_state.name + "_" + new_brequest.name + "_" + path_constraint.name;
+        requests.push_back(new_brequest);
       }
 
       if (path_constraints.empty())
@@ -778,7 +775,7 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
       // This container stores all of the benchmark data for this planner
       PlannerBenchmarkData planner_data(runs);
       // This vector stores all motion plan results for further evaluation
-      std::vector<planning_interface::MotionPlanDetailedResponse> mp_res(runs);
+      std::vector<planning_interface::MotionPlanDetailedResponse> responses(runs);
       std::vector<bool> solved(runs);
 
       request.planner_id = planner.second[i];
@@ -797,7 +794,7 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
 
         // Solve problem
         ros::WallTime start = ros::WallTime::now();
-        solved[j] = context->solve(mp_res[j]);
+        solved[j] = context->solve(responses[j]);
         double total_time = (ros::WallTime::now() - start).toSec();
 
         // Collect data
@@ -805,15 +802,15 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
 
         // Post-run events
         for (PostRunEventFunction& post_event_fn : post_event_fns_)
-          post_event_fn(request, mp_res[j], planner_data[j]);
-        collectMetrics(planner_data[j], mp_res[j], solved[j], total_time);
+          post_event_fn(request, responses[j], planner_data[j]);
+        collectMetrics(planner_data[j], responses[j], solved[j], total_time);
         double metrics_time = (ros::WallTime::now() - start).toSec();
         ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
 
         ++progress;
       }
 
-      computeResultPathSimilarity(planner_data, mp_res, solved);
+      computeAveragePathSimilarities(planner_data, responses, solved);
 
       // Planner completion events
       for (PlannerCompletionEventFunction& planner_completion_fn : planner_completion_fns_)
@@ -922,14 +919,14 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   }
 }
 
-void BenchmarkExecutor::computeResultPathSimilarity(
-    PlannerBenchmarkData& planner_data, const std::vector<planning_interface::MotionPlanDetailedResponse>& mp_res,
+void BenchmarkExecutor::computeAveragePathSimilarities(
+    PlannerBenchmarkData& planner_data, const std::vector<planning_interface::MotionPlanDetailedResponse>& responses,
     const std::vector<bool>& solved)
 {
   ROS_INFO("Computing result path similarity");
   const size_t result_count = planner_data.size();
   size_t unsolved = std::count_if(solved.begin(), solved.end(), [](bool s) { return !s; });
-  std::vector<double> average_distances(mp_res.size());
+  std::vector<double> average_distances(responses.size());
   for (size_t first_traj_i = 0; first_traj_i < result_count; ++first_traj_i)
   {
     // If trajectory was not solved there is no valid average distance so it's set to max double only
@@ -946,12 +943,12 @@ void BenchmarkExecutor::computeResultPathSimilarity(
         continue;
 
       // Abort if there are no result trajectories
-      if (mp_res[first_traj_i].trajectory_.empty() || mp_res[second_traj_i].trajectory_.empty())
+      if (responses[first_traj_i].trajectory_.empty() || responses[second_traj_i].trajectory_.empty())
         continue;
 
       // Access trajectories
-      const robot_trajectory::RobotTrajectory& traj_first = *mp_res[first_traj_i].trajectory_.back();
-      const robot_trajectory::RobotTrajectory& traj_second = *mp_res[second_traj_i].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_first = *responses[first_traj_i].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_second = *responses[second_traj_i].trajectory_.back();
 
       // Abort if trajectories are empty
       if (traj_first.empty() || traj_second.empty())
