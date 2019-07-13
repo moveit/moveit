@@ -42,6 +42,7 @@
 #include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
 #include <moveit/ompl_interface/detail/goal_union.h>
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
+#include <moveit/ompl_interface/detail/cost_convergence_termination_condition.h>
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
@@ -643,12 +644,21 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   ompl::time::point start = ompl::time::now();
   preSolve();
 
+  // Initialize a termination condition that terminates an optimizing planner if the cost function converges at
+  // a certain level. Non-optimizing planners are not affected by this since they don't produce multiple solutions.
+  // TODO(henningkayser): Implement constructor parameters
+  std::shared_ptr<CostConvergenceTerminationCondition> cctc = std::make_shared<CostConvergenceTerminationCondition>();
+  ompl_simple_setup_->getProblemDefinition()->setIntermediateSolutionCallback(
+      [cctc](const ob::Planner* planner, const std::vector<const ob::State*>& states, const ob::Cost cost) {
+        cctc->processNewSolution(states, cost);
+      });
+
   bool result = false;
   if (count <= 1)
   {
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc =
-        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+        getPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start), cctc);
     registerTerminationCondition(ptc);
     result = ompl_simple_setup_->solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
     last_plan_time_ = ompl_simple_setup_->getLastPlanComputationTime();
@@ -670,7 +680,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
           ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
 
       ob::PlannerTerminationCondition ptc =
-          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+          getPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start), cctc);
       registerTerminationCondition(ptc);
       result = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
@@ -679,7 +689,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     else
     {
       ob::PlannerTerminationCondition ptc =
-          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+          getPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start), cctc);
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
       result = true;
@@ -716,6 +726,16 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   postSolve();
 
   return result;
+}
+
+ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContext::getPlannerTerminationCondition(
+    double timeout, const std::shared_ptr<ob::PlannerTerminationCondition>& ptc_or)
+{
+  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);
+  if (ptc_or)
+    return ob::plannerOrTerminationCondition(ptc, *ptc_or);
+  else
+    return ptc;
 }
 
 void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition& ptc)
