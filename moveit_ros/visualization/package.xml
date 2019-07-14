@@ -25,6 +25,7 @@
   <build_depend>libogre-dev</build_depend>
   <build_depend>libqt5-opengl-dev</build_depend>
   <build_depend>qtbase5-dev</build_depend>
+  <build_depend>image_geometry</build_depend>
 
   <depend>geometric_shapes</depend>
   <depend>interactive_markers</depend>
@@ -32,6 +33,7 @@
   <depend>moveit_ros_perception</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_ros_warehouse</depend>
+  <depend>moveit_visual_tools</depend>
   <depend>object_recognition_msgs</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>rosconsole</depend>
@@ -47,6 +49,7 @@
     <rviz plugin="${prefix}/planning_scene_rviz_plugin_description.xml"/>
     <rviz plugin="${prefix}/motion_planning_rviz_plugin_description.xml"/>
     <rviz plugin="${prefix}/trajectory_rviz_plugin_description.xml"/>
+    <rviz plugin="${prefix}/handeye_calibration_rviz_plugin_description.xml"/>
   </export>
 
 </package>

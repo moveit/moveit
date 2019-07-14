@@ -1,0 +1,7 @@
+<library path="libmoveit_handeye_calibration_rviz_plugin">
+  <class name="moveit_rviz_plugin/HandEyeCalibration" type="moveit_rviz_plugin::HandEyeCalibrationGui" base_class_type="rviz::Panel">
+    <description>
+      Gui widget for the hand-eye calibration.
+    </description>
+  </class>
+</library>
