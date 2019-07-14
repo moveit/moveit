@@ -46,7 +46,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(OpenCV)
+find_package(octomap REQUIRED)
+find_package(OpenCV REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -54,12 +55,14 @@ catkin_package(
     point_containment_filter/include
     pointcloud_octomap_updater/include
     semantic_world/include
+    handeye_calibration_target/include
     ${perception_GL_INCLUDE_DIRS}
   LIBRARIES
     moveit_lazy_free_space_updater
     moveit_point_containment_filter
     moveit_pointcloud_octomap_updater_core
     moveit_semantic_world
+    moveit_handeye_calibration_target
   CATKIN_DEPENDS
     image_transport
     moveit_core
@@ -76,6 +79,7 @@ include_directories(lazy_free_space_updater/include
                     point_containment_filter/include
                     pointcloud_octomap_updater/include
                     semantic_world/include
+                    handeye_calibration_target/include
                     ${perception_GL_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
@@ -90,6 +94,8 @@ include_directories(SYSTEM
 add_subdirectory(lazy_free_space_updater)
 add_subdirectory(point_containment_filter)
 add_subdirectory(pointcloud_octomap_updater)
+add_subdirectory(handeye_calibration_target)
+
 if (WITH_OPENGL)
   add_subdirectory(mesh_filter)
   add_subdirectory(depth_image_octomap_updater)
@@ -101,5 +107,6 @@ install(
   FILES
     pointcloud_octomap_updater_plugin_description.xml
     depth_image_octomap_updater_plugin_description.xml
+    handeye_calibration_target_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})
