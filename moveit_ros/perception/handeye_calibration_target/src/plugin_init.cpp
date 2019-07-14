@@ -35,7 +35,7 @@
 /* Author: Yu Yan */
 
 #include <class_loader/class_loader.hpp>
-#include <moveit/handeye_calibration_target/handeye_aruco_target.h>
+#include <moveit/handeye_calibration_target/handeye_target_aruco.h>
 
 CLASS_LOADER_REGISTER_CLASS(moveit_handeye_calibration::HandEyeArucoTarget,
                             moveit_handeye_calibration::HandEyeTargetBase)

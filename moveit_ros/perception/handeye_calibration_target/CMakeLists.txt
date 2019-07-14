@@ -1,6 +1,6 @@
 set(HEADERS
   include/moveit/handeye_calibration_target/handeye_target_base.h
-  include/moveit/handeye_calibration_target/handeye_aruco_target.h
+  include/moveit/handeye_calibration_target/handeye_target_aruco.h
 )
 
 #catkin_lint: ignore_once missing_directory
@@ -8,7 +8,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Plugin Source
 set(SOURCE_FILES
-  src/handeye_aruco_target.cpp
+  src/handeye_target_aruco.cpp
 )
 
 set(MOVEIT_LIB_NAME moveit_handeye_calibration_target)
