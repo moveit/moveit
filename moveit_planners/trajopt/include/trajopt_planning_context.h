@@ -20,13 +20,15 @@
 
 #include "problem_description.h"
 
+#include "trajopt_interface.h"
+
 //using namespace trajopt;
 
 namespace trajopt_interface
 {
 
 MOVEIT_CLASS_FORWARD(TrajOptPlanningContext);
-
+/*
 struct TrajOptPlannerConfiguration{
 
   // TrajOptPlannerConfiguration(trajopt::TrajOptProbPtr prob) : prob(prob) {}
@@ -38,23 +40,24 @@ struct TrajOptPlannerConfiguration{
   //  std::string model_type = sco::ModelType::AUTO_SOLVER
   //  sco::OptProbPtr prob = sco::OptProbPtr(new sco::OptProb(sco::ModelType::AUTO_SOLVER));
 
-  /** @brief Trajopt problem to be solved (Required) */
+  // @brief Trajopt problem to be solved (Required) 
   TrajOptProblemPtr prob;
 
   //    TrajOptProblemPtr prob(new TrajOptProblem());
   //  std::shared_ptr<TrajOptProblem> prob = std::shared_ptr(new TrajOptProblem);
 
-  /** @brief Optimization parameters to be used (Optional) */
+  // @brief Optimization parameters to be used (Optional) 
   sco::BasicTrustRegionSQPParameters params;
 
-  /** @brief Callback functions called on each iteration of the optimization (Optional) */
+  // @brief Callback functions called on each iteration of the optimization (Optional) 
   //std::vector<sco::Optimizer::Callback> callbacks;
   sco::Optimizer::Callback callbacks;
 
 };
+*/
 
-trajopt::TrajArray generateInitialTrajectory(const int& num_steps);
-TrajOptPlannerConfiguration spec_;
+// trajopt::TrajArray generateInitialTrajectory(const int& num_steps);
+//TrajOptPlannerConfiguration spec_;
 int dof_;
 
 void callBackFunc(sco::OptProb* oprob, sco::OptResults& ores);
@@ -74,7 +77,7 @@ public:
   bool terminate() override;
   void clear() override;
 
-  void setTrajOptPlannerConfiguration();
+  //  void setTrajOptPlannerConfiguration();
 
 protected:
 
@@ -83,6 +86,7 @@ private:
   moveit::core::RobotModelConstPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
 
+  TrajOptInterfacePtr trajopot_interface_;
  
   
   trajectory_msgs::JointTrajectory convertTrajArrayToJointTrajectory(const trajopt::TrajArray& traj_array);
