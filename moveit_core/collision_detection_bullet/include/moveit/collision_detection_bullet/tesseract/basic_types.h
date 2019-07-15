@@ -61,7 +61,7 @@ enum class CollisionObjectType
   SDF = 3           /**< @brief Use the mesh and rpresent it by a signed distance fields collision object */
 };
 
-/// Contact test data and query results information
+/** \brief Bundles the data for a collision query */
 struct ContactTestData
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -85,20 +85,22 @@ struct ContactTestData
   /** \brief If after a positive broadphase check the distance is below this threshold, a contact is added. */
   const double& contact_distance;
 
+  /** \brief User defined function which checks if contact is allowed between two objects */
   const IsContactAllowedFn& fn;
+
+  /** \brief Indicates collision objects which are allowed to be in contact */
   const collision_detection::AllowedCollisionMatrix* acm;
 
-  /// Distance query results information
   collision_detection::CollisionResult& res;
-
   const collision_detection::CollisionRequest& req;
 
-  /// Indicate if search is finished
+  /// Indicates if search is finished
   bool done;
 
-  /// Indicate if search between a single pair is finished
+  /// Indicates if search between a single pair is finished
   bool pair_done;
 };
+
 }  // namespace collision_detection_bullet
 
 #endif  // MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BASIC_TYPES_H_
