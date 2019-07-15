@@ -137,7 +137,6 @@ catkin_package(
     tf2_geometry_msgs
     trajectory_msgs
     visualization_msgs
-    eigen_conversions
   DEPENDS
     Boost
     EIGEN3
