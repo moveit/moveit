@@ -1,30 +1,20 @@
-/**
- * @file bullet_discrete_bvh_manager.cpp
- * @brief Tesseract ROS Bullet Discrete BVH Manager implementation.
- *
- * @author Levi Armstrong
- * @date Dec 18, 2017
- * @version TODO
- * @bug No known bugs
- *
- * @copyright Copyright (c) 2017, Southwest Research Institute
- *
- * @par License
+/*********************************************************************
  * Software License Agreement (BSD-2-Clause)
- * @par
+ *
+ * Copyright (c) 2017, Southwest Research Institute
  * All rights reserved.
- * @par
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * @par
+ *
  *  * Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- * @par
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -37,7 +27,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- */
+ *********************************************************************/
+
+/* Author: Levi Armstrong */
 
 #include <utility>
 
@@ -64,9 +56,9 @@ BulletDiscreteBVHManager::BulletDiscreteBVHManager()
 BulletDiscreteBVHManager::~BulletDiscreteBVHManager()
 {
   // clean up remaining objects
-  for (std::pair<const std::string, COWPtr>& co : link2cow_)
+  for (std::pair<const std::string, COWPtr>& cow : link2cow_)
   {
-    removeCollisionObjectFromBroadphase(co.second, broadphase_, dispatcher_);
+    removeCollisionObjectFromBroadphase(cow.second, broadphase_, dispatcher_);
   }
 }
 
@@ -74,7 +66,7 @@ BulletDiscreteBVHManagerPtr BulletDiscreteBVHManager::clone() const
 {
   BulletDiscreteBVHManagerPtr manager(new BulletDiscreteBVHManager());
 
-  for (const std::pair<std::string, COWPtr>& cow : link2cow_)
+  for (const std::pair<const std::string, COWPtr>& cow : link2cow_)
   {
     COWPtr new_cow = cow.second->clone();
 
@@ -191,7 +183,7 @@ void BulletDiscreteBVHManager::setCollisionObjectsTransform(const std::vector<st
 void BulletDiscreteBVHManager::setCollisionObjectsTransform(
     const AlignedMap<std::string, Eigen::Isometry3d>& transforms)
 {
-  for (const std::pair<std::string, Eigen::Isometry3d>& transform : transforms)
+  for (const std::pair<const std::string, Eigen::Isometry3d>& transform : transforms)
   {
     setCollisionObjectsTransform(transform.first, transform.second);
   }

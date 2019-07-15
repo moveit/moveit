@@ -50,14 +50,6 @@ namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 
-/** \brief Different collision cases for continuous collision detection. */
-enum class ContinuousCollisionType
-{
-  Time0,   ///< collision in the start pose
-  Time1,   ///< collision in the end pose
-  Between  ///< collision between start and end pose
-};
-
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
 {
@@ -104,11 +96,11 @@ struct Contact
   /** \brief The type of the second body involved in the contact */
   BodyType body_type_2;
 
-  /** \brief The distance percentage between casted poses until collision */
+  /** \brief The distance percentage between casted poses until collision.
+   *
+   *  If the value is 0, then the collision occured in the start pose. If the value is 1, then the collision occured in
+   *  the end pose. */
   double percent_interpolation;
-
-  /** \brief The continous collision type */
-  ContinuousCollisionType cc_type;
 
   /** \brief The two nearest points connecting the two bodies */
   Eigen::Vector3d nearest_points[2];

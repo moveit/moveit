@@ -1,32 +1,21 @@
-/**
- * @file bullet_utils.cpp
- * @brief Tesseract ROS Bullet environment utility function.
- *
- * @author John Schulman
- * @author Levi Armstrong
- * @date Dec 18, 2017
- * @version TODO
- * @bug No known bugs
- *
- * @copyright Copyright (c) 2017, Southwest Research Institute
- * @copyright Copyright (c) 2013, John Schulman
- *
- * @par License
+/*********************************************************************
  * Software License Agreement (BSD-2-Clause)
- * @par
+ *
+ * Copyright (c) 2017, Southwest Research Institute
+ * Copyright (c) 2013, John Schulman
  * All rights reserved.
- * @par
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * @par
+ *
  *  * Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- * @par
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -39,7 +28,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- */
+ *********************************************************************/
+
+/* Authors: John Schulman, Levi Armstrong */
 
 #include "moveit/collision_detection_bullet/tesseract/bullet_utils.h"
 
@@ -288,8 +279,8 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   assert(shapes.size() == shape_poses.size());
   assert(shapes.size() == collision_object_types.size());
 
-  m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
-  m_collisionFilterMask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter;
+  m_collision_filter_group = btBroadphaseProxy::KinematicFilter;
+  m_collision_filter_mask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter;
 
   if (shapes.size() == 1)
   {

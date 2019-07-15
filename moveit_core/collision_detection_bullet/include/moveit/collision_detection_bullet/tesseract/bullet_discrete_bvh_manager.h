@@ -1,30 +1,20 @@
-/**
- * @file bullet_discrete_bvh_manager.h
- * @brief Tesseract ROS Bullet discrete BVH collision manager.
- *
- * @author Levi Armstrong
- * @date Dec 18, 2017
- * @version TODO
- * @bug No known bugs
- *
- * @copyright Copyright (c) 2017, Southwest Research Institute
- *
- * @par License
+/*********************************************************************
  * Software License Agreement (BSD-2-Clause)
- * @par
+ *
+ * Copyright (c) 2017, Southwest Research Institute
  * All rights reserved.
- * @par
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * @par
+ *
  *  * Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- * @par
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -37,7 +27,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- */
+ *********************************************************************/
+
+/* Author: Levi Armstrong */
 
 #ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
 #define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

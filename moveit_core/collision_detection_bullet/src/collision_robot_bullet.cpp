@@ -48,7 +48,7 @@ CollisionRobotBullet::CollisionRobotBullet(const robot_model::RobotModelConstPtr
 
   manager_->setIsContactAllowedFn(fun);
 
-  for (const std::pair<std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
+  for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
     addLinkAsCOW(link.second);
   }
@@ -198,7 +198,7 @@ void CollisionRobotBullet::updateTransformsFromState(
     const robot_state::RobotState& state, const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const
 {
   // updating link positions with the current robot state
-  for (const std::pair<std::string, collision_detection_bullet::COWPtr>& link : manager->getCollisionObjects())
+  for (const std::pair<const std::string, collision_detection_bullet::COWPtr>& link : manager->getCollisionObjects())
   {
     // select the first of the transformations for each link (composed of multiple shapes...)
     manager->setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));

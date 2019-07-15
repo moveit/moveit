@@ -51,6 +51,6 @@ class CollisionDetectorAllocatorBullet
 public:
   static const std::string NAME;  // defined in collision_world_bullet.cpp
 };
-}
+}  // namespace collision_detection
 
 #endif  // MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_

@@ -1,32 +1,21 @@
-/**
- * @file bullet_utils.h
- * @brief Tesseract ROS Bullet environment utility function.
- *
- * @author John Schulman
- * @author Levi Armstrong
- * @date Dec 18, 2017
- * @version TODO
- * @bug No known bugs
- *
- * @copyright Copyright (c) 2017, Southwest Research Institute
- * @copyright Copyright (c) 2013, John Schulman
- *
- * @par License
+/*********************************************************************
  * Software License Agreement (BSD-2-Clause)
- * @par
+ *
+ * Copyright (c) 2017, Southwest Research Institute
+ * Copyright (c) 2013, John Schulman
  * All rights reserved.
- * @par
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * @par
+ *
  *  * Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
  *    with the distribution.
- * @par
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -39,7 +28,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- */
+ *********************************************************************/
+
+/* Authors: John Schulman, Levi Armstrong */
 
 #ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
 #define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
@@ -130,10 +121,10 @@ public:
                          const std::set<std::string>& touch_links);
 
   /** \brief Bitfield specifies to which group the object belongs */
-  short int m_collisionFilterGroup;
+  short int m_collision_filter_group;
 
   /** \brief Bitfield specifies against which other groups the object is collision checked */
-  short int m_collisionFilterMask;
+  short int m_collision_filter_mask;
 
   /** \brief Indicates if the collision object is used for a collision check */
   bool m_enabled;
@@ -184,8 +175,8 @@ public:
         new CollisionObjectWrapper(m_name, m_type_id, m_shapes, m_shape_poses, m_collision_object_types, m_data));
     clone_cow->setCollisionShape(getCollisionShape());
     clone_cow->setWorldTransform(getWorldTransform());
-    clone_cow->m_collisionFilterGroup = m_collisionFilterGroup;
-    clone_cow->m_collisionFilterMask = m_collisionFilterMask;
+    clone_cow->m_collision_filter_group = m_collision_filter_group;
+    clone_cow->m_collision_filter_mask = m_collision_filter_mask;
     clone_cow->m_enabled = m_enabled;
     clone_cow->setBroadphaseHandle(nullptr);
     clone_cow->m_touch_links = m_touch_links;
@@ -297,8 +288,8 @@ inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContac
   if (!cow2.m_enabled)
     return false;
 
-  if (!((cow2.m_collisionFilterGroup & cow1.m_collisionFilterMask) &&
-        (cow1.m_collisionFilterGroup & cow2.m_collisionFilterMask)))
+  if (!((cow2.m_collision_filter_group & cow1.m_collision_filter_mask) &&
+        (cow1.m_collision_filter_group & cow2.m_collision_filter_mask)))
     return false;
 
   if (isContactAllowed(cow1.getName(), cow2.getName(), allowed_fn, acm, verbose))
@@ -642,27 +633,27 @@ btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
  * checking. */
 inline void updateCollisionObjectFilters(const std::vector<std::string>& active, COW& cow, bool continuous)
 {
-  cow.m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
+  cow.m_collision_filter_group = btBroadphaseProxy::KinematicFilter;
 
   if (!isLinkActive(active, cow.getName()))
   {
-    cow.m_collisionFilterGroup = btBroadphaseProxy::StaticFilter;
+    cow.m_collision_filter_group = btBroadphaseProxy::StaticFilter;
   }
 
-  if (cow.m_collisionFilterGroup == btBroadphaseProxy::StaticFilter)
+  if (cow.m_collision_filter_group == btBroadphaseProxy::StaticFilter)
   {
-    cow.m_collisionFilterMask = btBroadphaseProxy::KinematicFilter;
+    cow.m_collision_filter_mask = btBroadphaseProxy::KinematicFilter;
   }
   else
   {
-    (continuous) ? (cow.m_collisionFilterMask = btBroadphaseProxy::StaticFilter) :
-                   (cow.m_collisionFilterMask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter);
+    (continuous) ? (cow.m_collision_filter_mask = btBroadphaseProxy::StaticFilter) :
+                   (cow.m_collision_filter_mask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter);
   }
 
   if (cow.getBroadphaseHandle())
   {
-    cow.getBroadphaseHandle()->m_collisionFilterGroup = cow.m_collisionFilterGroup;
-    cow.getBroadphaseHandle()->m_collisionFilterMask = cow.m_collisionFilterMask;
+    cow.getBroadphaseHandle()->m_collisionFilterGroup = cow.m_collision_filter_group;
+    cow.getBroadphaseHandle()->m_collisionFilterMask = cow.m_collision_filter_mask;
   }
 }
 
@@ -721,8 +712,8 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
     : collisions_(collisions), cow_(cow), contact_distance_(contact_distance), verbose_(verbose)
   {
     m_closestDistanceThreshold = static_cast<btScalar>(contact_distance);
-    m_collisionFilterGroup = cow->m_collisionFilterGroup;
-    m_collisionFilterMask = cow->m_collisionFilterMask;
+    m_collisionFilterGroup = cow->m_collision_filter_group;
+    m_collisionFilterMask = cow->m_collision_filter_mask;
   }
 
   btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int /*partId0*/,
@@ -792,8 +783,8 @@ inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_
 
   // Add the active collision object to the broadphase
   int type = cow->getCollisionShape()->getShapeType();
-  cow->setBroadphaseHandle(broadphase->createProxy(aabb_min, aabb_max, type, cow.get(), cow->m_collisionFilterGroup,
-                                                   cow->m_collisionFilterMask, dispatcher.get()));
+  cow->setBroadphaseHandle(broadphase->createProxy(aabb_min, aabb_max, type, cow.get(), cow->m_collision_filter_group,
+                                                   cow->m_collision_filter_mask, dispatcher.get()));
 }
 }  // namespace collision_detection_bullet
 #endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_

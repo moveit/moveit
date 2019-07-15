@@ -469,6 +469,7 @@ TYPED_TEST_P(CollisionDetectorTest, TestCollisionMapAdditionSpeed)
   ros::WallTime start = ros::WallTime::now();
   this->cworld_->getWorld()->addToObject("map", shapes, poses);
   double t = (ros::WallTime::now() - start).toSec();
+  // TODO: investigate why bullet collision checking is considerably slower here
   EXPECT_GE(5.0, t);
   // this is not really a failure; it is just that slow;
   // looking into doing collision checking with a voxel grid.
