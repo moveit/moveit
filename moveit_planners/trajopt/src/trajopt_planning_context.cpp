@@ -50,6 +50,8 @@ trajopt_interface::TrajOptPlanningContext::TrajOptPlanningContext(const std::str
   robot_state_->setToDefaultValues();
   robot_state_->update();
 
+
+  trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 
 
@@ -91,38 +93,7 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
   //  trajopt_interface::TrajOptPlanningContext::setTrajOptPlannerConfiguration();
   
 
-   sco::BasicTrustRegionSQP opt(spec_.prob);
-
-   opt.setParameters(trajopt_interface::spec_.params);
-
-
-   opt.initialize(trajopt::trajToDblVec(spec_.prob->GetInitTraj())); // DblVec: a vector of double elements
-
-
-  // Add all callbacks
-//  for (const sco::Optimizer::Callback& callback : config.callbacks)
-//  {
-   // callback should be created ???
-
-   opt.addCallback(trajopt_interface::spec_.callbacks);
- // }
-
-    // how to put ModelType, params, callback, in a request so the user can define them ????
-    // I need more information than what the template request has in MoveIt
-
-  // Optimize
-  ros::Time tStart = ros::Time::now();
-
-
-  std::cout << "beforeeeeeeeeeeeeeeeeeeeeeeeeeeeeee "  << std::endl;
-
-  opt.optimize();
-
-  std::cout << "aftreeeeeeeeeeeeeeeeeeeeeeeeeeeeeer  "  << std::endl;
-
-
-  ROS_INFO("planning time: %.3f", (ros::Time::now() - tStart).toSec());
-
+  
 
   // ????????
   // how do I pass arguments that can not be parts of MotionPlannerRequest and are not string so they could be passed
@@ -155,6 +126,11 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
   // response.joint_names = config.prob->GetKin()->getJointNames();
   //response.status_description = sco::statusToString(opt.results().status);
 
+    bool trajopt_solve = trajopt_interface_->solve(planning_scene, req, params, res));
+ 
+  
+   if(trajopt_solve){
+
   trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), spec_.prob->GetVars());
 
   std::cout << "************* solution ************** " << std::endl;
@@ -173,8 +149,20 @@ bool trajopt_interface::TrajOptPlanningContext::solve(planning_interface::Motion
   resp.trajectory_ = traj;
   
   std::cout << " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww 2  "  << std::endl;
+
+
+  res.description_.push_back("plan");
+  res.processing_time_ = res_msg.processing_time;
+  res.error_code_ = res_msg.error_code;
+    return true;
   
-  return true;
+  }else
+  {
+    res.error_code_ = res_msg.error_code;
+    return false;
+  }
+  
+
 }
 
 void trajopt_interface::callBackFunc(sco::OptProb* oprob, sco::OptResults& ores){
@@ -236,94 +224,3 @@ void trajopt_interface::TrajOptPlanningContext::plotVector(const std::string& st
 */
 
 
-// inspired by the same functin in trajopt/trajopt/problem_description.cpp
-trajopt::TrajArray trajopt_interface::generateInitialTrajectory(const int& num_steps){
-
-  // Stationary initial trajectory
-  // we can get the current joint values here
-  Eigen::VectorXd start_pos(dof_); // dof
-
-  for (int k = 0; k < dof_; ++k){
-   start_pos[k] = 0;
-  }
-
-  trajopt::TrajArray init_traj = start_pos.transpose().replicate(num_steps,1); // replicate(n_steps,1)
-
-  return init_traj;
-}
-
-
-void trajopt_interface::TrajOptPlanningContext::setTrajOptPlannerConfiguration(){
-
-  // spec_.model_type = sco::ModelType::AUTO_SOLVER;
-
-  int num_steps = 10;
-  bool u_time = false;
-  trajopt_interface::TrajOptProblem traj_prob(num_steps, u_time, robot_model_);
-  *spec_.prob = traj_prob;
-
-  sco::BasicTrustRegionSQPParameters params; // all members in params are double
-  // It has a constructor that sets all these paramters to default values
-  /*
-  params.improve_ratio_threshold = 0.25;
-  params.min_trust_box_size = 1e-4;
-  params.min_approx_improve = 1e-4;
-  params.min_approx_improve_frac = -INFINITY;
-  params.max_iter = 50;
-  params.trust_shrink_ratio = 0.1;
-  params.trust_expand_ratio = 1.5;
-  params.cnt_tolerance = 1e-4;
-  params.max_merit_coeff_increases = 5;
-  params.merit_coeff_increase_ratio = 10;
-  params.max_time = INFINITY;
-  params.merit_error_coeff = 10;
-  params.trust_box_size = 1e-1;
-  */
-  trajopt_interface::spec_.params = params;
-
-
-  std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>. before calling generateInitialTrajectory " << dof_ << std::endl;
-  trajopt::TrajArray traj_array_initial = generateInitialTrajectory(num_steps);
-  std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>. after calling generateInitialTrajectory " << dof_ << std::endl;
-
-  spec_.prob->SetInitTraj(traj_array_initial);
-
-  // cartesina pose cnt at final oint
-  /* Eigen::Quaterniond rotation(final_pose.linear());
-  std::shared_ptr<trajopt::CartPoseTermInfo> pose_constraint =
-    std::shared_ptr<trajopt::CartPoseTermInfo>(new trajopt::CartPoseTermInfo);
-  pose_constraint->term_type = trajopt::TT_CNT;
-  pose_constraint->link = end_effector;
-  pose_constraint->timestep = 2 * steps_per_phase - 1;
-  pose_constraint->xyz = final_pose.translation();
-
-  pose_constraint->wxyz = Eigen::Vector4d(rotation.w(), rotation.x(), rotation.y(), rotation.z());
-  pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-  pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-  pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
-  pci.cnt_infos.push_back(pose_constraint);
-  */  
-
-  // DblVec => std::vector<double>
-  sco::DblVec coeffs(dof_, 1);
-  sco::DblVec targets(dof_, 1);
-  int first_step = 0;
-  int last_step = 0; // what are these first and last for
-
-  trajopt::VarArray vars = spec_.prob->GetVars(); // columns are dof and rows are waypoints
-  std::cout << "varsssssssssssssssssssssss "  << vars.at(0,0) << std::endl;
-  trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(dof_));
-
-
-
-  sco::ConstraintPtr cptr = sco::ConstraintPtr(new trajopt::JointPosEqConstraint(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step));
-
-  std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-  
-  spec_.prob->addConstraint(cptr);
-
-
-  // Make callback
-  sco::Optimizer::Callback callback = callBackFunc;
-  trajopt_interface::spec_.callbacks = callback;
-}
