@@ -51,21 +51,16 @@ add_library(problem_description src/problem_description.cpp)
 set_target_properties(problem_description PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(problem_description ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-
 #add_library(problem_description INTERFACE)
 #target_include_directories(problem_description INTERFACE include/)
 
-# add_library(trajopt_interface src/trajopt_interface.cpp)
-# set_target_properties (trajopt_interface PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-# target_link_libraries(trajopt_interface ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(trajopt_interface src/trajopt_interface.cpp)
+set_target_properties (trajopt_interface PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(trajopt_interface ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description)
 
-add_library(${PROJECT_NAME}
-  src/trajopt_planning_context.cpp
-  src/trajopt_interface.cpp
-  #  src/problem_description.cpp
-  )
+add_library(${PROJECT_NAME}  src/trajopt_planning_context.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description trajopt_interface)
 
 # TrajOpt planning plugin
 add_library(moveit_trajopt_planner_plugin src/trajopt_planner_manager.cpp)

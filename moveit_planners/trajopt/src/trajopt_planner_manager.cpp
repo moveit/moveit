@@ -93,7 +93,7 @@ public:
 
      planning_contexts_["panda_arm"] =
        TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", "panda_arm", model));
-    
+
     return true;
   }
 
@@ -142,17 +142,11 @@ public:
 
     // retrieve and configure existing context
     const TrajOptPlanningContextPtr& context = planning_contexts_.at(req.group_name);
-    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " << req.group_name  << std::endl;
+
     std::cout << "===>>> context is made " << std::endl;
 
     context->setPlanningScene(ps);
     context->setMotionPlanRequest(req);
-
-    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> before setConfig " << trajopt_interface::dof_  << std::endl;
-    context->setTrajOptPlannerConfiguration();
-    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> after setConfig " << trajopt_interface::dof_  << std::endl;
-
-    std::cout << "===>>> eeeeeeeeeeeeeeend of geeeeeeeeetContext " << std::endl;
 
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
