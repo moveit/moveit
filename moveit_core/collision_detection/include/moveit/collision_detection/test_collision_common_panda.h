@@ -259,5 +259,4 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
 }
 
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
-                           RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest,
-                           DistanceSelf, DistanceWorld);
+                           RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);

@@ -102,6 +102,7 @@ public:
                               const robot_state::RobotState& state) const;
 
   /** \brief Check whether the robot model is in collision with itself or the world at a particular state.
+
    *  Allowed collisions specified by the allowed collision matrix are taken into account.
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
