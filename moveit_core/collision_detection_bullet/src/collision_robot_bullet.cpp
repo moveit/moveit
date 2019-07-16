@@ -36,6 +36,7 @@
 
 #include <moveit/collision_detection_bullet/collision_robot_bullet.h>
 #include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
+#include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
 #include <urdf/model.h>
 
 namespace collision_detection
@@ -52,6 +53,10 @@ CollisionRobotBullet::CollisionRobotBullet(const robot_model::RobotModelConstPtr
   {
     addLinkAsCOW(link.second);
   }
+
+  std::vector<std::string> active;
+  collision_detection_bullet::getActiveLinkNamesRecursive(active, robot_model_->getURDF()->getRoot(), true);
+  manager_->setActiveCollisionObjects(active);
 }
 
 CollisionRobotBullet::CollisionRobotBullet(const CollisionRobotBullet& other)
@@ -221,20 +226,20 @@ void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr& link)
     {
       if (i && i->geometry)
       {
-        shapes::ShapePtr s = collision_detection_bullet::constructShape(i->geometry.get());
+        shapes::ShapePtr shape = collision_detection_bullet::constructShape(i->geometry.get());
 
-        if (s)
+        if (shape)
         {
           if (fabs(getLinkScale(link->name) - 1.0) >= std::numeric_limits<double>::epsilon() ||
               fabs(getLinkPadding(link->name)) >= std::numeric_limits<double>::epsilon())
           {
-            s->scaleAndPadd(getLinkScale(link->name), getLinkPadding(link->name));
+            shape->scaleAndPadd(getLinkScale(link->name), getLinkPadding(link->name));
           }
 
-          shapes.push_back(s);
+          shapes.push_back(shape);
           shape_poses.push_back(collision_detection_bullet::urdfPose2Eigen(i->origin));
 
-          if (s->type == shapes::MESH)
+          if (shape->type == shapes::MESH)
           {
             collision_object_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
           }

@@ -138,6 +138,8 @@ void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req
                                                          state.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
+  discrete_clone_manager->setActiveCollisionObjects(robot_bt.manager_->getActiveCollisionObjects());
+
   discrete_clone_manager->contactTest(res, req, acm, attached_cows);
 }
 

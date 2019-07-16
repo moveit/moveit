@@ -630,7 +630,7 @@ btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
  *
  *  Currently continuous collision objects can only be checked against static objects. Continuous to Continuous
  *  collision checking is currently not supports. TODO LEVI: Add support for Continuous to Continuous collision
- * checking. */
+ *  checking. */
 inline void updateCollisionObjectFilters(const std::vector<std::string>& active, COW& cow, bool continuous)
 {
   cow.m_collision_filter_group = btBroadphaseProxy::KinematicFilter;
