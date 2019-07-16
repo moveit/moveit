@@ -75,6 +75,7 @@ public:
 protected:
   void SetUp() override
   {
+
     value_.reset(new CollisionAllocatorType);
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
@@ -254,5 +255,38 @@ TYPED_TEST_P(CollisionDetectorPandaTest, PaddingTest)
   ASSERT_FALSE(res.collision);
 }
 
+/** \brief Tests the distance reporting with the robot itself */
+TYPED_TEST_P(CollisionDetectorPandaTest, DistanceSelf)
+{
+  collision_detection::CollisionRequest req;
+  req.distance = true;
+  collision_detection::CollisionResult res;
+  this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
+  ASSERT_FALSE(res.collision);
+  EXPECT_NEAR(res.distance, 0.058, 0.01);
+}
+
+TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
+{
+  collision_detection::CollisionRequest req;
+  req.distance = true;
+  collision_detection::CollisionResult res;
+
+  // Adding the box right in front of the robot hand
+  shapes::Shape* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+  pos.translation().x() = 0.43;
+  pos.translation().y() = 0;
+  pos.translation().z() = 0.55;
+  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+
+  this->crobot_->setLinkPadding("panda_hand", 0.0);
+  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  ASSERT_FALSE(res.collision);
+  EXPECT_NEAR(res.distance, 0.029, 0.01);
+}
+
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
-                           DISABLED_WorldToWorldCollision, RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest);
+                           DISABLED_WorldToWorldCollision, RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);
