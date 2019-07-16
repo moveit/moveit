@@ -64,7 +64,10 @@ public:
       ROS_DEBUG("Running '%s'", getDescription().c_str());
       if (!time_param_.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor,
                                          req.max_acceleration_scaling_factor))
-        ROS_WARN("Time parametrization for the solution path failed.");
+      {
+        ROS_ERROR("Time parametrization for the solution path failed.");
+        result = false;
+      }
     }
 
     return result;
