@@ -58,24 +58,32 @@
 
 #include "problem_description.h"
 
+#include <moveit/planning_interface/planning_request.h>
+#include <moveit/planning_interface/planning_response.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 namespace trajopt_interface
 {
-  //  MOVEIT_CLASS_FORWARD(TrajOptInterface);
+MOVEIT_CLASS_FORWARD(TrajOptInterface);
 
 class TrajOptInterface //: public trajopt::TrajOptPlanner
 {
 public:
-  TrajOptInterface();
-  virtual ~TrajOptInterface() = 0;
-  
+
   TrajOptInterface(const ros::NodeHandle& nh = ros::NodeHandle("~"));
+  virtual ~TrajOptInterface();
 
   const sco::BasicTrustRegionSQPParameters& getParams() const { return params_; }
 
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
+             const sco::BasicTrustRegionSQPParameters& params, planning_interface::MotionPlanResponse& res) const; // const
+
+  trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals);
+
 protected:
   /** @brief Configure everything using the param server */
-  void setTrajOptPlannerConfiguration();
+  void setParamsFromRosParamServer();
+  void setDefaultParams();
 
   ros::NodeHandle nh_;  /// The ROS node handle
 
@@ -85,9 +93,12 @@ protected:
 
   TrajOptProblemPtr prob_;
 
-  void callBackFunc(sco::OptProb* oprob, sco::OptResults& ores);
-
+  // a function to convert TrajArray (TrajArray has no dependency on tesseract) from trajopt_ros to trajectory_msgs::JointTrajectory.Points
+  trajectory_msgs::JointTrajectory convertTrajArrayToJointTrajectory(const trajopt::TrajArray& traj_array, const std::vector<std::string>& j_names);
 };
+
+void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res);
+
 }
 
 #endif
