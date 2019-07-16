@@ -4,7 +4,7 @@
 #include <trajopt/common.hpp>
 #include <trajopt/json_marshal.hpp>
 #include <trajopt_sco/optimizers.hpp>
-
+#include <moveit/robot_model/robot_model.h>
 
 namespace trajopt_interface
 {
