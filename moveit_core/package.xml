@@ -48,7 +48,6 @@
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
-  <depend>eigen_conversions</depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>angles</test_depend>
