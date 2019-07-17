@@ -33,7 +33,7 @@
 
 #include <utility>
 
-#include "moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h"
+#include "moveit/collision_detection_bullet/bullet_integration/bullet_discrete_bvh_manager.h"
 
 namespace collision_detection_bullet
 {

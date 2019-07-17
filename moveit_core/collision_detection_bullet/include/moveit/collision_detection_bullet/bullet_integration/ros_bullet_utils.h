@@ -18,8 +18,8 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_
 
 #include <octomap_msgs/conversions.h>
 #include <geometric_shapes/shape_messages.h>
@@ -27,7 +27,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <ros/console.h>
 
-#include <moveit/collision_detection_bullet/tesseract/basic_types.h>
+#include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 
 namespace collision_detection_bullet
 {
@@ -106,4 +106,4 @@ inline Eigen::Isometry3d urdfPose2Eigen(const urdf::Pose& pose)
   return result;
 }
 }  // namespace collision_detection_bullet
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_ROS_UTILS_H_
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_

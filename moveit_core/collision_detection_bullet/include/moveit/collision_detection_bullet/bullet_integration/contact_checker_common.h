@@ -18,15 +18,15 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
 
 #include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>
 #include <Eigen/Geometry>
 #include <fstream>
 
-#include <moveit/collision_detection_bullet/tesseract/basic_types.h>
+#include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_matrix.h>
 
@@ -268,4 +268,4 @@ inline bool allowedCollisionCheck(const std::string& body_1, const std::string& 
 }
 }  // namespace collision_detection_bullet
 
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_CONTACT_CHECKER_COMMON_H_
+#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_

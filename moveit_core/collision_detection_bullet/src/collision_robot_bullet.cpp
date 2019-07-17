@@ -35,8 +35,8 @@
 /* Author: Jens Petit */
 
 #include <moveit/collision_detection_bullet/collision_robot_bullet.h>
-#include <moveit/collision_detection_bullet/tesseract/ros_tesseract_utils.h>
-#include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
+#include <moveit/collision_detection_bullet/bullet_integration/ros_bullet_utils.h>
+#include <moveit/collision_detection_bullet/bullet_integration/contact_checker_common.h>
 #include <urdf/model.h>
 
 namespace collision_detection
@@ -64,7 +64,8 @@ CollisionRobotBullet::CollisionRobotBullet(const CollisionRobotBullet& other)
 {
 }
 
-void CollisionRobotBullet::addAttachedOjects(const robot_state::RobotState& state,
+void CollisionRobotBullet::addAttachedOjects(
+    const robot_state::RobotState& state,
     std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const
 {
   std::vector<const robot_state::AttachedBody*> attached_bodies;
@@ -114,7 +115,7 @@ void CollisionRobotBullet::checkSelfCollisionCCDHelper(const CollisionRequest& r
                                                        const robot_state::RobotState& state2,
                                                        const AllowedCollisionMatrix* acm) const
 {
-  // TODO: Not in tesseract yet
+  // TODO: Not in bullet yet
 }
 
 void CollisionRobotBullet::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,

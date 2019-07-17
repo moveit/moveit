@@ -31,10 +31,10 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
 
-#include <moveit/collision_detection_bullet/tesseract/bullet_utils.h>
+#include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/macros/class_forward.h>
 
 namespace collision_detection_bullet
@@ -149,8 +149,8 @@ public:
                    const collision_detection::AllowedCollisionMatrix* acm,
                    const std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows_external);
 
-  /**@brief Add a tesseract collision object to the manager
-  *  @param cow The tesseract bullet collision object */
+  /**@brief Add a bullet collision object to the manager
+  *  @param cow The bullet collision object */
   void addCollisionObject(const CollisionObjectWrapperPtr& cow);
 
   /**@brief Return collision objects
@@ -188,4 +188,4 @@ private:
   void contactTest(const CollisionObjectWrapperPtr& cow, ContactTestData& collisions);
 };
 }  // namespace collision_detection_bullet
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
+#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

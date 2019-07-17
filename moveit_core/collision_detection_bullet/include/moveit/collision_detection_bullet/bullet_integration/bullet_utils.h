@@ -32,15 +32,15 @@
 
 /* Authors: John Schulman, Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
+#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_
+#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_
 
 #include <btBulletCollisionCommon.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <ros/console.h>
 
-#include <moveit/collision_detection_bullet/tesseract/basic_types.h>
-#include <moveit/collision_detection_bullet/tesseract/contact_checker_common.h>
+#include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
+#include <moveit/collision_detection_bullet/bullet_integration/contact_checker_common.h>
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/macros/declare_ptr.h>
 #include <moveit/macros/class_forward.h>
@@ -99,7 +99,7 @@ inline btTransform convertEigenToBt(const Eigen::Isometry3d& t)
 
 /** @brief Tesseract bullet collision object.
  *
- *  A wrapper around bullet's collision object which contains specific information related to tesseract */
+ *  A wrapper around bullet's collision object which contains specific information related to bullet */
 class CollisionObjectWrapper : public btCollisionObject
 {
 public:
@@ -800,4 +800,4 @@ inline void addCollisionObjectToBroadphase(const CollisionObjectWrapperPtr& cow,
                                                    cow->m_collision_filter_mask, dispatcher.get()));
 }
 }  // namespace collision_detection_bullet
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_BULLET_UTILS_H_
+#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_

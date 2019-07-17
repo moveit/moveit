@@ -32,7 +32,7 @@
 
 /* Authors: John Schulman, Levi Armstrong */
 
-#include "moveit/collision_detection_bullet/tesseract/bullet_utils.h"
+#include "moveit/collision_detection_bullet/bullet_integration/bullet_utils.h"
 
 #include <BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>

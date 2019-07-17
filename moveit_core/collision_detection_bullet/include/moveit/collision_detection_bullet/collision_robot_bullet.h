@@ -37,7 +37,7 @@
 #ifndef MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_
 #define MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_ROBOT_BULLET_H_
 
-#include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
+#include <moveit/collision_detection_bullet/bullet_integration/bullet_discrete_bvh_manager.h>
 #include <moveit/collision_detection/collision_robot.h>
 
 namespace collision_detection

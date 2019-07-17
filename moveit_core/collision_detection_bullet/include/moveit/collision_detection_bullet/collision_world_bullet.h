@@ -39,7 +39,7 @@
 
 #include <moveit/collision_detection_bullet/collision_robot_bullet.h>
 #include <moveit/collision_detection/collision_world.h>
-#include <moveit/collision_detection_bullet/tesseract/bullet_discrete_bvh_manager.h>
+#include <moveit/collision_detection_bullet/bullet_integration/bullet_discrete_bvh_manager.h>
 #include <memory>
 
 namespace collision_detection
