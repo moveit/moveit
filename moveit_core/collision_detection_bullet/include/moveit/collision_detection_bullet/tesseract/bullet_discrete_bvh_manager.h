@@ -147,15 +147,15 @@ public:
    * @param cows_external Objects to check which are not part of the manager */
   void contactTest(collision_detection::CollisionResult& collisions, const collision_detection::CollisionRequest& req,
                    const collision_detection::AllowedCollisionMatrix* acm,
-                   const std::vector<collision_detection_bullet::COWPtr> cows_external);
+                   const std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows_external);
 
   /**@brief Add a tesseract collision object to the manager
   *  @param cow The tesseract bullet collision object */
-  void addCollisionObject(const COWPtr& cow);
+  void addCollisionObject(const CollisionObjectWrapperPtr& cow);
 
   /**@brief Return collision objects
    * @return A map of collision objects <name, collision object> */
-  const std::map<std::string, COWPtr>& getCollisionObjects() const;
+  const std::map<std::string, CollisionObjectWrapperPtr>& getCollisionObjects() const;
 
 private:
   /** @brief A list of the active collision objects */
@@ -180,12 +180,12 @@ private:
   std::unique_ptr<btBroadphaseInterface> broadphase_;
 
   /** @brief A map of all (static and active) collision objects being managed */
-  std::map<std::string, COWPtr> link2cow_;
+  std::map<std::string, CollisionObjectWrapperPtr> link2cow_;
 
   /**@brief Perform a contact test for the provided object which is not part of the manager
    * @param cow The Collision object
    * @param collisions The collision results */
-  void contactTest(const COWPtr& cow, ContactTestData& collisions);
+  void contactTest(const CollisionObjectWrapperPtr& cow, ContactTestData& collisions);
 };
 }  // namespace collision_detection_bullet
 #endif  //  MOVEIT_COLLISION_DETECTION_BULLET_TESSERACT_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

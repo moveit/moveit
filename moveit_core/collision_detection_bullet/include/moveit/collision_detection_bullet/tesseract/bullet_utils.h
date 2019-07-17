@@ -57,8 +57,6 @@ const btScalar BULLET_DEFAULT_CONTACT_DISTANCE = 0.00f;  // All pairs closer tha
 const bool BULLET_COMPOUND_USE_DYNAMIC_AABB = true;
 
 MOVEIT_CLASS_FORWARD(CollisionObjectWrapper)
-typedef CollisionObjectWrapper COW;
-MOVEIT_DECLARE_PTR(COW, CollisionObjectWrapper)
 
 /** \brief Converts eigen vector to bullet vector */
 inline btVector3 convertEigenToBt(const Eigen::Vector3d& v)
@@ -230,7 +228,7 @@ protected:
  *  \param localNormal The support direction to search for in shape local coordinates
  *  \param outsupport The value of the calculated support mapping
  *  \param outpt The computed support point */
-inline void GetAverageSupport(const btConvexShape* shape, const btVector3& localNormal, float& outsupport,
+inline void getAverageSupport(const btConvexShape* shape, const btVector3& localNormal, float& outsupport,
                               btVector3& outpt)
 {
   btVector3 pt_sum(0, 0, 0);
@@ -279,7 +277,8 @@ inline void GetAverageSupport(const btConvexShape* shape, const btVector3& local
  *  @param acm  The contact allowed function pointer
  *  @param verbose Indicate if verbose information should be printed
  *  @return True if the two collision objects should be checked for collision, otherwise false */
-inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContactAllowedFn& allowed_fn,
+inline bool needsCollisionCheck(const CollisionObjectWrapper& cow1, const CollisionObjectWrapper& cow2,
+                                const IsContactAllowedFn& allowed_fn,
                                 const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
 {
   if (!cow1.m_enabled)
@@ -312,6 +311,7 @@ inline bool needsCollisionCheck(const COW& cow1, const COW& cow2, const IsContac
   return true;
 }
 
+/** \brief Converts a bullet contact result to MoveIt format and adds it to the result data structure */
 inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap,
                                         const btCollisionObjectWrapper* colObj1Wrap, ContactTestData& collisions)
 {
@@ -345,7 +345,7 @@ inline btScalar addDiscreteSingleResult(btManifoldPoint& cp, const btCollisionOb
   return 1;
 }
 
-/** @brief This is copied directly out of BulletWorld */
+/** \brief Processes a contact point */
 struct TesseractBridgedManifoldResult : public btManifoldResult
 {
   btCollisionWorld::ContactResultCallback& m_resultCallback;
@@ -447,6 +447,7 @@ struct DiscreteBroadphaseContactResultCallback : public BroadphaseContactResultC
   }
 };
 
+/** \brief Processes a contact point */
 struct TesseractBroadphaseBridgedManifoldResult : public btManifoldResult
 {
   BroadphaseContactResultCallback& result_callback_;
@@ -509,10 +510,9 @@ struct TesseractBroadphaseBridgedManifoldResult : public btManifoldResult
   }
 };
 
-/** @brief This is copied directly out of BulletWorld
+/** @brief Check a collision object not in the broadphase to the broadphase which may eventually be exposed.
  *
- *  This is currently not used but will remain because it is needed to check a collision object not in the broadphase to
- * the broadphase which may eventually be exposed. */
+ *  This is copied directly out of BulletWorld */
 struct TesseractSingleContactCallback : public btBroadphaseAabbCallback
 {
   btCollisionObject* m_collisionObject;    /**< @brief The bullet collision object */
@@ -620,6 +620,7 @@ public:
   }
 };
 
+/** \brief Casts a geometric shape into a btCollisionShape */
 btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
                                        const CollisionObjectType& collision_object_type, CollisionObjectWrapper* cow);
 
@@ -631,7 +632,8 @@ btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
  *  Currently continuous collision objects can only be checked against static objects. Continuous to Continuous
  *  collision checking is currently not supports. TODO LEVI: Add support for Continuous to Continuous collision
  *  checking. */
-inline void updateCollisionObjectFilters(const std::vector<std::string>& active, COW& cow, bool continuous)
+inline void updateCollisionObjectFilters(const std::vector<std::string>& active, CollisionObjectWrapper& cow,
+                                         bool continuous)
 {
   cow.m_collision_filter_group = btBroadphaseProxy::KinematicFilter;
 
@@ -657,10 +659,13 @@ inline void updateCollisionObjectFilters(const std::vector<std::string>& active,
   }
 }
 
-inline COWPtr createCollisionObject(const std::string& name, const collision_detection::BodyType& type_id,
-                                    const std::vector<shapes::ShapeConstPtr>& shapes,
-                                    const AlignedVector<Eigen::Isometry3d>& shape_poses,
-                                    const std::vector<CollisionObjectType>& collision_object_types, bool enabled = true)
+/** \brief Wrapper around constructing a CollisionObjectWrapper */
+inline CollisionObjectWrapperPtr createCollisionObject(const std::string& name,
+                                                       const collision_detection::BodyType& type_id,
+                                                       const std::vector<shapes::ShapeConstPtr>& shapes,
+                                                       const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                                       const std::vector<CollisionObjectType>& collision_object_types,
+                                                       bool enabled = true)
 {
   // dont add object that does not have geometry
   if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
@@ -669,7 +674,8 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
     return nullptr;
   }
 
-  COWPtr new_cow(new COW(name, type_id, shapes, shape_poses, collision_object_types));
+  CollisionObjectWrapperPtr new_cow(
+      new CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types));
 
   new_cow->m_enabled = enabled;
   new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
@@ -678,11 +684,14 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   return new_cow;
 }
 
-inline COWPtr createCollisionObject(const std::string& name, const collision_detection::BodyType& type_id,
-                                    const std::vector<shapes::ShapeConstPtr>& shapes,
-                                    const AlignedVector<Eigen::Isometry3d>& shape_poses,
-                                    const std::vector<CollisionObjectType>& collision_object_types,
-                                    const std::set<std::string>& touch_links, bool enabled = true)
+// TODO: Unify with other createCollisionObject functions
+/** \brief Wrapper around constructing a CollisionObjectWrapper for attached objects */
+inline CollisionObjectWrapperPtr createCollisionObject(const std::string& name,
+                                                       const collision_detection::BodyType& type_id,
+                                                       const std::vector<shapes::ShapeConstPtr>& shapes,
+                                                       const AlignedVector<Eigen::Isometry3d>& shape_poses,
+                                                       const std::vector<CollisionObjectType>& collision_object_types,
+                                                       const std::set<std::string>& touch_links, bool enabled = true)
 {
   // dont add object that does not have geometry
   if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size()))
@@ -691,7 +700,8 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
     return nullptr;
   }
 
-  COWPtr new_cow(new COW(name, type_id, shapes, shape_poses, collision_object_types, touch_links));
+  CollisionObjectWrapperPtr new_cow(
+      new CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types, touch_links));
 
   new_cow->m_enabled = enabled;
   new_cow->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
@@ -700,14 +710,15 @@ inline COWPtr createCollisionObject(const std::string& name, const collision_det
   return new_cow;
 }
 
+/** \brief Processes a contact after positive broadphase check */
 struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallback
 {
   ContactTestData& collisions_;
-  const COWPtr cow_;
+  const CollisionObjectWrapperPtr cow_;
   double contact_distance_;
   bool verbose_;
 
-  DiscreteCollisionCollector(ContactTestData& collisions, const COWPtr& cow, double contact_distance,
+  DiscreteCollisionCollector(ContactTestData& collisions, const CollisionObjectWrapperPtr& cow, double contact_distance,
                              bool verbose = false)
     : collisions_(collisions), cow_(cow), contact_distance_(contact_distance), verbose_(verbose)
   {
@@ -741,7 +752,8 @@ struct DiscreteCollisionCollector : public btCollisionWorld::ContactResultCallba
  *  @param cow The collision objects
  *  @param broadphase The bullet broadphase interface
  *  @param dispatcher The bullet collision dispatcher */
-inline void updateBroadphaseAABB(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
+inline void updateBroadphaseAABB(const CollisionObjectWrapperPtr& cow,
+                                 const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                  const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
   btVector3 aabb_min, aabb_max;
@@ -756,7 +768,7 @@ inline void updateBroadphaseAABB(const COWPtr& cow, const std::unique_ptr<btBroa
  *  @param cow The collision objects
  *  @param broadphase The bullet broadphase interface
  *  @param dispatcher The bullet collision dispatcher */
-inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
+inline void removeCollisionObjectFromBroadphase(const CollisionObjectWrapperPtr& cow,
                                                 const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                                 const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
@@ -774,7 +786,8 @@ inline void removeCollisionObjectFromBroadphase(const COWPtr& cow,
  *  @param cow The collision objects
  *  @param broadphase The bullet broadphase interface
  *  @param dispatcher The bullet collision dispatcher */
-inline void addCollisionObjectToBroadphase(const COWPtr& cow, const std::unique_ptr<btBroadphaseInterface>& broadphase,
+inline void addCollisionObjectToBroadphase(const CollisionObjectWrapperPtr& cow,
+                                           const std::unique_ptr<btBroadphaseInterface>& broadphase,
                                            const std::unique_ptr<btCollisionDispatcher>& dispatcher)
 {
   ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Added " << cow->getName() << " to broadphase");

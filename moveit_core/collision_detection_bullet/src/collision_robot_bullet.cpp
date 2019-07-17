@@ -51,7 +51,7 @@ CollisionRobotBullet::CollisionRobotBullet(const robot_model::RobotModelConstPtr
 
   for (const std::pair<const std::string, urdf::LinkSharedPtr>& link : robot_model_->getURDF()->links_)
   {
-    addLinkAsCOW(link.second);
+    addLinkAsCollisionObjectWrapper(link.second);
   }
 
   std::vector<std::string> active;
@@ -65,7 +65,7 @@ CollisionRobotBullet::CollisionRobotBullet(const CollisionRobotBullet& other)
 }
 
 void CollisionRobotBullet::addAttachedOjects(const robot_state::RobotState& state,
-                                             std::vector<collision_detection_bullet::COWPtr>& cows) const
+    std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const
 {
   std::vector<const robot_state::AttachedBody*> attached_bodies;
   state.getAttachedBodies(attached_bodies);
@@ -121,7 +121,7 @@ void CollisionRobotBullet::checkSelfCollisionHelper(const CollisionRequest& req,
                                                     const robot_state::RobotState& state,
                                                     const AllowedCollisionMatrix* acm) const
 {
-  std::vector<collision_detection_bullet::COWPtr> cows;
+  std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows;
   addAttachedOjects(state, cows);
   collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = manager_->clone();
   updateTransformsFromState(state, discrete_clone_manager);
@@ -177,7 +177,7 @@ void CollisionRobotBullet::updatedPaddingOrScaling(const std::vector<std::string
   {
     if (robot_model_->getURDF()->links_.find(link) != robot_model_->getURDF()->links_.end())
     {
-      addLinkAsCOW(robot_model_->getURDF()->links_[link]);
+      addLinkAsCollisionObjectWrapper(robot_model_->getURDF()->links_[link]);
     }
     else
     {
@@ -203,14 +203,15 @@ void CollisionRobotBullet::updateTransformsFromState(
     const robot_state::RobotState& state, const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const
 {
   // updating link positions with the current robot state
-  for (const std::pair<const std::string, collision_detection_bullet::COWPtr>& link : manager->getCollisionObjects())
+  for (const std::pair<const std::string, collision_detection_bullet::CollisionObjectWrapperPtr>& link :
+       manager->getCollisionObjects())
   {
     // select the first of the transformations for each link (composed of multiple shapes...)
     manager->setCollisionObjectsTransform(link.first, state.getCollisionBodyTransform(link.first, 0));
   }
 }
 
-void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr& link)
+void CollisionRobotBullet::addLinkAsCollisionObjectWrapper(const urdf::LinkSharedPtr& link)
 {
   if (!link->collision_array.empty())
   {
@@ -251,7 +252,7 @@ void CollisionRobotBullet::addLinkAsCOW(const urdf::LinkSharedPtr& link)
       }
     }
 
-    collision_detection_bullet::COWPtr cow = collision_detection_bullet::createCollisionObject(
+    collision_detection_bullet::CollisionObjectWrapperPtr cow = collision_detection_bullet::createCollisionObject(
         link->name, collision_detection::BodyType::ROBOT_LINK, shapes, shape_poses, collision_object_types, true);
 
     if (manager_->hasCollisionObject(link->name))

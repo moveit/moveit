@@ -126,13 +126,13 @@ void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req
   const CollisionRobotBullet& robot_bt = dynamic_cast<const CollisionRobotBullet&>(robot);
 
   collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = manager_->clone();
-  std::vector<collision_detection_bullet::COWPtr> attached_cows;
+  std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
   robot_bt.addAttachedOjects(state, attached_cows);
 
-  for (const std::pair<const std::string, collision_detection_bullet::COWPtr>& cow :
+  for (const std::pair<const std::string, collision_detection_bullet::CollisionObjectWrapperPtr>& cow :
        robot_bt.manager_->getCollisionObjects())
   {
-    collision_detection_bullet::COWPtr new_cow = cow.second->clone();
+    collision_detection_bullet::CollisionObjectWrapperPtr new_cow = cow.second->clone();
     discrete_clone_manager->addCollisionObject(new_cow);
     discrete_clone_manager->setCollisionObjectsTransform(new_cow->getName(),
                                                          state.getCollisionBodyTransform(new_cow->getName(), 0));

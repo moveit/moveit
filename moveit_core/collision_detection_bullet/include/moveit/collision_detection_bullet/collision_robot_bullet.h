@@ -92,7 +92,7 @@ protected:
 
   /** \brief All of the attached objects in the robot state are wrapped into bullet collision objects */
   void addAttachedOjects(const robot_state::RobotState& state,
-                         std::vector<collision_detection_bullet::COWPtr>& cows) const;
+                         std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const;
 
   /** \brief Bundles the different checkSelfCollision functions into a single function */
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
@@ -109,7 +109,7 @@ protected:
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construts a bullet collision object out of a robot link */
-  void addLinkAsCOW(const urdf::LinkSharedPtr& link);
+  void addLinkAsCollisionObjectWrapper(const urdf::LinkSharedPtr& link);
 
   /** \brief Handles all self collision checks */
   collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_;
