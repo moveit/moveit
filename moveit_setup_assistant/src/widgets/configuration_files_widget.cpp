@@ -183,7 +183,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   fs::path template_package_path = config_data_->setup_assistant_path_;
   template_package_path /= "templates";
   template_package_path /= "moveit_config_pkg_template";
-  config_data_->template_package_path_ = template_package_path.make_preferred().native();
+  config_data_->template_package_path_ = template_package_path.make_preferred().string();
 
   if (!fs::is_directory(config_data_->template_package_path_))
   {
@@ -1008,7 +1008,7 @@ const std::string ConfigurationFilesWidget::getPackageName(std::string package_p
   std::string package_name;
   fs::path fs_package_path = package_path;
 
-  package_name = fs_package_path.filename().c_str();
+  package_name = fs_package_path.filename().string();
 
   // check for empty
   if (package_name.empty())
