@@ -34,7 +34,6 @@
 
 /* Author: Omid Heidari */
 
-#include "trajopt_planning_context.h"
 #include "moveit/planning_interface/planning_request.h"
 #include "moveit/planning_interface/planning_response.h"
 #include <moveit/planning_interface/planning_interface.h>
@@ -70,25 +69,26 @@
 
 
 
-
 namespace trajopt_interface
 {
 
 TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh) // , chompPlanner()
 {
-
+  prob_ = TrajOptProblemPtr(new TrajOptProblem());
   // setParamsFromROSPramServer();
   setDefaultParams();
 }
 
 
 bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
-                             const sco::BasicTrustRegionSQPParameters& params, planning_interface::MotionPlanResponse& res) const
+                             const sco::BasicTrustRegionSQPParameters& params, planning_interface::MotionPlanResponse& res)
 {
     // spec_.model_type = sco::ModelType::AUTO_SOLVER;
 
     robot_model::RobotModelConstPtr robot_model =  planning_scene->getRobotModel();
     robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
+    robot_state_->setToDefaultValues();
+    robot_state_->update();
     const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(req.group_name);
     int dof = joint_model_group->getActiveJointModelNames().size();
     std::vector<std::string> joint_names = joint_model_group->getVariableNames();
@@ -96,14 +96,22 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     std::vector<double> joint_values;
     robot_state->copyJointGroupPositions(joint_model_group, joint_values);
 
-    // Create TrajOptProblem
-    int num_steps = 10;
-    bool u_time = false;
-    trajopt_interface::TrajOptProblem traj_prob(num_steps, u_time, robot_model);
-    *prob_ = traj_prob;
+    // Create ProblemInfo
+    ProblemInfo problem_info;
 
+    int steps_per_phase = 10;
+    problem_info.num_steps = steps_per_phase * 2;
+    problem_info.dt_upper_lim = 2.0;
+    problem_info.dt_lower_lim = 100.0;
+    problem_info.start_fixed = true;
+    problem_info.init_info.type = trajopt::InitInfo::STATIONARY;
+    problem_info.init_info.dt = 0.5;
+
+    bool u_time = false;
+    trajopt_interface::TrajOptProblem traj_prob(problem_info, joint_model_group);
+    *prob_ = traj_prob;
     // Set the initial trajectory
-    trajopt::TrajArray traj_array_initial = generateInitialTrajectory(num_steps, joint_values); // it can be improved by getting the curren state joint positions
+    trajopt::TrajArray traj_array_initial = generateInitialTrajectory(problem_info.num_steps, joint_values); // it can be improved by getting the curren state joint positions
     prob_->SetInitTraj(traj_array_initial);
 
 
@@ -112,7 +120,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     // I shoud see how to convert "cartesian pose cnt at final point" to a ConstriantPtr so I can
     // add that to prob_
 
-    // cartesina pose cnt at final point
+    // cartesina pose cnt at final point with CartPoseTermInfo
     /* Eigen::Quaterniond rotation(final_pose.linear());
        std::shared_ptr<trajopt::CartPoseTermInfo> pose_constraint =
        std::shared_ptr<trajopt::CartPoseTermInfo>(new trajopt::CartPoseTermInfo);
@@ -128,14 +136,18 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
        pci.cnt_infos.push_back(pose_constraint);
     */
 
+    // With constructor of JointPoseEqConstraint
     // DblVec => std::vector<double>
-    sco::DblVec coeffs(dof, 1);
+    sco::DblVec coeffs(dof, 1); // dof is the size of the vector and 1 is the value of it
+    //coeffs = {1, 1.5, 2, 0.4, 0.9, 0.5, 2.1};
     sco::DblVec targets(dof, 1);
+    //    targets = {0.5, 0.9, 1, 1.2, 0.6, 0.8, 0.7};
     int first_step = 0;
     int last_step = 0; // what are these first and last for
     trajopt::VarArray vars = prob_->GetVars(); // columns are dof and rows are waypoints
     trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(dof));
     sco::ConstraintPtr cptr = sco::ConstraintPtr(new trajopt::JointPosEqConstraint(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step));
+
     prob_->addConstraint(cptr);
 
     // ************************ TrajOpt Optimization ****************************
@@ -144,6 +156,11 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     opt.setParameters(params_);
 
     opt.initialize(trajopt::trajToDblVec(prob_->GetInitTraj())); // DblVec: a vector of double elements
+    // This initial traj gets passed as the solution for results_.x in optimizer::initialize
+    // which will get updated by optimize() function through getClosestFeasiblePoint
+    // then in sqp loop, it gets passed to convexifyCosts(const std::vector<CostPtr>& costs, const DblVec& x, Model* model)
+    // where convex(x, model) function of each cost(CostFromFunc : Cost) gets called.
+    // So basically, x is an element that starts with an intial value and gets updated as the solution thtough optimize()
 
     // Add all callbacks
     //  for (const sco::Optimizer::Callback& callback : config.callbacks)
@@ -247,7 +264,8 @@ trajectory_msgs::JointTrajectory TrajOptInterface::convertTrajArrayToJointTrajec
 }
 
 
-void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res){
+void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res)
+{
 
 }
 
