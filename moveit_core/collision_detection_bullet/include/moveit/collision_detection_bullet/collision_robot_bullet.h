@@ -113,6 +113,9 @@ protected:
 
   /** \brief Handles all self collision checks */
   collision_detection_bullet::BulletDiscreteBVHManagerPtr manager_;
+
+  /** \brief Active links corresponding to all links of the robot */
+  std::vector<std::string> active_;
 };
 }  // namespace collision_detection
 

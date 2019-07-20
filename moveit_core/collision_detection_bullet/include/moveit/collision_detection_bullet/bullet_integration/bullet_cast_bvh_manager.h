@@ -175,6 +175,9 @@ public:
    * @param cow The tesseract bullet collision object */
   void addCollisionObject(const CollisionObjectWrapperPtr& cow);
 
+  /** \brief Callback function for culling objects before a broadphase check */
+  BroadphaseFilterCallback filter_callback_;
+
 private:
   /** @brief A list of the active collision objects */
   std::vector<std::string> active_;

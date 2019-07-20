@@ -157,6 +157,9 @@ public:
    * @return A map of collision objects <name, collision object> */
   const std::map<std::string, CollisionObjectWrapperPtr>& getCollisionObjects() const;
 
+  /** \brief Callback function for culling objects before a broadphase check */
+  BroadphaseFilterCallback filter_callback_;
+
 private:
   /** @brief A list of the active collision objects */
   std::vector<std::string> active_;

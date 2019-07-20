@@ -73,7 +73,8 @@ enum class CollisionObjectType
 *   \param planning_scene The planning scene
 *   \param num_objects The number of objects to be cluttered
 *   \param CollisionObjectType Type of object to clutter (mesh or box) */
-void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const size_t num_objects, CollisionObjectType type)
+void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const size_t num_objects,
+                  CollisionObjectType type)
 {
   ROS_INFO("Cluttering scene...");
 
@@ -163,7 +164,7 @@ void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const 
 *   \param only_self Flag for only self collision check performed */
 void runCollisionDetection(unsigned int trials, const planning_scene::PlanningScenePtr& scene,
                            const std::vector<robot_state::RobotState>& states, const CollisionDetector col_detector,
-                           bool only_self)
+                           bool only_self, bool distance = false)
 {
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
       scene->getRobotModel()->getLinkModelNames(), true) };
@@ -182,6 +183,7 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
   collision_detection::CollisionResult res;
   collision_detection::CollisionRequest req;
 
+  req.distance = distance;
   // for world collision request detailed information
   if (!only_self)
   {
@@ -203,7 +205,7 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
       }
       else
       {
-        scene->checkCollision(req, res, state, acm);
+        scene->checkCollision(req, res, state);
       }
     }
   }
@@ -214,7 +216,7 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
                             << (res.collision ? "in collison " : "not in collision ") << "with " << res.contact_count);
 
   // color collided objects red
-  for (auto contact : res.contacts)
+  for (auto& contact : res.contacts)
   {
     ROS_INFO_STREAM("Between: " << contact.first.first << " and " << contact.first.second);
     std_msgs::ColorRGBA red;

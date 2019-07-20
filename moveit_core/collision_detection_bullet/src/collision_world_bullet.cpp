@@ -139,7 +139,8 @@ void CollisionWorldBullet::checkRobotCollisionHelperCCD(const CollisionRequest& 
     active_objects.push_back(cow->getName());
   }
 
-  for (const std::pair<const std::string, collision_detection_bullet::CollisionObjectWrapperPtr>& cow : robot_bt.manager_->getCollisionObjects())
+  for (const std::pair<const std::string, collision_detection_bullet::CollisionObjectWrapperPtr>& cow :
+       robot_bt.manager_->getCollisionObjects())
   {
     collision_detection_bullet::CollisionObjectWrapperPtr new_cow = cow.second->clone();
     cast_clone_manager->addCollisionObject(new_cow);
@@ -151,6 +152,7 @@ void CollisionWorldBullet::checkRobotCollisionHelperCCD(const CollisionRequest& 
   collision_detection_bullet::getActiveLinkNamesRecursive(active_objects,
                                                           robot_bt.getRobotModel()->getURDF()->getRoot(), true);
   cast_clone_manager->setActiveCollisionObjects(active_objects);
+  cast_clone_manager->filter_callback_.acm_ = acm;
   cast_clone_manager->contactTest(res, req, acm);
 }
 
@@ -173,7 +175,14 @@ void CollisionWorldBullet::checkRobotCollisionHelper(const CollisionRequest& req
                                                          state.getCollisionBodyTransform(new_cow->getName(), 0));
   }
 
-  discrete_clone_manager->setActiveCollisionObjects(robot_bt.manager_->getActiveCollisionObjects());
+  discrete_clone_manager->setActiveCollisionObjects(robot_bt.active_);
+
+  if (req.distance)
+  {
+    discrete_clone_manager->setContactDistanceThreshold(std::numeric_limits<double>::max());
+  }
+
+  discrete_clone_manager->filter_callback_.acm_ = acm;
 
   discrete_clone_manager->contactTest(res, req, acm, attached_cows);
 }

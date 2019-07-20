@@ -16,7 +16,6 @@
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
 
-
 /** \brief Brings the panda robot in user defined home position */
 inline void setToHome(robot_state::RobotState& panda_state)
 {

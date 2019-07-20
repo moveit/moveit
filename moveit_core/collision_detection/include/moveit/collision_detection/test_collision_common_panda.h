@@ -75,26 +75,19 @@ public:
 protected:
   void SetUp() override
   {
-
     value_.reset(new CollisionAllocatorType);
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
+    acm_.reset(new collision_detection::AllowedCollisionMatrix());
+    // Use default collision operations in the SRDF to setup the acm
+    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
+    acm_->setEntry(collision_links, collision_links, false);
 
-    acm_->setEntry("panda_link0", "panda_link1", true);
-    acm_->setEntry("panda_link1", "panda_link2", true);
-    acm_->setEntry("panda_link2", "panda_link3", true);
-    acm_->setEntry("panda_link3", "panda_link4", true);
-    acm_->setEntry("panda_link4", "panda_link5", true);
-    acm_->setEntry("panda_link5", "panda_link6", true);
-    acm_->setEntry("panda_link6", "panda_link7", true);
-    acm_->setEntry("panda_link7", "panda_hand", true);
-    acm_->setEntry("panda_hand", "panda_rightfinger", true);
-    acm_->setEntry("panda_hand", "panda_leftfinger", true);
-    acm_->setEntry("panda_rightfinger", "panda_leftfinger", true);
-    acm_->setEntry("panda_link5", "panda_link7", true);
-    acm_->setEntry("panda_link6", "panda_hand", true);
+    // allow collisions for pairs that have been disabled
+    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
+    for (const srdf::Model::DisabledCollision& it : dc)
+      acm_->setEntry(it.link1_, it.link2_, true);
 
     crobot_ = value_->allocateRobot(robot_model_);
     cworld_ = value_->allocateWorld(collision_detection::WorldPtr(new collision_detection::World()));
@@ -139,8 +132,11 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DefaultNotInCollision)
 /** \brief A configuration where the robot should collide with itself. */
 TYPED_TEST_P(CollisionDetectorPandaTest, LinksInCollision)
 {
-  // Sets the joint values to zero which is a colliding configuration
-  this->robot_state_->setToDefaultValues();
+  // Sets the joints into a colliding configuration
+  double joint2 = 0.15;
+  double joint4 = -3.0;
+  this->robot_state_->setJointPositions("panda_joint2", &joint2);
+  this->robot_state_->setJointPositions("panda_joint4", &joint4);
   this->robot_state_->update();
 
   collision_detection::CollisionRequest req;
@@ -263,7 +259,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceSelf)
   collision_detection::CollisionResult res;
   this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
-  EXPECT_NEAR(res.distance, 0.058, 0.01);
+  EXPECT_NEAR(res.distance, 0.13, 0.01);
 }
 
 TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
@@ -289,4 +285,5 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
 }
 
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
-                           DISABLED_WorldToWorldCollision, RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);
+                           DISABLED_WorldToWorldCollision, RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest,
+                           DistanceSelf, DistanceWorld);
