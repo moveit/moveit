@@ -5,7 +5,6 @@ TRAJOPT_IGNORE_WARNINGS_PUSH
 #include <iostream>
 TRAJOPT_IGNORE_WARNINGS_POP
 
-#include <trajopt/kinematic_terms.hpp>
 #include <trajopt/utils.hpp>
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/modeling_utils.hpp>
@@ -14,38 +13,14 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <trajopt_utils/logging.hpp>
 #include <trajopt_utils/stl_to_string.hpp>
 
+#include "kinematic_terms.h"
+
 using namespace std;
 using namespace sco;
 using namespace Eigen;
 using namespace util;
 
-namespace
-{
-#if 0
-Vector3d rotVec(const Matrix3d& m) {
-  Quaterniond q; q = m;
-  return Vector3d(q.x(), q.y(), q.z());
-}
-#endif
 
-#if 0
-VectorXd concat(const VectorXd& a, const VectorXd& b) {
-  VectorXd out(a.size()+b.size());
-  out.topRows(a.size()) = a;
-  out.middleRows(a.size(), b.size()) = b;
-  return out;
-}
-
-template <typename T>
-vector<T> concat(const vector<T>& a, const vector<T>& b) {
-  vector<T> out;
-  vector<int> x;
-  out.insert(out.end(), a.begin(), a.end());
-  out.insert(out.end(), b.begin(), b.end());
-  return out;
-}
-#endif
-}  // namespace
 
 namespace trajopt_interface
 {
@@ -71,11 +46,11 @@ VectorXd CartPoseErrCalculator::operator()(const VectorXd& dof_vals) const
 
   // Calculate the forward kineamtics with the given joint values for the given link
   robot_state->setJointGroupPositions("panda_arm", dof_vals); //   void setJointGroupPositions(const std::string& joint_group_name, const Eigen::VectorXd& values)
-  robot_state_->update();
-  std::string last_link_name = robot_model->getLinkModelNames.back();
-  iteration_new_pose = robot_state_->getGlobalLinkTransform(last_link_name); // the pose that gets updated in optimize() based on each increment solution
+  robot_state->update();
+  std::string last_link_name = robot_model->getLinkModelNames().back();
+  iteration_new_pose = robot_state->getGlobalLinkTransform(last_link_name); // the pose that gets updated in optimize() based on each increment solution
 
-  Isometry3d pose_err = target_pose_inv_ * new_pose;
+  Isometry3d pose_err = target_pose_inv_ * iteration_new_pose;
   Quaterniond q(pose_err.rotation());
   VectorXd err = concat(Vector3d(q.x(), q.y(), q.z()), pose_err.translation());
   return err;

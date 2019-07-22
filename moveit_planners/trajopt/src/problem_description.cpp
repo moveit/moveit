@@ -25,7 +25,7 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <trajopt_utils/vector_ops.hpp>
 
 #include "problem_description.h"
-
+#include "kinematic_terms.h"
 
 
 namespace trajopt_interface
@@ -34,17 +34,19 @@ namespace trajopt_interface
 
 TrajOptProblem::TrajOptProblem(){}
 
-TrajOptProblem::TrajOptProblem(int n_steps, const ProblemInfo& problem_info)
-  : OptProb(pci.basic_info.convex_solver), planning_scene_(problem_info.planning_scene), planning_group_(problem_info.planning_group_)
+TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
+  : OptProb(problem_info.basic_info.convex_solver), planning_scene_(problem_info.planning_scene), planning_group_(problem_info.planning_group_name)
 {
     robot_model::RobotModelConstPtr robot_model =  planning_scene_->getRobotModel();
-//    robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-//    robot_state_->update();
-//    const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(planning_group_);
-   const robot_state::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(planning_group_);
+    robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
+    robot_state->update();
+    const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(planning_group_);
+//   const robot_state::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(planning_group_);
 
   moveit::core::JointBoundsVector bounds = joint_model_group->getActiveJointModelsBounds();
   int n_dof = joint_model_group->getActiveJointModelNames().size(); //bounds.size();
+
+  int n_steps = problem_info.basic_info.n_steps;
 
   Eigen::MatrixX2d limits(n_dof,2);
   for (int k = 0; k < limits.size() / 2; ++k){
@@ -61,6 +63,8 @@ TrajOptProblem::TrajOptProblem(int n_steps, const ProblemInfo& problem_info)
   Eigen::VectorXd lower, upper;
   lower = limits.col(0);
   upper = limits.col(1);
+std::cout << " ==================================== limits ============================================="  << std::endl;
+ std::cout << limits << std::endl;
 
   trajopt::DblVec vlower, vupper;
   std::vector<std::string> names;
@@ -93,7 +97,7 @@ TrajOptProblem::TrajOptProblem(int n_steps, const ProblemInfo& problem_info)
 TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 {
   const BasicInfo& bi = pci.basic_info;
-  int n_steps = problem_info.n_steps;
+  int n_steps = bi.n_steps;
 
   bool use_time = false;
   // Check that all costs and constraints support the types that are specified in pci
@@ -133,13 +137,18 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     PRINT_AND_THROW("No terms use time and basic_info is not set correctly. Try basic_info.use_time = false");
 
 
-  //  TrajOptProbPtr prob(new TrajOptProb(n_steps, pci));
-  // unsigned n_dof = prob->GetKin()->numJoints();
+  TrajOptProblemPtr prob(new TrajOptProblem(pci));
 
   // Generate initial trajectory and check its size
+  robot_model::RobotModelConstPtr robot_model =  pci.planning_scene->getRobotModel();
+  robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
+  robot_state->update();
+  const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(pci.planning_group_name);
+  int n_dof = prob->GetNumDOF() ;//joint_model_group->getActiveJointModelNames().size();
+
   std::vector<double> joint_values;
   robot_state->copyJointGroupPositions(joint_model_group, joint_values);
-  trajopt::TrajArray init_traj = generateInitialTrajectory(problem_info.num_steps, joint_values);
+  trajopt::TrajArray init_traj = generateInitialTrajectory(pci.basic_info.n_steps, joint_values);
 
   if (pci.basic_info.use_time == true)
   {
@@ -165,6 +174,9 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   }
   prob->SetInitTraj(init_traj);
 
+
+
+  trajopt::VarArray m_traj_vars_temp;
   // If start_fixed, constrain the joint values for the first time step to be their initialized values
   if (bi.start_fixed)
   {
@@ -181,7 +193,8 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 
     for (int j = 0; j < static_cast<int>(n_dof); ++j)
     {
-      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(prob->m_traj_vars(0, j)), init_traj(0, j)), sco::EQ);
+      m_traj_vars_temp = prob->GetVars();
+      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
     }
   }
 
@@ -192,8 +205,9 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     {
       for (int i = 1; i < prob->GetNumSteps(); ++i)
       {
+        m_traj_vars_temp = prob->GetVars();
         prob->addLinearConstraint(
-            sco::exprSub(sco::AffExpr(prob->m_traj_vars(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))), sco::EQ);
+            sco::exprSub(sco::AffExpr(m_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))), sco::EQ);
       }
     }
   }
@@ -244,7 +258,7 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   }
   else if ((term_type & TT_CNT) && ~(term_type | ~TT_USE_TIME))
   {
-    sco::VectorOfVectorPtr f(new CartPoseErrCalculator(input_pose, prob.GetPlanningScene, link, tcp));
+    sco::VectorOfVectorPtr f(new CartPoseErrCalculator(input_pose, prob.GetPlanningScene(), link, tcp));
     prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
         f, prob.GetVarRow(timestep, 0, n_dof), concat(rot_coeffs, pos_coeffs), sco::EQ, name)));
   }
@@ -252,6 +266,23 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   {
     ROS_WARN("CartPoseTermInfo does not have a valid term_type defined. No cost/constraint applied");
   }
+}
+
+
+// Inspired by the same function in trajopt/trajopt/problem_description.cpp
+trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals)
+{
+
+  // Stationary initial trajectory
+  int dof = joint_vals.size();
+  Eigen::VectorXd start_pos(dof);
+
+    for (int k = 0; k < dof; ++k){
+      start_pos[k] = joint_vals[k];
+    }
+
+    trajopt::TrajArray init_traj = start_pos.transpose().replicate(num_steps,1);
+    return init_traj;
 }
 
 

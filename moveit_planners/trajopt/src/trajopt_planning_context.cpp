@@ -1,4 +1,5 @@
-
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/robot_state/conversions.h>
 
 #include "moveit/planning_interface/planning_request.h"
 #include "moveit/planning_interface/planning_response.h"
@@ -45,9 +46,9 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
   trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 
-bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& resp)
-{
-  std::cout << "====> soooooooooooooooooooooooooooooolve "  << std::endl;
+// bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& resp)
+// {
+//   std::cout << "====> soooooooooooooooooooooooooooooolve "  << std::endl;
 
   //=== Response ===>>> PlannerResponse.trajectory from tesseract a is row-major matrix from Eigen
   // typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> TrajArray
@@ -107,30 +108,86 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& resp)
   // response.joint_names = config.prob->GetKin()->getJointNames();
   //response.status_description = sco::statusToString(opt.results().status);
 
-  bool trajopt_solve = trajopt_interface_->solve(planning_scene_, request_, trajopt_interface_->getParams() , resp);
+//   bool trajopt_solve = trajopt_interface_->solve(planning_scene_, request_, trajopt_interface_->getParams() , resp);
 
-   if(trajopt_solve){
 
-     /*     resp.trajectory_ = res_msg; // traj
+//    if(trajopt_solve){
 
-     res.description_.push_back("plan");
-     res.processing_time_ = res_msg.processing_time;
-     res.error_code_ = res_msg.error_code;*/
+//      /*     resp.trajectory_ = res_msg; // traj
+
+//      res.description_.push_back("plan");
+//      res.processing_time_ = res_msg.processing_time;
+//      res.error_code_ = res_msg.error_code;*/
+//     return true;
+
+//    }else
+//    {
+//      //    res.error_code_ = res_msg.error_code;
+//     return false;
+//    }
+// }
+
+
+bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
+{
+
+  moveit_msgs::MotionPlanDetailedResponse res_msg;
+  bool trajopt_solved = trajopt_interface_->solve(planning_scene_, request_, trajopt_interface_->getParams() , res_msg);
+
+  std::cout << "planning context solve" << std::endl;
+ for (int i = 0; i < 10; i++)
+  {
+    for (size_t j = 0; j < 7; j++)
+    {
+      std::cout  <<  res_msg.trajectory[0].joint_trajectory.points[i].positions[j] << "   ";
+    }
+      std::cout  <<  " ----------------  " << std::endl;
+  }
+
+
+  if (trajopt_solved)
+  {
+    res.trajectory_.resize(1);
+    res.trajectory_[0] =
+        robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, getGroupName()));
+
+    moveit::core::RobotState start_state(robot_model_);
+    robot_state::robotStateMsgToRobotState(res_msg.trajectory_start, start_state);
+    res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_msg.trajectory[0]);
+
+    res.description_.push_back("plan");
+    res.processing_time_ = res_msg.processing_time;
+    res.error_code_ = res_msg.error_code;
     return true;
-
-   }else
-   {
-     //    res.error_code_ = res_msg.error_code;
+  }
+  else
+  {
+    res.error_code_ = res_msg.error_code;
     return false;
-   }
+  }
 }
+
+bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
+{
+  planning_interface::MotionPlanDetailedResponse res_detailed;
+  bool planning_success = solve(res_detailed);
+
+  res.error_code_ = res_detailed.error_code_;
+
+  if (planning_success)
+  {
+    res.trajectory_ = res_detailed.trajectory_[0];
+    res.planning_time_ = res_detailed.processing_time_[0];
+  }
+
+  return planning_success;
+}
+
 
 
 bool TrajOptPlanningContext::terminate() { /*return false;*/ }
 void TrajOptPlanningContext::clear() { /*request_ = PlannerRequest();*/ }
 
-bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res){
-}
 
 
 }  // namespace trajopt_interface

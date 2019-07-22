@@ -56,6 +56,9 @@
 #include <trajopt_sco/solver_interface.hpp>
 #include <trajopt/trajectory_costs.hpp>
 
+#include <ros/ros.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/MotionPlanRequest.h>
 
 #include <trajopt_interface.h>
 #include <limits>
@@ -67,7 +70,7 @@
 #include <vector>
 #include <eigen3/Eigen/Geometry>
 
-
+#include "problem_description.h"
 
 namespace trajopt_interface
 {
@@ -80,63 +83,71 @@ TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh) // , cho
 }
 
 
-bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
-                             const sco::BasicTrustRegionSQPParameters& params, planning_interface::MotionPlanResponse& res)
+bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
+                             const sco::BasicTrustRegionSQPParameters& params,  moveit_msgs::MotionPlanDetailedResponse& res)
 {
-    // spec_.model_type = sco::ModelType::AUTO_SOLVER;
+  ros::WallTime start_time = ros::WallTime::now();
+    std::cout << " ==================================== 1 ============================================="  << std::endl;
 
     robot_model::RobotModelConstPtr robot_model =  planning_scene->getRobotModel();
     robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-    robot_state_->setToDefaultValues();
-    robot_state_->update();
+    robot_state->setToDefaultValues();
+    robot_state->update();
     const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(req.group_name);
     int dof = joint_model_group->getActiveJointModelNames().size();
     std::vector<std::string> joint_names = joint_model_group->getVariableNames();
-
+    std::cout << " ==================================== 2 ============================================="  << std::endl;
     std::vector<double> joint_values;
     robot_state->copyJointGroupPositions(joint_model_group, joint_values);
 
     // Create ProblemInfo
-    ProblemInfo problem_info;
-
+    ProblemInfo problem_info(planning_scene, req.group_name);
+    std::cout << " ==================================== 3 ============================================="  << std::endl;
     int steps_per_phase = 10;
-    problem_info.num_steps = steps_per_phase * 2;
-    problem_info.dt_upper_lim = 2.0;
-    problem_info.dt_lower_lim = 100.0;
-    problem_info.start_fixed = true;
-    problem_info.init_info.type = trajopt::InitInfo::STATIONARY;
+    problem_info.basic_info.n_steps = steps_per_phase * 2;
+    problem_info.basic_info.dt_upper_lim = 2.0;
+    problem_info.basic_info.dt_lower_lim = 100.0;
+    problem_info.basic_info.start_fixed = false; // with false, we do not get any error;
+    problem_info.basic_info.use_time = false;
+    problem_info.init_info.type = trajopt_interface::InitInfo::STATIONARY;
     problem_info.init_info.dt = 0.5;
-
-    bool u_time = false;
-    trajopt_interface::TrajOptProblem traj_prob(problem_info, joint_model_group);
-    *prob_ = traj_prob;
-    // Set the initial trajectory
-    trajopt::TrajArray traj_array_initial = generateInitialTrajectory(problem_info.num_steps, joint_values); // it can be improved by getting the curren state joint positions
-    prob_->SetInitTraj(traj_array_initial);
-
+    std::cout << " ==================================== 4 ============================================="  << std::endl;
 
     // ************************ Constraint ****************************
     // Make a constraint from req.goal_constriant to cartesian pose cnt at final point
     // I shoud see how to convert "cartesian pose cnt at final point" to a ConstriantPtr so I can
     // add that to prob_
 
-    // cartesina pose cnt at final point with CartPoseTermInfo
-    /* Eigen::Quaterniond rotation(final_pose.linear());
-       std::shared_ptr<trajopt::CartPoseTermInfo> pose_constraint =
-       std::shared_ptr<trajopt::CartPoseTermInfo>(new trajopt::CartPoseTermInfo);
-       pose_constraint->term_type = trajopt::TT_CNT;
-       pose_constraint->link = end_effector;
-       pose_constraint->timestep = 2 * steps_per_phase - 1;
-       pose_constraint->xyz = final_pose.translation();
+    // planning_interface::MotionPlanRequest is the same as the one in moveit_msgs::MotionPlanRequest
 
-       pose_constraint->wxyz = Eigen::Vector4d(rotation.w(), rotation.x(), rotation.y(), rotation.z());
-       pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-       pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-       pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
-       pci.cnt_infos.push_back(pose_constraint);
-    */
+    // cartesina pose cnt at a given point with CartPoseTermInfo
+    std::shared_ptr<CartPoseTermInfo> pose_constraint = std::shared_ptr<CartPoseTermInfo>(new CartPoseTermInfo);
+    pose_constraint->term_type = trajopt_interface::TT_CNT;
+    pose_constraint->timestep = 2 * steps_per_phase - 1;
+    pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+    pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+    pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
 
-    // With constructor of JointPoseEqConstraint
+    // Given pose
+    pose_constraint->link = joint_model_group->getEndEffectorName(); // to get the end-effector's name
+    pose_constraint->xyz = Eigen::Vector3d(-0.15, 0.6, 1);;
+    pose_constraint->wxyz = Eigen::Vector4d(0.0, 0.0, 1.0, 0.0);
+
+    // From MotionPlanRequest
+    // geometry_msgs::Vector3 target_position = req.goal_constraints[0].position_constraints[0].target_point_offset; // is this offset to the taretg point not the target itself?
+    // pose_constraint->xyz = Eigen::Vector3d(target_position.x, target_position.x, target_position.x);
+    // geometry_msgs::Quaternion target_orientation = req.goal_constraints[0].orientation_constraints[0].orientation;
+    // pose_constraint->wxyz = Eigen::Vector4d(target_orientation.w, target_orientation.x, target_orientation.y, target_orientation.z);
+    // pose_constraint->link = req.goal_constraints[0].position_constraints[0].link_name;
+
+    // add the constraint to problem_info
+    problem_info.cnt_infos.push_back(pose_constraint);
+
+    // construct the problem
+    prob_ = ConstructProblem(problem_info);
+
+    /*
+    // Make a constraint With constructor of JointPoseEqConstraint
     // DblVec => std::vector<double>
     sco::DblVec coeffs(dof, 1); // dof is the size of the vector and 1 is the value of it
     //coeffs = {1, 1.5, 2, 0.4, 0.9, 0.5, 2.1};
@@ -149,12 +160,13 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     sco::ConstraintPtr cptr = sco::ConstraintPtr(new trajopt::JointPosEqConstraint(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step));
 
     prob_->addConstraint(cptr);
+    */
 
     // ************************ TrajOpt Optimization ****************************
     sco::BasicTrustRegionSQP opt(prob_);
-
+    std::cout << " ==================================== 9 ============================================="  << std::endl;
     opt.setParameters(params_);
-
+    std::cout << " ==================================== 10 ============================================="  << std::endl;
     opt.initialize(trajopt::trajToDblVec(prob_->GetInitTraj())); // DblVec: a vector of double elements
     // This initial traj gets passed as the solution for results_.x in optimizer::initialize
     // which will get updated by optimize() function through getClosestFeasiblePoint
@@ -165,18 +177,24 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     // Add all callbacks
     //  for (const sco::Optimizer::Callback& callback : config.callbacks)
     //  {
-
+    std::cout << " ==================================== 11 ============================================="  << std::endl;
     callbacks_ = callBackFunc;
     opt.addCallback(callbacks_);
     // }
-
+    std::cout << " ==================================== 12 ============================================="  << std::endl;
     // how to put ModelType, params, callback, in a request so the user can define them ????
     // I need more information than what the template request has in MoveIt
 
     // Optimize
+    ros::WallTime create_time = ros::WallTime::now();
     ros::Time tStart = ros::Time::now();
+    moveit::core::RobotState start_state(planning_scene->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(req.start_state, start_state);
+    start_state.update();
+
     opt.optimize();
 
+    std::cout << " ==================================== 20 ============================================="  << std::endl;
 
     // ************************ Solution ****************************
     trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), prob_->GetVars());
@@ -184,33 +202,90 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     std::cout << "************* solution ************** " << std::endl;
     std::cout << opt_solution << std::endl;
 
-    trajectory_msgs::JointTrajectory traj_msgs = convertTrajArrayToJointTrajectory(opt_solution, joint_names);
+    // trajectory_msgs::JointTrajectory traj_msgs = convertTrajArrayToJointTrajectory(opt_solution, joint_names);
 
-    robot_trajectory::RobotTrajectoryPtr traj =  robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model, req.group_name));
+    // robot_trajectory::RobotTrajectoryPtr traj =  robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model, req.group_name));
 
-    traj->setRobotTrajectoryMsg(*robot_state, traj_msgs);
+    // traj->setRobotTrajectoryMsg(*robot_state, traj_msgs);
 
-    res.trajectory_ = traj;
+    // // plot the trajectory
+    // // for (int s = 0; s < traj->getWayPointCount(); ++s)
+    // // {
+    // //   robot_state::RobotStatePtr state = traj->getWayPointPtr(s);
+    // //   joint_model_group->
+    // // }
 
-    ROS_INFO("planning time: %.3f", (ros::Time::now() - tStart).toSec());
-}
+    // std::cout << "siezeeeeeeeeeeeeeeeeeeeeeeeeee " << traj->getWayPointCount()   << std::endl;
+
+    // res.trajectory_ = traj;
+
+    // ROS_INFO("planning time: %.3f", (ros::Time::now() - tStart).toSec());
 
 
-// Inspired by the same function in trajopt/trajopt/problem_description.cpp
-trajopt::TrajArray TrajOptInterface::generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals)
-{
 
-  // Stationary initial trajectory
-  int dof = joint_vals.size();
-  Eigen::VectorXd start_pos(dof);
 
-    for (int k = 0; k < dof; ++k){
-      start_pos[k] = joint_vals[k];
+
+
+  // assume that the trajectory is now optimized, fill in the output structure:
+  ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %d joints", opt_solution.rows());
+
+  res.trajectory.resize(1);
+  //  std::vector<std::string>& active_joint_names = joint_model_group->getActiveJointModelNames();
+  res.trajectory[0].joint_trajectory.joint_names = joint_names;
+  res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;  // @TODO this is probably a hack
+  // fill in the entire trajectory
+  res.trajectory[0].joint_trajectory.points.resize(opt_solution.rows());
+  for (int i = 0; i < opt_solution.rows(); i++)
+  {
+    res.trajectory[0].joint_trajectory.points[i].positions.resize(opt_solution.cols());
+    for (size_t j = 0; j < opt_solution.cols(); j++)
+    {
+      res.trajectory[0].joint_trajectory.points[i].positions[j] = opt_solution(i,j);
     }
+    // Setting invalid timestamps.
+    // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
+    res.trajectory[0].joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+  }
+  int goal_index = opt_solution.rows() - 1;
+  ROS_DEBUG_NAMED("chomp_planner", "Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+  ROS_DEBUG_NAMED("chomp_planner", "Serviced planning request in %f wall-seconds, trajectory duration is %f",
+                  (ros::WallTime::now() - start_time).toSec(),
+                  res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
+  res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
+  std::cout << " ==================================== 24 ============================================="  << std::endl;
+  // // report planning failure if path has collisions
+  // if (not optimizer->isCollisionFree())
+  // {
+  //   ROS_ERROR_STREAM_NAMED("chomp_planner", "Motion plan is invalid.");
+  //   res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+  //   return false;
+  // }
 
-    trajopt::TrajArray init_traj = start_pos.transpose().replicate(num_steps,1);
-    return init_traj;
+  // check that final state is within goal tolerances
+  kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
+  robot_state::RobotState last_state(start_state);
+  last_state.setVariablePositions(res.trajectory[0].joint_trajectory.joint_names,
+                                  res.trajectory[0].joint_trajectory.points.back().positions);
+  std::cout << " ==================================== 25 ============================================="  << std::endl;
+  // uncomment this when I use req for the constraint not the hardcoded one
+  // bool constraints_are_ok = true;
+  // for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
+  // {
+  //   constraints_are_ok = constraints_are_ok and jc.configure(constraint);
+  //   constraints_are_ok = constraints_are_ok and jc.decide(last_state).satisfied;
+  //   if (not constraints_are_ok)
+  //   {
+  //     ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal constraints are violated: " << constraint.joint_name);
+  //     res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
+  //     return false;
+  //   }
+  // }
+  std::cout << " ==================================== 26 ============================================="  << std::endl;
+  return true;
 }
+
+
 
 void TrajOptInterface::setParamsFromRosParamServer(){
 

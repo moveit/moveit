@@ -47,9 +47,14 @@ include_directories(
 )
 
 
+
+add_library(kinematic_terms src/kinematic_terms.cpp)
+set_target_properties(kinematic_terms PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+target_link_libraries(kinematic_terms ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 add_library(problem_description src/problem_description.cpp)
 set_target_properties(problem_description PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(problem_description ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(problem_description ${catkin_LIBRARIES} ${Boost_LIBRARIES} kinematic_terms)
 
 #add_library(problem_description INTERFACE)
 #target_include_directories(problem_description INTERFACE include/)
