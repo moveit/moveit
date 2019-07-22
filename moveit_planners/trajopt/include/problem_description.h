@@ -45,7 +45,25 @@ typedef std::shared_ptr<TermInfo> TermInfoPtr;
 class TrajOptProblem;
 typedef std::shared_ptr<TrajOptProblem> TrajOptProblemPtr;
 
+struct ProblemInfo;
+
 TrajOptProblemPtr ConstructProblem(const ProblemInfo&);
+
+
+enum TermType
+{
+  TT_COST = 0x1,      // 0000 0001
+  TT_CNT = 0x2,       // 0000 0010
+  TT_USE_TIME = 0x4,  // 0000 0100
+};
+
+#define DEFINE_CREATE(classname)                                                                                       \
+  static TermInfoPtr create()                                                                                          \
+  {                                                                                                                    \
+    TermInfoPtr out(new classname());                                                                                  \
+    return out;                                                                                                        \
+  }
+
 
 struct BasicInfo
 {
@@ -55,7 +73,7 @@ struct BasicInfo
   int n_steps;
   std::string manip;
   std::string robot;             // optional
-  IntVec dofs_fixed;             // optional
+  sco::IntVec dofs_fixed;             // optional
   sco::ModelType convex_solver;  // which convex solver to use
 
   /** @brief If true, the last column in the optimization matrix will be 1/dt */
@@ -89,7 +107,7 @@ struct InitInfo
   /** @brief Specifies the type of initialization to use */
   Type type;
   /** @brief Data used during initialization. Use depends on the initialization selected. */
-  TrajArray data;
+  trajopt::TrajArray data;
   /** @brief Default value the final column of the optimization is initialized too if time is being used */
   double dt = 1.0;
 };
@@ -105,7 +123,7 @@ struct TermInfo
   int term_type;
   int getSupportedTypes() { return supported_term_types_; }
   //  virtual void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) = 0;
-  virtual void hatch(TrajOptProb& prob) = 0;
+  virtual void hatch(TrajOptProblem& prob) = 0;
 
   static TermInfoPtr fromName(const std::string& type);
 
@@ -140,8 +158,8 @@ public:
   planning_scene::PlanningSceneConstPtr planning_scene;
   std::string planning_group_name;
 
-  ProblemConstructionInfo(planning_scene::PlanningSceneConstPtr& ps, std::string pg)
-    : planning_scene_(ps), planning_group_name(pg) {}
+  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, std::string pg)
+    : planning_scene(ps), planning_group_name(pg) {}
   //  void fromJson(const Json::Value& v);
 
 private:
@@ -161,7 +179,7 @@ class  TrajOptProblem :  public sco::OptProb
 {
 public:
   TrajOptProblem();
-  TrajOptProblem(const int& n_steps, ProblemInfo problem_info);
+  TrajOptProblem(const ProblemInfo& problem_info);
   virtual ~TrajOptProblem() = default;
   sco::VarVector GetVarRow(int i, int start_col, int num_col) { return m_traj_vars.rblock(i, start_col, num_col); }
   sco::VarVector GetVarRow(int i) { return m_traj_vars.row(i); }
@@ -221,9 +239,10 @@ struct CartPoseTermInfo : public TermInfo
   /** @brief Used to add term to pci from json */
   //  void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) override;
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void hatch(TrajOptProb& prob) override;
+  void hatch(TrajOptProblem& prob) override;
   DEFINE_CREATE(CartPoseTermInfo)
 };
 
+trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals);
 
 }  // namespace trajopt_interface
