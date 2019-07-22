@@ -74,10 +74,10 @@ public:
 
   const sco::BasicTrustRegionSQPParameters& getParams() const { return params_; }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
-             const sco::BasicTrustRegionSQPParameters& params, planning_interface::MotionPlanResponse& res);
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
+             const sco::BasicTrustRegionSQPParameters& params,  moveit_msgs::MotionPlanDetailedResponse& res);
 
-  trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals);
+
 
 protected:
   /** @brief Configure everything using the param server */
