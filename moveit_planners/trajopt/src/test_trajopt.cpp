@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
       planner_plugin_name = "trajopt_interface/TrajOptPlanner";
       node_handle.setParam("planning_plugin", planner_plugin_name);
-      
+
       // We will get the name of planning plugin we want to load
     // from the ROS parameter server, and then load the planner
     // making sure to catch all exceptions.
@@ -194,23 +194,20 @@ int main(int argc, char** argv)
       std::cout << "==>> joint position at goal " << x.position << std::endl;
     }
 
-    
-    //------
-    // We now construct a planning context that encapsulate the scene,
-    // the request and the response. We call the planner using this
+
     // planning context
          planning_interface::PlanningContextPtr context =
         planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
-	 
-	       context->solve(res);
-	          if (res.error_code_.val != res.error_code_.SUCCESS)
-    {
-      ROS_ERROR("Could not compute plan successfully");
-      return 0;
-  }
 
- visual_tools.prompt("Press 'next' to visualize the reslt ");
- 
+         context->solve(res);
+         if (res.error_code_.val != res.error_code_.SUCCESS)
+           {
+             ROS_ERROR("Could not compute plan successfully");
+             return 0;
+           }
+
+         visual_tools.prompt("Press 'next' to visualize the reslt ");
+
 // Visualize the result
   // ^^^^^^^^^^^^^^^^^^^^
   ros::Publisher display_publisher =
@@ -221,13 +218,24 @@ int main(int argc, char** argv)
   moveit_msgs::MotionPlanResponse response;
   res.getMessage(response);
 
+  for (int timestep_index = 0; timestep_index < 10; ++timestep_index)
+    {
+      for (int joint_index = 0; joint_index < 7; ++joint_index)
+        {
+          response.trajectory.joint_trajectory.points[timestep_index].positions[joint_index];
+        }
+      std::cout << "-------------------- next timestep ---------------" << std::endl;
+    }
+
+
+
   display_trajectory.trajectory_start = response.trajectory_start;
   display_trajectory.trajectory.push_back(response.trajectory);
   visual_tools.publishTrajectoryLine(display_trajectory.trajectory.back(), joint_model_group);
   visual_tools.trigger();
   display_publisher.publish(display_trajectory);
-  /*
-  // Set the state in the planning scene to the final state of the last plan 
+
+  // Set the state in the planning scene to the final state of the last plan
   robot_state->setJointGroupPositions(joint_model_group, response.trajectory.joint_trajectory.points.back().positions);
   planning_scene->setCurrentState(*robot_state.get());
 
@@ -235,7 +243,7 @@ int main(int argc, char** argv)
   visual_tools.publishRobotState(planning_scene->getCurrentStateNonConst(), rviz_visual_tools::GREEN);
   visual_tools.publishAxisLabeled(pose.pose, "goal_1");
   visual_tools.publishText(text_pose, "Pose Goal (1)", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();      
-*/	   
+  visual_tools.trigger();
+
 
 }
