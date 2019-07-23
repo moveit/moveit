@@ -58,3 +58,7 @@ qtcreator-*
 
 #gdb
 *.gdb
+<<<<<<< HEAD
+=======
+/moveit_planners/trajopt/launch/gdb_settings.gdb
+>>>>>>> addressed the comments
