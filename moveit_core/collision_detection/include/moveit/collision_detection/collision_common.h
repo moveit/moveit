@@ -95,6 +95,15 @@ struct Contact
 
   /** \brief The type of the second body involved in the contact */
   BodyType body_type_2;
+
+  /** \brief The distance percentage between casted poses until collision.
+   *
+   *  If the value is 0, then the collision occured in the start pose. If the value is 1, then the collision occured in
+   *  the end pose. */
+  double percent_interpolation;
+
+  /** \brief The two nearest points connecting the two bodies */
+  Eigen::Vector3d nearest_points[2];
 };
 
 /** \brief When collision costs are computed, this structure contains information about the partial cost incurred in a

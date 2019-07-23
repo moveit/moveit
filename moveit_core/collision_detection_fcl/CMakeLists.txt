@@ -29,4 +29,7 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
   target_link_libraries(test_fcl_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
+  catkin_add_gtest(test_fcl_collision_detection_panda test/test_fcl_collision_detection_panda.cpp)
+  target_link_libraries(test_fcl_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()

@@ -34,16 +34,14 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_detector_bt_plugin_loader.h>
-#include <pluginlib/class_list_macros.h>
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection/test_collision_common_panda.h>
 
-namespace collision_detection
-{
-bool CollisionDetectorBtPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
-{
-  scene->setActiveCollisionDetector(CollisionDetectorAllocatorBt::create(), exclusive);
-  return true;
-}
-}
+INSTANTIATE_TYPED_TEST_CASE_P(BulletCollisionCheckPanda, CollisionDetectorPandaTest,
+                              collision_detection::CollisionDetectorAllocatorBullet);
 
-PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorBtPluginLoader, collision_detection::CollisionPlugin)
+int main(int argc, char* argv[])
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
