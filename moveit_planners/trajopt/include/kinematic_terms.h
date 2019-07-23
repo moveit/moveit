@@ -71,5 +71,10 @@ struct CartPoseErrCalculator : public sco::VectorOfVector
   Eigen::VectorXd operator()(const Eigen::VectorXd& dof_vals) const override;
 };
 
+  //TODO(omid): The following should be added and adjusted from trajopt
+  // JointPosEqCost
+  // JointPosIneqCost
+  // JointPosEqConstraint
+  // JointPosIneqConstraint
 
 }  // namespace trajopt

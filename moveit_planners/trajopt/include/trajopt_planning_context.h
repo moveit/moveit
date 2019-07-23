@@ -21,7 +21,6 @@
 #include "problem_description.h"
 #include "trajopt_interface.h"
 
-//using namespace trajopt;
 
 namespace trajopt_interface
 {
@@ -48,7 +47,6 @@ protected:
 private:
 
   moveit::core::RobotModelConstPtr robot_model_;
-  //  robot_state::RobotStatePtr robot_state_;
 
   TrajOptInterfacePtr trajopt_interface_;
 };

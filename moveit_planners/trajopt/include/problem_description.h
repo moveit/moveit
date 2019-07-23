@@ -243,6 +243,42 @@ struct CartPoseTermInfo : public TermInfo
   DEFINE_CREATE(CartPoseTermInfo)
 };
 
+
+/**
+  \brief Joint space position cost
+    Position operates on a single point (unlike velocity, etc). This is b/c the primary usecase is joint-space
+    position waypoints
+
+  \f{align*}{
+  \sum_i c_i (x_i - xtarg_i)^2
+  \f}
+  where \f$i\f$ indexes over dof and \f$c_i\f$ are coeffs
+ */
+struct JointPosTermInfo : public TermInfo
+{
+  /** @brief Vector of coefficients that scale the cost. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec coeffs;
+  /** @brief Vector of position targets. This is a required value. Size should be the DOF of the system */
+  trajopt::DblVec targets;
+  /** @brief Vector of position upper limits. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec upper_tols;
+  /** @brief Vector of position lower limits. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec lower_tols;
+  /** @brief First time step to which the term is applied. Default: 0 */
+  int first_step = 0;
+  /** @brief Last time step to which the term is applied. Default: prob.GetNumSteps() - 1*/
+  int last_step = -1;
+
+  /** @brief Initialize term with it's supported types */
+  JointPosTermInfo() : TermInfo(TT_COST | TT_CNT | TT_USE_TIME) {}
+
+  /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
+  void hatch(TrajOptProblem& prob) override;
+  DEFINE_CREATE(JointPosTermInfo)
+};
+
+
+
 trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals);
 
 }  // namespace trajopt_interface
