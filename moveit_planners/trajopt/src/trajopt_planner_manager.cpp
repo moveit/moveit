@@ -91,6 +91,7 @@ public:
     //       TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
     // }
 
+    // one planning context for now. only panda_arm
      planning_contexts_["panda_arm"] =
        TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", "panda_arm", model));
 

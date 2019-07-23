@@ -1,13 +1,14 @@
-improve_ratio_threshold: 0.25;
-min_trust_box_size: 1e-4;
-min_approx_improve: 1e-4;
-min_approx_improve_frac: -1000; # should br -infinity
-max_iter: 50;
-trust_shrink_ratio: 0.1;
-trust_expand_ratio: 1.5;
-cnt_tolerance: 1e-4;
-max_merit_coeff_increases: 5;
-merit_coeff_increase_ratio : 10;
-max_time: 1000; # should be +infinity
-merit_error_coeff: 10;
-trust_box_size: 1e-1;
+trajopt_param:
+  improve_ratio_threshold: 0.25;
+  min_trust_box_size: 1e-4;
+  min_approx_improve: 1e-4;
+  min_approx_improve_frac: -1000; # should br -infinity
+  max_iter: 50;
+  trust_shrink_ratio: 0.1;
+  trust_expand_ratio: 1.5;
+  cnt_tolerance: 1e-4;
+  max_merit_coeff_increases: 5;
+  merit_coeff_increase_ratio : 10;
+  max_time: 1000; # should be +infinity
+  merit_error_coeff: 10;
+  trust_box_size: 1e-1;

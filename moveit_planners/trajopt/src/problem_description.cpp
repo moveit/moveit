@@ -28,6 +28,30 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include "kinematic_terms.h"
 
 
+/**
+ * @brief Checks the size of the parameter given and throws if incorrect
+ * @param parameter The vector whose size is getting checked
+ * @param expected_size The expected size of the vector
+ * @param name The name to use when printing an error or warning
+ * @param apply_first If true and only one value is given, broadcast value to length of expected_size
+ */
+void checkParameterSize(trajopt::DblVec& parameter,
+                        const unsigned int& expected_size,
+                        const std::string& name,
+                        const bool& apply_first = true)
+{
+  if (apply_first == true && parameter.size() == 1)
+  {
+    parameter = trajopt::DblVec(expected_size, parameter[0]);
+    ROS_INFO("1 %s given. Applying to all %i joints", name.c_str(), expected_size);
+  }
+  else if (parameter.size() != expected_size)
+  {
+    PRINT_AND_THROW(boost::format("wrong number of %s. expected %i got %i") % name % expected_size % parameter.size());
+  }
+}
+
+
 namespace trajopt_interface
 {
 
@@ -63,8 +87,8 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   Eigen::VectorXd lower, upper;
   lower = limits.col(0);
   upper = limits.col(1);
-std::cout << " ==================================== limits ============================================="  << std::endl;
- std::cout << limits << std::endl;
+  std::cout << " ==================================== problem_description: limits ============================================="  << std::endl;
+  std::cout << limits << std::endl;
 
   trajopt::DblVec vlower, vupper;
   std::vector<std::string> names;
@@ -235,7 +259,7 @@ CartPoseTermInfo::CartPoseTermInfo() : TermInfo(TT_COST | TT_CNT)
 
 void CartPoseTermInfo::hatch(TrajOptProblem& prob)
 {
-  int n_dof = prob.GetNumDOF();
+  unsigned int n_dof = prob.GetNumDOF();
 
   Eigen::Isometry3d input_pose;
   Eigen::Quaterniond q(wxyz(0), wxyz(1), wxyz(2), wxyz(3));
@@ -269,7 +293,104 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
 }
 
 
-// Inspired by the same function in trajopt/trajopt/problem_description.cpp
+void JointPosTermInfo::hatch(TrajOptProblem& prob)
+{
+  unsigned int n_dof = prob.GetNumDOF();
+
+  // If optional parameter not given, set to default
+  if (coeffs.empty())
+    coeffs = trajopt::DblVec(n_dof, 1);
+  if (upper_tols.empty())
+    upper_tols = trajopt::DblVec(n_dof, 0);
+  if (lower_tols.empty())
+    lower_tols = trajopt::DblVec(n_dof, 0);
+  if (last_step <= -1)
+    last_step = prob.GetNumSteps() - 1;
+
+  // Check time step is valid
+  if ((prob.GetNumSteps() - 1) <= first_step)
+    first_step = prob.GetNumSteps() - 1;
+  if ((prob.GetNumSteps() - 1) <= last_step)
+    last_step = prob.GetNumSteps() - 1;
+  //  if (last_step == first_step)
+  //    last_step += 1;
+  if (last_step < first_step)
+  {
+    int tmp = first_step;
+    first_step = last_step;
+    last_step = tmp;
+    ROS_WARN("Last time step for JointPosTerm comes before first step. Reversing them.");
+  }
+  if (last_step == -1)  // last_step not set
+    last_step = first_step;
+
+  // Check if parameters are the correct size.
+  checkParameterSize(coeffs, n_dof, "JointPosTermInfo coeffs", true);
+  checkParameterSize(targets, n_dof, "JointPosTermInfo upper_tols", true);
+  checkParameterSize(upper_tols, n_dof, "JointPosTermInfo upper_tols", true);
+  checkParameterSize(lower_tols, n_dof, "JointPosTermInfo lower_tols", true);
+
+  // Check if tolerances are all zeros
+  bool is_upper_zeros =
+      std::all_of(upper_tols.begin(), upper_tols.end(), [](double i) { return util::doubleEquals(i, 0.); });
+  bool is_lower_zeros =
+      std::all_of(lower_tols.begin(), lower_tols.end(), [](double i) { return util::doubleEquals(i, 0.); });
+
+  // Get vars associated with joints
+  trajopt::VarArray vars = prob.GetVars();
+  trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(n_dof));
+  if (prob.GetHasTime())
+    ROS_INFO("JointPosTermInfo does not differ based on setting of TT_USE_TIME");
+
+  if (term_type & TT_COST)
+  {
+    // If the tolerances are 0, an equality cost is set. Otherwise it's a hinged "inequality" cost
+    if (is_upper_zeros && is_lower_zeros)
+    {
+      prob.addCost(sco::CostPtr(
+                                new trajopt::JointPosEqCost(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step)));
+      prob.getCosts().back()->setName(name);
+    }
+    else
+    {
+      prob.addCost(sco::CostPtr(new trajopt::JointPosIneqCost(joint_vars,
+                                                     util::toVectorXd(coeffs),
+                                                     util::toVectorXd(targets),
+                                                     util::toVectorXd(upper_tols),
+                                                     util::toVectorXd(lower_tols),
+                                                     first_step,
+                                                     last_step)));
+      prob.getCosts().back()->setName(name);
+    }
+  }
+  else if (term_type & TT_CNT)
+  {
+    // If the tolerances are 0, an equality cnt is set. Otherwise it's an inequality constraint
+    if (is_upper_zeros && is_lower_zeros)
+    {
+      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointPosEqConstraint(
+          joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step)));
+      prob.getConstraints().back()->setName(name);
+    }
+    else
+    {
+      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointPosIneqConstraint(joint_vars,
+                                                                       util::toVectorXd(coeffs),
+                                                                       util::toVectorXd(targets),
+                                                                       util::toVectorXd(upper_tols),
+                                                                       util::toVectorXd(lower_tols),
+                                                                       first_step,
+                                                                       last_step)));
+      prob.getConstraints().back()->setName(name);
+    }
+  }
+  else
+  {
+    ROS_WARN("JointPosTermInfo does not have a valid term_type defined. No cost/constraint applied");
+  }
+}
+
+
 trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals)
 {
 

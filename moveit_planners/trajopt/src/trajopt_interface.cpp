@@ -75,7 +75,7 @@
 namespace trajopt_interface
 {
 
-TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh) // , chompPlanner()
+TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh)
 {
   prob_ = TrajOptProblemPtr(new TrajOptProblem());
   // setParamsFromROSPramServer();
@@ -86,23 +86,53 @@ TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh) // , cho
 bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
                              const sco::BasicTrustRegionSQPParameters& params,  moveit_msgs::MotionPlanDetailedResponse& res)
 {
-  ros::WallTime start_time = ros::WallTime::now();
-    std::cout << " ==================================== 1 ============================================="  << std::endl;
+    std::cout << " ==================================== solve from trajopt_interface is called"  << std::endl;
+
+    if (!planning_scene)
+      {
+        ROS_ERROR_STREAM_NAMED("trajopt_planner", "No planning scene initialized.");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+        return false;
+      }
+
+    if (req.start_state.joint_state.position.empty())
+      {
+        ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state position is empty");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+        return false;
+      }
+
+    if (req.start_state.joint_state.name.empty())
+      {
+        ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start_state name is empty");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+        return false;
+      }
+
+
+    if (not planning_scene->getRobotModel()->satisfiesPositionBounds(req.start_state.joint_state.position.data()))
+      {
+        ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state violates joint limits");
+        res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+        return false;
+      }
+
+    ros::WallTime start_time = ros::WallTime::now();
 
     robot_model::RobotModelConstPtr robot_model =  planning_scene->getRobotModel();
     robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-    robot_state->setToDefaultValues();
-    robot_state->update();
+    //    robot_state->update();
     const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(req.group_name);
     int dof = joint_model_group->getActiveJointModelNames().size();
     std::vector<std::string> joint_names = joint_model_group->getVariableNames();
-    std::cout << " ==================================== 2 ============================================="  << std::endl;
+
     std::vector<double> joint_values;
     robot_state->copyJointGroupPositions(joint_model_group, joint_values);
 
-    // Create ProblemInfo
+
+    std::cout << " ======================================= create ProblemInfo"  << std::endl;
     ProblemInfo problem_info(planning_scene, req.group_name);
-    std::cout << " ==================================== 3 ============================================="  << std::endl;
+
     int steps_per_phase = 10;
     problem_info.basic_info.n_steps = steps_per_phase * 2;
     problem_info.basic_info.dt_upper_lim = 2.0;
@@ -111,39 +141,84 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     problem_info.basic_info.use_time = false;
     problem_info.init_info.type = trajopt_interface::InitInfo::STATIONARY;
     problem_info.init_info.dt = 0.5;
-    std::cout << " ==================================== 4 ============================================="  << std::endl;
 
-    // ************************ Constraint ****************************
-    // Make a constraint from req.goal_constriant to cartesian pose cnt at final point
-    // I shoud see how to convert "cartesian pose cnt at final point" to a ConstriantPtr so I can
-    // add that to prob_
-
-    // planning_interface::MotionPlanRequest is the same as the one in moveit_msgs::MotionPlanRequest
-
-    // cartesina pose cnt at a given point with CartPoseTermInfo
-    std::shared_ptr<CartPoseTermInfo> pose_constraint = std::shared_ptr<CartPoseTermInfo>(new CartPoseTermInfo);
-    pose_constraint->term_type = trajopt_interface::TT_CNT;
-    pose_constraint->timestep = 2 * steps_per_phase - 1;
-    pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-    pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
-    pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
-
-    // Given pose
-    pose_constraint->link = joint_model_group->getEndEffectorName(); // to get the end-effector's name
-    pose_constraint->xyz = Eigen::Vector3d(-0.15, 0.6, 1);;
-    pose_constraint->wxyz = Eigen::Vector4d(0.0, 0.0, 1.0, 0.0);
+    std::cout << " ======================================= create Constraints"  << std::endl;
+    // Convert req.goal_constriant to cartesian pose cnt
+    // planning_interface::MotionPlanRequest is the same as moveit_msgs::MotionPlanRequest
 
     // From MotionPlanRequest
-    // geometry_msgs::Vector3 target_position = req.goal_constraints[0].position_constraints[0].target_point_offset; // is this offset to the taretg point not the target itself?
-    // pose_constraint->xyz = Eigen::Vector3d(target_position.x, target_position.x, target_position.x);
-    // geometry_msgs::Quaternion target_orientation = req.goal_constraints[0].orientation_constraints[0].orientation;
-    // pose_constraint->wxyz = Eigen::Vector4d(target_orientation.w, target_orientation.x, target_orientation.y, target_orientation.z);
-    // pose_constraint->link = req.goal_constraints[0].position_constraints[0].link_name;
+    if (req.goal_constraints.empty())
+    {
+      ROS_ERROR_STREAM_NAMED("trajopt_planner", "No goal constraints specified!");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+    return false;
+    }
 
-    // add the constraint to problem_info
-    problem_info.cnt_infos.push_back(pose_constraint);
+    if(!req.goal_constraints[0].position_constraints.empty() && !req.goal_constraints[0].orientation_constraints.empty())
+    {
+      std::cout << " >>> Creating Pose Constraints"  << std::endl;
+      // CartPoseTermInfo type
+      std::shared_ptr<CartPoseTermInfo> pose_constraint = std::shared_ptr<CartPoseTermInfo>(new CartPoseTermInfo);
+      pose_constraint->term_type = trajopt_interface::TT_CNT;
+      pose_constraint->timestep = 2 * steps_per_phase - 1;
+      pose_constraint->pos_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+      pose_constraint->rot_coeffs = Eigen::Vector3d(10.0, 10.0, 10.0);
+      pose_constraint->name = "pose_" + std::to_string(2 * steps_per_phase - 1);
 
-    // construct the problem
+      // Given pose
+      // pose_constraint->link = joint_model_group->getEndEffectorName(); // to get the end-effector's name
+      // pose_constraint->xyz = Eigen::Vector3d(-0.15, 0.6, 1);;
+      // pose_constraint->wxyz = Eigen::Vector4d(0.0, 0.0, 1.0, 0.0);
+
+      geometry_msgs::Vector3 target_position = req.goal_constraints[0].position_constraints[0].target_point_offset; // is this offset to the taretg point not the target itself ???
+      pose_constraint->xyz = Eigen::Vector3d(target_position.x, target_position.y, target_position.z);
+
+      geometry_msgs::Quaternion target_orientation = req.goal_constraints[0].orientation_constraints[0].orientation;
+      pose_constraint->wxyz = Eigen::Vector4d(target_orientation.w, target_orientation.x, target_orientation.y, target_orientation.z);
+      pose_constraint->link = req.goal_constraints[0].position_constraints[0].link_name;
+
+      // add the constraint to problem_info
+      problem_info.cnt_infos.push_back(pose_constraint);
+
+    }else if(req.goal_constraints[0].position_constraints.empty() && !req.goal_constraints[0].orientation_constraints.empty())
+    {
+       ROS_ERROR_STREAM_NAMED("trajopt_planner", "position constraint is not defined");
+       res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+       return false;
+
+    }else if (!req.goal_constraints[0].orientation_constraints.empty() && req.goal_constraints[0].orientation_constraints.empty())
+    {
+       ROS_ERROR_STREAM_NAMED("trajopt_planner", "orientation constraint is not defined");
+       res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+       return false;
+    }
+
+    // One constraint for now
+    if (!req.goal_constraints[0].joint_constraints.empty())
+    {
+      std::cout << "===>>> Creating Joint Constraints"  << std::endl;
+      // Create place pose constraint
+      std::shared_ptr<trajopt_interface::JointPosTermInfo> joint_pos(new trajopt_interface::JointPosTermInfo);
+      joint_pos->term_type = trajopt::TT_CNT;
+      joint_pos->name = "joint pose name ^_^";
+      joint_pos->first_step = problem_info.basic_info.n_steps - 1;
+      joint_pos->last_step = problem_info.basic_info.n_steps - 1;
+
+      trajopt::DblVec db;
+      for (const moveit_msgs::JointConstraint& joint_constraint : req.goal_constraints[0].joint_constraints)
+      {
+        db.push_back(joint_constraint.position);
+      }
+      joint_pos->targets = db;
+      problem_info.cnt_infos.push_back(joint_pos);
+    }
+
+    if (!req.goal_constraints[0].visibility_constraints.empty())
+    {
+
+    }
+
+    std::cout << " ======================================= Construct the problem"  << std::endl;
     prob_ = ConstructProblem(problem_info);
 
     /*
@@ -162,26 +237,17 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     prob_->addConstraint(cptr);
     */
 
-    // ************************ TrajOpt Optimization ****************************
+    std::cout << " ======================================= TrajOpt Optimization"  << std::endl;
     sco::BasicTrustRegionSQP opt(prob_);
-    std::cout << " ==================================== 9 ============================================="  << std::endl;
     opt.setParameters(params_);
-    std::cout << " ==================================== 10 ============================================="  << std::endl;
     opt.initialize(trajopt::trajToDblVec(prob_->GetInitTraj())); // DblVec: a vector of double elements
-    // This initial traj gets passed as the solution for results_.x in optimizer::initialize
-    // which will get updated by optimize() function through getClosestFeasiblePoint
-    // then in sqp loop, it gets passed to convexifyCosts(const std::vector<CostPtr>& costs, const DblVec& x, Model* model)
-    // where convex(x, model) function of each cost(CostFromFunc : Cost) gets called.
-    // So basically, x is an element that starts with an intial value and gets updated as the solution thtough optimize()
 
     // Add all callbacks
     //  for (const sco::Optimizer::Callback& callback : config.callbacks)
     //  {
-    std::cout << " ==================================== 11 ============================================="  << std::endl;
     callbacks_ = callBackFunc;
     opt.addCallback(callbacks_);
     // }
-    std::cout << " ==================================== 12 ============================================="  << std::endl;
     // how to put ModelType, params, callback, in a request so the user can define them ????
     // I need more information than what the template request has in MoveIt
 
@@ -190,85 +256,58 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     ros::Time tStart = ros::Time::now();
     moveit::core::RobotState start_state(planning_scene->getCurrentState());
     moveit::core::robotStateMsgToRobotState(req.start_state, start_state);
+    // This function converts the moveit_msgs::RobotState (from req.start_state) to moveit::core::RobotState (start_state).
     start_state.update();
 
     opt.optimize();
 
-    std::cout << " ==================================== 20 ============================================="  << std::endl;
-
-    // ************************ Solution ****************************
+    std::cout << " ======================================= TrajOpt Solution"  << std::endl;
     trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), prob_->GetVars());
-
-    std::cout << "************* solution ************** " << std::endl;
     std::cout << opt_solution << std::endl;
 
-    // trajectory_msgs::JointTrajectory traj_msgs = convertTrajArrayToJointTrajectory(opt_solution, joint_names);
 
-    // robot_trajectory::RobotTrajectoryPtr traj =  robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model, req.group_name));
+    // assume that the trajectory is now optimized, fill in the output structure:
+    ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %d joints", opt_solution.rows());
 
-    // traj->setRobotTrajectoryMsg(*robot_state, traj_msgs);
+    res.trajectory.resize(1);
+    res.trajectory[0].joint_trajectory.joint_names = joint_names;
+    res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;
 
-    // // plot the trajectory
-    // // for (int s = 0; s < traj->getWayPointCount(); ++s)
-    // // {
-    // //   robot_state::RobotStatePtr state = traj->getWayPointPtr(s);
-    // //   joint_model_group->
-    // // }
+    // fill in the entire trajectory
+    res.trajectory[0].joint_trajectory.points.resize(opt_solution.rows());
+    for (int i = 0; i < opt_solution.rows(); i++)
+      {
+        res.trajectory[0].joint_trajectory.points[i].positions.resize(opt_solution.cols());
+        for (size_t j = 0; j < opt_solution.cols(); j++)
+          {
+            res.trajectory[0].joint_trajectory.points[i].positions[j] = opt_solution(i,j);
+          }
+        // Setting invalid timestamps.
+        // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
+        res.trajectory[0].joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+      }
 
-    // std::cout << "siezeeeeeeeeeeeeeeeeeeeeeeeeee " << traj->getWayPointCount()   << std::endl;
+    int goal_index = opt_solution.rows() - 1;
+    ROS_DEBUG_NAMED("trajopt_planner", "Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+    ROS_DEBUG_NAMED("trajopt_planner", "Serviced planning request in %f wall-seconds, trajectory duration is %f",
+                    (ros::WallTime::now() - start_time).toSec(),
+                    res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
 
-    // res.trajectory_ = traj;
+    // // report planning failure if path has collisions
+    // if (not optimizer->isCollisionFree())
+    // {
+    //   ROS_ERROR_STREAM_NAMED("chomp_planner", "Motion plan is invalid.");
+    //   res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+    //   return false;
+    // }
 
-    // ROS_INFO("planning time: %.3f", (ros::Time::now() - tStart).toSec());
-
-
-
-
-
-
-  // assume that the trajectory is now optimized, fill in the output structure:
-  ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %d joints", opt_solution.rows());
-
-  res.trajectory.resize(1);
-  //  std::vector<std::string>& active_joint_names = joint_model_group->getActiveJointModelNames();
-  res.trajectory[0].joint_trajectory.joint_names = joint_names;
-  res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;  // @TODO this is probably a hack
-  // fill in the entire trajectory
-  res.trajectory[0].joint_trajectory.points.resize(opt_solution.rows());
-  for (int i = 0; i < opt_solution.rows(); i++)
-  {
-    res.trajectory[0].joint_trajectory.points[i].positions.resize(opt_solution.cols());
-    for (size_t j = 0; j < opt_solution.cols(); j++)
-    {
-      res.trajectory[0].joint_trajectory.points[i].positions[j] = opt_solution(i,j);
-    }
-    // Setting invalid timestamps.
-    // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
-    res.trajectory[0].joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
-  }
-  int goal_index = opt_solution.rows() - 1;
-  ROS_DEBUG_NAMED("chomp_planner", "Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
-  ROS_DEBUG_NAMED("chomp_planner", "Serviced planning request in %f wall-seconds, trajectory duration is %f",
-                  (ros::WallTime::now() - start_time).toSec(),
-                  res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
-  res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
-  std::cout << " ==================================== 24 ============================================="  << std::endl;
-  // // report planning failure if path has collisions
-  // if (not optimizer->isCollisionFree())
-  // {
-  //   ROS_ERROR_STREAM_NAMED("chomp_planner", "Motion plan is invalid.");
-  //   res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-  //   return false;
-  // }
-
-  // check that final state is within goal tolerances
-  kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
-  robot_state::RobotState last_state(start_state);
-  last_state.setVariablePositions(res.trajectory[0].joint_trajectory.joint_names,
+    // check that final state is within goal tolerances
+    kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
+    robot_state::RobotState last_state(start_state);
+    last_state.setVariablePositions(res.trajectory[0].joint_trajectory.joint_names,
                                   res.trajectory[0].joint_trajectory.points.back().positions);
-  std::cout << " ==================================== 25 ============================================="  << std::endl;
-  // uncomment this when I use req for the constraint not the hardcoded one
   // bool constraints_are_ok = true;
   // for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
   // {
@@ -281,7 +320,22 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   //     return false;
   //   }
   // }
-  std::cout << " ==================================== 26 ============================================="  << std::endl;
+  std::cout << " ==================================== response"  << std::endl;
+  // moveit::core::robotStateMsgToRobotState(req.start_state, res.start_state);
+  res.trajectory_start =  req.start_state;
+
+  std::cout << "===>>> group name:" << res.group_name << std::endl;
+  std::cout << "===>>> traj start joint name size: " << res.trajectory_start.joint_state.name.size() << std::endl;
+  std::cout << "===>>> traj start joint position size: " << res.trajectory_start.joint_state.position.size() << std::endl;
+  std::cout << "===>>> traj size: " << res.trajectory.size() << std::endl;
+  std::cout << "===>>> traj joint names size: " << res.trajectory[0].joint_trajectory.joint_names.size() << std::endl;
+
+    for(int jn = 0; jn < res.trajectory[0].joint_trajectory.joint_names.size(); ++jn)
+    {
+      std::cout << "===>>> joint_" << jn << ": "  << res.trajectory[0].joint_trajectory.joint_names[jn] << std::endl;
+    }
+
+
   return true;
 }
 
