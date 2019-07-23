@@ -34,15 +34,14 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BT_COLLISION_COMMON_
-#define MOVEIT_COLLISION_DETECTION_BT_COLLISION_COMMON_
+#include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
+#include <moveit/collision_detection/test_collision_common.h>
 
-#include <moveit/collision_detection/world.h>
-#include <moveit/collision_detection/collision_world.h>
+INSTANTIATE_TYPED_TEST_CASE_P(BulletCollisionCheck, CollisionDetectorTest,
+                              collision_detection::CollisionDetectorAllocatorBullet);
 
-namespace collision_detection
+int main(int argc, char* argv[])
 {
-// TODO: Add common functionality for all Bullet collision checkers.
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-
-#endif
