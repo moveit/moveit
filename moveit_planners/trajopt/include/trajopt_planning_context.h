@@ -1,30 +1,14 @@
 #ifndef TrajOpt_PLANNING_CONTEXT_H
 #define TrajOpt_PLANNING_CONTEXT_H
 
-#include <moveit/planning_interface/planning_request.h>
-#include <moveit/planning_interface/planning_response.h>
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <trajopt/plot_callback.hpp>
-#include <trajopt/file_write_callback.hpp>
-#include <trajopt/problem_description.hpp>
-#include <trajopt_utils/config.hpp>
-#include <trajopt_utils/logging.hpp>
-
-#include <tesseract_planning/basic_planner_types.h>
-
-#include <trajopt_sco/solver_interface.hpp>
-
-#include <trajopt_sco/optimizers.hpp>
-#include <trajopt_sco/sco_common.hpp>
 
 #include "problem_description.h"
 #include "trajopt_interface.h"
 
-
 namespace trajopt_interface
 {
-
 MOVEIT_CLASS_FORWARD(TrajOptPlanningContext);
 
 class TrajOptPlanningContext : public planning_interface::PlanningContext
@@ -43,13 +27,11 @@ public:
   void clear() override;
 
 protected:
-
 private:
-
   moveit::core::RobotModelConstPtr robot_model_;
 
   TrajOptInterfacePtr trajopt_interface_;
 };
-} // namespace trajopt_interface
+}  // namespace trajopt_interface
 
 #endif  // TrajOpt_PLANNING_CONTEXT_H
