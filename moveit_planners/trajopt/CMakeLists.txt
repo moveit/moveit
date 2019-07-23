@@ -16,10 +16,9 @@ find_package(catkin REQUIRED
       moveit_ros_planning_interface
       pluginlib
       roscpp
+      rosparam_shortcuts
 
-      tesseract_ros
       trajopt
-      tesseract_planning
 )
 
 catkin_package(
@@ -35,6 +34,7 @@ catkin_package(
       moveit_visual_tools
       moveit_ros_planning_interface
       interactive_markers
+      rosparam_shortcuts
 )
 
 # The following include_directory should have include folder of the new planner.
@@ -75,6 +75,9 @@ target_link_libraries(moveit_trajopt_planner_plugin ${PROJECT_NAME} ${catkin_LIB
 add_executable(test_trajopt src/test_trajopt.cpp)
 target_link_libraries(test_trajopt  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(test_moveit src/test_moveit.cpp)
+target_link_libraries(test_moveit  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 #install(TARGETS
 #  moveit_trajopt_planner_plugin
 #  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -93,3 +96,19 @@ install(FILES trajopt_interface_plugin_description.xml
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
+
+
+#############
+## Testing ##
+#############
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+
+  add_rostest_gtest(trajectory_test test/trajectory_test.test test/trajectory_test.cpp)
+  target_link_libraries(trajectory_test
+    ${LIBRARY_NAME}
+    ${catkin_LIBRARIES}
+  )
+
+endif()

@@ -1,55 +1,66 @@
-#include <trajopt_utils/macros.h>
-TRAJOPT_IGNORE_WARNINGS_PUSH
 #include <Eigen/Geometry>
 #include <boost/format.hpp>
-#include <iostream>
-TRAJOPT_IGNORE_WARNINGS_POP
 
-#include <trajopt/utils.hpp>
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/modeling_utils.hpp>
-#include <trajopt_utils/eigen_conversions.hpp>
-#include <trajopt_utils/eigen_slicing.hpp>
-#include <trajopt_utils/logging.hpp>
-#include <trajopt_utils/stl_to_string.hpp>
 
 #include "kinematic_terms.h"
 
 using namespace std;
 using namespace sco;
 using namespace Eigen;
-using namespace util;
-
-
 
 namespace trajopt_interface
 {
-
 VectorXd CartPoseErrCalculator::operator()(const VectorXd& dof_vals) const
 {
-  // dof_vals is the solution that gets updated in optimize()
-  // target_pose_inv_ is the inverse of the target pose that is given
-  Isometry3d iteration_new_pose; //, robot_base;
-  robot_model::RobotModelConstPtr robot_model =  planning_scene_->getRobotModel();
-  robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-
-  //  robot_base = robot_state->getGlobalLinkTransform(robot_model->getRootLinkName()); //state->transforms.at(manip_->getBaseLinkName());
-  //  assert(change_base.isApprox(
-  //    env_->getState(manip_->getJointNames(), dof_vals)->transforms.at(manip_->getBaseLinkName())));
-
-  //  manip_->calcFwdKin(new_pose, change_base, dof_vals, link_, *state);
-
-  // Calculate the forward kineamtics with the given joint values for the given link
-  robot_state->setJointGroupPositions("panda_arm", dof_vals);
-  robot_state->update();
-  std::string last_link_name = robot_model->getLinkModelNames().back();
-  iteration_new_pose = robot_state->getGlobalLinkTransform(last_link_name); // the pose that gets updated in optimize() based on each new solution
-
-  Isometry3d pose_err = target_pose_inv_ * iteration_new_pose;
-  Quaterniond q(pose_err.rotation());
-  VectorXd err = concat(Vector3d(q.x(), q.y(), q.z()), pose_err.translation());
+  VectorXd err;
   return err;
 }
 
+VectorXd JointVelErrCalculator::operator()(const VectorXd& var_vals) const
+{
+  assert(var_vals.rows() % 2 == 0);
+  // Top half of the vector are the joint values. The bottom half are the 1/dt values
+  int half = static_cast<int>(var_vals.rows() / 2);
+  int num_vels = half - 1;
+  // (x1-x0)*(1/dt)
+  VectorXd vel = (var_vals.segment(1, num_vels) - var_vals.segment(0, num_vels)).array() *
+                 var_vals.segment(half + 1, num_vels).array();
+
+  // Note that for equality terms tols are 0, so error is effectively doubled
+  VectorXd result(vel.rows() * 2);
+  result.topRows(vel.rows()) = -(upper_tol_ - (vel.array() - target_));
+  result.bottomRows(vel.rows()) = lower_tol_ - (vel.array() - target_);
+  return result;
+}
+
+MatrixXd JointVelJacobianCalculator::operator()(const VectorXd& var_vals) const
+{
+  // var_vals = (theta_t1, theta_t2, theta_t3 ... 1/dt_1, 1/dt_2, 1/dt_3 ...)
+  int num_vals = static_cast<int>(var_vals.rows());
+  int half = num_vals / 2;
+  int num_vels = half - 1;
+  MatrixXd jac = MatrixXd::Zero(num_vels * 2, num_vals);
+
+  for (int i = 0; i < num_vels; i++)
+  {
+    // v = (j_i+1 - j_i)*(1/dt)
+    // We calculate v with the dt from the second pt
+    int time_index = i + half + 1;
+    // dv_i/dj_i = -(1/dt)
+    jac(i, i) = -1.0 * var_vals(time_index);
+    // dv_i/dj_i+1 = (1/dt)
+    jac(i, i + 1) = 1.0 * var_vals(time_index);
+    // dv_i/dt_i = j_i+1 - j_i
+    jac(i, time_index) = var_vals(i + 1) - var_vals(i);
+    // All others are 0
+  }
+
+  // bottom half is negative velocities
+  jac.bottomRows(num_vels) = -jac.topRows(num_vels);
+
+  return jac;
+}
 
 }  // namespace trajopt

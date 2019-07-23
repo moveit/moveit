@@ -16,22 +16,20 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-    <depend>pluginlib</depend>
+  <depend>pluginlib</depend>
 
-    <depend>moveit_core</depend>
-    <depend>moveit_ros_planning</depend>
-    <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>moveit_ros_planning_interface</depend>
 
-    <depend>interactive_markers</depend>
+  <depend>interactive_markers</depend>
 
-    <depend>moveit_visual_tools</depend>
+  <depend>moveit_visual_tools</depend>
 
-    <depend>roscpp</depend>
+  <depend>roscpp</depend>
+  <depend>rosparam_shortcuts</depend>
 
-    <depend>trajopt</depend>
-    <depend>tesseract_ros</depend>
-    <depend>tesseract_planning</depend>
-
+  <depend>trajopt</depend>
 
   <export>
     <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>

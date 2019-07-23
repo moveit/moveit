@@ -37,35 +37,12 @@
 */
 
 #include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_state/conversions.h>
 
-#include "moveit/planning_interface/planning_response.h"
 #include "moveit/collision_detection_fcl/collision_detector_allocator_fcl.h"
-
-#include "trajopt_planning_context.h"
 
 #include <class_loader/class_loader.hpp>
 
-
-#include <tesseract_core/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
-#include <jsoncpp/json/json.h>
-#include <ros/console.h>
-#include <trajopt/plot_callback.hpp>
-#include <trajopt/problem_description.hpp>
-#include <trajopt_utils/config.hpp>
-#include <trajopt_utils/logging.hpp>
-#include <trajopt_sco/optimizers.hpp>
-#include <trajopt_sco/sco_common.hpp>
-TESSERACT_IGNORE_WARNINGS_POP
-
-#include <tesseract_planning/trajopt/trajopt_planner.h>
-
-#include <tesseract_planning/basic_planner_types.h>
-
-#include <trajopt_sco/solver_interface.hpp>
-
+#include "trajopt_planning_context.h"
 
 namespace trajopt_interface
 {
@@ -84,16 +61,12 @@ public:
       nh_ = ros::NodeHandle(ns);
     std::string trajopt_ns = ns.empty() ? "trajopt" : ns + "/trajopt";
 
-    // for (const std::string& gpName : model->getJointModelGroupNames())
-    // {
-    //   std::cout << "group name " << gpName << std::endl << "robot model  " << model->getName() << std::endl;
-    //   planning_contexts_[gpName] =
-    //       TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
-    // }
-
-    // one planning context for now. only panda_arm
-     planning_contexts_["panda_arm"] =
-       TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", "panda_arm", model));
+    for (const std::string& gpName : model->getJointModelGroupNames())
+    {
+      std::cout << "group name " << gpName << std::endl << "robot model  " << model->getName() << std::endl;
+      planning_contexts_[gpName] =
+          TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
+    }
 
     return true;
   }
@@ -153,7 +126,6 @@ public:
 
     return context;
   }
-
 
 private:
   ros::NodeHandle nh_;

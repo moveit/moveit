@@ -1,44 +1,19 @@
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit/robot_state/conversions.h>
-
-#include "moveit/planning_interface/planning_request.h"
-#include "moveit/planning_interface/planning_response.h"
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit/planning_scene/planning_scene.h>
 
-#include <tesseract_core/macros.h>
-TESSERACT_IGNORE_WARNINGS_PUSH
-#include <jsoncpp/json/json.h>
 #include <ros/console.h>
-#include <trajopt/plot_callback.hpp>
-#include <trajopt/problem_description.hpp>
-#include <trajopt_utils/config.hpp>
-#include <trajopt_utils/logging.hpp>
-#include <trajopt_sco/optimizers.hpp>
-#include <trajopt_sco/sco_common.hpp>
-TESSERACT_IGNORE_WARNINGS_POP
 
-#include <tesseract_planning/trajopt/trajopt_planner.h>
-#include <tesseract_planning/basic_planner_types.h>
-
-#include <trajopt_sco/solver_interface.hpp>
-#include <trajopt/trajectory_costs.hpp>
-
-#include <trajopt_utils/eigen_conversions.hpp>
-#include <trajopt_utils/eigen_slicing.hpp>
-#include <trajopt_utils/vector_ops.hpp>
-
-#include <vector>
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Geometry>
 
 #include "trajopt_planning_context.h"
 #include "trajopt_interface.h"
 
-namespace trajopt_interface{
-
+namespace trajopt_interface
+{
 TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, const std::string& group_name,
-                                                                  const robot_model::RobotModelConstPtr& model)
+                                               const robot_model::RobotModelConstPtr& model)
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
   std::cout << "===>>> TrajOptPlanningContext is constructed" << std::endl;
@@ -46,23 +21,20 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
   trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 
-
 bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-
   moveit_msgs::MotionPlanDetailedResponse res_msg;
-  bool trajopt_solved = trajopt_interface_->solve(planning_scene_, request_, trajopt_interface_->getParams() , res_msg);
+  bool trajopt_solved = trajopt_interface_->solve(planning_scene_, request_, res_msg);
 
   std::cout << "===>>> planning context solve 1" << std::endl;
   for (int i = 0; i < res_msg.trajectory[0].joint_trajectory.points.size(); i++)
   {
     for (size_t j = 0; j < res_msg.trajectory[0].joint_trajectory.points[i].positions.size(); j++)
     {
-      std::cout  <<  res_msg.trajectory[0].joint_trajectory.points[i].positions[j] << "   ";
+      std::cout << res_msg.trajectory[0].joint_trajectory.points[i].positions[j] << "   ";
     }
-    std::cout  <<  std::endl;
+    std::cout << std::endl;
   }
-
 
   if (trajopt_solved)
   {
@@ -99,18 +71,18 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
     res.planning_time_ = res_detailed.processing_time_[0];
   }
 
-
   std::cout << "===>>> planning context solve 2" << std::endl;
   std::cout << res.trajectory_->getWayPointCount() << std::endl;
 
   return planning_success;
 }
 
-
-
-bool TrajOptPlanningContext::terminate() { /*return false;*/ }
-void TrajOptPlanningContext::clear() { /*request_ = PlannerRequest();*/ }
-
-
+bool TrajOptPlanningContext::terminate()
+{
+  return true;
+}
+void TrajOptPlanningContext::clear()
+{
+}
 
 }  // namespace trajopt_interface

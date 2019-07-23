@@ -58,3 +58,7 @@ CATKIN_IGNORE
 .moveit_ci
 
 *.pyc
+
+#gdb
+*.gdb
+/moveit_planners/trajopt/launch/gdb_settings.gdb

@@ -1,20 +1,11 @@
-#include <trajopt_utils/macros.h>
-TRAJOPT_IGNORE_WARNINGS_PUSH
+
 #include <boost/algorithm/string.hpp>
+
 #include <ros/ros.h>
-#include <tesseract_core/basic_kin.h>
-TRAJOPT_IGNORE_WARNINGS_POP
 
-#include "moveit/planning_interface/planning_request.h"
-#include "moveit/planning_interface/planning_response.h"
 #include <moveit/planning_interface/planning_interface.h>
-#include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit/planning_scene/planning_scene.h>
-
-#include <trajopt/collision_terms.hpp>
-#include <trajopt/common.hpp>
-#include <trajopt/kinematic_terms.hpp>
-#include <trajopt/plot_callback.hpp>
+#include <moveit_msgs/MotionPlanRequest.h>
 
 #include <trajopt/trajectory_costs.hpp>
 #include <trajopt_sco/expr_op_overloads.hpp>
@@ -27,7 +18,6 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include "problem_description.h"
 #include "kinematic_terms.h"
 
-
 /**
  * @brief Checks the size of the parameter given and throws if incorrect
  * @param parameter The vector whose size is getting checked
@@ -35,9 +25,7 @@ TRAJOPT_IGNORE_WARNINGS_POP
  * @param name The name to use when printing an error or warning
  * @param apply_first If true and only one value is given, broadcast value to length of expected_size
  */
-void checkParameterSize(trajopt::DblVec& parameter,
-                        const unsigned int& expected_size,
-                        const std::string& name,
+void checkParameterSize(trajopt::DblVec& parameter, const unsigned int& expected_size, const std::string& name,
                         const bool& apply_first = true)
 {
   if (apply_first == true && parameter.size() == 1)
@@ -51,43 +39,42 @@ void checkParameterSize(trajopt::DblVec& parameter,
   }
 }
 
-
 namespace trajopt_interface
 {
-
-
-TrajOptProblem::TrajOptProblem(){}
+TrajOptProblem::TrajOptProblem()
+{
+}
 
 TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
-  : OptProb(problem_info.basic_info.convex_solver), planning_scene_(problem_info.planning_scene), planning_group_(problem_info.planning_group_name)
+  : OptProb(problem_info.basic_info.convex_solver)
+  , planning_scene_(problem_info.planning_scene)
+  , planning_group_(problem_info.planning_group_name)
 {
-    robot_model::RobotModelConstPtr robot_model =  planning_scene_->getRobotModel();
-    robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-    robot_state->update();
-    const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(planning_group_);
-//   const robot_state::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(planning_group_);
+  robot_model::RobotModelConstPtr robot_model = planning_scene_->getRobotModel();
+  robot_state::RobotState current_state = planning_scene_->getCurrentState();
+  const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(planning_group_);
 
   moveit::core::JointBoundsVector bounds = joint_model_group->getActiveJointModelsBounds();
-  int n_dof = joint_model_group->getActiveJointModelNames().size(); //bounds.size();
+  int n_dof = joint_model_group->getActiveJointModelNames().size();  // or bounds.size();
 
   int n_steps = problem_info.basic_info.n_steps;
 
-  Eigen::MatrixX2d limits(n_dof,2);
-  for (int k = 0; k < limits.size() / 2; ++k){
-
+  Eigen::MatrixX2d limits(n_dof, 2);
+  for (int k = 0; k < limits.size() / 2; ++k)
+  {
     moveit::core::JointModel::Bounds bb = *bounds[k];
     // Joints are considered to have one degree of freedom, then the first element of
     // type Bounds is the one that we want.
     moveit::core::VariableBounds vb = bb.front();
 
-    limits(k,0) =  vb.min_position_;
-    limits(k,1) =  vb.max_position_;
+    limits(k, 0) = vb.min_position_;
+    limits(k, 1) = vb.max_position_;
   }
 
   Eigen::VectorXd lower, upper;
   lower = limits.col(0);
   upper = limits.col(1);
-  std::cout << " ==================================== problem_description: limits ============================================="  << std::endl;
+  std::cout << " ========================== problem_description: limits =======================" << std::endl;
   std::cout << limits << std::endl;
 
   trajopt::DblVec vlower, vupper;
@@ -116,7 +103,6 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   // j_1_0, j_1_1 ...
   // its size is n_steps by n_dof
 }
-
 
 TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 {
@@ -160,19 +146,26 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   if ((use_time == false) && (pci.basic_info.use_time == true))
     PRINT_AND_THROW("No terms use time and basic_info is not set correctly. Try basic_info.use_time = false");
 
-
   TrajOptProblemPtr prob(new TrajOptProblem(pci));
 
   // Generate initial trajectory and check its size
-  robot_model::RobotModelConstPtr robot_model =  pci.planning_scene->getRobotModel();
-  robot_state::RobotStatePtr robot_state(new robot_state::RobotState(robot_model));
-  robot_state->update();
-  const robot_state::JointModelGroup* joint_model_group = robot_state->getJointModelGroup(pci.planning_group_name);
-  int n_dof = prob->GetNumDOF() ;//joint_model_group->getActiveJointModelNames().size();
+  robot_model::RobotModelConstPtr robot_model = pci.planning_scene->getRobotModel();
+  robot_state::RobotState current_state = pci.planning_scene->getCurrentState();
 
-  std::vector<double> joint_values;
-  robot_state->copyJointGroupPositions(joint_model_group, joint_values);
-  trajopt::TrajArray init_traj = generateInitialTrajectory(pci.basic_info.n_steps, joint_values);
+  const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(pci.planning_group_name);
+  int n_dof = prob->GetNumDOF();
+
+  std::vector<double> current_joint_values;
+  current_state.copyJointGroupPositions(joint_model_group, current_joint_values);
+
+  std::cout << "===================================================== robot state joint values " << std::endl;
+  for (int qq = 0; qq < current_joint_values.size(); ++qq)
+  {
+    std::cout << current_joint_values[qq] << std::endl;
+  }
+
+  trajopt::TrajArray init_traj;
+  generateInitialTrajectory(pci, current_joint_values, init_traj);
 
   if (pci.basic_info.use_time == true)
   {
@@ -198,8 +191,6 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   }
   prob->SetInitTraj(init_traj);
 
-
-
   trajopt::VarArray m_traj_vars_temp;
   // If start_fixed, constrain the joint values for the first time step to be their initialized values
   if (bi.start_fixed)
@@ -218,7 +209,7 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     for (int j = 0; j < static_cast<int>(n_dof); ++j)
     {
       m_traj_vars_temp = prob->GetVars();
-      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
+            prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
     }
   }
 
@@ -246,9 +237,7 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     ci->hatch(*prob);
   }
   return prob;
-
 }
-
 
 CartPoseTermInfo::CartPoseTermInfo() : TermInfo(TT_COST | TT_CNT)
 {
@@ -277,8 +266,8 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   else if ((term_type & TT_COST) && ~(term_type | ~TT_USE_TIME))
   {
     sco::VectorOfVectorPtr f(new CartPoseErrCalculator(input_pose, prob.GetPlanningScene(), link, tcp));
-    prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(
-        f, prob.GetVarRow(timestep, 0, n_dof), concat(rot_coeffs, pos_coeffs), sco::ABS, name)));
+    prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(f, prob.GetVarRow(timestep, 0, n_dof),
+                                                       concat(rot_coeffs, pos_coeffs), sco::ABS, name)));
   }
   else if ((term_type & TT_CNT) && ~(term_type | ~TT_USE_TIME))
   {
@@ -292,8 +281,7 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   }
 }
 
-
-void JointPosTermInfo::hatch(TrajOptProblem& prob)
+void JointPoseTermInfo::hatch(TrajOptProblem& prob)
 {
   unsigned int n_dof = prob.GetNumDOF();
 
@@ -325,10 +313,10 @@ void JointPosTermInfo::hatch(TrajOptProblem& prob)
     last_step = first_step;
 
   // Check if parameters are the correct size.
-  checkParameterSize(coeffs, n_dof, "JointPosTermInfo coeffs", true);
-  checkParameterSize(targets, n_dof, "JointPosTermInfo upper_tols", true);
-  checkParameterSize(upper_tols, n_dof, "JointPosTermInfo upper_tols", true);
-  checkParameterSize(lower_tols, n_dof, "JointPosTermInfo lower_tols", true);
+  checkParameterSize(coeffs, n_dof, "JointPoseTermInfo coeffs", true);
+  checkParameterSize(targets, n_dof, "JointPoseTermInfo upper_tols", true);
+  checkParameterSize(upper_tols, n_dof, "JointPoseTermInfo upper_tols", true);
+  checkParameterSize(lower_tols, n_dof, "JointPoseTermInfo lower_tols", true);
 
   // Check if tolerances are all zeros
   bool is_upper_zeros =
@@ -340,26 +328,22 @@ void JointPosTermInfo::hatch(TrajOptProblem& prob)
   trajopt::VarArray vars = prob.GetVars();
   trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(n_dof));
   if (prob.GetHasTime())
-    ROS_INFO("JointPosTermInfo does not differ based on setting of TT_USE_TIME");
+    ROS_INFO("JointPoseTermInfo does not differ based on setting of TT_USE_TIME");
 
   if (term_type & TT_COST)
   {
     // If the tolerances are 0, an equality cost is set. Otherwise it's a hinged "inequality" cost
     if (is_upper_zeros && is_lower_zeros)
     {
-      prob.addCost(sco::CostPtr(
-                                new trajopt::JointPosEqCost(joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step)));
+      prob.addCost(sco::CostPtr(new trajopt::JointPosEqCost(joint_vars, util::toVectorXd(coeffs),
+                                                            util::toVectorXd(targets), first_step, last_step)));
       prob.getCosts().back()->setName(name);
     }
     else
     {
-      prob.addCost(sco::CostPtr(new trajopt::JointPosIneqCost(joint_vars,
-                                                     util::toVectorXd(coeffs),
-                                                     util::toVectorXd(targets),
-                                                     util::toVectorXd(upper_tols),
-                                                     util::toVectorXd(lower_tols),
-                                                     first_step,
-                                                     last_step)));
+      prob.addCost(sco::CostPtr(new trajopt::JointPosIneqCost(joint_vars, util::toVectorXd(coeffs),
+                                                              util::toVectorXd(targets), util::toVectorXd(upper_tols),
+                                                              util::toVectorXd(lower_tols), first_step, last_step)));
       prob.getCosts().back()->setName(name);
     }
   }
@@ -374,13 +358,9 @@ void JointPosTermInfo::hatch(TrajOptProblem& prob)
     }
     else
     {
-      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointPosIneqConstraint(joint_vars,
-                                                                       util::toVectorXd(coeffs),
-                                                                       util::toVectorXd(targets),
-                                                                       util::toVectorXd(upper_tols),
-                                                                       util::toVectorXd(lower_tols),
-                                                                       first_step,
-                                                                       last_step)));
+      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointPosIneqConstraint(
+          joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), util::toVectorXd(upper_tols),
+          util::toVectorXd(lower_tols), first_step, last_step)));
       prob.getConstraints().back()->setName(name);
     }
   }
@@ -390,20 +370,202 @@ void JointPosTermInfo::hatch(TrajOptProblem& prob)
   }
 }
 
-
-trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals)
+void JointVelTermInfo::hatch(TrajOptProblem& prob)
 {
+  unsigned int n_dof = prob.GetNumDOF();
 
-  // Stationary initial trajectory
-  int dof = joint_vals.size();
-  Eigen::VectorXd start_pos(dof);
+  // If optional parameter not given, set to default
+  if (coeffs.empty())
+    coeffs = trajopt::DblVec(n_dof, 1);
+  if (upper_tols.empty())
+    upper_tols = trajopt::DblVec(n_dof, 0);
+  if (lower_tols.empty())
+    lower_tols = trajopt::DblVec(n_dof, 0);
+  if (last_step <= -1)
+    last_step = prob.GetNumSteps() - 1;
 
-    for (int k = 0; k < dof; ++k){
-      start_pos[k] = joint_vals[k];
+  // If only one time step is desired, calculate velocity with next step (2 steps are needed for 1 velocity calculation)
+  if ((prob.GetNumSteps() - 2) <= first_step)
+    first_step = prob.GetNumSteps() - 2;
+  if ((prob.GetNumSteps() - 1) <= last_step)
+    last_step = prob.GetNumSteps() - 1;
+  if (last_step == first_step)
+    last_step += 1;
+  if (last_step < first_step)
+  {
+    int tmp = first_step;
+    first_step = last_step;
+    last_step = tmp;
+    ROS_WARN("Last time step for JointVelTerm comes before first step. Reversing them.");
+  }
+
+  // Check if parameters are the correct size.
+  checkParameterSize(coeffs, n_dof, "JointVelTermInfo coeffs", true);
+  checkParameterSize(targets, n_dof, "JointVelTermInfo targets", true);
+  checkParameterSize(upper_tols, n_dof, "JointVelTermInfo upper_tols", true);
+  checkParameterSize(lower_tols, n_dof, "JointVelTermInfo lower_tols", true);
+  assert(last_step > first_step);
+  assert(first_step >= 0);
+
+  // Check if tolerances are all zeros
+  bool is_upper_zeros =
+      std::all_of(upper_tols.begin(), upper_tols.end(), [](double i) { return util::doubleEquals(i, 0.); });
+  bool is_lower_zeros =
+      std::all_of(lower_tols.begin(), lower_tols.end(), [](double i) { return util::doubleEquals(i, 0.); });
+
+  // Get vars associated with joints
+  trajopt::VarArray vars = prob.GetVars();
+  trajopt::VarArray joint_vars = vars.block(0, 0, vars.rows(), static_cast<int>(n_dof));
+
+  if (term_type == (TT_COST | TT_USE_TIME))
+  {
+    unsigned num_vels = last_step - first_step;
+
+    // Apply seperate cost to each joint b/c that is how the error function is currently written
+    for (size_t j = 0; j < n_dof; j++)
+    {
+      // Get a vector of a single column of vars
+      sco::VarVector joint_vars_vec = joint_vars.cblock(first_step, j, last_step - first_step + 1);
+      sco::VarVector time_vars_vec = vars.cblock(first_step, vars.cols() - 1, last_step - first_step + 1);
+
+      // If the tolerances are 0, an equality cost is set
+      if (is_upper_zeros && is_lower_zeros)
+      {
+        trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
+        prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(
+            sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            util::toVectorXd(single_jnt_coeffs), sco::SQUARED, name + "_j" + std::to_string(j))));
+      }
+      // Otherwise it's a hinged "inequality" cost
+      else
+      {
+        trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
+        prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(
+            sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            util::toVectorXd(single_jnt_coeffs), sco::HINGE, name + "_j" + std::to_string(j))));
+      }
     }
+  }
+  else if (term_type == (TT_CNT | TT_USE_TIME))
+  {
+    unsigned num_vels = last_step - first_step;
 
-    trajopt::TrajArray init_traj = start_pos.transpose().replicate(num_steps,1);
-    return init_traj;
+    // Apply seperate cnt to each joint b/c that is how the error function is currently written
+    for (size_t j = 0; j < n_dof; j++)
+    {
+      // Get a vector of a single column of vars
+      sco::VarVector joint_vars_vec = joint_vars.cblock(first_step, j, last_step - first_step + 1);
+      sco::VarVector time_vars_vec = vars.cblock(first_step, vars.cols() - 1, last_step - first_step + 1);
+
+      // If the tolerances are 0, an equality cnt is set
+      if (is_upper_zeros && is_lower_zeros)
+      {
+        trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
+        prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
+            sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            util::toVectorXd(single_jnt_coeffs), sco::EQ, name + "_j" + std::to_string(j))));
+      }
+      // Otherwise it's a hinged "inequality" constraint
+      else
+      {
+        trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
+        prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
+            sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            util::toVectorXd(single_jnt_coeffs), sco::INEQ, name + "_j" + std::to_string(j))));
+      }
+    }
+  }
+  else if ((term_type & TT_COST) && ~(term_type | ~TT_USE_TIME))
+  {
+    // If the tolerances are 0, an equality cost is set. Otherwise it's a hinged "inequality" cost
+    if (is_upper_zeros && is_lower_zeros)
+    {
+      prob.addCost(sco::CostPtr(new trajopt::JointVelEqCost(joint_vars, util::toVectorXd(coeffs),
+                                                            util::toVectorXd(targets), first_step, last_step)));
+      prob.getCosts().back()->setName(name);
+    }
+    else
+    {
+      prob.addCost(sco::CostPtr(new trajopt::JointVelIneqCost(joint_vars, util::toVectorXd(coeffs),
+                                                              util::toVectorXd(targets), util::toVectorXd(upper_tols),
+                                                              util::toVectorXd(lower_tols), first_step, last_step)));
+      prob.getCosts().back()->setName(name);
+    }
+  }
+  else if ((term_type & TT_CNT) && ~(term_type | ~TT_USE_TIME))
+  {
+    // If the tolerances are 0, an equality cnt is set. Otherwise it's an inequality constraint
+    if (is_upper_zeros && is_lower_zeros)
+    {
+      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointVelEqConstraint(
+          joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), first_step, last_step)));
+      prob.getConstraints().back()->setName(name);
+    }
+    else
+    {
+      prob.addConstraint(sco::ConstraintPtr(new trajopt::JointVelIneqConstraint(
+          joint_vars, util::toVectorXd(coeffs), util::toVectorXd(targets), util::toVectorXd(upper_tols),
+          util::toVectorXd(lower_tols), first_step, last_step)));
+      prob.getConstraints().back()->setName(name);
+    }
+  }
+  else
+  {
+    ROS_WARN("JointVelTermInfo does not have a valid term_type defined. No cost/constraint applied");
+  }
+}
+
+void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values, trajopt::TrajArray& init_traj)
+{
+  Eigen::VectorXd current_pos(current_joint_values.size());
+  for(int joint_index = 0; joint_index < current_joint_values.size(); ++joint_index)
+  {
+    current_pos(joint_index) = current_joint_values[joint_index];
+  }
+
+  InitInfo init_info = pci.init_info;
+
+  // initialize based on type specified
+  if (init_info.type == InitInfo::STATIONARY)
+  {
+    // Initializes all joint values to the initial value (the current value in scene)
+    init_traj = current_pos.transpose().replicate(pci.basic_info.n_steps, 1);
+  }
+  else if (init_info.type == InitInfo::JOINT_INTERPOLATED)
+  {
+    //  Linearly interpolates between initial value (current values in the scene) and the joint position specified in InitInfo.data
+    Eigen::VectorXd end_pos = init_info.end_pos;
+    init_traj.resize(pci.basic_info.n_steps, end_pos.rows());
+    for (int time_step = 0; time_step < current_pos.rows(); ++time_step)
+    {
+      init_traj.col(time_step) = Eigen::VectorXd::LinSpaced(pci.basic_info.n_steps, current_pos(time_step), end_pos(time_step));
+    }
+  }
+  else if (init_info.type == InitInfo::GIVEN_TRAJ)
+  {
+    //  Initializes the matrix to a given trajectory
+    init_traj = init_info.start_to_end_trajectory;
+  }
+  else
+  {
+    PRINT_AND_THROW("Init Info did not have a valid type. Valid types are "
+                    "STATIONARY, JOINT_INTERPOLATED, or GIVEN_TRAJ");
+  }
+
+  // Currently all trajectories are generated without time then appended here
+  if (pci.basic_info.use_time)
+  {
+    // add on time (default to 1 sec)
+    init_traj.conservativeResize(Eigen::NoChange_t(), init_traj.cols() + 1);
+
+    init_traj.block(0, init_traj.cols() - 1, init_traj.rows(), 1) =
+        Eigen::VectorXd::Constant(init_traj.rows(), init_info.dt);
+  }
+
 }
 
 

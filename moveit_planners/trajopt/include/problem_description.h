@@ -1,16 +1,15 @@
 #pragma once
-#include <tesseract_core/basic_env.h>
-#include <tesseract_core/basic_kin.h>
 #include <trajopt/common.hpp>
 #include <trajopt/json_marshal.hpp>
 #include <trajopt_sco/optimizers.hpp>
-#include <moveit/robot_model/robot_model.h>
 
+#include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h>
+
+#include <memory>
 
 namespace trajopt_interface
 {
-
 /**
 @brief Used to apply cost/constraint to joint-space velocity
 
@@ -38,17 +37,20 @@ Note: Velocity is calculated numerically using forward finite difference
 where j indexes over DOF, and \f$c_j\f$ are the coeffs.
 */
 
-
 struct TermInfo;
-typedef std::shared_ptr<TermInfo> TermInfoPtr;
+MOVEIT_CLASS_FORWARD(TermInfo);
 
 class TrajOptProblem;
-typedef std::shared_ptr<TrajOptProblem> TrajOptProblemPtr;
+MOVEIT_CLASS_FORWARD(TrajOptProblem);
+
+struct JointPoseTermInfo;
+MOVEIT_CLASS_FORWARD(JointPoseTermInfo);
+
+struct CartPoseTermInfo;
+MOVEIT_CLASS_FORWARD(CartPoseTermInfo);
 
 struct ProblemInfo;
-
 TrajOptProblemPtr ConstructProblem(const ProblemInfo&);
-
 
 enum TermType
 {
@@ -57,23 +59,21 @@ enum TermType
   TT_USE_TIME = 0x4,  // 0000 0100
 };
 
-#define DEFINE_CREATE(classname)                                                                                       \
-  static TermInfoPtr create()                                                                                          \
-  {                                                                                                                    \
-    TermInfoPtr out(new classname());                                                                                  \
-    return out;                                                                                                        \
-  }
-
-
 struct BasicInfo
 {
-  /** @brief If true first time step is fixed with a joint level constraint*/
+  /** @brief If true, first time step is fixed with a joint level constraint
+      If this is false, the starting point of the trajectory will
+      not be the current position of the robot. The use case example is: if we are trying to execute a process like
+      sanding the critical part which is the actual process path not how we get to the start of the process path. So we
+     plan the
+      process path first leaving the start free to hopefully get the most optimal and then we plan from the current
+     location with
+      start fixed to the start of the process path. It depends on what we want the default behavior to be
+   */
   bool start_fixed;
   /** @brief Number of time steps (rows) in the optimization matrix */
   int n_steps;
-  std::string manip;
-  std::string robot;             // optional
-  sco::IntVec dofs_fixed;             // optional
+  sco::IntVec dofs_fixed;        // optional
   sco::ModelType convex_solver;  // which convex solver to use
 
   /** @brief If true, the last column in the optimization matrix will be 1/dt */
@@ -89,10 +89,10 @@ Initialization info read from json
 */
 struct InitInfo
 {
-  /** @brief Methods of initializing the optimization matrix
+  /** @brief Methods of initializing the optimization matrix. This defines how robot moves from the current
+      state to the start state
 
-    STATIONARY: Initializes all joint values to the initial value (the current value in the env
-    pci.env->getCurrentJointValues)
+    STATIONARY: Initializes all joint values to the initial value (the current value in the env)
     JOINT_INTERPOLATED: Linearly interpolates between initial value and the joint position specified in InitInfo.data
     GIVEN_TRAJ: Initializes the matrix to a given trajectory
 
@@ -106,8 +106,12 @@ struct InitInfo
   };
   /** @brief Specifies the type of initialization to use */
   Type type;
-  /** @brief Data used during initialization. Use depends on the initialization selected. */
-  trajopt::TrajArray data;
+  /** @brief Data used during initialization. Use depends on the initialization selected. This data will be used
+      to create initialization matrix. We need to give the goal information to this init info
+   */
+  //trajopt::TrajArray data; This data type does not seem correct, it should be of type VectorXd
+  Eigen::VectorXd end_pos;
+  trajopt::TrajArray start_to_end_trajectory;
   /** @brief Default value the final column of the optimization is initialized too if time is being used */
   double dt = 1.0;
 };
@@ -121,7 +125,10 @@ struct TermInfo
 {
   std::string name;
   int term_type;
-  int getSupportedTypes() { return supported_term_types_; }
+  int getSupportedTypes()
+  {
+    return supported_term_types_;
+  }
   //  virtual void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) = 0;
   virtual void hatch(TrajOptProblem& prob) = 0;
 
@@ -137,12 +144,14 @@ struct TermInfo
   virtual ~TermInfo() = default;
 
 protected:
-  TermInfo(int supported_term_types) : supported_term_types_(supported_term_types) {}
+  TermInfo(int supported_term_types) : supported_term_types_(supported_term_types)
+  {
+  }
+
 private:
   static std::map<std::string, MakerFunc> name2maker;
   int supported_term_types_;
 };
-
 
 struct ProblemInfo
 {
@@ -153,65 +162,90 @@ public:
   std::vector<TermInfoPtr> cnt_infos;
   InitInfo init_info;
 
-  //  tesseract::BasicEnvConstPtr env;
-  //  tesseract::BasicKinConstPtr kin;
   planning_scene::PlanningSceneConstPtr planning_scene;
   std::string planning_group_name;
 
-  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, std::string pg)
-    : planning_scene(ps), planning_group_name(pg) {}
-  //  void fromJson(const Json::Value& v);
+  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, std::string pg) : planning_scene(ps), planning_group_name(pg)
+  {
+  }
 
 private:
-  // void readBasicInfo(const Json::Value& v);
-  // void readOptInfo(const Json::Value& v);
-  // void readCosts(const Json::Value& v);
-  // void readConstraints(const Json::Value& v);
-  //  void readInitInfo(const Json::Value& v);
-};
 
+};
 
 /**
  * Holds all the data for a trajectory optimization problem
  * so you can modify it programmatically, e.g. add your own costs
  */
-class  TrajOptProblem :  public sco::OptProb
+class TrajOptProblem : public sco::OptProb
 {
 public:
   TrajOptProblem();
   TrajOptProblem(const ProblemInfo& problem_info);
   virtual ~TrajOptProblem() = default;
-  sco::VarVector GetVarRow(int i, int start_col, int num_col) { return m_traj_vars.rblock(i, start_col, num_col); }
-  sco::VarVector GetVarRow(int i) { return m_traj_vars.row(i); }
-  sco::Var& GetVar(int i, int j) { return m_traj_vars.at(i, j); }
-  trajopt::VarArray& GetVars() { return m_traj_vars; }
+  /** @brief Returns the values of the specified joints (start_col to num_col) for the specified timestep i.*/
+  sco::VarVector GetVarRow(int i, int start_col, int num_col)
+  {
+    return m_traj_vars.rblock(i, start_col, num_col);
+  }
+  /** @brief Returns the values of all joints for the specified timestep i.*/
+  sco::VarVector GetVarRow(int i)
+  {
+    return m_traj_vars.row(i);
+  }
+  /** @brief Returns the value of the specified joint j for the specified timestep i.*/
+  sco::Var& GetVar(int i, int j)
+  {
+    return m_traj_vars.at(i, j);
+  }
+  trajopt::VarArray& GetVars()
+  {
+    return m_traj_vars;
+  }
   /** @brief Returns the number of steps in the problem. This is the number of rows in the optimization matrix.*/
-  int GetNumSteps() { return m_traj_vars.rows(); }
+  int GetNumSteps()
+  {
+    return m_traj_vars.rows();
+  }
   /** @brief Returns the problem DOF. This is the number of columns in the optization matrix.
    * Note that this is not necessarily the same as the kinematic DOF.*/
-  int GetNumDOF() { return m_traj_vars.cols(); }
-  // tesseract::BasicKinConstPtr GetKin() { return m_kin; }
-  //tesseract::BasicEnvConstPtr GetEnv() { return m_env; }
-  planning_scene::PlanningSceneConstPtr GetPlanningScene() { return planning_scene_;}
-  void SetInitTraj(const trajopt::TrajArray& x){  m_init_traj = x; }
-  trajopt::TrajArray GetInitTraj() { return m_init_traj; }
+  int GetNumDOF()
+  {
+    return m_traj_vars.cols();
+  }
+  planning_scene::PlanningSceneConstPtr GetPlanningScene()
+  {
+    return planning_scene_;
+  }
+  void SetInitTraj(const trajopt::TrajArray& x)
+  {
+    m_init_traj = x;
+  }
+  trajopt::TrajArray GetInitTraj()
+  {
+    return m_init_traj;
+  }
   //  friend TrajOptProbPtr ConstructProblem(const ProblemConstructionInfo&);
   /** @brief Returns TrajOptProb.has_time */
-  bool GetHasTime() { return has_time; }
+  bool GetHasTime()
+  {
+    return has_time;
+  }
   /** @brief Sets TrajOptProb.has_time  */
-  void SetHasTime(bool tmp) { has_time = tmp; }
+  void SetHasTime(bool tmp)
+  {
+    has_time = tmp;
+  }
 
 private:
   /** @brief If true, the last column in the optimization matrix will be 1/dt */
   bool has_time;
+  /** @brief is the matrix holding the joint values of the trajectory for all timesteps */
   trajopt::VarArray m_traj_vars;
-  // tesseract::BasicKinConstPtr m_kin;
-  // tesseract::BasicEnvConstPtr m_env;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   std::string planning_group_;
   trajopt::TrajArray m_init_traj;
 };
-
 
 /** @brief This term is used when the goal frame is fixed in cartesian space
 
@@ -240,9 +274,13 @@ struct CartPoseTermInfo : public TermInfo
   //  void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) override;
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
   void hatch(TrajOptProblem& prob) override;
-  DEFINE_CREATE(CartPoseTermInfo)
-};
 
+  static TermInfoPtr create()
+  {
+    TermInfoPtr out(new CartPoseTermInfo());
+    return out;
+  }
+};
 
 /**
   \brief Joint space position cost
@@ -254,7 +292,7 @@ struct CartPoseTermInfo : public TermInfo
   \f}
   where \f$i\f$ indexes over dof and \f$c_i\f$ are coeffs
  */
-struct JointPosTermInfo : public TermInfo
+struct JointPoseTermInfo : public TermInfo
 {
   /** @brief Vector of coefficients that scale the cost. Size should be the DOF of the system. Default: vector of 0's*/
   trajopt::DblVec coeffs;
@@ -270,15 +308,50 @@ struct JointPosTermInfo : public TermInfo
   int last_step = -1;
 
   /** @brief Initialize term with it's supported types */
-  JointPosTermInfo() : TermInfo(TT_COST | TT_CNT | TT_USE_TIME) {}
+  JointPoseTermInfo() : TermInfo(TT_COST | TT_CNT | TT_USE_TIME)
+  {
+  }
 
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
   void hatch(TrajOptProblem& prob) override;
-  DEFINE_CREATE(JointPosTermInfo)
+
+  static TermInfoPtr create()
+  {
+    TermInfoPtr out(new JointPoseTermInfo());
+    return out;
+  }
 };
 
+struct JointVelTermInfo : public TermInfo
+{
+  /** @brief Vector of coefficients that scale the cost. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec coeffs;
+  /** @brief Vector of velocity targets. This is a required value. Size should be the DOF of the system */
+  trajopt::DblVec targets;
+  /** @brief Vector of velocity upper limits. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec upper_tols;
+  /** @brief Vector of velocity lower limits. Size should be the DOF of the system. Default: vector of 0's*/
+  trajopt::DblVec lower_tols;
+  /** @brief First time step to which the term is applied. Default: 0*/
+  int first_step = 0;
+  /** @brief Last time step to which the term is applied. Default: prob.GetNumSteps() - 1*/
+  int last_step = -1;
 
+  /** @brief Initialize term with it's supported types */
+  JointVelTermInfo() : TermInfo(TT_COST | TT_CNT | TT_USE_TIME)
+  {
+  }
 
-trajopt::TrajArray generateInitialTrajectory(const int& num_steps, const std::vector<double>& joint_vals);
+  /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
+  void hatch(TrajOptProblem& prob) override;
+
+  static TermInfoPtr create()
+  {
+    TermInfoPtr out(new JointVelTermInfo());
+    return out;
+  }
+};
+
+  void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values, trajopt::TrajArray& init_traj);
 
 }  // namespace trajopt_interface
