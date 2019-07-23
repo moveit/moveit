@@ -34,10 +34,16 @@
 
 /* Author: Jens Petit */
 
-#include <moveit/collision_detection_bullet/collision_common.h>
-#include <geometric_shapes/shapes.h>
+#include <moveit/collision_detection_bullet/collision_detector_bullet_plugin_loader.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace collision_detection
 {
-// TODO: Add common functionality for all collision detection here.
-}  // namespace collision_detection
+bool CollisionDetectorBtPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
+{
+  scene->setActiveCollisionDetector(CollisionDetectorAllocatorBullet::create(), exclusive);
+  return true;
+}
+}
+
+PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorBtPluginLoader, collision_detection::CollisionPlugin)

@@ -24,7 +24,6 @@ env:
   matrix:
     - TEST="clang-format catkin_lint"
     - ROS_DISTRO=melodic
-    - ROS_DISTRO=kinetic
 
 matrix: # Add a separate config to the matrix, using clang as compiler
   include:
