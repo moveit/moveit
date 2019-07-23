@@ -28,6 +28,7 @@
 
     <!-- Robot-specific settings -->
     <rosparam file="$(find moveit_planners_trajopt)/config/setup.yaml" command="load"/>
+    <rosparam file="$(find moveit_planners_trajopt)/config/panda_ompl_planning.yaml" command="load"/>
   </node>
 
 </launch>
