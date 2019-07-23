@@ -34,22 +34,23 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_BT_H_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_BT_H_
+#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_
+#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_detection_bullet/collision_robot_bt.h>
-#include <moveit/collision_detection_bullet/collision_world_bt.h>
+#include <moveit/collision_detection_bullet/collision_robot_bullet.h>
+#include <moveit/collision_detection_bullet/collision_world_bullet.h>
 
 namespace collision_detection
 {
 /** \brief An allocator for Bullet collision detectors */
-class CollisionDetectorAllocatorBt
-    : public CollisionDetectorAllocatorTemplate<CollisionWorldBt, CollisionRobotBt, CollisionDetectorAllocatorBt>
+class CollisionDetectorAllocatorBullet
+    : public CollisionDetectorAllocatorTemplate<CollisionWorldBullet, CollisionRobotBullet,
+                                                CollisionDetectorAllocatorBullet>
 {
 public:
-  static const std::string NAME;  // defined in collision_world_bt.cpp
+  static const std::string NAME;  // defined in collision_world_bullet.cpp
 };
-}
+}  // namespace collision_detection
 
-#endif
+#endif  // MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALLOCATOR_BULLET_H_

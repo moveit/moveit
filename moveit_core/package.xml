@@ -22,6 +22,7 @@
   <depend>assimp</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
+  <depend>bullet</depend>
   <depend>eigen_stl_containers</depend>
   <depend>libfcl-dev</depend>
   <depend version_gte="0.5.2">geometric_shapes</depend>
@@ -56,6 +57,6 @@
 
   <export>
     <moveit_core plugin="${prefix}/collision_detector_fcl_description.xml"/>
-    <moveit_core plugin="${prefix}/collision_detector_bt_description.xml"/>
+    <moveit_core plugin="${prefix}/collision_detector_bullet_description.xml"/>
   </export>
 </package>
