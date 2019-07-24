@@ -4,6 +4,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_common.cpp
   src/collision_robot_fcl.cpp
   src/collision_world_fcl.cpp
+  src/collision_env_fcl.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
@@ -30,4 +31,7 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_fcl_collision_detection test/test_fcl_collision_detection.cpp)
   target_link_libraries(test_fcl_collision_detection moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
+  catkin_add_gtest(test_fcl_collision_env test/test_fcl_env.cpp)
+  target_link_libraries(test_fcl_collision_env moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()
