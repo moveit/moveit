@@ -45,7 +45,7 @@ namespace jog_arm
 /**
  * Class LowPassFilter - Filter a signal to soften jerks.
  * This is a first-order Butterworth low-pass filter.
- * 
+ *
  * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
  */
 class LowPassFilter
