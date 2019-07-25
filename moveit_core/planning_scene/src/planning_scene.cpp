@@ -201,15 +201,13 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
     detector->alloc_ = parent_detector->alloc_;
     detector->parent_ = parent_detector;
 
-    detector->cworld_ = detector->alloc_->allocateWorld(parent_detector->cworld_, world_);
-    detector->cworld_const_ = detector->cworld_;
+    detector->cenv_ = detector->alloc_->allocateEnv(parent_detector->cenv_, world_);
+    detector->cenv_const_ = detector->cenv_;
 
     // leave these empty and use parent collision_robot_ unless/until a non-const one
     // is requested (e.g. to modify link padding or scale)
-    detector->crobot_.reset();
-    detector->crobot_const_.reset();
-    detector->crobot_unpadded_.reset();
-    detector->crobot_unpadded_const_.reset();
+    detector->cenv_unpadded_.reset();
+    detector->cenv_unpadded_const_.reset();
   }
   setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
 }
@@ -236,21 +234,12 @@ PlanningScenePtr PlanningScene::diff(const moveit_msgs::PlanningScene& msg) cons
 
 void PlanningScene::CollisionDetector::copyPadding(const PlanningScene::CollisionDetector& src)
 {
-  if (!crobot_)
-  {
-    alloc_->allocateRobot(parent_->getCollisionRobot());
-    crobot_const_ = crobot_;
-  }
-
-  crobot_->setLinkPadding(src.getCollisionRobot()->getLinkPadding());
-  crobot_->setLinkScale(src.getCollisionRobot()->getLinkScale());
+  cenv_->setLinkPadding(src.getCollisionEnv()->getLinkPadding());
+  cenv_->setLinkScale(src.getCollisionEnv()->getLinkScale());
 }
 
 void PlanningScene::propogateRobotPadding()
 {
-  if (!active_collision_->crobot_)
-    return;
-
   for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
     if (it.second != active_collision_)
@@ -285,16 +274,13 @@ void PlanningScene::addCollisionDetector(const collision_detection::CollisionDet
 
   detector->findParent(*this);
 
-  detector->cworld_ = detector->alloc_->allocateWorld(world_);
-  detector->cworld_const_ = detector->cworld_;
+  detector->cenv_ = detector->alloc_->allocateEnv(world_, getRobotModel());
+  detector->cenv_const_ = detector->cenv_;
 
   // Allocate CollisionRobot unless we can use the parent's crobot_.
   // If active_collision_->crobot_ is non-NULL there is local padding and we cannot use the parent's crobot_.
-  if (!detector->parent_ || active_collision_->crobot_)
+  if (!detector->parent_)
   {
-    detector->crobot_ = detector->alloc_->allocateRobot(getRobotModel());
-    detector->crobot_const_ = detector->crobot_;
-
     if (detector != active_collision_)
       detector->copyPadding(*active_collision_);
   }
@@ -302,8 +288,8 @@ void PlanningScene::addCollisionDetector(const collision_detection::CollisionDet
   // Allocate CollisionRobot unless we can use the parent's crobot_unpadded_.
   if (!detector->parent_)
   {
-    detector->crobot_unpadded_ = detector->alloc_->allocateRobot(getRobotModel());
-    detector->crobot_unpadded_const_ = detector->crobot_unpadded_;
+    detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());
+    detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
   }
 }
 
@@ -357,21 +343,20 @@ void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) c
     names.push_back(it.first);
 }
 
-const collision_detection::CollisionWorldConstPtr&
-PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
+const collision_detection::CollisionEnvConstPtr& PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
-    return active_collision_->cworld_const_;
+    return active_collision_->cenv_const_;
   }
 
-  return it->second->cworld_const_;
+  return it->second->cenv_const_;
 }
 
-const collision_detection::CollisionRobotConstPtr&
+const collision_detection::CollisionEnvConstPtr&
 PlanningScene::getCollisionRobot(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
@@ -379,13 +364,13 @@ PlanningScene::getCollisionRobot(const std::string& collision_detector_name) con
   {
     ROS_ERROR_NAMED(LOGNAME, "Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
-    return active_collision_->getCollisionRobot();
+    return active_collision_->getCollisionEnv();
   }
 
-  return it->second->getCollisionRobot();
+  return it->second->getCollisionEnv();
 }
 
-const collision_detection::CollisionRobotConstPtr&
+const collision_detection::CollisionEnvConstPtr&
 PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
@@ -394,10 +379,10 @@ PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_n
     ROS_ERROR_NAMED(LOGNAME, "Could not get CollisionRobotUnpadded named '%s'. "
                              "Returning active CollisionRobotUnpadded '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
-    return active_collision_->getCollisionRobotUnpadded();
+    return active_collision_->getCollisionEnvUnpadded();
   }
 
-  return it->second->getCollisionRobotUnpadded();
+  return it->second->getCollisionEnvUnpadded();
 }
 
 void PlanningScene::clearDiffs()
@@ -420,20 +405,18 @@ void PlanningScene::clearDiffs()
 
     if (it.second->parent_)
     {
-      it.second->crobot_.reset();
-      it.second->crobot_const_.reset();
-      it.second->crobot_unpadded_.reset();
-      it.second->crobot_unpadded_const_.reset();
+      it.second->cenv_unpadded_.reset();
+      it.second->cenv_unpadded_const_.reset();
 
-      it.second->cworld_ = it.second->alloc_->allocateWorld(it.second->parent_->cworld_, world_);
-      it.second->cworld_const_ = it.second->cworld_;
+      it.second->cenv_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_, world_);
+      it.second->cenv_const_ = it.second->cenv_;
     }
     else
     {
       it.second->copyPadding(*parent_->active_collision_);
 
-      it.second->cworld_ = it.second->alloc_->allocateWorld(world_);
-      it.second->cworld_const_ = it.second->cworld_;
+      it.second->cenv_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_, world_);
+      it.second->cenv_const_ = it.second->cenv_;
     }
   }
 
@@ -471,13 +454,10 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
   if (acm_)
     scene->getAllowedCollisionMatrixNonConst() = *acm_;
 
-  if (active_collision_->crobot_)
-  {
-    collision_detection::CollisionRobotPtr active_crobot = scene->getCollisionRobotNonConst();
-    active_crobot->setLinkPadding(active_collision_->crobot_->getLinkPadding());
-    active_crobot->setLinkScale(active_collision_->crobot_->getLinkScale());
-    scene->propogateRobotPadding();
-  }
+  collision_detection::CollisionEnvPtr active_cenv = scene->getCollisionRobotNonConst();
+  active_cenv->setLinkPadding(active_collision_->cenv_->getLinkPadding());
+  active_cenv->setLinkScale(active_collision_->cenv_->getLinkScale());
+  scene->propogateRobotPadding();
 
   if (world_diff_)
   {
@@ -519,7 +499,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const robot_state::RobotState& robot_state) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), robot_state, getAllowedCollisionMatrix());
+  getCollisionWorld()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
 
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
@@ -543,7 +523,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), robot_state, acm);
+  getCollisionWorld()->checkRobotCollision(req, res, robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -565,7 +545,7 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the unpadded version
-  getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), robot_state, acm);
+  getCollisionRobotUnpadded()->checkRobotCollision(req, res, robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -620,15 +600,9 @@ void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const rob
     }
 }
 
-const collision_detection::CollisionRobotPtr& PlanningScene::getCollisionRobotNonConst()
+const collision_detection::CollisionEnvPtr& PlanningScene::getCollisionRobotNonConst()
 {
-  if (!active_collision_->crobot_)
-  {
-    active_collision_->crobot_ =
-        active_collision_->alloc_->allocateRobot(active_collision_->parent_->getCollisionRobot());
-    active_collision_->crobot_const_ = active_collision_->crobot_;
-  }
-  return active_collision_->crobot_;
+  return active_collision_->cenv_;
 }
 
 robot_state::RobotState& PlanningScene::getCurrentStateNonConst()
@@ -717,16 +691,8 @@ void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_ms
   else
     scene_msg.allowed_collision_matrix = moveit_msgs::AllowedCollisionMatrix();
 
-  if (active_collision_->crobot_)
-  {
-    active_collision_->crobot_->getPadding(scene_msg.link_padding);
-    active_collision_->crobot_->getScale(scene_msg.link_scale);
-  }
-  else
-  {
-    scene_msg.link_padding.clear();
-    scene_msg.link_scale.clear();
-  }
+  active_collision_->cenv_->getPadding(scene_msg.link_padding);
+  active_collision_->cenv_->getScale(scene_msg.link_scale);
 
   scene_msg.object_colors.clear();
   if (object_colors_)
@@ -1184,15 +1150,10 @@ void PlanningScene::decoupleParent()
 
   for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it.second->crobot_)
+    if (!it.second->cenv_unpadded_)
     {
-      it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
-      it.second->crobot_const_ = it.second->crobot_;
-    }
-    if (!it.second->crobot_unpadded_)
-    {
-      it.second->crobot_unpadded_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobotUnpadded());
-      it.second->crobot_unpadded_const_ = it.second->crobot_unpadded_;
+      it.second->cenv_unpadded_ = it.second->alloc_->allocateEnv(it.second->parent_->getCollisionEnvUnpadded(), world_);
+      it.second->cenv_unpadded_const_ = it.second->cenv_unpadded_;
     }
     it.second->parent_.reset();
   }
@@ -1265,13 +1226,8 @@ bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& sc
   {
     for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
     {
-      if (!it.second->crobot_)
-      {
-        it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
-        it.second->crobot_const_ = it.second->crobot_;
-      }
-      it.second->crobot_->setPadding(scene_msg.link_padding);
-      it.second->crobot_->setScale(scene_msg.link_scale);
+      it.second->cenv_->setPadding(scene_msg.link_padding);
+      it.second->cenv_->setScale(scene_msg.link_scale);
     }
   }
 
@@ -1308,13 +1264,8 @@ bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_
   acm_.reset(new collision_detection::AllowedCollisionMatrix(scene_msg.allowed_collision_matrix));
   for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it.second->crobot_)
-    {
-      it.second->crobot_ = it.second->alloc_->allocateRobot(it.second->parent_->getCollisionRobot());
-      it.second->crobot_const_ = it.second->crobot_;
-    }
-    it.second->crobot_->setPadding(scene_msg.link_padding);
-    it.second->crobot_->setScale(scene_msg.link_scale);
+    it.second->cenv_->setPadding(scene_msg.link_padding);
+    it.second->cenv_->setScale(scene_msg.link_scale);
   }
   object_colors_.reset(new ObjectColorMap());
   for (const moveit_msgs::ObjectColor& object_color : scene_msg.object_colors)

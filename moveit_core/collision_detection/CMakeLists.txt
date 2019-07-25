@@ -1,8 +1,8 @@
 set(MOVEIT_LIB_NAME moveit_collision_detection)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/allvalid/collision_robot_allvalid.cpp
-  src/allvalid/collision_world_allvalid.cpp
+  #src/allvalid/collision_robot_allvalid.cpp
+  #src/allvalid/collision_world_allvalid.cpp
   src/collision_matrix.cpp
   src/collision_octomap_filter.cpp
   src/collision_robot.cpp
@@ -25,8 +25,8 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_world_diff test/test_world_diff.cpp)
   target_link_libraries(test_world_diff ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 
-  catkin_add_gtest(test_all_valid test/test_all_valid.cpp)
-  target_link_libraries(test_all_valid ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+  #catkin_add_gtest(test_all_valid test/test_all_valid.cpp)
+  #target_link_libraries(test_all_valid ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 endif()
 
 

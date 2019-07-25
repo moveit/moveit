@@ -39,7 +39,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_env.h>
 #include <moveit/macros/class_forward.h>
 
 #include <geometric_shapes/bodies.h>
@@ -831,7 +831,7 @@ protected:
    */
   bool decideContact(const collision_detection::Contact& contact) const;
 
-  collision_detection::CollisionRobotPtr collision_robot_; /**< \brief A copy of the collision robot maintained for
+  collision_detection::CollisionEnvPtr collision_env_; /**< \brief A copy of the collision robot maintained for
                                                               collision checking the cone against robot links */
   bool mobile_sensor_frame_;      /**< \brief True if the sensor is a non-fixed frame relative to the transform frame */
   bool mobile_target_frame_;      /**< \brief True if the target is a non-fixed frame relative to the transform frame */

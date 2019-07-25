@@ -41,6 +41,7 @@
 #include <moveit/transforms/transforms.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/world_diff.h>
+#include <moveit/collision_detection/collision_env.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -294,42 +295,42 @@ public:
   }
 
   /** \brief Get the active collision detector for the world */
-  const collision_detection::CollisionWorldConstPtr& getCollisionWorld() const
+  const collision_detection::CollisionEnvConstPtr& getCollisionWorld() const
   {
     // we always have a world representation after configure is called.
-    return active_collision_->cworld_const_;
+    return active_collision_->cenv_const_;
   }
 
   /** \brief Get the active collision detector for the robot */
-  const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
+  const collision_detection::CollisionEnvConstPtr& getCollisionRobot() const
   {
-    return active_collision_->getCollisionRobot();
+    return active_collision_->getCollisionEnv();
   }
 
   /** \brief Get the active collision detector for the robot */
-  const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
+  const collision_detection::CollisionEnvConstPtr& getCollisionRobotUnpadded() const
   {
-    return active_collision_->getCollisionRobotUnpadded();
+    return active_collision_->getCollisionEnvUnpadded();
   }
 
   /** \brief Get a specific collision detector for the world.  If not found return active CollisionWorld. */
-  const collision_detection::CollisionWorldConstPtr&
+  const collision_detection::CollisionEnvConstPtr&
   getCollisionWorld(const std::string& collision_detector_name) const;
 
   /** \brief Get a specific collision detector for the padded robot.  If no found return active CollisionRobot. */
-  const collision_detection::CollisionRobotConstPtr&
+  const collision_detection::CollisionEnvConstPtr&
   getCollisionRobot(const std::string& collision_detector_name) const;
 
   /** \brief Get a specific collision detector for the unpadded robot.  If no found return active unpadded
    * CollisionRobot. */
-  const collision_detection::CollisionRobotConstPtr&
+  const collision_detection::CollisionEnvConstPtr&
   getCollisionRobotUnpadded(const std::string& collision_detector_name) const;
 
   /** \brief Get the representation of the collision robot
    * This can be used to set padding and link scale on the active collision_robot.
    * NOTE: After modifying padding and scale on the active robot call
    * propogateRobotPadding() to copy it to all the other collision detectors. */
-  const collision_detection::CollisionRobotPtr& getCollisionRobotNonConst();
+  const collision_detection::CollisionEnvPtr& getCollisionRobotNonConst();
 
   /** \brief Copy scale and padding from active CollisionRobot to other CollisionRobots.
    * This should be called after any changes are made to the scale or padding of the active
@@ -624,7 +625,7 @@ public:
    */
   double distanceToCollision(const robot_state::RobotState& robot_state) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), robot_state, getAllowedCollisionMatrix());
+    return getCollisionWorld()->distanceRobot(robot_state, getAllowedCollisionMatrix());
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision (ignoring
@@ -639,7 +640,7 @@ public:
    * self-collisions), if the robot has no padding */
   double distanceToCollisionUnpadded(const robot_state::RobotState& robot_state) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), robot_state, getAllowedCollisionMatrix());
+    return getCollisionRobotUnpadded()->distanceRobot(robot_state, getAllowedCollisionMatrix());
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision, ignoring
@@ -658,7 +659,7 @@ public:
   double distanceToCollision(const robot_state::RobotState& robot_state,
                              const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), robot_state, acm);
+    return getCollisionWorld()->distanceRobot(robot_state, acm);
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision, ignoring
@@ -677,7 +678,7 @@ public:
   double distanceToCollisionUnpadded(const robot_state::RobotState& robot_state,
                                      const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), robot_state, acm);
+    return getCollisionRobotUnpadded()->distanceRobot(robot_state, acm);
   }
 
   /**@}*/
@@ -993,23 +994,21 @@ private:
   struct CollisionDetector
   {
     collision_detection::CollisionDetectorAllocatorPtr alloc_;
-    collision_detection::CollisionRobotPtr crobot_unpadded_;  // if NULL use parent's
-    collision_detection::CollisionRobotConstPtr crobot_unpadded_const_;
-    collision_detection::CollisionRobotPtr crobot_;  // if NULL use parent's
-    collision_detection::CollisionRobotConstPtr crobot_const_;
+    collision_detection::CollisionEnvPtr cenv_;  // never NULL
+    collision_detection::CollisionEnvConstPtr cenv_const_;
 
-    collision_detection::CollisionWorldPtr cworld_;  // never NULL
-    collision_detection::CollisionWorldConstPtr cworld_const_;
+    collision_detection::CollisionEnvPtr cenv_unpadded_;
+    collision_detection::CollisionEnvConstPtr cenv_unpadded_const_;
 
     CollisionDetectorConstPtr parent_;  // may be NULL
 
-    const collision_detection::CollisionRobotConstPtr& getCollisionRobot() const
+    const collision_detection::CollisionEnvConstPtr& getCollisionEnv() const
     {
-      return crobot_const_ ? crobot_const_ : parent_->getCollisionRobot();
+      return cenv_const_ ? cenv_const_ : parent_->getCollisionEnv();
     }
-    const collision_detection::CollisionRobotConstPtr& getCollisionRobotUnpadded() const
+    const collision_detection::CollisionEnvConstPtr& getCollisionEnvUnpadded() const
     {
-      return crobot_unpadded_const_ ? crobot_unpadded_const_ : parent_->getCollisionRobotUnpadded();
+      return cenv_unpadded_const_ ? cenv_unpadded_const_ : parent_->getCollisionEnvUnpadded();
     }
     void findParent(const PlanningScene& scene);
     void copyPadding(const CollisionDetector& src);
