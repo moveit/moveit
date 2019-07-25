@@ -42,7 +42,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <boost/function.hpp>
 #if !defined(_MSC_VER)
-  #include <cxxabi.h>
+#include <cxxabi.h>
 #endif
 
 /** \brief Generic interface to adapting motion planning requests */
