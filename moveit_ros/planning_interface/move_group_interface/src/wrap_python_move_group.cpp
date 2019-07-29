@@ -486,7 +486,7 @@ public:
 
   std::string retimeTrajectory(const std::string& ref_state_str, const std::string& traj_str,
                                double velocity_scaling_factor, double acceleration_scaling_factor,
-                               std::string algorithm)
+                               const std::string& algorithm)
   {
     // Convert reference state message to object
     moveit_msgs::RobotState ref_state_msg;
