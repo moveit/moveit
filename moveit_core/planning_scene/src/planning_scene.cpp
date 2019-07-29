@@ -204,7 +204,7 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
     detector->cenv_ = detector->alloc_->allocateEnv(parent_detector->cenv_, world_);
     detector->cenv_const_ = detector->cenv_;
 
-    // leave these empty and use parent collision_robot_ unless/until a non-const one
+    // leave these empty and use parent collision_env_ unless/until a non-const one
     // is requested (e.g. to modify link padding or scale)
     detector->cenv_unpadded_.reset();
     detector->cenv_unpadded_const_.reset();
@@ -277,15 +277,16 @@ void PlanningScene::addCollisionDetector(const collision_detection::CollisionDet
   detector->cenv_ = detector->alloc_->allocateEnv(world_, getRobotModel());
   detector->cenv_const_ = detector->cenv_;
 
-  // Allocate CollisionRobot unless we can use the parent's crobot_.
-  // If active_collision_->crobot_ is non-NULL there is local padding and we cannot use the parent's crobot_.
-  if (!detector->parent_)
+  // if the current active detector is not the added one, copy its padding to the new one and allocate unpadded
+  if (detector != active_collision_)
   {
-    if (detector != active_collision_)
-      detector->copyPadding(*active_collision_);
+    detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());
+    detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
+
+    detector->copyPadding(*active_collision_);
   }
 
-  // Allocate CollisionRobot unless we can use the parent's crobot_unpadded_.
+  // If we don't have a parent, allocate unpadded versions, otherwise use the parent's cenv_unpadded_.
   if (!detector->parent_)
   {
     detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());

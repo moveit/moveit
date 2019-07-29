@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Jens Petit
+ *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jens Petit */
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_
 #define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_
@@ -50,7 +50,7 @@
 
 namespace collision_detection
 {
-/** \brief  */
+/** \brief FCL implementation of the CollisionEnv */
 class CollisionEnvFCL : public CollisionEnv
 {
 public:
@@ -108,17 +108,12 @@ protected:
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construct an FCL collision object from MoveIt's World::Object. */
-  void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
+  void constructFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const;
 
   /** \brief Updates the specified object in \m fcl_objs_ and in the manager from new data available in the World.
    *
    *  If it does not exist in world, it is deleted. If it's not existing in \m fcl_objs_ yet, it's added there. */
   void updateFCLObject(const std::string& id);
-
-  /// FCL collision manager which handles the collision checking process
-  std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
-
-  std::map<std::string, FCLObject> fcl_objs_;
 
   /** \brief Out of the current robot state and its attached bodies construct an FCLObject which can then be used to
   *   check for collision.
@@ -128,7 +123,7 @@ protected:
   *
   *   \param state The current robot state
   *   \param fcl_obj The newly filled object */
-  void constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const;
+  void constructFCLObjectRobot(const robot_state::RobotState& state, FCLObject& fcl_obj) const;
 
   /** \brief Prepares for the collision check through constructing an FCL collision object out of the current robot
   *   state and specifying a broadphase collision manager of FCL where the constructed object is registered to. */
@@ -148,6 +143,11 @@ protected:
 
   /** \brief Vector of shared pointers to the FCL collision objects which make up the robot */
   std::vector<FCLCollisionObjectConstPtr> robot_fcl_objs_;
+
+  /// FCL collision manager which handles the collision checking process
+  std::unique_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
+
+  std::map<std::string, FCLObject> fcl_objs_;
 
 private:
   /** \brief Callback function executed for each change to the world environment */

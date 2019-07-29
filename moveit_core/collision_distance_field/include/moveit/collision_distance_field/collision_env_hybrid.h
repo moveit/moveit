@@ -107,11 +107,6 @@ public:
     return cenv_distance_;
   }
 
-protected:
-  CollisionEnvDistanceFieldPtr cenv_distance_;
-
-  /// world
-public:
   void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
                                    const robot_state::RobotState& state) const;
 
@@ -150,6 +145,9 @@ public:
   {
     return cenv_distance_;
   }
+
+protected:
+  CollisionEnvDistanceFieldPtr cenv_distance_;
 };
 };
 

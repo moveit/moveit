@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Jens Petit
+ *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jens Petit */
+/* Author: Ioan Sucan */
 
 #include <moveit/collision_detection/collision_env.h>
 #include <limits>
@@ -142,6 +142,7 @@ void CollisionEnv::setScale(double scale)
 
 void CollisionEnv::setLinkPadding(const std::string& link_name, double padding)
 {
+  validatePadding(padding);
   bool update = getLinkPadding(link_name) != padding;
   link_padding_[link_name] = padding;
   if (update)
@@ -165,6 +166,7 @@ void CollisionEnv::setLinkPadding(const std::map<std::string, double>& padding)
   std::vector<std::string> u;
   for (const auto& link_pad_pair : padding)
   {
+    validatePadding(link_pad_pair.second);
     bool update = getLinkPadding(link_pad_pair.first) != link_pad_pair.second;
     link_padding_[link_pad_pair.first] = link_pad_pair.second;
     if (update)
@@ -181,6 +183,7 @@ const std::map<std::string, double>& CollisionEnv::getLinkPadding() const
 
 void CollisionEnv::setLinkScale(const std::string& link_name, double scale)
 {
+  validateScale(scale);
   bool update = getLinkScale(link_name) != scale;
   link_scale_[link_name] = scale;
   if (update)
@@ -223,6 +226,7 @@ void CollisionEnv::setPadding(const std::vector<moveit_msgs::LinkPadding>& paddi
   std::vector<std::string> u;
   for (const auto& p : padding)
   {
+    validatePadding(p.padding);
     bool update = getLinkPadding(p.link_name) != p.padding;
     link_padding_[p.link_name] = p.padding;
     if (update)
@@ -237,6 +241,7 @@ void CollisionEnv::setScale(const std::vector<moveit_msgs::LinkScale>& scale)
   std::vector<std::string> u;
   for (const auto& s : scale)
   {
+    validateScale(s.scale);
     bool update = getLinkScale(s.link_name) != s.scale;
     link_scale_[s.link_name] = s.scale;
     if (update)

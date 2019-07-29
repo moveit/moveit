@@ -135,77 +135,7 @@ public:
   //                                 const
   //                                 collision_detection::AllowedCollisionMatrix
   //                                 &acm) const;
-protected:
-  bool getSelfProximityGradients(GroupStateRepresentationPtr& gsr) const;
 
-  bool getIntraGroupProximityGradients(GroupStateRepresentationPtr& gsr) const;
-
-  bool getSelfCollisions(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult& res,
-                         GroupStateRepresentationPtr& gsr) const;
-
-  bool getIntraGroupCollisions(const collision_detection::CollisionRequest& req,
-                               collision_detection::CollisionResult& res, GroupStateRepresentationPtr& gsr) const;
-
-  void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
-                                collision_detection::CollisionResult& res, const moveit::core::RobotState& state,
-                                const collision_detection::AllowedCollisionMatrix* acm,
-                                GroupStateRepresentationPtr& gsr) const;
-
-  void updateGroupStateRepresentationState(const moveit::core::RobotState& state,
-                                           GroupStateRepresentationPtr& gsr) const;
-
-  void generateCollisionCheckingStructures(const std::string& group_name, const moveit::core::RobotState& state,
-                                           const collision_detection::AllowedCollisionMatrix* acm,
-                                           GroupStateRepresentationPtr& gsr, bool generate_distance_field) const;
-
-  DistanceFieldCacheEntryConstPtr
-  getDistanceFieldCacheEntry(const std::string& group_name, const moveit::core::RobotState& state,
-                             const collision_detection::AllowedCollisionMatrix* acm) const;
-
-  DistanceFieldCacheEntryPtr generateDistanceFieldCacheEntry(const std::string& group_name,
-                                                             const moveit::core::RobotState& state,
-                                                             const collision_detection::AllowedCollisionMatrix* acm,
-                                                             bool generate_distance_field) const;
-
-  void addLinkBodyDecompositions(double resolution);
-
-  void addLinkBodyDecompositions(double resolution,
-                                 const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions);
-
-  PosedBodySphereDecompositionPtr getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
-                                                                      unsigned int ind) const;
-
-  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const moveit::core::LinkModel* ls) const;
-
-  void getGroupStateRepresentation(const DistanceFieldCacheEntryConstPtr& dfce, const moveit::core::RobotState& state,
-                                   GroupStateRepresentationPtr& gsr) const;
-
-  bool compareCacheEntryToState(const DistanceFieldCacheEntryConstPtr& dfce,
-                                const moveit::core::RobotState& state) const;
-
-  bool compareCacheEntryToAllowedCollisionMatrix(const DistanceFieldCacheEntryConstPtr& dfce,
-                                                 const collision_detection::AllowedCollisionMatrix& acm) const;
-
-  void updatedPaddingOrScaling(const std::vector<std::string>& links) override{};
-
-  Eigen::Vector3d size_;
-  Eigen::Vector3d origin_;
-  bool use_signed_distance_field_;
-  double resolution_;
-  double collision_tolerance_;
-  double max_propogation_distance_;
-
-  std::vector<BodyDecompositionConstPtr> link_body_decomposition_vector_;
-  std::map<std::string, unsigned int> link_body_decomposition_index_map_;
-
-  mutable boost::mutex update_cache_lock_;
-  DistanceFieldCacheEntryPtr distance_field_cache_entry_;
-  std::map<std::string, std::map<std::string, bool>> in_group_update_map_;
-  std::map<std::string, GroupStateRepresentationPtr> pregenerated_group_state_representation_map_;
-
-  planning_scene::PlanningScenePtr planning_scene_;
-
-public:
   MOVEIT_STRUCT_FORWARD(DistanceFieldCacheEntryWorld)
   struct DistanceFieldCacheEntryWorld
   {
@@ -292,6 +222,58 @@ public:
                         const AllowedCollisionMatrix* acm, GroupStateRepresentationPtr& gsr) const;
 
 protected:
+  bool getSelfProximityGradients(GroupStateRepresentationPtr& gsr) const;
+
+  bool getIntraGroupProximityGradients(GroupStateRepresentationPtr& gsr) const;
+
+  bool getSelfCollisions(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult& res,
+                         GroupStateRepresentationPtr& gsr) const;
+
+  bool getIntraGroupCollisions(const collision_detection::CollisionRequest& req,
+                               collision_detection::CollisionResult& res, GroupStateRepresentationPtr& gsr) const;
+
+  void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
+                                collision_detection::CollisionResult& res, const moveit::core::RobotState& state,
+                                const collision_detection::AllowedCollisionMatrix* acm,
+                                GroupStateRepresentationPtr& gsr) const;
+
+  void updateGroupStateRepresentationState(const moveit::core::RobotState& state,
+                                           GroupStateRepresentationPtr& gsr) const;
+
+  void generateCollisionCheckingStructures(const std::string& group_name, const moveit::core::RobotState& state,
+                                           const collision_detection::AllowedCollisionMatrix* acm,
+                                           GroupStateRepresentationPtr& gsr, bool generate_distance_field) const;
+
+  DistanceFieldCacheEntryConstPtr
+  getDistanceFieldCacheEntry(const std::string& group_name, const moveit::core::RobotState& state,
+                             const collision_detection::AllowedCollisionMatrix* acm) const;
+
+  DistanceFieldCacheEntryPtr generateDistanceFieldCacheEntry(const std::string& group_name,
+                                                             const moveit::core::RobotState& state,
+                                                             const collision_detection::AllowedCollisionMatrix* acm,
+                                                             bool generate_distance_field) const;
+
+  void addLinkBodyDecompositions(double resolution);
+
+  void addLinkBodyDecompositions(double resolution,
+                                 const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions);
+
+  PosedBodySphereDecompositionPtr getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
+                                                                      unsigned int ind) const;
+
+  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const moveit::core::LinkModel* ls) const;
+
+  void getGroupStateRepresentation(const DistanceFieldCacheEntryConstPtr& dfce, const moveit::core::RobotState& state,
+                                   GroupStateRepresentationPtr& gsr) const;
+
+  bool compareCacheEntryToState(const DistanceFieldCacheEntryConstPtr& dfce,
+                                const moveit::core::RobotState& state) const;
+
+  bool compareCacheEntryToAllowedCollisionMatrix(const DistanceFieldCacheEntryConstPtr& dfce,
+                                                 const collision_detection::AllowedCollisionMatrix& acm) const;
+
+  void updatedPaddingOrScaling(const std::vector<std::string>& links) override{};
+
   DistanceFieldCacheEntryWorldPtr generateDistanceFieldCacheEntryWorld();
 
   void updateDistanceObject(const std::string& id, CollisionEnvDistanceField::DistanceFieldCacheEntryWorldPtr& dfce,
@@ -305,6 +287,23 @@ protected:
                                         GroupStateRepresentationPtr& gsr) const;
 
   static void notifyObjectChange(CollisionEnvDistanceField* self, const ObjectConstPtr& obj, World::Action action);
+
+  Eigen::Vector3d size_;
+  Eigen::Vector3d origin_;
+  bool use_signed_distance_field_;
+  double resolution_;
+  double collision_tolerance_;
+  double max_propogation_distance_;
+
+  std::vector<BodyDecompositionConstPtr> link_body_decomposition_vector_;
+  std::map<std::string, unsigned int> link_body_decomposition_index_map_;
+
+  mutable boost::mutex update_cache_lock_;
+  DistanceFieldCacheEntryPtr distance_field_cache_entry_;
+  std::map<std::string, std::map<std::string, bool>> in_group_update_map_;
+  std::map<std::string, GroupStateRepresentationPtr> pregenerated_group_state_representation_map_;
+
+  planning_scene::PlanningScenePtr planning_scene_;
 
   mutable boost::mutex update_cache_lock_world_;
   DistanceFieldCacheEntryWorldPtr distance_field_cache_entry_world_;

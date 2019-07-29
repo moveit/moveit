@@ -1,3 +1,39 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, Jens Petit
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Jens Petit */
+
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 
@@ -68,7 +104,6 @@ protected:
 
   robot_model::RobotModelPtr robot_model_;
 
-  // std::shared_ptr<collision_detection::CollisionEnvBullet> c_env_;
   collision_detection::CollisionEnvPtr c_env_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
@@ -101,29 +136,6 @@ TEST_F(CollisionDetectionEnvTest, LinksInCollision)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   c_env_->checkSelfCollision(req, res, *robot_state_, *acm_);
-  ASSERT_TRUE(res.collision);
-}
-
-// TODO: Add collision check capability within world itself and then enable test
-/** \brief Two boxes in collision in the world environment. */
-TEST_F(CollisionDetectionEnvTest, DISABLED_WorldToWorldCollision)
-{
-  collision_detection::CollisionRequest req;
-  collision_detection::CollisionResult res;
-
-  shapes::Shape* shape = new shapes::Box(.5, .5, .5);
-  shapes::ShapeConstPtr shape_ptr(shape);
-
-  Eigen::Isometry3d pos_1 = Eigen::Isometry3d::Identity();
-  pos_1.translation().x() = 1;
-  c_env_->getWorld()->addToObject("box", shape_ptr, pos_1);
-
-  Eigen::Isometry3d pos_2 = Eigen::Isometry3d::Identity();
-  pos_2.translation().x() = 1.2;
-  c_env_->getWorld()->addToObject("box_2", shape_ptr, pos_2);
-
-  c_env_->checkRobotCollision(req, res, *robot_state_, *acm_);
-
   ASSERT_TRUE(res.collision);
 }
 
@@ -209,7 +221,10 @@ TEST_F(CollisionDetectionEnvTest, PaddingTest)
   c_env_->checkRobotCollision(req, res, *robot_state_, *acm_);
   ASSERT_FALSE(res.collision);
 }
-/** \brief Continuous self collision checks are not supported yet by tesseract */
+
+/** \brief Continuous self collision checks of the robot.
+ *
+ *  Functionality not supported yet. */
 TEST_F(CollisionDetectionEnvTest, DISABLED_ContinuousCollisionSelf)
 {
   collision_detection::CollisionRequest req;
@@ -251,8 +266,10 @@ TEST_F(CollisionDetectionEnvTest, DISABLED_ContinuousCollisionSelf)
   res.clear();
 }
 
-/** \brief Two similar robot poses are used as start and end pose of a continuous collision check. */
-TEST_F(CollisionDetectionEnvTest, ContinuousCollisionWorld)
+/** \brief Two similar robot poses are used as start and end pose of a continuous collision check.
+ *
+ *  Functionality not supported yet. */
+TEST_F(CollisionDetectionEnvTest, DISABLED_ContinuousCollisionWorld)
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
@@ -276,7 +293,7 @@ TEST_F(CollisionDetectionEnvTest, ContinuousCollisionWorld)
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  // Adding the box which is not in collision with the individual states but with the casted one.
+  // Adding the box which is not in collision with the individual states but sits right between them.
   shapes::Shape* shape = new shapes::Box(0.1, 0.1, 0.1);
   shapes::ShapeConstPtr shape_ptr(shape);
 

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Jens Petit
+ *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jens Petit */
+/* Author: Ioan Sucan */
 
 #ifndef MOVEIT_COLLISION_DETECTION_COLLISION_ENV_
 #define MOVEIT_COLLISION_DETECTION_COLLISION_ENV_
@@ -48,7 +48,7 @@ namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(CollisionEnv);
 
-/** \brief  */
+/** \brief Provides the interface to the individual collision checking libraries. */
 class CollisionEnv
 {
 public:

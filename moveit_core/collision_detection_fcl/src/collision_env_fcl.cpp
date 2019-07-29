@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, Jens Petit
+ *  Copyright (c) 2011, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jens Petit */
+/* Author: Ioan Sucan */
 
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
@@ -59,18 +59,19 @@ CollisionEnvFCL::CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, d
   for (auto link : links)
     for (std::size_t j = 0; j < link->getShapes().size(); ++j)
     {
-      FCLGeometryConstPtr g = createCollisionGeometry(link->getShapes()[j], getLinkScale(link->getName()),
-                                                      getLinkPadding(link->getName()), link, j);
-      if (g)
+      FCLGeometryConstPtr link_geometry = createCollisionGeometry(link->getShapes()[j], getLinkScale(link->getName()),
+                                                                  getLinkPadding(link->getName()), link, j);
+      if (link_geometry)
       {
         index = link->getFirstCollisionBodyTransformIndex() + j;
-        robot_geoms_[index] = g;
+        robot_geoms_[index] = link_geometry;
 
         // Need to store the FCL object so the AABB does not get recreated every time.
         // Every time this object is created, g->computeLocalAABB() is called  which is
         // very expensive and should only be calculated once. To update the AABB, use the
         // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
-        robot_fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(g->collision_geometry_));
+        robot_fcl_objs_[index] =
+            FCLCollisionObjectConstPtr(new fcl::CollisionObjectd(link_geometry->collision_geometry_));
       }
       else
         ROS_ERROR_NAMED("collision_detection.fcl", "Unable to construct collision geometry for link '%s'",
@@ -159,7 +160,7 @@ void CollisionEnvFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab
   }
 }
 
-void CollisionEnvFCL::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
+void CollisionEnvFCL::constructFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const
 {
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
@@ -173,7 +174,7 @@ void CollisionEnvFCL::constructFCLObject(const World::Object* obj, FCLObject& fc
   }
 }
 
-void CollisionEnvFCL::constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const
+void CollisionEnvFCL::constructFCLObjectRobot(const robot_state::RobotState& state, FCLObject& fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(robot_geoms_.size());
   fcl::Transform3d fcl_tf;
@@ -216,7 +217,7 @@ void CollisionEnvFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
   manager.manager_.reset(m);
-  constructFCLObject(state, manager.object_);
+  constructFCLObjectRobot(state, manager.object_);
   manager.object_.registerTo(manager.manager_.get());
   // manager.manager_->update();
 }
@@ -286,7 +287,7 @@ void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, Col
                                                 const AllowedCollisionMatrix* acm) const
 {
   FCLObject fcl_obj;
-  constructFCLObject(state, fcl_obj);
+  constructFCLObjectRobot(state, fcl_obj);
 
   CollisionData cd(&req, &res, acm);
   cd.enableGroup(getRobotModel());
@@ -320,7 +321,7 @@ void CollisionEnvFCL::distanceRobot(const DistanceRequest& req, DistanceResult& 
                                     const robot_state::RobotState& state) const
 {
   FCLObject fcl_obj;
-  constructFCLObject(state, fcl_obj);
+  constructFCLObjectRobot(state, fcl_obj);
 
   DistanceData drd(&req, &res);
   for (std::size_t i = 0; !drd.done && i < fcl_obj.collision_objects_.size(); ++i)
@@ -344,12 +345,12 @@ void CollisionEnvFCL::updateFCLObject(const std::string& id)
     // construct FCL objects that correspond to this object
     if (jt != fcl_objs_.end())
     {
-      constructFCLObject(it->second.get(), jt->second);
+      constructFCLObjectWorld(it->second.get(), jt->second);
       jt->second.registerTo(manager_.get());
     }
     else
     {
-      constructFCLObject(it->second.get(), fcl_objs_[id]);
+      constructFCLObjectWorld(it->second.get(), fcl_objs_[id]);
       fcl_objs_[id].registerTo(manager_.get());
     }
   }
