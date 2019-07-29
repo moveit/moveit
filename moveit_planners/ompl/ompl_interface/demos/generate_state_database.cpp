@@ -127,7 +127,7 @@ void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateSta
                                      << params.constraints);
 
   ompl_interface::ConstraintApproximationConstructionResults result =
-      context->getConstraintsLibrary()->addConstraintApproximation(params.constraints, params.planning_group, scene,
+      context->getConstraintsLibraryNonConst()->addConstraintApproximation(params.constraints, params.planning_group, scene,
                                                                    params.construction_opts);
 
   if (!result.approx)
@@ -135,7 +135,7 @@ void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateSta
     ROS_FATAL_NAMED(LOGNAME, "Failed to generate approximation.");
     return;
   }
-  context->getConstraintsLibrary()->saveConstraintApproximations(params.output_folder);
+  context->getConstraintsLibraryNonConst()->saveConstraintApproximations(params.output_folder);
   ROS_INFO_STREAM_NAMED(LOGNAME,
                         "Successfully generated Joint Space Constraint Approximation Database for constraint:\n"
                             << params.constraints);

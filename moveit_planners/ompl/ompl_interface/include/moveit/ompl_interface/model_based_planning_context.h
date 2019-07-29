@@ -245,7 +245,7 @@ public:
     constraints_library_ = constraints_library;
   }
 
-  ConstraintsLibraryPtr getConstraintsLibrary()
+  ConstraintsLibraryPtr getConstraintsLibraryNonConst()
   {
     return constraints_library_;
   }

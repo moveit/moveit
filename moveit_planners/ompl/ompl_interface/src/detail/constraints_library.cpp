@@ -425,21 +425,21 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(
   context_->setCompleteInitialState(scene->getCurrentState());
 
   ros::WallTime start = ros::WallTime::now();
-  ompl::base::StateStoragePtr ss =
+  ompl::base::StateStoragePtr state_storage =
       constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
   ROS_INFO_NAMED("constraints_library", "Spent %lf seconds constructing the database",
                  (ros::WallTime::now() - start).toSec());
-  if (ss)
+  if (state_storage)
   {
-    ConstraintApproximationPtr ca(new ConstraintApproximation(
+    ConstraintApproximationPtr constraint_approx(new ConstraintApproximation(
         group, options.state_space_parameterization, options.explicit_motions, constr_hard,
         group + "_" + boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) +
             ".ompldb",
-        ss, res.milestones));
+        state_storage, res.milestones));
     if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", ca->getName().c_str());
-    constraint_approximations_[ca->getName()] = ca;
-    res.approx = ca;
+      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", constraint_approx->getName().c_str());
+    constraint_approximations_[constraint_approx->getName()] = constraint_approx;
+    res.approx = constraint_approx;
   }
   else
     ROS_ERROR_NAMED("constraints_library", "Unable to construct constraint approximation for group '%s'",
@@ -454,7 +454,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 {
   // state storage structure
   ConstraintApproximationStateStorage* cass = new ConstraintApproximationStateStorage(pcontext->getOMPLStateSpace());
-  ob::StateStoragePtr sstor(cass);
+  ob::StateStoragePtr state_storage(cass);
 
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel());
@@ -474,39 +474,39 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
   robot_state::RobotState robot_state(default_state);
   const constraint_samplers::ConstraintSamplerManagerPtr& csmng = pcontext->getConstraintSamplerManager();
-  ConstrainedSampler* csmp = nullptr;
+  ConstrainedSampler* constrained_sampler = nullptr;
   if (csmng)
   {
-    constraint_samplers::ConstraintSamplerPtr cs =
+    constraint_samplers::ConstraintSamplerPtr constraint_sampler =
         csmng->selectSampler(pcontext->getPlanningScene(), pcontext->getJointModelGroup()->getName(), constr_sampling);
-    if (cs)
-      csmp = new ConstrainedSampler(pcontext, cs);
+    if (constraint_sampler)
+      constrained_sampler = new ConstrainedSampler(pcontext, constraint_sampler);
   }
 
-  ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
+  ob::StateSamplerPtr ss(constrained_sampler ? ob::StateSamplerPtr(constrained_sampler) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
 
   ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
   int done = -1;
   bool slow_warn = false;
   ompl::time::point start = ompl::time::now();
-  while (sstor->size() < options.samples)
+  while (state_storage->size() < options.samples)
   {
     ++attempts;
-    int done_now = 100 * sstor->size() / options.samples;
+    int done_now = 100 * state_storage->size() / options.samples;
     if (done != done_now)
     {
       done = done_now;
       ROS_INFO_NAMED("constraints_library", "%d%% complete (kept %0.1lf%% sampled states)", done,
-                     100.0 * (double)sstor->size() / (double)attempts);
+                     100.0 * (double)state_storage->size() / (double)attempts);
     }
 
-    if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
+    if (!slow_warn && attempts > 10 && attempts > state_storage->size() * 100)
     {
       slow_warn = true;
       ROS_WARN_NAMED("constraints_library", "Computation of valid state database is very slow...");
     }
 
-    if (attempts > options.samples && sstor->size() == 0)
+    if (attempts > options.samples && state_storage->size() == 0)
     {
       ROS_ERROR_NAMED("constraints_library", "Unable to generate any samples");
       break;
@@ -516,24 +516,24 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     pcontext->getOMPLStateSpace()->copyToRobotState(robot_state, temp.get());
     if (kset.decide(robot_state).satisfied)
     {
-      if (sstor->size() < options.samples)
+      if (state_storage->size() < options.samples)
       {
-        temp->as<ModelBasedStateSpace::StateType>()->tag = sstor->size();
-        sstor->addState(temp.get());
+        temp->as<ModelBasedStateSpace::StateType>()->tag = state_storage->size();
+        state_storage->addState(temp.get());
       }
     }
   }
 
   result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
-  ROS_INFO_NAMED("constraints_library", "Generated %u states in %lf seconds", (unsigned int)sstor->size(),
+  ROS_INFO_NAMED("constraints_library", "Generated %u states in %lf seconds", (unsigned int)state_storage->size(),
                  result.state_sampling_time);
-  if (csmp)
+  if (constrained_sampler)
   {
-    result.sampling_success_rate = csmp->getConstrainedSamplingRate();
+    result.sampling_success_rate = constrained_sampler->getConstrainedSamplingRate();
     ROS_INFO_NAMED("constraints_library", "Constrained sampling rate: %lf", result.sampling_success_rate);
   }
 
-  result.milestones = sstor->size();
+  result.milestones = state_storage->size();
   if (options.edges_per_sample > 0)
   {
     ROS_INFO_NAMED("constraints_library", "Computing graph connections (max %u edges per sample) ...",
@@ -541,7 +541,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
     // construct connexions
     const ob::StateSpacePtr& space = pcontext->getOMPLSimpleSetup()->getStateSpace();
-    unsigned int milestones = sstor->size();
+    unsigned int milestones = state_storage->size();
     std::vector<ob::State*> int_states(options.max_explicit_points, nullptr);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->allocStates(int_states);
 
@@ -560,20 +560,20 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
         continue;
 
-      const ob::State* sj = sstor->getState(j);
+      const ob::State* sj = state_storage->getState(j);
 
       for (std::size_t i = j + 1; i < milestones; ++i)
       {
         if (cass->getMetadata(i).first.size() >= options.edges_per_sample)
           continue;
-        double d = space->distance(sstor->getState(i), sj);
+        double d = space->distance(state_storage->getState(i), sj);
         if (d >= options.max_edge_length)
           continue;
         unsigned int isteps =
             std::min<unsigned int>(options.max_explicit_points, d / options.explicit_points_resolution);
         double step = 1.0 / (double)isteps;
         bool ok = true;
-        space->interpolate(sstor->getState(i), sj, step, int_states[0]);
+        space->interpolate(state_storage->getState(i), sj, step, int_states[0]);
         for (unsigned int k = 1; k < isteps; ++k)
         {
           double this_step = step / (1.0 - (k - 1) * step);
@@ -593,13 +593,13 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
           if (options.explicit_motions)
           {
-            cass->getMetadata(i).second[j].first = sstor->size();
+            cass->getMetadata(i).second[j].first = state_storage->size();
             for (unsigned int k = 0; k < isteps; ++k)
             {
               int_states[k]->as<ModelBasedStateSpace::StateType>()->tag = -1;
-              sstor->addState(int_states[k]);
+              state_storage->addState(int_states[k]);
             }
-            cass->getMetadata(i).second[j].second = sstor->size();
+            cass->getMetadata(i).second[j].second = state_storage->size();
             cass->getMetadata(j).second[i] = cass->getMetadata(i).second[j];
           }
 
@@ -615,11 +615,11 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
                    result.state_connection_time, good);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->freeStates(int_states);
 
-    return sstor;
+    return state_storage;
   }
 
   // TODO(davetcoleman): this function did not originally return a value, causing compiler warnings in ROS Melodic
   // Update with more intelligent logic as needed
   ROS_ERROR_NAMED("constraints_library", "No StateStoragePtr found - implement better solution here.");
-  return sstor;
+  return state_storage;
 }
