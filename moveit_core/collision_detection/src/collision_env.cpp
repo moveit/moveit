@@ -85,7 +85,8 @@ CollisionEnv::CollisionEnv(const robot_model::RobotModelConstPtr& model, double 
   }
 }
 
-CollisionEnv::CollisionEnv(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding, double scale)
+CollisionEnv::CollisionEnv(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding,
+                           double scale)
   : robot_model_(model), world_(world), world_const_(world_)
 {
   if (!validateScale(scale))
@@ -101,7 +102,8 @@ CollisionEnv::CollisionEnv(const robot_model::RobotModelConstPtr& model, const W
   }
 }
 
-CollisionEnv::CollisionEnv(const CollisionEnv& other, const WorldPtr& world) : robot_model_(other.robot_model_), world_(world), world_const_(world)
+CollisionEnv::CollisionEnv(const CollisionEnv& other, const WorldPtr& world)
+  : robot_model_(other.robot_model_), world_(world), world_const_(world)
 {
   link_padding_ = other.link_padding_;
   link_scale_ = other.link_scale_;
@@ -281,14 +283,16 @@ void CollisionEnv::setWorld(const WorldPtr& world)
   world_const_ = world;
 }
 
-void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state) const
+void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                  const robot_state::RobotState& state) const
 {
   checkSelfCollision(req, res, state);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, state);
 }
 
-void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+void CollisionEnv::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                  const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollision(req, res, state, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))

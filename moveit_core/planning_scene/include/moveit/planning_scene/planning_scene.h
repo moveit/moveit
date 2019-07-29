@@ -314,12 +314,10 @@ public:
   }
 
   /** \brief Get a specific collision detector for the world.  If not found return active CollisionWorld. */
-  const collision_detection::CollisionEnvConstPtr&
-  getCollisionWorld(const std::string& collision_detector_name) const;
+  const collision_detection::CollisionEnvConstPtr& getCollisionWorld(const std::string& collision_detector_name) const;
 
   /** \brief Get a specific collision detector for the padded robot.  If no found return active CollisionRobot. */
-  const collision_detection::CollisionEnvConstPtr&
-  getCollisionRobot(const std::string& collision_detector_name) const;
+  const collision_detection::CollisionEnvConstPtr& getCollisionRobot(const std::string& collision_detector_name) const;
 
   /** \brief Get a specific collision detector for the unpadded robot.  If no found return active unpadded
    * CollisionRobot. */

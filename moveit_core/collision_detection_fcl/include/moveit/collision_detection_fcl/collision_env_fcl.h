@@ -48,7 +48,6 @@
 
 #include <memory>
 
-
 namespace collision_detection
 {
 /** \brief  */
@@ -59,7 +58,8 @@ public:
 
   CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
-  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0, double scale = 1.0);
+  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+                  double scale = 1.0);
 
   CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr& world);
 
@@ -69,13 +69,15 @@ public:
                                   const robot_state::RobotState& state) const override;
 
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const override;
+                                  const robot_state::RobotState& state,
+                                  const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const robot_state::RobotState& state) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const override;
+                                   const robot_state::RobotState& state,
+                                   const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2,
@@ -85,15 +87,11 @@ public:
                                    const robot_state::RobotState& state1,
                                    const robot_state::RobotState& state2) const override;
 
-  virtual void checkWorldCollision(const CollisionRequest& req, CollisionResult& res) const override;
-
-  virtual void checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const AllowedCollisionMatrix& acm) const override;
-
   virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
                             const robot_state::RobotState& state) const override;
 
-  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state) const override;
+  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
+                             const robot_state::RobotState& state) const override;
 
   void setWorld(const WorldPtr& world) override;
 

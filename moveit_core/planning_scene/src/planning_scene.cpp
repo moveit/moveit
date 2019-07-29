@@ -343,7 +343,8 @@ void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) c
     names.push_back(it.first);
 }
 
-const collision_detection::CollisionEnvConstPtr& PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
+const collision_detection::CollisionEnvConstPtr&
+PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())

@@ -57,7 +57,8 @@ public:
   virtual const std::string& getName() const = 0;
 
   /** create a new CollisionWorld for checking collisions with the supplied world. */
-  virtual CollisionEnvPtr allocateEnv(const WorldPtr& world, const robot_model::RobotModelConstPtr& robot_model) const = 0;
+  virtual CollisionEnvPtr allocateEnv(const WorldPtr& world,
+                                      const robot_model::RobotModelConstPtr& robot_model) const = 0;
 
   /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
    * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified.

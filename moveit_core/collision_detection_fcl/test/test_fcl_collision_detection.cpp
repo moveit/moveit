@@ -338,7 +338,8 @@ TEST_F(FclCollisionDetectionTester, DISABELD_DiffSceneTester)
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  collision_detection::CollisionEnvFCL* casted_env_pointer = dynamic_cast<collision_detection::CollisionEnvFCL*>(c_env_.get());
+  collision_detection::CollisionEnvFCL* casted_env_pointer =
+      dynamic_cast<collision_detection::CollisionEnvFCL*>(c_env_.get());
   collision_detection::CollisionEnvFCL new_c_env(*casted_env_pointer, c_env_->getWorld());
 
   ros::WallTime before = ros::WallTime::now();

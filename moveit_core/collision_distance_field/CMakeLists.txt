@@ -8,10 +8,8 @@ endif()
 add_library(${MOVEIT_LIB_NAME}
   src/collision_distance_field_types.cpp
   src/collision_common_distance_field.cpp
-  src/collision_robot_distance_field.cpp
-  src/collision_world_distance_field.cpp
-  src/collision_robot_hybrid.cpp
-  src/collision_world_hybrid.cpp
+  src/collision_env_distance_field.cpp
+  src/collision_env_hybrid.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${MOVEIT_LIB_NAME}
