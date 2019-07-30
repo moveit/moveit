@@ -1,5 +1,4 @@
 #include <ros/ros.h>
-#include "trajopt_planning_context.h"
 #include <moveit/planning_interface/planning_interface.h>
 
 #include <moveit/move_group_interface/move_group_interface.h>
@@ -24,16 +23,11 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
 
+#include "trajopt_interface/trajopt_planning_context.h"
 
 // This file is a test for using trajopt in MoveIt. The goal is to make different types of constraints in
-// MotionPlanRequest
-// and visualize the result using trajopt planner.
+// MotionPlanRequest and visualize the result calculated by using trajopt planner.
 // Three cases:
-// 1- joint constraint with start_fixed true, meaining current state of the robot is the initial state of trajectory.
-// 2- joint constraint with start_fixed false, meainig more than one goal should be given. The robot jumps to the first
-// goal
-//    and motion planning is done between first goal and second goal.
-// 3- Cartesian constraint.
 
 int main(int argc, char** argv)
 {
@@ -48,7 +42,7 @@ int main(int argc, char** argv)
       new robot_model_loader::RobotModelLoader("robot_description"));
   robot_model::RobotModelPtr robot_model = robot_model_loader->getModel();
 
-  /* Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group*/
+  // Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   current_state->setToDefaultValues();
 
@@ -56,16 +50,19 @@ int main(int argc, char** argv)
   const std::vector<std::string>& joint_names = joint_model_group->getActiveJointModelNames();
   planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model));
 
-  // With the planning scene we create a planing scene monitor that
-  // monitors planning scene diffs and applys them to the planning scene
+  // With the planning scene we create a planing scene monitor
   planning_scene_monitor::PlanningSceneMonitorPtr psm(
       new planning_scene_monitor::PlanningSceneMonitor(planning_scene, robot_model_loader));
   psm->startPublishingPlanningScene(planning_scene_monitor::PlanningSceneMonitor::UPDATE_SCENE);
   psm->startStateMonitor();
   psm->startSceneMonitor();
 
-  // set the start joint state
-  // ========================================================================================
+  // res req
+  planning_interface::MotionPlanRequest req;
+  planning_interface::MotionPlanResponse res;
+
+  // set start state
+  // ======================================================================================
   // panda_arm joint limits:
   //   -2.8973  2.8973
   //   -1.7628  1.7628
@@ -75,38 +72,54 @@ int main(int argc, char** argv)
   //   -0.0175  3.7525
   //   -2.8973  2.8973
 
-  std::vector<double> start_joint_values = {0.4, 0.3, 0.5, -0.55, 0.88, 1.0, -0.075 };
+  std::vector<double> start_joint_values = { 0.4, 0.3, 0.5, -0.55, 0.88, 1.0, -0.075 };
   robot_state::RobotStatePtr start_state(new robot_state::RobotState(robot_model));
   start_state->setJointGroupPositions(joint_model_group, start_joint_values);
   start_state->update();
 
-  //  planning_scene->setCurrentState(*robot_state);
-
-  // get the joint values of the start state
-  // std::vector<double> tmp_joint_values;
-  // robot_state->copyJointGroupPositions(joint_model_group, tmp_joint_values);
-  // int r = 0;
-  // for (auto x : tmp_joint_values)
-  // {
-  //   printf("===>>> joint: %s with start value: %f \n", joint_names[r].c_str(), x);
-  //   ++r;
-  // }
-
-  // printf("--- get the joint values from planning scene current state");
-  // robot_state::RobotState current_state = planning_scene->getCurrentState();
-  // std::vector<double> tmp_j_values;
-  // current_state.copyJointGroupPositions(joint_model_group, tmp_j_values);
-  // r = 0;
-  // for (auto x : tmp_j_values)
-  // {
-  //   printf("===>>> joint: %s with start value: %f \n", joint_names[r].c_str(), x);
-  //   ++r;
-  // }
-
-
-
+  req.start_state.joint_state.name = joint_names;
+  req.start_state.joint_state.position = start_joint_values;
+  req.goal_constraints.clear();
+  req.group_name = PLANNING_GROUP;
+  ROS_INFO(" ==================================== 0");
+  // set the middle and goal state and joints tolerance
   // ========================================================================================
+  robot_state::RobotStatePtr middle_state(new robot_state::RobotState(robot_model));
+  std::vector<double> middle_joint_values = { 0.5, 0.4, 0.65, -0.75, 1.05, 1.25, -0.15 };
+  middle_state->setJointGroupPositions(joint_model_group, middle_joint_values);
+  middle_state->update();
+  moveit_msgs::Constraints joint_middle =
+      kinematic_constraints::constructGoalConstraints(*middle_state, joint_model_group);
+  req.goal_constraints.push_back(joint_middle);
+  req.goal_constraints[0].name = "middle_pos";
+  // set joint tolerance
+  std::vector<moveit_msgs::JointConstraint> middle_joint_constraint = req.goal_constraints[0].joint_constraints;
+  for (int x = 0; x < middle_joint_constraint.size(); ++x)
+  {
+    ROS_INFO(" ======================================= joint position at goal: %f",
+             middle_joint_constraint[x].position);
+    req.goal_constraints[0].joint_constraints[x].tolerance_above = 0.001;
+    req.goal_constraints[0].joint_constraints[x].tolerance_below = 0.001;
+  }
 
+  robot_state::RobotStatePtr goal_state(new robot_state::RobotState(robot_model));
+  std::vector<double> goal_joint_values = { 0.8, 0.7, 1, -1.3, 1.9, 2.2, -0.1 };
+  goal_state->setJointGroupPositions(joint_model_group, goal_joint_values);
+  goal_state->update();
+  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(*goal_state, joint_model_group);
+  req.goal_constraints.push_back(joint_goal);
+  req.goal_constraints[1].name = "goal_pos";
+  // set joint tolerance
+  std::vector<moveit_msgs::JointConstraint> goal_joint_constraint = req.goal_constraints[1].joint_constraints;
+  for (int x = 0; x < goal_joint_constraint.size(); ++x)
+  {
+    ROS_INFO(" ======================================= joint position at goal: %f", goal_joint_constraint[x].position);
+    req.goal_constraints[1].joint_constraints[x].tolerance_above = 0.001;
+    req.goal_constraints[1].joint_constraints[x].tolerance_below = 0.001;
+  }
+
+  // Load planner
+  // ======================================================================================
   while (!psm->getStateMonitor()->haveCompleteState() && ros::ok())
   {
     ROS_INFO_STREAM_THROTTLE_NAMED(1, node_name, "Waiting for complete state from topic ");
@@ -153,8 +166,6 @@ int main(int argc, char** argv)
 
   // Visualization
   // ========================================================================================
-  // The package MoveItVisualTools provides many capabilties for visualizing objects, robots,
-  // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script
   namespace rvt = rviz_visual_tools;
   moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0", rviz_visual_tools::RVIZ_MARKER_TOPIC, psm);
   visual_tools.loadRobotStatePub("/display_robot_state");
@@ -177,51 +188,6 @@ int main(int argc, char** argv)
   /* We can also use visual_tools to wait for user input */
   visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
 
-  // res req
-  planning_interface::MotionPlanRequest req;
-  planning_interface::MotionPlanResponse res;
-
-  req.start_state.joint_state.name = joint_names;
-  req.start_state.joint_state.position = start_joint_values;
-
-  // set the goal joint state and joints tolerance
-  // ========================================================================================
-  robot_state::RobotState goal_state(robot_model);
-  std::vector<double> goal_joint_values = { 0.8, 0.7, 1, -1.3, 1.9, 2.2, -0.1 };
-  goal_state.setJointGroupPositions(joint_model_group, goal_joint_values);
-  moveit_msgs::Constraints joint_goal = kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
-  req.goal_constraints.clear();
-  req.goal_constraints.push_back(joint_goal);
-  req.group_name = PLANNING_GROUP;
-  req.goal_constraints[0].name = "goal_pos";
-
-  // set joint tolerance
-  std::vector<moveit_msgs::JointConstraint> goal_joint_constraint = req.goal_constraints[0].joint_constraints;
-  for (int x = 0; x < goal_joint_constraint.size(); ++x)
-  {
-    std::cout << "==>> joint position at goal " << goal_joint_constraint[x].position << std::endl;
-    req.goal_constraints[0].joint_constraints[x].tolerance_above = 0.1;
-    req.goal_constraints[0].joint_constraints[x].tolerance_below = 0.1;
-  }
-
-  robot_state::RobotState middle_state(robot_model);
-  std::vector<double> middle_joint_values = {0.5, 0.4, 0.65, -0.75, 1.05, 1.25, -0.15 };
-  middle_state.setJointGroupPositions(joint_model_group, middle_joint_values);
-  middle_state.update();
-  moveit_msgs::Constraints joint_middle = kinematic_constraints::constructGoalConstraints(middle_state, joint_model_group);
-  req.goal_constraints.push_back(joint_middle);
-  req.goal_constraints[1].name = "middle_pos";
-  std::cout << "hereeeeeeeeeeeeeeeeeeeeeeee 1 " << req.goal_constraints[1].joint_constraints[0].position  << std::endl;
-  std::vector<moveit_msgs::JointConstraint> middle_joint_constraint = req.goal_constraints[1].joint_constraints;
-  std::cout << "hereeeeeeeeeeeeeeeeeeeeeeee 2" << std::endl;
-  for (int x = 0; x < middle_joint_constraint.size(); ++x)
-  {
-    std::cout << "==>> joint position at middle " << middle_joint_constraint[x].position << std::endl;
-    req.goal_constraints[1].joint_constraints[x].tolerance_above = 0.1;
-    req.goal_constraints[1].joint_constraints[x].tolerance_below = 0.1;
-  }
-
-  std::cout << "===>>> number of constraints in goal: " << req.goal_constraints.size() << std::endl;
   // planning context
   // ========================================================================================
   planning_interface::PlanningContextPtr context =
@@ -263,24 +229,10 @@ int main(int argc, char** argv)
   visual_tools.trigger();
   display_publisher.publish(display_trajectory);
 
-
-  std::cout << "===>>> group name:" << response.group_name << std::endl;
-  std::cout << "===>>> traj start joint name size: " << response.trajectory_start.joint_state.name.size() << std::endl;
-  std::cout << "===>>> traj start joint position size: " << response.trajectory_start.joint_state.position.size()
-            << std::endl;
-
-  std::cout << "===>>> traj joint names size: " << response.trajectory.joint_trajectory.joint_names.size() << std::endl;
-
-  for (int jn = 0; jn < response.trajectory.joint_trajectory.joint_names.size(); ++jn)
-  {
-    std::cout << "===>>> joint_" << jn << ": " << response.trajectory.joint_trajectory.joint_names[jn]  << std::endl;
-  }
-
-
   const std::vector<std::string>& str = joint_model_group->getLinkModelNames();
-  printf("end effector name %s\n", str.back().c_str());
+  ROS_INFO("end effector name %s\n", str.back().c_str());
 
-  const Eigen::Affine3d& end_effector_transform_current =  current_state->getGlobalLinkTransform(str.back());
+  const Eigen::Affine3d& end_effector_transform_current = current_state->getGlobalLinkTransform(str.back());
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = robot_model->getModelFrame();
@@ -288,34 +240,30 @@ int main(int argc, char** argv)
 
   visual_tools.publishAxisLabeled(pose_msg.pose, "current");
   visual_tools.publishText(text_pose, "current pose", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();
 
-  const Eigen::Affine3d& end_effector_transform_start =  start_state->getGlobalLinkTransform(str.back());
+  const Eigen::Affine3d& end_effector_transform_start = start_state->getGlobalLinkTransform(str.back());
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = robot_model->getModelFrame();
   pose_msg.pose = tf2::toMsg(end_effector_transform_start);
 
   visual_tools.publishAxisLabeled(pose_msg.pose, "start");
   visual_tools.publishText(text_pose, "start pose", rvt::BLUE, rvt::XLARGE);
-  visual_tools.trigger();
 
-
-  const Eigen::Affine3d& end_effector_transform_middle =  middle_state.getGlobalLinkTransform(str.back());
+  const Eigen::Affine3d& end_effector_transform_middle = middle_state->getGlobalLinkTransform(str.back());
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = robot_model->getModelFrame();
   pose_msg.pose = tf2::toMsg(end_effector_transform_middle);
 
   visual_tools.publishAxisLabeled(pose_msg.pose, "middle");
-  visual_tools.publishText(text_pose, "middle pose", rvt::BLUE, rvt::XLARGE);
-  visual_tools.trigger();
+  visual_tools.publishText(text_pose, "middle pose", rvt::RED, rvt::XLARGE);
 
-  const Eigen::Affine3d& end_effector_transform_goal =  goal_state.getGlobalLinkTransform(str.back());
+  const Eigen::Affine3d& end_effector_transform_goal = goal_state->getGlobalLinkTransform(str.back());
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = robot_model->getModelFrame();
   pose_msg.pose = tf2::toMsg(end_effector_transform_goal);
 
   visual_tools.publishAxisLabeled(pose_msg.pose, "goal");
-  visual_tools.publishText(text_pose, "goal pose", rvt::BLUE, rvt::XLARGE);
+  visual_tools.publishText(text_pose, "goal pose", rvt::WHITE, rvt::XLARGE);
   visual_tools.trigger();
 
   visual_tools.prompt("Press 'next' to finish demo \n");
