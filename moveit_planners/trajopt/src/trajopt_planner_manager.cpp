@@ -38,11 +38,11 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include "moveit/collision_detection_fcl/collision_detector_allocator_fcl.h"
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 
 #include <class_loader/class_loader.hpp>
 
-#include "trajopt_planning_context.h"
+#include "trajopt_interface/trajopt_planning_context.h"
 
 namespace trajopt_interface
 {
@@ -55,7 +55,7 @@ public:
 
   bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override
   {
-    std::cout << "===>>> initialize gets called " << std::endl;
+    ROS_INFO(" ======================================= initialize gets called");
 
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
@@ -63,7 +63,7 @@ public:
 
     for (const std::string& gpName : model->getJointModelGroupNames())
     {
-      std::cout << "group name " << gpName << std::endl << "robot model  " << model->getName() << std::endl;
+      ROS_INFO("group name: %s, robot model: %s", gpName.c_str(), model->getName().c_str());
       planning_contexts_[gpName] =
           TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
     }

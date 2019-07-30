@@ -52,7 +52,7 @@ MOVEIT_CLASS_FORWARD(TrajOptInterface);
 class TrajOptInterface
 {
 public:
-  TrajOptInterface(const ros::NodeHandle& nh  = ros::NodeHandle("~"));
+  TrajOptInterface(const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
   const sco::BasicTrustRegionSQPParameters& getParams() const
   {
@@ -60,8 +60,7 @@ public:
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const planning_interface::MotionPlanRequest& req,
-             moveit_msgs::MotionPlanDetailedResponse& res);
+             const planning_interface::MotionPlanRequest& req, moveit_msgs::MotionPlanDetailedResponse& res);
 
 protected:
   /** @brief Configure everything using the param server */

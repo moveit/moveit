@@ -7,8 +7,8 @@
 
 #include <Eigen/Geometry>
 
-#include "trajopt_planning_context.h"
-#include "trajopt_interface.h"
+#include "trajopt_interface/trajopt_planning_context.h"
+#include "trajopt_interface/trajopt_interface.h"
 
 namespace trajopt_interface
 {
@@ -16,8 +16,7 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
                                                const robot_model::RobotModelConstPtr& model)
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
-  std::cout << "===>>> TrajOptPlanningContext is constructed" << std::endl;
-
+  ROS_INFO(" ==================================== TrajOptPlanningContext is constructed");
   trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 
@@ -25,16 +24,6 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedRespons
 {
   moveit_msgs::MotionPlanDetailedResponse res_msg;
   bool trajopt_solved = trajopt_interface_->solve(planning_scene_, request_, res_msg);
-
-  std::cout << "===>>> planning context solve 1" << std::endl;
-  for (int i = 0; i < res_msg.trajectory[0].joint_trajectory.points.size(); i++)
-  {
-    for (size_t j = 0; j < res_msg.trajectory[0].joint_trajectory.points[i].positions.size(); j++)
-    {
-      std::cout << res_msg.trajectory[0].joint_trajectory.points[i].positions[j] << "   ";
-    }
-    std::cout << std::endl;
-  }
 
   if (trajopt_solved)
   {
@@ -70,9 +59,6 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
     res.trajectory_ = res_detailed.trajectory_[0];
     res.planning_time_ = res_detailed.processing_time_[0];
   }
-
-  std::cout << "===>>> planning context solve 2" << std::endl;
-  std::cout << res.trajectory_->getWayPointCount() << std::endl;
 
   return planning_success;
 }

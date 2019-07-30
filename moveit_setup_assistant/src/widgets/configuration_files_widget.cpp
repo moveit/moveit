@@ -374,18 +374,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
-  // trajopt_planning_pipeline.launch
-  // --------------------------------------------------------------------------------------
-  file.file_name_ = "trajopt_planning_pipeline.launch.xml";
-  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Intended to be included in other launch files that require the TrajOpt planning plugin. Defines "
-                      "the proper plugin name on the parameter server and a default selection of planning request "
-                      "adapters.";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
-  file.write_on_changes = 0;
-  gen_files_.push_back(file);
-
   // chomp_planning_pipeline.launch
   // --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning_pipeline.launch.xml";
@@ -439,15 +427,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
   template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
   file.description_ = "Launch file for benchmarking OMPL planners";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
-  file.write_on_changes = 0;
-  gen_files_.push_back(file);
-
-  // run_benchmark_trajopt.launch --------------------------------------------------------------------------------------
-  file.file_name_ = "run_benchmark_trajopt.launch";
-  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Launch file for benchmarking TrajOpt planners";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);

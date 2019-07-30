@@ -15,8 +15,8 @@
 #include <trajopt_utils/logging.hpp>
 #include <trajopt_utils/vector_ops.hpp>
 
-#include "problem_description.h"
-#include "kinematic_terms.h"
+#include "trajopt_interface/problem_description.h"
+#include "trajopt_interface/kinematic_terms.h"
 
 /**
  * @brief Checks the size of the parameter given and throws if incorrect
@@ -59,23 +59,23 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
 
   int n_steps = problem_info.basic_info.n_steps;
 
+  ROS_INFO(" ======================================= problem_description: limits");
   Eigen::MatrixX2d limits(n_dof, 2);
   for (int k = 0; k < limits.size() / 2; ++k)
   {
-    moveit::core::JointModel::Bounds bb = *bounds[k];
-    // Joints are considered to have one degree of freedom, then the first element of
-    // type Bounds is the one that we want.
-    moveit::core::VariableBounds vb = bb.front();
+    moveit::core::JointModel::Bounds bound = *bounds[k];
+    // In MoveIt, joints are considered to have multiple dofs but we only have single dof joints:
+    moveit::core::VariableBounds joint_bound = bound.front();
 
-    limits(k, 0) = vb.min_position_;
-    limits(k, 1) = vb.max_position_;
+    limits(k, 0) = joint_bound.min_position_;
+    limits(k, 1) = joint_bound.max_position_;
+
+    ROS_INFO("joint %i with lower bound: %f, upper bound: %f", k, joint_bound.min_position_, joint_bound.max_position_);
   }
 
   Eigen::VectorXd lower, upper;
   lower = limits.col(0);
   upper = limits.col(1);
-  std::cout << " ========================== problem_description: limits =======================" << std::endl;
-  std::cout << limits << std::endl;
 
   trajopt::DblVec vlower, vupper;
   std::vector<std::string> names;
@@ -158,12 +158,6 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   std::vector<double> current_joint_values;
   current_state.copyJointGroupPositions(joint_model_group, current_joint_values);
 
-  std::cout << "===================================================== robot state joint values " << std::endl;
-  for (int qq = 0; qq < current_joint_values.size(); ++qq)
-  {
-    std::cout << current_joint_values[qq] << std::endl;
-  }
-
   trajopt::TrajArray init_traj;
   generateInitialTrajectory(pci, current_joint_values, init_traj);
 
@@ -209,7 +203,7 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     for (int j = 0; j < static_cast<int>(n_dof); ++j)
     {
       m_traj_vars_temp = prob->GetVars();
-            prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
+      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
     }
   }
 
@@ -519,10 +513,11 @@ void JointVelTermInfo::hatch(TrajOptProblem& prob)
   }
 }
 
-void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values, trajopt::TrajArray& init_traj)
+void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values,
+                               trajopt::TrajArray& init_traj)
 {
   Eigen::VectorXd current_pos(current_joint_values.size());
-  for(int joint_index = 0; joint_index < current_joint_values.size(); ++joint_index)
+  for (int joint_index = 0; joint_index < current_joint_values.size(); ++joint_index)
   {
     current_pos(joint_index) = current_joint_values[joint_index];
   }
@@ -537,18 +532,20 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
   }
   else if (init_info.type == InitInfo::JOINT_INTERPOLATED)
   {
-    //  Linearly interpolates between initial value (current values in the scene) and the joint position specified in InitInfo.data
-    Eigen::VectorXd end_pos = init_info.end_pos;
+    //  Linearly interpolates between initial value (current values in the scene) and the joint position specified in
+    //  InitInfo.data
+    Eigen::VectorXd end_pos = init_info.data;
     init_traj.resize(pci.basic_info.n_steps, end_pos.rows());
-    for (int time_step = 0; time_step < current_pos.rows(); ++time_step)
+    for (int dof_index = 0; dof_index < current_pos.rows(); ++dof_index)
     {
-      init_traj.col(time_step) = Eigen::VectorXd::LinSpaced(pci.basic_info.n_steps, current_pos(time_step), end_pos(time_step));
+      init_traj.col(dof_index) =
+          Eigen::VectorXd::LinSpaced(pci.basic_info.n_steps, current_pos(dof_index), end_pos(dof_index));
     }
   }
   else if (init_info.type == InitInfo::GIVEN_TRAJ)
   {
     //  Initializes the matrix to a given trajectory
-    init_traj = init_info.start_to_end_trajectory;
+    init_traj = init_info.data;
   }
   else
   {
@@ -565,8 +562,5 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
     init_traj.block(0, init_traj.cols() - 1, init_traj.rows(), 1) =
         Eigen::VectorXd::Constant(init_traj.rows(), init_info.dt);
   }
-
 }
-
-
 }

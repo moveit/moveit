@@ -85,4 +85,4 @@ struct JointVelJacobianCalculator : sco::MatrixOfVector
   Eigen::MatrixXd operator()(const Eigen::VectorXd& var_vals) const;
 };
 
-}  // namespace trajopt
+}  // namespace trajopt_interface

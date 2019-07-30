@@ -1,24 +1,24 @@
 trajopt_param:
-  improve_ratio_threshold: 0.25   # minimum ratio true_improve/approx_improve to accept step
-  min_trust_box_size: 1e-4        # if trust region gets any smaller, exit and report convergence
+  improve_ratio_threshold: 0.25   # minimum ratio true_improve/approx_improve to accept step. [Research Paper] TrueImprove/ModelImprove > c
+  min_trust_box_size: 1e-4        # if trust region gets any smaller, exit and report convergence. [Research Paper] xtol
   min_approx_improve: 1e-4        # if model improves less than this, exit and report convergence
   min_approx_improve_frac: -.Inf  # if model improves less than this, exit and report convergence
   max_iter: 100                   # The max number of iterations
-  trust_shrink_ratio: 0.1         # if improvement is less than improve_ratio_threshold, shrink trust region by this ratio
-  trust_expand_ratio: 1.5         # if improvement is less than improve_ratio_threshold, shrink trust region by this ratio
-  cnt_tolerance: 1e-4             # after convergence of penalty subproblem, if constraint violation is less than this, we're done
-  max_merit_coeff_increases: 5    # number of times that we jack up penalty coefficient
-  merit_coeff_increase_ratio: 10  # ratio that we increate coeff each time
+  trust_shrink_ratio: 0.1         # if improvement is less than improve_ratio_threshold, shrink trust region by this ratio. [Research Paper] tao-
+  trust_expand_ratio: 1.5         # if improvement is less than improve_ratio_threshold, shrink trust region by this ratio. [Research Paper] tao+
+  cnt_tolerance: 1e-4             # after convergence of penalty subproblem, if constraint violation is less than this, we're done. [Research Paper] ctol
+  max_merit_coeff_increases: 5    # number of times that we jack up penalty coefficient. [Reasearch Paper] Max iteration in PenaltyIteration loop
+  merit_coeff_increase_ratio: 10  # ratio that we increate coeff each time. [Researcy Paper] Penalty scaling factory (italic kappa)
   max_time: .inf                  # not yet implemented
-  merit_error_coeff: 10           # initial penalty coefficient
-  trust_box_size: 1e-1            # current size of trust region (component-wise)
+  merit_error_coeff: 10           # initial penalty coefficient. [Research Paper] mu_0
+  trust_box_size: 1e-1            # current size of trust region (component-wise). [Research Paper] s
 
 problem_info:
   basic_info:
     n_steps: 20                # 2 * steps_per_phase
     dt_upper_lim: 2.0          # The upper limit of 1/dt values allowed in the optimization
     dt_lower_lim: 100.0        # The lower limit of 1/dt values allowed in the optimization
-    start_fixed: true          # if true, start pose is the current pose and the req.start_state is ignored
+    start_fixed: true          # if true, start pose is the current pose at timestep = 0
     # if false, the start pose is the one given by req.start_state
     use_time: flase            # if false, it means the timestep is unit, meaning x1-x0 is the velocity for example
     # if true, then cost_infos ro cnt_infos should have TT_USE_TIME for their term_type
@@ -26,23 +26,25 @@ problem_info:
     #  1 = AUTO_SOLVER,  2 = BPMPD, 3 = OSQP, 4 = QPOASES, 5 = GUROBI
 
   init_info:
-    type: 2                    # 1 = STATIONARY, 2 = JOINT_INTERPOLATED, 3 = GIVEN_TRAJ
+    type: 3                    # 1 = STATIONARY, 2 = JOINT_INTERPOLATED, 3 = GIVEN_TRAJ
     # request.start_state should be provided for JOINT_INTERPOLATED and GIVEN_TRAJ
     dt: 0.5
 
 joint_pos_term_info:
-  start_pos:
+  start_pos:   # from req.start_state
     name: start_pos
-    first_timestep: 0                # First time step to which the term is applied.
-    last_timestep: 0                # Last time step to which the term is applied. n_steps - 1
+    first_timestep: 10                # First time step to which the term is applied.
+    last_timestep: 10                # Last time step to which the term is applied.
+    # if start_fixed is trure then we can not set the first_timestep to 0 for start_pos as it is going
+    # to be ignored and only the current pose would be the constraint at timestep = 0.
     term_type: 2                 # 1 = TT_COST, 2 = TT_CNT, 3 = TT_USE_TIME
   middle_pos:
     name: middle_pos
-    first_timestep: 10                # First time step to which the term is applied.
-    last_timestep: 10                # Last time step to which the term is applied. n_steps - 1
-    term_type: 2                 # 1 = TT_COST, 2 = TT_CNT, 3 = TT_USE_TIME
+    first_timestep: 15
+    last_timestep: 15
+    term_type: 2
   goal_pos:
     name: goal_pos
-    first_timestep: 19                # First time step to which the term is applied.
-    last_timestep: 19                # Last time step to which the term is applied. n_steps - 1
-    term_type: 2                 # 1 = TT_COST, 2 = TT_CNT, 3 = TT_USE_TIME
+    first_timestep: 19
+    last_timestep: 19
+    term_type: 2

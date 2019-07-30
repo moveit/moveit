@@ -4,7 +4,7 @@
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/modeling_utils.hpp>
 
-#include "kinematic_terms.h"
+#include "trajopt_interface/kinematic_terms.h"
 
 using namespace std;
 using namespace sco;
@@ -14,6 +14,7 @@ namespace trajopt_interface
 {
 VectorXd CartPoseErrCalculator::operator()(const VectorXd& dof_vals) const
 {
+  // TODO: create the actual error function from information in planning scene
   VectorXd err;
   return err;
 }
