@@ -55,7 +55,7 @@ def create_moveit_buildfarm_table():
     # combinations for supported distribitions. For instance, in Noetic,
     # remove {"indigo":"trusty"} and add {"noetic":"fbuntu"} with "fbuntu"
     # being whatever the 20.04 distro is named
-    supported_distro_ubuntu_dict = {"indigo":"trusty", "kinetic":"xenial", "melodic":"bionic"}
+    supported_distro_ubuntu_dict = {"kinetic":"xenial", "melodic":"bionic"}
 
     all_packages = sorted([package.name for _, package in find_packages(os.getcwd()).items()])
     moveit_packages = list()
