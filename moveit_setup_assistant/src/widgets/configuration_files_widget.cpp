@@ -472,15 +472,6 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
-  // run_benchmark_trajopt.launch --------------------------------------------------------------------------------------
-  file.file_name_ = "run_benchmark_trajopt.launch";
-  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
-  file.description_ = "Launch file for benchmarking TrajOpt planners";
-  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
-  file.write_on_changes = 0;
-  gen_files_.push_back(file);
-
   // sensor_manager.launch --------------------------------------------------------------------------------------
   file.file_name_ = "sensor_manager.launch.xml";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);

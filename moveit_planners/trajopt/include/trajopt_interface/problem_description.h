@@ -112,7 +112,7 @@ struct InitInfo
   /** @brief Data used during initialization. Use depends on the initialization selected. This data will be used
       to create initialization matrix. We need to give the goal information to this init info
    */
-  trajopt::TrajArray data;
+  trajopt::TrajArray data;  // This data type does not seem correct, it should be of type VectorXd
   //  Eigen::VectorXd data_vec;
   //  trajopt::TrajArray data_trajectory;
   /** @brief Default value the final column of the optimization is initialized too if time is being used */
@@ -122,7 +122,7 @@ struct InitInfo
 /**
 When cost or constraint element of JSON doc is read, one of these guys gets
 constructed to hold the parameters.
-Then it later gets converted to a Cost object by the addObjectiveTerms method
+Then it later gets converted to a Cost object by the hatch method
 */
 struct TermInfo
 {
@@ -133,7 +133,7 @@ struct TermInfo
     return supported_term_types_;
   }
   //  virtual void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) = 0;
-  virtual void addObjectiveTerms(TrajOptProblem& prob) = 0;
+  virtual void hatch(TrajOptProblem& prob) = 0;
 
   static TermInfoPtr fromName(const std::string& type);
 
@@ -141,7 +141,7 @@ struct TermInfo
    * Registers a user-defined TermInfo so you can use your own cost
    * see function RegisterMakers.cpp
    */
-  using MakerFunc = TermInfoPtr (*)(void);
+  typedef TermInfoPtr (*MakerFunc)(void);
   static void RegisterMaker(const std::string& type, MakerFunc);
 
   virtual ~TermInfo() = default;
@@ -152,7 +152,7 @@ protected:
   }
 
 private:
-  static std::map<std::string, MakerFunc> name_to_maker_;
+  static std::map<std::string, MakerFunc> name2maker;
   int supported_term_types_;
 };
 
@@ -168,10 +168,11 @@ public:
   planning_scene::PlanningSceneConstPtr planning_scene;
   std::string planning_group_name;
 
-  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, const std::string& pg)
-    : planning_scene(ps), planning_group_name(pg)
+  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, std::string pg) : planning_scene(ps), planning_group_name(pg)
   {
   }
+
+private:
 };
 
 /**
@@ -187,38 +188,32 @@ public:
   /** @brief Returns the values of the specified joints (start_col to num_col) for the specified timestep i.*/
   sco::VarVector GetVarRow(int i, int start_col, int num_col)
   {
-    return matrix_traj_vars.rblock(i, start_col, num_col);
+    return m_traj_vars.rblock(i, start_col, num_col);
   }
   /** @brief Returns the values of all joints for the specified timestep i.*/
   sco::VarVector GetVarRow(int i)
   {
-    return matrix_traj_vars.row(i);
+    return m_traj_vars.row(i);
   }
   /** @brief Returns the value of the specified joint j for the specified timestep i.*/
   sco::Var& GetVar(int i, int j)
   {
-    return matrix_traj_vars.at(i, j);
+    return m_traj_vars.at(i, j);
   }
   trajopt::VarArray& GetVars()
   {
-    return matrix_traj_vars;
+    return m_traj_vars;
   }
   /** @brief Returns the number of steps in the problem. This is the number of rows in the optimization matrix.*/
   int GetNumSteps()
   {
-    return matrix_traj_vars.rows();
+    return m_traj_vars.rows();
   }
   /** @brief Returns the problem DOF. This is the number of columns in the optization matrix.
    * Note that this is not necessarily the same as the kinematic DOF.*/
   int GetNumDOF()
   {
-    return matrix_traj_vars.cols();
-  }
-  /** @brief Returns the kinematic DOF of the active joint model group
-   */
-  int GetActiveGroupNumDOF()
-  {
-    return dof_;
+    return m_traj_vars.cols();
   }
   planning_scene::PlanningSceneConstPtr GetPlanningScene()
   {
@@ -226,11 +221,11 @@ public:
   }
   void SetInitTraj(const trajopt::TrajArray& x)
   {
-    matrix_init_traj = x;
+    m_init_traj = x;
   }
   trajopt::TrajArray GetInitTraj()
   {
-    return matrix_init_traj;
+    return m_init_traj;
   }
   //  friend TrajOptProbPtr ConstructProblem(const ProblemConstructionInfo&);
   /** @brief Returns TrajOptProb.has_time */
@@ -248,12 +243,10 @@ private:
   /** @brief If true, the last column in the optimization matrix will be 1/dt */
   bool has_time;
   /** @brief is the matrix holding the joint values of the trajectory for all timesteps */
-  trajopt::VarArray matrix_traj_vars;
+  trajopt::VarArray m_traj_vars;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   std::string planning_group_;
-  /** @brief Kinematic DOF of the active joint model group  */
-  int dof_;
-  trajopt::TrajArray matrix_init_traj;
+  trajopt::TrajArray m_init_traj;
 };
 
 /** @brief This term is used when the goal frame is fixed in cartesian space
@@ -282,7 +275,7 @@ struct CartPoseTermInfo : public TermInfo
   /** @brief Used to add term to pci from json */
   //  void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) override;
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void addObjectiveTerms(TrajOptProblem& prob) override;
+  void hatch(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
@@ -322,7 +315,7 @@ struct JointPoseTermInfo : public TermInfo
   }
 
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void addObjectiveTerms(TrajOptProblem& prob) override;
+  void hatch(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
@@ -352,7 +345,7 @@ struct JointVelTermInfo : public TermInfo
   }
 
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void addObjectiveTerms(TrajOptProblem& prob) override;
+  void hatch(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
