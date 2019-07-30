@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, PickNik, LLC.
+ *  Copyright (c) 2019, PickNik, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,17 @@
  *********************************************************************/
 
 /* Author: Omid Heidari */
-#pragma once
+
+#ifndef TRAJOPT_INTERFACE_TRAJOPT_INTERFACE_H
+#define TRAJOPT_INTERFACE_TRAJOPT_INTERFACE_H
 
 #include <ros/ros.h>
+
 #include <trajopt_sco/sco_common.hpp>
-#include <moveit/planning_interface/planning_interface.h>
+
 #include "problem_description.h"
+
+#include <moveit/planning_interface/planning_interface.h>
 
 namespace trajopt_interface
 {
@@ -63,15 +68,14 @@ protected:
   void setDefaultTrajOPtParams();
   void setProblemInfoParam(ProblemInfo& problem_info);
   void setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std::string name);
-  trajopt::DblVec extractStartJointValues(const planning_interface::MotionPlanRequest& req,
-                                          const std::vector<std::string>& group_joint_names);
 
   ros::NodeHandle nh_;  /// The ROS node handle
   sco::BasicTrustRegionSQPParameters params_;
-  std::vector<sco::Optimizer::Callback> optimizer_callbacks_;
-  TrajOptProblemPtr trajopt_problem_;
-  std::string name_;
+  std::vector<sco::Optimizer::Callback> callbacks_;
+  TrajOptProblemPtr prob_;
 };
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res);
 }
+
+#endif

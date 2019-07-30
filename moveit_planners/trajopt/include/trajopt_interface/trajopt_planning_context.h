@@ -1,9 +1,10 @@
-#pragma once
+#ifndef TrajOpt_PLANNING_CONTEXT_H
+#define TrajOpt_PLANNING_CONTEXT_H
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <trajopt_interface/problem_description.h>
-#include <trajopt_interface/trajopt_interface.h>
+#include "trajopt_interface/problem_description.h"
+#include "trajopt_interface/trajopt_interface.h"
 
 namespace trajopt_interface
 {
@@ -24,9 +25,12 @@ public:
   bool terminate() override;
   void clear() override;
 
+protected:
 private:
   moveit::core::RobotModelConstPtr robot_model_;
 
   TrajOptInterfacePtr trajopt_interface_;
 };
 }  // namespace trajopt_interface
+
+#endif  // TrajOpt_PLANNING_CONTEXT_H
