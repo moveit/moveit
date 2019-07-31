@@ -43,7 +43,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <geometry_msgs/PointStamped.h>
 
-/// Namespace for the base class of a MoveIt! sensor manager
+/// Namespace for the base class of a MoveIt sensor manager
 namespace moveit_sensor_manager
 {
 /** \brief Define the frame of reference and the frustum of a sensor (usually this is a visual sensor) */

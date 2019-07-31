@@ -1,4 +1,4 @@
-# MoveIt! Core
+# MoveIt Core
 
 This repository includes core libraries used by MoveIt:
  - representation of kinematic models

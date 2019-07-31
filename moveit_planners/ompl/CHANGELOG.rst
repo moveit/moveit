@@ -117,7 +117,7 @@ Changelog for package moveit_planners_ompl
 * renamed newGoal to new_goal for keeping with formatting
 * setting GroupStateValidityCallbackFn member for constraint_sampler member and implementing callbacks for state validity checking
 * added functions to check validit of state, and also to act as callback for constraint sampler
-* Added copy function from MoveIt! robot_state joint values to ompl state
+* Added copy function from MoveIt robot_state joint values to ompl state
 * fix for demo constraints database linking error
 * Namespaced less useful debug output to allow to be easily silenced using ros console
 * Contributors: Dave Coleman, Dave Hershberger, Sachin Chitta, arjungm

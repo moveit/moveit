@@ -2,14 +2,14 @@
 <package format="2">
   <name>moveit_ros_occupancy_map_monitor</name>
   <version>1.0.1</version>
-  <description>Components of MoveIt! connecting to occupancy map</description>
+  <description>Components of MoveIt connecting to occupancy map</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="jon.binney@gmail.com">Jon Binney</author>
   <author email="gedikli@willowgarage.com">Suat Gedikli</author>
 
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

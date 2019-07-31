@@ -63,7 +63,7 @@ MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
   // Not in debug mode
   debug_ = false;
 
-  // Get MoveIt! Setup Assistant package path
+  // Get MoveIt Setup Assistant package path
   setup_assistant_path_ = ros::package::getPath("moveit_setup_assistant");
   if (setup_assistant_path_.empty())
   {
@@ -148,7 +148,7 @@ void MoveItConfigData::loadAllowedCollisionMatrix()
 }
 
 // ******************************************************************************************
-// Output MoveIt! Setup Assistant hidden settings file
+// Output MoveIt Setup Assistant hidden settings file
 // ******************************************************************************************
 bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 {
@@ -825,7 +825,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
   {
     emitter << YAML::Comment("MoveIt-specific simulation settings");
     emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
-    // MoveIt! Simulation Controller settings for setting initial pose
+    // MoveIt Simulation Controller settings for setting initial pose
     {
       emitter << YAML::Key << "joint_model_group";
       emitter << YAML::Value << "controllers_initial_group_";
@@ -1522,7 +1522,7 @@ bool MoveItConfigData::createFullSRDFPath(const std::string& package_path)
 }
 
 // ******************************************************************************************
-// Input .setup_assistant file - contains data used for the MoveIt! Setup Assistant
+// Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
 // ******************************************************************************************
 bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
 {

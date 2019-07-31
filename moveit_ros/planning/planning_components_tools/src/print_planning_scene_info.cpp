@@ -38,7 +38,7 @@
 
 #include <ros/ros.h>
 
-// MoveIt!
+// MoveIt
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";

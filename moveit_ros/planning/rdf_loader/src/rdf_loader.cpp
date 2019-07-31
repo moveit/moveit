@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, Mathias Lüdtke, Dave Coleman */
 
-// MoveIt!
+// MoveIt
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/profiler/profiler.h>
 

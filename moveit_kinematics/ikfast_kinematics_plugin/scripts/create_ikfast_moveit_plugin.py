@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from __future__ import print_function
 '''
-IKFast Plugin Generator for MoveIt!
+IKFast Plugin Generator for MoveIt
 
 Creates a kinematics plugin using the output of IKFast from OpenRAVE.
 This plugin and the move_group node can be used as a general
@@ -71,13 +71,13 @@ search_modes = ['OPTIMIZE_MAX_JOINT', 'OPTIMIZE_FREE_JOINT']
 
 def create_parser():
   parser = argparse.ArgumentParser(
-      description="Generate an IKFast MoveIt! kinematic plugin")
+      description="Generate an IKFast MoveIt kinematic plugin")
   parser.add_argument("robot_name",
                       help="The name of your robot")
   parser.add_argument("planning_group_name",
                       help="The name of the planning group for which your IKFast solution was generated")
   parser.add_argument("ikfast_plugin_pkg",
-                      help="The name of the MoveIt! IKFast Kinematics Plugin to be created/updated")
+                      help="The name of the MoveIt IKFast Kinematics Plugin to be created/updated")
   parser.add_argument("base_link_name",
                       help="The name of the base link that was used when generating your IKFast solution")
   parser.add_argument("eef_link_name",

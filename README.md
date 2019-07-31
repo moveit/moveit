@@ -1,10 +1,10 @@
-<img src="http://moveit.ros.org/assets/images/moveit2_logo_black.png" alt="MoveIt! Logo" width="200"/>
+<img src="http://moveit.ros.org/assets/images/moveit2_logo_black.png" alt="MoveIt Logo" width="200"/>
 
-The MoveIt! Motion Planning Framework
+The MoveIt Motion Planning Framework
 
 Currently we support ROS Indigo, Kinetic, and Melodic.
 
-- [Overview of MoveIt!](http://moveit.ros.org)
+- [Overview of MoveIt](http://moveit.ros.org)
 - [Installation Instructions](http://moveit.ros.org/install/)
 - [Documentation](http://moveit.ros.org/documentation/)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
@@ -32,7 +32,7 @@ build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Idev__mo
 [![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit/)
 ## ROS Buildfarm
 
-MoveIt! Package | Indigo Source | Indigo Debian | Kinetic Source | Kinetic Debian | Melodic Source | Melodic Debian
+MoveIt Package | Indigo Source | Indigo Debian | Kinetic Source | Kinetic Debian | Melodic Source | Melodic Debian
 --------------- | ------------- | ------------- | -------------- | -------------- | -------------- | --------------
 moveit | [![Build Status](http://build.ros.org/buildStatus/icon?job=Isrc_uT__moveit__ubuntu_trusty__source)](http://build.ros.org/view/Isrc_uT/job/Isrc_uT__moveit__ubuntu_trusty__source) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Ibin_uT64__moveit__ubuntu_trusty_amd64__binary)](http://build.ros.org/view/Ibin_uT64/job/Ibin_uT64__moveit__ubuntu_trusty_amd64__binary) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Ksrc_uX__moveit__ubuntu_xenial__source)](http://build.ros.org/view/Ksrc_uX/job/Ksrc_uX__moveit__ubuntu_xenial__source) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kbin_uX64__moveit__ubuntu_xenial_amd64__binary)](http://build.ros.org/view/Kbin_uX64/job/Kbin_uX64__moveit__ubuntu_xenial_amd64__binary) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Msrc_uB__moveit__ubuntu_bionic__source)](http://build.ros.org/view/Msrc_uB/job/Msrc_uB__moveit__ubuntu_bionic__source) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mbin_uB64__moveit__ubuntu_bionic_amd64__binary)](http://build.ros.org/view/Mbin_uB64/job/Mbin_uB64__moveit__ubuntu_bionic_amd64__binary)
 moveit_chomp_optimizer_adapter |  |  |  |  | [![Build Status](http://build.ros.org/buildStatus/icon?job=Msrc_uB__moveit_chomp_optimizer_adapter__ubuntu_bionic__source)](http://build.ros.org/view/Msrc_uB/job/Msrc_uB__moveit_chomp_optimizer_adapter__ubuntu_bionic__source) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mbin_uB64__moveit_chomp_optimizer_adapter__ubuntu_bionic_amd64__binary)](http://build.ros.org/view/Mbin_uB64/job/Mbin_uB64__moveit_chomp_optimizer_adapter__ubuntu_bionic_amd64__binary)

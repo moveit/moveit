@@ -53,7 +53,7 @@
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainiksolver.hpp>
 
-// MoveIt!
+// MoveIt
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
