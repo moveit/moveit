@@ -42,7 +42,6 @@
 
 #include <jog_arm/jog_arm_data.h>
 #include <jog_arm/low_pass_filter.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <std_msgs/Bool.h>
@@ -54,13 +53,11 @@ namespace jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
+  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
 protected:
   ros::NodeHandle nh_;
-
-  moveit::planning_interface::MoveGroupInterface move_group_;
 
   sensor_msgs::JointState incoming_jts_;
 
