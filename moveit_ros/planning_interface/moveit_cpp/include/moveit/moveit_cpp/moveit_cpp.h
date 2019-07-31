@@ -33,13 +33,16 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta */
+/* Author: Ioan Sucan, Sachin Chitta, simon Goldstein */
 
 #ifndef MOVEIT_MOVEIT_CPP_MOVEIT_CPP_
 #define MOVEIT_MOVEIT_CPP_MOVEIT_CPP_
 
+#include <moveit/warehouse/constraints_storage.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
+#include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -49,16 +52,53 @@
 #include <moveit_msgs/PlaceLocation.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/MoveGroupAction.h>
+#include <moveit_msgs/PickupAction.h>
+#include <moveit_msgs/ExecuteTrajectoryAction.h>
+#include <moveit_msgs/PlaceAction.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <moveit/robot_state/conversions.h>
 #include <actionlib/client/simple_action_client.h>
 #include <memory>
 #include <tf2_ros/buffer.h>
+
+namespace planning_scene_monitor
+{
+MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
+}
+
+namespace planning_pipeline
+{
+MOVEIT_CLASS_FORWARD(PlanningPipeline);
+}
+
+namespace plan_execution
+{
+MOVEIT_CLASS_FORWARD(PlanExecution);
+MOVEIT_CLASS_FORWARD(PlanWithSensing);
+}
+
+namespace trajectory_execution_manager
+{
+MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
+}
+
+namespace
+{
+enum ActiveTargetType
+{
+  JOINT,
+  POSE,
+  POSITION,
+  ORIENTATION
+};
+}
 
 namespace moveit
 {
 /** \brief Simple interface to MoveIt! components */
 namespace planning_interface
 {
+
 class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
 {
 public:
@@ -90,7 +130,7 @@ public:
 
 MOVEIT_CLASS_FORWARD(MoveItCpp);
 
-/** \class MoveItCpp moveit_cpp.h moveit/planning_interface/moveit_cpp.h
+/** \class MoveItCpp move_group_interface.h moveit/planning_interface/move_group_interface.h
 
     \brief Client class to conveniently use the ROS interfaces provided by the move_group node.
 
@@ -104,7 +144,7 @@ public:
   /** \brief Specification of options to use when constructing the MoveItCpp class */
   struct Options
   {
-    Options(const std::string& group_name, const std::string& desc = ROBOT_DESCRIPTION,
+    Options(const std::string& group_name="FAKE", const std::string& desc = ROBOT_DESCRIPTION,
             const ros::NodeHandle& node_handle = ros::NodeHandle())
       : group_name_(group_name), robot_description_(desc), node_handle_(node_handle)
     {
@@ -957,8 +997,110 @@ private:
   std::map<std::string, std::vector<double> > remembered_joint_values_;
   class MoveItCppImpl;
   MoveItCppImpl* impl_;
+
+  bool status() const;
+
+  // New stuff
+  template <typename T>
+  void waitForAction(const T& action, const std::string& name, const ros::WallTime& timeout, double allotted_time);
+  MoveItErrorCode move(bool wait);
+  void constructGoal(moveit_msgs::MoveGroupGoal& goal);
+  void constructGoal(moveit_msgs::PickupGoal& goal_out, const std::string& object);
+  void constructGoal(moveit_msgs::PlaceGoal& goal_out, const std::string& object);
+  MoveItErrorCode execute(const Plan& plan, bool wait);
+  bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds);
+  bool setJointValueTarget(const geometry_msgs::Pose& eef_pose, const std::string& end_effector_link,
+                           const std::string& frame, bool approx);
+  robot_state::RobotStatePtr getStartState();
+  bool hasPoseTarget(const std::string& end_effector_link) const;
+  void clearContents();
+  //void initializeConstraintsStorage(const std::string& host, unsigned int port);
+
+  // context contents
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
+  planning_pipeline::PlanningPipelinePtr planning_pipeline_;
+  plan_execution::PlanExecutionPtr plan_execution_;
+  plan_execution::PlanWithSensingPtr plan_with_sensing_;
+  bool allow_trajectory_execution_;
+  bool debug_;
+
+  // impl contents
+  void initializeConstraintsStorageThread(const std::string& host, unsigned int port);
+  /*{
+    // Set up db
+    try
+    {
+      warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+      conn->setParams(host, port);
+      if (conn->connect())
+      {
+        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
+      }
+    }
+    catch (std::exception& ex)
+    {
+      ROS_ERROR_NAMED("move_group_interface", "%s", ex.what());
+    }
+    initializing_constraints_ = false;
+  } */
+
+  //  Options
+  std::string group_name_;
+  std::string robot_description_;
+  ros::NodeHandle node_handle_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  robot_model::RobotModelConstPtr robot_model_;
+  planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
+
+  // general planning params
+  robot_state::RobotStatePtr considered_start_state_;
+  moveit_msgs::WorkspaceParameters workspace_parameters_;
+  double allowed_planning_time_;
+  std::string planner_id_;
+  unsigned int num_planning_attempts_;
+  double max_velocity_scaling_factor_;
+  double max_acceleration_scaling_factor_;
+  double goal_joint_tolerance_;
+  double goal_position_tolerance_;
+  double goal_orientation_tolerance_;
+  bool can_look_;
+  bool can_replan_;
+  double replan_delay_;
+
+  // joint state goal
+  robot_state::RobotStatePtr joint_state_target_;
+  const robot_model::JointModelGroup* joint_model_group_;
+
+  // pose goal;
+  // for each link we have a set of possible goal locations;
+  std::map<std::string, std::vector<geometry_msgs::PoseStamped> > pose_targets_;
+
+  // common properties for goals
+  ActiveTargetType active_target_;
+  std::unique_ptr<moveit_msgs::Constraints> path_constraints_;
+  std::unique_ptr<moveit_msgs::TrajectoryConstraints> trajectory_constraints_;
+  std::string end_effector_link_;
+  std::string pose_reference_frame_;
+  std::string support_surface_;
+
+  // ROS communication
+  ros::Publisher trajectory_event_publisher_;
+  ros::Publisher attached_object_publisher_;
+  ros::ServiceClient query_service_;
+  ros::ServiceClient get_params_service_;
+  ros::ServiceClient set_params_service_;
+  ros::ServiceClient cartesian_path_service_;
+  ros::ServiceClient plan_grasps_service_;
+  std::unique_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
+  std::unique_ptr<boost::thread> constraints_init_thread_;
+  bool initializing_constraints_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif
