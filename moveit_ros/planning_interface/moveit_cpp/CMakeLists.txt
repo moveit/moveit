@@ -1,15 +1,15 @@
-set(MOVEIT_LIB_NAME moveit_move_group_interface)
+set(MOVEIT_LIB_NAME moveit_moveit_cpp)
 
-add_library(${MOVEIT_LIB_NAME} src/move_group_interface.cpp)
+add_library(${MOVEIT_LIB_NAME} src/moveit_cpp.cpp)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_common_planning_interface_objects moveit_planning_scene_interface ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
-add_library(${MOVEIT_LIB_NAME}_python src/wrap_python_move_group.cpp)
+add_library(${MOVEIT_LIB_NAME}_python src/wrap_python_moveit_cpp.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME}_python ${MOVEIT_LIB_NAME} ${PYTHON_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} moveit_py_bindings_tools)
 add_dependencies(${MOVEIT_LIB_NAME}_python ${catkin_EXPORTED_TARGETS})
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_move_group_interface PREFIX "")
+set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_moveit_cpp PREFIX "")
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
 
 install(TARGETS ${MOVEIT_LIB_NAME}
@@ -22,5 +22,5 @@ install(TARGETS ${MOVEIT_LIB_NAME}_python
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
-add_executable(demo src/demo.cpp)
-target_link_libraries(demo ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+#add_executable(demo src/demo.cpp)
+#target_link_libraries(demo ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

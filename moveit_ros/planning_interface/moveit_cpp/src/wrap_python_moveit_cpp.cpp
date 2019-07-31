@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <moveit/py_bindings_tools/serialize_msg.h>
@@ -58,15 +58,15 @@ namespace moveit
 {
 namespace planning_interface
 {
-class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroupInterface
+class MoveItCppWrapper : protected py_bindings_tools::ROScppInitializer, public MoveItCpp
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if
   // needed
-  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description,
+  MoveItCppWrapper(const std::string& group_name, const std::string& robot_description,
                             const std::string& ns = "", double wait_for_servers = 5.0)
     : py_bindings_tools::ROScppInitializer()
-    , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)),
+    , MoveItCpp(Options(group_name, robot_description, ros::NodeHandle(ns)),
                          std::shared_ptr<tf2_ros::Buffer>(), ros::WallDuration(wait_for_servers))
   {
   }
@@ -115,7 +115,7 @@ public:
   bp::list getJointValueTargetPythonList()
   {
     std::vector<double> values;
-    MoveGroupInterface::getJointValueTarget(values);
+    MoveItCpp::getJointValueTarget(values);
     bp::list l;
     for (const double value : values)
       l.append(value);
@@ -125,7 +125,7 @@ public:
   std::string getJointValueTarget()
   {
     moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
+    const robot_state::RobotState state = moveit::planning_interface::MoveItCpp::getTargetRobotState();
     moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
@@ -325,7 +325,7 @@ public:
   }
   std::string getPoseTargetPython(const std::string& end_effector_link)
   {
-    geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveGroupInterface::getPoseTarget(end_effector_link);
+    geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveItCpp::getPoseTarget(end_effector_link);
     return py_bindings_tools::serializeMsg(pose);
   }
 
@@ -405,22 +405,22 @@ public:
 
   bool executePython(const std::string& plan_str)
   {
-    MoveGroupInterface::Plan plan;
+    MoveItCpp::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
     return execute(plan) == MoveItErrorCode::SUCCESS;
   }
 
   bool asyncExecutePython(const std::string& plan_str)
   {
-    MoveGroupInterface::Plan plan;
+    MoveItCpp::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
     return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
   }
 
   bp::tuple planPython()
   {
-    MoveGroupInterface::Plan plan;
-    moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
+    MoveItCpp::Plan plan;
+    moveit_msgs::MoveItErrorCodes res = MoveItCpp::plan(plan);
     return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
   }
@@ -515,148 +515,148 @@ public:
   }
 };
 
-static void wrap_move_group_interface()
+static void wrap_moveit_cpp()
 {
-  bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> move_group_interface_class(
-      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
+  bp::class_<MoveItCppWrapper, boost::noncopyable> moveit_cpp_class(
+      "MoveItCpp", bp::init<std::string, std::string, bp::optional<std::string>>());
 
-  move_group_interface_class.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
-  move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
-  move_group_interface_class.def("execute", &MoveGroupInterfaceWrapper::executePython);
-  move_group_interface_class.def("async_execute", &MoveGroupInterfaceWrapper::asyncExecutePython);
-  moveit::planning_interface::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) =
-      &MoveGroupInterfaceWrapper::pick;
-  move_group_interface_class.def("pick", pick_1);
-  move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasp);
-  move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasps);
-  move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placePose);
-  move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placeLocation);
-  move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placeAnywhere);
-  move_group_interface_class.def("stop", &MoveGroupInterfaceWrapper::stop);
+  moveit_cpp_class.def("async_move", &MoveItCppWrapper::asyncMovePython);
+  moveit_cpp_class.def("move", &MoveItCppWrapper::movePython);
+  moveit_cpp_class.def("execute", &MoveItCppWrapper::executePython);
+  moveit_cpp_class.def("async_execute", &MoveItCppWrapper::asyncExecutePython);
+  moveit::planning_interface::MoveItErrorCode (MoveItCppWrapper::*pick_1)(const std::string&, bool) =
+      &MoveItCppWrapper::pick;
+  moveit_cpp_class.def("pick", pick_1);
+  moveit_cpp_class.def("pick", &MoveItCppWrapper::pickGrasp);
+  moveit_cpp_class.def("pick", &MoveItCppWrapper::pickGrasps);
+  moveit_cpp_class.def("place", &MoveItCppWrapper::placePose);
+  moveit_cpp_class.def("place", &MoveItCppWrapper::placeLocation);
+  moveit_cpp_class.def("place", &MoveItCppWrapper::placeAnywhere);
+  moveit_cpp_class.def("stop", &MoveItCppWrapper::stop);
 
-  move_group_interface_class.def("get_name", &MoveGroupInterfaceWrapper::getNameCStr);
-  move_group_interface_class.def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr);
-  move_group_interface_class.def("get_interface_description",
-                                 &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
+  moveit_cpp_class.def("get_name", &MoveItCppWrapper::getNameCStr);
+  moveit_cpp_class.def("get_planning_frame", &MoveItCppWrapper::getPlanningFrameCStr);
+  moveit_cpp_class.def("get_interface_description",
+                                 &MoveItCppWrapper::getInterfaceDescriptionPython);
 
-  move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
-  move_group_interface_class.def("get_joints", &MoveGroupInterfaceWrapper::getJointsList);
-  move_group_interface_class.def("get_variable_count", &MoveGroupInterfaceWrapper::getVariableCount);
-  move_group_interface_class.def("allow_looking", &MoveGroupInterfaceWrapper::allowLooking);
-  move_group_interface_class.def("allow_replanning", &MoveGroupInterfaceWrapper::allowReplanning);
+  moveit_cpp_class.def("get_active_joints", &MoveItCppWrapper::getActiveJointsList);
+  moveit_cpp_class.def("get_joints", &MoveItCppWrapper::getJointsList);
+  moveit_cpp_class.def("get_variable_count", &MoveItCppWrapper::getVariableCount);
+  moveit_cpp_class.def("allow_looking", &MoveItCppWrapper::allowLooking);
+  moveit_cpp_class.def("allow_replanning", &MoveItCppWrapper::allowReplanning);
 
-  move_group_interface_class.def("set_pose_reference_frame", &MoveGroupInterfaceWrapper::setPoseReferenceFrame);
+  moveit_cpp_class.def("set_pose_reference_frame", &MoveItCppWrapper::setPoseReferenceFrame);
 
-  move_group_interface_class.def("set_pose_reference_frame", &MoveGroupInterfaceWrapper::setPoseReferenceFrame);
-  move_group_interface_class.def("set_end_effector_link", &MoveGroupInterfaceWrapper::setEndEffectorLink);
-  move_group_interface_class.def("get_end_effector_link", &MoveGroupInterfaceWrapper::getEndEffectorLinkCStr);
-  move_group_interface_class.def("get_pose_reference_frame", &MoveGroupInterfaceWrapper::getPoseReferenceFrameCStr);
+  moveit_cpp_class.def("set_pose_reference_frame", &MoveItCppWrapper::setPoseReferenceFrame);
+  moveit_cpp_class.def("set_end_effector_link", &MoveItCppWrapper::setEndEffectorLink);
+  moveit_cpp_class.def("get_end_effector_link", &MoveItCppWrapper::getEndEffectorLinkCStr);
+  moveit_cpp_class.def("get_pose_reference_frame", &MoveItCppWrapper::getPoseReferenceFrameCStr);
 
-  move_group_interface_class.def("set_pose_target", &MoveGroupInterfaceWrapper::setPoseTargetPython);
+  moveit_cpp_class.def("set_pose_target", &MoveItCppWrapper::setPoseTargetPython);
 
-  move_group_interface_class.def("set_pose_targets", &MoveGroupInterfaceWrapper::setPoseTargetsPython);
+  moveit_cpp_class.def("set_pose_targets", &MoveItCppWrapper::setPoseTargetsPython);
 
-  move_group_interface_class.def("set_position_target", &MoveGroupInterfaceWrapper::setPositionTarget);
-  move_group_interface_class.def("set_rpy_target", &MoveGroupInterfaceWrapper::setRPYTarget);
-  move_group_interface_class.def("set_orientation_target", &MoveGroupInterfaceWrapper::setOrientationTarget);
+  moveit_cpp_class.def("set_position_target", &MoveItCppWrapper::setPositionTarget);
+  moveit_cpp_class.def("set_rpy_target", &MoveItCppWrapper::setRPYTarget);
+  moveit_cpp_class.def("set_orientation_target", &MoveItCppWrapper::setOrientationTarget);
 
-  move_group_interface_class.def("get_current_pose", &MoveGroupInterfaceWrapper::getCurrentPosePython);
-  move_group_interface_class.def("get_current_rpy", &MoveGroupInterfaceWrapper::getCurrentRPYPython);
+  moveit_cpp_class.def("get_current_pose", &MoveItCppWrapper::getCurrentPosePython);
+  moveit_cpp_class.def("get_current_rpy", &MoveItCppWrapper::getCurrentRPYPython);
 
-  move_group_interface_class.def("get_random_pose", &MoveGroupInterfaceWrapper::getRandomPosePython);
+  moveit_cpp_class.def("get_random_pose", &MoveItCppWrapper::getRandomPosePython);
 
-  move_group_interface_class.def("clear_pose_target", &MoveGroupInterfaceWrapper::clearPoseTarget);
-  move_group_interface_class.def("clear_pose_targets", &MoveGroupInterfaceWrapper::clearPoseTargets);
+  moveit_cpp_class.def("clear_pose_target", &MoveItCppWrapper::clearPoseTarget);
+  moveit_cpp_class.def("clear_pose_targets", &MoveItCppWrapper::clearPoseTargets);
 
-  move_group_interface_class.def("set_joint_value_target",
-                                 &MoveGroupInterfaceWrapper::setJointValueTargetPythonIterable);
-  move_group_interface_class.def("set_joint_value_target", &MoveGroupInterfaceWrapper::setJointValueTargetPythonDict);
+  moveit_cpp_class.def("set_joint_value_target",
+                                 &MoveItCppWrapper::setJointValueTargetPythonIterable);
+  moveit_cpp_class.def("set_joint_value_target", &MoveItCppWrapper::setJointValueTargetPythonDict);
 
-  move_group_interface_class.def("set_joint_value_target",
-                                 &MoveGroupInterfaceWrapper::setJointValueTargetPerJointPythonList);
-  bool (MoveGroupInterfaceWrapper::*set_joint_value_target_4)(const std::string&, double) =
-      &MoveGroupInterfaceWrapper::setJointValueTarget;
-  move_group_interface_class.def("set_joint_value_target", set_joint_value_target_4);
+  moveit_cpp_class.def("set_joint_value_target",
+                                 &MoveItCppWrapper::setJointValueTargetPerJointPythonList);
+  bool (MoveItCppWrapper::*set_joint_value_target_4)(const std::string&, double) =
+      &MoveItCppWrapper::setJointValueTarget;
+  moveit_cpp_class.def("set_joint_value_target", set_joint_value_target_4);
 
-  move_group_interface_class.def("set_joint_value_target_from_pose",
-                                 &MoveGroupInterfaceWrapper::setJointValueTargetFromPosePython);
-  move_group_interface_class.def("set_joint_value_target_from_pose_stamped",
-                                 &MoveGroupInterfaceWrapper::setJointValueTargetFromPoseStampedPython);
-  move_group_interface_class.def("set_joint_value_target_from_joint_state_message",
-                                 &MoveGroupInterfaceWrapper::setJointValueTargetFromJointStatePython);
+  moveit_cpp_class.def("set_joint_value_target_from_pose",
+                                 &MoveItCppWrapper::setJointValueTargetFromPosePython);
+  moveit_cpp_class.def("set_joint_value_target_from_pose_stamped",
+                                 &MoveItCppWrapper::setJointValueTargetFromPoseStampedPython);
+  moveit_cpp_class.def("set_joint_value_target_from_joint_state_message",
+                                 &MoveItCppWrapper::setJointValueTargetFromJointStatePython);
 
-  move_group_interface_class.def("get_joint_value_target", &MoveGroupInterfaceWrapper::getJointValueTargetPythonList);
+  moveit_cpp_class.def("get_joint_value_target", &MoveItCppWrapper::getJointValueTargetPythonList);
 
-  move_group_interface_class.def("set_named_target", &MoveGroupInterfaceWrapper::setNamedTarget);
-  move_group_interface_class.def("set_random_target", &MoveGroupInterfaceWrapper::setRandomTarget);
+  moveit_cpp_class.def("set_named_target", &MoveItCppWrapper::setNamedTarget);
+  moveit_cpp_class.def("set_random_target", &MoveItCppWrapper::setRandomTarget);
 
-  void (MoveGroupInterfaceWrapper::*remember_joint_values_2)(const std::string&) =
-      &MoveGroupInterfaceWrapper::rememberJointValues;
-  move_group_interface_class.def("remember_joint_values", remember_joint_values_2);
+  void (MoveItCppWrapper::*remember_joint_values_2)(const std::string&) =
+      &MoveItCppWrapper::rememberJointValues;
+  moveit_cpp_class.def("remember_joint_values", remember_joint_values_2);
 
-  move_group_interface_class.def("remember_joint_values",
-                                 &MoveGroupInterfaceWrapper::rememberJointValuesFromPythonList);
+  moveit_cpp_class.def("remember_joint_values",
+                                 &MoveItCppWrapper::rememberJointValuesFromPythonList);
 
-  move_group_interface_class.def("start_state_monitor", &MoveGroupInterfaceWrapper::startStateMonitor);
-  move_group_interface_class.def("get_current_joint_values", &MoveGroupInterfaceWrapper::getCurrentJointValuesList);
-  move_group_interface_class.def("get_random_joint_values", &MoveGroupInterfaceWrapper::getRandomJointValuesList);
-  move_group_interface_class.def("get_remembered_joint_values",
-                                 &MoveGroupInterfaceWrapper::getRememberedJointValuesPython);
+  moveit_cpp_class.def("start_state_monitor", &MoveItCppWrapper::startStateMonitor);
+  moveit_cpp_class.def("get_current_joint_values", &MoveItCppWrapper::getCurrentJointValuesList);
+  moveit_cpp_class.def("get_random_joint_values", &MoveItCppWrapper::getRandomJointValuesList);
+  moveit_cpp_class.def("get_remembered_joint_values",
+                                 &MoveItCppWrapper::getRememberedJointValuesPython);
 
-  move_group_interface_class.def("forget_joint_values", &MoveGroupInterfaceWrapper::forgetJointValues);
+  moveit_cpp_class.def("forget_joint_values", &MoveItCppWrapper::forgetJointValues);
 
-  move_group_interface_class.def("get_goal_joint_tolerance", &MoveGroupInterfaceWrapper::getGoalJointTolerance);
-  move_group_interface_class.def("get_goal_position_tolerance", &MoveGroupInterfaceWrapper::getGoalPositionTolerance);
-  move_group_interface_class.def("get_goal_orientation_tolerance",
-                                 &MoveGroupInterfaceWrapper::getGoalOrientationTolerance);
+  moveit_cpp_class.def("get_goal_joint_tolerance", &MoveItCppWrapper::getGoalJointTolerance);
+  moveit_cpp_class.def("get_goal_position_tolerance", &MoveItCppWrapper::getGoalPositionTolerance);
+  moveit_cpp_class.def("get_goal_orientation_tolerance",
+                                 &MoveItCppWrapper::getGoalOrientationTolerance);
 
-  move_group_interface_class.def("set_goal_joint_tolerance", &MoveGroupInterfaceWrapper::setGoalJointTolerance);
-  move_group_interface_class.def("set_goal_position_tolerance", &MoveGroupInterfaceWrapper::setGoalPositionTolerance);
-  move_group_interface_class.def("set_goal_orientation_tolerance",
-                                 &MoveGroupInterfaceWrapper::setGoalOrientationTolerance);
-  move_group_interface_class.def("set_goal_tolerance", &MoveGroupInterfaceWrapper::setGoalTolerance);
+  moveit_cpp_class.def("set_goal_joint_tolerance", &MoveItCppWrapper::setGoalJointTolerance);
+  moveit_cpp_class.def("set_goal_position_tolerance", &MoveItCppWrapper::setGoalPositionTolerance);
+  moveit_cpp_class.def("set_goal_orientation_tolerance",
+                                 &MoveItCppWrapper::setGoalOrientationTolerance);
+  moveit_cpp_class.def("set_goal_tolerance", &MoveItCppWrapper::setGoalTolerance);
 
-  move_group_interface_class.def("set_start_state_to_current_state",
-                                 &MoveGroupInterfaceWrapper::setStartStateToCurrentState);
-  move_group_interface_class.def("set_start_state", &MoveGroupInterfaceWrapper::setStartStatePython);
+  moveit_cpp_class.def("set_start_state_to_current_state",
+                                 &MoveItCppWrapper::setStartStateToCurrentState);
+  moveit_cpp_class.def("set_start_state", &MoveItCppWrapper::setStartStatePython);
 
-  bool (MoveGroupInterfaceWrapper::*set_path_constraints_1)(const std::string&) =
-      &MoveGroupInterfaceWrapper::setPathConstraints;
-  move_group_interface_class.def("set_path_constraints", set_path_constraints_1);
-  move_group_interface_class.def("set_path_constraints_from_msg",
-                                 &MoveGroupInterfaceWrapper::setPathConstraintsFromMsg);
-  move_group_interface_class.def("get_path_constraints", &MoveGroupInterfaceWrapper::getPathConstraintsPython);
-  move_group_interface_class.def("clear_path_constraints", &MoveGroupInterfaceWrapper::clearPathConstraints);
-  move_group_interface_class.def("get_known_constraints", &MoveGroupInterfaceWrapper::getKnownConstraintsList);
-  move_group_interface_class.def("set_constraints_database", &MoveGroupInterfaceWrapper::setConstraintsDatabase);
-  move_group_interface_class.def("set_workspace", &MoveGroupInterfaceWrapper::setWorkspace);
-  move_group_interface_class.def("set_planning_time", &MoveGroupInterfaceWrapper::setPlanningTime);
-  move_group_interface_class.def("get_planning_time", &MoveGroupInterfaceWrapper::getPlanningTime);
-  move_group_interface_class.def("set_max_velocity_scaling_factor",
-                                 &MoveGroupInterfaceWrapper::setMaxVelocityScalingFactor);
-  move_group_interface_class.def("set_max_acceleration_scaling_factor",
-                                 &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
-  move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
-  move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
-  move_group_interface_class.def("plan", &MoveGroupInterfaceWrapper::planPython);
-  move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
-  move_group_interface_class.def("compute_cartesian_path",
-                                 &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
-  move_group_interface_class.def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName);
-  move_group_interface_class.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
-  move_group_interface_class.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
-  move_group_interface_class.def("retime_trajectory", &MoveGroupInterfaceWrapper::retimeTrajectory);
-  move_group_interface_class.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
-  move_group_interface_class.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
-  move_group_interface_class.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
+  bool (MoveItCppWrapper::*set_path_constraints_1)(const std::string&) =
+      &MoveItCppWrapper::setPathConstraints;
+  moveit_cpp_class.def("set_path_constraints", set_path_constraints_1);
+  moveit_cpp_class.def("set_path_constraints_from_msg",
+                                 &MoveItCppWrapper::setPathConstraintsFromMsg);
+  moveit_cpp_class.def("get_path_constraints", &MoveItCppWrapper::getPathConstraintsPython);
+  moveit_cpp_class.def("clear_path_constraints", &MoveItCppWrapper::clearPathConstraints);
+  moveit_cpp_class.def("get_known_constraints", &MoveItCppWrapper::getKnownConstraintsList);
+  moveit_cpp_class.def("set_constraints_database", &MoveItCppWrapper::setConstraintsDatabase);
+  moveit_cpp_class.def("set_workspace", &MoveItCppWrapper::setWorkspace);
+  moveit_cpp_class.def("set_planning_time", &MoveItCppWrapper::setPlanningTime);
+  moveit_cpp_class.def("get_planning_time", &MoveItCppWrapper::getPlanningTime);
+  moveit_cpp_class.def("set_max_velocity_scaling_factor",
+                                 &MoveItCppWrapper::setMaxVelocityScalingFactor);
+  moveit_cpp_class.def("set_max_acceleration_scaling_factor",
+                                 &MoveItCppWrapper::setMaxAccelerationScalingFactor);
+  moveit_cpp_class.def("set_planner_id", &MoveItCppWrapper::setPlannerId);
+  moveit_cpp_class.def("set_num_planning_attempts", &MoveItCppWrapper::setNumPlanningAttempts);
+  moveit_cpp_class.def("plan", &MoveItCppWrapper::planPython);
+  moveit_cpp_class.def("compute_cartesian_path", &MoveItCppWrapper::computeCartesianPathPython);
+  moveit_cpp_class.def("compute_cartesian_path",
+                                 &MoveItCppWrapper::computeCartesianPathConstrainedPython);
+  moveit_cpp_class.def("set_support_surface_name", &MoveItCppWrapper::setSupportSurfaceName);
+  moveit_cpp_class.def("attach_object", &MoveItCppWrapper::attachObjectPython);
+  moveit_cpp_class.def("detach_object", &MoveItCppWrapper::detachObject);
+  moveit_cpp_class.def("retime_trajectory", &MoveItCppWrapper::retimeTrajectory);
+  moveit_cpp_class.def("get_named_targets", &MoveItCppWrapper::getNamedTargetsPython);
+  moveit_cpp_class.def("get_named_target_values", &MoveItCppWrapper::getNamedTargetValuesPython);
+  moveit_cpp_class.def("get_current_state_bounded", &MoveItCppWrapper::getCurrentStateBoundedPython);
 }
 }  // namespace planning_interface
 }  // namespace moveit
 
-BOOST_PYTHON_MODULE(_moveit_move_group_interface)
+BOOST_PYTHON_MODULE(_moveit_moveit_cpp)
 {
   using namespace moveit::planning_interface;
-  wrap_move_group_interface();
+  wrap_moveit_cpp();
 }
 
 /** @endcond */

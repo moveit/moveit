@@ -35,8 +35,8 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_INTERFACE_
-#define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_INTERFACE_
+#ifndef MOVEIT_MOVEIT_CPP_MOVEIT_CPP_
+#define MOVEIT_MOVEIT_CPP_MOVEIT_CPP_
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
@@ -88,20 +88,20 @@ public:
   }
 };
 
-MOVEIT_CLASS_FORWARD(MoveGroupInterface);
+MOVEIT_CLASS_FORWARD(MoveItCpp);
 
-/** \class MoveGroupInterface move_group_interface.h moveit/planning_interface/move_group_interface.h
+/** \class MoveItCpp moveit_cpp.h moveit/planning_interface/moveit_cpp.h
 
     \brief Client class to conveniently use the ROS interfaces provided by the move_group node.
 
     This class includes many default settings to make things easy to use. */
-class MoveGroupInterface
+class MoveItCpp
 {
 public:
   /** \brief Default ROS parameter name from where to read the robot's URDF. Set to 'robot_description' */
   static const std::string ROBOT_DESCRIPTION;
 
-  /** \brief Specification of options to use when constructing the MoveGroupInterface class */
+  /** \brief Specification of options to use when constructing the MoveItCpp class */
   struct Options
   {
     Options(const std::string& group_name, const std::string& desc = ROBOT_DESCRIPTION,
@@ -138,19 +138,19 @@ public:
   };
 
   /**
-      \brief Construct a MoveGroupInterface instance call using a specified set of options \e opt.
+      \brief Construct a MoveItCpp instance call using a specified set of options \e opt.
 
-      \param opt. A MoveGroupInterface::Options structure, if you pass a ros::NodeHandle with a specific callback queue,
+      \param opt. A MoveItCpp::Options structure, if you pass a ros::NodeHandle with a specific callback queue,
      it has to be of type ros::CallbackQueue
         (which is the default type of callback queues used in ROS)
       \param tf_buffer. Specify a TF2_ROS Buffer instance to use. If not specified,
                         one will be constructed internally along with an internal TF2_ROS TransformListener
       \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
     */
-  MoveGroupInterface(const Options& opt,
+  MoveItCpp(const Options& opt,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                      const ros::WallDuration& wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroupInterface(const Options& opt, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+  MOVEIT_DEPRECATED MoveItCpp(const Options& opt, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                        const ros::Duration& wait_for_servers);
 
   /**
@@ -160,24 +160,24 @@ public:
                         one will be constructed internally along with an internal TF2_ROS TransformListener
       \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
     */
-  MoveGroupInterface(const std::string& group,
+  MoveItCpp(const std::string& group,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                      const ros::WallDuration& wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroupInterface(const std::string& group, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+  MOVEIT_DEPRECATED MoveItCpp(const std::string& group, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                        const ros::Duration& wait_for_servers);
 
-  ~MoveGroupInterface();
+  ~MoveItCpp();
 
   /**
    * @brief This class owns unique resources (e.g. action clients, threads) and its not very
    * meaningful to copy. Pass by references, move it, or simply create multiple instances where
    * required.
    */
-  MoveGroupInterface(const MoveGroupInterface&) = delete;
-  MoveGroupInterface& operator=(const MoveGroupInterface&) = delete;
+  MoveItCpp(const MoveItCpp&) = delete;
+  MoveItCpp& operator=(const MoveItCpp&) = delete;
 
-  MoveGroupInterface(MoveGroupInterface&& other);
-  MoveGroupInterface& operator=(MoveGroupInterface&& other);
+  MoveItCpp(MoveItCpp&& other);
+  MoveItCpp& operator=(MoveItCpp&& other);
 
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;
@@ -709,7 +709,7 @@ public:
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
   MoveItErrorCode asyncMove();
 
-  /** \brief Get the move_group action client used by the \e MoveGroupInterface.
+  /** \brief Get the move_group action client used by the \e MoveItCpp.
       The client can be used for querying the execution state of the trajectory and abort trajectory execution
       during asynchronous execution. */
   actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>& getMoveGroupClient() const;
@@ -924,7 +924,7 @@ public:
   /** \brief Get the names of the known constraints as read from the Mongo database, if a connection was achieved. */
   std::vector<std::string> getKnownConstraints() const;
 
-  /** \brief Get the actual set of constraints in use with this MoveGroupInterface.
+  /** \brief Get the actual set of constraints in use with this MoveItCpp.
       @return A copy of the current path constraints set for this interface
       */
   moveit_msgs::Constraints getPathConstraints() const;
@@ -955,8 +955,8 @@ protected:
 
 private:
   std::map<std::string, std::vector<double> > remembered_joint_values_;
-  class MoveGroupInterfaceImpl;
-  MoveGroupInterfaceImpl* impl_;
+  class MoveItCppImpl;
+  MoveItCppImpl* impl_;
 };
 }
 }
