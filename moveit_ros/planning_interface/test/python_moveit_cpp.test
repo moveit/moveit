@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Start joint_state_publisher, robot_state_publisher, and MoveItCpp -->
+  <include file="$(find moveit_resources)/fanuc_moveit_config/launch/test_environment.launch"/>
+
+  <!-- Test MoveItCpp for Python -->
+  <test pkg="moveit_ros_planning_interface" type="python_moveit_cpp.py" test-name="python_moveit_cpp"
+        time-limit="300" args=""/>
+</launch>
