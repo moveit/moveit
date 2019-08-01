@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2019, PickNik, Inc.
+ *  Copyright (c) 2019, PickNik, LLC.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,9 @@
 #define TRAJOPT_INTERFACE_TRAJOPT_INTERFACE_H
 
 #include <ros/ros.h>
-
 #include <trajopt_sco/sco_common.hpp>
-
-#include "problem_description.h"
-
 #include <moveit/planning_interface/planning_interface.h>
+#include "problem_description.h"
 
 namespace trajopt_interface
 {
@@ -73,6 +70,7 @@ protected:
   sco::BasicTrustRegionSQPParameters params_;
   std::vector<sco::Optimizer::Callback> callbacks_;
   TrajOptProblemPtr prob_;
+  std::string name_;
 };
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res);

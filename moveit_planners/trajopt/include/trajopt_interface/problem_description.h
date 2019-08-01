@@ -141,7 +141,7 @@ struct TermInfo
    * Registers a user-defined TermInfo so you can use your own cost
    * see function RegisterMakers.cpp
    */
-  typedef TermInfoPtr (*MakerFunc)(void);
+  using MakerFunc = TermInfoPtr (*)(void);
   static void RegisterMaker(const std::string& type, MakerFunc);
 
   virtual ~TermInfo() = default;
@@ -152,7 +152,7 @@ protected:
   }
 
 private:
-  static std::map<std::string, MakerFunc> name2maker;
+  static std::map<std::string, MakerFunc> name_to_maker_;
   int supported_term_types_;
 };
 
@@ -168,11 +168,9 @@ public:
   planning_scene::PlanningSceneConstPtr planning_scene;
   std::string planning_group_name;
 
-  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, std::string pg) : planning_scene(ps), planning_group_name(pg)
+  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, const std::string& pg) : planning_scene(ps), planning_group_name(pg)
   {
   }
-
-private:
 };
 
 /**
@@ -188,32 +186,38 @@ public:
   /** @brief Returns the values of the specified joints (start_col to num_col) for the specified timestep i.*/
   sco::VarVector GetVarRow(int i, int start_col, int num_col)
   {
-    return m_traj_vars.rblock(i, start_col, num_col);
+    return matrix_traj_vars.rblock(i, start_col, num_col);
   }
   /** @brief Returns the values of all joints for the specified timestep i.*/
   sco::VarVector GetVarRow(int i)
   {
-    return m_traj_vars.row(i);
+    return matrix_traj_vars.row(i);
   }
   /** @brief Returns the value of the specified joint j for the specified timestep i.*/
   sco::Var& GetVar(int i, int j)
   {
-    return m_traj_vars.at(i, j);
+    return matrix_traj_vars.at(i, j);
   }
   trajopt::VarArray& GetVars()
   {
-    return m_traj_vars;
+    return matrix_traj_vars;
   }
   /** @brief Returns the number of steps in the problem. This is the number of rows in the optimization matrix.*/
   int GetNumSteps()
   {
-    return m_traj_vars.rows();
+    return matrix_traj_vars.rows();
   }
   /** @brief Returns the problem DOF. This is the number of columns in the optization matrix.
    * Note that this is not necessarily the same as the kinematic DOF.*/
   int GetNumDOF()
   {
-    return m_traj_vars.cols();
+    return matrix_traj_vars.cols();
+  }
+  /** @brief Returns the kinematic DOF of the active joint model group
+   */
+  int GetActiveGroupNumDOF()
+  {
+    return dof_;
   }
   planning_scene::PlanningSceneConstPtr GetPlanningScene()
   {
@@ -221,11 +225,11 @@ public:
   }
   void SetInitTraj(const trajopt::TrajArray& x)
   {
-    m_init_traj = x;
+    matrix_init_traj = x;
   }
   trajopt::TrajArray GetInitTraj()
   {
-    return m_init_traj;
+    return matrix_init_traj;
   }
   //  friend TrajOptProbPtr ConstructProblem(const ProblemConstructionInfo&);
   /** @brief Returns TrajOptProb.has_time */
@@ -243,10 +247,12 @@ private:
   /** @brief If true, the last column in the optimization matrix will be 1/dt */
   bool has_time;
   /** @brief is the matrix holding the joint values of the trajectory for all timesteps */
-  trajopt::VarArray m_traj_vars;
+  trajopt::VarArray matrix_traj_vars;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   std::string planning_group_;
-  trajopt::TrajArray m_init_traj;
+  /** @brief Kinematic DOF of the active joint model group  */
+  int dof_;
+  trajopt::TrajArray matrix_init_traj;
 };
 
 /** @brief This term is used when the goal frame is fixed in cartesian space
@@ -353,6 +359,8 @@ struct JointVelTermInfo : public TermInfo
     return out;
   }
 };
+
+
 
 void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values,
                                trajopt::TrajArray& init_traj);
