@@ -25,7 +25,6 @@ public:
   bool terminate() override;
   void clear() override;
 
-protected:
 private:
   moveit::core::RobotModelConstPtr robot_model_;
 

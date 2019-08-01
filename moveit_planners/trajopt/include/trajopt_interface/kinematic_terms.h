@@ -4,31 +4,38 @@
 
 #include <Eigen/Geometry>
 
-using namespace Eigen;
-using namespace std;
-
 namespace trajopt_interface
 {
-Vector3d rotVec(const Matrix3d& m)
+
+/**
+ * @brief Extracts the vector part of quaternion
+ */
+inline Eigen::Vector3d rotVec(const Eigen::Matrix3d& m)
 {
-  Quaterniond q;
+  Eigen::Quaterniond q;
   q = m;
-  return Vector3d(q.x(), q.y(), q.z());
+  return Eigen::Vector3d(q.x(), q.y(), q.z());
 }
 
-VectorXd concat(const VectorXd& a, const VectorXd& b)
+/**
+ * @brief Appends b to a of type VectorXd
+ */
+inline Eigen::VectorXd concat(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
 {
-  VectorXd out(a.size() + b.size());
+  Eigen::VectorXd out(a.size() + b.size());
   out.topRows(a.size()) = a;
   out.middleRows(a.size(), b.size()) = b;
   return out;
 }
 
+/**
+ * @brief Appends b to a of type T
+ */
 template <typename T>
-vector<T> concat(const vector<T>& a, const vector<T>& b)
+std::vector<T> concat(const std::vector<T>& a, const std::vector<T>& b)
 {
-  vector<T> out;
-  vector<int> x(a.size() + b.size());
+  std::vector<T> out;
+  std::vector<int> x(a.size() + b.size());
   out.insert(out.end(), a.begin(), a.end());
   out.insert(out.end(), b.begin(), b.end());
   return out;
@@ -47,7 +54,7 @@ struct CartPoseErrCalculator : public sco::VectorOfVector
   Eigen::Isometry3d tcp_;
 
   CartPoseErrCalculator(const Eigen::Isometry3d& pose, const planning_scene::PlanningSceneConstPtr planning_scene,
-                        std::string link, Eigen::Isometry3d tcp = Eigen::Isometry3d::Identity())
+                        const std::string& link, Eigen::Isometry3d tcp = Eigen::Isometry3d::Identity())
     : target_pose_inv_(pose.inverse()), planning_scene_(planning_scene), link_(link), tcp_(tcp)
   {
   }
