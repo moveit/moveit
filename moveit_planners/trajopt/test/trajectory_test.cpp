@@ -20,16 +20,14 @@
 // Testing
 #include <gtest/gtest.h>
 
+#include <trajopt/common.hpp>
+
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/robot_state.h>
 
-#include <trajopt/common.hpp>
-
 #include "trajopt_interface/problem_description.h"
 
-namespace trackpose_cpp
-{
 class TrajectoryTest : public ::testing::Test
 {
 public:
@@ -56,8 +54,6 @@ TEST_F(TrajectoryTest, GenerateInitialTrajectoryDimensions)
   EXPECT_EQ(init_traj.cols(), joint_values.size());
   EXPECT_EQ(init_traj.rows(), pci.basic_info.n_steps);
 }
-
-}  // namespace trackpose_cpp
 
 int main(int argc, char** argv)
 {

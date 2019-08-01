@@ -38,7 +38,7 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+#include <moveit/collision_detection_bullet/collision_detector_bullet_plugin_loader.h>
 
 #include <class_loader/class_loader.hpp>
 
@@ -63,7 +63,7 @@ public:
 
     for (const std::string& gpName : model->getJointModelGroupNames())
     {
-      ROS_INFO("group name: %s, robot model: %s", gpName.c_str(), model->getName().c_str());
+      ROS_INFO(" ======================================= group name: %s, robot model: %s", gpName.c_str(), model->getName().c_str());
       planning_contexts_[gpName] =
           TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
     }
@@ -91,7 +91,7 @@ public:
                                                             const planning_interface::MotionPlanRequest& req,
                                                             moveit_msgs::MoveItErrorCodes& error_code) const override
   {
-    std::cout << "=====>>>>> getPlanningContext() is called " << std::endl;
+    ROS_INFO(" ======================================= getPlanningContext() is called ");
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
     if (req.group_name.empty())
@@ -112,12 +112,12 @@ public:
     planning_scene::PlanningScenePtr ps = planning_scene->diff();
 
     // set FCL for the collision
-    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
+    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
 
     // retrieve and configure existing context
     const TrajOptPlanningContextPtr& context = planning_contexts_.at(req.group_name);
 
-    std::cout << "===>>> context is made " << std::endl;
+    ROS_INFO(" ======================================= context is made ");
 
     context->setPlanningScene(ps);
     context->setMotionPlanRequest(req);

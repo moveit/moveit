@@ -22,7 +22,7 @@ VectorXd CartPoseErrCalculator::operator()(const VectorXd& dof_vals) const
 VectorXd JointVelErrCalculator::operator()(const VectorXd& var_vals) const
 {
   assert(var_vals.rows() % 2 == 0);
-  // Top half of the vector are the joint values. The bottom half are the 1/dt values
+  // var_vals = (theta_t1, theta_t2, theta_t3 ... 1/dt_1, 1/dt_2, 1/dt_3 ...)
   int half = static_cast<int>(var_vals.rows() / 2);
   int num_vels = half - 1;
   // (x1-x0)*(1/dt)
@@ -49,11 +49,8 @@ MatrixXd JointVelJacobianCalculator::operator()(const VectorXd& var_vals) const
     // v = (j_i+1 - j_i)*(1/dt)
     // We calculate v with the dt from the second pt
     int time_index = i + half + 1;
-    // dv_i/dj_i = -(1/dt)
     jac(i, i) = -1.0 * var_vals(time_index);
-    // dv_i/dj_i+1 = (1/dt)
     jac(i, i + 1) = 1.0 * var_vals(time_index);
-    // dv_i/dt_i = j_i+1 - j_i
     jac(i, time_index) = var_vals(i + 1) - var_vals(i);
     // All others are 0
   }
@@ -64,4 +61,4 @@ MatrixXd JointVelJacobianCalculator::operator()(const VectorXd& var_vals) const
   return jac;
 }
 
-}  // namespace trajopt
+}  // namespace trajopt_interface

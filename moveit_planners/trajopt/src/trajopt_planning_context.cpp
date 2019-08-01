@@ -16,7 +16,7 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
                                                const robot_model::RobotModelConstPtr& model)
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
-  ROS_INFO(" ==================================== TrajOptPlanningContext is constructed");
+  ROS_INFO(" ======================================= TrajOptPlanningContext is constructed");
   trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 

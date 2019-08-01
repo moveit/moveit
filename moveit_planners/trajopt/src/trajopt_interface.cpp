@@ -57,7 +57,7 @@
 
 namespace trajopt_interface
 {
-TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh)
+  TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
   prob_ = TrajOptProblemPtr(new TrajOptProblem);
   setDefaultTrajOPtParams();
@@ -119,6 +119,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ======================================= Populate init info, hard-coded");
   // TODO: init info should be defined by user
   Eigen::VectorXd current_joint_values_eigen(dof);
+  Eigen::VectorXd start_joint_values_eigen(dof);
   for (int joint_index = 0; joint_index < dof; ++joint_index)
   {
     current_joint_values_eigen(joint_index) = current_joint_values[joint_index];
@@ -188,6 +189,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   trajopt::DblVec joint_start_constraints;
   for (auto pos : req.start_state.joint_state.position)
   {
+    //TODO: if running from MotionPlanning Display in rviz, when I choose panda_arm, it still returns 9 dof instead of 7
+    ROS_INFO(" ======================================= joint position from start state ===>>> %f", pos);
     joint_start_constraints.push_back(pos);
   }
   joint_start_pos->targets = joint_start_constraints;
@@ -212,27 +215,25 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     // TODO: Add visibility constraint
   }
 
-  ROS_INFO(" ======================================= DEBUG");
-  ROS_INFO_STREAM_NAMED("trajopt_param.improve_ratio_threshold", params_.improve_ratio_threshold);
-  ROS_INFO_STREAM_NAMED("trajopt_param.min_trust_box_size", params_.min_trust_box_size);
-  ROS_INFO_STREAM_NAMED("trajopt_param.min_approx_improve", params_.min_approx_improve);
-  ROS_INFO_STREAM_NAMED("trajopt_param.params_.min_approx_improve_frac", params_.min_approx_improve_frac);
-  ROS_INFO_STREAM_NAMED("trajopt_param.max_iter", params_.max_iter);
-  ROS_INFO_STREAM_NAMED("trajopt_param.trust_shrink_ratio", params_.trust_shrink_ratio);
-  ROS_INFO_STREAM_NAMED("trajopt_param.trust_expand_ratio", params_.trust_expand_ratio);
-  ROS_INFO_STREAM_NAMED("trajopt_param.cnt_tolerance", params_.cnt_tolerance);
-  ROS_INFO_STREAM_NAMED("trajopt_param.max_merit_coeff_increases", params_.max_merit_coeff_increases);
-  ROS_INFO_STREAM_NAMED("trajopt_param.merit_coeff_increase_ratio", params_.merit_coeff_increase_ratio);
-  ROS_INFO_STREAM_NAMED("trajopt_param.max_time", params_.max_time);
-  ROS_INFO_STREAM_NAMED("trajopt_param.merit_error_coeff", params_.merit_error_coeff);
-  ROS_INFO_STREAM_NAMED("trajopt_param.trust_box_size", params_.trust_box_size);
-
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.n_steps", problem_info.basic_info.n_steps);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.dt_upper_lim", problem_info.basic_info.dt_upper_lim);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.dt_lower_lim", problem_info.basic_info.dt_lower_lim);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.start_fixed", problem_info.basic_info.start_fixed);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.use_time", problem_info.basic_info.use_time);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.convex_solver", problem_info.basic_info.convex_solver);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.improve_ratio_threshold: " << params_.improve_ratio_threshold);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.min_trust_box_size: " << params_.min_trust_box_size);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.min_approx_improve: " << params_.min_approx_improve);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.params_.min_approx_improve_frac: " << params_.min_approx_improve_frac);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.max_iter: " << params_.max_iter);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.trust_shrink_ratio: " << params_.trust_shrink_ratio);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.trust_expand_ratio: " << params_.trust_expand_ratio);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.cnt_tolerance: " << params_.cnt_tolerance);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.max_merit_coeff_increases: " << params_.max_merit_coeff_increases);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.merit_coeff_increase_ratio: " << params_.merit_coeff_increase_ratio);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.max_time: " << params_.max_time);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.merit_error_coeff: " << params_.merit_error_coeff);
+  ROS_DEBUG_STREAM_NAMED(name_, "trajopt_param.trust_box_size: " << params_.trust_box_size);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.n_steps: " << problem_info.basic_info.n_steps);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt_upper_lim: " << problem_info.basic_info.dt_upper_lim);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt_lower_lim: " << problem_info.basic_info.dt_lower_lim);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.start_fixed: " << problem_info.basic_info.start_fixed);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.use_time: " << problem_info.basic_info.use_time);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.convex_solver: " << problem_info.basic_info.convex_solver);
 
   std::string problem_info_type;
   switch (problem_info.init_info.type)
@@ -247,8 +248,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
       problem_info_type = "GIVEN_TRAJ";
       break;
   }
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.type", problem_info_type);
-  ROS_INFO_STREAM_NAMED("problem_info.basic_info.dt", problem_info.init_info.dt);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.type: " << problem_info_type);
+  ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt: " << problem_info.init_info.dt);
 
   ROS_INFO(" ======================================= Construct problem");
   prob_ = ConstructProblem(problem_info);
@@ -331,6 +332,12 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ==================================== Response");
   res.trajectory_start = req.start_state;
 
+  ROS_INFO(" ==================================== Debug Response");
+  ROS_INFO_STREAM_NAMED("group_name", res.group_name);
+  ROS_INFO_STREAM_NAMED("start_traj_name_size", res.trajectory_start.joint_state.name.size());
+  ROS_INFO_STREAM_NAMED("start_traj_position_size", res.trajectory_start.joint_state.position.size());
+  ROS_INFO_STREAM_NAMED("traj_name_size", res.trajectory[0].joint_trajectory.joint_names.size());
+  ROS_INFO_STREAM_NAMED("traj_point_size", res.trajectory[0].joint_trajectory.points.size());
   return true;
 }
 
@@ -429,6 +436,7 @@ void TrajOptInterface::setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std:
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res)
 {
+  //TODO: Create the actuall implementation
 }
 
 }  // namespace trajopt_interface

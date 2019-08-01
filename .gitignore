@@ -61,4 +61,3 @@ CATKIN_IGNORE
 
 #gdb
 *.gdb
-/moveit_planners/trajopt/launch/gdb_settings.gdb

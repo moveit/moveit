@@ -9,7 +9,6 @@ endif()
 
 find_package(catkin REQUIRED
     COMPONENTS
-      interactive_markers
       moveit_core
       moveit_visual_tools
       moveit_ros_planning
@@ -17,7 +16,6 @@ find_package(catkin REQUIRED
       pluginlib
       roscpp
       rosparam_shortcuts
-
       trajopt
 )
 
@@ -33,36 +31,38 @@ catkin_package(
       moveit_core
       moveit_visual_tools
       moveit_ros_planning_interface
-      interactive_markers
       rosparam_shortcuts
 )
 
 # The following include_directory should have include folder of the new planner.
 include_directories(
-      include
-      ${catkin_INCLUDE_DIRS}
-   SYSTEM
-      ${Boost_INCLUDE_DIRS}
-      ${catkin_INCLUDE_DIRS}
+  include
+  ${catkin_INCLUDE_DIRS}
+  SYSTEM
+  ${Boost_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
+add_library(
+  ${PROJECT_NAME}
+  src/trajopt_interface.cpp
+  src/problem_description.cpp
+  src/kinematic_terms.cpp
+  src/trajopt_planning_context.cpp
+)
 
+target_link_libraries(
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
-add_library(kinematic_terms src/kinematic_terms.cpp)
-set_target_properties(kinematic_terms PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(kinematic_terms ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-add_library(problem_description src/problem_description.cpp)
-set_target_properties(problem_description PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(problem_description ${catkin_LIBRARIES} ${Boost_LIBRARIES} kinematic_terms)
-
-add_library(trajopt_interface src/trajopt_interface.cpp)
-set_target_properties (trajopt_interface PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(trajopt_interface ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description)
-
-add_library(${PROJECT_NAME}  src/trajopt_planning_context.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} problem_description trajopt_interface)
+set_target_properties(
+  ${PROJECT_NAME}
+  PROPERTIES
+  VERSION
+  "${${PROJECT_NAME}_VERSION}"
+)
 
 # TrajOpt planning plugin
 add_library(moveit_trajopt_planner_plugin src/trajopt_planner_manager.cpp)
@@ -71,8 +71,6 @@ target_link_libraries(moveit_trajopt_planner_plugin ${PROJECT_NAME} ${catkin_LIB
 
 add_executable(test_trajopt src/test_trajopt.cpp)
 target_link_libraries(test_trajopt  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-
 
 #############
 ## Install ##
@@ -109,8 +107,6 @@ install(
 install(FILES trajopt_interface_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
-
-
 #############
 ## Testing ##
 #############
@@ -119,10 +115,11 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
 
   add_rostest_gtest(trajectory_test test/trajectory_test.test test/trajectory_test.cpp)
-  target_link_libraries(trajectory_test
+  target_link_libraries(
+    trajectory_test
     ${LIBRARY_NAME}
     ${catkin_LIBRARIES}
-    problem_description
+    ${PROJECT_NAME}
   )
 
 endif()

@@ -55,12 +55,12 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(planning_group_);
 
   moveit::core::JointBoundsVector bounds = joint_model_group->getActiveJointModelsBounds();
-  int n_dof = joint_model_group->getActiveJointModelNames().size();  // or bounds.size();
+  dof_ = joint_model_group->getActiveJointModelNames().size();  // or bounds.size();
 
   int n_steps = problem_info.basic_info.n_steps;
 
   ROS_INFO(" ======================================= problem_description: limits");
-  Eigen::MatrixX2d limits(n_dof, 2);
+  Eigen::MatrixX2d limits(dof_, 2);
   for (int k = 0; k < limits.size() / 2; ++k)
   {
     moveit::core::JointModel::Bounds bound = *bounds[k];
@@ -81,7 +81,7 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   std::vector<std::string> names;
   for (int i = 0; i < n_steps; ++i)
   {
-    for (int j = 0; j < n_dof; ++j)
+    for (int j = 0; j < dof_; ++j)
     {
       names.push_back((boost::format("j_%i_%i") % i % j).str());
     }
@@ -97,8 +97,8 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   }
 
   sco::VarVector trajvarvec = createVariables(names, vlower, vupper);
-  m_traj_vars = trajopt::VarArray(n_steps, n_dof + (problem_info.basic_info.use_time ? 1 : 0), trajvarvec.data());
-  // m_traj_vars is essentialy a matrix of elements like:
+  matrix_traj_vars = trajopt::VarArray(n_steps, dof_ + (problem_info.basic_info.use_time ? 1 : 0), trajvarvec.data());
+  // matrix_traj_vars is essentialy a matrix of elements like:
   // j_0_0, j_0_1 ...
   // j_1_0, j_1_1 ...
   // its size is n_steps by n_dof
@@ -185,7 +185,7 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   }
   prob->SetInitTraj(init_traj);
 
-  trajopt::VarArray m_traj_vars_temp;
+  trajopt::VarArray matrix_traj_vars_temp;
   // If start_fixed, constrain the joint values for the first time step to be their initialized values
   if (bi.start_fixed)
   {
@@ -202,8 +202,8 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 
     for (int j = 0; j < static_cast<int>(n_dof); ++j)
     {
-      m_traj_vars_temp = prob->GetVars();
-      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(m_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
+      matrix_traj_vars_temp = prob->GetVars();
+      prob->addLinearConstraint(sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(0, j)), init_traj(0, j)), sco::EQ);
     }
   }
 
@@ -214,9 +214,9 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
     {
       for (int i = 1; i < prob->GetNumSteps(); ++i)
       {
-        m_traj_vars_temp = prob->GetVars();
+        matrix_traj_vars_temp = prob->GetVars();
         prob->addLinearConstraint(
-            sco::exprSub(sco::AffExpr(m_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))), sco::EQ);
+            sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))), sco::EQ);
       }
     }
   }
@@ -242,7 +242,7 @@ CartPoseTermInfo::CartPoseTermInfo() : TermInfo(TT_COST | TT_CNT)
 
 void CartPoseTermInfo::hatch(TrajOptProblem& prob)
 {
-  unsigned int n_dof = prob.GetNumDOF();
+  unsigned int n_dof = prob.GetActiveGroupNumDOF();
 
   Eigen::Isometry3d input_pose;
   Eigen::Quaterniond q(wxyz(0), wxyz(1), wxyz(2), wxyz(3));
@@ -277,7 +277,7 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
 
 void JointPoseTermInfo::hatch(TrajOptProblem& prob)
 {
-  unsigned int n_dof = prob.GetNumDOF();
+  unsigned int n_dof = prob.GetActiveGroupNumDOF();
 
   // If optional parameter not given, set to default
   if (coeffs.empty())
@@ -308,7 +308,7 @@ void JointPoseTermInfo::hatch(TrajOptProblem& prob)
 
   // Check if parameters are the correct size.
   checkParameterSize(coeffs, n_dof, "JointPoseTermInfo coeffs", true);
-  checkParameterSize(targets, n_dof, "JointPoseTermInfo upper_tols", true);
+  checkParameterSize(targets, n_dof, "JointPoseTermInfo targets", true);
   checkParameterSize(upper_tols, n_dof, "JointPoseTermInfo upper_tols", true);
   checkParameterSize(lower_tols, n_dof, "JointPoseTermInfo lower_tols", true);
 

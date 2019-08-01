@@ -3,9 +3,9 @@
   <version>1.0.1</version>
   <description>TrajOpt planning plugin, an optimization based motion planner </description>
 
-  <author email="omid@picknik.ai">Omid Heidari</author>
+  <author email="heomid66@gmail.com">Omid Heidari</author>
 
-  <maintainer email="omid@picknik.ai">Omid Heidari</maintainer>
+  <maintainer email="heomid66@gmail.com">Omid Heidari</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>
@@ -17,18 +17,12 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>pluginlib</depend>
-
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_planning_interface</depend>
-
-  <depend>interactive_markers</depend>
-
   <depend>moveit_visual_tools</depend>
-
   <depend>roscpp</depend>
   <depend>rosparam_shortcuts</depend>
-
   <depend>trajopt</depend>
 
   <export>
