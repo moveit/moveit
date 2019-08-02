@@ -325,9 +325,8 @@ bool ConfigurationFilesWidget::loadGenFiles()
   // launch/ --------------------------------------------------------------------------------------
   file.file_name_ = "launch/";
   file.rel_path_ = file.file_name_;
-  file.description_ =
-      "Folder containing all MoveIt launch files for your robot. This folder is required and cannot be "
-      "disabled.";
+  file.description_ = "Folder containing all MoveIt launch files for your robot. "
+                      "This folder is required and cannot be disabled.";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::createFolder, this, _1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);

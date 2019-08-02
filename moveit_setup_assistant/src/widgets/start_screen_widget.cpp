@@ -105,8 +105,8 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr&
   // Top Label Area ---------------------------------------------------
   HeaderWidget* header =
       new HeaderWidget("MoveIt Setup Assistant", "These tools will assist you in creating a Semantic Robot "
-                                                  "Description Format (SRDF) file, various yaml configuration and many "
-                                                  "roslaunch files for utilizing all aspects of MoveIt functionality.",
+                                                 "Description Format (SRDF) file, various yaml configuration and many "
+                                                 "roslaunch files for utilizing all aspects of MoveIt functionality.",
                        this);
   layout->addWidget(header);
 
