@@ -1,13 +1,13 @@
 <package format="2">
   <name>moveit_plugins</name>
   <version>1.0.1</version>
-  <description>Metapackage for MoveIt! plugins.</description>
+  <description>Metapackage for MoveIt plugins.</description>
 
   <author email="mferguson@fetchrobotics.com">Michael Ferguson</author>
   <author email="isucan@google.com">Ioan Sucan</author>
 
   <maintainer email="me@v4hn.de">Michael Görner</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

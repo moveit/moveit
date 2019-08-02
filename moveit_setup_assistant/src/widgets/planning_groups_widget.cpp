@@ -374,7 +374,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   {
     warn_once = false;
     QMessageBox::warning(this, "Group with Multiple Kinematic Chains",
-                         "Warning: this MoveIt! Setup Assistant is only designed to handle one kinematic chain per "
+                         "Warning: this MoveIt Setup Assistant is only designed to handle one kinematic chain per "
                          "group. The loaded SRDF has more than one kinematic chain for a group. A possible loss of "
                          "data may occur.");
   }

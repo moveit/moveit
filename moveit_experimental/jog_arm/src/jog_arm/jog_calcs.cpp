@@ -49,7 +49,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   // Publish collision status
   warning_pub_ = nh_.advertise<std_msgs::Bool>(parameters_.warning_topic, 1);
 
-  // MoveIt! Setup
+  // MoveIt Setup
   while (ros::ok() && !model_loader_ptr)
   {
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");

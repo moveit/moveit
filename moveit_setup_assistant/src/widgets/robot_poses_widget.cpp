@@ -49,7 +49,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt! Configuration Assistant
+// Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
 RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -93,7 +93,7 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
   pub_robot_state_ = nh.advertise<moveit_msgs::DisplayRobotState>(MOVEIT_ROBOT_STATE, 1);
 
   // Set the planning scene
-  config_data_->getPlanningScene()->setName("MoveIt! Planning Scene");
+  config_data_->getPlanningScene()->setName("MoveIt Planning Scene");
 
   // Collision Detection initializtion -------------------------------
 
@@ -144,7 +144,7 @@ QWidget* RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment(btn_default, Qt::AlignLeft);
 
   // Set play button
-  QPushButton* btn_play = new QPushButton("&MoveIt!", this);
+  QPushButton* btn_play = new QPushButton("&MoveIt", this);
   btn_play->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_play->setMaximumWidth(300);
   connect(btn_play, SIGNAL(clicked()), this, SLOT(playPoses()));

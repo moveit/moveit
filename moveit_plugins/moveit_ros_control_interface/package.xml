@@ -2,12 +2,12 @@
 <package format="2">
   <name>moveit_ros_control_interface</name>
   <version>1.0.1</version>
-  <description>ros_control controller manager interface for MoveIt!</description>
+  <description>ros_control controller manager interface for MoveIt</description>
 
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
 
   <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

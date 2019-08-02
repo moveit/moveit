@@ -1,7 +1,7 @@
 <package format="2">
   <name>moveit_ros_visualization</name>
   <version>1.0.1</version>
-  <description>Components of MoveIt! that offer visualization</description>
+  <description>Components of MoveIt that offer visualization</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="dave@picknik.ai">Dave Coleman</author>
@@ -9,7 +9,7 @@
 
   <maintainer email="jon.binney@gmail.com">Jon Binney</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

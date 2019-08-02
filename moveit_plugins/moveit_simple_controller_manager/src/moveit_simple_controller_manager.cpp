@@ -145,7 +145,7 @@ public:
           continue;
         }
 
-        /* add list of joints, used by controller manager and MoveIt! */
+        /* add list of joints, used by controller manager and MoveIt */
         for (int j = 0; j < controller_list[i]["joints"].size(); ++j)
           new_handle->addJoint(std::string(controller_list[i]["joints"][j]));
 

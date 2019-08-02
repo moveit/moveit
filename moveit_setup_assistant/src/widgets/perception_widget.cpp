@@ -57,7 +57,7 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   HeaderWidget* header =
       new HeaderWidget("Setup 3D Perception Sensors",
-                       "Configure your 3D sensors to work with Moveit! "
+                       "Configure your 3D sensors to work with Moveit "
                        "Please see <a "
                        "href='http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/perception_pipeline/"
                        "perception_pipeline_tutorial.html'>Perception Documentation</a> "

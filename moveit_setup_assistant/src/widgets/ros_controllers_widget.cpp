@@ -49,7 +49,7 @@
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
-// Outer User Interface for MoveIt! Configuration Assistant
+// Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
 ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -64,7 +64,7 @@ ROSControllersWidget::ROSControllersWidget(QWidget* parent, const MoveItConfigDa
 
   // Top Header Area ------------------------------------------------
   moveit_setup_assistant::HeaderWidget* header = new moveit_setup_assistant::HeaderWidget(
-      "Setup ROS Controllers", "Configure MoveIt! to work with ROS Control to control the robot's physical hardware",
+      "Setup ROS Controllers", "Configure MoveIt to work with ROS Control to control the robot's physical hardware",
       this);
   layout->addWidget(header);
 

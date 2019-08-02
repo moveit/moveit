@@ -241,10 +241,10 @@ public:
   virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
 
   /**
-   * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt! robot_state to an OMPL
+   * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt robot_state to an OMPL
    * state.
    * \param state - output OMPL state with single joint modified
-   * \param robot_state - input MoveIt! state to get the joint value from
+   * \param robot_state - input MoveIt state to get the joint value from
    * \param joint_model - the joint to copy values of
    * \param ompl_state_joint_index - the index of the joint in the ompl state (passed in for efficiency, you should
    * cache this index)

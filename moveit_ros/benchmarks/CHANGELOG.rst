@@ -155,13 +155,13 @@ Changelog for package moveit_ros_benchmarks
   as a symlink pointing to the versioned file.
   Because this sets each library's SONAME to the *full version*, this enforces
   that *every* binary links with the versioned library file from now on and
-  has to be relinked with *each* new release of MoveIt!.
+  has to be relinked with *each* new release of MoveIt.
   The alternative would be to set the SONAME to `$MAJOR.$MINOR` and ignore the patch version,
   but because we currently stay with one `$MAJOR.$MINOR` number within each ROS distribution,
   we had (and likely will have) ABI changes in the `$PATCH` version releases too.
   The reason for this commit is that it is practically impossible to maintain full ABI compatibility
   within each ROS distribution and still add the the features/patches the community asks for.
-  This has resulted in more than one ABI-incompatible MoveIt! release in the recent past
+  This has resulted in more than one ABI-incompatible MoveIt release in the recent past
   within a ROS distribution. Because the libraries have not been versioned up to now,
   there was no way to indicate the incompatible changes and users who did not rebuild
   their whole workspace with the new release encountered weird and hard-to-track segfaults

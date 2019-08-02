@@ -2,7 +2,7 @@
 <package format="2">
   <name>moveit_runtime</name>
   <version>1.0.1</version>
-  <description>moveit_runtime meta package contains MoveIt! packages that are essential for its runtime (e.g. running MoveIt! on robots).</description>
+  <description>moveit_runtime meta package contains MoveIt packages that are essential for its runtime (e.g. running MoveIt on robots).</description>
 
   <author email="gm130s@gmail.com">Isaac I. Y. Saito</author>
   <maintainer email="gm130s@gmail.com">Isaac I. Y. Saito</maintainer>

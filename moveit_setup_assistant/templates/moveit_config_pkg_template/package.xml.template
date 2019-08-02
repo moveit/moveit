@@ -3,7 +3,7 @@
   <name>[GENERATED_PACKAGE_NAME]</name>
   <version>0.3.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the [ROBOT_NAME] with the MoveIt! Motion Planning Framework
+     An automatically generated package with all the configuration and launch files for using the [ROBOT_NAME] with the MoveIt Motion Planning Framework
   </description>
   <author email="[AUTHOR_EMAIL]">[AUTHOR_NAME]</author>
   <maintainer email="[AUTHOR_EMAIL]">[AUTHOR_NAME]</maintainer>

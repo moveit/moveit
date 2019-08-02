@@ -65,7 +65,7 @@ namespace moveit_setup_assistant
 namespace fs = boost::filesystem;
 
 // ******************************************************************************************
-// Start screen user interface for MoveIt! Configuration Assistant
+// Start screen user interface for MoveIt Configuration Assistant
 // ******************************************************************************************
 StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr& config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
@@ -104,9 +104,9 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr&
 
   // Top Label Area ---------------------------------------------------
   HeaderWidget* header =
-      new HeaderWidget("MoveIt! Setup Assistant", "These tools will assist you in creating a Semantic Robot "
-                                                  "Description Format (SRDF) file, various yaml configuration and many "
-                                                  "roslaunch files for utilizing all aspects of MoveIt! functionality.",
+      new HeaderWidget("MoveIt Setup Assistant", "These tools will assist you in creating a Semantic Robot "
+                                                 "Description Format (SRDF) file, various yaml configuration and many "
+                                                 "roslaunch files for utilizing all aspects of MoveIt functionality.",
                        this);
   layout->addWidget(header);
 
@@ -120,8 +120,8 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr&
 
   // Stack Path Dialog
   stack_path_ =
-      new LoadPathArgsWidget("Load MoveIt! Configuration Package",
-                             "Specify the package name or path of an existing MoveIt! configuration package to be "
+      new LoadPathArgsWidget("Load MoveIt Configuration Package",
+                             "Specify the package name or path of an existing MoveIt configuration package to be "
                              "edited for your robot. Example package name: <i>panda_moveit_config</i>",
                              "optional xacro arguments:", this, true);  // directory
   // user needs to select option before this is shown
@@ -332,7 +332,7 @@ bool StartScreenWidget::loadPackageSettings(bool show_warnings)
     if (show_warnings)
       QMessageBox::warning(
           this, "Incorrect Directory/Package",
-          QString("The chosen package location exists but was not created using MoveIt! Setup Assistant. "
+          QString("The chosen package location exists but was not created using MoveIt Setup Assistant. "
                   "If this is a mistake, provide the missing file: ")
               .append(setup_assistant_path.c_str()));
     return false;
@@ -827,9 +827,9 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   widget_instructions_->setWordWrap(true);
   widget_instructions_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   widget_instructions_->setText(
-      "All settings for MoveIt! are stored in the MoveIt! configuration package. Here you have "
+      "All settings for MoveIt are stored in the MoveIt configuration package. Here you have "
       "the option to create a new configuration package or load an existing one. Note: "
-      "changes to a MoveIt! configuration package outside this Setup Assistant are likely to be "
+      "changes to a MoveIt configuration package outside this Setup Assistant are likely to be "
       "overwritten by this tool.");
 
   layout->addWidget(widget_instructions_);

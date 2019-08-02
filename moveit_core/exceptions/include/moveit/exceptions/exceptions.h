@@ -39,7 +39,7 @@
 
 #include <stdexcept>
 
-/** \brief Main namespace for MoveIt! */
+/** \brief Main namespace for MoveIt */
 namespace moveit
 {
 /** \brief This may be thrown during construction of objects if errors occur */

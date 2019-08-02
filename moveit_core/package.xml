@@ -1,7 +1,7 @@
 <package format="2">
   <name>moveit_core</name>
   <version>1.0.1</version>
-  <description>Core libraries used by MoveIt!</description>
+  <description>Core libraries used by MoveIt</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
   <author email="acorn.pooley@sri.com">Acorn Pooley</author>
@@ -9,7 +9,7 @@
   <maintainer email="dave@picknik.ai">Dave Coleman</maintainer>
   <maintainer email="me@v4hn.de">Michael Görner</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
   <url type="website">http://moveit.ros.org</url>

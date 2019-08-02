@@ -151,7 +151,7 @@ if __name__=='__main__':
     rospy.init_node('move_group_interface_cmdline', anonymous=True, disable_signals=True)
 
     parser = argparse.ArgumentParser(usage = """%(prog)s [options] [<group_name>]""",
-                                     description = "Command Line Interface to MoveIt!")
+                                     description = "Command Line Interface to MoveIt")
     parser.add_argument("-i", "--interactive", action="store_true", dest="interactive", default=True,
                         help="Run the command processing script in interactive mode (default)")
     parser.add_argument("-s", "--service", action="store_true", dest="service", default=False,

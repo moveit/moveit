@@ -1,13 +1,13 @@
 <package format="2">
   <name>moveit_ros_robot_interaction</name>
   <version>1.0.1</version>
-  <description>Components of MoveIt! that offer interaction via interactive markers</description>
+  <description>Components of MoveIt that offer interaction via interactive markers</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
 
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
   <maintainer email="rhaschke@techfak.uni-bielefeld.de">Robert Haschke</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

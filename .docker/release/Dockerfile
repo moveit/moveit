@@ -1,5 +1,5 @@
 # moveit/moveit:melodic-release
-# Full debian-based install of MoveIt! using apt-get
+# Full debian-based install of MoveIt using apt-get
 
 FROM ros:melodic-ros-base
 MAINTAINER Dave Coleman dave@picknik.ai

@@ -2,13 +2,13 @@
   <name>moveit_setup_assistant</name>
   <version>1.0.1</version>
 
-  <description>Generates a configuration package that makes it easy to use MoveIt!</description>
+  <description>Generates a configuration package that makes it easy to use MoveIt</description>
 
   <author email="dave@picknik.ai">Dave Coleman</author>
 
   <maintainer email="dave@picknik.ai">Dave Coleman</maintainer>
   <maintainer email="rhaschke@techfak.uni-bielefeld.de">Robert Haschke</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

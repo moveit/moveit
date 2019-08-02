@@ -7,7 +7,7 @@
   <author email="mail@mrinal.net">Mrinal Kalakrishnan</author>
 
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
   <url>http://ros.org/wiki/chomp_motion_planner</url>

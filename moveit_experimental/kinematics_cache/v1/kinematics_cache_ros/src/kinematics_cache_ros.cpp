@@ -40,7 +40,7 @@
 // ROS
 #include <boost/shared_ptr.hpp>
 
-// MoveIt!
+// MoveIt
 #include <planning_models/kinematic_state.h>
 #include <rdf_loader/rdf_loader.h>
 #include <urdf_interface/model.h>

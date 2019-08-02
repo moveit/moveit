@@ -48,7 +48,7 @@ Changelog for package chomp_interface
 0.10.1 (2018-05-25)
 -------------------
 * [fix] dependencies for chomp interface test (`#778 <https://github.com/ros-planning/moveit/issues/778>`_)
-* [maintenance] MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* [maintenance] MoveIt tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Contributors: Bence Magyar, Dave Coleman, Ian McMahon, Mikael Arguedas, Robert Haschke, Stephan, Will Baker
 
 0.9.11 (2017-12-25)

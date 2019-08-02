@@ -1,1 +1,1 @@
-# MoveIt! Commander
+# MoveIt Commander
