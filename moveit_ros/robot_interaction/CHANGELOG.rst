@@ -46,7 +46,7 @@ Changelog for package moveit_ros_robot_interaction
 
 0.10.2 (2018-10-24)
 -------------------
-* [fix] Text refrences to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* [fix] Text refrences to MoveIt (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
 * Contributors: Mohmmad Ayman, Robert Haschke, mike lautman
 
 0.10.1 (2018-05-25)

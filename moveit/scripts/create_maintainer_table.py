@@ -98,7 +98,7 @@ def populate_package_data(path, package):
 
 def list_moveit_packages():
     """
-    Creates MoveIt! List
+    Creates MoveIt List
     """
     output = ''
     packages = find_packages(os.getcwd())

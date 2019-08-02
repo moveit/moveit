@@ -35,7 +35,7 @@
 # ********************************************************************/
 
 #   Author: Ryohei Ueda, Dave Coleman
-#   Desc:   Interface between PS3/XBox controller and MoveIt! Motion Planning Rviz Plugin
+#   Desc:   Interface between PS3/XBox controller and MoveIt Motion Planning Rviz Plugin
 
 from __future__ import print_function
 

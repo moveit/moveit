@@ -1,4 +1,4 @@
-# MoveIt! ROS Benchmarks
+# MoveIt ROS Benchmarks
 
 This package provides methods to benchmark motion planning algorithms and aggregate/plot statistics. Results can be viewed in [Planner Arena](http://plannerarena.org/).
 

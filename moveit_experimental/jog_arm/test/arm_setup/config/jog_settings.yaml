@@ -14,7 +14,7 @@ move_group_name:  panda_arm  # Often 'manipulator' or 'arm'
 lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity
 hard_stop_singularity_threshold: 45 # Stop when the condition number hits this. Larger --> closer to singularity
 collision_proximity_threshold: 0.03 # Start decelerating when a collision is this far [m]
-planning_frame: base_link  # The MoveIt! planning frame. Often 'base_link'
+planning_frame: base_link  # The MoveIt planning frame. Often 'base_link'
 low_pass_filter_coeff: 2.  # Larger-> more smoothing to jog commands, but more lag.
 publish_period: 0.01  # 1/Nominal publish rate [seconds]
 publish_delay: 0.005  # delay between calculation and execution start of command

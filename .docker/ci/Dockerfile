@@ -33,7 +33,7 @@ RUN \
         clang clang-format-3.9 clang-tidy clang-tools \
         ccache && \
     #
-    # Download all dependencies of MoveIt!
+    # Download all dependencies of MoveIt
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     #

@@ -58,7 +58,7 @@
 
 namespace moveit
 {
-/** \brief Simple interface to MoveIt! components */
+/** \brief Simple interface to MoveIt components */
 namespace planning_interface
 {
 class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes

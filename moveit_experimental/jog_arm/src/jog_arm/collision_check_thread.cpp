@@ -49,7 +49,7 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
   // If user specified true in yaml file
   if (parameters.check_collisions)
   {
-    // MoveIt! Setup
+    // MoveIt Setup
     while (ros::ok() && !model_loader_ptr)
     {
       ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");

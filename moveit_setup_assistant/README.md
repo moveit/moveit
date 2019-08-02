@@ -1,1 +1,1 @@
-# MoveIt! Setup Assistant
+# MoveIt Setup Assistant

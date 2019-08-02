@@ -1,8 +1,8 @@
-# Utility Scripts for MoveIt!
+# Utility Scripts for MoveIt
 
 ## README Markdown Buildfarm Table Generator
 
-This Python script will generate Github-style Markdown table with Jenkins badges for every package recursively from the current folder. It will order all packages alphabetically, but start with all MoveIt! packages first. For generating an updated README for a new ROS distribution, first update the `create_readme_table.py` script and add/remove the current MoveIt!-supported ROS distros and their corresponding Ubuntu distribution in the specified Python dictionary. Then, in the main MoveIt! `README.md` file, remove the "## ROS Buildfarm" header and the following table. Finally, from your catkin workspace with every MoveIt! package, run the `create_readme_table.py` script. For example:
+This Python script will generate Github-style Markdown table with Jenkins badges for every package recursively from the current folder. It will order all packages alphabetically, but start with all MoveIt packages first. For generating an updated README for a new ROS distribution, first update the `create_readme_table.py` script and add/remove the current MoveIt-supported ROS distros and their corresponding Ubuntu distribution in the specified Python dictionary. Then, in the main MoveIt `README.md` file, remove the "## ROS Buildfarm" header and the following table. Finally, from your catkin workspace with every MoveIt package, run the `create_readme_table.py` script. For example:
 
     cd ~/ws_moveit/src
     python moveit/moveit/scripts/create_readme_table.py >> moveit/README.md

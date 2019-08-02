@@ -30,7 +30,7 @@ Changelog for package moveit_ros
 
 0.10.2 (2018-10-24)
 -------------------
-* Fix references to MoveIt! (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
+* Fix references to MoveIt (`#1020 <https://github.com/ros-planning/moveit/issues/1020>`_)
 * Contributors: Mohmmad Ayman
 
 0.10.1 (2018-05-25)

@@ -46,7 +46,7 @@ This illustrates two points: (1) if the IK solver is slow, significant improveme
 
 Below is a complete list of all arguments:
 
-- `robot`: the name of the corresponding MoveIt! config package
+- `robot`: the name of the corresponding MoveIt config package
 - `group`: the joint group to measure (by default performance is reported for all joint groups)
 - `tip`: the name of the end effector (by default the default end effectors are used)
 - `num`: the number of IK calls per joint group

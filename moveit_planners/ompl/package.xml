@@ -1,12 +1,12 @@
 <package format="2">
   <name>moveit_planners_ompl</name>
   <version>1.0.1</version>
-  <description>MoveIt! interface to OMPL</description>
+  <description>MoveIt interface to OMPL</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
 
   <maintainer email="dave@picknik.ai">Dave Coleman</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

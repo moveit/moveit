@@ -1,13 +1,13 @@
 <package format="2">
   <name>moveit_planners_chomp</name>
-  <description>The interface for using CHOMP within MoveIt!</description>
+  <description>The interface for using CHOMP within MoveIt</description>
 
   <version>1.0.1</version>
   <author email="gjones@willowgarage.com">Gil Jones</author>
 
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
   <maintainer email="dave@picknik.ai">Dave Coleman</maintainer>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
 

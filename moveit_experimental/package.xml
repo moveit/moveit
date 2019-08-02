@@ -1,8 +1,8 @@
 <package format="2">
   <name>moveit_experimental</name>
   <version>1.0.1</version>
-  <description>Experimental packages for MoveIt!</description>
-  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <description>Experimental packages for MoveIt</description>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt Release Team</maintainer>
 
   <license>BSD</license>
   <url type="website">http://moveit.ros.org</url>

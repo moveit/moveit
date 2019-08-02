@@ -11,7 +11,7 @@ from catkin_pkg.packages import find_packages
 def create_header(ros_ubuntu_dict):
   ros_distros =  sorted(ros_ubuntu_dict.keys())
   section_header = "## ROS Buildfarm\n"
-  header="MoveIt! Package"
+  header="MoveIt Package"
   header_lines = '-'*len(header)
   for ros in ros_distros:
       source = ' '.join([ros.capitalize(), "Source"])
@@ -49,7 +49,7 @@ def create_line(package, ros_ubuntu_dict):
 
 def create_moveit_buildfarm_table():
     """
-    Creates MoveIt! buildfarm badge table
+    Creates MoveIt buildfarm badge table
     """
     # Update the following dictionary with the appropriate ROS-Ubuntu
     # combinations for supported distribitions. For instance, in Noetic,

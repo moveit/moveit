@@ -54,10 +54,10 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
-/** \brief Main namespace for MoveIt! */
+/** \brief Main namespace for MoveIt */
 namespace moveit
 {
-/** \brief Core components of MoveIt! */
+/** \brief Core components of MoveIt */
 namespace core
 {
 MOVEIT_CLASS_FORWARD(RobotModel);

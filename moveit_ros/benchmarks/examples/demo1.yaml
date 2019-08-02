@@ -1,5 +1,5 @@
 # This is an example configuration that loads the "Kitchen" scene from the
-# local MoveIt! warehouse and benchmarks the "manipulator" group in the Pick1
+# local MoveIt warehouse and benchmarks the "manipulator" group in the Pick1
 # query using the Start1 initial state (all pre-stored in the local warehouse)
 
 # Three different planners from OMPL are run a total of 50 times each, with a

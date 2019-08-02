@@ -42,14 +42,14 @@
 namespace jog_arm
 {
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
+JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
                    const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
-  : move_group_(parameters.move_group_name), tf_listener_(tf_buffer_), parameters_(parameters)
+  : tf_listener_(tf_buffer_), parameters_(parameters)
 {
   // Publish collision status
   warning_pub_ = nh_.advertise<std_msgs::Bool>(parameters_.warning_topic, 1);
 
-  // MoveIt! Setup
+  // MoveIt Setup
   while (ros::ok() && !model_loader_ptr)
   {
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
@@ -72,7 +72,7 @@ JogCalcs::JogCalcs(const JogArmParameters parameters, JogArmShared& shared_varia
 
   resetVelocityFilters();
 
-  jt_state_.name = move_group_.getJointNames();
+  jt_state_.name = joint_model_group_->getVariableNames();
   num_joints_ = jt_state_.name.size();
   jt_state_.position.resize(num_joints_);
   jt_state_.velocity.resize(num_joints_);

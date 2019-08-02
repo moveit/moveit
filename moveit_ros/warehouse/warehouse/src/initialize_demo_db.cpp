@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     cs.addConstraints(cmsg, psm.getRobotModel()->getName(), jmg->getName());
     ROS_INFO("Added default constraint: '%s'", cmsg.name.c_str());
   }
-  ROS_INFO("Default MoveIt! Warehouse was reset.");
+  ROS_INFO("Default MoveIt Warehouse was reset.");
 
   ros::shutdown();
 

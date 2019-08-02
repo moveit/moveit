@@ -38,7 +38,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Quaternion.h>
 
-// MoveIt!
+// MoveIt
 #include <moveit/semantic_world/semantic_world.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit_msgs/PlanningScene.h>
