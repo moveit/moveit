@@ -166,6 +166,9 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   const std::string IKFAST_TIP_FRAME_ = "_EEF_LINK_";
   const std::string IKFAST_BASE_FRAME_ = "_BASE_LINK_";
 
+  // prefix added to tip- and baseframe to allow different namespaces or multi-robot setups
+  std::string linkframeprefix_;
+
   // The transform tip and base bool are set to true if this solver is used with a kinematic
   // chain that extends beyond the ikfast tip and base frame. The solution will be valid so
   // long as there are no active, passive, or mimic joints between either the ikfast_tip_frame
@@ -409,18 +412,30 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
   }
 
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
+  if(!lookupParam("linkprefix", linkframeprefix_, std::string("")))
+  {
+    ROS_INFO_NAMED(name_, "linkprefix parameter not set. Assuming empty prefix.");
+  }
+  else
+  {
+    ROS_DEBUG_STREAM_NAMED(name_, "using linkprefix " << linkframeprefix_);
+  }
 
   // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
   // To support these use cases, we store the transform from the IKFAST_BASE_FRAME_ to the
   // base_frame_ and IKFAST_TIP_FRAME_ the tip_frame_ and transform to the input pose accordingly
-  if (!computeRelativeTransform(tip_frames_[0], IKFAST_TIP_FRAME_, group_tip_to_chain_tip_, tip_transform_required_) ||
-      !computeRelativeTransform(IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_, base_transform_required_))
+  if (!computeRelativeTransform(tip_frames_[0], linkframeprefix_+IKFAST_TIP_FRAME_,
+                                group_tip_to_chain_tip_, tip_transform_required_) ||
+      !computeRelativeTransform(linkframeprefix_+IKFAST_BASE_FRAME_, base_frame_,
+                                chain_base_to_group_base_, base_transform_required_))
   {
-    if (!computeRelativeTransform(tip_frames_[0], IKFAST_TIP_FRAME_, group_tip_to_chain_tip_, tip_transform_required_))
+    if (!computeRelativeTransform(tip_frames_[0], linkframeprefix_+IKFAST_TIP_FRAME_,
+                                  group_tip_to_chain_tip_, tip_transform_required_))
       ROS_ERROR_NAMED(name_, "Failed to compute transform between IKFAST_TIP_FRAME_ and tip_frames_[0]");
-    if (!computeRelativeTransform(IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_, base_transform_required_))
+    if (!computeRelativeTransform(linkframeprefix_+IKFAST_BASE_FRAME_, base_frame_,
+                                  chain_base_to_group_base_, base_transform_required_))
       ROS_ERROR_NAMED(name_, "Failed to compute transform between base_frame_ and IKFAST_BASE_FRAME_");
     return false;
   }
