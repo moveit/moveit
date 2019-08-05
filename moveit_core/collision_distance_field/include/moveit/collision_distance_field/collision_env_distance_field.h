@@ -182,16 +182,8 @@ public:
   {
     return 0.0;
   }
+
   virtual double distanceRobot(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
-                               bool verbose = false) const
-  {
-    return 0.0;
-  }
-  virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const
-  {
-    return 0.0;
-  }
-  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
                                bool verbose = false) const
   {
     return 0.0;

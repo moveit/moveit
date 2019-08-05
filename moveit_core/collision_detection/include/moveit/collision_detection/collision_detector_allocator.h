@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include <moveit/collision_detection/collision_robot.h>
-#include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/macros/class_forward.h>
 

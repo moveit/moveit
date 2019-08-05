@@ -46,6 +46,6 @@ class CollisionDetectorAllocatorHybrid
     : public CollisionDetectorAllocatorTemplate<CollisionEnvHybrid, CollisionDetectorAllocatorHybrid>
 {
 public:
-  static const std::string NAME;  // defined in collision_world_hybrid.cpp
+  static const std::string NAME;  // defined in collision_env_hybrid.cpp
 };
 }

@@ -408,7 +408,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
 
   EXPECT_LT(second_check, .05);
 
-  collision_detection::CollisionWorld::ObjectConstPtr object = c_env_->getWorld()->getObject("kinect");
+  collision_detection::CollisionEnv::ObjectConstPtr object = c_env_->getWorld()->getObject("kinect");
   c_env_->getWorld()->removeObject("kinect");
 
   robot_state::RobotState robot_state1(robot_model_);

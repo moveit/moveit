@@ -36,7 +36,6 @@
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_octomap_filter.h>
-#include <moveit/collision_detection/collision_world.h>
 #include <octomap/math/Vector3.h>
 #include <octomap/math/Utils.h>
 #include <octomap/octomap.h>

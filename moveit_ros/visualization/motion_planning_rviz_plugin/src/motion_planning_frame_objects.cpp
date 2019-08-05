@@ -156,7 +156,7 @@ void MotionPlanningFrame::removeObjectButtonClicked()
   }
 }
 
-static QString decideStatusText(const collision_detection::CollisionWorld::ObjectConstPtr& obj)
+static QString decideStatusText(const collision_detection::CollisionEnv::ObjectConstPtr& obj)
 {
   QString status_text = "'" + QString::fromStdString(obj->id_) + "' is a collision object with ";
   if (obj->shapes_.empty())
@@ -228,7 +228,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
       Eigen::Isometry3d obj_pose;
       {
         const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-        const collision_detection::CollisionWorld::ObjectConstPtr& obj =
+        const collision_detection::CollisionEnv::ObjectConstPtr& obj =
             ps->getWorld()->getObject(sel[0]->text().toStdString());
         if (obj)
         {
@@ -302,7 +302,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
   planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
   if (ps)
   {
-    collision_detection::CollisionWorld::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
+    collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
     if (obj && obj->shapes_.size() == 1)
     {
       Eigen::Isometry3d p;
@@ -392,7 +392,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
   for (const QListWidgetItem* item : sel)
   {
     std::string name = item->text().toStdString();
-    collision_detection::CollisionWorld::ObjectConstPtr obj = ps->getWorld()->getObject(name);
+    collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(name);
     if (!obj)
       continue;
 
@@ -689,7 +689,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
   if (!ps)
     return;
 
-  const collision_detection::CollisionWorld::ObjectConstPtr& obj =
+  const collision_detection::CollisionEnv::ObjectConstPtr& obj =
       ps->getWorld()->getObject(sel[0]->text().toStdString());
   if (obj && obj->shapes_.size() == 1)
   {
@@ -755,7 +755,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
   if (item->checkState() == Qt::Unchecked)
   {
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-    collision_detection::CollisionWorld::ObjectConstPtr obj =
+    collision_detection::CollisionEnv::ObjectConstPtr obj =
         ps->getWorld()->getObject(known_collision_objects_[item->type()].first);
     if (obj)
     {

@@ -314,7 +314,7 @@ private:
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
 
-  collision_detection::CollisionWorld::ObjectConstPtr scaled_object_;
+  collision_detection::CollisionEnv::ObjectConstPtr scaled_object_;
 
   std::vector<std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
