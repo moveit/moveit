@@ -36,41 +36,38 @@
 
 #pragma once
 
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_env.h>
 
 namespace collision_detection
 {
-class CollisionRobotAllValid;
-
-class CollisionWorldAllValid : public CollisionWorld
+class CollisionEnvAllValid : public CollisionEnv
 {
 public:
-  CollisionWorldAllValid();
-  explicit CollisionWorldAllValid(const WorldPtr& world);
-  CollisionWorldAllValid(const CollisionWorld& other, const WorldPtr& world);
+  CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model, const WorldPtr& world, double padding = 0.0,
+                       double scale = 1.0);
+  CollisionEnvAllValid(const CollisionEnv& other, const WorldPtr& world);
 
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                            const robot_state::RobotState& state) const override;
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
-                           const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const override;
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
-                           const robot_state::RobotState& state1, const robot_state::RobotState& state2) const override;
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
-                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                            const AllowedCollisionMatrix& acm) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state1,
+                           const robot_state::RobotState& state2) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state1,
+                           const robot_state::RobotState& state2, const AllowedCollisionMatrix& acm) const override;
 
-  void checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                           const CollisionWorld& other_world) const override;
-  void checkWorldCollision(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
-                           const AllowedCollisionMatrix& acm) const override;
-
-  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state) const;
-  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
-                               const AllowedCollisionMatrix& acm) const;
-  void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+  virtual double distanceRobot(const robot_state::RobotState& state) const;
+  virtual double distanceRobot(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
+  void distanceRobot(const DistanceRequest& req, DistanceResult& res,
                      const robot_state::RobotState& state) const override;
-  virtual double distanceWorld(const CollisionWorld& world) const;
-  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm) const;
-  void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const override;
+
+  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                          const robot_state::RobotState& state) const override;
+  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
+                          const AllowedCollisionMatrix& acm) const override;
+
+  void distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                    const robot_state::RobotState& state) const override;
 };
 }
