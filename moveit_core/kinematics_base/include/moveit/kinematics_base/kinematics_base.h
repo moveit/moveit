@@ -174,12 +174,18 @@ public:
   /**
    * @brief Given the desired poses of all end-effectors, compute joint angles that are able to reach it.
    *
-   * This is a default implementation that returns only one solution and so its result is equivalent to calling
+   * The default implementation returns only one solution and so its result is equivalent to calling
    * 'getPositionIK(...)' with a zero initialized seed.
+   *
+   * Some planners (e.g. IKFast) support getting multiple joint solutions for a single pose. This can be enabled using the
+   * |DiscretizationMethods| enum and choosing an option that is not |NO_DISCRETIZATION|
    *
    * @param ik_poses  The desired pose of each tip link
    * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param solutions A vector of vectors where each entry is a valid joint solution
+   * @param solutions A vector of vectors where each entry is a valid joint solution. This return has two variant behaviors:
+   *                  1) Return a joint solution for every input |ik_poses|, e.g. multi-arm support
+   *                  2) Return multiple joint solutions for a single |ik_poses| input, e.g. underconstrained motion planning
+   *                  TODO(davetcoleman): This dual behavior is confusing and should be changed in a future refactor of this API
    * @param result A struct that reports the results of the query
    * @param options An option struct which contains the type of redundancy discretization used. This default
    *                implementation only supports the KinematicSearches::NO_DISCRETIZATION method; requesting any
