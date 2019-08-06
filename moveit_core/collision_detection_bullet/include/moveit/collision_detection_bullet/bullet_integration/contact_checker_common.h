@@ -108,7 +108,7 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
   // case if pair hasn't a contact yet
   if (!found)
   {
-    if (contact.depth < 0)
+    if (contact.depth <= 0)
     {
       cdata.res.collision = true;
     }

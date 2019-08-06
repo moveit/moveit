@@ -484,7 +484,7 @@ inline btScalar addCastSingleResult(btManifoldPoint& cp, const btCollisionObject
 
   bool cast_shape_is_first = cd0->m_collisionFilterGroup == btBroadphaseProxy::KinematicFilter;
 
-  btVector3 normal_world_from_cast = -(cast_shape_is_first ? 1 : -1) * cp.m_normalWorldOnB;
+  btVector3 normal_world_from_cast = (cast_shape_is_first ? -1 : 1) * cp.m_normalWorldOnB;
   const btCollisionObjectWrapper* first_col_obj_wrap = (cast_shape_is_first ? colObj0Wrap : colObj1Wrap);
 
   // we want the contact information of the non-casted object come first, therefore swap values

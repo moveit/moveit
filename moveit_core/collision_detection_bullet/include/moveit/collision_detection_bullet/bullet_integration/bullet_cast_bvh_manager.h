@@ -150,7 +150,9 @@ public:
    * @return A vector of collision object names */
   const std::vector<std::string>& getActiveCollisionObjects() const;
 
-  /**@brief Set the contact distance threshold for which collision should be considered.
+  /**@brief Set the contact distance threshold for which collision should be considered through expanding the AABB by
+   * the contact_distance for all links.
+   *
    * @param contact_distance The contact distance */
   void setContactDistanceThreshold(double contact_distance);
 

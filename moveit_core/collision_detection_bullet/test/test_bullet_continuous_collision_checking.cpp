@@ -39,21 +39,15 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     robot_model_ok_ = static_cast<bool>(robot_model_);
 
-    acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), false));
+    acm_.reset(new collision_detection::AllowedCollisionMatrix());
+    // Use default collision operations in the SRDF to setup the acm
+    const std::vector<std::string>& collision_links = robot_model_->getLinkModelNamesWithCollisionGeometry();
+    acm_->setEntry(collision_links, collision_links, false);
 
-    acm_->setEntry("panda_link0", "panda_link1", true);
-    acm_->setEntry("panda_link1", "panda_link2", true);
-    acm_->setEntry("panda_link2", "panda_link3", true);
-    acm_->setEntry("panda_link3", "panda_link4", true);
-    acm_->setEntry("panda_link4", "panda_link5", true);
-    acm_->setEntry("panda_link5", "panda_link6", true);
-    acm_->setEntry("panda_link6", "panda_link7", true);
-    acm_->setEntry("panda_link7", "panda_hand", true);
-    acm_->setEntry("panda_hand", "panda_rightfinger", true);
-    acm_->setEntry("panda_hand", "panda_leftfinger", true);
-    acm_->setEntry("panda_rightfinger", "panda_leftfinger", true);
-    acm_->setEntry("panda_link5", "panda_link7", true);
-    acm_->setEntry("panda_link6", "panda_hand", true);
+    // allow collisions for pairs that have been disabled
+    const std::vector<srdf::Model::DisabledCollision>& dc = robot_model_->getSRDF()->getDisabledCollisionPairs();
+    for (const srdf::Model::DisabledCollision& it : dc)
+      acm_->setEntry(it.link1_, it.link2_, true);
 
     crobot_.reset(new collision_detection::CollisionRobotBullet(robot_model_));
     cworld_.reset(new collision_detection::CollisionWorldBullet());
