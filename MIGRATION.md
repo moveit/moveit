@@ -8,6 +8,7 @@ API changes in MoveIt releases
 - Moved the example package `moveit_controller_manager_example` into [moveit_tutorials](https://github.com/ros-planning/moveit_tutorials)
 - Requests to `get_planning_scene` service without explicitly setting "components" now return full scene
 - `moveit_ros_plannning` no longer depends on `moveit_ros_perception`
+- `collision_robot` and `collision_world` are combined into a single `collision_env`. This applies for all derived collision checkers as `FCL`, `ALL_VALID`, `HYBRID` and `DISTANCE_FIELD`. `getCollisionRobot[Unpadded] / getCollisionWorld` functions return the new combined environment and will be deprecated in the future.
 
 ## ROS Melodic
 
