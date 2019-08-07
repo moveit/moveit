@@ -1592,7 +1592,7 @@ as the new values that correspond to the group */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const;
 
   /** \brief Get all bodies attached to a particular group the model corresponding to this state */
-  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* link_model) const;
+  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* group) const;
 
   /** \brief Get all bodies attached to a particular link in the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* link_model) const;
