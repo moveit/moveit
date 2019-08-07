@@ -87,8 +87,6 @@ JogROSInterface::JogROSInterface()
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
   ros::topic::waitForMessage<sensor_msgs::JointState>(ros_parameters_.joint_topic);
-  ROS_DEBUG_NAMED(LOGNAME, "Waiting for Cartesian command topic");
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(ros_parameters_.cartesian_command_in_topic);
 
   // Wait for low pass filters to stabilize
   ROS_INFO_STREAM_NAMED(LOGNAME, "Waiting for low-pass filters to stabilize.");
@@ -251,7 +249,6 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
   }
 
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_period", ros_parameters_.publish_period);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_delay", ros_parameters_.publish_delay);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/num_halt_msgs_to_publish",

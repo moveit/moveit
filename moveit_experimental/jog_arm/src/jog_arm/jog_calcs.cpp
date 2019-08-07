@@ -66,10 +66,6 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
   ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
 
-  ROS_INFO_NAMED(LOGNAME, "Waiting for first command msg.");
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(parameters_.cartesian_command_in_topic);
-  ROS_INFO_NAMED(LOGNAME, "Received first command msg.");
-
   resetVelocityFilters();
 
   jt_state_.name = joint_model_group_->getVariableNames();
@@ -128,8 +124,14 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
     pthread_mutex_lock(&mutex);
     bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
     bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
+    pthread_mutex_unlock(&mutex);
+
+    if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
+      // Reset low-pass filters
+      resetVelocityFilters();
 
     // Pull data from the shared variables.
+    pthread_mutex_lock(&mutex);
     incoming_jts_ = shared_variables.joints;
     pthread_mutex_unlock(&mutex);
 
@@ -142,8 +144,8 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
       ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
 
-    // Assume cartesian jogging command unless the joint command has some nonzero values
-    if (zero_joint_cmd_flag)
+    // Prioritize cartesian jogging above joint jogging
+    if (!zero_cartesian_cmd_flag)
     {
       pthread_mutex_lock(&mutex);
       cartesian_deltas = shared_variables.command_deltas;
@@ -152,32 +154,41 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
       if (!cartesianJogCalcs(cartesian_deltas, shared_variables, mutex))
         continue;
     }
-    // If joint jogging command is not all zeros
-    else
+    else if (!zero_joint_cmd_flag)
     {
       pthread_mutex_lock(&mutex);
       joint_deltas = shared_variables.joint_command_deltas;
       pthread_mutex_unlock(&mutex);
 
-      if (!jointJogCalcs(joint_deltas, shared_variables, mutex))
+      if (!jointJogCalcs(joint_deltas, shared_variables))
         continue;
     }
+    else
+    {
+      original_jt_state_ = jt_state_;
+      outgoing_command_ = composeOutgoingMessage(jt_state_);
+    }
 
-    // Skip publishing if the command is stale and outgoing velocities are all nearly zero.
-    // (It takes some time for the low-pass velocity filters to settle at zero.)
+    // Halt if the command is stale or inputs are all zero, or commands were zero
     pthread_mutex_lock(&mutex);
-    bool skip_publication =
-        shared_variables.command_is_stale &&
-        (std::all_of(outgoing_command_.points[0].velocities.begin(), outgoing_command_.points[0].velocities.end(),
-                     [](double i) { return i < 0.000001; }));
+    bool stale_command = shared_variables.command_is_stale;
     pthread_mutex_unlock(&mutex);
+
+    if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
+    {
+      suddenHalt(outgoing_command_);
+      zero_cartesian_cmd_flag = true;
+      zero_joint_cmd_flag = true;
+    }
+
+    bool valid_nonzero_command = !zero_cartesian_cmd_flag || !zero_joint_cmd_flag;
 
     // Send the newest target joints
     if (!outgoing_command_.joint_names.empty())
     {
       pthread_mutex_lock(&mutex);
-      // If everything normal, share the new traj to be published.
-      if (!skip_publication)
+      // If everything normal, share the new traj to be published
+      if (valid_nonzero_command)
       {
         shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
@@ -191,7 +202,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
         // Reset the velocity filters so robot doesn't jump when commands resume
         resetVelocityFilters();
       }
-      // The command is stale but we are publishing num_halt_msgs_to_publish
+      // The command is invalid but we are publishing num_halt_msgs_to_publish
       else
       {
         shared_variables.outgoing_command = outgoing_command_;
@@ -298,22 +309,10 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Include a velocity estimate for velocity-controlled robots
   Eigen::VectorXd joint_vel(delta_theta_ / parameters_.publish_period);
 
-  // Smoothly halt if the command is stale
-  // Positions are set to original positions, and velocities are set to zero.
-  // The filters will be applied after this.
-  pthread_mutex_lock(&mutex);
-  if (shared_variables.command_is_stale)
-  {
-    joint_vel.setZero();
-    jt_state_ = original_jt_state_;
-  }
-  pthread_mutex_unlock(&mutex);
-
   lowPassFilterVelocities(joint_vel);
   lowPassFilterPositions();
 
-  const ros::Time next_time = ros::Time::now() + ros::Duration(parameters_.publish_period);
-  outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
+  outgoing_command_ = composeOutgoingMessage(jt_state_);
 
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
@@ -336,7 +335,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   return true;
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
@@ -360,25 +359,13 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   // Include a velocity estimate for velocity-controlled robots
   Eigen::VectorXd joint_vel(delta / parameters_.publish_period);
 
-  // Smoothly halt if the command is stale
-  // Positions are set to original positions, and velocities are set to zero.
-  // The filters will be applied after this.
-  pthread_mutex_lock(&mutex);
-  if (shared_variables.command_is_stale)
-  {
-    joint_vel.setZero();
-    jt_state_ = original_jt_state_;
-  }
-  pthread_mutex_unlock(&mutex);
-
   lowPassFilterVelocities(joint_vel);
   lowPassFilterPositions();
 
   // update joint state with new values
   kinematic_state_->setVariableValues(jt_state_);
 
-  const ros::Time next_time = ros::Time::now() + ros::Duration(parameters_.publish_delay);
-  outgoing_command_ = composeOutgoingMessage(jt_state_, next_time);
+  outgoing_command_ = composeOutgoingMessage(jt_state_);
 
   // check if new joint state is valid
   if (!checkIfJointsWithinURDFBounds(outgoing_command_))
@@ -445,12 +432,11 @@ void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
   }
 }
 
-trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::JointState& joint_state,
-                                                                  const ros::Time& stamp) const
+trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::JointState& joint_state) const
 {
   trajectory_msgs::JointTrajectory new_jt_traj;
   new_jt_traj.header.frame_id = parameters_.planning_frame;
-  new_jt_traj.header.stamp = stamp;
+  new_jt_traj.header.stamp = ros::Time::now();
   new_jt_traj.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
