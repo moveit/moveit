@@ -44,8 +44,9 @@ namespace jog_arm
 {
 /**
  * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a second-order Butterworth low-pass filter.
- * See https://ccrma.stanford.edu/~jos/filters/Example_Second_Order_Butterworth_Lowpass.html
+ * This is a first-order Butterworth low-pass filter.
+ *
+ * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
  */
 class LowPassFilter
 {
@@ -55,8 +56,8 @@ public:
   void reset(double data);
 
 private:
-  double previous_measurements_[3] = { 0., 0., 0. };
-  double previous_filtered_measurements_[2] = { 0., 0. };
+  double previous_measurements_[2] = { 0., 0. };
+  double previous_filtered_measurement_ = 0.;
   // Larger filter_coeff-> more smoothing of jog commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
