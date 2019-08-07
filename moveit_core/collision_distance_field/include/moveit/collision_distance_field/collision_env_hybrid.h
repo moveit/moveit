@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: E. Gil Jones, Jens Petit */
 
 #ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_HYBRID_H_
 #define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_HYBRID_H_
@@ -46,6 +46,8 @@
 
 namespace collision_detection
 {
+/** \brief This hybrid collision environment combines FCL and a distance field. Both can be used to calculate
+ *  collisions. */
 class CollisionEnvHybrid : public collision_detection::CollisionEnvFCL
 {
 public:

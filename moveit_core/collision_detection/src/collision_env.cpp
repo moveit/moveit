@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jens Petit */
 
 #include <moveit/collision_detection/collision_env.h>
 #include <limits>

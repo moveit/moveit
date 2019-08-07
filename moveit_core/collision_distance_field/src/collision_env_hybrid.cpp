@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: E. Gil Jones */
+/* Author: E. Gil Jones, Jens Petit */
 
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 #include <moveit/collision_distance_field/collision_env_hybrid.h>

@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jens Petit */
 
 #ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_
 #define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_

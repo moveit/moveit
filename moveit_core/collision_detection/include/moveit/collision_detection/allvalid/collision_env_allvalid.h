@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jia Pan, Jens Petit */
 
 #pragma once
 
@@ -40,6 +40,9 @@
 
 namespace collision_detection
 {
+/** \brief Collision environment which always just returns no collisions.
+ *
+ *  This can be used to save resources if collision checking is not important. */
 class CollisionEnvAllValid : public CollisionEnv
 {
 public:
