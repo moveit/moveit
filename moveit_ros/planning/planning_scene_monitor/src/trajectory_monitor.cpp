@@ -45,7 +45,7 @@ static const std::string LOGNAME = "TrajectoryMonitor";
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor,
                                                              double sampling_frequency)
   : current_state_monitor_(state_monitor)
-  , sampling_frequency_(5.0)
+  , sampling_frequency_(sampling_frequency)
   , trajectory_(current_state_monitor_->getRobotModel(), "")
 {
   setSamplingFrequency(sampling_frequency);
@@ -58,6 +58,9 @@ planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor()
 
 void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double sampling_frequency)
 {
+  if (sampling_frequency != sampling_frequency_)
+    return;  // silently return if nothing changes
+
   if (sampling_frequency <= std::numeric_limits<double>::epsilon())
     ROS_INFO_NAMED(LOGNAME, "Disabling trajectory recording");
   else
