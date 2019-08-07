@@ -1,3 +1,36 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, John Schulman
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
+ *  http://opensource.org/licenses/BSD-2-Clause
+ *********************************************************************/
+
 
 #include <boost/algorithm/string.hpp>
 
@@ -262,13 +295,13 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   {
     sco::VectorOfVectorPtr f(new CartPoseErrCalculator(input_pose, prob.GetPlanningScene(), link, tcp));
     prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(f, prob.GetVarRow(timestep, 0, n_dof),
-                                                       concat(rot_coeffs, pos_coeffs), sco::ABS, name)));
+                                                       concatVector(rot_coeffs, pos_coeffs), sco::ABS, name)));
   }
   else if ((term_type & TT_CNT) && ~(term_type | ~TT_USE_TIME))
   {
     sco::VectorOfVectorPtr f(new CartPoseErrCalculator(input_pose, prob.GetPlanningScene(), link, tcp));
     prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
-        f, prob.GetVarRow(timestep, 0, n_dof), concat(rot_coeffs, pos_coeffs), sco::EQ, name)));
+        f, prob.GetVarRow(timestep, 0, n_dof), concatVector(rot_coeffs, pos_coeffs), sco::EQ, name)));
   }
   else
   {
@@ -429,7 +462,7 @@ void JointVelTermInfo::hatch(TrajOptProblem& prob)
         trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
         prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(
             sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
-            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concatVector(joint_vars_vec, time_vars_vec),
             util::toVectorXd(single_jnt_coeffs), sco::SQUARED, name + "_j" + std::to_string(j))));
       }
       // Otherwise it's a hinged "inequality" cost
@@ -438,7 +471,7 @@ void JointVelTermInfo::hatch(TrajOptProblem& prob)
         trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
         prob.addCost(sco::CostPtr(new sco::CostFromErrFunc(
             sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
-            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concatVector(joint_vars_vec, time_vars_vec),
             util::toVectorXd(single_jnt_coeffs), sco::HINGE, name + "_j" + std::to_string(j))));
       }
     }
@@ -460,7 +493,7 @@ void JointVelTermInfo::hatch(TrajOptProblem& prob)
         trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
         prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
             sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
-            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concatVector(joint_vars_vec, time_vars_vec),
             util::toVectorXd(single_jnt_coeffs), sco::EQ, name + "_j" + std::to_string(j))));
       }
       // Otherwise it's a hinged "inequality" constraint
@@ -469,7 +502,7 @@ void JointVelTermInfo::hatch(TrajOptProblem& prob)
         trajopt::DblVec single_jnt_coeffs = trajopt::DblVec(num_vels * 2, coeffs[j]);
         prob.addConstraint(sco::ConstraintPtr(new sco::ConstraintFromErrFunc(
             sco::VectorOfVectorPtr(new JointVelErrCalculator(targets[j], upper_tols[j], lower_tols[j])),
-            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concat(joint_vars_vec, time_vars_vec),
+            sco::MatrixOfVectorPtr(new JointVelJacobianCalculator()), concatVector(joint_vars_vec, time_vars_vec),
             util::toVectorXd(single_jnt_coeffs), sco::INEQ, name + "_j" + std::to_string(j))));
       }
     }

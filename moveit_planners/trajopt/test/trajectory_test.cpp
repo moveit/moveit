@@ -6,8 +6,8 @@
  *
  *********************************************************************/
 
-/* Author: Omid Heidari, Dave Coleman
-   Desc:   Test the trajectory for various numbers of timesteps
+/* Author: Omid Heidari
+   Desc:   Test the trajectory planned by trajopt
  */
 
 // C++
@@ -35,7 +35,6 @@ public:
   {
   }
 
-protected:
 protected:
   robot_model::RobotModelPtr robot_model_;
 

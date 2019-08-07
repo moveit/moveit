@@ -3,9 +3,9 @@
   <version>1.0.1</version>
   <description>TrajOpt planning plugin, an optimization based motion planner </description>
 
-  <author email="heomid66@gmail.com">Omid Heidari</author>
+  <author email="omid.github@gmail.com">Omid Heidari</author>
 
-  <maintainer email="heomid66@gmail.com">Omid Heidari</maintainer>
+  <maintainer email="omid.github@gmail.com">Omid Heidari</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>

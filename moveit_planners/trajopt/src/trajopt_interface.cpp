@@ -118,7 +118,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   setProblemInfoParam(problem_info);
 
   ROS_INFO(" ======================================= Populate init info, hard-coded");
-  // TODO: init info should be defined by user
+  // TODO: init info should be defined by user. To this end, we need to add seed trajectories to MotionPlanRequest.
+  // JOINT_INTERPOLATED: data is the current joint values
+  // GIVEN_TRAJ: data is the joint values of the current state copied to all timesteps
   Eigen::VectorXd current_joint_values_eigen(dof);
   Eigen::VectorXd start_joint_values_eigen(dof);
   for (int joint_index = 0; joint_index < dof; ++joint_index)
