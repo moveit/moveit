@@ -60,6 +60,8 @@ void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double samp
 {
   if (sampling_frequency <= std::numeric_limits<double>::epsilon())
     ROS_INFO_NAMED(LOGNAME, "Disabling trajectory recording");
+  else
+    ROS_DEBUG_NAMED(LOGNAME, "Setting trajectory sampling frequency to %.1f", sampling_frequency);
   sampling_frequency_ = sampling_frequency;
 }
 
