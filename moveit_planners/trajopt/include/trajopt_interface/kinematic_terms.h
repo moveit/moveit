@@ -9,7 +9,7 @@ namespace trajopt_interface
 /**
  * @brief Extracts the vector part of quaternion
  */
-inline Eigen::Vector3d rotVec(const Eigen::Matrix3d& m)
+inline Eigen::Vector3d quaternionRotationVector(const Eigen::Matrix3d& m)
 {
   Eigen::Quaterniond q;
   q = m;
@@ -19,7 +19,7 @@ inline Eigen::Vector3d rotVec(const Eigen::Matrix3d& m)
 /**
  * @brief Appends b to a of type VectorXd
  */
-inline Eigen::VectorXd concat(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
+inline Eigen::VectorXd concatVector(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
 {
   Eigen::VectorXd out(a.size() + b.size());
   out.topRows(a.size()) = a;
@@ -31,7 +31,7 @@ inline Eigen::VectorXd concat(const Eigen::VectorXd& a, const Eigen::VectorXd& b
  * @brief Appends b to a of type T
  */
 template <typename T>
-std::vector<T> concat(const std::vector<T>& a, const std::vector<T>& b)
+std::vector<T> concatVector(const std::vector<T>& a, const std::vector<T>& b)
 {
   std::vector<T> out;
   std::vector<int> x(a.size() + b.size());
