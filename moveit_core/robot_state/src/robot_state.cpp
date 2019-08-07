@@ -912,11 +912,11 @@ void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bo
       attached_bodies.push_back(it.second);
 }
 
-void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* lm) const
+void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* link_model) const
 {
   attached_bodies.clear();
   for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
-    if (it.second->getAttachedLink() == lm)
+    if (it.second->getAttachedLink() == link_model)
       attached_bodies.push_back(it.second);
 }
 
@@ -1109,12 +1109,12 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
   for (const std::string& link_name : link_names)
   {
     ROS_DEBUG_NAMED(LOGNAME, "Trying to get marker for link '%s'", link_name.c_str());
-    const LinkModel* lm = robot_model_->getLinkModel(link_name);
-    if (!lm)
+    const LinkModel* link_model = robot_model_->getLinkModel(link_name);
+    if (!link_model)
       continue;
     if (include_attached)
       for (const std::pair<const std::string, AttachedBody*>& it : attached_body_map_)
-        if (it.second->getAttachedLink() == lm)
+        if (it.second->getAttachedLink() == link_model)
         {
           for (std::size_t j = 0; j < it.second->getShapes().size(); ++j)
           {
@@ -1132,37 +1132,38 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
           }
         }
 
-    if (lm->getShapes().empty())
+    if (link_model->getShapes().empty())
       continue;
 
-    for (std::size_t j = 0; j < lm->getShapes().size(); ++j)
+    for (std::size_t j = 0; j < link_model->getShapes().size(); ++j)
     {
       visualization_msgs::Marker mark;
       mark.header.frame_id = robot_model_->getModelFrame();
       mark.header.stamp = tm;
 
       // we prefer using the visual mesh, if a mesh is available and we have one body to render
-      const std::string& mesh_resource = lm->getVisualMeshFilename();
-      if (mesh_resource.empty() || lm->getShapes().size() > 1)
+      const std::string& mesh_resource = link_model->getVisualMeshFilename();
+      if (mesh_resource.empty() || link_model->getShapes().size() > 1)
       {
-        if (!shapes::constructMarkerFromShape(lm->getShapes()[j].get(), mark))
+        if (!shapes::constructMarkerFromShape(link_model->getShapes()[j].get(), mark))
           continue;
         // if the object is invisible (0 volume) we skip it
         if (fabs(mark.scale.x * mark.scale.y * mark.scale.z) < std::numeric_limits<float>::epsilon())
           continue;
-        mark.pose = tf2::toMsg(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j]);
+        mark.pose =
+            tf2::toMsg(global_collision_body_transforms_[link_model->getFirstCollisionBodyTransformIndex() + j]);
       }
       else
       {
         mark.type = mark.MESH_RESOURCE;
         mark.mesh_use_embedded_materials = false;
         mark.mesh_resource = mesh_resource;
-        const Eigen::Vector3d& mesh_scale = lm->getVisualMeshScale();
+        const Eigen::Vector3d& mesh_scale = link_model->getVisualMeshScale();
 
         mark.scale.x = mesh_scale[0];
         mark.scale.y = mesh_scale[1];
         mark.scale.z = mesh_scale[2];
-        mark.pose = tf2::toMsg(global_link_transforms_[lm->getLinkIndex()] * lm->getVisualMeshOrigin());
+        mark.pose = tf2::toMsg(global_link_transforms_[link_model->getLinkIndex()] * link_model->getVisualMeshOrigin());
       }
 
       arr.markers.push_back(mark);
@@ -1435,13 +1436,14 @@ bool RobotState::setToIKSolverFrame(Eigen::Isometry3d& pose, const std::string& 
   // Bring the pose to the frame of the IK solver
   if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
   {
-    const LinkModel* lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
-    if (!lm)
+    const LinkModel* link_model =
+        getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
+    if (!link_model)
     {
       ROS_ERROR_STREAM_NAMED(LOGNAME, "IK frame '" << ik_frame << "' does not exist.");
       return false;
     }
-    pose = getGlobalLinkTransform(lm).inverse() * pose;
+    pose = getGlobalLinkTransform(link_model).inverse() * pose;
   }
   return true;
 }
@@ -1592,13 +1594,13 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
         }
         if (pose_frame != solver_tip_frame)
         {
-          const robot_model::LinkModel* lm = getLinkModel(pose_frame);
-          if (!lm)
+          const robot_model::LinkModel* link_model = getLinkModel(pose_frame);
+          if (!link_model)
           {
             ROS_ERROR_STREAM_NAMED(LOGNAME, "Pose frame '" << pose_frame << "' does not exist.");
             return false;
           }
-          const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
+          const robot_model::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
           for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
             if (Transforms::sameFrame(fixed_link.first->getName(), solver_tip_frame))
             {
@@ -1803,10 +1805,10 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
       }
       if (pose_frame != solver_tip_frame)
       {
-        const robot_model::LinkModel* lm = getLinkModel(pose_frame);
-        if (!lm)
+        const robot_model::LinkModel* link_model = getLinkModel(pose_frame);
+        if (!link_model)
           return false;
-        const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
+        const robot_model::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
         for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
           if (fixed_link.first->getName() == solver_tip_frame)
           {
@@ -2125,8 +2127,8 @@ void RobotState::printTransforms(std::ostream& out) const
   }
 
   out << "Link poses:" << std::endl;
-  const std::vector<const LinkModel*>& lm = robot_model_->getLinkModels();
-  for (const LinkModel* link : lm)
+  const std::vector<const LinkModel*>& link_model = robot_model_->getLinkModels();
+  for (const LinkModel* link : link_model)
   {
     out << "  " << link->getName() << ": ";
     printTransform(global_link_transforms_[link->getLinkIndex()], out);
@@ -2173,19 +2175,19 @@ void RobotState::getStateTreeJointString(std::ostream& ss, const JointModel* jm,
     ss << pfx << jm->getVariableNames()[i] << std::setw(12) << position_[jm->getFirstVariableIndex() + i] << std::endl;
   }
 
-  const LinkModel* lm = jm->getChildLinkModel();
+  const LinkModel* link_model = jm->getChildLinkModel();
 
-  ss << pfx << "Link: " << lm->getName() << std::endl;
-  getPoseString(ss, lm->getJointOriginTransform(), pfx + "joint_origin:");
+  ss << pfx << "Link: " << link_model->getName() << std::endl;
+  getPoseString(ss, link_model->getJointOriginTransform(), pfx + "joint_origin:");
   if (variable_joint_transforms_)
   {
     getPoseString(ss, variable_joint_transforms_[jm->getJointIndex()], pfx + "joint_variable:");
-    getPoseString(ss, global_link_transforms_[lm->getLinkIndex()], pfx + "link_global:");
+    getPoseString(ss, global_link_transforms_[link_model->getLinkIndex()], pfx + "link_global:");
   }
 
-  for (std::vector<const JointModel*>::const_iterator it = lm->getChildJointModels().begin();
-       it != lm->getChildJointModels().end(); ++it)
-    getStateTreeJointString(ss, *it, pfx, it + 1 == lm->getChildJointModels().end());
+  for (std::vector<const JointModel*>::const_iterator it = link_model->getChildJointModels().begin();
+       it != link_model->getChildJointModels().end(); ++it)
+    getStateTreeJointString(ss, *it, pfx, it + 1 == link_model->getChildJointModels().end());
 }
 
 std::ostream& operator<<(std::ostream& out, const RobotState& s)

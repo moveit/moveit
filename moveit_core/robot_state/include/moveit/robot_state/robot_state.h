@@ -1592,10 +1592,10 @@ as the new values that correspond to the group */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const;
 
   /** \brief Get all bodies attached to a particular group the model corresponding to this state */
-  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* lm) const;
+  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* group) const;
 
   /** \brief Get all bodies attached to a particular link in the model corresponding to this state */
-  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* lm) const;
+  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* link_model) const;
 
   /** \brief Remove the attached body named \e id. Return false if the object was not found (and thus not removed).
    * Return true on success. */
