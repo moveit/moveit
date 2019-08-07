@@ -30,7 +30,7 @@ Launch the jog node. This example uses commands from a SpaceNavigator joystick-l
 
   `roslaunch moveit_experimental spacenav_cpp.launch`
 
-If you dont have a SpaceNavigor, send commands like this:
+If you dont have a SpaceNavigator, send commands like this:
 
 ```
 rostopic pub -r 100 /jog_arm_server/delta_jog_cmds geometry_msgs/TwistStamped "header: auto
