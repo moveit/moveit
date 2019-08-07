@@ -51,6 +51,7 @@
 #include <limits>
 #include <vector>
 #include <Eigen/Geometry>
+#include <unordered_map>
 
 #include "trajopt_interface/trajopt_interface.h"
 #include "trajopt_interface/problem_description.h"
@@ -172,7 +173,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   for (auto goal_cnt : req.goal_constraints)
   {
     JointPoseTermInfoPtr joint_pos_term(new JointPoseTermInfo);
-    setJointPoseTermInfoParams(joint_pos_term, goal_cnt.name);
+    // When using MotionPlanning Display in RViz, the created request has no name for the constriant
+    setJointPoseTermInfoParams(joint_pos_term, (goal_cnt.name != "") ? goal_cnt.name : "goal_tmp" );
 
     trajopt::DblVec joint_goal_constraints;
     for (const moveit_msgs::JointConstraint& joint_goal_constraint : goal_cnt.joint_constraints)
@@ -185,14 +187,19 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Constraints from request start_state");
   // add the start pos from request as a constraint
+  std::unordered_map<std::string, double> all_joints;
   JointPoseTermInfoPtr joint_start_pos(new JointPoseTermInfo);
   trajopt::DblVec joint_start_constraints;
-  for (auto pos : req.start_state.joint_state.position)
+
+  for (int joint_index = 0; joint_index < req.start_state.joint_state.position.size(); ++joint_index)
   {
-    // TODO: if running from MotionPlanning Display in rviz, when I choose panda_arm, it still returns 9 dof instead of
-    // 7
-    ROS_INFO(" ======================================= joint position from start state ===>>> %f", pos);
-    joint_start_constraints.push_back(pos);
+    all_joints[req.start_state.joint_state.name[joint_index]] = req.start_state.joint_state.position[joint_index];
+  }
+
+  for (auto joint_name : joint_names)
+  {
+    ROS_INFO(" ======================================= joint position from start state, name: %s, value: %f", joint_name.c_str(), all_joints[joint_name]);
+    joint_start_constraints.push_back(all_joints[joint_name]);
   }
   joint_start_pos->targets = joint_start_constraints;
   setJointPoseTermInfoParams(joint_start_pos, "start_pos");
@@ -308,8 +315,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   for (int jn = 0; jn < res.trajectory[0].joint_trajectory.points.back().positions.size(); ++jn)
   {
-    ROS_INFO_STREAM_NAMED("joint_value", res.trajectory[0].joint_trajectory.points.back().positions[jn]);
-    ROS_INFO_STREAM_NAMED("joint_value", req.goal_constraints.back().joint_constraints[jn].position);
+    ROS_INFO_STREAM_NAMED("joint_value", res.trajectory[0].joint_trajectory.points.back().positions[jn] << "   " <<
+                                         req.goal_constraints.back().joint_constraints[jn].position);
   }
 
   bool constraints_are_ok = true;
