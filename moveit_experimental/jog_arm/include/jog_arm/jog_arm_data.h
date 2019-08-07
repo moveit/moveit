@@ -75,7 +75,7 @@ struct JogArmShared
   trajectory_msgs::JointTrajectory outgoing_command;
 
   // Timestamp of incoming commands
-  ros::Time incoming_cmd_stamp = ros::Time(0.);
+  ros::Time latest_nonzero_cmd_stamp = ros::Time(0.);
 
   // Indicates no collision, etc, so outgoing commands can be sent
   bool ok_to_publish = false;
