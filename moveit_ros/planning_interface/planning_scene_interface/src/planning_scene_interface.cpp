@@ -38,6 +38,7 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
+#include <moveit/collision_detection/collision_matrix.h>
 #include <ros/ros.h>
 #include <algorithm>
 
@@ -245,6 +246,49 @@ public:
     }
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
+  }
+
+  bool setCollisions(bool set_to_allow, const std::vector<std::string>& link_group_1,
+                     const std::vector<std::string>& link_group_2)
+  {
+    bool allowed_or_disallowed = set_to_allow;
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::vector<std::string> result;
+    request.components.components = request.components.ALLOWED_COLLISION_MATRIX;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED("planning_scene_interface", "Could not fetch allowed collision matrix");
+      return false;
+    }
+
+    moveit_msgs::PlanningScene ps = response.scene;
+    collision_detection::AllowedCollisionMatrix acm(response.scene.allowed_collision_matrix);
+    // TODO felixvd: Add option to include the child links?
+    for (const auto& b : link_group_1)
+    {
+      if (link_group_2.empty())
+        acm.setEntry(b, allowed_or_disallowed);
+      else
+        for (const auto& b2 : link_group_2)
+          acm.setEntry(b, b2, allowed_or_disallowed);
+    }
+
+    ps.is_diff = true;
+    acm.getMessage(ps.allowed_collision_matrix);
+    return applyPlanningScene(ps);
+  }
+
+  bool setCollisions(bool set_to_allow, const std::string& link_name_1, const std::vector<std::string>& link_group_2)
+  {
+    const std::vector<std::string> link_group_1{ link_name_1 };
+    return setCollisions(set_to_allow, link_group_1, link_group_2);
+  }
+
+  bool setCollisions(bool set_to_allow, const std::string& link_name_1, const std::string& link_name_2)
+  {
+    const std::vector<std::string> link_group_1{ link_name_1 }, link_group_2{ link_name_2 };
+    return setCollisions(set_to_allow, link_group_1, link_group_2);
   }
 
 private:

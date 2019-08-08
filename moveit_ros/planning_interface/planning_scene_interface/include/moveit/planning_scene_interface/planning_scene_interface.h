@@ -138,6 +138,48 @@ public:
       consider using `applyCollisionObjects` instead. */
   void removeCollisionObjects(const std::vector<std::string>& object_ids) const;
 
+  /** \brief Allow or disallow collisions for a set of links or between two sets. */
+  void setCollisions(bool set_to_allow, const std::vector<std::string>& link_group_1,
+                     const std::vector<std::string>& link_group_2 = std::vector<std::string>());
+  void setCollisions(bool set_to_allow, const std::string& link_name_1,
+                     const std::vector<std::string>& link_group_2 = std::vector<std::string>());
+  void setCollisions(bool set_to_allow, const std::string& link_name_1, const std::string& link_name_2 = "");
+
+  /** \brief Allow or disallow collisions for links or groups of links.
+  * This sets the AllowedCollisionMatrix of the PlanningScene.
+  * If the second argument is empty, the collision behavior is set between the link(s) in the first argument
+  * and all other objects in the world. Supplying both arguments only sets collision behavior between the two.
+  * If two link groups are supplied, the collision behavior is set between all the links of group 1 and all the links of
+  * group 2.
+  *
+  * E.g. allowCollisions("gripper_wrist_link", "table_base_link") allows collisions between
+  * the table and the wrist link of your gripper. You will want to add the other gripper links as well.
+ */
+  void allowCollisions(const std::string& link_name_1, const std::string& link_name_2 = "")
+  {
+    setCollisions(true, link_name_1, link_name_2);
+  }
+  void allowCollisions(const std::vector<std::string>& link_group_1, const std::string& link_name_2 = "")
+  {
+    setCollisions(true, link_name_2, link_group_1);
+  }
+  void allowCollisions(const std::vector<std::string>& link_group_1, const std::vector<std::string>& link_group_2)
+  {
+    setCollisions(true, link_group_1, link_group_2);
+  }
+  void disallowCollisions(const std::string& link_name_1, const std::string& link_name_2 = "")
+  {
+    setCollisions(false, link_name_1, link_name_2);
+  }
+  void disallowCollisions(const std::vector<std::string>& link_group_1, const std::string& link_name_2 = "")
+  {
+    setCollisions(false, link_name_2, link_group_1);
+  }
+  void disallowCollisions(const std::vector<std::string>& link_group_1, const std::vector<std::string>& link_group_2)
+  {
+    setCollisions(false, link_group_1, link_group_2);
+  }
+
   /**@}*/
 
 private:

@@ -110,6 +110,116 @@ public:
     py_bindings_tools::deserializeMsg(ps_str, ps_msg);
     return applyPlanningScene(ps_msg);
   }
+
+  bool applyCollisionObjectPython1(const std::string& co_str)
+  {
+    moveit_msgs::CollisionObject co_msg;
+    py_bindings_tools::deserializeMsg(co_str, co_msg);
+    return applyCollisionObject(co_msg);
+  }
+
+  bool applyCollisionObjectPython2(const std::string& co_str, const std::string& color_str)
+  {
+    moveit_msgs::CollisionObject co_msg;
+    py_bindings_tools::deserializeMsg(co_str, co_msg);
+    std_msgs::ColorRGBA color_msg;
+    py_bindings_tools::deserializeMsg(color_str, color_msg);
+    return applyCollisionObject(co_msg, color_msg);
+  }
+
+  bool applyCollisionObjectsPython(const bp::list& co_string_list, const bp::list& color_string_list)
+  {
+    int l = bp::len(co_string_list);
+    std::vector<moveit_msgs::CollisionObject> co_msgs(l);
+    std::vector<moveit_msgs::ObjectColor> color_msgs(l);
+    // TODO felixvd: Check for empty color vector?
+    for (int i = 0; i < l; ++i)
+    {
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(co_string_list[i]), co_msgs[i]);
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(color_string_list[i]), color_msgs[i]);
+    }
+    return applyCollisionObjects(co_msgs, color_msgs);
+  }
+
+  void addCollisionObjectsPython(const bp::list& collision_objects, const bp::list& object_colors) const
+  {
+    int l = bp::len(collision_objects);
+    std::vector<moveit_msgs::CollisionObject> co_msgs(l);
+    std::vector<moveit_msgs::ObjectColor> color_msgs(l);
+    // TODO felixvd: Check for empty color vector?
+    for (int i = 0; i < l; ++i)
+    {
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(collision_objects[i]), co_msgs[i]);
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(object_colors[i]), color_msgs[i]);
+    }
+    addCollisionObjects(co_msgs, color_msgs);
+  }
+
+  void removeCollisionObjectsPython(const bp::list& object_ids) const
+  {
+    removeCollisionObjects(py_bindings_tools::stringFromList(object_ids));
+  }
+
+  bool applyAttachedCollisionObjectPython(const std::string& attached_collision_object)
+  {
+    moveit_msgs::AttachedCollisionObject aco_msg;
+    py_bindings_tools::deserializeMsg(attached_collision_object, aco_msg);
+    return applyAttachedCollisionObject(aco_msg);
+  }
+
+  bool applyAttachedCollisionObjectsPython(const bp::list& attached_collision_objects)
+  {
+    int l = bp::len(attached_collision_objects);
+    std::vector<moveit_msgs::AttachedCollisionObject> aco_msgs(l);
+    for (int i = 0; i < l; ++i)
+    {
+      py_bindings_tools::deserializeMsg(bp::extract<std::string>(attached_collision_objects[i]), aco_msgs[i]);
+    }
+    return applyAttachedCollisionObjects(aco_msgs);
+  }
+
+  bool allowCollisionsPython1(const std::string& link_name_1, const std::string& link_name_2)
+  {
+    return allowCollisions(link_name_1, link_name_2);
+  }
+
+  bool allowCollisionsPython2(const bp::list& link_group_1, const std::string& link_name_2)
+  {
+    return allowCollisions(py_bindings_tools::stringFromList(link_group_1), link_name_2);
+  }
+
+  bool allowCollisionsPython3(const bp::list& link_group_1, const bp::list& link_group_2)
+  {
+    return allowCollisions(py_bindings_tools::stringFromList(link_group_1),
+                           py_bindings_tools::stringFromList(link_group_2));
+  }
+
+  bool disallowCollisionsPython1(const std::string& link_name_1, const std::string& link_name_2)
+  {
+    return disallowCollisions(link_name_1, link_name_2);
+  }
+
+  bool disallowCollisionsPython2(const bp::list& link_group_1, const std::string& link_name_2)
+  {
+    return disallowCollisions(py_bindings_tools::stringFromList(link_group_1), link_name_2);
+  }
+
+  bool disallowCollisionsPython3(const bp::list& link_group_1, const bp::list& link_group_2)
+  {
+    return disallowCollisions(py_bindings_tools::stringFromList(link_group_1),
+                              py_bindings_tools::stringFromList(link_group_2));
+  }
+
+  bool setCollisionsPython1(bool set_to_allow, bp::list& link_group_1, bp::list& link_group_2)
+  {
+    return setCollisions(set_to_allow, py_bindings_tools::stringFromList(link_group_1),
+                         py_bindings_tools::stringFromList(link_group_2));
+  }
+
+  bool setCollisionsPython2(bool set_to_allow, const std::string& link_name_1, bp::list& link_group_2)
+  {
+    return setCollisions(set_to_allow, link_name_1, py_bindings_tools::stringFromList(link_group_2));
+  }
 };
 
 static void wrap_planning_scene_interface()
@@ -124,6 +234,23 @@ static void wrap_planning_scene_interface()
   planning_scene_class.def("get_objects", &PlanningSceneInterfaceWrapper::getObjectsPython);
   planning_scene_class.def("get_attached_objects", &PlanningSceneInterfaceWrapper::getAttachedObjectsPython);
   planning_scene_class.def("apply_planning_scene", &PlanningSceneInterfaceWrapper::applyPlanningScenePython);
+  planning_scene_class.def("apply_collision_object", &PlanningSceneInterfaceWrapper::applyCollisionObjectPython1);
+  planning_scene_class.def("apply_collision_object", &PlanningSceneInterfaceWrapper::applyCollisionObjectPython2);
+  planning_scene_class.def("apply_collision_objects", &PlanningSceneInterfaceWrapper::applyCollisionObjectsPython);
+  planning_scene_class.def("add_collision_objects", &PlanningSceneInterfaceWrapper::addCollisionObjectsPython);
+  planning_scene_class.def("remove_collision_object", &PlanningSceneInterfaceWrapper::removeCollisionObjectsPython);
+  planning_scene_class.def("apply_attached_collision_object",
+                           &PlanningSceneInterfaceWrapper::applyAttachedCollisionObjectPython);
+  planning_scene_class.def("apply_attached_collision_objects",
+                           &PlanningSceneInterfaceWrapper::applyAttachedCollisionObjectsPython);
+  planning_scene_class.def("allow_collisions", &PlanningSceneInterfaceWrapper::allowCollisionsPython1);
+  planning_scene_class.def("allow_collisions", &PlanningSceneInterfaceWrapper::allowCollisionsPython2);
+  planning_scene_class.def("allow_collisions", &PlanningSceneInterfaceWrapper::allowCollisionsPython3);
+  planning_scene_class.def("disallow_collisions", &PlanningSceneInterfaceWrapper::disallowCollisionsPython1);
+  planning_scene_class.def("disallow_collisions", &PlanningSceneInterfaceWrapper::disallowCollisionsPython2);
+  planning_scene_class.def("disallow_collisions", &PlanningSceneInterfaceWrapper::disallowCollisionsPython3);
+  planning_scene_class.def("set_collisions", &PlanningSceneInterfaceWrapper::setCollisionsPython1);
+  planning_scene_class.def("set_collisions", &PlanningSceneInterfaceWrapper::setCollisionsPython2);
 }
 }  // namespace planning_interface
 }  // namespace moveit

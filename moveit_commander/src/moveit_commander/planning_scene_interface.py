@@ -221,6 +221,37 @@ class PlanningSceneInterface(object):
             aobjs[key] = msg
         return aobjs
 
+    def allow_collisions(self, object_list_1, object_list_2 = []):
+        """
+        Allows collisions between/for objects or robot links. If object_list_2 is empty, the objects in object_list_1 will be allowed
+        to collide with all objects in the scene (including the robot and environment).
+
+        This function is meant for use cases such as "Allow collision between robot gripper and table".
+        """
+        return self._psi.allow_collisions(object_list_1, object_list_2)
+    
+    def disallow_collisions(self, object_list_1, object_list_2 = []):
+        """
+        Disallows (enables) collisions between/for objects or robot links. If object_list_2 is empty, the objects in object_list_1 will
+        have collision checking enabled for all other objects in the scene (including the robot and environment and
+        grippers that it might be inside of (!)).
+
+        This function is meant for use cases such as "Disllow collision between robot gripper and table".
+        """
+        return self._psi.disallow_collisions(object_list_1, object_list_2)
+    
+    def set_collisions(self, set_to_allow, object_list_1, object_list_2 = []):
+        """
+        Sets the allowed collision matrix between/for objects or robot links. If object_list_2 is empty, the objects in
+        object_list_1 will have their collisions set to allowed/disallowed for all other objects in the scene (including
+        the robot and environment and gripper links they might be in contact with).
+
+        set_to_allow should be True or False.
+
+        This function is meant for use cases such as "Allow/disallow collision between robot gripper and table".
+        """
+        return self._psi.set_collisions(set_to_allow, object_list_1, object_list_2)
+
     @staticmethod
     def __make_existing(name):
         """
