@@ -435,7 +435,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
 
   if (!planning_parameters_.use_standard_collision_checking_)
   {
-    hy_env_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionWorld().get());
+    hy_env_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionEnv().get());
     if (!hy_env_)
     {
       ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
@@ -443,7 +443,7 @@ bool EnvironmentChain3D::setupForMotionPlan(const planning_scene::PlanningSceneC
       return false;
     }
 
-    hy_env_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot().get());
+    hy_env_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionEnv().get());
     if (!hy_env_)
     {
       ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");

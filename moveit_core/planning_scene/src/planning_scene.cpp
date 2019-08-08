@@ -345,21 +345,7 @@ void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) c
 }
 
 const collision_detection::CollisionEnvConstPtr&
-PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
-{
-  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
-  if (it == collision_.end())
-  {
-    ROS_ERROR_NAMED(LOGNAME, "Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
-                    collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
-    return active_collision_->cenv_const_;
-  }
-
-  return it->second->cenv_const_;
-}
-
-const collision_detection::CollisionEnvConstPtr&
-PlanningScene::getCollisionRobot(const std::string& collision_detector_name) const
+PlanningScene::getCollisionEnv(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
@@ -373,7 +359,7 @@ PlanningScene::getCollisionRobot(const std::string& collision_detector_name) con
 }
 
 const collision_detection::CollisionEnvConstPtr&
-PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_name) const
+PlanningScene::getCollisionEnvUnpadded(const std::string& collision_detector_name) const
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
@@ -456,7 +442,7 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
   if (acm_)
     scene->getAllowedCollisionMatrixNonConst() = *acm_;
 
-  collision_detection::CollisionEnvPtr active_cenv = scene->getCollisionRobotNonConst();
+  collision_detection::CollisionEnvPtr active_cenv = scene->getCollisionEnvNonConst();
   active_cenv->setLinkPadding(active_collision_->cenv_->getLinkPadding());
   active_cenv->setLinkScale(active_collision_->cenv_->getLinkScale());
   scene->propogateRobotPadding();
@@ -501,12 +487,12 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const robot_state::RobotState& robot_state) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
+  getCollisionEnv()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
 
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
     // do self-collision checking with the unpadded version of the robot
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
+    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
   }
 }
 
@@ -525,11 +511,11 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
                                    const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
-  getCollisionWorld()->checkRobotCollision(req, res, robot_state, acm);
+  getCollisionEnv()->checkRobotCollision(req, res, robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, acm);
+    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, acm);
 }
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
@@ -547,12 +533,12 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the unpadded version
-  getCollisionRobotUnpadded()->checkRobotCollision(req, res, robot_state, acm);
+  getCollisionEnvUnpadded()->checkRobotCollision(req, res, robot_state, acm);
 
   // do self-collision checking with the unpadded version of the robot
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, acm);
+    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, acm);
   }
 }
 
@@ -602,7 +588,7 @@ void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const rob
     }
 }
 
-const collision_detection::CollisionEnvPtr& PlanningScene::getCollisionRobotNonConst()
+const collision_detection::CollisionEnvPtr& PlanningScene::getCollisionEnvNonConst()
 {
   return active_collision_->cenv_;
 }
@@ -892,8 +878,8 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) c
 
   robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state);
   getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
-  getCollisionRobot()->getPadding(scene_msg.link_padding);
-  getCollisionRobot()->getScale(scene_msg.link_scale);
+  getCollisionEnv()->getPadding(scene_msg.link_padding);
+  getCollisionEnv()->getScale(scene_msg.link_scale);
 
   getObjectColorMsgs(scene_msg.object_colors);
 
@@ -939,8 +925,8 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::LINK_PADDING_AND_SCALING)
   {
-    getCollisionRobot()->getPadding(scene_msg.link_padding);
-    getCollisionRobot()->getScale(scene_msg.link_scale);
+    getCollisionEnv()->getPadding(scene_msg.link_padding);
+    getCollisionEnv()->getScale(scene_msg.link_scale);
   }
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::OBJECT_COLORS)

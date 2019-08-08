@@ -76,7 +76,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
   ROS_INFO_STREAM("Active collision detector is: " + planning_scene->getActiveCollisionDetectorName());
 
   hy_env_ = dynamic_cast<const collision_detection::CollisionEnvHybrid*>(
-      planning_scene->getCollisionWorld(planning_scene->getActiveCollisionDetectorName()).get());
+      planning_scene->getCollisionEnv(planning_scene->getActiveCollisionDetectorName()).get());
   if (!hy_env_)
   {
     ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");

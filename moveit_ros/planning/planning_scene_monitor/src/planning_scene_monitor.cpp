@@ -203,15 +203,15 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
         configureCollisionMatrix(scene_);
         configureDefaultPadding();
 
-        scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
-        scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
+        scene_->getCollisionEnvNonConst()->setPadding(default_robot_padd_);
+        scene_->getCollisionEnvNonConst()->setScale(default_robot_scale_);
         for (const std::pair<const std::string, double>& it : default_robot_link_padd_)
         {
-          scene_->getCollisionRobotNonConst()->setLinkPadding(it.first, it.second);
+          scene_->getCollisionEnvNonConst()->setLinkPadding(it.first, it.second);
         }
         for (const std::pair<const std::string, double>& it : default_robot_link_scale_)
         {
-          scene_->getCollisionRobotNonConst()->setLinkScale(it.first, it.second);
+          scene_->getCollisionEnvNonConst()->setLinkScale(it.first, it.second);
         }
         scene_->propogateRobotPadding();
       }

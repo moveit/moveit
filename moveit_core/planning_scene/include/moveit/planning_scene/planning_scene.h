@@ -294,41 +294,31 @@ public:
     return world_;
   }
 
-  /** \brief Get the active collision detector for the world */
-  const collision_detection::CollisionEnvConstPtr& getCollisionWorld() const
-  {
-    // we always have a world representation after configure is called.
-    return active_collision_->cenv_const_;
-  }
-
-  /** \brief Get the active collision detector for the robot */
-  const collision_detection::CollisionEnvConstPtr& getCollisionRobot() const
+  /** \brief Get the active collision environment */
+  const collision_detection::CollisionEnvConstPtr& getCollisionEnv() const
   {
     return active_collision_->getCollisionEnv();
   }
 
   /** \brief Get the active collision detector for the robot */
-  const collision_detection::CollisionEnvConstPtr& getCollisionRobotUnpadded() const
+  const collision_detection::CollisionEnvConstPtr& getCollisionEnvUnpadded() const
   {
     return active_collision_->getCollisionEnvUnpadded();
   }
 
   /** \brief Get a specific collision detector for the world.  If not found return active CollisionWorld. */
-  const collision_detection::CollisionEnvConstPtr& getCollisionWorld(const std::string& collision_detector_name) const;
-
-  /** \brief Get a specific collision detector for the padded robot.  If no found return active CollisionRobot. */
-  const collision_detection::CollisionEnvConstPtr& getCollisionRobot(const std::string& collision_detector_name) const;
+  const collision_detection::CollisionEnvConstPtr& getCollisionEnv(const std::string& collision_detector_name) const;
 
   /** \brief Get a specific collision detector for the unpadded robot.  If no found return active unpadded
    * CollisionRobot. */
   const collision_detection::CollisionEnvConstPtr&
-  getCollisionRobotUnpadded(const std::string& collision_detector_name) const;
+  getCollisionEnvUnpadded(const std::string& collision_detector_name) const;
 
   /** \brief Get the representation of the collision robot
    * This can be used to set padding and link scale on the active collision_robot.
    * NOTE: After modifying padding and scale on the active robot call
    * propogateRobotPadding() to copy it to all the other collision detectors. */
-  const collision_detection::CollisionEnvPtr& getCollisionRobotNonConst();
+  const collision_detection::CollisionEnvPtr& getCollisionEnvNonConst();
 
   /** \brief Copy scale and padding from active CollisionRobot to other CollisionRobots.
    * This should be called after any changes are made to the scale or padding of the active
@@ -500,7 +490,7 @@ public:
                           const robot_state::RobotState& robot_state) const
   {
     // do self-collision checking with the unpadded version of the robot
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
+    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
   }
 
   /** \brief Check whether a specified state (\e robot_state) is in self collision, with respect to a given
@@ -520,7 +510,7 @@ public:
                           const collision_detection::AllowedCollisionMatrix& acm) const
   {
     // do self-collision checking with the unpadded version of the robot
-    getCollisionRobotUnpadded()->checkSelfCollision(req, res, robot_state, acm);
+    getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, acm);
   }
 
   /** \brief Get the names of the links that are involved in collisions for the current state */
@@ -623,7 +613,7 @@ public:
    */
   double distanceToCollision(const robot_state::RobotState& robot_state) const
   {
-    return getCollisionWorld()->distanceRobot(robot_state, getAllowedCollisionMatrix());
+    return getCollisionEnv()->distanceRobot(robot_state, getAllowedCollisionMatrix());
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision (ignoring
@@ -638,7 +628,7 @@ public:
    * self-collisions), if the robot has no padding */
   double distanceToCollisionUnpadded(const robot_state::RobotState& robot_state) const
   {
-    return getCollisionRobotUnpadded()->distanceRobot(robot_state, getAllowedCollisionMatrix());
+    return getCollisionEnvUnpadded()->distanceRobot(robot_state, getAllowedCollisionMatrix());
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision, ignoring
@@ -657,7 +647,7 @@ public:
   double distanceToCollision(const robot_state::RobotState& robot_state,
                              const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionWorld()->distanceRobot(robot_state, acm);
+    return getCollisionEnv()->distanceRobot(robot_state, acm);
   }
 
   /** \brief The distance between the robot model at state \e robot_state to the nearest collision, ignoring
@@ -676,7 +666,7 @@ public:
   double distanceToCollisionUnpadded(const robot_state::RobotState& robot_state,
                                      const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionRobotUnpadded()->distanceRobot(robot_state, acm);
+    return getCollisionEnvUnpadded()->distanceRobot(robot_state, acm);
   }
 
   /**@}*/
