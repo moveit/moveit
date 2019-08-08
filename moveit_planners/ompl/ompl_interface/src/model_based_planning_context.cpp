@@ -729,11 +729,11 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 }
 
 ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContext::getPlannerTerminationCondition(
-    double timeout, const std::shared_ptr<ob::PlannerTerminationCondition>& ptc_or)
+    double ptc_timeout, const std::shared_ptr<ob::PlannerTerminationCondition>& alternative_ptc)
 {
-  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout);
-  if (ptc_or)
-    return ob::plannerOrTerminationCondition(ptc, *ptc_or);
+  ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(ptc_timeout);
+  if (alternative_ptc)
+    return ob::plannerOrTerminationCondition(ptc, *alternative_ptc);
   else
     return ptc;
 }

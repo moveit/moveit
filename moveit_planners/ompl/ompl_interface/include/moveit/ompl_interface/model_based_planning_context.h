@@ -319,7 +319,7 @@ protected:
   virtual ob::GoalPtr constructGoal();
 
   ob::PlannerTerminationCondition getPlannerTerminationCondition(
-      double timeout, const std::shared_ptr<ob::PlannerTerminationCondition>& ptc_or = nullptr);
+      double ptc_timeout, const std::shared_ptr<ob::PlannerTerminationCondition>& alternative_ptc = nullptr);
   void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
 
