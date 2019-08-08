@@ -40,10 +40,12 @@
 #include <limits>
 #include <memory>
 
+static const std::string LOGNAME = "TrajectoryMonitor";
+
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor,
                                                              double sampling_frequency)
   : current_state_monitor_(state_monitor)
-  , sampling_frequency_(5.0)
+  , sampling_frequency_(sampling_frequency)
   , trajectory_(current_state_monitor_->getRobotModel(), "")
 {
   setSamplingFrequency(sampling_frequency);
@@ -56,10 +58,14 @@ planning_scene_monitor::TrajectoryMonitor::~TrajectoryMonitor()
 
 void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double sampling_frequency)
 {
+  if (sampling_frequency != sampling_frequency_)
+    return;  // silently return if nothing changes
+
   if (sampling_frequency <= std::numeric_limits<double>::epsilon())
-    ROS_ERROR("The sampling frequency for trajectory states should be positive");
+    ROS_INFO_NAMED(LOGNAME, "Disabling trajectory recording");
   else
-    sampling_frequency_ = sampling_frequency;
+    ROS_DEBUG_NAMED(LOGNAME, "Setting trajectory sampling frequency to %.1f", sampling_frequency);
+  sampling_frequency_ = sampling_frequency;
 }
 
 bool planning_scene_monitor::TrajectoryMonitor::isActive() const
@@ -69,10 +75,10 @@ bool planning_scene_monitor::TrajectoryMonitor::isActive() const
 
 void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor()
 {
-  if (!record_states_thread_)
+  if (sampling_frequency_ > std::numeric_limits<double>::epsilon() && !record_states_thread_)
   {
     record_states_thread_.reset(new boost::thread(boost::bind(&TrajectoryMonitor::recordStates, this)));
-    ROS_DEBUG("Started trajectory monitor");
+    ROS_DEBUG_NAMED(LOGNAME, "Started trajectory monitor");
   }
 }
 
@@ -83,7 +89,7 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor()
     std::unique_ptr<boost::thread> copy;
     copy.swap(record_states_thread_);
     copy->join();
-    ROS_DEBUG("Stopped trajectory monitor");
+    ROS_DEBUG_NAMED(LOGNAME, "Stopped trajectory monitor");
   }
 }
 
