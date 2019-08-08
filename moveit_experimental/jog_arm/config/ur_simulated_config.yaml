@@ -32,13 +32,14 @@ planning_frame: world  # The MoveIt! planning frame. Often 'base_link'
 
 ## Stopping behaviour
 incoming_command_timeout:  2  # Stop jogging if X seconds elapse without a new cmd
+# If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish.
+# Important because ROS may drop some messages and we need the robot to halt reliably.
+num_halt_msgs_to_publish: 4
 
 ## Configure handling of singularities and joint limits
 lower_singularity_threshold:  17  # Start decelerating when the condition number hits this (close to singularity)
 hard_stop_singularity_threshold: 30 # Stop when the condition number hits this
 joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
-
-num_halt_msgs_to_publish: 4 # If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish
 
 ## Topic names
 cartesian_command_in_topic: jog_arm_server/delta_jog_cmds  # Topic for incoming Cartesian twist commands
