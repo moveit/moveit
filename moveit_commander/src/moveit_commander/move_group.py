@@ -318,11 +318,11 @@ class MoveGroupCommander(object):
         self._g.set_random_target()
 
     def get_named_targets(self):
-        """ Get a list of all the names of joint configurations."""
+        """ Get a list of all the names of joint configuration targets."""
         return self._g.get_named_targets()
 
     def set_named_target(self, name):
-        """ Set a joint configuration by name. The name can be a name previlusy remembered with remember_joint_values() or a configuration specified in the SRDF. """
+        """ Set a joint configuration target by name. The name can be a name previously remembered with remember_joint_values(), or a configuration specified in the SRDF. """
         if not self._g.set_named_target(name):
             raise MoveItCommanderException("Unable to set target %s. Is the target within bounds?" % name)
 
@@ -389,7 +389,7 @@ class MoveGroupCommander(object):
         return self._g.get_known_constraints()
 
     def get_path_constraints(self):
-        """ Get the acutal path constraints in form of a moveit_msgs.msgs.Constraints """
+        """ Get the current path constraints in form of a moveit_msgs.msgs.Constraints """
         c = Constraints()
         c_str = self._g.get_path_constraints()
         conversions.msg_from_string(c, c_str)
@@ -406,11 +406,11 @@ class MoveGroupCommander(object):
                 raise MoveItCommanderException("Unable to set path constraints " + value)
 
     def clear_path_constraints(self):
-        """ Specify that no path constraints are to be used during motion planning """
+        """ Remove current path constraints used during motion planning """
         self._g.clear_path_constraints()
 
     def get_trajectory_constraints(self):
-        """ Get the actual trajectory constraints in form of a moveit_msgs.msgs.Constraints """
+        """ Get the current trajectory constraints in form of a moveit_msgs.msgs.Constraints """
         c = Constraints()
         c_str = self._g.get_trajectory_constraints()
         conversions.msg_from_string(c, c_str)
@@ -427,7 +427,7 @@ class MoveGroupCommander(object):
                 raise MoveItCommanderException("Unable to set trajectory constraints " + value)
 
     def clear_trajectory_constraints(self):
-        """ Specify that no trajectory constraints are to be used during motion planning """
+        """ Remove current trajectory constraints used during motion planning """
         self._g.clear_trajectory_constraints()
 
     def set_constraints_database(self, host, port):
@@ -435,11 +435,11 @@ class MoveGroupCommander(object):
         self._g.set_constraints_database(host, port)
 
     def set_planning_time(self, seconds):
-        """ Specify the amount of time to be used for motion planning. """
+        """ Specify the maximum amount of time to be allowed for motion planning. """
         self._g.set_planning_time(seconds)
 
     def get_planning_time(self):
-        """ Specify the amount of time to be used for motion planning. """
+        """ Get the maximum amount of time to be allowed for motion planning. """
         return self._g.get_planning_time()
 
     def set_planner_id(self, planner_id):

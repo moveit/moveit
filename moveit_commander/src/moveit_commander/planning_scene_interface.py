@@ -106,7 +106,9 @@ class PlanningSceneInterface(object):
         self.__submit(co, attach=False)
 
     def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
-        """ Add a plane to the planning scene """
+        """ 
+        Add a plane to the planning scene 
+        """
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -119,6 +121,9 @@ class PlanningSceneInterface(object):
         self.__submit(co, attach=False)
 
     def attach_mesh(self, link, name, pose=None, filename='', size=(1, 1, 1), touch_links=[]):
+        """
+        Attach a mesh to the robot as a collision object at the specified link. touch_links are excluded from collision with the object.
+        """
         aco = AttachedCollisionObject()
         if (pose is not None) and filename:
             aco.object = self.__make_mesh(name, pose, filename, size)
@@ -131,6 +136,9 @@ class PlanningSceneInterface(object):
         self.__submit(aco, attach=True)
 
     def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
+        """
+        Attach a box to the robot as a collision object at the specified link. touch_links are excluded from collision with the object.
+        """
         aco = AttachedCollisionObject()
         if pose is not None:
             aco.object = self.__make_box(name, pose, size)
@@ -145,7 +153,7 @@ class PlanningSceneInterface(object):
 
     def remove_world_object(self, name=None):
         """
-        Remove an object from planning scene, or all if no name is provided
+        Remove an object from planning scene, or all objects if no name is provided
         """
         co = CollisionObject()
         co.operation = CollisionObject.REMOVE
