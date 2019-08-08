@@ -7,9 +7,9 @@ use_gazebo: true # Whether the robot is started in a Gazebo simulation environme
 command_frame:  world  # TF frame that incoming cmds are given in
 command_in_type: "speed_units" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
 scale: # Only used if command_in_type=="unitless"
-  linear:  0.2  # Max linear velocity. Meters per publish_period. Units is [m/s]
-  rotational:  0.1 # Max angular velocity. Rads per publish_period. Units is [rad/s]
-  joint: 0.1  # Max joint angular/linear velocity. Rads or Meters per publish period. Units is [rad/s] or [m/s].
+  linear:  0.6  # Max linear velocity. Meters per publish_period. Units is [m/s]
+  rotational:  0.3 # Max angular velocity. Rads per publish_period. Units is [rad/s]
+  joint: 0.3  # Max joint angular/linear velocity. Rads or Meters per publish period. Units is [rad/s] or [m/s].
 low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the measurements less.
 
 ## Properties of outgoing commands
