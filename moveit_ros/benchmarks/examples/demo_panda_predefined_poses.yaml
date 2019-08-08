@@ -18,7 +18,7 @@ benchmark_config:
         output_directory: /tmp/moveit_benchmarks/
         predefined_poses: # List of named targets
             - ready
-            - home
+            - extended
         predefined_poses_group: panda_arm_hand # Group where the predefined poses are specified
     planners:
         - plugin: ompl_interface/OMPLPlanner
