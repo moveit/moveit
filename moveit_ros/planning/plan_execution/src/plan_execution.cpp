@@ -391,8 +391,13 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
   }
 
   if (!trajectory_monitor_ && planning_scene_monitor_->getStateMonitor())
-    trajectory_monitor_.reset(
-        new planning_scene_monitor::TrajectoryMonitor(planning_scene_monitor_->getStateMonitor()));
+  {
+    // Pass current value of reconfigurable parameter plan_execution/record_trajectory_state_frequency
+    double sampling_frequency = 0.0;
+    node_handle_.getParam("plan_execution/record_trajectory_state_frequency", sampling_frequency);
+    trajectory_monitor_ = std::make_shared<planning_scene_monitor::TrajectoryMonitor>(
+        planning_scene_monitor_->getStateMonitor(), sampling_frequency);
+  }
 
   // start recording trajectory states
   if (trajectory_monitor_)
