@@ -2,9 +2,9 @@
 
 #### Quick Start Guide for UR5 example
 
-Clone the `universal_robot` repo (kinetic-devel branch) into your catkin workspace. The melodic-devel branch has an error as of August 2019:
+Clone the `universal_robot` repo into your catkin workspace:
 
-    git clone https://github.com/ros-industrial/universal_robot.git -b kinetic-devel
+    git clone https://github.com/ros-industrial/universal_robot.git
 
 Run `rosdep install` from the `src` folder to install dependencies.
 
