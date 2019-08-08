@@ -49,9 +49,8 @@ namespace moveit_ros_benchmarks
 constexpr char LOGNAME[] = "combine_predefined_poses_benchmark";
 class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
 {
-  public:
-  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts,
-                                      moveit_msgs::PlanningScene& scene_msg,
+public:
+  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                       std::vector<StartState>& start_states,
                                       std::vector<PathConstraints>& path_constraints,
                                       std::vector<PathConstraints>& goal_constraints,
@@ -108,7 +107,7 @@ class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
       goal_constraints.emplace_back();
       goal_constraints.back().name = pose_id;
       goal_constraints.back().constraints.push_back(
-        kinematic_constraints::constructGoalConstraints(robot_state, joint_model_group));
+          kinematic_constraints::constructGoalConstraints(robot_state, joint_model_group));
     }
     if (start_states.empty() || goal_constraints.empty())
     {
@@ -122,8 +121,9 @@ class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
     queries.clear();
     return true;
   }
-  private:
-    planning_scene_monitor::PlanningSceneMonitorPtr psm_;
+
+private:
+  planning_scene_monitor::PlanningSceneMonitorPtr psm_;
 };
 }  // namespace moveit_ros_benchmarks
 
