@@ -57,7 +57,7 @@
 
 namespace trajopt_interface
 {
-  TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
+TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
   prob_ = TrajOptProblemPtr(new TrajOptProblem);
   setDefaultTrajOPtParams();
@@ -189,7 +189,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   trajopt::DblVec joint_start_constraints;
   for (auto pos : req.start_state.joint_state.position)
   {
-    //TODO: if running from MotionPlanning Display in rviz, when I choose panda_arm, it still returns 9 dof instead of 7
+    // TODO: if running from MotionPlanning Display in rviz, when I choose panda_arm, it still returns 9 dof instead of
+    // 7
     ROS_INFO(" ======================================= joint position from start state ===>>> %f", pos);
     joint_start_constraints.push_back(pos);
   }
@@ -436,7 +437,7 @@ void TrajOptInterface::setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std:
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res)
 {
-  //TODO: Create the actuall implementation
+  // TODO: Create the actuall implementation
 }
 
 }  // namespace trajopt_interface

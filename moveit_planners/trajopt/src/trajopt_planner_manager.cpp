@@ -63,7 +63,8 @@ public:
 
     for (const std::string& gpName : model->getJointModelGroupNames())
     {
-      ROS_INFO(" ======================================= group name: %s, robot model: %s", gpName.c_str(), model->getName().c_str());
+      ROS_INFO(" ======================================= group name: %s, robot model: %s", gpName.c_str(),
+               model->getName().c_str());
       planning_contexts_[gpName] =
           TrajOptPlanningContextPtr(new TrajOptPlanningContext("trajopt_planning_context", gpName, model));
     }

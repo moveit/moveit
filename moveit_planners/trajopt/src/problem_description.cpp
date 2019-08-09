@@ -216,7 +216,8 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
       {
         matrix_traj_vars_temp = prob->GetVars();
         prob->addLinearConstraint(
-            sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))), sco::EQ);
+            sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))),
+            sco::EQ);
       }
     }
   }

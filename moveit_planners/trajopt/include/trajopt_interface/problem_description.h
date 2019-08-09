@@ -168,7 +168,8 @@ public:
   planning_scene::PlanningSceneConstPtr planning_scene;
   std::string planning_group_name;
 
-  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, const std::string& pg) : planning_scene(ps), planning_group_name(pg)
+  ProblemInfo(planning_scene::PlanningSceneConstPtr ps, const std::string& pg)
+    : planning_scene(ps), planning_group_name(pg)
   {
   }
 };
@@ -359,8 +360,6 @@ struct JointVelTermInfo : public TermInfo
     return out;
   }
 };
-
-
 
 void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>& current_joint_values,
                                trajopt::TrajArray& init_traj);
