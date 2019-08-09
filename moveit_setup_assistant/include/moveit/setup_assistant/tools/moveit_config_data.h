@@ -488,6 +488,16 @@ public:
   std::vector<std::map<std::string, GenericParameter> > getSensorPluginConfig();
 
   /**
+   * \brief Helper function to get the default start state group for moveit_sim_hw_interface
+   */
+  std::string getDefaultStartStateGroup();
+
+  /**
+   * \brief Helper function to get the default start pose for moveit_sim_hw_interface
+   */
+  std::string getDefaultStartPose();
+
+  /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
    * \param jm1 - a pointer to the first joint model to compare
    * \param jm2 - a pointer to the second joint model to compare
