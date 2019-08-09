@@ -53,11 +53,14 @@ public:
   explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
   {
     node_handle_ = ros::NodeHandle(ns);
+    planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
-    planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+
+    waitForService(planning_scene_service_);
+    waitForService(apply_planning_scene_service_);
   }
 
   std::vector<std::string> getKnownObjectNames(bool with_type)
@@ -263,6 +266,17 @@ public:
   }
 
 private:
+  void waitForService(ros::ServiceClient& srv)
+  {
+    ros::Duration time_before_warning(5.0);
+    srv.waitForExistence(time_before_warning);
+    if (!srv.exists())
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "service '" << srv.getService() << "' not advertised yet. Continue waiting...");
+      srv.waitForExistence();
+    }
+  }
+
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
   ros::ServiceClient apply_planning_scene_service_;
