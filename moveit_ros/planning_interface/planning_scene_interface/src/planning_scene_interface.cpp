@@ -45,6 +45,8 @@ namespace moveit
 {
 namespace planning_interface
 {
+static const std::string LOGNAME = "planning_scene_interface";
+
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
@@ -89,7 +91,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object names");
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
       return result;
     }
 
@@ -141,7 +143,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object names");
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object names");
       return result;
     }
 
@@ -172,7 +174,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object geometries");
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get object geometries");
       return result;
     }
 
@@ -197,8 +199,7 @@ public:
     request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface",
-                     "Could not call planning scene service to get attached object geometries");
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get attached object geometries");
       return result;
     }
 
@@ -222,7 +223,7 @@ public:
     request.scene = planning_scene;
     if (!apply_planning_scene_service_.call(request, response))
     {
-      ROS_WARN_NAMED("planning_scene_interface", "Failed to call ApplyPlanningScene service");
+      ROS_WARN_NAMED(LOGNAME, "Failed to call ApplyPlanningScene service");
       return false;
     }
     return response.success;
