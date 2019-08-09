@@ -536,11 +536,15 @@ public:
     }
   }
 
-  Eigen::MatrixXd getJacobianMatrixPython(bp::list& joint_values, bp::list& reference_point_position)
+  Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values,
+                                          const bp::list& reference_point_position = bp::list())
   {
-    std::vector<double> joint_vals = py_bindings_tools::doubleFromList(joint_values);
+    const std::vector<double> joint_vals = py_bindings_tools::doubleFromList(joint_values);
     std::vector<double> ref_point_pos_vector = py_bindings_tools::doubleFromList(reference_point_position);
-    Eigen::Vector3d ref_point_pos(ref_point_pos_vector.data());
+    if (ref_point_pos_vector.size() == 0)
+      ref_point_pos_vector = { 0.0, 0.0, 0.0 };
+    const Eigen::Vector3d ref_point_pos(ref_point_pos_vector.data());
+
     robot_state::RobotState state(getRobotModel());
     state.setToDefaultValues();
     auto group = state.getJointModelGroup(getName());

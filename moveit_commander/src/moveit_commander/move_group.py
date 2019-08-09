@@ -596,7 +596,7 @@ class MoveGroupCommander(object):
         traj_out.deserialize(ser_traj_out)
         return traj_out
 
-    def get_jacobian_matrix(self, joint_values, reference_point_position=[0.0, 0.0, 0.0]):
+    def get_jacobian_matrix(self, joint_values, reference_point_position=None):
         """ Get the jacobian matrix of the group as a list"""
-        return self._g.get_jacobian_matrix(joint_values, reference_point_position)
+        return self._g.get_jacobian_matrix(joint_values, [0.0, 0.0, 0.0] if reference_point_position is None else reference_point_position)
 
