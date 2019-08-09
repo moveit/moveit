@@ -6,7 +6,6 @@
 
 namespace trajopt_interface
 {
-
 /**
  * @brief Extracts the vector part of quaternion
  */
