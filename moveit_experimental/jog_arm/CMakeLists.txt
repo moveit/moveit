@@ -19,8 +19,7 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
+    include
   LIBRARIES
   CATKIN_DEPENDS
     control_msgs
