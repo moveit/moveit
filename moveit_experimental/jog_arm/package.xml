@@ -16,4 +16,22 @@
   <author email="andyz@utexas.edu">Andy Zelenak</author>
   <author>Blake Anderson</author>
   <author email="alex@machinekoder.com">Alexander Rössler</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>control_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>rosparam_shortcuts</depend>
+  <depend>tf2_ros</depend>
+
+  <exec_depend>joy_teleop</exec_depend>
+
+  <test_depend>rostest</test_depend>
+  <test_depend>ros_pytest</test_depend>
+  <test_depend>moveit_resources</test_depend>
+
+  <export>
+  </export>
+
 </package>
