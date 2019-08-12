@@ -330,6 +330,9 @@ bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request
   }
   tree_->unlockWrite();
 
+  if (response.success)
+    tree_->triggerUpdateCallback();
+
   return true;
 }
 
