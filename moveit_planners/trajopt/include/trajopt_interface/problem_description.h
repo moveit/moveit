@@ -112,7 +112,7 @@ struct InitInfo
   /** @brief Data used during initialization. Use depends on the initialization selected. This data will be used
       to create initialization matrix. We need to give the goal information to this init info
    */
-  trajopt::TrajArray data;  // This data type does not seem correct, it should be of type VectorXd
+  trajopt::TrajArray data;
   //  Eigen::VectorXd data_vec;
   //  trajopt::TrajArray data_trajectory;
   /** @brief Default value the final column of the optimization is initialized too if time is being used */
