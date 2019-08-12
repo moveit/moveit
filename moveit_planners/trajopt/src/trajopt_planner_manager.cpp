@@ -38,7 +38,7 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <moveit/collision_detection_bullet/collision_detector_bullet_plugin_loader.h>
+#include "moveit/collision_detection_fcl/collision_detector_allocator_fcl.h"
 
 #include <class_loader/class_loader.hpp>
 
@@ -113,7 +113,7 @@ public:
     planning_scene::PlanningScenePtr ps = planning_scene->diff();
 
     // set FCL for the collision
-    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+    ps->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create(), true);
 
     // retrieve and configure existing context
     const TrajOptPlanningContextPtr& context = planning_contexts_.at(req.group_name);

@@ -95,22 +95,40 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     return false;
   }
 
-  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(req.start_state.joint_state.position.data()))
-  {
-    ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state violates joint limits");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
-    return false;
-  }
-
+  ROS_INFO(" ======================================= Extract current state information");
   ros::WallTime start_time = ros::WallTime::now();
   robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   *current_state = planning_scene->getCurrentState();
   const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
   std::vector<std::string> joint_names = joint_model_group->getVariableNames();
+  int dof = joint_names.size();
   std::vector<double> current_joint_values;
   current_state->copyJointGroupPositions(joint_model_group, current_joint_values);
-  int dof = current_joint_values.size();
+
+  // current state is different from star state in general
+  ROS_INFO(" ======================================= Extract start stae infromation");
+  std::unordered_map<std::string, double> all_joints;
+  trajopt::DblVec joint_start_constraints;
+
+  for (int joint_index = 0; joint_index < req.start_state.joint_state.position.size(); ++joint_index)
+  {
+    all_joints[req.start_state.joint_state.name[joint_index]] = req.start_state.joint_state.position[joint_index];
+  }
+
+  for (auto joint_name : joint_names)
+  {
+    ROS_INFO(" joint position from start state, name: %s, value: %f", joint_name.c_str(), all_joints[joint_name]);
+    joint_start_constraints.push_back(all_joints[joint_name]);
+  }
+
+  // check the joint limit violiation for star state
+  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(joint_start_constraints.data()))
+  {
+    ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state violates joint limits");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+    return false;
+  }
 
   ROS_INFO(" ======================================= Create ProblemInfo");
   ProblemInfo problem_info(planning_scene, req.group_name);
@@ -189,20 +207,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Constraints from request start_state");
   // add the start pos from request as a constraint
-  std::unordered_map<std::string, double> all_joints;
   JointPoseTermInfoPtr joint_start_pos(new JointPoseTermInfo);
-  trajopt::DblVec joint_start_constraints;
 
-  for (int joint_index = 0; joint_index < req.start_state.joint_state.position.size(); ++joint_index)
-  {
-    all_joints[req.start_state.joint_state.name[joint_index]] = req.start_state.joint_state.position[joint_index];
-  }
-
-  for (auto joint_name : joint_names)
-  {
-    ROS_INFO(" ======================================= joint position from start state, name: %s, value: %f", joint_name.c_str(), all_joints[joint_name]);
-    joint_start_constraints.push_back(all_joints[joint_name]);
-  }
   joint_start_pos->targets = joint_start_constraints;
   setJointPoseTermInfoParams(joint_start_pos, "start_pos");
   problem_info.cnt_infos.push_back(joint_start_pos);
@@ -211,8 +217,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   // TODO: should be defined by user, its parametes should be added to setup.yaml
   JointVelTermInfoPtr joint_vel(new JointVelTermInfo);
 
-  joint_vel->coeffs = std::vector<double>(7, 5.0);
-  joint_vel->targets = std::vector<double>(7, 0.0);
+  joint_vel->coeffs = std::vector<double>(dof, 5.0);
+  joint_vel->targets = std::vector<double>(dof, 0.0);
   joint_vel->first_step = 0;
   joint_vel->last_step = problem_info.basic_info.n_steps - 1;
   joint_vel->name = "joint_vel";

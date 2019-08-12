@@ -69,9 +69,6 @@ add_library(moveit_trajopt_planner_plugin src/trajopt_planner_manager.cpp)
 set_target_properties(moveit_trajopt_planner_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(moveit_trajopt_planner_plugin ${PROJECT_NAME} ${catkin_LIBRARIES})
 
-add_executable(test_trajopt src/test_trajopt.cpp)
-target_link_libraries(test_trajopt  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
 #############
 ## Install ##
 #############
@@ -94,14 +91,6 @@ install(
     include/trajopt_interface/
   DESTINATION
     ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-# Mark roslaunch files for installation
-install(
-  DIRECTORY
-    launch
-  DESTINATION
-    ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(FILES trajopt_interface_plugin_description.xml
