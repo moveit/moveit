@@ -52,7 +52,7 @@ qtcreator-*
 *.swp
 
 # Catkin custom files
-CATKIN_IGNORE
+# CATKIN_IGNORE
 
 # Continous Integration
 .moveit_ci
