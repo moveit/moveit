@@ -58,10 +58,3 @@ qtcreator-*
 
 #gdb
 *.gdb
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-/moveit_planners/trajopt/launch/gdb_settings.gdb
->>>>>>> addressed the comments
-=======
->>>>>>> added kinematic DOF of the active joint model group to TrajOptProblem class
