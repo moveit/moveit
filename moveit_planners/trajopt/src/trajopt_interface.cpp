@@ -194,7 +194,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   {
     JointPoseTermInfoPtr joint_pos_term(new JointPoseTermInfo);
     // When using MotionPlanning Display in RViz, the created request has no name for the constriant
-    setJointPoseTermInfoParams(joint_pos_term, (goal_cnt.name != "") ? goal_cnt.name : "goal_tmp" );
+    setJointPoseTermInfoParams(joint_pos_term, (goal_cnt.name != "") ? goal_cnt.name : "goal_tmp");
 
     trajopt::DblVec joint_goal_constraints;
     for (const moveit_msgs::JointConstraint& joint_goal_constraint : goal_cnt.joint_constraints)
@@ -323,8 +323,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   for (int jn = 0; jn < res.trajectory[0].joint_trajectory.points.back().positions.size(); ++jn)
   {
-    ROS_INFO_STREAM_NAMED("joint_value", res.trajectory[0].joint_trajectory.points.back().positions[jn] << "   " <<
-                                         req.goal_constraints.back().joint_constraints[jn].position);
+    ROS_INFO_STREAM_NAMED("joint_value", res.trajectory[0].joint_trajectory.points.back().positions[jn]
+                                             << "   " << req.goal_constraints.back().joint_constraints[jn].position);
   }
 
   bool constraints_are_ok = true;

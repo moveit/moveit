@@ -31,7 +31,6 @@
  *  http://opensource.org/licenses/BSD-2-Clause
  *********************************************************************/
 
-
 #include <boost/algorithm/string.hpp>
 
 #include <ros/ros.h>
