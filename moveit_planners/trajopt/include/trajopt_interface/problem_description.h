@@ -122,7 +122,7 @@ struct InitInfo
 /**
 When cost or constraint element of JSON doc is read, one of these guys gets
 constructed to hold the parameters.
-Then it later gets converted to a Cost object by the hatch method
+Then it later gets converted to a Cost object by the addObjectiveTerms method
 */
 struct TermInfo
 {
@@ -133,7 +133,7 @@ struct TermInfo
     return supported_term_types_;
   }
   //  virtual void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) = 0;
-  virtual void hatch(TrajOptProblem& prob) = 0;
+  virtual void addObjectiveTerms(TrajOptProblem& prob) = 0;
 
   static TermInfoPtr fromName(const std::string& type);
 
@@ -282,7 +282,7 @@ struct CartPoseTermInfo : public TermInfo
   /** @brief Used to add term to pci from json */
   //  void fromJson(ProblemConstructionInfo& pci, const Json::Value& v) override;
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void hatch(TrajOptProblem& prob) override;
+  void addObjectiveTerms(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
@@ -322,7 +322,7 @@ struct JointPoseTermInfo : public TermInfo
   }
 
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void hatch(TrajOptProblem& prob) override;
+  void addObjectiveTerms(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
@@ -352,7 +352,7 @@ struct JointVelTermInfo : public TermInfo
   }
 
   /** @brief Converts term info into cost/constraint and adds it to trajopt problem */
-  void hatch(TrajOptProblem& prob) override;
+  void addObjectiveTerms(TrajOptProblem& prob) override;
 
   static TermInfoPtr create()
   {
