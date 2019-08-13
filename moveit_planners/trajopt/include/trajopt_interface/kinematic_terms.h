@@ -9,21 +9,21 @@ namespace trajopt_interface
 /**
  * @brief Extracts the vector part of quaternion
  */
-inline Eigen::Vector3d quaternionRotationVector(const Eigen::Matrix3d& m)
+inline Eigen::Vector3d quaternionRotationVector(const Eigen::Matrix3d& matrix)
 {
-  Eigen::Quaterniond q;
-  q = m;
-  return Eigen::Vector3d(q.x(), q.y(), q.z());
+  Eigen::Quaterniond quaternion;
+  quaternion = matrix;
+  return Eigen::Vector3d(quaternion.x(), quaternion.y(), quaternion.z());
 }
 
 /**
  * @brief Appends b to a of type VectorXd
  */
-inline Eigen::VectorXd concatVector(const Eigen::VectorXd& a, const Eigen::VectorXd& b)
+inline Eigen::VectorXd concatVector(const Eigen::VectorXd& vector_a, const Eigen::VectorXd& vector_b)
 {
-  Eigen::VectorXd out(a.size() + b.size());
-  out.topRows(a.size()) = a;
-  out.middleRows(a.size(), b.size()) = b;
+  Eigen::VectorXd out(vector_a.size() + vector_b.size());
+  out.topRows(vector_a.size()) = vector_a;
+  out.middleRows(vector_a.size(), vector_b.size()) = vector_b;
   return out;
 }
 
@@ -31,12 +31,11 @@ inline Eigen::VectorXd concatVector(const Eigen::VectorXd& a, const Eigen::Vecto
  * @brief Appends b to a of type T
  */
 template <typename T>
-std::vector<T> concatVector(const std::vector<T>& a, const std::vector<T>& b)
+inline std::vector<T> concatVector(const std::vector<T>& vector_a, const std::vector<T>& vector_b)
 {
   std::vector<T> out;
-  std::vector<int> x(a.size() + b.size());
-  out.insert(out.end(), a.begin(), a.end());
-  out.insert(out.end(), b.begin(), b.end());
+  out.insert(out.end(), vector_a.begin(), vector_a.end());
+  out.insert(out.end(), vector_b.begin(), vector_b.end());
   return out;
 }
 

@@ -33,9 +33,7 @@
  *********************************************************************/
 
 /* Author: Omid Heidari */
-
-#ifndef TRAJOPT_INTERFACE_TRAJOPT_INTERFACE_H
-#define TRAJOPT_INTERFACE_TRAJOPT_INTERFACE_H
+#pragma once
 
 #include <ros/ros.h>
 #include <trajopt_sco/sco_common.hpp>
@@ -65,15 +63,15 @@ protected:
   void setDefaultTrajOPtParams();
   void setProblemInfoParam(ProblemInfo& problem_info);
   void setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std::string name);
+  trajopt::DblVec extractStartJointValues(const planning_interface::MotionPlanRequest& req,
+                                          const std::vector<std::string>& group_joint_names);
 
   ros::NodeHandle nh_;  /// The ROS node handle
   sco::BasicTrustRegionSQPParameters params_;
-  std::vector<sco::Optimizer::Callback> callbacks_;
-  TrajOptProblemPtr prob_;
+  std::vector<sco::Optimizer::Callback> optimizer_callbacks_;
+  TrajOptProblemPtr trajopt_problem_;
   std::string name_;
 };
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res);
 }
-
-#endif
