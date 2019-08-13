@@ -36,5 +36,6 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(benchmark_ik
       ${catkin_LIBRARIES} ${moveit_ros_planning_LIBRARIES}
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  install(TARGETS benchmark_ik DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  install(TARGETS benchmark_ik
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
