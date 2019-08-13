@@ -73,7 +73,7 @@ public:
     // Get name of derived adapter
     std::string adapter_name = typeid(*this).name();
     // Try to demangle the name
-     int status = 1;
+    int status = 1;
 #if defined(_MSC_VER)
     std::string demangled_name = adapter_name;
 #else
