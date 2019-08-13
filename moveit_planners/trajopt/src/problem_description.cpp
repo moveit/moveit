@@ -256,12 +256,12 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
 
   for (const TermInfoPtr& ci : pci.cost_infos)
   {
-    ci->hatch(*prob);
+    ci->addObjectiveTerms(*prob);
   }
 
   for (const TermInfoPtr& ci : pci.cnt_infos)
   {
-    ci->hatch(*prob);
+    ci->addObjectiveTerms(*prob);
   }
   return prob;
 }
@@ -273,7 +273,7 @@ CartPoseTermInfo::CartPoseTermInfo() : TermInfo(TT_COST | TT_CNT)
   tcp.setIdentity();
 }
 
-void CartPoseTermInfo::hatch(TrajOptProblem& prob)
+void CartPoseTermInfo::addObjectiveTerms(TrajOptProblem& prob)
 {
   unsigned int n_dof = prob.GetActiveGroupNumDOF();
 
@@ -308,7 +308,7 @@ void CartPoseTermInfo::hatch(TrajOptProblem& prob)
   }
 }
 
-void JointPoseTermInfo::hatch(TrajOptProblem& prob)
+void JointPoseTermInfo::addObjectiveTerms(TrajOptProblem& prob)
 {
   unsigned int n_dof = prob.GetActiveGroupNumDOF();
 
@@ -397,7 +397,7 @@ void JointPoseTermInfo::hatch(TrajOptProblem& prob)
   }
 }
 
-void JointVelTermInfo::hatch(TrajOptProblem& prob)
+void JointVelTermInfo::addObjectiveTerms(TrajOptProblem& prob)
 {
   unsigned int n_dof = prob.GetNumDOF();
 
