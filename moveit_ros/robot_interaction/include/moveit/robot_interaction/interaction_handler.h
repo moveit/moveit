@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
-#define MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/locked_robot_state.h>
@@ -311,5 +310,3 @@ private:
   static std::string fixName(std::string name);
 };
 }
-
-#endif

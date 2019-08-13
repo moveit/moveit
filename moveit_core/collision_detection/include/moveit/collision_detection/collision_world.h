@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_WORLD_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_WORLD_
+#pragma once
 
 #include <boost/utility.hpp>
 
@@ -278,5 +277,3 @@ private:
   WorldConstPtr world_const_;  // always same as world_
 };
 }
-
-#endif

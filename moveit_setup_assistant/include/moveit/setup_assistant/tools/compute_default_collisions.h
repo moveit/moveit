@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_COMPUTE_DEFAULT_COLLISIONS_
+#pragma once
 
 #include <map>
 #include <moveit/macros/class_forward.h>
@@ -110,5 +109,3 @@ const std::string disabledReasonToString(DisabledReason reason);
  */
 DisabledReason disabledReasonFromString(const std::string& reason);
 }
-
-#endif

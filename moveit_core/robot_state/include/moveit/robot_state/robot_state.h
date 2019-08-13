@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CORE_ROBOT_STATE_
-#define MOVEIT_CORE_ROBOT_STATE_
+#pragma once
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/attached_body.h>
@@ -1837,5 +1836,3 @@ private:
 std::ostream& operator<<(std::ostream& out, const RobotState& s);
 }
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_SENSOR_MANAGER_
-#define MOVEIT_MOVEIT_SENSOR_MANAGER_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -103,5 +102,3 @@ public:
                              moveit_msgs::RobotTrajectory& sensor_trajectory) = 0;
 };
 }
-
-#endif

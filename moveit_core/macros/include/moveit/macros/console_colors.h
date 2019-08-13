@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CONSOLE_COLORS_
-#define MOVEIT_CONSOLE_COLORS_
+#pragma once
 
 #define MOVEIT_CONSOLE_COLOR_RESET "\033[0m"
 #define MOVEIT_CONSOLE_COLOR_GRAY "\033[90m"
@@ -46,5 +45,3 @@
 #define MOVEIT_CONSOLE_COLOR_BLUE "\033[94m"
 #define MOVEIT_CONSOLE_COLOR_PURPLE "\033[95m"
 #define MOVEIT_CONSOLE_COLOR_CYAN "\033[96m"
-
-#endif

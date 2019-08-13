@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
-#define MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
+#pragma once
 
 #include <ros/ros.h>
 
@@ -71,5 +70,3 @@ void deserializeMsg(const std::string& data, T& msg)
 }
 }
 }
-
-#endif

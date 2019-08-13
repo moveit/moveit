@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_FCL_H_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_FCL_H_
+#pragma once
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
@@ -51,5 +50,3 @@ public:
   static const std::string NAME;  // defined in collision_world_fcl.cpp
 };
 }
-
-#endif

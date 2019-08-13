@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman, Adam Leeper, Sachin Chitta */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_DISPLAY_
+#pragma once
 
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
@@ -301,5 +300,3 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
-
-#endif

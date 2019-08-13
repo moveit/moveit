@@ -39,8 +39,7 @@
            \todo: better support for redundant joints
 */
 
-#ifndef MOVEIT_ROS_PLANNING_SRV_KINEMATICS_PLUGIN_
-#define MOVEIT_ROS_PLANNING_SRV_KINEMATICS_PLUGIN_
+#pragma once
 
 // ROS
 #include <ros/ros.h>
@@ -159,5 +158,3 @@ private:
   std::shared_ptr<ros::ServiceClient> ik_service_client_;
 };
 }
-
-#endif

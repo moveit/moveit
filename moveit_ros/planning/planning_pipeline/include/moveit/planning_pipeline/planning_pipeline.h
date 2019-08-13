@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
-#define MOVEIT_PLANNING_PIPELINE_PLANNING_PIPELINE_
+#pragma once
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
@@ -197,5 +196,3 @@ private:
 
 MOVEIT_CLASS_FORWARD(PlanningPipeline);
 }
-
-#endif

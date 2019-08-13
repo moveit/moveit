@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_INTERFACE_COMMON_OBJECTS_
-#define MOVEIT_PLANNING_INTERFACE_COMMON_OBJECTS_
+#pragma once
 
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 
@@ -73,5 +72,3 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
 
 }  // namespace planning interface
 }  // namespace moveit
-
-#endif  // end of MOVEIT_PLANNING_INTERFACE_COMMON_OBJECTS_

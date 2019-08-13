@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_MODELS_LOADER_ROBOT_MODEL_LOADER_
-#define MOVEIT_PLANNING_MODELS_LOADER_ROBOT_MODEL_LOADER_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
@@ -134,4 +133,3 @@ private:
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
 };
 }
-#endif

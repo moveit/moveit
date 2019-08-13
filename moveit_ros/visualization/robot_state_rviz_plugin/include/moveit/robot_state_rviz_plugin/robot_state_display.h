@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_ROBOT_STATE_DISPLAY_RVIZ_ROBOT_STATE_DISPLAY_
-#define MOVEIT_VISUALIZATION_ROBOT_STATE_DISPLAY_RVIZ_ROBOT_STATE_DISPLAY_
+#pragma once
 
 #include <rviz/display.h>
 
@@ -146,5 +145,3 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
-
-#endif

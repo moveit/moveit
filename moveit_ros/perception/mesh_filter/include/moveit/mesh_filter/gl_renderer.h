@@ -34,8 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#ifndef MOVEIT_MESH_FILTER_GLRENDERER_
-#define MOVEIT_MESH_FILTER_GLRENDERER_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <GL/glew.h>
@@ -303,4 +302,3 @@ private:
   static bool glutInitialized_;
 };
 }  // namespace mesh_filter
-#endif

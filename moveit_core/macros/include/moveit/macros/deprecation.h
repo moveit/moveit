@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef MOVEIT_MACROS_DEPRECATION_
-#define MOVEIT_MACROS_DEPRECATION_
+#pragma once
 
 /** \def MOVEIT_DEPRECATED
     Macro that marks functions as deprecated */
@@ -46,6 +45,4 @@
 #define MOVEIT_DEPRECATED __attribute__((deprecated("MoveIt: Use of this method is deprecated")))
 #else
 #define MOVEIT_DEPRECATED /* Nothing */
-#endif
-
 #endif

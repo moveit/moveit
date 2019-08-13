@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_MANIPULATION_PIPELINE_
-#define MOVEIT_PICK_PLACE_MANIPULATION_PIPELINE_
+#pragma once
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <boost/thread.hpp>
@@ -117,5 +116,3 @@ protected:
   bool stop_processing_;
 };
 }
-
-#endif

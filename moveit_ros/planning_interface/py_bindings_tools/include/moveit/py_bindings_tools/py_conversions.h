@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_
-#define MOVEIT_PY_BINDINGS_TOOLS_PY_CONVERSIONS_
+#pragma once
 
 #include <boost/python.hpp>
 #include <boost/python/stl_iterator.hpp>
@@ -95,5 +94,3 @@ boost::python::list listFromString(const std::vector<std::string>& v)
 }
 }
 }
-
-#endif

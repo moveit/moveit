@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
-#define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
+#pragma once
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
@@ -234,5 +233,3 @@ private:
   KinematicOptionsMapPtr kinematic_options_map_;
 };
 }
-
-#endif

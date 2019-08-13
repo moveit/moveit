@@ -34,8 +34,7 @@
 
 /* Author: Sachin Chitta */
 
-#ifndef MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
-#define MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
+#pragma once
 
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -158,5 +157,3 @@ private:
   double penalty_multiplier_;
 };
 }
-
-#endif

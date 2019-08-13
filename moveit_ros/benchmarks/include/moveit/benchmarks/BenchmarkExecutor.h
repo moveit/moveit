@@ -34,8 +34,7 @@
 
 /* Author: Ryan Luna */
 
-#ifndef MOVEIT_ROS_BENCHMARKS_BENCHMARK_EXECUTOR_
-#define MOVEIT_ROS_BENCHMARKS_BENCHMARK_EXECUTOR_
+#pragma once
 
 #include <moveit/benchmarks/BenchmarkOptions.h>
 
@@ -226,5 +225,3 @@ protected:
   std::vector<QueryCompletionEventFunction> query_end_fns_;
 };
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan */
 
-#ifndef CHOMP_COST_H_
-#define CHOMP_COST_H_
+#pragma once
 
 #include <eigen3/Eigen/Core>
 #include <chomp_motion_planner/chomp_trajectory.h>
@@ -97,5 +96,3 @@ inline double ChompCost::getCost(Eigen::MatrixXd::ColXpr joint_trajectory) const
 }
 
 }  // namespace chomp
-
-#endif /* CHOMP_COST_H_ */

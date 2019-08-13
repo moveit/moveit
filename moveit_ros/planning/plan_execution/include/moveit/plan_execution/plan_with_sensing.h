@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLAN_EXECUTION_PLAN_WITH_SENSING_
-#define MOVEIT_PLAN_EXECUTION_PLAN_WITH_SENSING_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/plan_execution/plan_representation.h>
@@ -135,4 +134,3 @@ private:
   DynamicReconfigureImpl* reconfigure_impl_;
 };
 }
-#endif

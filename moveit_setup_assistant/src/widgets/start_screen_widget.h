@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_START_SCREEN_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_START_SCREEN_WIDGET_
+#pragma once
 
 #include <QWidget>
 #include <QLineEdit>
@@ -190,5 +189,3 @@ public:
   QLabel* widget_instructions_;
 };
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Robert Haschke */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
+#pragma once
 
 #include <QAbstractTableModel>
 
@@ -79,5 +78,3 @@ private:
   QList<QString> q_names;                    // names of links
   QList<int> visual_to_index;                // map from visual index to actual index
 };
-
-#endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -88,5 +87,3 @@ private:
   RobotStateVisualizationPtr scene_robot_;
 };
 }
-
-#endif

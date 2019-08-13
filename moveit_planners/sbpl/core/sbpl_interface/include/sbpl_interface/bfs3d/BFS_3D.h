@@ -34,8 +34,7 @@
 
 /** \Author: Benjamin Cohen /bcohen@willowgarage.com, E. Gil Jones **/
 
-#ifndef _SBPL_BFS_3D_H_
-#define _SBPL_BFS_3D_H_
+#pragma once
 
 #include <boost/thread.hpp>
 
@@ -77,5 +76,3 @@ public:
   int getDistance(int, int, int);
 };
 }
-
-#endif

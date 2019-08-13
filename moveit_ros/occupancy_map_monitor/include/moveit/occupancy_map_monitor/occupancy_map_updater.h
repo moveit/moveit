@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Jon Binney */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
@@ -112,5 +111,3 @@ protected:
   static void readXmlParam(XmlRpc::XmlRpcValue& params, const std::string& param_name, unsigned int* value);
 };
 }
-
-#endif

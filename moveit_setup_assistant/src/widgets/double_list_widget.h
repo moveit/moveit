@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DOUBLE_LIST_WIDGET_
+#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -141,5 +140,3 @@ private:
 };
 
 }  // namespace moveit_setup_assistant
-
-#endif

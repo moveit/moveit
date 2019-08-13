@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan, Ken Anderson */
 
-#ifndef MOVEIT_DISTANCE_FIELD_PROPAGATION_DISTANCE_FIELD_
-#define MOVEIT_DISTANCE_FIELD_PROPAGATION_DISTANCE_FIELD_
+#pragma once
 
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/distance_field.h>
@@ -611,5 +610,3 @@ inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel
   return sqrt_table_[object.distance_square_] - sqrt_table_[object.negative_distance_square_];
 }
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_OMPL_INTERFACE_
-#define MOVEIT_OMPL_INTERFACE_OMPL_INTERFACE_
+#pragma once
 
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/ompl_interface/constraints_library.h>
@@ -193,5 +192,3 @@ private:
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
 }
-
-#endif

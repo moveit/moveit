@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DETECTION_DISTANCE_FIELD_COLLISION_COMMON_
-#define MOVEIT_COLLISION_DETECTION_DISTANCE_FIELD_COLLISION_COMMON_
+#pragma once
 
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/macros/class_forward.h>
@@ -180,4 +179,3 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const rob
 void getBodySphereVisualizationMarkers(const GroupStateRepresentationPtr& gsr, const std::string& reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array);
 }
-#endif

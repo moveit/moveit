@@ -35,8 +35,7 @@
 
 /* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
-#define MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
+#pragma once
 
 #include <actionlib/client/simple_action_client.h>
 #include <moveit/controller_manager/controller_manager.h>
@@ -186,5 +185,3 @@ protected:
 };
 
 }  // end namespace moveit_simple_controller_manager
-
-#endif  // MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE

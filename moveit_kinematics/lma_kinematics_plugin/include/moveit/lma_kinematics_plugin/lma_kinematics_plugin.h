@@ -34,8 +34,7 @@
 
 /* Author: Francisco Suarez-Ruiz */
 
-#ifndef MOVEIT_ROS_PLANNING_LMA_KINEMATICS_PLUGIN_H
-#define MOVEIT_ROS_PLANNING_LMA_KINEMATICS_PLUGIN_H
+#pragma once
 
 // ROS
 #include <ros/ros.h>
@@ -182,5 +181,3 @@ private:
   double orientation_vs_position_weight_;
 };
 }
-
-#endif

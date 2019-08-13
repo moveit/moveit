@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_INTERFACE_
-#define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_INTERFACE_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
@@ -1003,5 +1002,3 @@ private:
 };
 }  // namespace planning_interface
 }  // namespace moveit
-
-#endif

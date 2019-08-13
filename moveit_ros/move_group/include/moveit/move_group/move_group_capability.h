@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_CAPABILITY_
-#define MOVEIT_MOVE_GROUP_CAPABILITY_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -99,5 +98,3 @@ protected:
   MoveGroupContextPtr context_;
 };
 }
-
-#endif

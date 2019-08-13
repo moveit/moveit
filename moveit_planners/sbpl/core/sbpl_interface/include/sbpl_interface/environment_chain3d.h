@@ -34,8 +34,7 @@
 
 /** \Author: Benjamin Cohen /bcohen@willowgarage.com, E. Gil Jones **/
 
-#ifndef _ENVIRONMENT_CHAIN3D_H_
-#define _ENVIRONMENT_CHAIN3D_H_
+#pragma once
 
 #include <time.h>
 #include <stdio.h>
@@ -334,5 +333,3 @@ inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<doub
 // }
 
 }  // namespace
-
-#endif

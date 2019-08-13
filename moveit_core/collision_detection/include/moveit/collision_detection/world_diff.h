@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley, Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_COLLISION_DETECTION_WORLD_DIFF_
-#define MOVEIT_COLLISION_DETECTION_WORLD_DIFF_
+#pragma once
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/macros/class_forward.h>
@@ -126,5 +125,3 @@ private:
   WorldWeakPtr world_;
 };
 }
-
-#endif

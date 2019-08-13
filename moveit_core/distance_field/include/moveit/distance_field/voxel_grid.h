@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan, Acorn Pooley */
 
-#ifndef MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
-#define MOVEIT_DISTANCE_FIELD_VOXEL_GRID_
+#pragma once
 
 #include <algorithm>
 #include <cmath>
@@ -579,4 +578,3 @@ inline bool VoxelGrid<T>::worldToGrid(const Eigen::Vector3d& world, Eigen::Vecto
 }
 
 }  // namespace distance_field
-#endif

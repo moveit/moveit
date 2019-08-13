@@ -33,8 +33,7 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_H
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROS_CONTROLLERS_WIDGET_H
+#pragma once
 
 // Qt
 #include <QVBoxLayout>
@@ -160,5 +159,3 @@ private:
 };
 
 }  // namespace moveit_setup_assistant
-
-#endif

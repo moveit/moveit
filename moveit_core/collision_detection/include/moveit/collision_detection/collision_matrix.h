@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_MATRIX_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_MATRIX_
+#pragma once
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/macros/class_forward.h>
@@ -278,5 +277,3 @@ private:
   std::map<std::string, DecideContactFn> default_allowed_contacts_;
 };
 }
-
-#endif

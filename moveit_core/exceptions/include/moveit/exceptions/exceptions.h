@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#ifndef MOVEIT_EXCEPTIONS_
-#define MOVEIT_EXCEPTIONS_
+#pragma once
 
 #include <stdexcept>
 
@@ -56,5 +55,3 @@ public:
   explicit Exception(const std::string& what_arg);
 };
 }
-
-#endif

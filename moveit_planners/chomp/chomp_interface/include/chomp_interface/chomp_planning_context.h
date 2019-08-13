@@ -34,8 +34,7 @@
 
 /* Author: Chittaranjan Srinivas Swaminathan */
 
-#ifndef CHOMP_INTERFACE_CHOMP_PLANNING_CONTEXT_H
-#define CHOMP_INTERFACE_CHOMP_PLANNING_CONTEXT_H
+#pragma once
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <chomp_interface/chomp_interface.h>
@@ -65,5 +64,3 @@ private:
 };
 
 } /* namespace chomp_interface */
-
-#endif /* CHOMP_PLANNING_CONTEXT_H_ */

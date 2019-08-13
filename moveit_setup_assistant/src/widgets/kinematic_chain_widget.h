@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_KINEMATIC_CHAIN_WIDGET_
+#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -135,5 +134,3 @@ private:
   // ******************************************************************************************
 };
 }
-
-#endif

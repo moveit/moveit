@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_VISUALIZATION
-#define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_VISUALIZATION
+#pragma once
 
 #include <boost/thread/mutex.hpp>
 #include <moveit/macros/class_forward.h>
@@ -170,5 +169,3 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
-
-#endif

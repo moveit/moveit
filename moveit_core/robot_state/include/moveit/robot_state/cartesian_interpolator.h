@@ -36,8 +36,7 @@
 
 /* Author: Ioan Sucan, Mike Lautman */
 
-#ifndef MOVEIT_CORE_ROBOT_STATE_CARTESIAN_INTERPOLATOR_
-#define MOVEIT_CORE_ROBOT_STATE_CARTESIAN_INTERPOLATOR_
+#pragma once
 
 #include <moveit/robot_state/robot_state.h>
 
@@ -215,5 +214,3 @@ public:
 
 }  // end of namespace core
 }  // end of namespace moveit
-
-#endif

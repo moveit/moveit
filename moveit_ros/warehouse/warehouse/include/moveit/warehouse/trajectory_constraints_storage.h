@@ -34,8 +34,7 @@
 
 /* Author: Mario Prats, Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_TRAJECTORY_CONSTRAINTS_STORAGE_
-#define MOVEIT_MOVEIT_WAREHOUSE_TRAJECTORY_CONSTRAINTS_STORAGE_
+#pragma once
 
 #include "moveit/warehouse/moveit_message_storage.h"
 #include <moveit/macros/class_forward.h>
@@ -87,5 +86,3 @@ private:
   TrajectoryConstraintsCollection constraints_collection_;
 };
 }
-
-#endif

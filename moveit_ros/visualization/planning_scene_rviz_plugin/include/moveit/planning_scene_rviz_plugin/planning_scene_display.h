@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_SCENE_DISPLAY_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_SCENE_DISPLAY_
+#pragma once
 
 #include <rviz/display.h>
 
@@ -213,5 +212,3 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_COMMON_
+#pragma once
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
@@ -298,5 +297,3 @@ inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
   cs.cost = fcs.cost_density;
 }
 }
-
-#endif

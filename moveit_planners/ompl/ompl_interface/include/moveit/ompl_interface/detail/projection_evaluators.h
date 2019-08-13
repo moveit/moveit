@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_PROJECTION_EVALUATORS_
+#pragma once
 
 #include <ompl/config.h>
 #include <ompl/base/ProjectionEvaluator.h>
@@ -83,5 +82,3 @@ private:
   std::vector<unsigned int> variables_;
 };
 }
-
-#endif

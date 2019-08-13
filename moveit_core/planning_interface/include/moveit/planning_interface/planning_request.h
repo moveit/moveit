@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_REQUEST_
-#define MOVEIT_PLANNING_INTERFACE_PLANNING_REQUEST_
+#pragma once
 
 #include <moveit_msgs/MotionPlanRequest.h>
 
@@ -46,5 +45,3 @@ namespace planning_interface
 typedef moveit_msgs::MotionPlanRequest MotionPlanRequest;
 
 }  // planning_interface
-
-#endif

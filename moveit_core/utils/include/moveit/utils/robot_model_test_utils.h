@@ -35,8 +35,7 @@
 /* Author: Bryce Willey */
 /** \brief convenience functions and classes used for making simple robot models for testing. */
 
-#ifndef MOVEIT_CORE_UTILS_TEST_
-#define MOVEIT_CORE_UTILS_TEST_
+#pragma once
 
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
@@ -196,5 +195,3 @@ private:
 };
 }
 }
-
-#endif

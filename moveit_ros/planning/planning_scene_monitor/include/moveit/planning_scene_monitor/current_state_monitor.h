@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_SCENE_MONITOR_CURRENT_STATE_MONITOR_
-#define MOVEIT_PLANNING_SCENE_MONITOR_CURRENT_STATE_MONITOR_
+#pragma once
 
 #include <ros/ros.h>
 #include <tf2_ros/buffer.h>
@@ -213,5 +212,3 @@ private:
 
 MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
 }
-
-#endif

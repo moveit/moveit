@@ -39,8 +39,7 @@
 
 // Server node for arm jogging with MoveIt.
 
-#ifndef JOG_ARM_JOG_ROS_INTERFACE_H
-#define JOG_ARM_JOG_ROS_INTERFACE_H
+#pragma once
 
 #include <Eigen/Eigenvalues>
 #include <jog_arm/collision_check_thread.h>
@@ -87,5 +86,3 @@ private:
   JogArmParameters ros_parameters_;
 };
 }  // namespace jog_arm
-
-#endif  // JOG_ARM_JOG_ROS_INTERFACE_H

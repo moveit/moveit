@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
-#define MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
+#pragma once
 
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <geometry_msgs/PointStamped.h>
@@ -216,4 +215,3 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
  */
 bool resolveConstraintFrames(const robot_state::RobotState& state, moveit_msgs::Constraints& constraints);
 }
-#endif

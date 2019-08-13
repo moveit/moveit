@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MACROS_CLASS_FORWARD_
-#define MOVEIT_MACROS_CLASS_FORWARD_
+#pragma once
 
 #include <moveit/macros/declare_ptr.h>
 
@@ -58,5 +57,3 @@
 #define MOVEIT_STRUCT_FORWARD(C)                                                                                       \
   struct C;                                                                                                            \
   MOVEIT_DECLARE_PTR(C, C);
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_ALLVALID_COLLISION_WORLD_ALLVALID_
-#define MOVEIT_COLLISION_DETECTION_ALLVALID_COLLISION_WORLD_ALLVALID_
+#pragma once
 
 #include <moveit/collision_detection/collision_world.h>
 
@@ -75,5 +74,3 @@ public:
   void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const override;
 };
 }
-
-#endif

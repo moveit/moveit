@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PLANNING_GROUPS_WIDGET_
+#pragma once
 
 // Qt
 class QPushButton;
@@ -232,5 +231,3 @@ public:
 };
 
 Q_DECLARE_METATYPE(PlanGroupType);
-
-#endif

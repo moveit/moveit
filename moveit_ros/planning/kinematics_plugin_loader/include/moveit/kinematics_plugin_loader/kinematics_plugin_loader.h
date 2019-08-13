@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#ifndef MOVEIT_KINEMATICS_PLUGIN_LOADER_
-#define MOVEIT_KINEMATICS_PLUGIN_LOADER_
+#pragma once
 
 #include <boost/function.hpp>
 #include <moveit/macros/class_forward.h>
@@ -115,5 +114,3 @@ private:
   double default_solver_timeout_;
 };
 }
-
-#endif

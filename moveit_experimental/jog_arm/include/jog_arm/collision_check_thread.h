@@ -37,8 +37,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_COLLISION_CHECK_THREAD_H
-#define JOG_ARM_COLLISION_CHECK_THREAD_H
+#pragma once
 
 #include <jog_arm/jog_arm_data.h>
 #include <jog_arm/low_pass_filter.h>
@@ -54,5 +53,3 @@ public:
                        pthread_mutex_t& mutex, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 };
 }
-
-#endif  // JOG_ARM_COLLISION_CHECK_THREAD_H

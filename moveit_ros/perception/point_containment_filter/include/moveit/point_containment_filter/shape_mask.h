@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_POINT_CONTAINMENT_FILTER_SELF_MASK_
-#define MOVEIT_POINT_CONTAINMENT_FILTER_SELF_MASK_
+#pragma once
 
 #include <sensor_msgs/PointCloud2.h>
 #include <geometric_shapes/bodies.h>
@@ -129,5 +128,3 @@ private:
   std::vector<bodies::BoundingSphere> bspheres_;
 };
 }
-
-#endif

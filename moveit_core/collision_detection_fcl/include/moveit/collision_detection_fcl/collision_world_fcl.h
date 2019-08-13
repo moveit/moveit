@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_WORLD_FCL_
+#pragma once
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 #include <moveit/collision_detection_fcl/fcl_compat.h>
@@ -97,5 +96,3 @@ private:
   World::ObserverHandle observer_handle_;
 };
 }
-
-#endif

@@ -36,8 +36,7 @@
 
 // This file is a slightly modified version of <ompl/datastructures/GreedyKCenters.h>
 
-#ifndef MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_GREEDY_K_CENTERS_
-#define MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_GREEDY_K_CENTERS_
+#pragma once
 
 #include <functional>
 #include <random>
@@ -129,5 +128,3 @@ protected:
   std::mt19937 generator_{ std::random_device{}() };
 };
 }
-
-#endif

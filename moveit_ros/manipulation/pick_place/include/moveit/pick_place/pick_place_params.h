@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_PICK_PLACE_PARAMS_
-#define MOVEIT_PICK_PLACE_PICK_PLACE_PARAMS_
+#pragma once
 
 namespace pick_place
 {
@@ -52,5 +51,3 @@ struct PickPlaceParams
 // Get access to a global variable that contains the pick & place params.
 const PickPlaceParams& GetGlobalPickPlaceParams();
 }
-
-#endif

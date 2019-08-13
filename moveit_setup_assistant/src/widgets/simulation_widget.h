@@ -33,8 +33,7 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_SIMULATION_WIDGET_H
+#pragma once
 
 // Qt
 #include <QScrollArea>
@@ -93,5 +92,3 @@ private:
 };
 
 }  // namespace moveit_setup_assistant
-
-#endif

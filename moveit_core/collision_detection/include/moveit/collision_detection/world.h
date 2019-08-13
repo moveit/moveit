@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Acorn Pooley, Sachin Chitta */
 
-#ifndef MOVEIT_COLLISION_DETECTION_WORLD_
-#define MOVEIT_COLLISION_DETECTION_WORLD_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 
@@ -300,5 +299,3 @@ private:
   std::vector<Observer*> observers_;
 };
 }
-
-#endif

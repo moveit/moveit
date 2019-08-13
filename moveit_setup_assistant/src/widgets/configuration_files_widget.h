@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONFIGURATION_FILES_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONFIGURATION_FILES_WIDGET_
+#pragma once
 
 #include <QWidget>
 #include <QPushButton>
@@ -205,5 +204,3 @@ private:
 };
 
 }  // namespace moveit_setup_assistant
-
-#endif

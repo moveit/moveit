@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_JOINT_SPACE_JOINT_MODEL_STATE_SPACE_
+#pragma once
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 
@@ -49,5 +48,3 @@ public:
   JointModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
 };
 }
-
-#endif

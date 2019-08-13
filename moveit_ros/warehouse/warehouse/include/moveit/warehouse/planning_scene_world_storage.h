@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_PLANNING_SCENE_WORLD_STORAGE_
-#define MOVEIT_MOVEIT_WAREHOUSE_PLANNING_SCENE_WORLD_STORAGE_
+#pragma once
 
 #include <moveit/warehouse/moveit_message_storage.h>
 #include <moveit_msgs/PlanningSceneWorld.h>
@@ -73,5 +72,3 @@ private:
   PlanningSceneWorldCollection planning_scene_world_collection_;
 };
 }
-
-#endif

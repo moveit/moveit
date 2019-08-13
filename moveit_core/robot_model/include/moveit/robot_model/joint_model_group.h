@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_GROUP_
-#define MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_GROUP_
+#pragma once
 
 #include <moveit/robot_model/joint_model.h>
 #include <moveit/robot_model/link_model.h>
@@ -745,5 +744,3 @@ protected:
 };
 }
 }
-
-#endif

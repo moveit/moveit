@@ -34,8 +34,7 @@
 
 /* Author: Martin Pecka */
 
-#ifndef MOVEIT_ROBOT_MODEL_AABB_H
-#define MOVEIT_ROBOT_MODEL_AABB_H
+#pragma once
 
 #include <Eigen/Geometry>
 
@@ -52,5 +51,3 @@ public:
 };
 }
 }
-
-#endif  // MOVEIT_ROBOT_MODEL_AABB_H

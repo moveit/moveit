@@ -34,8 +34,7 @@
 
 /* Author: Adam Leeper */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_OCTOMAP_FILTER_
+#pragma once
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_world.h>
@@ -62,5 +61,3 @@ int refineContactNormals(const World::ObjectConstPtr& object, CollisionResult& r
                          double cell_bbx_search_distance = 1.0, double allowed_angle_divergence = 0.0,
                          bool estimate_depth = false, double iso_value = 0.5, double metaball_radius_multiple = 1.5);
 }
-
-#endif

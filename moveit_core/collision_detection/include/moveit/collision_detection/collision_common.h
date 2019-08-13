@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_COMMON_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_COMMON_
+#pragma once
 
 #include <boost/array.hpp>
 #include <boost/function.hpp>
@@ -382,5 +381,3 @@ struct DistanceResult
   }
 };
 }
-
-#endif

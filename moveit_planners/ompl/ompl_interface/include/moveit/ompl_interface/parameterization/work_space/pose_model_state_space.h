@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_WORK_SPACE_POSE_MODEL_STATE_SPACE_
+#pragma once
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
@@ -136,5 +135,3 @@ private:
   double jump_factor_;
 };
 }
-
-#endif

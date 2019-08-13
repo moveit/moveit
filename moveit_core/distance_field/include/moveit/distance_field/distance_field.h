@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
-#ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
-#define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
@@ -627,5 +626,3 @@ protected:
 };
 
 }  // namespace distance_field
-
-#endif  // MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H

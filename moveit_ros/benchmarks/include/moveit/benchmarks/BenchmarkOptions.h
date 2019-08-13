@@ -34,8 +34,7 @@
 
 /* Author: Ryan Luna */
 
-#ifndef MOVEIT_ROS_BENCHMARK_BENCHMARK_OPTIONS_
-#define MOVEIT_ROS_BENCHMARK_BENCHMARK_OPTIONS_
+#pragma once
 
 #include <string>
 #include <map>
@@ -109,5 +108,3 @@ protected:
   moveit_msgs::WorkspaceParameters workspace_;
 };
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_ASSISTANT_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_ASSISTANT_WIDGET_
+#pragma once
 
 // Qt
 #include <QWidget>
@@ -237,5 +236,3 @@ private:
   // ******************************************************************************************
 };
 }
-
-#endif

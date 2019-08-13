@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_DEFAULT_COLLISIONS_WIDGET__
+#pragma once
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -257,5 +256,3 @@ private:
   bool canceled_;
 };
 }
-
-#endif

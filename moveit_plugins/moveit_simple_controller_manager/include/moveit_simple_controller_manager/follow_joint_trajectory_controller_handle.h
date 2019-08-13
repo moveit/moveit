@@ -35,8 +35,7 @@
 
 /* Author: Michael Ferguson, Ioan Sucan, E. Gil Jones */
 
-#ifndef MOVEIT_PLUGINS_FOLLOW_TRAJECTORY_CONTROLLER_HANDLE
-#define MOVEIT_PLUGINS_FOLLOW_TRAJECTORY_CONTROLLER_HANDLE
+#pragma once
 
 #include <moveit_simple_controller_manager/action_based_controller_handle.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -77,5 +76,3 @@ protected:
 };
 
 }  // end namespace moveit_simple_controller_manager
-
-#endif  // MOVEIT_PLUGINS_FOLLOW_TRAJECTORY_CONTROLLER_HANDLE

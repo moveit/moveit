@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Acorn Pooley, Adam Leeper */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_INTERACTIVE_MARKER_HELPERS_
-#define MOVEIT_ROBOT_INTERACTION_INTERACTIVE_MARKER_HELPERS_
+#pragma once
 
 #include <visualization_msgs/InteractiveMarker.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -69,5 +68,3 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
 void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius,
                          const std_msgs::ColorRGBA& color, bool position = true, bool orientation = true);
 }
-
-#endif

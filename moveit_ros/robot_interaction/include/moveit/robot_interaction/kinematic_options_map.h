@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_KINEMATIC_OPTIONS_MAP_
-#define MOVEIT_ROBOT_INTERACTION_KINEMATIC_OPTIONS_MAP_
+#pragma once
 
 #include <moveit/robot_interaction/kinematic_options.h>
 #include <boost/thread.hpp>
@@ -104,5 +103,3 @@ private:
   M_options options_;
 };
 }
-
-#endif

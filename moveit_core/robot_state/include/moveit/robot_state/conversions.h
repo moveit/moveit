@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#ifndef MOVEIT_ROBOT_STATE_CONVERSIONS_
-#define MOVEIT_ROBOT_STATE_CONVERSIONS_
+#pragma once
 
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
@@ -143,5 +142,3 @@ void robotStateToStream(const RobotState& state, std::ostream& out,
 void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator = ",");
 }
 }
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Mathias Lüdtke */
 
-#ifndef MOVEIT_ROS_CONTROL_INTERFACE_CONTROLLER_HANDLE_H
-#define MOVEIT_ROS_CONTROL_INTERFACE_CONTROLLER_HANDLE_H
+#pragma once
 
 #include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
@@ -58,5 +57,3 @@ public:
 };
 
 }  // namespace moveit_ros_control_interface
-
-#endif  // MOVEIT_ROS_CONTROL_INTERFACE_CONTROLLER_HANDLE_H

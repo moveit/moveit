@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
-#define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
@@ -75,5 +74,3 @@ protected:
   std::string type_;
 };
 }
-
-#endif

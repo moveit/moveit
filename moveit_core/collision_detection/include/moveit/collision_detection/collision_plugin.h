@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_PLUGIN_H
-#define MOVEIT_COLLISION_DETECTION_COLLISION_PLUGIN_H
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/collision_detection/collision_robot.h>
@@ -94,5 +93,3 @@ public:
 };
 
 }  // namespace collision_detection
-
-#endif  // MOVEIT_COLLISION_DETECTION_COLLISION_PLUGIN_H

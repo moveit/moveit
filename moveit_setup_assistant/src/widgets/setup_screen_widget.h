@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#pragma once
 
 #include <QWidget>
 
@@ -75,5 +74,3 @@ Q_SIGNALS:
   /// Event for telling rviz to unhighlight all links of the robot
   void unhighlightAll();
 };
-
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Jon Binney */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_
-#define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_
+#pragma once
 
 #include <octomap/octomap.h>
 #include <boost/thread/shared_mutex.hpp>
@@ -116,5 +115,3 @@ private:
 typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
 typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
 }
-
-#endif

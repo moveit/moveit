@@ -34,8 +34,7 @@
 
 /** \author E. Gil Jones */
 
-#ifndef COLLISION_DISTANCE_FIELD_HELPERS_H_
-#define COLLISION_DISTANCE_FIELD_HELPERS_H_
+#pragma once
 
 #include <ros/ros.h>
 #include <planning_models/robot_model.h>
@@ -126,4 +125,3 @@ static inline bool loadLinkBodySphereDecompositions(
   return true;
 }
 }
-#endif

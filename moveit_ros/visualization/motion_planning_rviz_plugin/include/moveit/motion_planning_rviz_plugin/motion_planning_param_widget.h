@@ -34,8 +34,7 @@
 
 /* Author: Robert Haschke */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_PARAM_WIDGET_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_PARAM_WIDGET_
+#pragma once
 
 #include <rviz/properties/property_tree_widget.h>
 #include <moveit/macros/class_forward.h>
@@ -77,5 +76,3 @@ private:
   std::string planner_id_;
 };
 }
-
-#endif

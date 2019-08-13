@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
-#define MOVEIT_PLANNING_SCENE_MONITOR_PLANNING_SCENE_MONITOR_
+#pragma once
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
@@ -702,5 +701,3 @@ public:
   }
 };
 }
-
-#endif

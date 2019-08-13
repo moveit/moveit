@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan, Acorn Pooley */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_LOCKED_ROBOT_STATE_
-#define MOVEIT_ROBOT_INTERACTION_LOCKED_ROBOT_STATE_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
@@ -109,5 +108,3 @@ private:
   robot_state::RobotStatePtr state_;
 };
 }
-
-#endif

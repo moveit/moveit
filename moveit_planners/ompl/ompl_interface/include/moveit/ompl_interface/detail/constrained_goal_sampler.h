@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_GOAL_SAMPLER_
+#pragma once
 
 #include <ompl/base/goals/GoalLazySamples.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
@@ -73,5 +72,3 @@ private:
   unsigned int verbose_display_;
 };
 }
-
-#endif

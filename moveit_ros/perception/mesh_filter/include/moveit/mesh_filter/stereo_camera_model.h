@@ -34,8 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#ifndef MOVEIT_MESH_FILTER_STEREO_CAMERA_MODEL_
-#define MOVEIT_MESH_FILTER_STEREO_CAMERA_MODEL_
+#pragma once
 
 #include <moveit/mesh_filter/sensor_model.h>
 #include <string>
@@ -164,4 +163,3 @@ public:
   static const std::string FILTER_FRAGMENT_SHADER_SOURCE;
 };
 }  // namespace mesh_filter
-#endif

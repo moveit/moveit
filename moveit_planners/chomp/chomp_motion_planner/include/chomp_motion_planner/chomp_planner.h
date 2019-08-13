@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef _CHOMP_PLANNER_H_
-#define _CHOMP_PLANNER_H_
+#pragma once
 
 #include <chomp_motion_planner/chomp_parameters.h>
 #include <moveit/planning_interface/planning_request.h>
@@ -55,5 +54,3 @@ public:
              planning_interface::MotionPlanDetailedResponse& res) const;
 };
 }
-
-#endif

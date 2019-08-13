@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef TEST_MOVEIT_CONTROLLER_MANAGER_
-#define TEST_MOVEIT_CONTROLLER_MANAGER_
+#pragma once
 
 #include <moveit/controller_manager/controller_manager.h>
 
@@ -160,4 +159,3 @@ protected:
   std::map<std::string, std::vector<std::string> > controller_joints_;
 };
 }
-#endif

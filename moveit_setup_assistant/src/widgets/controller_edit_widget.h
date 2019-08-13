@@ -33,8 +33,7 @@
 
 /* Author: Mohamad Ayman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_H
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_CONTROLLER_EDIT_WIDGET_H
+#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -142,5 +141,3 @@ private:
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 };
 }
-
-#endif

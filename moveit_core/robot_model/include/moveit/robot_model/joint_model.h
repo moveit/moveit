@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_
-#define MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -521,5 +520,3 @@ protected:
 std::ostream& operator<<(std::ostream& out, const VariableBounds& b);
 }
 }
-
-#endif

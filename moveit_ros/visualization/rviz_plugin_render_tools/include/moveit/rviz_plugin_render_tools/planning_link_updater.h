@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
-#define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_PLANNING_LINK_UPDATER_
+#pragma once
 
 #include <rviz/robot/link_updater.h>
 #include <moveit/robot_state/robot_state.h>
@@ -58,5 +57,3 @@ private:
   robot_state::RobotStateConstPtr kinematic_state_;
 };
 }
-
-#endif

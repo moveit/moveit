@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
-#define MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
@@ -146,5 +145,3 @@ private:
 };
 }
 }
-
-#endif

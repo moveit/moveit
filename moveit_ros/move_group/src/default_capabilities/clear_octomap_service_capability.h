@@ -34,8 +34,7 @@
 
 /* Author: David Hershberger */
 
-#ifndef MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
-#define MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
+#pragma once
 
 #include <moveit/move_group/move_group_capability.h>
 #include <std_srvs/Empty.h>
@@ -55,5 +54,3 @@ private:
   ros::ServiceServer service_;
 };
 }
-
-#endif  // MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_

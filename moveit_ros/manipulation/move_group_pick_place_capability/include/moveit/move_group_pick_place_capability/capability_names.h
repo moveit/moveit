@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_PICK_PLACE_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_PICK_PLACE_CAPABILITY_NAMES
+#pragma once
 
 #include <string>
 
@@ -44,5 +43,3 @@ namespace move_group
 static const std::string PICKUP_ACTION = "pickup";  // name of 'pickup' action
 static const std::string PLACE_ACTION = "place";    // name of 'place' action
 }
-
-#endif
