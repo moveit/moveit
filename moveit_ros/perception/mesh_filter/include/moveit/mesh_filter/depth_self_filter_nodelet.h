@@ -131,4 +131,3 @@ private:
 };
 
 }  // namespace mesh_filter
-

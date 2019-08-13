@@ -231,4 +231,3 @@ public:
 };
 
 Q_DECLARE_METATYPE(PlanGroupType);
-

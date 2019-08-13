@@ -70,4 +70,3 @@ private:
   bool preempt_requested_;
 };
 }
-

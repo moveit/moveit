@@ -67,4 +67,3 @@ double toDouble(const std::string& s);
 float toFloat(const std::string& s);
 }
 }
-

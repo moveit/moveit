@@ -67,4 +67,3 @@ protected:
   // SBPLPlanner *planner_;
 };
 }
-

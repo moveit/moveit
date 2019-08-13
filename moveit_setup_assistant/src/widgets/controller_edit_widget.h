@@ -141,4 +141,3 @@ private:
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 };
 }
-

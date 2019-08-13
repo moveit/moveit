@@ -76,4 +76,3 @@ protected:
   PlanningStatistics last_planning_statistics_;
 };
 }
-

@@ -100,4 +100,3 @@ private:
   std::vector<int> mask_;
 };
 }
-

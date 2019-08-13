@@ -96,4 +96,3 @@ protected:
   CollisionRobotDistanceFieldPtr crobot_distance_;
 };
 }
-

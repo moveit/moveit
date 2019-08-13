@@ -174,4 +174,3 @@ struct JointInteraction
   double size;
 };
 }
-

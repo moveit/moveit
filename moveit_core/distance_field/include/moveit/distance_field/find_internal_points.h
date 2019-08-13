@@ -53,4 +53,3 @@ namespace distance_field
  */
 void findInternalPointsConvex(const bodies::Body& body, double resolution, EigenSTL::vector_Vector3d& points);
 }
-

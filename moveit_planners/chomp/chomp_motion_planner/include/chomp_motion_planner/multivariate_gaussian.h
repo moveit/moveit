@@ -92,4 +92,3 @@ void MultivariateGaussian::sample(Eigen::MatrixBase<Derived>& output)
   output = mean_ + covariance_cholesky_ * output;
 }
 }
-

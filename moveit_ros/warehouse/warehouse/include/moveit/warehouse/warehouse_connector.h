@@ -54,4 +54,3 @@ private:
   int child_pid_;
 };
 }
-

@@ -299,4 +299,3 @@ private:
   std::vector<Observer*> observers_;
 };
 }
-

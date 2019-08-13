@@ -364,4 +364,3 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
     ROS_DEBUG("Connected to '%s'", name.c_str());
 };
 }
-

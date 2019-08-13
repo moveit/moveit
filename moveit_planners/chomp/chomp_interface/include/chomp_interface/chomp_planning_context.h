@@ -64,4 +64,3 @@ private:
 };
 
 } /* namespace chomp_interface */
-

@@ -69,4 +69,3 @@ private:
   ompl::RNG rng_;
 };
 }
-

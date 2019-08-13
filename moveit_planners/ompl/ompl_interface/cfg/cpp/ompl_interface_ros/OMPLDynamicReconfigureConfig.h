@@ -531,4 +531,3 @@ inline const OMPLDynamicReconfigureConfigStatics* OMPLDynamicReconfigureConfig::
   return statics;
 }
 }
-

@@ -54,4 +54,3 @@ public:
              planning_interface::MotionPlanDetailedResponse& res) const;
 };
 }
-

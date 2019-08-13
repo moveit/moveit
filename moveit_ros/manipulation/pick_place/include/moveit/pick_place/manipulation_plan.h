@@ -142,4 +142,3 @@ struct ManipulationPlan
   std::size_t id_;
 };
 }
-

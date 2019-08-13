@@ -56,4 +56,3 @@ private:
   bool display_computed_paths_;
 };
 }
-

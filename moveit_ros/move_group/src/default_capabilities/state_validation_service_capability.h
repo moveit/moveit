@@ -54,4 +54,3 @@ private:
   ros::ServiceServer validity_service_;
 };
 }
-

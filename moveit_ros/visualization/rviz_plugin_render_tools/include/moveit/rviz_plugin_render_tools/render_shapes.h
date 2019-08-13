@@ -78,4 +78,3 @@ private:
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
 }
-

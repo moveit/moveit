@@ -104,4 +104,3 @@ private:
   bool collision_visible_;
 };
 }
-

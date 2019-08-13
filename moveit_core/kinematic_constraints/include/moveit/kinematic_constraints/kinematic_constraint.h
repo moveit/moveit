@@ -1068,4 +1068,3 @@ protected:
   moveit_msgs::Constraints all_constraints_; /**<  \brief Messages corresponding to all internal constraints */
 };
 }
-

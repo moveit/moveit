@@ -84,4 +84,3 @@ private:
                      /// If false, move the 2nd and 2nd-last points.
 };
 }
-

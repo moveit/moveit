@@ -142,4 +142,3 @@ void robotStateToStream(const RobotState& state, std::ostream& out,
 void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator = ",");
 }
 }
-

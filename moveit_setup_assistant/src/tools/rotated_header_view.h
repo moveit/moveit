@@ -49,4 +49,3 @@ public:
   int sectionSizeHint(int logicalIndex) const;
 };
 }
-

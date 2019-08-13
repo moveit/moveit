@@ -76,4 +76,3 @@ public:
   int getDistance(int, int, int);
 };
 }
-

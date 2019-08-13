@@ -76,4 +76,3 @@ private:
   std::string planner_id_;
 };
 }
-

@@ -114,4 +114,3 @@ protected:
   CollisionWorldDistanceFieldPtr cworld_distance_;
 };
 }
-

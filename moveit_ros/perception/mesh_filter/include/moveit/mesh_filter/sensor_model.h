@@ -169,4 +169,3 @@ public:
   virtual ~SensorModel();
 };
 }  // namespace mesh_filter
-

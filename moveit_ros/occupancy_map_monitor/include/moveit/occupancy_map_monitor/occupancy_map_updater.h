@@ -111,4 +111,3 @@ protected:
   static void readXmlParam(XmlRpc::XmlRpcValue& params, const std::string& param_name, unsigned int* value);
 };
 }
-

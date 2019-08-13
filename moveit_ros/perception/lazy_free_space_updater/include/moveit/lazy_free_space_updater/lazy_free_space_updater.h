@@ -88,4 +88,3 @@ private:
   boost::thread process_thread_;
 };
 }
-

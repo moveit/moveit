@@ -658,4 +658,3 @@ private:
   std::string removeSlash(const std::string& str) const;
 };
 };
-

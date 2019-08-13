@@ -262,4 +262,3 @@ private:
   std::deque<double> duration_from_previous_;
 };
 }
-

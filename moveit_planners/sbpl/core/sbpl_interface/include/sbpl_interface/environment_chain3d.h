@@ -333,4 +333,3 @@ inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<doub
 // }
 
 }  // namespace
-

@@ -523,4 +523,3 @@ void getCollisionMarkers(const std::string& frame_id, const std::string& ns, con
                          const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                          const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr);
 }
-

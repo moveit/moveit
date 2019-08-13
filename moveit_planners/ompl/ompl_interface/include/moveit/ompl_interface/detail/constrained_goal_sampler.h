@@ -72,4 +72,3 @@ private:
   unsigned int verbose_display_;
 };
 }
-

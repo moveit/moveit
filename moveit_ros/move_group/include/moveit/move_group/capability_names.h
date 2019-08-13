@@ -63,4 +63,3 @@ static const std::string APPLY_PLANNING_SCENE_SERVICE_NAME =
 static const std::string CLEAR_OCTOMAP_SERVICE_NAME =
     "clear_octomap";  // name of the service that can be used to clear the octomap
 }
-

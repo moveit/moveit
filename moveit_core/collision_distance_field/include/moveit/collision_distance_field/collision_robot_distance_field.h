@@ -262,4 +262,3 @@ protected:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 }
-

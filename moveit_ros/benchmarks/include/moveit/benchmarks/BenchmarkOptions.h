@@ -108,4 +108,3 @@ protected:
   moveit_msgs::WorkspaceParameters workspace_;
 };
 }
-

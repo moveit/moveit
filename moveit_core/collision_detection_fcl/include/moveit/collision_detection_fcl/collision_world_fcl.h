@@ -96,4 +96,3 @@ private:
   World::ObserverHandle observer_handle_;
 };
 }
-

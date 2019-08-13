@@ -277,4 +277,3 @@ private:
   std::map<std::string, DecideContactFn> default_allowed_contacts_;
 };
 }
-

@@ -59,4 +59,3 @@ private:
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
 }
-

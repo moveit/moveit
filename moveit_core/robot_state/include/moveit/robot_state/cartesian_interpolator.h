@@ -214,4 +214,3 @@ public:
 
 }  // end of namespace core
 }  // end of namespace moveit
-

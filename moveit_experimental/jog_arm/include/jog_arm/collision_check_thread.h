@@ -53,4 +53,3 @@ public:
                        pthread_mutex_t& mutex, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 };
 }
-

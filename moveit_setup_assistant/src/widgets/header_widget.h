@@ -118,4 +118,3 @@ public:
   void setArgsEnabled(bool enabled = true);
 };
 }
-

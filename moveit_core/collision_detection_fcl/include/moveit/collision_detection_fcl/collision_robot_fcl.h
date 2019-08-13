@@ -95,4 +95,3 @@ protected:
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
 };
 }
-

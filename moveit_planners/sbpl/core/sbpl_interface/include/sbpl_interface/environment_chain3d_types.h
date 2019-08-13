@@ -317,4 +317,3 @@ protected:
   double delta_;
 };
 }
-

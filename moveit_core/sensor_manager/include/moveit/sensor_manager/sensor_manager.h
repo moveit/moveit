@@ -102,4 +102,3 @@ public:
                              moveit_msgs::RobotTrajectory& sensor_trajectory) = 0;
 };
 }
-

@@ -115,4 +115,3 @@ protected:
   DistanceFunction distFun_;
 };
 }
-

@@ -1002,4 +1002,3 @@ private:
 };
 }  // namespace planning_interface
 }  // namespace moveit
-

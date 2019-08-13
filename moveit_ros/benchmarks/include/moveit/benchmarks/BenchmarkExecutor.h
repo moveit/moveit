@@ -204,4 +204,3 @@ protected:
   std::vector<QueryCompletionEventFunction> query_end_fns_;
 };
 }
-

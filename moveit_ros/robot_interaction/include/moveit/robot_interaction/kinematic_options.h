@@ -88,4 +88,3 @@ struct KinematicOptions
   kinematics::KinematicsQueryOptions options_;
 };
 }
-

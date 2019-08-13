@@ -233,4 +233,3 @@ private:
   KinematicOptionsMapPtr kinematic_options_map_;
 };
 }
-

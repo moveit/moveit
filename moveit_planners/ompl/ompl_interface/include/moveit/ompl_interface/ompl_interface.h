@@ -192,4 +192,3 @@ private:
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
 };
 }
-

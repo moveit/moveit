@@ -43,4 +43,3 @@ namespace move_group
 static const std::string PICKUP_ACTION = "pickup";  // name of 'pickup' action
 static const std::string PLACE_ACTION = "place";    // name of 'place' action
 }
-

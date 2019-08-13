@@ -62,4 +62,3 @@ private:
   ros::ServiceServer ik_service_;
 };
 }
-

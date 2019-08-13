@@ -310,4 +310,3 @@ private:
   static std::string fixName(std::string name);
 };
 }
-

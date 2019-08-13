@@ -61,4 +61,3 @@ private:
   double jump_factor_;
 };
 }
-

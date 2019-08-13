@@ -208,4 +208,3 @@ public:
                                  const std::vector<std::string>& deactivate) = 0;
 };
 }
-

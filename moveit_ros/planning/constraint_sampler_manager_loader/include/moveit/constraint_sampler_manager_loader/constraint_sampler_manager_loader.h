@@ -61,4 +61,3 @@ private:
   HelperPtr impl_;
 };
 }
-

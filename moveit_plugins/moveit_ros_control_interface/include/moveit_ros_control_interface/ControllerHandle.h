@@ -57,4 +57,3 @@ public:
 };
 
 }  // namespace moveit_ros_control_interface
-

@@ -67,4 +67,3 @@ private:
 };
 
 }  // namespace collision_detection
-

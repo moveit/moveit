@@ -116,4 +116,3 @@ protected:
   bool stop_processing_;
 };
 }
-

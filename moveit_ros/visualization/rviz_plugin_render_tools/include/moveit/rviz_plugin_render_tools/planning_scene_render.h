@@ -87,4 +87,3 @@ private:
   RobotStateVisualizationPtr scene_robot_;
 };
 }
-

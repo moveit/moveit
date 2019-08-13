@@ -98,4 +98,3 @@ protected:
   MoveGroupContextPtr context_;
 };
 }
-

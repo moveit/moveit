@@ -54,4 +54,3 @@ private:
   ros::ServiceServer plan_service_;
 };
 }
-

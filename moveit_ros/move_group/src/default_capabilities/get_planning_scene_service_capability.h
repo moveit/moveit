@@ -55,4 +55,3 @@ private:
   ros::ServiceServer get_scene_service_;
 };
 }
-

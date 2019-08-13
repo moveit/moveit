@@ -86,4 +86,3 @@ private:
   JogArmParameters ros_parameters_;
 };
 }  // namespace jog_arm
-

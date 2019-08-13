@@ -67,4 +67,3 @@ struct MotionPlanDetailedResponse
 };
 
 }  // planning_interface
-

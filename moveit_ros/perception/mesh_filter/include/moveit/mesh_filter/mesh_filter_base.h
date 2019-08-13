@@ -293,4 +293,3 @@ protected:
   float shadow_threshold_;
 };
 }  // namespace mesh_filter
-

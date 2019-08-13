@@ -626,4 +626,3 @@ protected:
 };
 
 }  // namespace distance_field
-

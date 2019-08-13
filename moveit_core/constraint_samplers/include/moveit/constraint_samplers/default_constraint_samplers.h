@@ -525,4 +525,3 @@ protected:
   Eigen::Isometry3d eef_to_ik_tip_transform_; /**< \brief Holds the transformation from end effector to IK tip frame */
 };
 }
-

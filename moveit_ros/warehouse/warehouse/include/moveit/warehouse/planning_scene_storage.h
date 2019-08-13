@@ -119,4 +119,3 @@ private:
   RobotTrajectoryCollection robot_trajectory_collection_;
 };
 }
-

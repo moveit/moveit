@@ -103,4 +103,3 @@ private:
   M_options options_;
 };
 }
-

@@ -136,4 +136,3 @@ protected:
   uint num_joints_;
 };
 }  // namespace jog_arm
-

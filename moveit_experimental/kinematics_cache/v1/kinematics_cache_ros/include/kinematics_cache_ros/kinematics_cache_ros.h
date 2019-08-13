@@ -69,4 +69,3 @@ private:
   planning_models::RobotModelPtr kinematic_model_; /** A kinematics model */
 };
 }
-

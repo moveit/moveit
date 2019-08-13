@@ -82,4 +82,3 @@ private:
   std::vector<unsigned int> variables_;
 };
 }
-

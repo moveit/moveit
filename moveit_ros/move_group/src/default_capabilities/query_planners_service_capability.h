@@ -62,4 +62,3 @@ private:
   ros::ServiceServer set_service_;
 };
 }
-

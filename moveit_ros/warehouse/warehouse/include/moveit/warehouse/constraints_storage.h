@@ -83,4 +83,3 @@ private:
   ConstraintsCollection constraints_collection_;
 };
 }
-

@@ -72,4 +72,3 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
 
 }  // namespace planning interface
 }  // namespace moveit
-

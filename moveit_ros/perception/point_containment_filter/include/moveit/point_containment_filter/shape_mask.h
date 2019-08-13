@@ -128,4 +128,3 @@ private:
   std::vector<bodies::BoundingSphere> bspheres_;
 };
 }
-

@@ -173,4 +173,3 @@ private:
   const double resample_dt_;
 };
 }  // namespace trajectory_processing
-

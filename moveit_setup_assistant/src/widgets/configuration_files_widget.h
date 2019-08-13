@@ -204,4 +204,3 @@ private:
 };
 
 }  // namespace moveit_setup_assistant
-

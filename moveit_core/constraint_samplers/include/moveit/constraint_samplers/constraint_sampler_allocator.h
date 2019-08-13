@@ -61,4 +61,3 @@ public:
                           const moveit_msgs::Constraints& constr) const = 0;
 };
 }
-

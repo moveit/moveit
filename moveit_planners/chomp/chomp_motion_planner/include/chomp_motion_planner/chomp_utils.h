@@ -85,4 +85,3 @@ static inline double shortestAngularDistance(double start, double end)
 }
 
 }  // namespace chomp
-

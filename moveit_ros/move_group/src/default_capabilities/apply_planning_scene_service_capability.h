@@ -58,4 +58,3 @@ private:
   ros::ServiceServer service_;
 };
 }
-

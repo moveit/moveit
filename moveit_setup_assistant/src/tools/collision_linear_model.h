@@ -99,4 +99,3 @@ private:
   QVector<int> sort_columns_;  // sorting history
   QVector<int> sort_orders_;   // corresponding sort orders
 };
-

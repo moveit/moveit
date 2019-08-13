@@ -294,4 +294,3 @@ private:
 
 // Declare std::string as metatype so we can use it in a signal
 Q_DECLARE_METATYPE(std::string)
-

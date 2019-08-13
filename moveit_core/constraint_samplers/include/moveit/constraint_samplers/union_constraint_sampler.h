@@ -168,4 +168,3 @@ protected:
   std::vector<ConstraintSamplerPtr> samplers_; /**< \brief Holder for sorted internal list of samplers*/
 };
 }
-

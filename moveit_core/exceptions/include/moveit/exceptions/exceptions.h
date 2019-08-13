@@ -55,4 +55,3 @@ public:
   explicit Exception(const std::string& what_arg);
 };
 }
-

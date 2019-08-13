@@ -277,4 +277,3 @@ private:
   WorldConstPtr world_const_;  // always same as world_
 };
 }
-

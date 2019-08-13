@@ -78,4 +78,3 @@ private:
   QList<QString> q_names;                    // names of links
   QList<int> visual_to_index;                // map from visual index to actual index
 };
-

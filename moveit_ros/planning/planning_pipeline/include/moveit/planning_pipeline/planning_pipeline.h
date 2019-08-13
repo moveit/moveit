@@ -196,4 +196,3 @@ private:
 
 MOVEIT_CLASS_FORWARD(PlanningPipeline);
 }
-

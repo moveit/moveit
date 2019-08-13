@@ -114,4 +114,3 @@ private:
   double default_solver_timeout_;
 };
 }
-

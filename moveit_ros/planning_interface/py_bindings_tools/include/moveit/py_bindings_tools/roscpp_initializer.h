@@ -72,4 +72,3 @@ void roscpp_init();
 void roscpp_shutdown();
 }
 }
-

@@ -228,4 +228,3 @@ private:
   CachedContextsPtr cached_contexts_;
 };
 }
-

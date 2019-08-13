@@ -157,4 +157,3 @@ private:
   double penalty_multiplier_;
 };
 }
-

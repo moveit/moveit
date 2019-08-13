@@ -610,4 +610,3 @@ inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel
   return sqrt_table_[object.distance_square_] - sqrt_table_[object.negative_distance_square_];
 }
 }
-

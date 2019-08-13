@@ -51,4 +51,3 @@ public:
   static const std::string NAME;  // defined in collision_world_hybrid.cpp
 };
 }
-

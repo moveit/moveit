@@ -48,4 +48,3 @@ public:
   JointModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
 };
 }
-

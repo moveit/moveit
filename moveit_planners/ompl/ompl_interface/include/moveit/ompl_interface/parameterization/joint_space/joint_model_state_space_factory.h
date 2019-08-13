@@ -52,4 +52,3 @@ protected:
   ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const override;
 };
 }
-

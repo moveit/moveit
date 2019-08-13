@@ -51,4 +51,3 @@ struct PickPlaceParams
 // Get access to a global variable that contains the pick & place params.
 const PickPlaceParams& GetGlobalPickPlaceParams();
 }
-

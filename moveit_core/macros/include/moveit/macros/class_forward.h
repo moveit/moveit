@@ -57,4 +57,3 @@
 #define MOVEIT_STRUCT_FORWARD(C)                                                                                       \
   struct C;                                                                                                            \
   MOVEIT_DECLARE_PTR(C, C);
-

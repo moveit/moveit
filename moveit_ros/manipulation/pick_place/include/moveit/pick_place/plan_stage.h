@@ -57,4 +57,3 @@ private:
   planning_pipeline::PlanningPipelinePtr planning_pipeline_;
 };
 }
-

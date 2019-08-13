@@ -63,4 +63,3 @@ protected:
   chomp::ChompParameters params_;
 };
 }
-

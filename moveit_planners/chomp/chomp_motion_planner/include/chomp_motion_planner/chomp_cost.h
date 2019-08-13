@@ -96,4 +96,3 @@ inline double ChompCost::getCost(Eigen::MatrixXd::ColXpr joint_trajectory) const
 }
 
 }  // namespace chomp
-

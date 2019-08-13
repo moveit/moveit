@@ -57,4 +57,3 @@ private:
   robot_state::RobotStateConstPtr kinematic_state_;
 };
 }
-

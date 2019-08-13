@@ -307,4 +307,3 @@ inline double ChompTrajectory::getDuration() const
   return duration_;
 }
 }
-

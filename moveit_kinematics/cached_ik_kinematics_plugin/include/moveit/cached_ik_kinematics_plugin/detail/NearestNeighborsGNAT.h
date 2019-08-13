@@ -719,4 +719,3 @@ protected:
   std::unordered_set<const _T*> removed_;
 };
 }
-

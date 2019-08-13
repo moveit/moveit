@@ -74,4 +74,3 @@ Q_SIGNALS:
   /// Event for telling rviz to unhighlight all links of the robot
   void unhighlightAll();
 };
-

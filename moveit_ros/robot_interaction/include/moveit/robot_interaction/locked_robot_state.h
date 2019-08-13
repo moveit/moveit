@@ -108,4 +108,3 @@ private:
   robot_state::RobotStatePtr state_;
 };
 }
-

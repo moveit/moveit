@@ -69,4 +69,3 @@
   typedef std::shared_ptr<const Type> ConstPtr;                                                                        \
   typedef std::weak_ptr<Type> WeakPtr;                                                                                 \
   typedef std::weak_ptr<const Type> ConstWeakPtr;
-

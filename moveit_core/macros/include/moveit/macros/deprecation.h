@@ -46,4 +46,3 @@
 #else
 #define MOVEIT_DEPRECATED /* Nothing */
 #endif
-

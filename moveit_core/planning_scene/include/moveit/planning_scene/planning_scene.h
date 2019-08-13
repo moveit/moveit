@@ -1055,4 +1055,3 @@ private:
   std::unique_ptr<ObjectTypeMap> object_types_;
 };
 }
-

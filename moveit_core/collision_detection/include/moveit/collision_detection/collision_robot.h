@@ -308,4 +308,3 @@ protected:
   std::map<std::string, double> link_scale_;
 };
 }
-

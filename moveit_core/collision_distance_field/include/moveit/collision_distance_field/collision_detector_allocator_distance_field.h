@@ -51,4 +51,3 @@ public:
   static const std::string NAME;  // defined in collision_world_distance_field.cpp
 };
 }
-

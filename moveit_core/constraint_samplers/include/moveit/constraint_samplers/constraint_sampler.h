@@ -295,4 +295,3 @@ protected:
   bool verbose_;  ///< True if verbosity is on
 };
 }
-

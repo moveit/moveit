@@ -381,4 +381,3 @@ struct DistanceResult
   }
 };
 }
-

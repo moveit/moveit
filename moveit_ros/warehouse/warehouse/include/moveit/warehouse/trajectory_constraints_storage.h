@@ -86,4 +86,3 @@ private:
   TrajectoryConstraintsCollection constraints_collection_;
 };
 }
-

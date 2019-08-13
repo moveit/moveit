@@ -195,4 +195,3 @@ private:
   double orientation_vs_position_weight_;
 };
 }
-

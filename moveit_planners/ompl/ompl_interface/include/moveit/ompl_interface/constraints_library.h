@@ -199,4 +199,3 @@ private:
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;
 };
 }
-

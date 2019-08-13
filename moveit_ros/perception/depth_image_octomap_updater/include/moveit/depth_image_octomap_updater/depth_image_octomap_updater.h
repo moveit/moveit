@@ -106,4 +106,3 @@ private:
   ros::WallTime last_depth_callback_start_;
 };
 }
-

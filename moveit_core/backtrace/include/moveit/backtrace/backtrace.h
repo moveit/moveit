@@ -62,4 +62,3 @@ void get_backtrace(std::ostream& out)
 }
 #endif
 }
-

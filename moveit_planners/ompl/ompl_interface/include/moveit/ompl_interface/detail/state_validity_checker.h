@@ -88,4 +88,3 @@ protected:
   bool verbose_;
 };
 }
-

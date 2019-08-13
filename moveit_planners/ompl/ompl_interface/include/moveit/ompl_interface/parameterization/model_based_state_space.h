@@ -269,4 +269,3 @@ protected:
   double tag_snap_to_segment_complement_;
 };
 }  // namespace ompl_interface
-

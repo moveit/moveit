@@ -97,4 +97,3 @@ public:
 };
 
 }  // namespace chomp
-

@@ -376,4 +376,3 @@ protected:
   bool simplify_solutions_;
 };
 }  // namespace ompl_interface
-

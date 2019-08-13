@@ -361,4 +361,3 @@ private:
   bool wait_for_trajectory_completion_;
 };
 }
-

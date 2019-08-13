@@ -76,4 +76,3 @@ protected:
 };
 
 }  // end namespace moveit_simple_controller_manager
-

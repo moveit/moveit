@@ -223,4 +223,3 @@ private:
   bool isCurrentTrajectoryMeshToMeshCollisionFree() const;
 };
 }
-

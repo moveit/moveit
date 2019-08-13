@@ -133,4 +133,3 @@ private:
   std::vector<PlanningRequestAdapterConstPtr> adapters_;
 };
 }
-

@@ -72,4 +72,3 @@ private:
   PlanningSceneWorldCollection planning_scene_world_collection_;
 };
 }
-

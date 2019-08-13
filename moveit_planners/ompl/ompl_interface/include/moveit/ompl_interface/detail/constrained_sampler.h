@@ -77,4 +77,3 @@ private:
   double inv_dim_;
 };
 }
-

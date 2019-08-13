@@ -74,4 +74,3 @@ protected:
   std::string type_;
 };
 }
-

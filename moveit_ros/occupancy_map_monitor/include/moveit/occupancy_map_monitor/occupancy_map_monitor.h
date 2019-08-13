@@ -159,4 +159,3 @@ private:
   bool active_;
 };
 }
-

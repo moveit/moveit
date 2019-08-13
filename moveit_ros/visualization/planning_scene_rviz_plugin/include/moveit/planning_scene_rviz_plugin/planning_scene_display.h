@@ -212,4 +212,3 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
-

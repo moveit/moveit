@@ -106,4 +106,3 @@ private:
   TrajectoryStateAddedCallback state_add_callback_;
 };
 }
-

@@ -70,4 +70,3 @@ void deserializeMsg(const std::string& data, T& msg)
 }
 }
 }
-

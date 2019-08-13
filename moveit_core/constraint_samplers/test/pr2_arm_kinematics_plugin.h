@@ -260,4 +260,3 @@ protected:
                              moveit_msgs::MoveItErrorCodes& error_code) const;
 };
 }
-
