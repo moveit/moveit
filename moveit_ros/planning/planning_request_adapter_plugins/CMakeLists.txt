@@ -19,6 +19,10 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_executable(moveit_list_request_adapter_plugins src/list.cpp)
 target_link_libraries(moveit_list_request_adapter_plugins ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ${MOVEIT_LIB_NAME} moveit_list_request_adapter_plugins
+install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
+install(TARGETS moveit_list_request_adapter_plugins
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
