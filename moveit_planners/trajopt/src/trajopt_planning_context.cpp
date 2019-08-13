@@ -65,7 +65,8 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 
 bool TrajOptPlanningContext::terminate()
 {
-  return true;
+  ROS_ERROR_STREAM_NAMED("trajopt_planning_context", "terminate() is not implemented");
+  return false;
 }
 void TrajOptPlanningContext::clear()
 {

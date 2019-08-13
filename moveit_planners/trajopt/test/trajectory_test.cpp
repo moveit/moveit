@@ -26,7 +26,8 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/robot_state.h>
 
-#include "trajopt_interface/problem_description.h"
+#include <trajopt_interface/problem_description.h>
+#include <trajopt_interface/kinematic_terms.h>
 
 class TrajectoryTest : public ::testing::Test
 {
@@ -52,6 +53,27 @@ TEST_F(TrajectoryTest, GenerateInitialTrajectoryDimensions)
 
   EXPECT_EQ(init_traj.cols(), joint_values.size());
   EXPECT_EQ(init_traj.rows(), pci.basic_info.n_steps);
+}
+
+TEST_F(TrajectoryTest, concatVectorValidation)
+{
+  std::vector<double> vec_a = {1, 2, 3, 4, 5};
+  std::vector<double> vec_b = {6, 7, 8, 9, 10};
+  std::vector<double> vec_c = trajopt_interface::concatVector(vec_a, vec_b);
+  EXPECT_EQ(vec_c.size(), vec_a.size() + vec_b.size());
+
+  size_t length_ab = vec_a.size() + vec_b.size();
+  for(size_t index = 0; index < length_ab ; ++index)
+    {
+      if (index < vec_a.size())
+        {
+          EXPECT_EQ(vec_c[index],  vec_a[index]);
+        }else
+        {
+          EXPECT_EQ(vec_c[index],  vec_b[index - vec_a.size()]);
+        }
+
+    }
 }
 
 int main(int argc, char** argv)

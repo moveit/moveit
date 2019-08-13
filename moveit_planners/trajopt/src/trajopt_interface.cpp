@@ -60,11 +60,11 @@ namespace trajopt_interface
 {
 TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
-  prob_ = TrajOptProblemPtr(new TrajOptProblem);
+  trajopt_problem_ = TrajOptProblemPtr(new TrajOptProblem);
   setDefaultTrajOPtParams();
 
   // TODO: callbacks should be defined by the user
-  callbacks_.push_back(callBackFunc);
+  optimizer_callbacks_.push_back(callBackFunc);
 }
 
 bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -76,22 +76,8 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   if (!planning_scene)
   {
-    ROS_ERROR_STREAM_NAMED("trajopt_planner", "No planning scene initialized.");
+    ROS_ERROR_STREAM_NAMED(name_, "No planning scene initialized.");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-    return false;
-  }
-
-  if (req.start_state.joint_state.position.empty())
-  {
-    ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state position is empty");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
-    return false;
-  }
-
-  if (req.start_state.joint_state.name.empty())
-  {
-    ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start_state name is empty");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
 
@@ -101,31 +87,26 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   *current_state = planning_scene->getCurrentState();
   const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
-  std::vector<std::string> joint_names = joint_model_group->getVariableNames();
-  int dof = joint_names.size();
+  std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
+  int dof = group_joint_names.size();
   std::vector<double> current_joint_values;
   current_state->copyJointGroupPositions(joint_model_group, current_joint_values);
 
-  // current state is different from star state in general
-  ROS_INFO(" ======================================= Extract start stae infromation");
-  std::unordered_map<std::string, double> all_joints;
-  trajopt::DblVec joint_start_constraints;
+  // Current state is different from star state in general
+  ROS_INFO(" ======================================= Extract start state infromation");
+  trajopt::DblVec start_joint_values = extractStartJointValues(req, group_joint_names);
 
-  for (int joint_index = 0; joint_index < req.start_state.joint_state.position.size(); ++joint_index)
+  // check the start state for being empty or joint limit violiation
+  if (start_joint_values.empty())
   {
-    all_joints[req.start_state.joint_state.name[joint_index]] = req.start_state.joint_state.position[joint_index];
+    ROS_ERROR_STREAM_NAMED(name_, "Start_state is empty");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+    return false;
   }
 
-  for (auto joint_name : joint_names)
+  if (not joint_model_group->satisfiesPositionBounds(start_joint_values.data()))
   {
-    ROS_INFO(" joint position from start state, name: %s, value: %f", joint_name.c_str(), all_joints[joint_name]);
-    joint_start_constraints.push_back(all_joints[joint_name]);
-  }
-
-  // check the joint limit violiation for star state
-  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(joint_start_constraints.data()))
-  {
-    ROS_ERROR_STREAM_NAMED("trajopt_planner", "Start state violates joint limits");
+    ROS_ERROR_STREAM_NAMED(name_, "Start state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
@@ -140,7 +121,6 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   // JOINT_INTERPOLATED: data is the current joint values
   // GIVEN_TRAJ: data is the joint values of the current state copied to all timesteps
   Eigen::VectorXd current_joint_values_eigen(dof);
-  Eigen::VectorXd start_joint_values_eigen(dof);
   for (int joint_index = 0; joint_index < dof; ++joint_index)
   {
     current_joint_values_eigen(joint_index) = current_joint_values[joint_index];
@@ -209,7 +189,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   // add the start pos from request as a constraint
   JointPoseTermInfoPtr joint_start_pos(new JointPoseTermInfo);
 
-  joint_start_pos->targets = joint_start_constraints;
+  joint_start_pos->targets = start_joint_values;
   setJointPoseTermInfoParams(joint_start_pos, "start_pos");
   problem_info.cnt_infos.push_back(joint_start_pos);
 
@@ -268,19 +248,19 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt: " << problem_info.init_info.dt);
 
   ROS_INFO(" ======================================= Construct problem");
-  prob_ = ConstructProblem(problem_info);
+  trajopt_problem_ = ConstructProblem(problem_info);
 
-  ROS_INFO_STREAM_NAMED("num_cost", prob_->getNumCosts());
-  ROS_INFO_STREAM_NAMED("num_constraints", prob_->getNumConstraints());
+  ROS_INFO_STREAM_NAMED("num_cost", trajopt_problem_->getNumCosts());
+  ROS_INFO_STREAM_NAMED("num_constraints", trajopt_problem_->getNumConstraints());
 
   ROS_INFO(" ======================================= TrajOpt Optimization");
-  sco::BasicTrustRegionSQP opt(prob_);
+  sco::BasicTrustRegionSQP opt(trajopt_problem_);
 
   opt.setParameters(params_);
-  opt.initialize(trajopt::trajToDblVec(prob_->GetInitTraj()));
+  opt.initialize(trajopt::trajToDblVec(trajopt_problem_->GetInitTraj()));
 
   // Add all callbacks
-  for (const sco::Optimizer::Callback& callback : callbacks_)
+  for (const sco::Optimizer::Callback& callback : optimizer_callbacks_)
   {
     opt.addCallback(callback);
   }
@@ -290,14 +270,14 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   opt.optimize();
 
   ROS_INFO(" ======================================= TrajOpt Solution");
-  trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), prob_->GetVars());
+  trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), trajopt_problem_->GetVars());
 
   // assume that the trajectory is now optimized, fill in the output structure:
   ROS_INFO_STREAM_NAMED("num_rows", opt_solution.rows());
   ROS_INFO_STREAM_NAMED("num_cols", opt_solution.cols());
 
   res.trajectory.resize(1);
-  res.trajectory[0].joint_trajectory.joint_names = joint_names;
+  res.trajectory[0].joint_trajectory.joint_names = group_joint_names;
   res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;
 
   // fill in the entire trajectory
@@ -448,6 +428,26 @@ void TrajOptInterface::setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std:
   nh_.getParam("joint_pos_term_info/" + name + "/first_timestep", jp->first_step);
   nh_.getParam("joint_pos_term_info/" + name + "/last_timestep", jp->last_step);
   nh_.getParam("joint_pos_term_info/" + name + "/name", jp->name);
+}
+
+trajopt::DblVec TrajOptInterface::extractStartJointValues(const planning_interface::MotionPlanRequest& req,
+                                                          const std::vector<std::string>& group_joint_names)
+{
+  std::unordered_map<std::string, double> all_joints;
+  trajopt::DblVec start_joint_vals;
+
+  for (int joint_index = 0; joint_index < req.start_state.joint_state.position.size(); ++joint_index)
+  {
+    all_joints[req.start_state.joint_state.name[joint_index]] = req.start_state.joint_state.position[joint_index];
+  }
+
+  for (auto joint_name : group_joint_names)
+  {
+    ROS_INFO(" joint position from start state, name: %s, value: %f", joint_name.c_str(), all_joints[joint_name]);
+    start_joint_vals.push_back(all_joints[joint_name]);
+  }
+
+  return start_joint_vals;
 }
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res)

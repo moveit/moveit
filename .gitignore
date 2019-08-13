@@ -51,9 +51,6 @@ qtcreator-*
 # Vim
 *.swp
 
-# Catkin custom files
-# CATKIN_IGNORE
-
 # Continous Integration
 .moveit_ci
 
