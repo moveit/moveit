@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_KINEMATIC_OPTIONS_
-#define MOVEIT_ROBOT_INTERACTION_KINEMATIC_OPTIONS_
+#pragma once
 
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_state/robot_state.h>
@@ -90,4 +89,3 @@ struct KinematicOptions
 };
 }
 
-#endif

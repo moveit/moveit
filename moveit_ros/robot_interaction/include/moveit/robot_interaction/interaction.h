@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley */
 
-#ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_
-#define MOVEIT_ROBOT_INTERACTION_INTERACTION_
+#pragma once
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
@@ -176,4 +175,3 @@ struct JointInteraction
 };
 }
 
-#endif

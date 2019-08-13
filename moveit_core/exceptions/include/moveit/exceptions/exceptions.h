@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#ifndef MOVEIT_EXCEPTIONS_
-#define MOVEIT_EXCEPTIONS_
+#pragma once
 
 #include <stdexcept>
 
@@ -57,4 +56,3 @@ public:
 };
 }
 
-#endif

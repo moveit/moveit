@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef MOVEIT_SBPL_META_INTERFACE_H_
-#define MOVEIT_SBPL_META_INTERFACE_H_
+#pragma once
 
 #include <sbpl/headers.h>
 #include <planning_scene/planning_scene.h>
@@ -78,4 +77,3 @@ protected:
 };
 }
 
-#endif

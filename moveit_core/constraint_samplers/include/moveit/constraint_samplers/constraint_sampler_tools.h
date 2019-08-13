@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_TOOLS_
-#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_TOOLS_
+#pragma once
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -56,4 +55,3 @@ double countSamplesPerSecond(const moveit_msgs::Constraints& constr, const plann
                              const std::string& group);
 }
 
-#endif

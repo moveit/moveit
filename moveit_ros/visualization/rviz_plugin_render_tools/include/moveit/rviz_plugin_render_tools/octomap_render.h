@@ -34,8 +34,7 @@
 
 /* Author: Julius Kammerl */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_OCTOMAP_RENDER_
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -100,4 +99,3 @@ private:
   std::size_t octree_depth_;
 };
 }
-#endif

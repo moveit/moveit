@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OCCUPANCY_MAP_DEPTH_IMAGE_OCCUPANCY_MAP_UPDATER_
-#define MOVEIT_OCCUPANCY_MAP_DEPTH_IMAGE_OCCUPANCY_MAP_UPDATER_
+#pragma once
 
 #include <ros/ros.h>
 #include <tf2_ros/buffer.h>
@@ -108,4 +107,3 @@ private:
 };
 }
 
-#endif

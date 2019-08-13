@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
-#define MOVEIT_KINEMATIC_CONSTRAINTS_KINEMATIC_CONSTRAINT_
+#pragma once
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
@@ -1070,4 +1069,3 @@ protected:
 };
 }
 
-#endif

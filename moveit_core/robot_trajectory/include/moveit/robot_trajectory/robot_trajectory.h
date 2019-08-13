@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#ifndef MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
-#define MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
@@ -264,4 +263,3 @@ private:
 };
 }
 
-#endif

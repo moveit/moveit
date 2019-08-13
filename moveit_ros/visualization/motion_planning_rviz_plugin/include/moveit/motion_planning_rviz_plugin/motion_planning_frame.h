@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_FRAME_
-#define MOVEIT_MOTION_PLANNING_RVIZ_PLUGIN_MOTION_PLANNING_FRAME_
+#pragma once
 
 #include <QWidget>
 #include <QTreeWidgetItem>
@@ -366,4 +365,3 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
 };
 }
 
-#endif

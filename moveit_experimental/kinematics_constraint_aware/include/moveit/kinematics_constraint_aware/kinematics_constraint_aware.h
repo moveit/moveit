@@ -35,8 +35,7 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef MOVEIT_KINEMATICS_CONSTRAINT_AWARE_
-#define MOVEIT_KINEMATICS_CONSTRAINT_AWARE_
+#pragma once
 
 // System
 #include <boost/function.hpp>
@@ -142,4 +141,3 @@ private:
 };
 }
 
-#endif

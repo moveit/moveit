@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
-#define MOVEIT_MOVEIT_SETUP_ASSISTANT_WIDGETS_PASSIVE_JOINTS_WIDGET_
+#pragma once
 
 // Qt
 #include <QWidget>
@@ -103,4 +102,3 @@ private:
 
 }  // namespace
 
-#endif

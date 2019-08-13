@@ -34,8 +34,7 @@
 
 /* Author: Acorn Pooley, Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALL_VALID_H_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_DETECTOR_ALL_VALID_H_
+#pragma once
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/allvalid/collision_robot_allvalid.h>
@@ -53,4 +52,3 @@ public:
 };
 }
 
-#endif

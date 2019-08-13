@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
-#define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
+#pragma once
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
@@ -378,4 +377,3 @@ protected:
 };
 }  // namespace ompl_interface
 
-#endif

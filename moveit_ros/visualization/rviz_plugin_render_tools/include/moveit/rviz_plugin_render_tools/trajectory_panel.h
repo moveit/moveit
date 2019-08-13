@@ -34,8 +34,7 @@
 
 /* Author: Yannick Jonetzko */
 
-#ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN_TRAJECTORY_PANEL_
-#define MOVEIT_TRAJECTORY_RVIZ_PLUGIN_TRAJECTORY_PANEL_
+#pragma once
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
@@ -94,4 +93,3 @@ protected:
 
 }  // namespace moveit_rviz_plugin
 
-#endif

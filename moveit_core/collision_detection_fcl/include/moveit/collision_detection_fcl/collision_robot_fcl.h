@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ROBOT_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ROBOT_
+#pragma once
 
 #include <moveit/collision_detection_fcl/collision_common.h>
 
@@ -97,4 +96,3 @@ protected:
 };
 }
 
-#endif

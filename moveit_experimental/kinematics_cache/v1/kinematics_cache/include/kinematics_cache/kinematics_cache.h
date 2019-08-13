@@ -35,8 +35,7 @@
 * Author: Sachin Chitta
 *********************************************************************/
 
-#ifndef KINEMATICS_CACHE_H_
-#define KINEMATICS_CACHE_H_
+#pragma once
 
 #include <kinematics_base/kinematics_base.h>
 #include <planning_models/robot_model.h>
@@ -185,4 +184,3 @@ private:
 typedef std::shared_ptr<KinematicsCache> KinematicsCachePtr;
 }
 
-#endif

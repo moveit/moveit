@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
-#define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_interface/planning_request.h>
@@ -214,4 +213,3 @@ protected:
 
 }  // planning_interface
 
-#endif

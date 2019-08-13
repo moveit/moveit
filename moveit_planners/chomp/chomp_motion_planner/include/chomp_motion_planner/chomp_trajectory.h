@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan */
 
-#ifndef CHOMP_TRAJECTORY_H_
-#define CHOMP_TRAJECTORY_H_
+#pragma once
 
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit/robot_model/robot_model.h>
@@ -309,4 +308,3 @@ inline double ChompTrajectory::getDuration() const
 }
 }
 
-#endif /* CHOMP_TRAJECTORY_H_ */

@@ -37,8 +37,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_JOG_CALCS_H
-#define JOG_ARM_JOG_CALCS_H
+#pragma once
 
 #include <jog_arm/jog_arm_data.h>
 #include <jog_arm/low_pass_filter.h>
@@ -138,4 +137,3 @@ protected:
 };
 }  // namespace jog_arm
 
-#endif  // JOG_ARM_JOG_CALCS_H

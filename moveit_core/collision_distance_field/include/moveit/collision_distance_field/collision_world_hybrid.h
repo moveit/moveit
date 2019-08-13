@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_WORLD_HYBRID_H_
+#pragma once
 
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -116,4 +115,3 @@ protected:
 };
 }
 
-#endif

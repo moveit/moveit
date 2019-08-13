@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
-#define MOVEIT_MOVEIT_WAREHOUSE_CONSTRAINTS_STORAGE_
+#pragma once
 
 #include "moveit/warehouse/moveit_message_storage.h"
 #include <moveit/macros/class_forward.h>
@@ -85,4 +84,3 @@ private:
 };
 }
 
-#endif

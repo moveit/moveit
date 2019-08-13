@@ -34,8 +34,7 @@
 
 /* Author: Ken Anderson */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
-#define MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_PARABOLIC_SMOOTHER_
+#pragma once
 
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/JointLimits.h>
@@ -70,4 +69,3 @@ private:
 };
 }
 
-#endif

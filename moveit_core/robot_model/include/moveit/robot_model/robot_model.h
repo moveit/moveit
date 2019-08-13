@@ -35,8 +35,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CORE_ROBOT_MODEL_
-#define MOVEIT_CORE_ROBOT_MODEL_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/exceptions/exceptions.h>
@@ -622,4 +621,3 @@ protected:
 namespace robot_model = moveit::core;
 namespace robot_state = moveit::core;
 
-#endif

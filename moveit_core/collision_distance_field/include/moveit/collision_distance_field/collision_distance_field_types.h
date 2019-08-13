@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_DISTANCE_FIELD_TYPES_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_DISTANCE_FIELD_TYPES_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -525,4 +524,3 @@ void getCollisionMarkers(const std::string& frame_id, const std::string& ns, con
                          const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr);
 }
 
-#endif

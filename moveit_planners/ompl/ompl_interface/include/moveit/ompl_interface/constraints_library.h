@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
-#define MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/planning_context_manager.h>
@@ -201,4 +200,3 @@ private:
 };
 }
 
-#endif

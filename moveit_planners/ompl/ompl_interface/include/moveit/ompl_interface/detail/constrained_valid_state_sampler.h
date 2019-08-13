@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_VALID_STATE_SAMPLER_
-#define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINED_VALID_STATE_SAMPLER_
+#pragma once
 
 #include <ompl/base/StateSampler.h>
 #include <ompl/base/ValidStateSampler.h>
@@ -71,4 +70,3 @@ private:
 };
 }
 
-#endif

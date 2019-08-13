@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
-#define MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
+#pragma once
 
 #include <moveit/robot_state/robot_state.h>
 #include <thread>
@@ -58,4 +57,3 @@ private:
   mutable std::mutex lock_;
 };
 }
-#endif

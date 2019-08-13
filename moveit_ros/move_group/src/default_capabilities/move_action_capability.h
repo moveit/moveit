@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_MOVE_ACTION_CAPABILITY_
-#define MOVEIT_MOVE_GROUP_MOVE_ACTION_CAPABILITY_
+#pragma once
 
 #include <moveit/move_group/move_group_capability.h>
 #include <actionlib/server/simple_action_server.h>
@@ -72,4 +71,3 @@ private:
 };
 }
 
-#endif

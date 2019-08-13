@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_CONTEXT_
-#define MOVEIT_MOVE_GROUP_CONTEXT_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 
@@ -82,4 +81,3 @@ struct MoveGroupContext
 };
 }
 
-#endif

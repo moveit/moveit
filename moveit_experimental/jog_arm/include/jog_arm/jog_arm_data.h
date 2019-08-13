@@ -37,8 +37,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_JOG_ARM_DATA_H
-#define JOG_ARM_JOG_ARM_DATA_H
+#pragma once
 
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -93,4 +92,3 @@ struct JogArmParameters
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 }
-#endif  // JOG_ARM_DATA_H

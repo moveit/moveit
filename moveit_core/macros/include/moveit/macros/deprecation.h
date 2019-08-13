@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef MOVEIT_MACROS_DEPRECATION_
-#define MOVEIT_MACROS_DEPRECATION_
+#pragma once
 
 /** \def MOVEIT_DEPRECATED
     Macro that marks functions as deprecated */
@@ -48,4 +47,3 @@
 #define MOVEIT_DEPRECATED /* Nothing */
 #endif
 
-#endif

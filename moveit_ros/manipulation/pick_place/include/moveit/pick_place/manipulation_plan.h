@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
-#define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
@@ -144,4 +143,3 @@ struct ManipulationPlan
 };
 }
 
-#endif

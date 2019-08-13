@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_ALLOCATOR_
-#define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_ALLOCATOR_
+#pragma once
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
 #include <moveit/macros/class_forward.h>
@@ -63,4 +62,3 @@ public:
 };
 }
 
-#endif

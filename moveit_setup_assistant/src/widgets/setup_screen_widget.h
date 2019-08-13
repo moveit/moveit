@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#pragma once
 
 #include <QWidget>
 
@@ -76,4 +75,3 @@ Q_SIGNALS:
   void unhighlightAll();
 };
 
-#endif

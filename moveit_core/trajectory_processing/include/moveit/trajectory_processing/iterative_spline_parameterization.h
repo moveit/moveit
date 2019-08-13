@@ -35,8 +35,7 @@
 
 /* Author: Ken Anderson */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_SPLINE_PARAMETERIZATION__
-#define MOVEIT_TRAJECTORY_PROCESSING_ITERATIVE_SPLINE_PARAMETERIZATION__
+#pragma once
 
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/JointLimits.h>
@@ -86,4 +85,3 @@ private:
 };
 }
 
-#endif

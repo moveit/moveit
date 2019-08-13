@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Acorn Pooley */
 
-#ifndef MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
-#define MOVEIT_PLANNING_SCENE_PLANNING_SCENE_
+#pragma once
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
@@ -1057,4 +1056,3 @@ private:
 };
 }
 
-#endif

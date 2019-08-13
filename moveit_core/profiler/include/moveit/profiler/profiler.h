@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PROFILER_
-#define MOVEIT_PROFILER_
+#pragma once
 
 #define MOVEIT_ENABLE_PROFILING 1
 
@@ -449,4 +448,3 @@ public:
 
 #endif
 
-#endif

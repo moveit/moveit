@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
-#define MOVEIT_MOVEIT_WAREHOUSE_WAREHOUSE_CONNECTOR_
+#pragma once
 
 #include <string>
 
@@ -56,4 +55,3 @@ private:
 };
 }
 
-#endif

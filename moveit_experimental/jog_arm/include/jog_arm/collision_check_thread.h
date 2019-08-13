@@ -37,8 +37,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_COLLISION_CHECK_THREAD_H
-#define JOG_ARM_COLLISION_CHECK_THREAD_H
+#pragma once
 
 #include <jog_arm/jog_arm_data.h>
 #include <jog_arm/low_pass_filter.h>
@@ -55,4 +54,3 @@ public:
 };
 }
 
-#endif  // JOG_ARM_COLLISION_CHECK_THREAD_H

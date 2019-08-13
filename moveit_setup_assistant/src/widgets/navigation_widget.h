@@ -34,8 +34,7 @@
 
 /* Author: Dave Coleman */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_NAVIGATION_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_NAVIGATION_WIDGET_
+#pragma once
 
 #include <QListView>
 #include <QStandardItemModel>
@@ -85,4 +84,3 @@ public:
 };
 }
 
-#endif

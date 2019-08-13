@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_ROBOT_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_ROBOT_
+#pragma once
 
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/macros/class_forward.h>
@@ -310,4 +309,3 @@ protected:
 };
 }
 
-#endif

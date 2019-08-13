@@ -34,8 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#ifndef MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
-#define MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
+#pragma once
 
 #include <map>
 #include <moveit/macros/class_forward.h>
@@ -295,4 +294,3 @@ protected:
 };
 }  // namespace mesh_filter
 
-#endif /* __MESH_FILTER_MESH_FILTER_BASE_H__ */

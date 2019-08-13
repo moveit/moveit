@@ -37,8 +37,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef JOG_ARM_LOW_PASS_FILTER_H
-#define JOG_ARM_LOW_PASS_FILTER_H
+#pragma once
 
 namespace jog_arm
 {
@@ -63,4 +62,3 @@ private:
   double filter_coeff_ = 10.;
 };
 }  // namespace jog_arm
-#endif  // JOG_ARM_LOW_PASS_FILTER_H

@@ -36,8 +36,7 @@
 
 // This file is a slightly modified version of <ompl/datastructures/NearestNeighborsGNAT.h>
 
-#ifndef MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_NEAREST_NEIGHBORS_GNAT_
-#define MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_NEAREST_NEIGHBORS_GNAT_
+#pragma once
 
 #include "NearestNeighbors.h"
 #include "GreedyKCenters.h"
@@ -721,4 +720,3 @@ protected:
 };
 }
 
-#endif

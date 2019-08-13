@@ -34,8 +34,7 @@
 
 /** \Author: Benjamin Cohen /bcohen@willowgarage.com, E. Gil Jones **/
 
-#ifndef _ENVIRONMENT_CHAIN3D_TYPES_H_
-#define _ENVIRONMENT_CHAIN3D_TYPES_H_
+#pragma once
 
 #include <vector>
 #include <planning_models/robot_model.h>
@@ -319,4 +318,3 @@ protected:
 };
 }
 
-#endif

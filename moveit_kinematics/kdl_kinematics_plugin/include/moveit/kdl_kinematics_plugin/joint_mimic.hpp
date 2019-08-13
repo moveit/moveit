@@ -34,8 +34,7 @@
 
 /* Author: Sachin Chitta */
 
-#ifndef MOVEIT_KDL_KINEMATICS_PLUGIN_JOINT_MIMIC
-#define MOVEIT_KDL_KINEMATICS_PLUGIN_JOINT_MIMIC
+#pragma once
 
 namespace kdl_kinematics_plugin
 {
@@ -72,4 +71,3 @@ public:
 };
 }
 
-#endif

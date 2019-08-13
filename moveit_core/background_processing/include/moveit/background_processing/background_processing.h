@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_BACKGROUND_PROCESSING_
-#define MOVEIT_BACKGROUND_PROCESSING_
+#pragma once
 
 #include <deque>
 #include <string>
@@ -114,4 +113,3 @@ private:
 }
 }
 
-#endif

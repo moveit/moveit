@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
-#define MOVEIT_PY_BINDINGS_TOOLS_ROSCPP_INITIALIZER_
+#pragma once
 
 #include <boost/python.hpp>
 #include <string>
@@ -74,4 +73,3 @@ void roscpp_shutdown();
 }
 }
 
-#endif

@@ -34,8 +34,7 @@
 
 /* Author: Sachin Chitta, Dave Coleman */
 
-#ifndef MOVEIT_KINEMATICS_BASE_KINEMATICS_BASE_
-#define MOVEIT_KINEMATICS_BASE_KINEMATICS_BASE_
+#pragma once
 
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
@@ -660,4 +659,3 @@ private:
 };
 };
 
-#endif

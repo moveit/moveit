@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_ALLVALID_COLLISION_ROBOT_ALLVALID_
-#define MOVEIT_COLLISION_DETECTION_ALLVALID_COLLISION_ROBOT_ALLVALID_
+#pragma once
 
 #include <moveit/collision_detection/collision_robot.h>
 
@@ -85,4 +84,3 @@ public:
 };
 }
 
-#endif

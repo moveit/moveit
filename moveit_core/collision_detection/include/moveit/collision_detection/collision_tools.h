@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_TOOLS_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_TOOLS_
+#pragma once
 
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit_msgs/CostSource.h>
@@ -73,4 +72,3 @@ void costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg
 void contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg);
 }
 
-#endif

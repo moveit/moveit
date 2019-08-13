@@ -34,8 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#ifndef MOVEIT_MESH_FILTER_TRANSFORM_PROVIDER_
-#define MOVEIT_MESH_FILTER_TRANSFORM_PROVIDER_
+#pragma once
 
 #include <string>
 #include <boost/thread/thread.hpp>
@@ -167,4 +166,3 @@ private:
   /** \brief update interval in micro seconds*/
   unsigned long interval_us_;
 };
-#endif

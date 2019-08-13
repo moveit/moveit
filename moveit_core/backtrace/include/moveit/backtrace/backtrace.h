@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef MOVEIT_BACKTRACE_
-#define MOVEIT_BACKTRACE_
+#pragma once
 
 #include <iostream>
 
@@ -64,4 +63,3 @@ void get_backtrace(std::ostream& out)
 #endif
 }
 
-#endif

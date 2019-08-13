@@ -34,8 +34,7 @@
 
 /* Author: Suat Gedikli */
 
-#ifndef MOVEIT_MESH_FILTER_SENSOR_MODEL_
-#define MOVEIT_MESH_FILTER_SENSOR_MODEL_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <Eigen/Eigen>
@@ -171,4 +170,3 @@ public:
 };
 }  // namespace mesh_filter
 
-#endif

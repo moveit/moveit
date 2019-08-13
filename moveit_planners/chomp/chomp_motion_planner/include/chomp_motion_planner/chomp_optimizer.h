@@ -34,8 +34,7 @@
 
 /* Author: Mrinal Kalakrishnan */
 
-#ifndef CHOMP_OPTIMIZER_H_
-#define CHOMP_OPTIMIZER_H_
+#pragma once
 
 #include <chomp_motion_planner/chomp_parameters.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
@@ -225,4 +224,3 @@ private:
 };
 }
 
-#endif /* CHOMP_OPTIMIZER_H_ */

@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Sachin Chitta */
 
-#ifndef MOVEIT_PICK_PLACE_REACHABLE_VALID_POSE_FILTER_
-#define MOVEIT_PICK_PLACE_REACHABLE_VALID_POSE_FILTER_
+#pragma once
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
@@ -61,4 +60,3 @@ private:
 };
 }
 
-#endif

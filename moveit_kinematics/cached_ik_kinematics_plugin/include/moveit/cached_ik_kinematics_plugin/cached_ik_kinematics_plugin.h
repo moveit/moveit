@@ -34,8 +34,7 @@
 
 /* Author: Mark Moll */
 
-#ifndef MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_PLUGIN_
-#define MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_PLUGIN_
+#pragma once
 
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
@@ -348,4 +347,3 @@ public:
 }
 
 #include "cached_ik_kinematics_plugin-inl.h"
-#endif

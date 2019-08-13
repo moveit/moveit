@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_PICK_PLACE_PICK_PLACE_
-#define MOVEIT_PICK_PLACE_PICK_PLACE_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/pick_place/manipulation_pipeline.h>
@@ -166,4 +165,3 @@ private:
 };
 }
 
-#endif

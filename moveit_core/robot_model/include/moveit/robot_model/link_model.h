@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_CORE_ROBOT_MODEL_LINK_MODEL_
-#define MOVEIT_CORE_ROBOT_MODEL_LINK_MODEL_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -284,4 +283,3 @@ private:
 }
 }
 
-#endif

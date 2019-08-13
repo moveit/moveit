@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_ROBOT_STATE_ATTACHED_BODY_
-#define MOVEIT_ROBOT_STATE_ATTACHED_BODY_
+#pragma once
 
 #include <moveit/robot_model/link_model.h>
 #include <moveit/transforms/transforms.h>
@@ -185,4 +184,3 @@ private:
 }
 }
 
-#endif

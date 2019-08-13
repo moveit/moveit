@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVEIT_CONTROLLER_MANAGER_
-#define MOVEIT_MOVEIT_CONTROLLER_MANAGER_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -210,4 +209,3 @@ public:
 };
 }
 
-#endif
