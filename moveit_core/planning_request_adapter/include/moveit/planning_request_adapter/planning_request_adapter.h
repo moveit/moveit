@@ -40,7 +40,9 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <boost/function.hpp>
+#if !defined(_MSC_VER)
 #include <cxxabi.h>
+#endif
 
 /** \brief Generic interface to adapting motion planning requests */
 namespace planning_request_adapter
@@ -70,8 +72,12 @@ public:
     // Get name of derived adapter
     std::string adapter_name = typeid(*this).name();
     // Try to demangle the name
-    int status;
+    int status = 1;
+#if defined(_MSC_VER)
+    std::string demangled_name = adapter_name;
+#else
     std::string demangled_name = abi::__cxa_demangle(adapter_name.c_str(), NULL, NULL, &status);
+#endif
     if (status == 0)
       adapter_name = demangled_name;
     ROS_WARN_NAMED("planning_request_adapter", "Implementation of function initialize() is missing from '%s'."

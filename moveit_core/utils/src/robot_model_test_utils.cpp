@@ -120,14 +120,14 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     return;
   }
   // First link should already be added.
-  if (not urdf_model_->getLink(link_names[0]))
+  if (!urdf_model_->getLink(link_names[0]))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_names[0].c_str());
     is_valid_ = false;
     return;
   }
 
-  if (not joint_origins.empty() && link_names.size() - 1 != joint_origins.size())
+  if (!joint_origins.empty() && link_names.size() - 1 != joint_origins.size())
   {
     ROS_ERROR_NAMED(LOGNAME, "There should be one more link (%zu) than there are joint origins (%zu)",
                     link_names.size(), joint_origins.size());
@@ -152,7 +152,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
     joint->name = link_names[i - 1] + "-" + link_names[i] + "-joint";
     // Default to Identity transform for origins.
     joint->parent_to_joint_origin_transform.clear();
-    if (not joint_origins.empty())
+    if (!joint_origins.empty())
     {
       geometry_msgs::Pose o = joint_origins[i - 1];
       joint->parent_to_joint_origin_transform.position = urdf::Vector3(o.position.x, o.position.y, o.position.z);
@@ -197,7 +197,7 @@ void RobotModelBuilder::addChain(const std::string& section, const std::string& 
 void RobotModelBuilder::addInertial(const std::string& link_name, double mass, geometry_msgs::Pose origin, double ixx,
                                     double ixy, double ixz, double iyy, double iyz, double izz)
 {
-  if (not urdf_model_->getLink(link_name))
+  if (!urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
     is_valid_ = false;
@@ -260,7 +260,7 @@ void RobotModelBuilder::addCollisionMesh(const std::string& link_name, const std
 void RobotModelBuilder::addLinkCollision(const std::string& link_name, const urdf::CollisionSharedPtr& collision,
                                          geometry_msgs::Pose origin)
 {
-  if (not urdf_model_->getLink(link_name))
+  if (!urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
     is_valid_ = false;
@@ -278,7 +278,7 @@ void RobotModelBuilder::addLinkCollision(const std::string& link_name, const urd
 void RobotModelBuilder::addLinkVisual(const std::string& link_name, const urdf::VisualSharedPtr& vis,
                                       geometry_msgs::Pose origin)
 {
-  if (not urdf_model_->getLink(link_name))
+  if (!urdf_model_->getLink(link_name))
   {
     ROS_ERROR_NAMED(LOGNAME, "Link %s not present in builder yet!", link_name.c_str());
     is_valid_ = false;
@@ -290,7 +290,7 @@ void RobotModelBuilder::addLinkVisual(const std::string& link_name, const urdf::
 
   urdf::LinkSharedPtr link;
   urdf_model_->getLink(link_name, link);
-  if (not link->visual_array.empty())
+  if (!link->visual_array.empty())
   {
     link->visual_array.push_back(vis);
   }

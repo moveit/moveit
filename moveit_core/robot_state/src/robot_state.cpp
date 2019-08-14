@@ -1232,7 +1232,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     const JointModel* pjm = link->getParentJointModel();
     if (pjm->getVariableCount() > 0)
     {
-      if (not group->hasJointModel(pjm->getName()))
+      if (!group->hasJointModel(pjm->getName()))
       {
         link = pjm->getParentLinkModel();
         continue;

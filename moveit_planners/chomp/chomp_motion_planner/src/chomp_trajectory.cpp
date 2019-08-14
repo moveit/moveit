@@ -155,7 +155,7 @@ void ChompTrajectory::fillInMinJerk()
 
   // calculate the spline coefficients for each joint:
   // (these are for the special case of zero start and end vel and acc)
-  double coeff[num_joints_][6];
+  std::vector<double[6]> coeff(num_joints_);
   for (size_t i = 0; i < num_joints_; i++)
   {
     double x0 = (*this)(start_index, i);
