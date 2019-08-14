@@ -104,6 +104,18 @@ class RobotCommander(object):
             else:
                 return vals
 
+        def set_value(self, val):
+            """
+            Set assumed value of joint to val.
+            Assumes the joint is not monitored via a CurrentStateMonitor.
+            @rtype float
+            """
+            if isinstance(val, list):
+                vals= val
+            else:
+                vals= [val]
+            self._robot._r.set_current_joint_values(self._name, vals)
+
         def move(self, position, wait=True):
             """
             @param position [float]: List of joint angles to achieve.
@@ -140,10 +152,10 @@ class RobotCommander(object):
             """
             return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
 
-    def __init__(self, robot_description="robot_description", ns=""):
+    def __init__(self, robot_description="robot_description", ns="", monitor_current_state=True ):
         self._robot_description = robot_description
         self._ns = ns
-        self._r = _moveit_robot_interface.RobotInterface(robot_description, ns)
+        self._r = _moveit_robot_interface.RobotInterface(robot_description, ns, monitor_current_state)
         self._groups = {}
         self._joint_owner_groups = {}
 
@@ -222,12 +234,20 @@ class RobotCommander(object):
         s.deserialize(self._r.get_current_state())
         return s
 
-    def get_current_variable_values(self):
+    def set_current_state(self, state):
         """
-        Get a dictionary mapping variable names to values.
+        Set assumed RobotState message state as the current state of the robot.
+        Assumes the joint is not monitored via a CurrentStateMonitor.
+        """
+        self._r.set_current_state(conversions.msg_to_string(state))
+
+    def set_current_variable_values(self, variable_dict):
+        """
+        Set the current state of the robot from variable_dict.
+        Assumes the joint is not monitored via a CurrentStateMonitor.
         Note that a joint may consist of one or more variables.
         """
-        return self._r.get_current_variable_values()
+        return self._r.set_current_variable_values(variable_dict)
 
     def get_joint(self, name):
         """
