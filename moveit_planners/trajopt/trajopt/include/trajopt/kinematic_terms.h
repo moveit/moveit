@@ -4,7 +4,7 @@
 
 #include <Eigen/Geometry>
 
-namespace trajopt_interface
+namespace trajopt
 {
 /**
  * @brief Extracts the vector part of quaternion
@@ -90,4 +90,4 @@ struct JointVelJacobianCalculator : sco::MatrixOfVector
   Eigen::MatrixXd operator()(const Eigen::VectorXd& var_vals) const;
 };
 
-}  // namespace trajopt_interface
+}  // namespace trajopt

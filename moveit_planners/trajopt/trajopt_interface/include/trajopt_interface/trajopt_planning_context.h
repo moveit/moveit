@@ -2,7 +2,7 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <trajopt_interface/problem_description.h>
+#include <trajopt/problem_description.h>
 #include <trajopt_interface/trajopt_interface.h>
 
 namespace trajopt_interface

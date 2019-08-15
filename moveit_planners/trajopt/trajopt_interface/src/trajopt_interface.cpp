@@ -42,11 +42,10 @@
 #include <trajopt_sco/sco_common.hpp>
 #include <trajopt_sco/optimizers.hpp>
 #include <trajopt_sco/solver_interface.hpp>
-
+#include <trajopt/problem_description.h>
 #include <trajopt/trajectory_costs.hpp>
 
 #include <ros/ros.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 #include <limits>
 #include <vector>
@@ -54,13 +53,12 @@
 #include <unordered_map>
 
 #include "trajopt_interface/trajopt_interface.h"
-#include "trajopt_interface/problem_description.h"
 
 namespace trajopt_interface
 {
 TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
-  trajopt_problem_ = TrajOptProblemPtr(new TrajOptProblem);
+  trajopt_problem_ = trajopt::TrajOptProblemPtr(new trajopt::TrajOptProblem);
   setDefaultTrajOPtParams();
 
   // TODO: callbacks should be defined by the user
@@ -87,11 +85,13 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   bool robot_model_ok = static_cast<bool>(robot_model);
   if (!robot_model_ok)
     ROS_ERROR_STREAM_NAMED(name_, "robot model is not loaded properly");
-  moveit::core::RobotStatePtr current_state(new moveit::core::RobotState(robot_model));
+
+  robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   *current_state = planning_scene->getCurrentState();
   const moveit::core::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
   if (joint_model_group == nullptr)
     ROS_ERROR_STREAM_NAMED(name_, "joint model group is empty");
+
   std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
   int dof = group_joint_names.size();
   std::vector<double> current_joint_values;
@@ -117,7 +117,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   }
 
   ROS_INFO(" ======================================= Create ProblemInfo");
-  ProblemInfo problem_info(planning_scene, req.group_name);
+  trajopt::ProblemInfo problem_info(planning_scene, req.group_name);
 
   setProblemInfoParam(problem_info);
 
@@ -131,11 +131,11 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     current_joint_values_eigen(joint_index) = current_joint_values[joint_index];
   }
 
-  if (problem_info.init_info.type == InitInfo::JOINT_INTERPOLATED)
+  if (problem_info.init_info.type == trajopt::InitInfo::JOINT_INTERPOLATED)
   {
     problem_info.init_info.data = current_joint_values_eigen;
   }
-  else if (problem_info.init_info.type == InitInfo::GIVEN_TRAJ)
+  else if (problem_info.init_info.type == trajopt::InitInfo::GIVEN_TRAJ)
   {
     problem_info.init_info.data = current_joint_values_eigen.transpose().replicate(problem_info.basic_info.n_steps, 1);
   }
@@ -151,7 +151,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ======================================= Cartesian Constraints");
   if (!req.goal_constraints[0].position_constraints.empty() && !req.goal_constraints[0].orientation_constraints.empty())
   {
-    CartPoseTermInfoPtr cart_goal_pos(new CartPoseTermInfo);
+    trajopt::CartPoseTermInfoPtr cart_goal_pos(new trajopt::CartPoseTermInfo);
 
     // TODO: Feed cart_goal_pos with request information and the needed param to the setup.yaml file
     // TODO: Multiple Cartesian constraints
@@ -177,7 +177,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ======================================= Constraints from request goal_constraints");
   for (auto goal_cnt : req.goal_constraints)
   {
-    JointPoseTermInfoPtr joint_pos_term(new JointPoseTermInfo);
+    trajopt::JointPoseTermInfoPtr joint_pos_term(new trajopt::JointPoseTermInfo);
     // When using MotionPlanning Display in RViz, the created request has no name for the constriant
     setJointPoseTermInfoParams(joint_pos_term, (goal_cnt.name != "") ? goal_cnt.name : "goal_tmp");
 
@@ -192,7 +192,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Constraints from request start_state");
   // add the start pos from request as a constraint
-  JointPoseTermInfoPtr joint_start_pos(new JointPoseTermInfo);
+  trajopt::JointPoseTermInfoPtr joint_start_pos(new trajopt::JointPoseTermInfo);
 
   joint_start_pos->targets = start_joint_values;
   setJointPoseTermInfoParams(joint_start_pos, "start_pos");
@@ -200,14 +200,14 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Velocity Constraints, hard-coded");
   // TODO: should be defined by user, its parametes should be added to setup.yaml
-  JointVelTermInfoPtr joint_vel(new JointVelTermInfo);
+  trajopt::JointVelTermInfoPtr joint_vel(new trajopt::JointVelTermInfo);
 
   joint_vel->coeffs = std::vector<double>(dof, 5.0);
   joint_vel->targets = std::vector<double>(dof, 0.0);
   joint_vel->first_step = 0;
   joint_vel->last_step = problem_info.basic_info.n_steps - 1;
   joint_vel->name = "joint_vel";
-  joint_vel->term_type = trajopt_interface::TT_COST;
+  joint_vel->term_type = trajopt::TT_COST;
   problem_info.cost_infos.push_back(joint_vel);
 
   ROS_INFO(" ======================================= Visibility Constraints");
@@ -239,15 +239,15 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   std::string problem_info_type;
   switch (problem_info.init_info.type)
   {
-    case InitInfo::STATIONARY:
-      problem_info_type = "STATIONARY";
-      break;
-    case InitInfo::JOINT_INTERPOLATED:
-      problem_info_type = "JOINT_INTERPOLATED";
-      break;
-    case InitInfo::GIVEN_TRAJ:
-      problem_info_type = "GIVEN_TRAJ";
-      break;
+  case trajopt::InitInfo::STATIONARY:
+    problem_info_type = "STATIONARY";
+    break;
+  case trajopt::InitInfo::JOINT_INTERPOLATED:
+    problem_info_type = "JOINT_INTERPOLATED";
+    break;
+  case trajopt::InitInfo::GIVEN_TRAJ:
+    problem_info_type = "GIVEN_TRAJ";
+    break;
   }
   ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.type: " << problem_info_type);
   ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt: " << problem_info.init_info.dt);
@@ -266,6 +266,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   // Add all callbacks
   for (const sco::Optimizer::Callback& callback : optimizer_callbacks_)
+
   {
     opt.addCallback(callback);
   }
@@ -366,7 +367,7 @@ void TrajOptInterface::setTrajOptParams(sco::BasicTrustRegionSQPParameters& para
   nh_.param("trajopt_param/trust_box_size", params.trust_box_size, 1e-1);
 }
 
-void TrajOptInterface::setProblemInfoParam(ProblemInfo& problem_info)
+void TrajOptInterface::setProblemInfoParam(trajopt::ProblemInfo& problem_info)
 {
   nh_.param("problem_info/basic_info/n_steps", problem_info.basic_info.n_steps, 20);
   nh_.param("problem_info/basic_info/dt_upper_lim", problem_info.basic_info.dt_upper_lim, 2.0);
@@ -400,18 +401,18 @@ void TrajOptInterface::setProblemInfoParam(ProblemInfo& problem_info)
   switch (type_index)
   {
     case 1:
-      problem_info.init_info.type = InitInfo::STATIONARY;
+      problem_info.init_info.type = trajopt::InitInfo::STATIONARY;
       break;
     case 2:
-      problem_info.init_info.type = InitInfo::JOINT_INTERPOLATED;
+      problem_info.init_info.type = trajopt::InitInfo::JOINT_INTERPOLATED;
       break;
     case 3:
-      problem_info.init_info.type = InitInfo::GIVEN_TRAJ;
+      problem_info.init_info.type = trajopt::InitInfo::GIVEN_TRAJ;
       break;
   }
 }
 
-void TrajOptInterface::setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std::string name)
+void TrajOptInterface::setJointPoseTermInfoParams(trajopt::JointPoseTermInfoPtr& jp, std::string name)
 {
   int term_type_index;
   std::string term_type_address = "joint_pos_term_info/" + name + "/term_type";
@@ -420,13 +421,13 @@ void TrajOptInterface::setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std:
   switch (term_type_index)
   {
     case 1:
-      jp->term_type = TT_COST;
+      jp->term_type = trajopt::TT_COST;
       break;
     case 2:
-      jp->term_type = TT_CNT;
+      jp->term_type = trajopt::TT_CNT;
       break;
     case 3:
-      jp->term_type = TT_USE_TIME;
+      jp->term_type = trajopt::TT_USE_TIME;
       break;
   }
 

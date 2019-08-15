@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>trajopt</name>
+  <version>0.1.0</version>
+  <description>The trajopt package</description>
+  <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
+  <license>BSD</license>
+  <license>Apache 2.0</license>
+  <author>Levi Armstrong</author>
+  <author>John Schulman</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>trajopt_sco</depend>
+  <depend>trajopt_utils</depend>
+  <depend>roscpp</depend>
+
+  <test_depend>gtest</test_depend>
+  <test_depend>rostest</test_depend>
+  <test_depend>roslib</test_depend>
+  <test_depend>trajopt_test_support</test_depend>
+  <test_depend>libpcl-all-dev</test_depend>
+  <test_depend>pcl_conversions</test_depend>
+  <test_depend>pr2_description</test_depend>
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+
+  </export>
+</package>

@@ -36,9 +36,11 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <trajopt_sco/sco_common.hpp>
+
 #include <moveit/planning_interface/planning_interface.h>
-#include "problem_description.h"
+
+#include <trajopt_sco/sco_common.hpp>
+#include <trajopt/problem_description.h>
 
 namespace trajopt_interface
 {
@@ -61,15 +63,15 @@ protected:
   /** @brief Configure everything using the param server */
   void setTrajOptParams(sco::BasicTrustRegionSQPParameters& param);
   void setDefaultTrajOPtParams();
-  void setProblemInfoParam(ProblemInfo& problem_info);
-  void setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std::string name);
+  void setProblemInfoParam(trajopt::ProblemInfo& problem_info);
+  void setJointPoseTermInfoParams(trajopt::JointPoseTermInfoPtr& jp, std::string name);
   trajopt::DblVec extractStartJointValues(const planning_interface::MotionPlanRequest& req,
                                           const std::vector<std::string>& group_joint_names);
 
   ros::NodeHandle nh_;  /// The ROS node handle
   sco::BasicTrustRegionSQPParameters params_;
   std::vector<sco::Optimizer::Callback> optimizer_callbacks_;
-  TrajOptProblemPtr trajopt_problem_;
+  trajopt::TrajOptProblemPtr trajopt_problem_;
   std::string name_;
 };
 
