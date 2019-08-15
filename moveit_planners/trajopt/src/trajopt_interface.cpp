@@ -84,12 +84,14 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ======================================= Extract current state information");
   ros::WallTime start_time = ros::WallTime::now();
   robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
-  bool robot_model_ok_ = static_cast<bool>(robot_model);
-  if (!robot_model_ok_)
+  bool robot_model_ok = static_cast<bool>(robot_model);
+  if (!robot_model_ok)
     ROS_ERROR_STREAM_NAMED(name_, "robot model is not loaded properly");
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   *current_state = planning_scene->getCurrentState();
   const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
+  if (joint_model_group == nullptr)
+    ROS_ERROR_STREAM_NAMED(name_, "joint model group is empty");
   std::vector<std::string> group_joint_names = joint_model_group->getActiveJointModelNames();
   int dof = group_joint_names.size();
   std::vector<double> current_joint_values;

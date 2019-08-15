@@ -58,7 +58,7 @@ protected:
 protected:
   robot_model::RobotModelPtr robot_model_;
   std::vector<std::string> group_joint_names_;
-  const std::string PLANNING_GROUP_ = "panda_arm";
+  const std::string PLANNING_GROUP = "panda_arm";
   const double GOAL_TOLERANCE = 0.1;
   ros::NodeHandle node_handle_;
 };  // class TrajectoryTest
@@ -70,6 +70,8 @@ TEST_F(TrajectoryTest, concatVectorValidation)
   std::vector<double> vec_c = trajopt_interface::concatVector(vec_a, vec_b);
   EXPECT_EQ(vec_c.size(), vec_a.size() + vec_b.size());
 
+  // Check if the output of concatVector is correct.
+  // Loop over the output and the input vectors to see if they match
   std::size_t length_ab = vec_a.size() + vec_b.size();
   for (std::size_t index = 0; index < length_ab; ++index)
   {
@@ -90,15 +92,14 @@ TEST_F(TrajectoryTest, goalTolerance)
 
   const std::string NODE_NAME = "trajectory_test";
 
-  const std::string PLANNING_GROUP = "panda_arm";
-  const std::string ROBOT_DESCRIPTION = "robot_description";
-
   // Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model_));
   current_state->setToDefaultValues();
 
   const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
+  EXPECT_NE(joint_model_group, nullptr);
   const std::vector<std::string>& joint_names = joint_model_group->getActiveJointModelNames();
+  EXPECT_EQ(joint_names.size(), 7);
 
   planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model_));
 
@@ -131,8 +132,6 @@ TEST_F(TrajectoryTest, goalTolerance)
   std::vector<moveit_msgs::JointConstraint> goal_joint_constraint = req.goal_constraints[0].joint_constraints;
   for (std::size_t x = 0; x < goal_joint_constraint.size(); ++x)
   {
-    ROS_INFO_STREAM_NAMED(NODE_NAME, " ======================================= joint position at goal: "
-                                         << goal_joint_constraint[x].position);
     req.goal_constraints[0].joint_constraints[x].tolerance_above = 0.001;
     req.goal_constraints[0].joint_constraints[x].tolerance_below = 0.001;
   }
@@ -148,13 +147,11 @@ TEST_F(TrajectoryTest, goalTolerance)
   node_handle_.setParam("planning_plugin", planner_plugin_name);
 
   // Make sure the planner plugin is loaded
-  if (!node_handle_.getParam("planning_plugin", planner_plugin_name))
-    ROS_FATAL_STREAM_NAMED(NODE_NAME, "Could not find planner plugin name");
+  EXPECT_TRUE(node_handle_.getParam("planning_plugin", planner_plugin_name));
   try
   {
     planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
         "moveit_core", "planning_interface::PlannerManager"));
-    ROS_INFO_STREAM_NAMED(NODE_NAME, "planner_plugin_name: " << planner_plugin_name);
   }
   catch (pluginlib::PluginlibException& ex)
   {
@@ -184,10 +181,7 @@ TEST_F(TrajectoryTest, goalTolerance)
       planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
 
   context->solve(res);
-  if (res.error_code_.val != res.error_code_.SUCCESS)
-  {
-    ROS_ERROR_NAMED(NODE_NAME, "Could not compute plan successfully");
-  }
+  EXPECT_EQ(res.error_code_.val, res.error_code_.SUCCESS);
 
   moveit_msgs::MotionPlanResponse response;
   res.getMessage(response);
