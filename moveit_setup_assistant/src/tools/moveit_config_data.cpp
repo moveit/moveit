@@ -775,7 +775,7 @@ void MoveItConfigData::outputFollowJointTrajectoryYAML(YAML::Emitter& emitter,
             emitter << YAML::EndMap;
           }
         }
-        ros_controllers_config_output.erase(controller_it);
+        controller_it = ros_controllers_config_output.erase(controller_it);
         emitter << YAML::EndMap;
       }
       else
