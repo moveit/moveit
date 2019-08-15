@@ -1,6 +1,7 @@
 <package format="2">
   <name>moveit_planners_trajopt</name>
   <version>1.0.1</version>
+
   <description>TrajOpt planning plugin, an optimization based motion planner </description>
 
   <author email="omid.github@gmail.com">Omid Heidari</author>

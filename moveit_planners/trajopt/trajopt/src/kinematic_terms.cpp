@@ -4,13 +4,13 @@
 #include <trajopt_sco/expr_ops.hpp>
 #include <trajopt_sco/modeling_utils.hpp>
 
-#include "trajopt_interface/kinematic_terms.h"
+#include "trajopt/kinematic_terms.h"
 
 using namespace std;
 using namespace sco;
 using namespace Eigen;
 
-namespace trajopt_interface
+namespace trajopt
 {
 VectorXd CartPoseErrCalculator::operator()(const VectorXd& dof_vals) const
 {
@@ -61,4 +61,4 @@ MatrixXd JointVelJacobianCalculator::operator()(const VectorXd& var_vals) const
   return jac;
 }
 
-}  // namespace trajopt_interface
+}  // namespace trajopt
