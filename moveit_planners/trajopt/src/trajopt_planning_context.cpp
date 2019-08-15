@@ -36,6 +36,7 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanDetailedRespons
     res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res_msg.trajectory[0]);
 
     res.description_.push_back("plan");
+    // TODO: Add the initial trajectory to res (MotionPlanDetailedResponse)
     res.processing_time_ = res_msg.processing_time;
     res.error_code_ = res_msg.error_code;
     return true;
@@ -65,7 +66,7 @@ bool TrajOptPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 
 bool TrajOptPlanningContext::terminate()
 {
-  ROS_ERROR_STREAM_NAMED("trajopt_planning_context", "terminate() is not implemented");
+  ROS_ERROR_STREAM_NAMED("trajopt_planning_context", "TrajOpt is not interruptable yet");
   return false;
 }
 void TrajOptPlanningContext::clear()

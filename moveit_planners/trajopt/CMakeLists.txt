@@ -22,7 +22,6 @@ find_package(catkin REQUIRED
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES
-      interactivity_utils
       ${PROJECT_NAME}
     INCLUDE_DIRS
     CATKIN_DEPENDS

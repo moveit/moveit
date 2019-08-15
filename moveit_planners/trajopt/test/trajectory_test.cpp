@@ -88,8 +88,6 @@ TEST_F(TrajectoryTest, concatVectorValidation)
 
 TEST_F(TrajectoryTest, goalTolerance)
 {
-  SetUp();
-
   const std::string NODE_NAME = "trajectory_test";
 
   // Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group
