@@ -314,6 +314,9 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
     return;
   }
+
+  robot_->setVisible(!state_msg->hide);
+
   update_state_ = true;
 }
 
