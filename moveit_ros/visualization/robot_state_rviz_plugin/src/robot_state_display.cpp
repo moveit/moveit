@@ -371,7 +371,6 @@ void RobotStateDisplay::loadRobotModel()
 
     changedEnableVisualVisible();
     changedEnableCollisionVisible();
-    robot_->setVisible(true);
   }
   else
     setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
