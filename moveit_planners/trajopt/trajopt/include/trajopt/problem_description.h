@@ -1,6 +1,6 @@
 #pragma once
+
 #include <trajopt/common.hpp>
-#include <trajopt/json_marshal.hpp>
 #include <trajopt_sco/optimizers.hpp>
 
 #include <moveit/robot_model/robot_model.h>
@@ -8,7 +8,7 @@
 
 #include <memory>
 
-namespace trajopt_interface
+namespace trajopt
 {
 /**
 @brief Used to apply cost/constraint to joint-space velocity
@@ -109,12 +109,12 @@ struct InitInfo
   };
   /** @brief Specifies the type of initialization to use */
   Type type;
+
   /** @brief Data used during initialization. Use depends on the initialization selected. This data will be used
       to create initialization matrix. We need to give the goal information to this init info
    */
   trajopt::TrajArray data;
-  //  Eigen::VectorXd data_vec;
-  //  trajopt::TrajArray data_trajectory;
+
   /** @brief Default value the final column of the optimization is initialized too if time is being used */
   double dt = 1.0;
 };
