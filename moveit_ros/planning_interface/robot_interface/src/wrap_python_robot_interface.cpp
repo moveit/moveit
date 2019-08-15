@@ -253,8 +253,8 @@ public:
   bool ensureNotMonitoring()
   {
     if (current_state_monitor_)
-      ROS_ERROR(
-          "RobotInterface monitors current state but was given a custom state. It will be overwritten on next update.");
+      ROS_ERROR("RobotInterface was given a custom state but is monitoring the current state, so the custom state will "
+                "be overwritten on next update. Initialize with monitor_current_state = False to use custom states.");
     return static_cast<bool>(current_state_monitor_);
   }
 
