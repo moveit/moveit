@@ -546,6 +546,13 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 {
   std::vector<OMPLPlannerDescription> planner_des;
 
+  OMPLPlannerDescription aps("AnytimePathShortening", "geometric");
+  aps.addParameter("shortcut", "true", "Attempt to shortcut all new solution paths");
+  aps.addParameter("hybridize", "true", "Compute hybrid solution trajectories");
+  aps.addParameter("max_hybrid_paths", "24", "Number of hybrid paths generated per iteration");
+  aps.addParameter("num_planners", "4", "The number of default planners to use for planning");
+  planner_des.push_back(aps);
+
   OMPLPlannerDescription sbl("SBL", "geometric");
   sbl.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
   planner_des.push_back(sbl);
