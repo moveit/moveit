@@ -164,9 +164,18 @@ std::ostream& operator<<(std::ostream& o, const ModelType& cs)
   return o;
 }
 
-ModelType::ModelType() { value_ = ModelType::AUTO_SOLVER; }
-ModelType::ModelType(const ModelType::Value& v) { value_ = v; }
-ModelType::ModelType(const int& v) { value_ = static_cast<Value>(v); }
+ModelType::ModelType()
+{
+  value_ = ModelType::AUTO_SOLVER;
+}
+ModelType::ModelType(const ModelType::Value& v)
+{
+  value_ = v;
+}
+ModelType::ModelType(const int& v)
+{
+  value_ = static_cast<Value>(v);
+}
 ModelType::ModelType(const std::string& s)
 {
   for (unsigned int i = 0; i < ModelType::MODEL_NAMES_.size(); ++i)
@@ -180,10 +189,22 @@ ModelType::ModelType(const std::string& s)
   PRINT_AND_THROW(boost::format("invalid solver name:\"%s\"") % s);
 }
 
-ModelType::operator int() const { return static_cast<int>(value_); }
-bool ModelType::operator==(const ModelType::Value& a) const { return value_ == a; }
-bool ModelType::operator==(const ModelType& a) const { return value_ == a.value_; }
-bool ModelType::operator!=(const ModelType& a) const { return value_ != a.value_; }
+ModelType::operator int() const
+{
+  return static_cast<int>(value_);
+}
+bool ModelType::operator==(const ModelType::Value& a) const
+{
+  return value_ == a;
+}
+bool ModelType::operator==(const ModelType& a) const
+{
+  return value_ == a.value_;
+}
+bool ModelType::operator!=(const ModelType& a) const
+{
+  return value_ != a.value_;
+}
 void ModelType::fromJson(const Json::Value& v)
 {
   try

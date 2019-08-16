@@ -6,5 +6,8 @@ TRAJOPT_IGNORE_WARNINGS_POP
 
 namespace util
 {
-float randf() { return (float)rand() / (float)RAND_MAX; }
+float randf()
+{
+  return (float)rand() / (float)RAND_MAX;
+}
 }

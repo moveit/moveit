@@ -27,7 +27,9 @@ model are removed
 class ConvexObjective
 {
 public:
-  ConvexObjective(Model* model) : model_(model) {}
+  ConvexObjective(Model* model) : model_(model)
+  {
+  }
   void addAffExpr(const AffExpr&);
   void addQuadExpr(const QuadExpr&);
   void addHinge(const AffExpr&, double coeff);
@@ -37,7 +39,10 @@ public:
   void addL2Norm(const AffExprVector&);
   void addMax(const AffExprVector&);
 
-  bool inModel() { return model_ != nullptr; }
+  bool inModel()
+  {
+    return model_ != nullptr;
+  }
   void addConstraintsToModel();
   void removeFromModel();
   double value(const DblVec& x);
@@ -52,8 +57,12 @@ public:
   CntVector cnts_;
 
 private:
-  ConvexObjective() {}
-  ConvexObjective(ConvexObjective&) {}
+  ConvexObjective()
+  {
+  }
+  ConvexObjective(ConvexObjective&)
+  {
+  }
 };
 
 /**
@@ -63,7 +72,9 @@ Actually only affine inequality constraints are currently implemented.
 class ConvexConstraints
 {
 public:
-  ConvexConstraints(Model* model) : model_(model) {}
+  ConvexConstraints(Model* model) : model_(model)
+  {
+  }
   /** Expression that should == 0 */
   void addEqCnt(const AffExpr&);
   /** Expression that should <= 0 */
@@ -73,7 +84,10 @@ public:
     assert(!inModel());
     model_ = model;
   }
-  bool inModel() { return model_ != nullptr; }
+  bool inModel()
+  {
+    return model_ != nullptr;
+  }
   void addConstraintsToModel();
   void removeFromModel();
 
@@ -87,8 +101,12 @@ public:
 private:
   Model* model_;
   CntVector cnts_;
-  ConvexConstraints() : model_(nullptr) {}
-  ConvexConstraints(ConvexConstraints&) {}
+  ConvexConstraints() : model_(nullptr)
+  {
+  }
+  ConvexConstraints(ConvexConstraints&)
+  {
+  }
 };
 
 /**
@@ -104,10 +122,20 @@ public:
   virtual ConvexObjectivePtr convex(const DblVec& x, Model* model) = 0;
   /** Get problem variables associated with this cost */
   virtual VarVector getVars() = 0;
-  std::string name() { return name_; }
-  void setName(const std::string& name) { name_ = name; }
-  Cost() : name_("unnamed") {}
-  Cost(const std::string& name) : name_(name) {}
+  std::string name()
+  {
+    return name_;
+  }
+  void setName(const std::string& name)
+  {
+    name_ = name;
+  }
+  Cost() : name_("unnamed")
+  {
+  }
+  Cost(const std::string& name) : name_(name)
+  {
+  }
   virtual ~Cost() = default;
 
 protected:
@@ -134,11 +162,24 @@ public:
   double violation(const DblVec& x);
   /** Get problem variables associated with this constraint */
   virtual VarVector getVars() = 0;
-  std::string name() { return name_; }
-  void setName(const std::string& name) { name_ = name; }
-  Constraint() : name_("unnamed") {}
-  Constraint(const std::string& name) : name_(name) {}
-  virtual ~Constraint() {}
+  std::string name()
+  {
+    return name_;
+  }
+  void setName(const std::string& name)
+  {
+    name_ = name;
+  }
+  Constraint() : name_("unnamed")
+  {
+  }
+  Constraint(const std::string& name) : name_(name)
+  {
+  }
+  virtual ~Constraint()
+  {
+  }
+
 protected:
   std::string name_;
 };
@@ -146,17 +187,31 @@ protected:
 class EqConstraint : public Constraint
 {
 public:
-  ConstraintType type() override { return EQ; }
-  EqConstraint() : Constraint() {}
-  EqConstraint(const std::string& name) : Constraint(name) {}
+  ConstraintType type() override
+  {
+    return EQ;
+  }
+  EqConstraint() : Constraint()
+  {
+  }
+  EqConstraint(const std::string& name) : Constraint(name)
+  {
+  }
 };
 
 class IneqConstraint : public Constraint
 {
 public:
-  ConstraintType type() override { return INEQ; }
-  IneqConstraint() : Constraint() {}
-  IneqConstraint(const std::string& name) : Constraint(name) {}
+  ConstraintType type() override
+  {
+    return INEQ;
+  }
+  IneqConstraint() : Constraint()
+  {
+  }
+  IneqConstraint(const std::string& name) : Constraint(name)
+  {
+  }
 };
 
 /**
@@ -197,16 +252,47 @@ public:
   DblVec getClosestFeasiblePoint(const DblVec& x);
 
   std::vector<ConstraintPtr> getConstraints() const;
-  const std::vector<CostPtr>& getCosts() { return costs_; }
-  const std::vector<ConstraintPtr>& getIneqConstraints() { return ineqcnts_; }
-  const std::vector<ConstraintPtr>& getEqConstraints() { return eqcnts_; }
-  const DblVec& getLowerBounds() { return lower_bounds_; }
-  const DblVec& getUpperBounds() { return upper_bounds_; }
-  ModelPtr getModel() { return model_; }
-  const VarVector& getVars() { return vars_; }
-  int getNumCosts() { return static_cast<int>(costs_.size()); }
-  int getNumConstraints() { return static_cast<int>(eqcnts_.size() + ineqcnts_.size()); }
-  int getNumVars() { return static_cast<int>(vars_.size()); }
+  const std::vector<CostPtr>& getCosts()
+  {
+    return costs_;
+  }
+  const std::vector<ConstraintPtr>& getIneqConstraints()
+  {
+    return ineqcnts_;
+  }
+  const std::vector<ConstraintPtr>& getEqConstraints()
+  {
+    return eqcnts_;
+  }
+  const DblVec& getLowerBounds()
+  {
+    return lower_bounds_;
+  }
+  const DblVec& getUpperBounds()
+  {
+    return upper_bounds_;
+  }
+  ModelPtr getModel()
+  {
+    return model_;
+  }
+  const VarVector& getVars()
+  {
+    return vars_;
+  }
+  int getNumCosts()
+  {
+    return static_cast<int>(costs_.size());
+  }
+  int getNumConstraints()
+  {
+    return static_cast<int>(eqcnts_.size() + ineqcnts_.size());
+  }
+  int getNumVars()
+  {
+    return static_cast<int>(vars_.size());
+  }
+
 protected:
   ModelPtr model_;
   VarVector vars_;

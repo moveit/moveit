@@ -58,8 +58,7 @@ static std::vector<ConvexObjectivePtr> convexifyCosts(const std::vector<CostPtr>
   }
   return out;
 }
-static std::vector<ConvexConstraintsPtr> convexifyConstraints(const std::vector<ConstraintPtr>& cnts,
-                                                              const DblVec& x,
+static std::vector<ConvexConstraintsPtr> convexifyConstraints(const std::vector<ConstraintPtr>& cnts, const DblVec& x,
                                                               Model* model)
 {
   std::vector<ConvexConstraintsPtr> out(cnts.size());
@@ -104,14 +103,9 @@ static std::vector<std::string> getCntNames(const std::vector<ConstraintPtr>& cn
   return out;
 }
 
-void printCostInfo(const DblVec& old_cost_vals,
-                   const DblVec& model_cost_vals,
-                   const DblVec& new_cost_vals,
-                   const DblVec& old_cnt_vals,
-                   const DblVec& model_cnt_vals,
-                   const DblVec& new_cnt_vals,
-                   const std::vector<std::string>& cost_names,
-                   const std::vector<std::string>& cnt_names,
+void printCostInfo(const DblVec& old_cost_vals, const DblVec& model_cost_vals, const DblVec& new_cost_vals,
+                   const DblVec& old_cnt_vals, const DblVec& model_cnt_vals, const DblVec& new_cnt_vals,
+                   const std::vector<std::string>& cost_names, const std::vector<std::string>& cnt_names,
                    double merit_coeff)
 {
   std::printf("%15s | %10s | %10s | %10s | %10s\n", "", "oldexact", "dapprox", "dexact", "ratio");
@@ -121,53 +115,31 @@ void printCostInfo(const DblVec& old_cost_vals,
     double approx_improve = old_cost_vals[i] - model_cost_vals[i];
     double exact_improve = old_cost_vals[i] - new_cost_vals[i];
     if (fabs(approx_improve) > 1e-8)
-      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n",
-                  cost_names[i].c_str(),
-                  old_cost_vals[i],
-                  approx_improve,
-                  exact_improve,
-                  exact_improve / approx_improve);
+      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", cost_names[i].c_str(), old_cost_vals[i], approx_improve,
+                  exact_improve, exact_improve / approx_improve);
     else
-      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10s\n",
-                  cost_names[i].c_str(),
-                  old_cost_vals[i],
-                  approx_improve,
-                  exact_improve,
-                  "  ------  ");
+      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10s\n", cost_names[i].c_str(), old_cost_vals[i], approx_improve,
+                  exact_improve, "  ------  ");
   }
   if (cnt_names.size() == 0)
     return;
-  std::printf("%15s | %10s---%10s---%10s---%10s\n",
-              "CONSTRAINTS",
-              "----------",
-              "----------",
-              "----------",
-              "---------"
-              "-");
+  std::printf("%15s | %10s---%10s---%10s---%10s\n", "CONSTRAINTS", "----------", "----------", "----------", "---------"
+                                                                                                             "-");
   for (size_t i = 0; i < old_cnt_vals.size(); ++i)
   {
     double approx_improve = old_cnt_vals[i] - model_cnt_vals[i];
     double exact_improve = old_cnt_vals[i] - new_cnt_vals[i];
     if (fabs(approx_improve) > 1e-8)
-      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n",
-                  cnt_names[i].c_str(),
-                  merit_coeff * old_cnt_vals[i],
-                  merit_coeff * approx_improve,
-                  merit_coeff * exact_improve,
-                  exact_improve / approx_improve);
+      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", cnt_names[i].c_str(), merit_coeff * old_cnt_vals[i],
+                  merit_coeff * approx_improve, merit_coeff * exact_improve, exact_improve / approx_improve);
     else
-      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10s\n",
-                  cnt_names[i].c_str(),
-                  merit_coeff * old_cnt_vals[i],
-                  merit_coeff * approx_improve,
-                  merit_coeff * exact_improve,
-                  "  ------  ");
+      std::printf("%15s | %10.3e | %10.3e | %10.3e | %10s\n", cnt_names[i].c_str(), merit_coeff * old_cnt_vals[i],
+                  merit_coeff * approx_improve, merit_coeff * exact_improve, "  ------  ");
   }
 }
 
 // todo: use different coeffs for each constraint
-std::vector<ConvexObjectivePtr> cntsToCosts(const std::vector<ConvexConstraintsPtr>& cnts,
-                                            double err_coeff,
+std::vector<ConvexObjectivePtr> cntsToCosts(const std::vector<ConvexConstraintsPtr>& cnts, double err_coeff,
                                             Model* model)
 {
   std::vector<ConvexObjectivePtr> out;
@@ -187,7 +159,10 @@ std::vector<ConvexObjectivePtr> cntsToCosts(const std::vector<ConvexConstraintsP
   return out;
 }
 
-void Optimizer::addCallback(const Callback& cb) { callbacks_.push_back(cb); }
+void Optimizer::addCallback(const Callback& cb)
+{
+  callbacks_.push_back(cb);
+}
 void Optimizer::callCallbacks()
 {
   for (unsigned i = 0; i < callbacks_.size(); ++i)
@@ -224,15 +199,23 @@ BasicTrustRegionSQPParameters::BasicTrustRegionSQPParameters()
   trust_box_size = 1e-1;
 }
 
-BasicTrustRegionSQP::BasicTrustRegionSQP() {}
-BasicTrustRegionSQP::BasicTrustRegionSQP(OptProbPtr prob) { setProblem(prob); }
+BasicTrustRegionSQP::BasicTrustRegionSQP()
+{
+}
+BasicTrustRegionSQP::BasicTrustRegionSQP(OptProbPtr prob)
+{
+  setProblem(prob);
+}
 void BasicTrustRegionSQP::setProblem(OptProbPtr prob)
 {
   Optimizer::setProblem(prob);
   model_ = prob->getModel();
 }
 
-void BasicTrustRegionSQP::adjustTrustRegion(double ratio) { param_.trust_box_size *= ratio; }
+void BasicTrustRegionSQP::adjustTrustRegion(double ratio)
+{
+  param_.trust_box_size *= ratio;
+}
 void BasicTrustRegionSQP::setTrustBoxConstraints(const DblVec& x)
 {
   const VarVector& vars = prob_->getVars();
@@ -394,21 +377,10 @@ OptStatus BasicTrustRegionSQP::optimize()
         if (util::GetLogLevel() >= util::LevelInfo)
         {
           LOG_INFO(" ");
-          printCostInfo(results_.cost_vals,
-                        model_cost_vals,
-                        new_cost_vals,
-                        results_.cnt_viols,
-                        model_cnt_viols,
-                        new_cnt_viols,
-                        cost_names,
-                        cnt_names,
-                        param_.merit_error_coeff);
-          std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n",
-                      "TOTAL",
-                      old_merit,
-                      approx_merit_improve,
-                      exact_merit_improve,
-                      merit_improve_ratio);
+          printCostInfo(results_.cost_vals, model_cost_vals, new_cost_vals, results_.cnt_viols, model_cnt_viols,
+                        new_cnt_viols, cost_names, cnt_names, param_.merit_error_coeff);
+          std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e\n", "TOTAL", old_merit, approx_merit_improve,
+                      exact_merit_improve, merit_improve_ratio);
         }
 
         if (approx_merit_improve < -1e-5)
@@ -419,15 +391,14 @@ OptStatus BasicTrustRegionSQP::optimize()
         }
         if (approx_merit_improve < param_.min_approx_improve)
         {
-          LOG_INFO(
-              "converged because improvement was small (%.3e < %.3e)", approx_merit_improve, param_.min_approx_improve);
+          LOG_INFO("converged because improvement was small (%.3e < %.3e)", approx_merit_improve,
+                   param_.min_approx_improve);
           retval = OPT_CONVERGED;
           goto penaltyadjustment;
         }
         if (approx_merit_improve / old_merit < param_.min_approx_improve_frac)
         {
-          LOG_INFO("converged because improvement ratio was small (%.3e < %.3e)",
-                   approx_merit_improve / old_merit,
+          LOG_INFO("converged because improvement ratio was small (%.3e < %.3e)", approx_merit_improve / old_merit,
                    param_.min_approx_improve_frac);
           retval = OPT_CONVERGED;
           goto penaltyadjustment;

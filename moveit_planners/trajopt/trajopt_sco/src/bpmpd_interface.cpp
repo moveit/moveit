@@ -475,21 +475,8 @@ CvxOptStatus BPMPDModel::optimize()
 
 #else
 
-  bpmpd_io::bpmpd_input bi(static_cast<int>(m),
-                           static_cast<int>(n),
-                           nz,
-                           qn,
-                           qnz,
-                           acolcnt,
-                           acolidx,
-                           acolnzs,
-                           qcolcnt,
-                           qcolidx,
-                           qcolnzs,
-                           rhs,
-                           obj,
-                           lbound,
-                           ubound);
+  bpmpd_io::bpmpd_input bi(static_cast<int>(m), static_cast<int>(n), nz, qn, qnz, acolcnt, acolidx, acolnzs, qcolcnt,
+                           qcolidx, qcolnzs, rhs, obj, lbound, ubound);
   bpmpd_io::ser(gPipeIn, bi, bpmpd_io::SER);
 
   // std::cout << "serialization time:" << end-start << std::endl;
@@ -511,11 +498,20 @@ CvxOptStatus BPMPDModel::optimize()
 
   // exit(0);
 }
-void BPMPDModel::setObjective(const AffExpr& expr) { m_objective.affexpr = expr; }
-void BPMPDModel::setObjective(const QuadExpr& expr) { m_objective = expr; }
+void BPMPDModel::setObjective(const AffExpr& expr)
+{
+  m_objective.affexpr = expr;
+}
+void BPMPDModel::setObjective(const QuadExpr& expr)
+{
+  m_objective = expr;
+}
 void BPMPDModel::writeToFile(const std::string& /*fname*/)
 {
   // assert(0 && "NOT IMPLEMENTED");
 }
-VarVector BPMPDModel::getVars() const { return m_vars; }
+VarVector BPMPDModel::getVars() const
+{
+  return m_vars;
+}
 }

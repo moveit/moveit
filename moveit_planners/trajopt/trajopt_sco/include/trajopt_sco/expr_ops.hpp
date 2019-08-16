@@ -21,17 +21,32 @@ inline void exprScale(QuadExpr& q, double a)
 }
 
 // addition
-inline void exprInc(AffExpr& a, double b) { a.constant += b; }
+inline void exprInc(AffExpr& a, double b)
+{
+  a.constant += b;
+}
 inline void exprInc(AffExpr& a, const AffExpr& b)
 {
   a.constant += b.constant;
   a.coeffs.insert(a.coeffs.end(), b.coeffs.begin(), b.coeffs.end());
   a.vars.insert(a.vars.end(), b.vars.begin(), b.vars.end());
 }
-inline void exprInc(AffExpr& a, const Var& b) { exprInc(a, AffExpr(b)); }
-inline void exprInc(QuadExpr& a, double b) { exprInc(a.affexpr, b); }
-inline void exprInc(QuadExpr& a, const Var& b) { exprInc(a.affexpr, AffExpr(b)); }
-inline void exprInc(QuadExpr& a, const AffExpr& b) { exprInc(a.affexpr, b); }
+inline void exprInc(AffExpr& a, const Var& b)
+{
+  exprInc(a, AffExpr(b));
+}
+inline void exprInc(QuadExpr& a, double b)
+{
+  exprInc(a.affexpr, b);
+}
+inline void exprInc(QuadExpr& a, const Var& b)
+{
+  exprInc(a.affexpr, AffExpr(b));
+}
+inline void exprInc(QuadExpr& a, const AffExpr& b)
+{
+  exprInc(a.affexpr, b);
+}
 inline void exprInc(QuadExpr& a, const QuadExpr& b)
 {
   exprInc(a.affexpr, b.affexpr);
@@ -41,16 +56,31 @@ inline void exprInc(QuadExpr& a, const QuadExpr& b)
 }
 
 // subtraction
-inline void exprDec(AffExpr& a, double b) { a.constant -= b; }
+inline void exprDec(AffExpr& a, double b)
+{
+  a.constant -= b;
+}
 inline void exprDec(AffExpr& a, AffExpr b)
 {
   exprScale(b, -1);
   exprInc(a, b);
 }
-inline void exprDec(AffExpr& a, const Var& b) { exprDec(a, AffExpr(b)); }
-inline void exprDec(QuadExpr& a, double b) { exprDec(a.affexpr, b); }
-inline void exprDec(QuadExpr& a, const Var& b) { exprDec(a.affexpr, b); }
-inline void exprDec(QuadExpr& a, const AffExpr& b) { exprDec(a.affexpr, b); }
+inline void exprDec(AffExpr& a, const Var& b)
+{
+  exprDec(a, AffExpr(b));
+}
+inline void exprDec(QuadExpr& a, double b)
+{
+  exprDec(a.affexpr, b);
+}
+inline void exprDec(QuadExpr& a, const Var& b)
+{
+  exprDec(a.affexpr, b);
+}
+inline void exprDec(QuadExpr& a, const AffExpr& b)
+{
+  exprDec(a.affexpr, b);
+}
 inline void exprDec(QuadExpr& a, QuadExpr b)
 {
   exprScale(b, -1);

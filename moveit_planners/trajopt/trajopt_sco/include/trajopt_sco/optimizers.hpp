@@ -20,12 +20,12 @@ enum OptStatus
   OPT_FAILED,
   INVALID
 };
-static const char* OptStatus_strings[] = { "CONVERGED",
-                                           "SCO_ITERATION_LIMIT",
-                                           "PENALTY_ITERATION_LIMIT",
-                                           "FAILED",
+static const char* OptStatus_strings[] = { "CONVERGED", "SCO_ITERATION_LIMIT", "PENALTY_ITERATION_LIMIT", "FAILED",
                                            "INVALID" };
-inline std::string statusToString(OptStatus status) { return OptStatus_strings[status]; }
+inline std::string statusToString(OptStatus status)
+{
+  return OptStatus_strings[status];
+}
 struct OptResults
 {
   DblVec x;  // solution estimate
@@ -43,7 +43,10 @@ struct OptResults
     n_func_evals = 0;
     n_qp_solves = 0;
   }
-  OptResults() { clear(); }
+  OptResults()
+  {
+    clear();
+  }
 };
 std::ostream& operator<<(std::ostream& o, const OptResults& r);
 
@@ -55,10 +58,19 @@ class Optimizer
 public:
   virtual ~Optimizer() = default;
   virtual OptStatus optimize() = 0;
-  virtual void setProblem(OptProbPtr prob) { prob_ = prob; }
+  virtual void setProblem(OptProbPtr prob)
+  {
+    prob_ = prob;
+  }
   void initialize(const DblVec& x);
-  DblVec& x() { return results_.x; }
-  OptResults& results() { return results_; }
+  DblVec& x()
+  {
+    return results_.x;
+  }
+  OptResults& results()
+  {
+    return results_;
+  }
   typedef std::function<void(OptProb*, OptResults&)> Callback;
   void addCallback(const Callback& f);  // called before each iteration
 protected:
@@ -114,9 +126,18 @@ public:
   BasicTrustRegionSQP();
   BasicTrustRegionSQP(OptProbPtr prob);
   void setProblem(OptProbPtr prob) override;
-  void setParameters(const BasicTrustRegionSQPParameters& param) { param_ = param; }
-  const BasicTrustRegionSQPParameters& getParameters() const { return param_; }
-  BasicTrustRegionSQPParameters& getParameters() { return param_; }
+  void setParameters(const BasicTrustRegionSQPParameters& param)
+  {
+    param_ = param;
+  }
+  const BasicTrustRegionSQPParameters& getParameters() const
+  {
+    return param_;
+  }
+  BasicTrustRegionSQPParameters& getParameters()
+  {
+    return param_;
+  }
   OptStatus optimize() override;
 
 protected:

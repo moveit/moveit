@@ -239,15 +239,15 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   std::string problem_info_type;
   switch (problem_info.init_info.type)
   {
-  case trajopt::InitInfo::STATIONARY:
-    problem_info_type = "STATIONARY";
-    break;
-  case trajopt::InitInfo::JOINT_INTERPOLATED:
-    problem_info_type = "JOINT_INTERPOLATED";
-    break;
-  case trajopt::InitInfo::GIVEN_TRAJ:
-    problem_info_type = "GIVEN_TRAJ";
-    break;
+    case trajopt::InitInfo::STATIONARY:
+      problem_info_type = "STATIONARY";
+      break;
+    case trajopt::InitInfo::JOINT_INTERPOLATED:
+      problem_info_type = "JOINT_INTERPOLATED";
+      break;
+    case trajopt::InitInfo::GIVEN_TRAJ:
+      problem_info_type = "GIVEN_TRAJ";
+      break;
   }
   ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.type: " << problem_info_type);
   ROS_DEBUG_STREAM_NAMED(name_, "problem_info.basic_info.dt: " << problem_info.init_info.dt);

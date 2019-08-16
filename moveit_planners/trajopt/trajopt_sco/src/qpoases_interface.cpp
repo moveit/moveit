@@ -35,7 +35,9 @@ qpOASESModel::qpOASESModel()
   qpoases_options_.ensureConsistency();
 }
 
-qpOASESModel::~qpOASESModel() {}
+qpOASESModel::~qpOASESModel()
+{
+}
 Var qpOASESModel::addVar(const std::string& name)
 {
   vars_.push_back(new VarRep(vars_.size(), name, this));
@@ -211,8 +213,8 @@ CvxOptStatus qpOASESModel::optimize()
   int nWSR = 255;
   if (qpoases_problem_->isInitialised())
   {
-    val = qpoases_problem_->hotstart(
-        &H_, g_.data(), &A_, lb_.data(), ub_.data(), lbA_.data(), ubA_.data(), nWSR, nullptr);
+    val = qpoases_problem_->hotstart(&H_, g_.data(), &A_, lb_.data(), ub_.data(), lbA_.data(), ubA_.data(), nWSR,
+                                     nullptr);
   }
 
   if (val != qpOASES::SUCCESSFUL_RETURN)
@@ -241,11 +243,20 @@ CvxOptStatus qpOASESModel::optimize()
     return CVX_FAILED;
   }
 }
-void qpOASESModel::setObjective(const AffExpr& expr) { objective_.affexpr = expr; }
-void qpOASESModel::setObjective(const QuadExpr& expr) { objective_ = expr; }
+void qpOASESModel::setObjective(const AffExpr& expr)
+{
+  objective_.affexpr = expr;
+}
+void qpOASESModel::setObjective(const QuadExpr& expr)
+{
+  objective_ = expr;
+}
 void qpOASESModel::writeToFile(const std::string& /*fname*/)
 {
   return;  // NOT IMPLEMENTED
 }
-VarVector qpOASESModel::getVars() const { return vars_; }
+VarVector qpOASESModel::getVars() const
+{
+  return vars_;
+}
 }
