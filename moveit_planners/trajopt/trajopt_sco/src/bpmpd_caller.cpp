@@ -10,28 +10,8 @@ TRAJOPT_IGNORE_WARNINGS_POP
 #include <trajopt_utils/stl_to_string.hpp>
 
 extern "C" {
-extern void bpmpd(int*,
-                  int*,
-                  int*,
-                  int*,
-                  int*,
-                  int*,
-                  int*,
-                  double*,
-                  int*,
-                  int*,
-                  double*,
-                  double*,
-                  double*,
-                  double*,
-                  double*,
-                  double*,
-                  double*,
-                  int*,
-                  double*,
-                  int*,
-                  double*,
-                  int*);
+extern void bpmpd(int*, int*, int*, int*, int*, int*, int*, double*, int*, int*, double*, double*, double*, double*,
+                  double*, double*, double*, int*, double*, int*, double*, int*);
 }
 
 int main(int /*argc*/, char** /*argv*/)
@@ -74,28 +54,9 @@ int main(int /*argc*/, char** /*argv*/)
     DBG(bi.lbound);
     DBG(bi.ubound);
 
-    bpmpd(&bi.m,
-          &bi.n,
-          &bi.nz,
-          &bi.qn,
-          &bi.qnz,
-          bi.acolcnt.data(),
-          bi.acolidx.data(),
-          bi.acolnzs.data(),
-          bi.qcolcnt.data(),
-          bi.qcolidx.data(),
-          bi.qcolnzs.data(),
-          bi.rhs.data(),
-          bi.obj.data(),
-          bi.lbound.data(),
-          bi.ubound.data(),
-          bo.primal.data(),
-          bo.dual.data(),
-          bo.status.data(),
-          &BIG,
-          &bo.code,
-          &bo.opt,
-          &memsiz);
+    bpmpd(&bi.m, &bi.n, &bi.nz, &bi.qn, &bi.qnz, bi.acolcnt.data(), bi.acolidx.data(), bi.acolnzs.data(),
+          bi.qcolcnt.data(), bi.qcolidx.data(), bi.qcolnzs.data(), bi.rhs.data(), bi.obj.data(), bi.lbound.data(),
+          bi.ubound.data(), bo.primal.data(), bo.dual.data(), bo.status.data(), &BIG, &bo.code, &bo.opt, &memsiz);
 
     bpmpd_io::ser(STDOUT_FILENO, bo, bpmpd_io::SER);
   }

@@ -35,10 +35,7 @@ TrajArray getTraj(const DblVec& x, const AffArray& arr)
   return out;
 }
 
-void AddVarArrays(sco::OptProb& prob,
-                  int rows,
-                  const IntVec& cols,
-                  const std::vector<std::string>& name_prefix,
+void AddVarArrays(sco::OptProb& prob, int rows, const IntVec& cols, const std::vector<std::string>& name_prefix,
                   const std::vector<VarArray*>& newvars)
 {
   size_t n_arr = name_prefix.size();

@@ -17,7 +17,10 @@ enum LogLevel
 };
 
 extern LogLevel gLogLevel;
-inline LogLevel GetLogLevel() { return gLogLevel; }
+inline LogLevel GetLogLevel()
+{
+  return gLogLevel;
+}
 #define FATAL_PREFIX "\x1b[31m[FATAL] "
 #define ERROR_PREFIX "\x1b[31m[ERROR] "
 #define WARN_PREFIX "\x1b[33m[WARN] "

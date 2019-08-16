@@ -13,10 +13,19 @@ struct BasicArray
   int m_nCol;
   std::vector<T> m_data;
 
-  BasicArray() : m_nRow(0), m_nCol(0) {}
-  BasicArray(int nRow, int nCol) : m_nRow(nRow), m_nCol(nCol) { m_data.resize(m_nRow * m_nCol); }
-  BasicArray(int nRow, int nCol, const T* data) : m_nRow(nRow), m_nCol(nCol), m_data(data, data + nRow * nCol) {}
-  BasicArray(const BasicArray& x) : m_nRow(x.m_nRow), m_nCol(x.m_nCol), m_data(x.m_data) {}
+  BasicArray() : m_nRow(0), m_nCol(0)
+  {
+  }
+  BasicArray(int nRow, int nCol) : m_nRow(nRow), m_nCol(nCol)
+  {
+    m_data.resize(m_nRow * m_nCol);
+  }
+  BasicArray(int nRow, int nCol, const T* data) : m_nRow(nRow), m_nCol(nCol), m_data(data, data + nRow * nCol)
+  {
+  }
+  BasicArray(const BasicArray& x) : m_nRow(x.m_nRow), m_nCol(x.m_nCol), m_data(x.m_data)
+  {
+  }
   void resize(int nRow, int nCol)
   {
     m_nRow = nRow;
@@ -24,9 +33,18 @@ struct BasicArray
     m_data.resize(static_cast<size_t>(m_nRow * m_nCol));
   }
 
-  int rows() const { return m_nRow; }
-  int cols() const { return m_nCol; }
-  int size() const { return m_data.size(); }
+  int rows() const
+  {
+    return m_nRow;
+  }
+  int cols() const
+  {
+    return m_nCol;
+  }
+  int size() const
+  {
+    return m_data.size();
+  }
   BasicArray block(int startRow, int startCol, int nRow, int nCol) const
   {
     BasicArray out;
@@ -71,12 +89,30 @@ struct BasicArray
     }
     return out;
   }
-  BasicArray topRows(int n) { return middleRows(0, n); }
-  BasicArray bottomRows(int n) { return middleRows(m_nRow - n, n); }
-  const T& at(int row, int col) const { return m_data.at(static_cast<size_t>(row * m_nCol + col)); }
-  T& at(int row, int col) { return m_data.at(static_cast<size_t>(row * m_nCol + col)); }
-  const T& operator()(int row, int col) const { return m_data.at(static_cast<size_t>(row * m_nCol + col)); }
-  T& operator()(int row, int col) { return m_data.at(static_cast<size_t>(row * m_nCol + col)); }
+  BasicArray topRows(int n)
+  {
+    return middleRows(0, n);
+  }
+  BasicArray bottomRows(int n)
+  {
+    return middleRows(m_nRow - n, n);
+  }
+  const T& at(int row, int col) const
+  {
+    return m_data.at(static_cast<size_t>(row * m_nCol + col));
+  }
+  T& at(int row, int col)
+  {
+    return m_data.at(static_cast<size_t>(row * m_nCol + col));
+  }
+  const T& operator()(int row, int col) const
+  {
+    return m_data.at(static_cast<size_t>(row * m_nCol + col));
+  }
+  T& operator()(int row, int col)
+  {
+    return m_data.at(static_cast<size_t>(row * m_nCol + col));
+  }
   std::vector<T> col(int col)
   {
     std::vector<T> out;
@@ -95,8 +131,17 @@ struct BasicArray
     return out;
   }
 
-  std::vector<T> flatten() { return m_data; }
-  T* data() { return m_data.data(); }
-  T* data() const { return m_data.data(); }
+  std::vector<T> flatten()
+  {
+    return m_data;
+  }
+  T* data()
+  {
+    return m_data.data();
+  }
+  T* data() const
+  {
+    return m_data.data();
+  }
 };
 }  // namespace util

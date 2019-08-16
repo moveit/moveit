@@ -31,8 +31,14 @@ inline double vecAbsSum(const DblVec& v)
     out += fabs(v[i]);
   return out;
 }
-inline double pospart(double x) { return (x > 0) ? x : 0; }
-inline double sq(double x) { return x * x; }
+inline double pospart(double x)
+{
+  return (x > 0) ? x : 0;
+}
+inline double sq(double x)
+{
+  return x * x;
+}
 inline double vecHingeSum(const DblVec& v)
 {
   double out = 0;
@@ -40,7 +46,10 @@ inline double vecHingeSum(const DblVec& v)
     out += pospart(v[i]);
   return out;
 }
-inline double vecMax(const DblVec& v) { return *std::max_element(v.begin(), v.end()); }
+inline double vecMax(const DblVec& v)
+{
+  return *std::max_element(v.begin(), v.end());
+}
 inline double vecDot(const DblVec& a, const DblVec& b)
 {
   assert(a.size() == b.size());

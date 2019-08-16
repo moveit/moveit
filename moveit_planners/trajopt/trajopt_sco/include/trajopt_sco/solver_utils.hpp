@@ -37,12 +37,8 @@ void exprToEigen(const AffExpr& expr, Eigen::SparseVector<double>& sparse_vector
  * @param [in] force_diagonal if true, we will forcibly add elements to the
  *                            diagonal of the sparse matrix, adding `0.` if needed
  */
-void exprToEigen(const QuadExpr& expr,
-                 Eigen::SparseMatrix<double>& sparse_matrix,
-                 Eigen::VectorXd& vector,
-                 const int& n_vars,
-                 const bool& matrix_is_halved = false,
-                 const bool& force_diagonal = false);
+void exprToEigen(const QuadExpr& expr, Eigen::SparseMatrix<double>& sparse_matrix, Eigen::VectorXd& vector,
+                 const int& n_vars, const bool& matrix_is_halved = false, const bool& force_diagonal = false);
 
 /**
  * @brief transform a vector of `AffExpr` to an `Eigen::SparseMatrix` plus an
@@ -61,9 +57,7 @@ void exprToEigen(const QuadExpr& expr,
  *                    It is usually the same for each `expr` in `expr_vec`,
  *                    and equal to `expr.size()`, but it might be larger.
  */
-void exprToEigen(const AffExprVector& expr_vec,
-                 Eigen::SparseMatrix<double>& sparse_matrix,
-                 Eigen::VectorXd& vector,
+void exprToEigen(const AffExprVector& expr_vec, Eigen::SparseMatrix<double>& sparse_matrix, Eigen::VectorXd& vector,
                  const int& n_vars = -1);
 /**
  * @brief Converts triplets to an `Eigen::SparseMatrix`.
@@ -75,9 +69,7 @@ void exprToEigen(const AffExprVector& expr_vec,
  *                               be guessing the right size of sparse_matrix from
  *                               a sparse triplet representation.
  */
-void tripletsToEigen(const IntVec& rows_i,
-                     const IntVec& cols_j,
-                     const DblVec& values_ij,
+void tripletsToEigen(const IntVec& rows_i, const IntVec& cols_j, const DblVec& values_ij,
                      Eigen::SparseMatrix<double>& sparse_matrix);
 
 /**
@@ -88,9 +80,7 @@ void tripletsToEigen(const IntVec& rows_i,
  * @param [out] values_ij a vector of values, so that:
  *                       `M[rows_i[k], cols_j[k]] = values_ij[k]`
  */
-void eigenToTriplets(const Eigen::SparseMatrix<double>& sparse_matrix,
-                     IntVec& rows_i,
-                     IntVec& cols_j,
+void eigenToTriplets(const Eigen::SparseMatrix<double>& sparse_matrix, IntVec& rows_i, IntVec& cols_j,
                      DblVec& values_ij);
 
 /**
@@ -103,10 +93,8 @@ void eigenToTriplets(const Eigen::SparseMatrix<double>& sparse_matrix,
  * @param [in,out] sparse_matrix input matrix: will be compressed
  */
 template <int eigenUpLoType = 0, typename T>
-void eigenToCSC(Eigen::SparseMatrix<double>& sparse_matrix,
-                std::vector<T>& row_indices,
-                std::vector<T>& column_pointers,
-                DblVec& values)
+void eigenToCSC(Eigen::SparseMatrix<double>& sparse_matrix, std::vector<T>& row_indices,
+                std::vector<T>& column_pointers, DblVec& values)
 {
   Eigen::SparseMatrix<double> sm_t;
   auto sm_ref = std::ref(sparse_matrix);

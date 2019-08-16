@@ -7,8 +7,13 @@ ScalarOfVectorPtr ScalarOfVector::construct(const func& f)
   struct F : public ScalarOfVector
   {
     func f;
-    F(const func& _f) : f(_f) {}
-    double operator()(const Eigen::VectorXd& x) const override { return f(x); }
+    F(const func& _f) : f(_f)
+    {
+    }
+    double operator()(const Eigen::VectorXd& x) const override
+    {
+      return f(x);
+    }
   };
   ScalarOfVector* sov = new F(f);  // to avoid erroneous clang warning
   return ScalarOfVectorPtr(sov);
@@ -18,8 +23,13 @@ VectorOfVectorPtr VectorOfVector::construct(const func& f)
   struct F : public VectorOfVector
   {
     func f;
-    F(const func& _f) : f(_f) {}
-    Eigen::VectorXd operator()(const Eigen::VectorXd& x) const override { return f(x); }
+    F(const func& _f) : f(_f)
+    {
+    }
+    Eigen::VectorXd operator()(const Eigen::VectorXd& x) const override
+    {
+      return f(x);
+    }
   };
   VectorOfVector* vov = new F(f);  // to avoid erroneous clang warning
   return VectorOfVectorPtr(vov);
@@ -54,12 +64,8 @@ Eigen::MatrixXd calcForwardNumJac(const VectorOfVector& f, const Eigen::VectorXd
   return out;
 }
 
-void calcGradAndDiagHess(const ScalarOfVector& f,
-                         const Eigen::VectorXd& x,
-                         double epsilon,
-                         double& y,
-                         Eigen::VectorXd& grad,
-                         Eigen::VectorXd& hess)
+void calcGradAndDiagHess(const ScalarOfVector& f, const Eigen::VectorXd& x, double epsilon, double& y,
+                         Eigen::VectorXd& grad, Eigen::VectorXd& hess)
 {
   y = f(x);
   grad.resize(x.size());
@@ -77,11 +83,7 @@ void calcGradAndDiagHess(const ScalarOfVector& f,
   }
 }
 
-void calcGradHess(ScalarOfVectorPtr f,
-                  const Eigen::VectorXd& x,
-                  double epsilon,
-                  double& y,
-                  Eigen::VectorXd& grad,
+void calcGradHess(ScalarOfVectorPtr f, const Eigen::VectorXd& x, double epsilon, double& y, Eigen::VectorXd& grad,
                   Eigen::MatrixXd& hess)
 {
   y = f->call(x);
@@ -95,16 +97,26 @@ struct ForwardNumGrad : public VectorOfVector
 {
   ScalarOfVectorPtr f_;
   double epsilon_;
-  ForwardNumGrad(ScalarOfVectorPtr f, double epsilon) : f_(f), epsilon_(epsilon) {}
-  Eigen::VectorXd operator()(const Eigen::VectorXd& x) const override { return calcForwardNumGrad(*f_, x, epsilon_); }
+  ForwardNumGrad(ScalarOfVectorPtr f, double epsilon) : f_(f), epsilon_(epsilon)
+  {
+  }
+  Eigen::VectorXd operator()(const Eigen::VectorXd& x) const override
+  {
+    return calcForwardNumGrad(*f_, x, epsilon_);
+  }
 };
 
 struct ForwardNumJac : public MatrixOfVector
 {
   VectorOfVectorPtr f_;
   double epsilon_;
-  ForwardNumJac(VectorOfVectorPtr f, double epsilon) : f_(f), epsilon_(epsilon) {}
-  Eigen::MatrixXd operator()(const Eigen::VectorXd& x) const override { return calcForwardNumJac(*f_, x, epsilon_); }
+  ForwardNumJac(VectorOfVectorPtr f, double epsilon) : f_(f), epsilon_(epsilon)
+  {
+  }
+  Eigen::MatrixXd operator()(const Eigen::VectorXd& x) const override
+  {
+    return calcForwardNumJac(*f_, x, epsilon_);
+  }
 };
 
 VectorOfVectorPtr forwardNumGrad(ScalarOfVectorPtr f, double epsilon)

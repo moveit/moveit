@@ -24,7 +24,9 @@ using namespace Eigen;
 class SQP : public testing::TestWithParam<ModelType>
 {
 protected:
-  SQP() {}
+  SQP()
+  {
+  }
 };
 
 void setupProblem(OptProbPtr& probptr, size_t nvars, ModelType convex_solver)
@@ -47,7 +49,10 @@ void expectAllNear(const DblVec& x, const DblVec& y, double abstol)
     EXPECT_NEAR(x[i], y[i], abstol);
 }
 
-double f_QuadraticSeparable(const VectorXd& x) { return x(0) * x(0) + sq(x(1) - 1) + sq(x(2) - 2); }
+double f_QuadraticSeparable(const VectorXd& x)
+{
+  return x(0) * x(0) + sq(x(1) - 1) + sq(x(2) - 2);
+}
 TEST_P(SQP, QuadraticSeparable)
 {
   // if the problem is exactly a QP, it should be solved in one iteration
@@ -64,7 +69,10 @@ TEST_P(SQP, QuadraticSeparable)
   expectAllNear(solver.x(), { 0, 1, 2 }, 1e-3);
   // todo: checks on number of iterations and function evaluates
 }
-double f_QuadraticNonseparable(const VectorXd& x) { return sq(x(0) - x(1) + 3 * x(2)) + sq(x(0) - 1) + sq(x(2) - 2); }
+double f_QuadraticNonseparable(const VectorXd& x)
+{
+  return sq(x(0) - x(1) + 3 * x(2)) + sq(x(0) - 1) + sq(x(2) - 2);
+}
 TEST_P(SQP, QuadraticNonseparable)
 {
   OptProbPtr prob;
@@ -84,12 +92,8 @@ TEST_P(SQP, QuadraticNonseparable)
   // todo: checks on number of iterations and function evaluates
 }
 
-void testProblem(ScalarOfVectorPtr f,
-                 VectorOfVectorPtr g,
-                 ConstraintType cnt_type,
-                 const DblVec& init,
-                 const DblVec& sol,
-                 ModelType convex_solver)
+void testProblem(ScalarOfVectorPtr f, VectorOfVectorPtr g, ConstraintType cnt_type, const DblVec& init,
+                 const DblVec& sol, ModelType convex_solver)
 {
   OptProbPtr prob;
   size_t n = init.size();
@@ -111,35 +115,50 @@ void testProblem(ScalarOfVectorPtr f,
 }
 // http://www.ai7.uni-bayreuth.de/test_problem_coll.pdf
 
-double f_TP1(const VectorXd& x) { return 1 * sq(x(1) - sq(x(0))) + sq(1 - x(0)); }
+double f_TP1(const VectorXd& x)
+{
+  return 1 * sq(x(1) - sq(x(0))) + sq(1 - x(0));
+}
 VectorXd g_TP1(const VectorXd& x)
 {
   VectorXd out(1);
   out(0) = -1.5 - x(1);
   return out;
 }
-double f_TP2(const VectorXd& x) { return 100 * sq(x(1) - sq(x(0))) + sq(1 - x(0)); }
+double f_TP2(const VectorXd& x)
+{
+  return 100 * sq(x(1) - sq(x(0))) + sq(1 - x(0));
+}
 VectorXd g_TP2(const VectorXd& x)
 {
   VectorXd out(1);
   out(0) = -1.5 - x(1);
   return out;
 }
-double f_TP3(const VectorXd& x) { return (x(1) + 1e-5 * sq(x(1) - x(0))); }
+double f_TP3(const VectorXd& x)
+{
+  return (x(1) + 1e-5 * sq(x(1) - x(0)));
+}
 VectorXd g_TP3(const VectorXd& x)
 {
   VectorXd out(1);
   out(0) = 0 - x(1);
   return out;
 }
-double f_TP6(const VectorXd& x) { return sq(1 - x(0)); }
+double f_TP6(const VectorXd& x)
+{
+  return sq(1 - x(0));
+}
 VectorXd g_TP6(const VectorXd& x)
 {
   VectorXd out(1);
   out(0) = 10 * (x(1) - sq(x(0)));
   return out;
 }
-double f_TP7(const VectorXd& x) { return log(1 + sq(x(0))) - x(1); }
+double f_TP7(const VectorXd& x)
+{
+  return log(1 + sq(x(0))) - x(1);
+}
 VectorXd g_TP7(const VectorXd& x)
 {
   VectorXd out(1);
@@ -149,26 +168,22 @@ VectorXd g_TP7(const VectorXd& x)
 
 TEST_P(SQP, TP1)
 {
-  testProblem(
-      ScalarOfVector::construct(&f_TP1), VectorOfVector::construct(&g_TP1), INEQ, { -2, 1 }, { 1, 1 }, GetParam());
+  testProblem(ScalarOfVector::construct(&f_TP1), VectorOfVector::construct(&g_TP1), INEQ, { -2, 1 }, { 1, 1 },
+              GetParam());
 }
 TEST_P(SQP, TP3)
 {
-  testProblem(
-      ScalarOfVector::construct(&f_TP3), VectorOfVector::construct(&g_TP3), INEQ, { 10, 1 }, { 0, 0 }, GetParam());
+  testProblem(ScalarOfVector::construct(&f_TP3), VectorOfVector::construct(&g_TP3), INEQ, { 10, 1 }, { 0, 0 },
+              GetParam());
 }
 TEST_P(SQP, TP6)
 {
-  testProblem(
-      ScalarOfVector::construct(&f_TP6), VectorOfVector::construct(&g_TP6), EQ, { 10, 1 }, { 1, 1 }, GetParam());
+  testProblem(ScalarOfVector::construct(&f_TP6), VectorOfVector::construct(&g_TP6), EQ, { 10, 1 }, { 1, 1 },
+              GetParam());
 }
 TEST_P(SQP, TP7)
 {
-  testProblem(ScalarOfVector::construct(&f_TP7),
-              VectorOfVector::construct(&g_TP7),
-              EQ,
-              { 2, 2 },
-              { 0., sqrtf(3.) },
+  testProblem(ScalarOfVector::construct(&f_TP7), VectorOfVector::construct(&g_TP7), EQ, { 2, 2 }, { 0., sqrtf(3.) },
               GetParam());
 }
 

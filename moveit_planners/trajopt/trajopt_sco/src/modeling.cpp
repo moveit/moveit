@@ -14,8 +14,14 @@ TRAJOPT_IGNORE_WARNINGS_POP
 
 namespace sco
 {
-void ConvexObjective::addAffExpr(const AffExpr& affexpr) { exprInc(quad_, affexpr); }
-void ConvexObjective::addQuadExpr(const QuadExpr& quadexpr) { exprInc(quad_, quadexpr); }
+void ConvexObjective::addAffExpr(const AffExpr& affexpr)
+{
+  exprInc(quad_, affexpr);
+}
+void ConvexObjective::addQuadExpr(const QuadExpr& quadexpr)
+{
+  exprInc(quad_, quadexpr);
+}
 void ConvexObjective::addHinge(const AffExpr& affexpr, double coeff)
 {
   Var hinge = model_->addVar("hinge", 0, INFINITY);
@@ -98,8 +104,14 @@ ConvexObjective::~ConvexObjective()
     removeFromModel();
 }
 
-void ConvexConstraints::addEqCnt(const AffExpr& aff) { eqs_.push_back(aff); }
-void ConvexConstraints::addIneqCnt(const AffExpr& aff) { ineqs_.push_back(aff); }
+void ConvexConstraints::addEqCnt(const AffExpr& aff)
+{
+  eqs_.push_back(aff);
+}
+void ConvexConstraints::addIneqCnt(const AffExpr& aff)
+{
+  ineqs_.push_back(aff);
+}
 void ConvexConstraints::addConstraintsToModel()
 {
   cnts_.reserve(eqs_.size() + ineqs_.size());
@@ -129,14 +141,20 @@ DblVec ConvexConstraints::violations(const DblVec& x)
     out.push_back(pospart(aff.value(x.data())));
   return out;
 }
-double ConvexConstraints::violation(const DblVec& x) { return vecSum(violations(x)); }
+double ConvexConstraints::violation(const DblVec& x)
+{
+  return vecSum(violations(x));
+}
 ConvexConstraints::~ConvexConstraints()
 {
   if (inModel())
     removeFromModel();
 }
 
-double ConvexObjective::value(const DblVec& x) { return quad_.value(x); }
+double ConvexObjective::value(const DblVec& x)
+{
+  return quad_.value(x);
+}
 DblVec Constraint::violations(const DblVec& x)
 {
   DblVec val = value(x);
@@ -156,8 +174,13 @@ DblVec Constraint::violations(const DblVec& x)
   return out;
 }
 
-double Constraint::violation(const DblVec& x) { return vecSum(violations(x)); }
-OptProb::OptProb(ModelType convex_solver) : model_(createModel(convex_solver)) {}
+double Constraint::violation(const DblVec& x)
+{
+  return vecSum(violations(x));
+}
+OptProb::OptProb(ModelType convex_solver) : model_(createModel(convex_solver))
+{
+}
 VarVector OptProb::createVariables(const std::vector<std::string>& var_names)
 {
   return createVariables(var_names, DblVec(var_names.size(), -INFINITY), DblVec(var_names.size(), INFINITY));
@@ -193,9 +216,18 @@ void OptProb::setUpperBounds(const DblVec& ub)
   upper_bounds_ = ub;
 }
 
-void OptProb::setLowerBounds(const DblVec& lb, const VarVector& vars) { setVec(lower_bounds_, vars, lb); }
-void OptProb::setUpperBounds(const DblVec& ub, const VarVector& vars) { setVec(upper_bounds_, vars, ub); }
-void OptProb::addCost(CostPtr cost) { costs_.push_back(cost); }
+void OptProb::setLowerBounds(const DblVec& lb, const VarVector& vars)
+{
+  setVec(lower_bounds_, vars, lb);
+}
+void OptProb::setUpperBounds(const DblVec& ub, const VarVector& vars)
+{
+  setVec(upper_bounds_, vars, ub);
+}
+void OptProb::addCost(CostPtr cost)
+{
+  costs_.push_back(cost);
+}
 void OptProb::addConstraint(ConstraintPtr cnt)
 {
   if (cnt->type() == EQ)

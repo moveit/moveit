@@ -106,11 +106,7 @@ void OSQPModel::updateObjective()
 
   if (osqp_data_.P != nullptr)
     c_free(osqp_data_.P);
-  osqp_data_.P = csc_matrix(osqp_data_.n,
-                            osqp_data_.n,
-                            P_csc_data_.size(),
-                            P_csc_data_.data(),
-                            P_row_indices_.data(),
+  osqp_data_.P = csc_matrix(osqp_data_.n, osqp_data_.n, P_csc_data_.size(), P_csc_data_.data(), P_row_indices_.data(),
                             P_column_pointers_.data());
 
   osqp_data_.q = q_.data();
@@ -151,11 +147,7 @@ void OSQPModel::updateConstraints()
 
   if (osqp_data_.A != nullptr)
     c_free(osqp_data_.A);
-  osqp_data_.A = csc_matrix(osqp_data_.m,
-                            osqp_data_.n,
-                            A_csc_data_.size(),
-                            A_csc_data_.data(),
-                            A_row_indices_.data(),
+  osqp_data_.A = csc_matrix(osqp_data_.m, osqp_data_.n, A_csc_data_.size(), A_csc_data_.data(), A_row_indices_.data(),
                             A_column_pointers_.data());
 
   osqp_data_.l = l_.data();
@@ -260,11 +252,20 @@ CvxOptStatus OSQPModel::optimize()
   }
   return CVX_FAILED;
 }
-void OSQPModel::setObjective(const AffExpr& expr) { objective_.affexpr = expr; }
-void OSQPModel::setObjective(const QuadExpr& expr) { objective_ = expr; }
+void OSQPModel::setObjective(const AffExpr& expr)
+{
+  objective_.affexpr = expr;
+}
+void OSQPModel::setObjective(const QuadExpr& expr)
+{
+  objective_ = expr;
+}
 void OSQPModel::writeToFile(const std::string& /*fname*/)
 {
   return;  // NOT IMPLEMENTED
 }
-VarVector OSQPModel::getVars() const { return vars_; }
+VarVector OSQPModel::getVars() const
+{
+  return vars_;
+}
 }

@@ -5,7 +5,10 @@ TRAJOPT_IGNORE_WARNINGS_POP
 
 #include <trajopt_sco/expr_ops.hpp>
 
-static inline double sq(double x) { return x * x; }
+static inline double sq(double x)
+{
+  return x * x;
+}
 namespace sco
 {
 QuadExpr exprMult(const AffExpr& affexpr1, const AffExpr& affexpr2)
