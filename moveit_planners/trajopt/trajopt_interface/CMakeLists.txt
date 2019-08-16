@@ -76,14 +76,10 @@ target_link_libraries(moveit_trajopt_planner_plugin ${PROJECT_NAME} ${catkin_LIB
 
 # Mark executables and/or libraries for installation
 install(
-  TARGETS
-    moveit_trajopt_planner_plugin
-  ARCHIVE DESTINATION
-    ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION
-    ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION
-    ${CATKIN_PACKAGE_BIN_DESTINATION}
+  TARGETS ${PROJECT_NAME} moveit_trajopt_planner_plugin
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 # Mark cpp header files for installation
