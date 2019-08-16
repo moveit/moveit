@@ -20,7 +20,9 @@ using namespace sco;
 class SolverInterface : public testing::TestWithParam<ModelType>
 {
 protected:
-  SolverInterface() {}
+  SolverInterface()
+  {
+  }
 };
 
 TEST(SolverInterface, simplify2)

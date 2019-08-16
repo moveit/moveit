@@ -83,8 +83,8 @@ GurobiModel::GurobiModel()
 
 Var GurobiModel::addVar(const std::string& name)
 {
-  ENSURE_SUCCESS(GRBaddvar(
-      m_model, 0, nullptr, nullptr, 0, -GRB_INFINITY, GRB_INFINITY, GRB_CONTINUOUS, const_cast<char*>(name.c_str())));
+  ENSURE_SUCCESS(GRBaddvar(m_model, 0, nullptr, nullptr, 0, -GRB_INFINITY, GRB_INFINITY, GRB_CONTINUOUS,
+                           const_cast<char*>(name.c_str())));
   m_vars.push_back(new VarRep(static_cast<int>(m_vars.size()), name, this));
   return m_vars.back();
 }
@@ -102,13 +102,8 @@ Cnt GurobiModel::addEqCnt(const AffExpr& expr, const std::string& name)
   IntVec inds = vars2inds(expr.vars);
   DblVec vals = expr.coeffs;
   simplify2(inds, vals);
-  ENSURE_SUCCESS(GRBaddconstr(m_model,
-                              inds.size(),
-                              const_cast<int*>(inds.data()),
-                              const_cast<double*>(vals.data()),
-                              GRB_EQUAL,
-                              -expr.constant,
-                              const_cast<char*>(name.c_str())));
+  ENSURE_SUCCESS(GRBaddconstr(m_model, inds.size(), const_cast<int*>(inds.data()), const_cast<double*>(vals.data()),
+                              GRB_EQUAL, -expr.constant, const_cast<char*>(name.c_str())));
   m_cnts.push_back(new CntRep(static_cast<int>(m_cnts.size()), this));
   return m_cnts.back();
 }
@@ -118,8 +113,8 @@ Cnt GurobiModel::addIneqCnt(const AffExpr& expr, const std::string& name)
   IntVec inds = vars2inds(expr.vars);
   DblVec vals = expr.coeffs;
   simplify2(inds, vals);
-  ENSURE_SUCCESS(GRBaddconstr(
-      m_model, inds.size(), inds.data(), vals.data(), GRB_LESS_EQUAL, -expr.constant, const_cast<char*>(name.c_str())));
+  ENSURE_SUCCESS(GRBaddconstr(m_model, inds.size(), inds.data(), vals.data(), GRB_LESS_EQUAL, -expr.constant,
+                              const_cast<char*>(name.c_str())));
   m_cnts.push_back(new CntRep(static_cast<int>(m_cnts.size()), this));
   return m_cnts.back();
 }
@@ -130,16 +125,8 @@ Cnt GurobiModel::addIneqCnt(const QuadExpr& qexpr, const std::string& name)
   DblVec lvals = qexpr.affexpr.coeffs;
   IntVec inds1 = vars2inds(qexpr.vars1);
   IntVec inds2 = vars2inds(qexpr.vars2);
-  ENSURE_SUCCESS(GRBaddqconstr(m_model,
-                               numlnz,
-                               linds.data(),
-                               lvals.data(),
-                               qexpr.size(),
-                               inds1.data(),
-                               inds2.data(),
-                               const_cast<double*>(qexpr.coeffs.data()),
-                               GRB_LESS_EQUAL,
-                               -qexpr.affexpr.constant,
+  ENSURE_SUCCESS(GRBaddqconstr(m_model, numlnz, linds.data(), lvals.data(), qexpr.size(), inds1.data(), inds2.data(),
+                               const_cast<double*>(qexpr.coeffs.data()), GRB_LESS_EQUAL, -qexpr.affexpr.constant,
                                const_cast<char*>(name.c_str())));
   return Cnt();
 }
@@ -257,14 +244,14 @@ void GurobiModel::setObjective(const QuadExpr& quad_expr)
   setObjective(quad_expr.affexpr);
   IntVec inds1 = vars2inds(quad_expr.vars1);
   IntVec inds2 = vars2inds(quad_expr.vars2);
-  GRBaddqpterms(m_model,
-                quad_expr.coeffs.size(),
-                const_cast<int*>(inds1.data()),
-                const_cast<int*>(inds2.data()),
+  GRBaddqpterms(m_model, quad_expr.coeffs.size(), const_cast<int*>(inds1.data()), const_cast<int*>(inds2.data()),
                 const_cast<double*>(quad_expr.coeffs.data()));
 }
 
-void GurobiModel::writeToFile(const std::string& fname) { ENSURE_SUCCESS(GRBwrite(m_model, fname.c_str())); }
+void GurobiModel::writeToFile(const std::string& fname)
+{
+  ENSURE_SUCCESS(GRBwrite(m_model, fname.c_str()));
+}
 void GurobiModel::update()
 {
   ENSURE_SUCCESS(GRBupdatemodel(m_model));
@@ -301,6 +288,12 @@ void GurobiModel::update()
   }
 }
 
-VarVector GurobiModel::getVars() const { return m_vars; }
-GurobiModel::~GurobiModel() { ENSURE_SUCCESS(GRBfreemodel(m_model)); }
+VarVector GurobiModel::getVars() const
+{
+  return m_vars;
+}
+GurobiModel::~GurobiModel()
+{
+  ENSURE_SUCCESS(GRBfreemodel(m_model));
+}
 }

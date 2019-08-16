@@ -28,12 +28,8 @@ void exprToEigen(const AffExpr& expr, Eigen::SparseVector<double>& sparse_vector
   }
 }
 
-void exprToEigen(const QuadExpr& expr,
-                 Eigen::SparseMatrix<double>& sparse_matrix,
-                 Eigen::VectorXd& vector,
-                 const int& n_vars,
-                 const bool& matrix_is_halved,
-                 const bool& force_diagonal)
+void exprToEigen(const QuadExpr& expr, Eigen::SparseMatrix<double>& sparse_matrix, Eigen::VectorXd& vector,
+                 const int& n_vars, const bool& matrix_is_halved, const bool& force_diagonal)
 {
   IntVec ind1 = vars2inds(expr.vars1);
   IntVec ind2 = vars2inds(expr.vars2);
@@ -79,9 +75,7 @@ void exprToEigen(const QuadExpr& expr,
       sparse_matrix.coeffRef(k, k) += 0.0;
 }
 
-void exprToEigen(const AffExprVector& expr_vec,
-                 Eigen::SparseMatrix<double>& sparse_matrix,
-                 Eigen::VectorXd& vector,
+void exprToEigen(const AffExprVector& expr_vec, Eigen::SparseMatrix<double>& sparse_matrix, Eigen::VectorXd& vector,
                  const int& n_vars)
 {
   vector.resize(static_cast<long int>(expr_vec.size()));
@@ -100,9 +94,7 @@ void exprToEigen(const AffExprVector& expr_vec,
   }
 }
 
-void tripletsToEigen(const IntVec& rows_i,
-                     const IntVec& cols_j,
-                     const DblVec& values_ij,
+void tripletsToEigen(const IntVec& rows_i, const IntVec& cols_j, const DblVec& values_ij,
                      Eigen::SparseMatrix<double>& sparse_matrix)
 {
   typedef Eigen::Triplet<double> T;
@@ -112,9 +104,7 @@ void tripletsToEigen(const IntVec& rows_i,
   sparse_matrix.setFromTriplets(triplets.begin(), triplets.end());
 }
 
-void eigenToTriplets(const Eigen::SparseMatrix<double>& sparse_matrix,
-                     IntVec& rows_i,
-                     IntVec& cols_j,
+void eigenToTriplets(const Eigen::SparseMatrix<double>& sparse_matrix, IntVec& rows_i, IntVec& cols_j,
                      DblVec& values_ij)
 {
   auto& sm = sparse_matrix;

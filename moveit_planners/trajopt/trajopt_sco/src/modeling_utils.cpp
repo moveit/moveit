@@ -112,20 +112,13 @@ ConvexObjectivePtr CostFromFunc::convex(const DblVec& xin, Model* model)
   return out;
 }
 
-CostFromErrFunc::CostFromErrFunc(VectorOfVectorPtr f,
-                                 const VarVector& vars,
-                                 const Eigen::VectorXd& coeffs,
-                                 PenaltyType pen_type,
-                                 const std::string& name)
+CostFromErrFunc::CostFromErrFunc(VectorOfVectorPtr f, const VarVector& vars, const Eigen::VectorXd& coeffs,
+                                 PenaltyType pen_type, const std::string& name)
   : Cost(name), f_(f), vars_(vars), coeffs_(coeffs), pen_type_(pen_type), epsilon_(DEFAULT_EPSILON)
 {
 }
-CostFromErrFunc::CostFromErrFunc(VectorOfVectorPtr f,
-                                 MatrixOfVectorPtr dfdx,
-                                 const VarVector& vars,
-                                 const Eigen::VectorXd& coeffs,
-                                 PenaltyType pen_type,
-                                 const std::string& name)
+CostFromErrFunc::CostFromErrFunc(VectorOfVectorPtr f, MatrixOfVectorPtr dfdx, const VarVector& vars,
+                                 const Eigen::VectorXd& coeffs, PenaltyType pen_type, const std::string& name)
   : Cost(name), f_(f), dfdx_(dfdx), vars_(vars), coeffs_(coeffs), pen_type_(pen_type), epsilon_(DEFAULT_EPSILON)
 {
 }
@@ -199,20 +192,14 @@ ConvexObjectivePtr CostFromErrFunc::convex(const DblVec& xin, Model* model)
   return out;
 }
 
-ConstraintFromErrFunc::ConstraintFromErrFunc(VectorOfVectorPtr f,
-                                             const VarVector& vars,
-                                             const Eigen::VectorXd& coeffs,
-                                             ConstraintType type,
-                                             const std::string& name)
+ConstraintFromErrFunc::ConstraintFromErrFunc(VectorOfVectorPtr f, const VarVector& vars, const Eigen::VectorXd& coeffs,
+                                             ConstraintType type, const std::string& name)
   : Constraint(name), f_(f), vars_(vars), coeffs_(coeffs), type_(type), epsilon_(DEFAULT_EPSILON)
 {
 }
 
-ConstraintFromErrFunc::ConstraintFromErrFunc(VectorOfVectorPtr f,
-                                             MatrixOfVectorPtr dfdx,
-                                             const VarVector& vars,
-                                             const Eigen::VectorXd& coeffs,
-                                             ConstraintType type,
+ConstraintFromErrFunc::ConstraintFromErrFunc(VectorOfVectorPtr f, MatrixOfVectorPtr dfdx, const VarVector& vars,
+                                             const Eigen::VectorXd& coeffs, ConstraintType type,
                                              const std::string& name)
   : Constraint(name), f_(f), dfdx_(dfdx), vars_(vars), coeffs_(coeffs), type_(type), epsilon_(DEFAULT_EPSILON)
 {

@@ -18,7 +18,16 @@ std::string Str_impl(const std::vector<T>& x)
 
 namespace util
 {
-std::string Str(const std::vector<double>& x) { return Str_impl(x); }
-std::string Str(const std::vector<float>& x) { return Str_impl(x); }
-std::string Str(const std::vector<int>& x) { return Str_impl(x); }
+std::string Str(const std::vector<double>& x)
+{
+  return Str_impl(x);
+}
+std::string Str(const std::vector<float>& x)
+{
+  return Str_impl(x);
+}
+std::string Str(const std::vector<int>& x)
+{
+  return Str_impl(x);
+}
 }

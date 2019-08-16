@@ -72,7 +72,9 @@ public:
 
   virtual VarVector getVars() const = 0;
 
-  virtual ~Model() {}
+  virtual ~Model()
+  {
+  }
 };
 
 struct VarRep
@@ -90,10 +92,19 @@ struct VarRep
 struct Var
 {
   VarRep* var_rep;
-  Var() : var_rep(nullptr) {}
-  Var(VarRep* var_rep) : var_rep(var_rep) {}
-  Var(const Var& other) : var_rep(other.var_rep) {}
-  double value(const double* x) const { return x[var_rep->index]; }
+  Var() : var_rep(nullptr)
+  {
+  }
+  Var(VarRep* var_rep) : var_rep(var_rep)
+  {
+  }
+  Var(const Var& other) : var_rep(other.var_rep)
+  {
+  }
+  double value(const double* x) const
+  {
+    return x[var_rep->index];
+  }
   double value(const DblVec& x) const
   {
     assert(var_rep->index < static_cast<int>(x.size()));
@@ -103,7 +114,9 @@ struct Var
 
 struct CntRep
 {
-  CntRep(int _index, void* _creator) : index(_index), removed(false), creator(_creator) {}
+  CntRep(int _index, void* _creator) : index(_index), removed(false), creator(_creator)
+  {
+  }
   int index;
   bool removed;
   void* creator;
@@ -114,9 +127,15 @@ struct CntRep
 struct Cnt
 {
   CntRep* cnt_rep;
-  Cnt() : cnt_rep(nullptr) {}
-  Cnt(CntRep* cnt_rep) : cnt_rep(cnt_rep) {}
-  Cnt(const Cnt& other) : cnt_rep(other.cnt_rep) {}
+  Cnt() : cnt_rep(nullptr)
+  {
+  }
+  Cnt(CntRep* cnt_rep) : cnt_rep(cnt_rep)
+  {
+  }
+  Cnt(const Cnt& other) : cnt_rep(other.cnt_rep)
+  {
+  }
 };
 
 struct AffExpr
@@ -124,11 +143,22 @@ struct AffExpr
   double constant;
   DblVec coeffs;
   VarVector vars;
-  AffExpr() : constant(0) {}
-  explicit AffExpr(double a) : constant(a) {}
-  explicit AffExpr(const Var& v) : constant(0), coeffs(1, 1), vars(1, v) {}
-  AffExpr(const AffExpr& other) : constant(other.constant), coeffs(other.coeffs), vars(other.vars) {}
-  size_t size() const { return coeffs.size(); }
+  AffExpr() : constant(0)
+  {
+  }
+  explicit AffExpr(double a) : constant(a)
+  {
+  }
+  explicit AffExpr(const Var& v) : constant(0), coeffs(1, 1), vars(1, v)
+  {
+  }
+  AffExpr(const AffExpr& other) : constant(other.constant), coeffs(other.coeffs), vars(other.vars)
+  {
+  }
+  size_t size() const
+  {
+    return coeffs.size();
+  }
   double value(const double* x) const;
   double value(const DblVec& x) const;
 };
@@ -139,11 +169,22 @@ struct QuadExpr
   DblVec coeffs;
   VarVector vars1;
   VarVector vars2;
-  QuadExpr() {}
-  explicit QuadExpr(double a) : affexpr(a) {}
-  explicit QuadExpr(const Var& v) : affexpr(v) {}
-  explicit QuadExpr(const AffExpr& aff) : affexpr(aff) {}
-  size_t size() const { return coeffs.size(); }
+  QuadExpr()
+  {
+  }
+  explicit QuadExpr(double a) : affexpr(a)
+  {
+  }
+  explicit QuadExpr(const Var& v) : affexpr(v)
+  {
+  }
+  explicit QuadExpr(const AffExpr& aff) : affexpr(aff)
+  {
+  }
+  size_t size() const
+  {
+    return coeffs.size();
+  }
   double value(const double* x) const;
   double value(const DblVec& x) const;
 };

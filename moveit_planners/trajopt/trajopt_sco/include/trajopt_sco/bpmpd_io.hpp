@@ -70,22 +70,13 @@ struct bpmpd_input
   std::vector<double> qcolnzs;
   std::vector<double> rhs, obj, lbound, ubound;
 
-  bpmpd_input() {}
-  bpmpd_input(int m,
-              int n,
-              int nz,
-              int qn,
-              int qnz,
-              const std::vector<int>& acolcnt,
-              const std::vector<int>& acolidx,
-              const std::vector<double>& acolnzs,
-              const std::vector<int>& qcolcnt,
-              const std::vector<int>& qcolidx,
-              const std::vector<double>& qcolnzs,
-              const std::vector<double>& rhs,
-              const std::vector<double>& obj,
-              const std::vector<double>& lbound,
-              const std::vector<double>& ubound)
+  bpmpd_input()
+  {
+  }
+  bpmpd_input(int m, int n, int nz, int qn, int qnz, const std::vector<int>& acolcnt, const std::vector<int>& acolidx,
+              const std::vector<double>& acolnzs, const std::vector<int>& qcolcnt, const std::vector<int>& qcolidx,
+              const std::vector<double>& qcolnzs, const std::vector<double>& rhs, const std::vector<double>& obj,
+              const std::vector<double>& lbound, const std::vector<double>& ubound)
     : m(m)
     , n(n)
     , nz(nz)
@@ -140,12 +131,11 @@ struct bpmpd_output
   std::vector<int> status;
   int code;
   double opt;
-  bpmpd_output() {}
-  bpmpd_output(const std::vector<double>& primal,
-               const std::vector<double>& dual,
-               const std::vector<int>& status,
-               int code,
-               double opt)
+  bpmpd_output()
+  {
+  }
+  bpmpd_output(const std::vector<double>& primal, const std::vector<double>& dual, const std::vector<int>& status,
+               int code, double opt)
     : primal(primal), dual(dual), status(status), code(code), opt(opt)
   {
   }

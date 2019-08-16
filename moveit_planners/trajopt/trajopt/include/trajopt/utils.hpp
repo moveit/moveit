@@ -9,10 +9,7 @@ TRAJOPT_IGNORE_WARNINGS_POP
 namespace trajopt
 {
 template <typename Key, typename Value>
-using AlignedUnorderedMap = std::unordered_map<Key,
-                                               Value,
-                                               std::hash<Key>,
-                                               std::equal_to<Key>,
+using AlignedUnorderedMap = std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>,
                                                Eigen::aligned_allocator<std::pair<const Key, Value>>>;
 
 /**
@@ -21,7 +18,10 @@ Extract trajectory array from solution vector x using indices in array vars
 TrajArray TRAJOPT_API getTraj(const DblVec& x, const VarArray& vars);
 TrajArray TRAJOPT_API getTraj(const DblVec& x, const AffArray& arr);
 
-inline DblVec trajToDblVec(const TrajArray& x) { return DblVec(x.data(), x.data() + x.rows() * x.cols()); }
+inline DblVec trajToDblVec(const TrajArray& x)
+{
+  return DblVec(x.data(), x.data() + x.rows() * x.cols());
+}
 
 /**
  * @brief Appends b to a of type VectorXd
@@ -53,11 +53,8 @@ std::vector<T> singleton(const T& x)
   return std::vector<T>(1, x);
 }
 
-void TRAJOPT_API AddVarArrays(sco::OptProb& prob,
-                              int rows,
-                              const std::vector<int>& cols,
-                              const std::vector<std::string>& name_prefix,
-                              const std::vector<VarArray*>& newvars);
+void TRAJOPT_API AddVarArrays(sco::OptProb& prob, int rows, const std::vector<int>& cols,
+                              const std::vector<std::string>& name_prefix, const std::vector<VarArray*>& newvars);
 
 void TRAJOPT_API AddVarArray(sco::OptProb& prob, int rows, int cols, const std::string& name_prefix, VarArray& newvars);
 
@@ -83,9 +80,7 @@ struct SafetyMarginData
    * @param safety_margin_coeffs A safety margin coefficient vector where each
    * element corresponds to a given timestep.
    */
-  void SetPairSafetyMarginData(const std::string& obj1,
-                               const std::string& obj2,
-                               const double& safety_margin,
+  void SetPairSafetyMarginData(const std::string& obj1, const std::string& obj2, const double& safety_margin,
                                const double& safety_margin_coeff)
   {
     Eigen::Vector2d data(safety_margin, safety_margin_coeff);
@@ -114,7 +109,11 @@ struct SafetyMarginData
     }
   }
 
-  const double& getMaxSafetyMargin() const { return max_safety_margin_; }
+  const double& getMaxSafetyMargin() const
+  {
+    return max_safety_margin_;
+  }
+
 private:
   /// The coeff used during optimization
   /// safety margin: contacts with distance < dist_pen are penalized
