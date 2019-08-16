@@ -34,7 +34,6 @@ catkin_package(
     ${EIGEN3_INCLUDE_DIRS}
   LIBRARIES
     ${PROJECT_NAME}
-    ${JSONCPP_LIBRARIES}
   CATKIN_DEPENDS trajopt_utils
   DEPENDS
     EIGEN3
