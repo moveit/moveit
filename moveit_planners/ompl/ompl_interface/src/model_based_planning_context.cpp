@@ -106,7 +106,8 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
 
   if (path_constraints_ && constraints_library_)
   {
-    const ConstraintApproximationPtr& constraint_approx = constraints_library_->getConstraintApproximation(path_constraints_msg_);
+    const ConstraintApproximationPtr& constraint_approx =
+        constraints_library_->getConstraintApproximation(path_constraints_msg_);
     if (constraint_approx)
     {
       getOMPLStateSpace()->setInterpolationFunction(constraint_approx->getInterpolationFunction());
@@ -203,10 +204,12 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
   {
     if (constraints_library_)
     {
-      const ConstraintApproximationPtr& constraint_approx = constraints_library_->getConstraintApproximation(path_constraints_msg_);
+      const ConstraintApproximationPtr& constraint_approx =
+          constraints_library_->getConstraintApproximation(path_constraints_msg_);
       if (constraint_approx)
       {
-        ompl::base::StateSamplerAllocator state_sampler_allocator = constraint_approx->getStateSamplerAllocator(path_constraints_msg_);
+        ompl::base::StateSamplerAllocator state_sampler_allocator =
+            constraint_approx->getStateSamplerAllocator(path_constraints_msg_);
         if (state_sampler_allocator)
         {
           ompl::base::StateSamplerPtr state_sampler = state_sampler_allocator(state_space);
@@ -235,7 +238,7 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
   }
   ROS_DEBUG_NAMED("model_based_planning_context", "%s: Allocating default state sampler for state space",
                   name_.c_str());
-  return state_sampler->allocDefaultStateSampler();
+  return state_space->allocDefaultStateSampler();
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig()

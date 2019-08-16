@@ -27,7 +27,7 @@ target_link_libraries(${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} $
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 
-add_executable(moveit_generate_state_database demos/generate_state_database.cpp)
+add_executable(moveit_generate_state_database scripts/generate_state_database.cpp)
 target_link_libraries(moveit_generate_state_database ${MOVEIT_LIB_NAME})
 set_target_properties(moveit_generate_state_database PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
 set_target_properties(moveit_generate_state_database PROPERTIES OUTPUT_NAME "generate_state_database")
@@ -40,7 +40,7 @@ install(TARGETS ${MOVEIT_LIB_NAME} moveit_ompl_planner_plugin moveit_generate_st
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
-install(TARGETS moveit_ompl_planner moveit_generate_state_database
+install(TARGETS moveit_generate_state_database
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 

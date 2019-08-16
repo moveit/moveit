@@ -436,8 +436,9 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(
         group + "_" + boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) +
             ".ompldb",
         state_storage, res.milestones));
-    if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", constraint_approx->getName().c_str());
+    if (constraint_approximations_.find(constraint_approx->getName()) != constraint_approximations_.end())
+      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'",
+                     constraint_approx->getName().c_str());
     constraint_approximations_[constraint_approx->getName()] = constraint_approx;
     res.approx = constraint_approx;
   }
@@ -483,7 +484,8 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       constrained_sampler = new ConstrainedSampler(pcontext, constraint_sampler);
   }
 
-  ob::StateSamplerPtr ss(constrained_sampler ? ob::StateSamplerPtr(constrained_sampler) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
+  ob::StateSamplerPtr ss(constrained_sampler ? ob::StateSamplerPtr(constrained_sampler) :
+                                               pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
 
   ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
   int done = -1;
