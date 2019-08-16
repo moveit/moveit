@@ -41,6 +41,7 @@
 #include <set>
 #include <utility>
 
+#include <ompl/geometric/planners/AnytimePathShortening.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
@@ -114,7 +115,6 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si,
   if (!new_name.empty())
     planner->setName(new_name);
   planner->params().setParams(spec.config_, true);
-  planner->setup();
   return planner;
 }
 }  // namespace
@@ -134,6 +134,10 @@ ompl_interface::PlanningContextManager::plannerSelector(const std::string& plann
 
 void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 {
+  registerPlannerAllocator(                //
+      "geometric::AnytimePathShortening",  //
+      std::bind(&allocatePlanner<og::AnytimePathShortening>, std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3));
   registerPlannerAllocator(  //
       "geometric::RRT",      //
       std::bind(&allocatePlanner<og::RRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
