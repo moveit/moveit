@@ -38,6 +38,7 @@
 #include <moveit/pick_place/reachable_valid_pose_filter.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
+#include <moveit/utils/message_checks.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -230,7 +231,7 @@ PickPlanPtr PickPlace::planPick(const planning_scene::PlanningSceneConstPtr& pla
 {
   PickPlanPtr p(new PickPlan(shared_from_this()));
 
-  if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
+  if (moveit::core::isEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else
     p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);

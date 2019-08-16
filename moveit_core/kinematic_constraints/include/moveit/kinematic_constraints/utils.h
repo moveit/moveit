@@ -67,7 +67,7 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
                                           const moveit_msgs::Constraints& second);
 
 /** \brief Check if any constraints were specified */
-bool isEmpty(const moveit_msgs::Constraints& constr);
+[[deprecated("Use moveit/utils/message_checks.h instead")]] bool isEmpty(const moveit_msgs::Constraints& constr);
 
 std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr);
 

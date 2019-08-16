@@ -36,6 +36,7 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/utils/message_checks.h>
 #include <moveit/exceptions/exceptions.h>
 #include <moveit_msgs/GetPlanningScene.h>
 
@@ -565,13 +566,13 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
     if (no_other_scene_upd)
     {
       upd = UPDATE_NONE;
-      if (!planning_scene::PlanningScene::isEmpty(scene.world))
+      if (!moveit::core::isEmpty(scene.world))
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_GEOMETRY);
 
       if (!scene.fixed_frame_transforms.empty())
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_TRANSFORMS);
 
-      if (!planning_scene::PlanningScene::isEmpty(scene.robot_state))
+      if (!moveit::core::isEmpty(scene.robot_state))
       {
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_STATE);
         if (!scene.robot_state.attached_collision_objects.empty() || !static_cast<bool>(scene.robot_state.is_diff))

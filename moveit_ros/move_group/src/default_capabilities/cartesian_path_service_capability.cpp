@@ -36,7 +36,7 @@
 
 #include "cartesian_path_service_capability.h"
 #include <moveit/robot_state/conversions.h>
-#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/utils/message_checks.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/move_group/capability_names.h>
@@ -131,7 +131,7 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
           robot_state::GroupStateValidityCallbackFn constraint_fn;
           std::unique_ptr<planning_scene_monitor::LockedPlanningSceneRO> ls;
           std::unique_ptr<kinematic_constraints::KinematicConstraintSet> kset;
-          if (req.avoid_collisions || !kinematic_constraints::isEmpty(req.path_constraints))
+          if (req.avoid_collisions || !moveit::core::isEmpty(req.path_constraints))
           {
             ls.reset(new planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_));
             kset.reset(new kinematic_constraints::KinematicConstraintSet((*ls)->getRobotModel()));

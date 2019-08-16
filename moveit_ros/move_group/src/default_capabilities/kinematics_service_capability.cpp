@@ -36,7 +36,7 @@
 
 #include "kinematics_service_capability.h"
 #include <moveit/robot_state/conversions.h>
-#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/utils/message_checks.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/move_group/capability_names.h>
 
@@ -148,7 +148,7 @@ bool MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Re
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   // check if the planning scene needs to be kept locked; if so, call computeIK() in the scope of the lock
-  if (req.ik_request.avoid_collisions || !kinematic_constraints::isEmpty(req.ik_request.constraints))
+  if (req.ik_request.avoid_collisions || !moveit::core::isEmpty(req.ik_request.constraints))
   {
     planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
     kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel());

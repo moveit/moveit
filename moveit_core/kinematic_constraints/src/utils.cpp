@@ -38,6 +38,7 @@
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit/utils/xmlrpc_casts.h>
+#include <moveit/utils/message_checks.h>
 
 using namespace moveit::core;
 
@@ -116,8 +117,7 @@ moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
 
 bool isEmpty(const moveit_msgs::Constraints& constr)
 {
-  return constr.position_constraints.empty() && constr.orientation_constraints.empty() &&
-         constr.visibility_constraints.empty() && constr.joint_constraints.empty();
+  return moveit::core::isEmpty(constr);
 }
 
 std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr)
