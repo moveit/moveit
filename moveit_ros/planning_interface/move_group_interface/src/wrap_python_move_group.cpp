@@ -536,16 +536,27 @@ public:
     }
   }
 
-  Eigen::MatrixXd getJacobianMatrixPython(bp::list& joint_values)
+  Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values,
+                                          const bp::object& reference_point = bp::object())
   {
-    std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
+    const std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
+    std::vector<double> ref;
+    if (reference_point.is_none())
+      ref = { 0.0, 0.0, 0.0 };
+    else
+      ref = py_bindings_tools::doubleFromList(reference_point);
+    if (ref.size() != 3)
+      throw std::invalid_argument("reference point needs to have 3 elements, got " + std::to_string(ref.size()));
+
     robot_state::RobotState state(getRobotModel());
     state.setToDefaultValues();
     auto group = state.getJointModelGroup(getName());
     state.setJointGroupPositions(group, v);
-    return state.getJacobian(group);
+    return state.getJacobian(group, Eigen::Map<Eigen::Vector3d>(&ref[0]));
   }
 };
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getJacobianMatrixOverloads, getJacobianMatrixPython, 1, 2)
 
 static void wrap_move_group_interface()
 {
@@ -683,7 +694,8 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
   move_group_interface_class.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   move_group_interface_class.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
-  move_group_interface_class.def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython);
+  move_group_interface_class.def("get_jacobian_matrix", &MoveGroupInterfaceWrapper::getJacobianMatrixPython,
+                                 getJacobianMatrixOverloads());
 }
 }  // namespace planning_interface
 }  // namespace moveit
