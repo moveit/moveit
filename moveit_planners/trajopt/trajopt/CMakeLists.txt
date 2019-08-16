@@ -15,18 +15,6 @@ find_package(Boost COMPONENTS system python thread program_options REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
 
-link_directories(
-    /usr/local/lib
-    /usr/local/lib64
-)
-
-set(TRAJOPT_SOURCE_FILES
-    src/trajectory_costs.cpp
-    src/kinematic_terms.cpp
-    src/problem_description.cpp
-    src/utils.cpp
-)
-
 catkin_package(
   INCLUDE_DIRS
     include
@@ -50,6 +38,13 @@ include_directories(
   SYSTEM ${JSONCPP_INCLUDE_DIRS}
 )
 
+set(TRAJOPT_SOURCE_FILES
+    src/trajectory_costs.cpp
+    src/kinematic_terms.cpp
+    src/problem_description.cpp
+    src/utils.cpp
+)
+
 add_library(${PROJECT_NAME} ${TRAJOPT_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${Boost_SYSTEM_LIBRARY} ${JSONCPP_LIBRARIES} ${catkin_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PRIVATE -Wsuggest-override -Wconversion -Wsign-conversion)
@@ -65,5 +60,5 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.hxx"
-  PATTERN ".svn" EXCLUDE
+  EXCLUDE
  )

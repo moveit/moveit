@@ -551,7 +551,7 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
                                trajopt::TrajArray& init_traj)
 {
   Eigen::VectorXd current_pos(current_joint_values.size());
-  for (int joint_index = 0; joint_index < current_joint_values.size(); ++joint_index)
+  for (std::size_t joint_index = 0; joint_index < current_joint_values.size(); ++joint_index)
   {
     current_pos(joint_index) = current_joint_values[joint_index];
   }
