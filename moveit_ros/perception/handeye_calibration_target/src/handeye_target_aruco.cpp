@@ -197,7 +197,7 @@ bool HandEyeArucoTarget::detectTargetPose(cv::Mat& image)
     cv::Mat image_rgb;
     cv::cvtColor(image, image_rgb, cv::COLOR_GRAY2RGB);
     cv::aruco::drawDetectedMarkers(image_rgb, marker_corners);
-    cv::aruco::drawAxis(image_rgb, camera_matrix_, distortion_coeffs_, rotation_vect_, translation_vect_, 0.1);
+    drawAxis(image_rgb, camera_matrix_, distortion_coeffs_, rotation_vect_, translation_vect_, 0.1);
     image = image_rgb;
   }
   catch (const cv::Exception& e)
