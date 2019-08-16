@@ -68,6 +68,7 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/base/goals/GoalState.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -115,6 +116,10 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si,
   if (!new_name.empty())
     planner->setName(new_name);
   planner->params().setParams(spec.config_, true);
+  // Some planners (AnytimePathShortening) require problem and goal to be initialized before setup
+  planner->setProblemDefinition(std::make_shared<ob::ProblemDefinition>(si));
+  planner->getProblemDefinition()->setGoal(std::make_shared<ob::GoalState>(si));
+  planner->setup();
   return planner;
 }
 }  // namespace
