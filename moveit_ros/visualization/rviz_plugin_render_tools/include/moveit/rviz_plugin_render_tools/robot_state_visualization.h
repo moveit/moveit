@@ -69,6 +69,11 @@ public:
               const std::map<std::string, std_msgs::ColorRGBA>& color_map);
   void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color);
 
+  bool isVisible() const
+  {
+    return visible_;
+  }
+
   /**
    * \brief Set the robot as a whole to be visible or not
    * @param visible Should we be visible?
