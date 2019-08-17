@@ -501,6 +501,8 @@ bool BenchmarkExecutor::plannerConfigurationsExist(
     for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
     {
       pipeline_exists = pipeline_entry.first == pipeline_config_entry.first;
+      if (pipeline_exists)
+        break;
     }
 
     if (!pipeline_exists)
