@@ -36,6 +36,7 @@
 
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
@@ -289,6 +290,8 @@ void RobotStateDisplay::changedRobotStateTopic()
   if (static_cast<bool>(robot_state_))
     robot_state_->setToDefaultValues();
   update_state_ = true;
+  robot_->setVisible(false);
+  setStatus(rviz::StatusProperty::Warn, "RobotState", "No msg received");
 
   robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10,
                                                &RobotStateDisplay::newRobotStateCallback, this);
@@ -303,17 +306,28 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
   try
   {
-    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
+    if (!planning_scene::PlanningScene::isEmpty(state_msg->state))
+      robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
     setRobotHighlights(state_msg->highlight_links);
-    setStatus(rviz::StatusProperty::Ok, "RobotState", "");
   }
   catch (const moveit::Exception& e)
   {
     robot_state_->setToDefaultValues();
     setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
+    robot_->setVisible(false);
     return;
   }
+
+  if (robot_->isVisible() != !state_msg->hide)
+  {
+    robot_->setVisible(!state_msg->hide);
+    if (robot_->isVisible())
+      setStatus(rviz::StatusProperty::Ok, "RobotState", "");
+    else
+      setStatus(rviz::StatusProperty::Warn, "RobotState", "Hidden");
+  }
+
   update_state_ = true;
 }
 
@@ -366,14 +380,13 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(old_state);
     update_state_ = true;
-    setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
+    setStatus(rviz::StatusProperty::Ok, "RobotModel", "Loaded successfully");
 
     changedEnableVisualVisible();
     changedEnableCollisionVisible();
-    robot_->setVisible(true);
   }
   else
-    setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
+    setStatus(rviz::StatusProperty::Error, "RobotModel", "Loading failed");
 
   highlights_.clear();
 }
