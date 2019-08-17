@@ -7,21 +7,23 @@
     <arg name="load_robot_description" value="true"/>
   </include>
 
-  <!-- Load all planning pipelines that will be benchmarked -->
-  <include ns="moveit_run_benchmark" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="ompl" />
-  </include>
-
-  <include ns="moveit_run_benchmark" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="chomp" />
-  </include>
-
-  <include ns="moveit_run_benchmark" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="stomp" />
-  </include>
-
   <!-- Load warehouse containing scenes and queries to benchmark -->
   <include file="$(find panda_moveit_config)/launch/default_warehouse_db.launch" />
+
+  <!-- Load all planning pipelines that will be benchmarked -->
+  <group ns="moveit_run_benchmark">
+    <include ns="ompl" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="ompl" />
+    </include>
+
+    <include ns="chomp" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="chomp" />
+    </include>
+
+    <include ns="stomp" file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="stomp" />
+    </include>
+  </group>
 
   <!-- Launch benchmark node -->
   <node name="moveit_run_benchmark" pkg="moveit_ros_benchmarks" type="moveit_run_benchmark" output="screen" required="true">

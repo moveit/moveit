@@ -16,20 +16,19 @@ benchmark_config:
         group: panda_arm      # Required
         timeout: 10.0
         output_directory: /tmp/moveit_benchmarks/
+        predefined_poses_group: panda_arm_hand # Group where the predefined poses are specified
         predefined_poses: # List of named targets
             - ready
             - extended
-        predefined_poses_group: panda_arm_hand # Group where the predefined poses are specified
-    planners:
-        - plugin: ompl_interface/OMPLPlanner
+    planning_pipelines:
+        - name: ompl
           planners:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault
             - KPIECEkConfigDefault
-        - plugin: chomp_interface/CHOMPPlanner
+        - name: chomp
           planners:
             - CHOMP
-        - plugin: stomp_moveit/StompPlannerManager
+        - name: stomp
           planners:
             - STOMP
-
