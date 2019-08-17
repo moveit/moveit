@@ -69,7 +69,7 @@ class PlanningSceneInterface(object):
 
     def __submit(self, collision_object, attach=False):
         if self.__synchronous:
-            diff_req = self.__make_planning_scene_diff_req(collision_object)
+            diff_req = self.__make_planning_scene_diff_req(collision_object, attach)
             self._apply_planning_scene_diff.call(diff_req)
         else:
             if attach:
@@ -306,10 +306,14 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_planning_scene_diff_req(collision_object):
+    def __make_planning_scene_diff_req(collision_object, attach=False):
         scene = PlanningScene()
         scene.is_diff = True
-        scene.world.collision_objects = [collision_object]
+        scene.robot_state.is_diff = True
+        if attach:
+            scene.robot_state.attached_collision_objects = [collision_object]
+        else:
+            scene.world.collision_objects = [collision_object]
         planning_scene_diff_req = ApplyPlanningSceneRequest()
         planning_scene_diff_req.scene = scene
         return planning_scene_diff_req
