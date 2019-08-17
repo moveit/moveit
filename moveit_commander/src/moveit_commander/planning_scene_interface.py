@@ -311,10 +311,9 @@ class PlanningSceneInterface(object):
         scene.is_diff = True
         scene.robot_state.is_diff = True
         if attach:
-            scene.robot_state.attached_collision_objects.append(collision_object)
+            scene.robot_state.attached_collision_objects = [collision_object]
         else:
             scene.world.collision_objects = [collision_object]
         planning_scene_diff_req = ApplyPlanningSceneRequest()
         planning_scene_diff_req.scene = scene
         return planning_scene_diff_req
-
