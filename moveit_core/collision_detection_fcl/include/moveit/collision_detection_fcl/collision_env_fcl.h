@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_
-#define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ENV_FCL_
+#pragma once
 
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection_fcl/collision_common.h>
@@ -156,5 +155,3 @@ private:
   World::ObserverHandle observer_handle_;
 };
 }
-
-#endif  // MOVEIT_COLLISION_DETECTION_COLLISION_ENV_FCL_

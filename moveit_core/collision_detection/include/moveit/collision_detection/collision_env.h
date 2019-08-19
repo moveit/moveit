@@ -34,8 +34,7 @@
 
 /* Author: Ioan Sucan, Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_COLLISION_ENV_
-#define MOVEIT_COLLISION_DETECTION_COLLISION_ENV_
+#pragma once
 
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/macros/class_forward.h>
@@ -326,5 +325,3 @@ private:
   WorldConstPtr world_const_;  // always same as world_
 };
 }
-
-#endif  // MOVEIT_COLLISION_DETECTION_COLLISION_ENV_

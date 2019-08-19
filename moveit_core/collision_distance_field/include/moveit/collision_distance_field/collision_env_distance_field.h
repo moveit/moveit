@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_DISTANCE_FIELD_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_DISTANCE_FIELD_
+#pragma once
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -303,5 +302,3 @@ protected:
   World::ObserverHandle observer_handle_;
 };
 }
-
-#endif

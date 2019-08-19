@@ -330,7 +330,7 @@ TEST_F(FclCollisionDetectionTester, AttachedBodyTester)
   ASSERT_TRUE(res.collision);
 }
 
-TEST_F(FclCollisionDetectionTester, DISABELD_DiffSceneTester)
+TEST_F(FclCollisionDetectionTester, DiffSceneTester)
 {
   robot_state::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();

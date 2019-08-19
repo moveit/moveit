@@ -34,8 +34,7 @@
 
 /* Author: E. Gil Jones, Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_HYBRID_H_
-#define MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_ROBOT_HYBRID_H_
+#pragma once
 
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -152,5 +151,3 @@ protected:
   CollisionEnvDistanceFieldPtr cenv_distance_;
 };
 };
-
-#endif
