@@ -25,3 +25,16 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 install(TARGETS ${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+
+install(
+  FILES
+    ./test/test_aruco_marker_detection.png
+  DESTINATION
+    ${CATKIN_PACKAGE_SHARE_DESTINATION}/handeye_calibration_target/test/)
+
+if (CATKIN_ENABLE_TESTING)
+
+  catkin_add_gtest(test_handeye_target test/handeye_target_test.cpp)
+  target_link_libraries(test_handeye_target ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${OpenCV_LIBS})
+
+endif() 
