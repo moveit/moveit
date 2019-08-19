@@ -36,7 +36,7 @@
 
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/utils/message_checks.h>
 
 #include <rviz/visualization_manager.h>
 #include <rviz/robot/robot.h>
@@ -306,7 +306,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
   try
   {
-    if (!planning_scene::PlanningScene::isEmpty(state_msg->state))
+    if (!moveit::core::isEmpty(state_msg->state))
       robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
     setRobotHighlights(state_msg->highlight_links);
   }

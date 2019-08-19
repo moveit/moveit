@@ -36,6 +36,7 @@
 
 #include <gtest/gtest.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <moveit/utils/message_checks.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <sstream>
@@ -104,10 +105,10 @@ TEST(PlanningScene, LoadRestoreDiff)
 
   moveit_msgs::PlanningScene ps_msg;
   ps_msg.robot_state.is_diff = true;
-  EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
+  EXPECT_TRUE(moveit::core::isEmpty(ps_msg));
   ps->getPlanningSceneMsg(ps_msg);
   ps->setPlanningSceneMsg(ps_msg);
-  EXPECT_FALSE(planning_scene::PlanningScene::isEmpty(ps_msg));
+  EXPECT_FALSE(moveit::core::isEmpty(ps_msg));
   EXPECT_TRUE(world.hasObject("sphere"));
 
   planning_scene::PlanningScenePtr next = ps->diff();

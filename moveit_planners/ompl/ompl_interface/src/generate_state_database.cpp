@@ -42,6 +42,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/utils/message_checks.h>
 
 #include <boost/math/constants/constants.hpp>
 #include <sstream>
@@ -165,7 +166,7 @@ int main(int argc, char** argv)
     }
   }
 
-  if (kinematic_constraints::isEmpty(params.constraints))
+  if (moveit::core::isEmpty(params.constraints))
   {
     ROS_FATAL_NAMED(LOGNAME, "Abort. Constraint description is an empty set of constraints.");
     return 1;

@@ -953,14 +953,16 @@ public:
 
   /** \brief Check if a message includes any information about a planning scene, or it is just a default, empty message.
    */
-  static bool isEmpty(const moveit_msgs::PlanningScene& msg);
+  [[deprecated("Use moveit/utils/message_checks.h instead")]] static bool
+  isEmpty(const moveit_msgs::PlanningScene& msg);
 
   /** \brief Check if a message includes any information about a planning scene world, or it is just a default, empty
    * message. */
-  static bool isEmpty(const moveit_msgs::PlanningSceneWorld& msg);
+  [[deprecated("Use moveit/utils/message_checks.h instead")]] static bool
+  isEmpty(const moveit_msgs::PlanningSceneWorld& msg);
 
   /** \brief Check if a message includes any information about a robot state, or it is just a default, empty message. */
-  static bool isEmpty(const moveit_msgs::RobotState& msg);
+  [[deprecated("Use moveit/utils/message_checks.h instead")]] static bool isEmpty(const moveit_msgs::RobotState& msg);
 
   /** \brief Clone a planning scene. Even if the scene \e scene depends on a parent, the cloned scene will not. */
   static PlanningScenePtr clone(const PlanningSceneConstPtr& scene);
