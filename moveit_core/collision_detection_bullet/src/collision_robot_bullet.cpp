@@ -54,9 +54,7 @@ CollisionRobotBullet::CollisionRobotBullet(const robot_model::RobotModelConstPtr
     addLinkAsCollisionObjectWrapper(link.second);
   }
 
-  std::vector<std::string> active;
-  collision_detection_bullet::getActiveLinkNamesRecursive(active, robot_model_->getURDF()->getRoot(), true);
-  manager_->setActiveCollisionObjects(active);
+  collision_detection_bullet::getActiveLinkNamesRecursive(active_, robot_model_->getURDF()->getRoot(), true);
 }
 
 CollisionRobotBullet::CollisionRobotBullet(const CollisionRobotBullet& other)
@@ -126,6 +124,14 @@ void CollisionRobotBullet::checkSelfCollisionHelper(const CollisionRequest& req,
   addAttachedOjects(state, cows);
   collision_detection_bullet::BulletDiscreteBVHManagerPtr discrete_clone_manager = manager_->clone();
   updateTransformsFromState(state, discrete_clone_manager);
+
+  if (req.distance)
+  {
+    discrete_clone_manager->setContactDistanceThreshold(2);
+  }
+
+  discrete_clone_manager->filter_callback_.acm_ = acm;
+
   discrete_clone_manager->contactTest(res, req, acm, cows);
 }
 
