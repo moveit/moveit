@@ -202,10 +202,9 @@ public:
   void getAABB(btVector3& aabb_min, btVector3& aabb_max) const
   {
     getCollisionShape()->getAabb(getWorldTransform(), aabb_min, aabb_max);
-    const btScalar& d = getContactProcessingThreshold();
-    // added as bullet expands each AABB by 4 cm
-    double dis = d;  // - 0.04;
-    btVector3 contact_threshold(dis, dis, dis);
+    const btScalar& distance = getContactProcessingThreshold();
+    // note that bullet expands each AABB by 4 cm
+    btVector3 contact_threshold(distance, distance, distance);
     aabb_min -= contact_threshold;
     aabb_max += contact_threshold;
   }
@@ -285,17 +284,18 @@ public:
     m_shapeType = CUSTOM_CONVEX_SHAPE_TYPE;
   }
 
-  void updateCastTransform(const btTransform& t01)
+  void updateCastTransform(const btTransform& cast_transform)
   {
-    m_shape_transform = t01;
+    m_shape_transform = cast_transform;
   }
 
   /** \brief From both shape poses computes the support vertex and returns the larger one. */
   btVector3 localGetSupportingVertex(const btVector3& vec) const override
   {
-    btVector3 sv0 = m_shape->localGetSupportingVertex(vec);
-    btVector3 sv1 = m_shape_transform * m_shape->localGetSupportingVertex(vec * m_shape_transform.getBasis());
-    return (vec.dot(sv0) > vec.dot(sv1)) ? sv0 : sv1;
+    btVector3 support_vector_0 = m_shape->localGetSupportingVertex(vec);
+    btVector3 support_vector_1 =
+        m_shape_transform * m_shape->localGetSupportingVertex(vec * m_shape_transform.getBasis());
+    return (vec.dot(support_vector_0) > vec.dot(support_vector_1)) ? support_vector_0 : support_vector_1;
   }
 
   void batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* /*vectors*/,
@@ -308,11 +308,11 @@ public:
   /** \brief Shape specific fast recalculation of the AABB at a certain pose
    *
    *  The AABB is not recalculated from scratch but updated depending on the given transformation. */
-  void getAabb(const btTransform& t_w0, btVector3& aabbMin, btVector3& aabbMax) const override
+  void getAabb(const btTransform& transform_world, btVector3& aabbMin, btVector3& aabbMax) const override
   {
-    m_shape->getAabb(t_w0, aabbMin, aabbMax);
+    m_shape->getAabb(transform_world, aabbMin, aabbMax);
     btVector3 min1, max1;
-    m_shape->getAabb(t_w0 * m_shape_transform, min1, max1);
+    m_shape->getAabb(transform_world * m_shape_transform, min1, max1);
     aabbMin.setMin(min1);
     aabbMax.setMax(max1);
   }

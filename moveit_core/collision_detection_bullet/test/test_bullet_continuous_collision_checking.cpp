@@ -222,7 +222,7 @@ void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collisio
   }
 }
 
-// TODO: Add continuous to continuous collision checking
+// TODO(j-petit): Add continuous to continuous collision checking
 /** \brief Continuous self collision checks are not supported yet by the bullet integration */
 TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
 {
