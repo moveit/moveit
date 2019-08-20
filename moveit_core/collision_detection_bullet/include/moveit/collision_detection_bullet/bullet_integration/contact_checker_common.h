@@ -102,15 +102,26 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
       cdata.res.distance = contact.depth;
     }
   }
+
   ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Contact btw " << key.first << " and " << key.second
                                                                       << " dist: " << contact.depth);
+  // case if pair hasn't a contact yet
   if (!found)
   {
-    cdata.res.collision = true;
+    if (contact.depth <= 0)
+    {
+      cdata.res.collision = true;
+    }
+
     std::vector<collision_detection::Contact> data;
+
+    // if we dont want contacts we are done here
     if (!cdata.req.contacts)
     {
-      cdata.done = true;
+      if (!cdata.req.distance)
+      {
+        cdata.done = true;
+      }
       return nullptr;
     }
     else
@@ -122,7 +133,10 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
 
     if (cdata.res.contact_count >= cdata.req.max_contacts)
     {
-      cdata.done = true;
+      if (!cdata.req.distance)
+      {
+        cdata.done = true;
+      }
     }
 
     if (cdata.req.max_contacts_per_pair == 1u)
@@ -145,7 +159,10 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
 
     if (cdata.res.contact_count >= cdata.req.max_contacts)
     {
-      cdata.done = true;
+      if (!cdata.req.distance)
+      {
+        cdata.done = true;
+      }
     }
 
     return &(dr.back());

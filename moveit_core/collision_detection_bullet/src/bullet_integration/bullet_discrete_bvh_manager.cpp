@@ -50,6 +50,8 @@ BulletDiscreteBVHManager::BulletDiscreteBVHManager()
 
   broadphase_.reset(new btDbvtBroadphase());
 
+  broadphase_->getOverlappingPairCache()->setOverlapFilterCallback(&filter_callback_);
+
   contact_distance_ = 0;
 }
 
@@ -78,7 +80,6 @@ BulletDiscreteBVHManagerPtr BulletDiscreteBVHManager::clone() const
     manager->addCollisionObject(new_cow);
   }
 
-  manager->setActiveCollisionObjects(active_);
   manager->setContactDistanceThreshold(contact_distance_);
   manager->setIsContactAllowedFn(fn_);
 
@@ -199,6 +200,10 @@ void BulletDiscreteBVHManager::setActiveCollisionObjects(const std::vector<std::
   {
     CollisionObjectWrapperPtr& cow = co.second;
     updateCollisionObjectFilters(active_, *cow, false);
+
+    // The broadphase tree structure has to be updated, therefore remove and add is necessary
+    removeCollisionObjectFromBroadphase(cow, broadphase_, dispatcher_);
+    addCollisionObjectToBroadphase(cow, broadphase_, dispatcher_);
   }
 }
 

@@ -279,8 +279,8 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   assert(shapes.size() == shape_poses.size());
   assert(shapes.size() == collision_object_types.size());
 
-  m_collision_filter_group = btBroadphaseProxy::KinematicFilter;
-  m_collision_filter_mask = btBroadphaseProxy::StaticFilter | btBroadphaseProxy::KinematicFilter;
+  m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
+  m_collisionFilterMask = btBroadphaseProxy::KinematicFilter;
 
   if (shapes.size() == 1)
   {
