@@ -5,6 +5,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_world_bullet.cpp
   src/bullet_integration/bullet_utils.cpp
   src/bullet_integration/bullet_discrete_bvh_manager.cpp
+  src/bullet_integration/bullet_cast_bvh_manager.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
@@ -17,7 +18,6 @@ add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 add_library(collision_detector_bullet_plugin src/collision_detector_bullet_plugin_loader.cpp)
 set_target_properties(collision_detector_bullet_plugin PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(collision_detector_bullet_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})
-
 
 install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_bullet_plugin
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -36,4 +36,7 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_bullet_collision_detection_panda test/test_bullet_collision_detection_panda.cpp)
   target_link_libraries(test_bullet_collision_detection_panda moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
+  catkin_add_gtest(test_bullet_continuous_collision_checking test/test_bullet_continuous_collision_checking.cpp)
+  target_link_libraries(test_bullet_continuous_collision_checking moveit_test_utils ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 endif()
