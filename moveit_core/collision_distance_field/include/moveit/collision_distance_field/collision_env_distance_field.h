@@ -64,7 +64,7 @@ public:
                             const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
                                 std::map<std::string, std::vector<CollisionSphere>>(),
                             double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y,
-                            double size_z = DEFAULT_SIZE_Z, Eigen::Vector3d origin = Eigen::Vector3d(0, 0, 0),
+                            double size_z = DEFAULT_SIZE_Z, const Eigen::Vector3d& origin = Eigen::Vector3d(0, 0, 0),
                             bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                             double resolution = DEFAULT_RESOLUTION,
                             double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
@@ -75,7 +75,7 @@ public:
                             const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
                                 std::map<std::string, std::vector<CollisionSphere>>(),
                             double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y,
-                            double size_z = DEFAULT_SIZE_Z, Eigen::Vector3d origin = Eigen::Vector3d(0, 0, 0),
+                            double size_z = DEFAULT_SIZE_Z, const Eigen::Vector3d& origin = Eigen::Vector3d(0, 0, 0),
                             bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                             double resolution = DEFAULT_RESOLUTION,
                             double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
