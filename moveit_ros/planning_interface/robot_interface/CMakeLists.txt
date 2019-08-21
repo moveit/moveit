@@ -7,5 +7,9 @@ set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES VERSION "${${PROJECT_
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_robot_interface PREFIX "")
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
 
+if(WIN32)
+  set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES SUFFIX .pyd)
+endif(WIN32)
+
 install(TARGETS ${MOVEIT_LIB_NAME}_python
   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
