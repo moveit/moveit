@@ -42,8 +42,7 @@
 #include <chomp_motion_planner/multivariate_gaussian.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <moveit/collision_distance_field/collision_robot_hybrid.h>
-#include <moveit/collision_distance_field/collision_world_hybrid.h>
+#include <moveit/collision_distance_field/collision_env_hybrid.h>
 
 #include <Eigen/Core>
 #include <Eigen/StdVector>
@@ -135,8 +134,7 @@ private:
   moveit::core::RobotState state_;
   moveit::core::RobotState start_state_;
   const moveit::core::JointModelGroup* joint_model_group_;
-  const collision_detection::CollisionWorldHybrid* hy_world_;
-  const collision_detection::CollisionRobotHybrid* hy_robot_;
+  const collision_detection::CollisionEnvHybrid* hy_env_;
 
   std::vector<ChompCost> joint_costs_;
   collision_detection::GroupStateRepresentationPtr gsr_;

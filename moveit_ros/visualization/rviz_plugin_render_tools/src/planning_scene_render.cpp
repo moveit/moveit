@@ -90,7 +90,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
   const std::vector<std::string>& ids = scene->getWorld()->getObjectIds();
   for (const std::string& id : ids)
   {
-    collision_detection::CollisionWorld::ObjectConstPtr object = scene->getWorld()->getObject(id);
+    collision_detection::CollisionEnv::ObjectConstPtr object = scene->getWorld()->getObject(id);
     rviz::Color color = default_env_color;
     float alpha = default_scene_alpha;
     if (scene->hasObjectColor(id))

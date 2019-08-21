@@ -37,16 +37,15 @@
 #pragma once
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
-#include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit/collision_detection_fcl/collision_env_fcl.h>
 
 namespace collision_detection
 {
 /** \brief An allocator for FCL collision detectors */
 class CollisionDetectorAllocatorFCL
-    : public CollisionDetectorAllocatorTemplate<CollisionWorldFCL, CollisionRobotFCL, CollisionDetectorAllocatorFCL>
+    : public CollisionDetectorAllocatorTemplate<CollisionEnvFCL, CollisionDetectorAllocatorFCL>
 {
 public:
-  static const std::string NAME;  // defined in collision_world_fcl.cpp
+  static const std::string NAME;  // defined in collision_env_fcl.cpp
 };
 }

@@ -37,17 +37,15 @@
 #pragma once
 
 #include <moveit/collision_detection/collision_detector_allocator.h>
-#include <moveit/collision_distance_field/collision_robot_distance_field.h>
-#include <moveit/collision_distance_field/collision_world_distance_field.h>
+#include <moveit/collision_distance_field/collision_env_distance_field.h>
 
 namespace collision_detection
 {
 /** \brief An allocator for Distance Field collision detectors */
 class CollisionDetectorAllocatorDistanceField
-    : public CollisionDetectorAllocatorTemplate<CollisionWorldDistanceField, CollisionRobotDistanceField,
-                                                CollisionDetectorAllocatorDistanceField>
+    : public CollisionDetectorAllocatorTemplate<CollisionEnvDistanceField, CollisionDetectorAllocatorDistanceField>
 {
 public:
-  static const std::string NAME;  // defined in collision_world_distance_field.cpp
+  static const std::string NAME;  // defined in collision_env_distance_field.cpp
 };
 }

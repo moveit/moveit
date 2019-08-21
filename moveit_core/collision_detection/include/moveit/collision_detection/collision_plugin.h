@@ -35,8 +35,7 @@
 #pragma once
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/collision_detection/collision_robot.h>
-#include <moveit/collision_detection/collision_world.h>
+#include <moveit/collision_detection/collision_env.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 namespace collision_detection
@@ -52,8 +51,7 @@ MOVEIT_CLASS_FORWARD(CollisionPlugin);
  *   {
  *
  *   class MyCollisionDetectorAllocator :
- *     public collision_detection::CollisionDetectorAllocatorTemplate<MyCollisionWorld, MyCollisionRobot,
- MyCollisionDetectorAllocator>
+ *     public collision_detection::CollisionDetectorAllocatorTemplate<MyCollisionEnv, MyCollisionDetectorAllocator>
  *   {
  *     public:
  *       static const std::string NAME_;

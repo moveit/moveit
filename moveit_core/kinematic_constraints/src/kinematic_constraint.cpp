@@ -38,8 +38,7 @@
 #include <geometric_shapes/body_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
-#include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit/collision_detection_fcl/collision_env_fcl.h>
 #include <boost/math/constants/constants.hpp>
 #include <tf2_eigen/tf2_eigen.h>
 #include <boost/bind.hpp>
@@ -644,7 +643,7 @@ void OrientationConstraint::print(std::ostream& out) const
 }
 
 VisibilityConstraint::VisibilityConstraint(const robot_model::RobotModelConstPtr& model)
-  : KinematicConstraint(model), collision_robot_(new collision_detection::CollisionRobotFCL(model))
+  : KinematicConstraint(model), collision_env_(new collision_detection::CollisionEnvFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;
 }
@@ -984,8 +983,7 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
     return ConstraintEvaluationResult(false, 0.0);
 
   // add the visibility cone as an object
-  collision_detection::CollisionWorldFCL collision_world;
-  collision_world.getWorld()->addToObject("cone", shapes::ShapeConstPtr(m), Eigen::Isometry3d::Identity());
+  collision_env_->getWorld()->addToObject("cone", shapes::ShapeConstPtr(m), Eigen::Isometry3d::Identity());
 
   // check for collisions between the robot and the cone
   collision_detection::CollisionRequest req;
@@ -995,7 +993,7 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
   req.contacts = true;
   req.verbose = verbose;
   req.max_contacts = 1;
-  collision_world.checkRobotCollision(req, res, *collision_robot_, state, acm);
+  collision_env_->checkRobotCollision(req, res, state, acm);
 
   if (verbose)
   {
@@ -1004,6 +1002,8 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
     ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint %ssatisfied. Visibility cone approximation:\n %s",
                    res.collision ? "not " : "", ss.str().c_str());
   }
+
+  collision_env_->getWorld()->removeObject("cone");
 
   return ConstraintEvaluationResult(!res.collision, res.collision ? res.contacts.begin()->second.front().depth : 0.0);
 }

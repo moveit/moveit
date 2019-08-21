@@ -75,21 +75,14 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene
 
   ROS_INFO_STREAM("Active collision detector is: " + planning_scene->getActiveCollisionDetectorName());
 
-  hy_world_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(
-      planning_scene->getCollisionWorld(planning_scene->getActiveCollisionDetectorName()).get());
-  if (!hy_world_)
+  hy_env_ = dynamic_cast<const collision_detection::CollisionEnvHybrid*>(
+      planning_scene->getCollisionEnv(planning_scene->getActiveCollisionDetectorName()).get());
+  if (!hy_env_)
   {
     ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
     return;
   }
 
-  hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(
-      planning_scene->getCollisionRobot(planning_scene->getActiveCollisionDetectorName()).get());
-  if (!hy_robot_)
-  {
-    ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
-    return;
-  }
   initialize();
 }
 
@@ -107,8 +100,7 @@ void ChompOptimizer::initialize()
   collision_detection::CollisionResult res;
   req.group_name = planning_group_;
   ros::WallTime wt = ros::WallTime::now();
-  hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_,
-                                   &planning_scene_->getAllowedCollisionMatrix(), gsr_);
+  hy_env_->getCollisionGradients(req, res, state_, &planning_scene_->getAllowedCollisionMatrix(), gsr_);
   ROS_INFO_STREAM("First coll check took " << (ros::WallTime::now() - wt));
   num_collision_points_ = 0;
   for (const collision_detection::GradientInfo& gradient : gsr_->gradients_)
@@ -937,8 +929,7 @@ void ChompOptimizer::performForwardKinematics()
     setRobotStateFromPoint(group_trajectory_, i);
     ros::WallTime grad = ros::WallTime::now();
 
-    hy_world_->getCollisionGradients(req, res, *hy_robot_->getCollisionRobotDistanceField().get(), state_, nullptr,
-                                     gsr_);
+    hy_env_->getCollisionGradients(req, res, state_, nullptr, gsr_);
     total_dur += (ros::WallTime::now() - grad);
     computeJointProperties(i);
     state_is_in_collision_[i] = false;
