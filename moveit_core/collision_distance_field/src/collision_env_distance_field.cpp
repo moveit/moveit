@@ -55,7 +55,7 @@ const std::string collision_detection::CollisionDetectorAllocatorDistanceField::
 CollisionEnvDistanceField::CollisionEnvDistanceField(
     const robot_model::RobotModelConstPtr& robot_model,
     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
-    double size_z, Eigen::Vector3d origin, bool use_signed_distance_field, double resolution,
+    double size_z, const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
     double collision_tolerance, double max_propogation_distance, double padding, double scale)
   : CollisionEnv(robot_model)
 {
@@ -73,7 +73,7 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
 CollisionEnvDistanceField::CollisionEnvDistanceField(
     const robot_model::RobotModelConstPtr& robot_model, const WorldPtr& world,
     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
-    double size_z, Eigen::Vector3d origin, bool use_signed_distance_field, double resolution,
+    double size_z, const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
     double collision_tolerance, double max_propogation_distance, double padding, double scale)
   : CollisionEnv(robot_model, world, padding, scale)
 {
