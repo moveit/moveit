@@ -48,7 +48,11 @@ namespace chomp
 {
 double getRandomDouble()
 {
+#ifdef _WIN32
+  return ((double)rand() / (double)RAND_MAX);
+#else
   return ((double)random() / (double)RAND_MAX);
+#endif
 }
 
 ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -615,7 +619,7 @@ void ChompOptimizer::calculateCollisionIncrements()
   // This is faster and guaranteed to converge, but it may take more iterations in the worst case.
   if (parameters_->use_stochastic_descent_)
   {
-    start_point = (int)(((double)random() / (double)RAND_MAX) * (free_vars_end_ - free_vars_start_) + free_vars_start_);
+    start_point = (int)(getRandomDouble() * (free_vars_end_ - free_vars_start_) + free_vars_start_);
     if (start_point < free_vars_start_)
       start_point = free_vars_start_;
     if (start_point > free_vars_end_)
