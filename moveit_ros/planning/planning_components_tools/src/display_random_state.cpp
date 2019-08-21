@@ -136,7 +136,7 @@ int main(int argc, char** argv)
       pub_scene.publish(psmsg);
       std::cout << psm.getPlanningScene()->getCurrentState() << std::endl;
 
-      sleep(1);
+      ros::Duration(1).sleep();
     }
   } while (nh.ok());
 
