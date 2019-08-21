@@ -59,6 +59,11 @@
 // MoveIt
 #include <moveit/rdf_loader/rdf_loader.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#define chdir _chdir
+#endif
+
 namespace moveit_setup_assistant
 {
 // Boost file system

@@ -34,6 +34,7 @@
 
 /* Author: Suat Gedikli */
 
+#include <ros/ros.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 
