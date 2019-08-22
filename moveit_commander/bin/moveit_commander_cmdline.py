@@ -4,7 +4,10 @@ from __future__ import print_function
 
 import roslib
 import rospy
-import readline
+try:
+    import readline
+except ImportError:
+    import pyreadline as readline # for Windows
 import sys
 import os
 import signal
