@@ -51,11 +51,10 @@ class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
 {
 public:
   bool loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
-                                      std::vector<StartState>& start_states,
-                                      std::vector<PathConstraints>& path_constraints,
-                                      std::vector<PathConstraints>& goal_constraints,
-                                      std::vector<TrajectoryConstraints>& traj_constraints,
-                                      std::vector<BenchmarkRequest>& queries) override
+                              std::vector<StartState>& start_states, std::vector<PathConstraints>& path_constraints,
+                              std::vector<PathConstraints>& goal_constraints,
+                              std::vector<TrajectoryConstraints>& traj_constraints,
+                              std::vector<BenchmarkRequest>& queries) override
   {
     // Load planning scene
     if (!psm_)
