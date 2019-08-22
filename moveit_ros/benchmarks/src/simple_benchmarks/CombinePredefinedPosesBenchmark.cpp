@@ -50,12 +50,12 @@ constexpr char LOGNAME[] = "combine_predefined_poses_benchmark";
 class CombinePredefinedPosesBenchmark : public BenchmarkExecutor
 {
 public:
-  virtual bool loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
+  bool loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
                                       std::vector<StartState>& start_states,
                                       std::vector<PathConstraints>& path_constraints,
                                       std::vector<PathConstraints>& goal_constraints,
                                       std::vector<TrajectoryConstraints>& traj_constraints,
-                                      std::vector<BenchmarkRequest>& queries)
+                                      std::vector<BenchmarkRequest>& queries) override
   {
     // Load planning scene
     if (!psm_)
