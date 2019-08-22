@@ -59,8 +59,11 @@
 // MoveIt
 #include <moveit/rdf_loader/rdf_loader.h>
 
+// chdir
 #ifdef _WIN32
 #include <direct.h>
+#else
+#include <unistd.h>
 #endif
 
 namespace moveit_setup_assistant
