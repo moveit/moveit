@@ -18,12 +18,12 @@ benchmark_config:
         output_directory: /home/benchmarks/
         queries: .*
         start_states: .*
-    planners:
-        - plugin: ompl_interface/OMPLPlanner
+    planning_pipelines:
+        - name: ompl
           planners:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault
             - KPIECEkConfigDefault
-        - plugin: my_plugin_ns/my_plugin
+        - name: my_pipeline
           planners:
             - MyPlanner

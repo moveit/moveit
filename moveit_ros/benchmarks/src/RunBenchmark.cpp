@@ -51,9 +51,9 @@ int main(int argc, char** argv)
   // Setup benchmark server
   moveit_ros_benchmarks::BenchmarkExecutor server;
 
-  std::vector<std::string> plugins;
-  opts.getPlannerPluginList(plugins);
-  server.initialize(plugins);
+  std::vector<std::string> planning_pipelines;
+  opts.getPlanningPipelineNames(planning_pipelines);
+  server.initialize(planning_pipelines);
 
   // Running benchmarks
   if (!server.runBenchmarks(opts))

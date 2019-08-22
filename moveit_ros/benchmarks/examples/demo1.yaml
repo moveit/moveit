@@ -1,5 +1,5 @@
 # This is an example configuration that loads the "Kitchen" scene from the
-# local MoveIt warehouse and benchmarks the "manipulator" group in the Pick1
+# local MoveIt warehouse and benchmarks the "panda_arm" group in the Pick1
 # query using the Start1 initial state (all pre-stored in the local warehouse)
 
 # Three different planners from OMPL are run a total of 50 times each, with a
@@ -18,8 +18,8 @@ benchmark_config:
         output_directory: /tmp/moveit_benchmarks/
         queries: Pick1
         start_states: Start1
-    planners:
-        - plugin: ompl_interface/OMPLPlanner
+    planning_pipelines:
+        - name: ompl
           planners:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault

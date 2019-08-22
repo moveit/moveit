@@ -136,22 +136,32 @@ const std::string& BenchmarkOptions::getTrajectoryConstraintRegex() const
   return trajectory_constraint_regex_;
 }
 
+const std::vector<std::string>& BenchmarkOptions::getPredefinedPoses() const
+{
+  return predefined_poses_;
+}
+
+const std::string& BenchmarkOptions::getPredefinedPosesGroup() const
+{
+  return predefined_poses_group_;
+}
+
 void BenchmarkOptions::getGoalOffsets(std::vector<double>& offsets) const
 {
   offsets.resize(6);
   memcpy(&offsets[0], goal_offsets, 6 * sizeof(double));
 }
 
-const std::map<std::string, std::vector<std::string>>& BenchmarkOptions::getPlannerConfigurations() const
+const std::map<std::string, std::vector<std::string>>& BenchmarkOptions::getPlanningPipelineConfigurations() const
 {
-  return planners_;
+  return planning_pipelines_;
 }
 
-void BenchmarkOptions::getPlannerPluginList(std::vector<std::string>& plugin_list) const
+void BenchmarkOptions::getPlanningPipelineNames(std::vector<std::string>& planning_pipeline_names) const
 {
-  plugin_list.clear();
-  for (const std::pair<const std::string, std::vector<std::string>>& planner : planners_)
-    plugin_list.push_back(planner.first);
+  planning_pipeline_names.clear();
+  for (const std::pair<const std::string, std::vector<std::string>>& planning_pipeline : planning_pipelines_)
+    planning_pipeline_names.push_back(planning_pipeline.first);
 }
 
 const std::string& BenchmarkOptions::getWorkspaceFrameID() const
@@ -189,6 +199,8 @@ void BenchmarkOptions::readBenchmarkParameters(ros::NodeHandle& nh)
   nh.param(std::string("benchmark_config/parameters/path_constraints"), path_constraint_regex_, std::string(""));
   nh.param(std::string("benchmark_config/parameters/trajectory_constraints"), trajectory_constraint_regex_,
            std::string(""));
+  nh.param(std::string("benchmark_config/parameters/predefined_poses"), predefined_poses_, {});
+  nh.param(std::string("benchmark_config/parameters/predefined_poses_group"), predefined_poses_group_, std::string(""));
 
   if (!nh.getParam(std::string("benchmark_config/parameters/group"), group_name_))
     ROS_WARN("Benchmark group NOT specified");
@@ -237,48 +249,48 @@ void BenchmarkOptions::readWorkspaceParameters(ros::NodeHandle& nh)
 
 void BenchmarkOptions::readPlannerConfigs(ros::NodeHandle& nh)
 {
-  planners_.clear();
+  planning_pipelines_.clear();
 
-  XmlRpc::XmlRpcValue planner_configs;
-  if (nh.getParam("benchmark_config/planners", planner_configs))
+  XmlRpc::XmlRpcValue pipeline_configs;
+  if (nh.getParam("benchmark_config/planning_pipelines", pipeline_configs))
   {
-    if (planner_configs.getType() != XmlRpc::XmlRpcValue::TypeArray)
+    if (pipeline_configs.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
-      ROS_ERROR("Expected a list of planner configurations to benchmark");
+      ROS_ERROR("Expected a list of planning pipeline configurations to benchmark");
       return;
     }
 
-    for (int i = 0; i < planner_configs.size(); ++i)  // NOLINT(modernize-loop-convert)
+    for (int i = 0; i < pipeline_configs.size(); ++i)  // NOLINT(modernize-loop-convert)
     {
-      if (planner_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
+      if (pipeline_configs[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {
-        ROS_WARN("Improper YAML type for planner configurations");
+        ROS_WARN("Improper YAML type for planning pipeline configurations");
         continue;
       }
-      if (!planner_configs[i].hasMember("plugin") || !planner_configs[i].hasMember("planners"))
+      if (!pipeline_configs[i].hasMember("name") || !pipeline_configs[i].hasMember("planners"))
       {
         ROS_WARN("Malformed YAML for planner configurations");
         continue;
       }
 
-      if (planner_configs[i]["planners"].getType() != XmlRpc::XmlRpcValue::TypeArray)
+      if (pipeline_configs[i]["planners"].getType() != XmlRpc::XmlRpcValue::TypeArray)
       {
         ROS_WARN("Expected a list of planners to benchmark");
         continue;
       }
 
-      const std::string plugin = planner_configs[i]["plugin"];
-      ROS_INFO("Reading in planner names for plugin '%s'", plugin.c_str());
+      const std::string pipeline_name = pipeline_configs[i]["name"];
+      ROS_INFO("Reading in planner names for planning pipeline '%s'", pipeline_name.c_str());
 
       std::vector<std::string> planners;
-      planners.reserve(planner_configs[i]["planners"].size());
-      for (int j = 0; j < planner_configs[i]["planners"].size(); ++j)
-        planners.emplace_back(planner_configs[i]["planners"][j]);
+      planners.reserve(pipeline_configs[i]["planners"].size());
+      for (int j = 0; j < pipeline_configs[i]["planners"].size(); ++j)
+        planners.emplace_back(pipeline_configs[i]["planners"][j]);
 
       for (std::size_t j = 0; j < planners.size(); ++j)
         ROS_INFO("  [%lu]: %s", j, planners[j].c_str());
 
-      planners_[plugin] = planners;
+      planning_pipelines_[pipeline_name] = planners;
     }
   }
 }
