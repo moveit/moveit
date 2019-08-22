@@ -50,8 +50,8 @@ namespace chomp
 double getRandomDouble()
 {
   std::default_random_engine seed;
-  std::uniform_real_distribution<> dis(0.0, 1.0);
-  return dis(seed);
+  std::uniform_real_distribution<> uniform(0.0, 1.0);
+  return uniform(seed);
 }
 
 ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene::PlanningSceneConstPtr& planning_scene,
