@@ -43,16 +43,15 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/Core>
+#include <random>
 
 namespace chomp
 {
 double getRandomDouble()
 {
-#ifdef _WIN32
-  return ((double)rand() / (double)RAND_MAX);
-#else
-  return ((double)random() / (double)RAND_MAX);
-#endif
+  std::default_random_engine seed;
+  std::uniform_real_distribution<> dis(0.0, 1.0);
+  return dis(seed);
 }
 
 ChompOptimizer::ChompOptimizer(ChompTrajectory* trajectory, const planning_scene::PlanningSceneConstPtr& planning_scene,
