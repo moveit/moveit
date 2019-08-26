@@ -51,7 +51,7 @@ public:
   /** \brief Constructor */
   BulletCastBVHManager(){};
 
-  ~BulletCastBVHManager(){};
+  virtual ~BulletCastBVHManager(){};
 
   /**@brief Clone the manager
    *

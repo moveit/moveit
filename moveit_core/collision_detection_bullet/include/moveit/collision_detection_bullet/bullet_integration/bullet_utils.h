@@ -139,8 +139,8 @@ inline btTransform convertEigenToBt(const Eigen::Isometry3d& t)
  *
  *  A wrapper around bullet's collision object which contains specific information related to bullet. One of the main
  *  differences is that a bullet collision object has a single world transformation and all shapes have transformation
- *  relative to this world transform. The default is a active object and active objects are checked against active
- *  objects and static objects. */
+ *  relative to this world transform. The default collision object category is active and active objects are checked
+ *  against active objects and static objects whereas static objects are only checked against active ones. */
 class CollisionObjectWrapper : public btCollisionObject
 {
 public:
@@ -256,7 +256,7 @@ protected:
   /** @brief The shapes that define the collison object */
   std::vector<shapes::ShapeConstPtr> m_shapes;
 
-  /** @brief The poses of the shapes must be same length as m_shapes */
+  /** @brief The poses of the shapes, must be same length as m_shapes */
   AlignedVector<Eigen::Isometry3d> m_shape_poses;
 
   /** @brief The shape collision object type to be used. */

@@ -48,8 +48,6 @@ const double MAX_DISTANCE_MARGIN = 99;
 
 CollisionEnvBullet::CollisionEnvBullet(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
-  , manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
-  , manager_CCD_(new collision_detection_bullet::BulletCastBVHManager)
 {
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvBullet::notifyObjectChange, this, _1, _2));
@@ -77,8 +75,6 @@ CollisionEnvBullet::CollisionEnvBullet(const robot_model::RobotModelConstPtr& mo
 
 CollisionEnvBullet::CollisionEnvBullet(const CollisionEnvBullet& other, const WorldPtr& world)
   : CollisionEnv(other, world)
-  , manager_(new collision_detection_bullet::BulletDiscreteBVHManager)
-  , manager_CCD_(new collision_detection_bullet::BulletCastBVHManager)
 {
   // TODO(j-petit): Verify this constructor
 

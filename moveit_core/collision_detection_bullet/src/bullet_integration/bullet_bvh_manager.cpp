@@ -110,8 +110,7 @@ bool BulletBVHManager::disableCollisionObject(const std::string& name)
 
 void BulletBVHManager::setCollisionObjectsTransform(const std::string& name, const Eigen::Isometry3d& pose)
 {
-  // TODO: Find a way to remove this check. Need to store information in Tesseract EnvState indicating transforms with
-  // geometry
+  // TODO(j-petit): Find a way to remove this check. Need to store information in CollisionEnv transforms with geometry
   auto it = link2cow_.find(name);
   if (it != link2cow_.end())
   {

@@ -51,7 +51,7 @@ public:
   /** \brief Constructor */
   BulletBVHManager();
 
-  ~BulletBVHManager();
+  virtual ~BulletBVHManager();
 
   /** @brief Clone the manager
    *

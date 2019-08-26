@@ -51,6 +51,8 @@
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
 
+namespace cb = collision_detection_bullet;
+
 /** \brief Brings the panda robot in user defined home position */
 inline void setToHome(robot_state::RobotState& panda_state)
 {
@@ -107,7 +109,7 @@ protected:
   robot_state::RobotStatePtr robot_state_;
 };
 
-void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& checker)
+void addCollisionObjects(cb::BulletCastBVHManager& checker)
 {
   ////////////////////////////
   // Add static box to checker
@@ -117,13 +119,13 @@ void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& check
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj1_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj1_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<cb::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  collision_detection_bullet::CollisionObjectWrapperPtr cow_1(new collision_detection_bullet::CollisionObjectWrapper(
+  cb::CollisionObjectWrapperPtr cow_1(new cb::CollisionObjectWrapper(
       "static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses, obj1_types));
   checker.addCollisionObject(cow_1);
 
@@ -137,18 +139,18 @@ void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& check
   moving_box_pose.translation() = Eigen::Vector3d(0.5, -0.5, 0);
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj2_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj2_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<cb::CollisionObjectType> obj2_types;
   obj2_shapes.push_back(moving_box);
   obj2_poses.push_back(moving_box_pose);
-  obj2_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj2_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  collision_detection_bullet::CollisionObjectWrapperPtr cow_2(new collision_detection_bullet::CollisionObjectWrapper(
+  cb::CollisionObjectWrapperPtr cow_2(new cb::CollisionObjectWrapper(
       "moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses, obj2_types));
   checker.addCollisionObject(cow_2);
 }
 
-void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& checker)
+void addCollisionObjectsMesh(cb::BulletCastBVHManager& checker)
 {
   ////////////////////////////
   // Add static box to checker
@@ -158,13 +160,13 @@ void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& c
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj1_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj1_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<cb::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  collision_detection_bullet::CollisionObjectWrapperPtr cow_1(new collision_detection_bullet::CollisionObjectWrapper(
+  cb::CollisionObjectWrapperPtr cow_1(new cb::CollisionObjectWrapper(
       "static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses, obj1_types));
   checker.addCollisionObject(cow_1);
   ////////////////////////////
@@ -172,11 +174,11 @@ void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& c
   ////////////////////////////
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj2_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj2_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<cb::CollisionObjectType> obj2_types;
 
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
   Eigen::Isometry3d s_pose;
   s_pose.setIdentity();
@@ -185,15 +187,15 @@ void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& c
   shapes::ShapeConstPtr s;
   s.reset(shapes::createMeshFromResource(kinect));
   obj2_shapes.push_back(s);
-  obj2_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
+  obj2_types.push_back(cb::CollisionObjectType::CONVEX_HULL);
   obj2_poses.push_back(s_pose);
 
-  collision_detection_bullet::CollisionObjectWrapperPtr cow_2(new collision_detection_bullet::CollisionObjectWrapper(
+  cb::CollisionObjectWrapperPtr cow_2(new cb::CollisionObjectWrapper(
       "moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses, obj2_types));
   checker.addCollisionObject(cow_2);
 }
 
-void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collision_detection::CollisionResult& result,
+void runTest(cb::BulletCastBVHManager& checker, collision_detection::CollisionResult& result,
              std::vector<collision_detection::Contact>& result_vector, Eigen::Isometry3d& start_pos,
              Eigen::Isometry3d& end_pos)
 {
@@ -210,7 +212,7 @@ void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collisio
   // Perform collision check
   collision_detection::CollisionRequest request;
   request.contacts = true;
-  // collision_detection_bullet::ContactResultMap result;
+  // cb::ContactResultMap result;
   checker.contactTest(result, request, nullptr, false);
 
   for (const auto& contacts_all : result.contacts)
@@ -324,7 +326,7 @@ TEST(ContinuousCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
   end_pos.setIdentity();
   end_pos.translation().x() = 2;
 
-  collision_detection_bullet::BulletCastBVHManager checker;
+  cb::BulletCastBVHManager checker;
   addCollisionObjects(checker);
   runTest(checker, result, result_vector, start_pos, end_pos);
 
@@ -335,7 +337,7 @@ TEST(ContinuousCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
 
 TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
 {
-  collision_detection_bullet::BulletCastBVHManager checker;
+  cb::BulletCastBVHManager checker;
   addCollisionObjectsMesh(checker);
 
   Eigen::Isometry3d start_pos, end_pos;
