@@ -108,6 +108,7 @@ protected:
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
 
+  /** \brief Common helper used by the different checkRobotCollision functions. */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 

@@ -92,7 +92,7 @@ public:
     return CollisionEnvPtr(new CollisionEnvType(robot_model));
   }
 
-  /** Create an allocator for FCL collision detectors */
+  /** Create an allocator for collision detectors. */
   static CollisionDetectorAllocatorPtr create()
   {
     return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());
