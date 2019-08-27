@@ -336,11 +336,11 @@ class MoveGroupCommandInterpreter(object):
                 if clist[1] == "rand" or clist[1] == "random":
                     vals = g.get_random_joint_values()
                     g.set_joint_value_target(vals)
-                    self._last_plan = g.plan()
+                    self._last_plan = g.plan()[1] # The trajectory msg
                 else:
                     try:
                         g.set_named_target(clist[1])
-                        self._last_plan = g.plan()
+                        self._last_plan = g.plan()[1] # The trajectory msg
                     except MoveItCommanderException as e:
                         return (MoveGroupInfoLevel.WARN, "Planning to " + clist[1] + ": " + str(e))
                     except:
