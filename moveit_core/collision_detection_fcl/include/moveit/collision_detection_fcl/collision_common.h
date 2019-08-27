@@ -80,7 +80,7 @@ struct CollisionGeometryData
     ptr.obj = obj;
   }
 
-  /** \brief Returns the name which is saved in the pointed to member \e ptr. */
+  /** \brief Returns the name which is saved in the member pointed to in \e ptr. */
   const std::string& getID() const
   {
     switch (type)
@@ -151,7 +151,7 @@ struct CollisionData
   {
   }
 
-  /** \brief Compute \e active_components_only_ based on \e req_ */
+  /** \brief Compute \e active_components_only_ based on the joint group specified in \e req_ */
   void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
 
   /** \brief The collision request passed by the user */
@@ -163,10 +163,10 @@ struct CollisionData
    *  If the pointer is NULL, all collisions are considered. */
   const std::set<const robot_model::LinkModel*>* active_components_only_;
 
-  /** \brief The user specified response location. */
+  /** \brief The user-specified response location. */
   CollisionResult* res_;
 
-  /** \brief The user specified collision matrix (may be NULL). */
+  /** \brief The user-specified collision matrix (may be NULL). */
   const AllowedCollisionMatrix* acm_;
 
   /** \brief Flag indicating whether collision checking is complete. */
@@ -216,7 +216,7 @@ struct FCLGeometry
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  /** \brief Constructor for world object. */
+  /** \brief Constructor for a world object. */
   FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
@@ -238,14 +238,14 @@ struct FCLGeometry
   /** \brief Pointer to FCL collision geometry. */
   std::shared_ptr<fcl::CollisionGeometryd> collision_geometry_;
 
-  /** \brief Pointer to the user defined geometry data. */
+  /** \brief Pointer to the user-defined geometry data. */
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
 typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
 
-/** \brief A general hight level object which consists of multiple \e FCLCollisionObjects. It is the top level data
+/** \brief A general hight-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
  *  structure which is used in the collision checking process. */
 struct FCLObject
 {
@@ -255,11 +255,11 @@ struct FCLObject
 
   std::vector<FCLCollisionObjectPtr> collision_objects_;
 
-  /** \brief To \e collision_objects_ corresponding geometry data. */
+  /** \brief Geometry data corresponding to \e collision_objects_. */
   std::vector<FCLGeometryConstPtr> collision_geometry_;
 };
 
-/** \brief Bundles an \e FCLObject and and a broadphase FCL collision manager. */
+/** \brief Bundles an \e FCLObject and a broadphase FCL collision manager. */
 struct FCLManager
 {
   FCLObject object_;
@@ -272,7 +272,7 @@ struct FCLManager
 *   \param o1 First FCL collision object
 *   \param o2 Second FCL collision object
 *   \data General pointer to arbitrary data which is used during the callback
-*   \return True terminates the distance check, false let it continue to the next pair of objects */
+*   \return True terminates the distance check, false continues it to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
@@ -281,7 +281,7 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 *   \param o1 First FCL collision object
 *   \param o2 Second FCL collision object
 *   \data General pointer to arbitrary data which is used during the callback
-*   \return True terminates the collision check, false let it continue to the next pair of objects */
+*   \return True terminates the collision check, false continues it to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
 /** \brief Create new FCLGeometry object out of robot link model. */

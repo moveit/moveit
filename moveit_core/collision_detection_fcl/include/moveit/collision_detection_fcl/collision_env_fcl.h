@@ -98,7 +98,7 @@ protected:
   /** \brief Updates the FCL collision geometry and objects saved in the CollisionRobotFCL members to reflect a new
   *   padding or scaling of the robot links.
   *
-  *   It searches for the the link through the pointed to robot model of the CollisionRobot and then constructs new FCL
+  *   It searches for the link through the pointed-to robot model of the CollisionRobot and then constructs new FCL
   *   collision objects and geometries depending on the changed robot model.
   *
   *   \param links The names of the links which have been updated in the robot model */
@@ -108,7 +108,7 @@ protected:
   void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
                                 const AllowedCollisionMatrix* acm) const;
 
-  /** \brief Common helper used by the different checkRobotCollision functions. */
+  /** \brief Bundles the different checkRobotCollision functions into a single function */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
 

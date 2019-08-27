@@ -279,7 +279,7 @@ struct DistanceRequest
   const AllowedCollisionMatrix* acm;
 
   /// Only calculate distances for objects within this threshold to each other.
-  /// If set this can significantly reduce the number of queries.
+  /// If set, this can significantly reduce the number of queries.
   double distance_threshold;
 
   /// Log debug information

@@ -670,7 +670,7 @@ struct IfSameType<T, T>
 /** \brief Templated helper function creating new collision geometry out of general object using an arbitrary bounding
  *  volume (BV).
  *
- *  It assigns a thread local cache for each type of shape and minimizes memory usage and copying through utilizing the
+ *  It assigns a thread-local cache for each type of shape and minimizes memory usage and copying through utilizing the
  *  cache. */
 template <typename BV, typename T>
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
