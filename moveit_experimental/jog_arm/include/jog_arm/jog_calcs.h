@@ -62,7 +62,7 @@ protected:
 
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
 
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints();
