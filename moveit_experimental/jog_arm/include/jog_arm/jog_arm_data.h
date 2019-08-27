@@ -86,7 +86,7 @@ struct JogArmParameters
   std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
       planning_frame, warning_topic, joint_command_in_topic, command_in_type, command_out_type;
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
-      collision_proximity_threshold, low_pass_filter_coeff, publish_period, publish_delay, incoming_command_timeout,
+      collision_proximity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout,
       joint_limit_margin, collision_check_rate;
   int num_halt_msgs_to_publish;
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;

@@ -62,7 +62,7 @@ protected:
 
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
 
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints();
@@ -97,8 +97,7 @@ protected:
                             trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
                             double singularity_scale);
 
-  trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state,
-                                                          const ros::Time& stamp) const;
+  trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state) const;
 
   void lowPassFilterVelocities(const Eigen::VectorXd& joint_vel);
 
