@@ -270,7 +270,7 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 }
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
-                                                         const std::pair<int, int>& path_segment)
+                                                         const std::pair<std::size_t, int>& path_segment)
 {
   if (path_segment.first >= 0 &&
       plan.plan_components_[path_segment.first].trajectory_monitoring_)  // If path_segment.second <= 0, the function
@@ -517,7 +517,7 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
   if (index < plan->plan_components_.size() && plan->plan_components_[index].trajectory_ &&
       !plan->plan_components_[index].trajectory_->empty())
   {
-    if (!isRemainingPathValid(*plan, std::make_pair<int>(static_cast<int>(index), 0)))
+    if (!isRemainingPathValid(*plan, std::make_pair(index, 0)))
       path_became_invalid_ = true;
   }
 }
