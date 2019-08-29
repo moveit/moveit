@@ -142,7 +142,7 @@ public:
 private:
   void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
   bool isRemainingPathValid(const ExecutableMotionPlan& plan);
-  bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<std::size_t, int>& path_segment);
+  bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<int, int>& path_segment);
 
   void planningSceneUpdatedCallback(const planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status);
