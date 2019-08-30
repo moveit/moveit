@@ -394,10 +394,10 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   {
     sensor_msgs::Image debug_msg;
     debug_msg.header = depth_msg->header;
-    debug_msg.height = depth_msg->height;
-    debug_msg.width = depth_msg->width;
+    debug_msg.height = h;
+    debug_msg.width = w;
+    debug_msg.is_bigendian = HOST_IS_BIG_ENDIAN;
     debug_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-    debug_msg.is_bigendian = depth_msg->is_bigendian;
     debug_msg.step = w * sizeof(float);
     debug_msg.data.resize(img_size * sizeof(float));
     mesh_filter_->getModelDepth(reinterpret_cast<float*>(&debug_msg.data[0]));
@@ -405,22 +405,21 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
     sensor_msgs::Image filtered_depth_msg;
     filtered_depth_msg.header = depth_msg->header;
-    filtered_depth_msg.height = depth_msg->height;
-    filtered_depth_msg.width = depth_msg->width;
+    filtered_depth_msg.height = h;
+    filtered_depth_msg.width = w;
+    filtered_depth_msg.is_bigendian = HOST_IS_BIG_ENDIAN;
     filtered_depth_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-    filtered_depth_msg.is_bigendian = depth_msg->is_bigendian;
     filtered_depth_msg.step = w * sizeof(float);
     filtered_depth_msg.data.resize(img_size * sizeof(float));
-
     mesh_filter_->getFilteredDepth(reinterpret_cast<float*>(&filtered_depth_msg.data[0]));
     pub_filtered_depth_image_.publish(filtered_depth_msg, *info_msg);
 
     sensor_msgs::Image label_msg;
     label_msg.header = depth_msg->header;
-    label_msg.height = depth_msg->height;
-    label_msg.width = depth_msg->width;
+    label_msg.height = h;
+    label_msg.width = w;
+    label_msg.is_bigendian = HOST_IS_BIG_ENDIAN;
     label_msg.encoding = sensor_msgs::image_encodings::RGBA8;
-    label_msg.is_bigendian = depth_msg->is_bigendian;
     label_msg.step = w * sizeof(unsigned int);
     label_msg.data.resize(img_size * sizeof(unsigned int));
     mesh_filter_->getFilteredLabels(reinterpret_cast<unsigned int*>(&label_msg.data[0]));
@@ -433,10 +432,10 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     static std::vector<float> filtered_data;
     sensor_msgs::Image filtered_msg;
     filtered_msg.header = depth_msg->header;
-    filtered_msg.height = depth_msg->height;
-    filtered_msg.width = depth_msg->width;
+    filtered_msg.height = h;
+    filtered_msg.width = w;
+    filtered_msg.is_bigendian = HOST_IS_BIG_ENDIAN;
     filtered_msg.encoding = sensor_msgs::image_encodings::TYPE_16UC1;
-    filtered_msg.is_bigendian = depth_msg->is_bigendian;
     filtered_msg.step = w * sizeof(unsigned short);
     filtered_msg.data.resize(img_size * sizeof(unsigned short));
     if (filtered_data.size() < img_size)
