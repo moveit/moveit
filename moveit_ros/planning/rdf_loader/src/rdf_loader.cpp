@@ -50,6 +50,11 @@
 #include <streambuf>
 #include <algorithm>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
