@@ -37,6 +37,7 @@
 #pragma once
 
 #include <octomap/octomap.h>
+#include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/function.hpp>
 #include <memory>

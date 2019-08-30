@@ -517,7 +517,7 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
   if (index < plan->plan_components_.size() && plan->plan_components_[index].trajectory_ &&
       !plan->plan_components_[index].trajectory_->empty())
   {
-    if (!isRemainingPathValid(*plan, std::make_pair<int>(index, 0)))
+    if (!isRemainingPathValid(*plan, std::make_pair(static_cast<int>(index), 0)))
       path_became_invalid_ = true;
   }
 }
