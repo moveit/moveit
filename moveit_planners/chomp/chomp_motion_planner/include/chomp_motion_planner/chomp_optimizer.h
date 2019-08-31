@@ -91,7 +91,7 @@ private:
     }
     else if (d >= 0.0)  // transition phase, no collision yet
     {
-      double diff = (d - clearence);
+      const double diff = (d - clearence);
       double gradient_magnitude = diff / clearence;
       return 0.5 * gradient_magnitude * diff;  // 0.5 * (d - clearance)^2 / clearance
     }
