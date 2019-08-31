@@ -84,25 +84,21 @@ private:
   inline double getPotential(double field_distance, double radius, double clearence)
   {
     double d = field_distance - radius;
-    double potential = 0.0;
 
-    // three cases below:
-    if (d >= clearence)
+    if (d >= clearence)  // everything is fine
     {
-      potential = 0.0;
+      return 0.0;
     }
-    else if (d >= 0.0)
+    else if (d >= 0.0)  // transition phase, no collision yet
     {
-      double diff = (d - clearence);
-      double gradient_magnitude = diff * clearence;  // (diff / clearance)
-      potential = 0.5 * gradient_magnitude * diff;
+      const double diff = (d - clearence);
+      const double gradient_magnitude = diff / clearence;
+      return 0.5 * gradient_magnitude * diff;  // 0.5 * (d - clearance)^2 / clearance
     }
-    else  // if d < 0.0
+    else  // d < 0.0: collision
     {
-      potential = -d + 0.5 * clearence;
+      return -d + 0.5 * clearence;  // linearly increase, starting from 0.5 * clearance
     }
-
-    return potential;
   }
   template <typename Derived>
   void getJacobian(int trajectoryPoint, Eigen::Vector3d& collision_point_pos, std::string& jointName,
