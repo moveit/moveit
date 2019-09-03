@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Levi Armstrong */
+/* Author: Levi Armstrong, Jens Petit */
 
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_cast_bvh_manager.h>
 #include <map>

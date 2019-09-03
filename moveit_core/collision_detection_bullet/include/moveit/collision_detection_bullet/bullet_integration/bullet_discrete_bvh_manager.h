@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Levi Armstrong */
+/* Author: Levi Armstrong, Jens Petit */
 
 #ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
 #define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Levi Armstrong */
+/* Author: Levi Armstrong, Jens Petit */
 
 #ifndef TESSERACT_COLLISION_BULLET_CAST_BVH_MANAGERS_H
 #define TESSERACT_COLLISION_BULLET_CAST_BVH_MANAGERS_H

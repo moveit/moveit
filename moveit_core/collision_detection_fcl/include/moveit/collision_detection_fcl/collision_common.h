@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Jens Petit */
 
 #pragma once
 
