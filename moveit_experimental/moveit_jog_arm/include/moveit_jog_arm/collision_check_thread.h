@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_ros_interface.h
-//      Project   : jog_arm
-//      Created   : 3/9/2017
-//      Author    : Brian O'Neil, Blake Anderson, Andy Zelenak
+//      Title     : collision_check_thread.h
+//      Project   : moveit_jog_arm
+//      Created   : 1/11/2019
+//      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2018, Los Alamos National Security, LLC
+// Copyright (c) 2019, Los Alamos National Security, LLC
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,52 +37,19 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// Server node for arm jogging with MoveIt.
-
 #pragma once
 
-#include <Eigen/Eigenvalues>
-#include <jog_arm/collision_check_thread.h>
-#include <jog_arm/jog_arm_data.h>
-#include <jog_arm/jog_calcs.h>
-#include <jog_arm/low_pass_filter.h>
-#include <moveit/robot_state/robot_state.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <sensor_msgs/Joy.h>
-#include <std_msgs/Float64MultiArray.h>
+#include <moveit_jog_arm/jog_arm_data.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
-/**
- * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and creates the worker threads.
- */
-class JogROSInterface
+class CollisionCheckThread
 {
 public:
-  JogROSInterface();
-  ~JogROSInterface();
-
-private:
-  // ROS subscriber callbacks
-  void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
-  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
-
-  bool readParameters(ros::NodeHandle& n);
-
-  // Jogging calculation thread
-  bool startJogCalcThread();
-
-  // Collision checking thread
-  bool startCollisionCheckThread();
-
-  // Share data between threads
-  JogArmShared shared_variables_;
-  pthread_mutex_t shared_variables_mutex_;
-
-  robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
-
-  // Store the parameters that were read from ROS server
-  JogArmParameters ros_parameters_;
+  CollisionCheckThread(const moveit_jog_arm::JogArmParameters parameters, moveit_jog_arm::JogArmShared& shared_variables,
+                       pthread_mutex_t& mutex, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 };
-}  // namespace jog_arm
+}

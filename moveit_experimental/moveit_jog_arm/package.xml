@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>jog_arm</name>
+  <name>moveit_jog_arm</name>
   <version>0.0.3</version>
 
   <description>Provides real-time manipulator Cartesian jogging.</description>
@@ -10,7 +10,7 @@
 
   <license>BSD 3-Clause</license>
 
-  <url type="website">http://wiki.ros.org/jog_arm</url>
+  <url type="website">https://ros-planning.github.io/moveit_tutorials</url>
 
   <author>Brian O'Neil</author>
   <author email="andyz@utexas.edu">Andy Zelenak</author>

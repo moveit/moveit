@@ -3,7 +3,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 static const int NUM_SPINNERS = 1;
 static const int QUEUE_LENGTH = 1;
@@ -57,13 +57,13 @@ private:
   ros::Publisher twist_pub_, joint_delta_pub_;
   ros::AsyncSpinner spinner_;
 };
-}  // namespace jog_arm
+}  // namespace moveit_jog_arm
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spacenav_to_twist");
 
-  jog_arm::SpaceNavToTwist to_twist;
+  moveit_jog_arm::SpaceNavToTwist to_twist;
 
   return 0;
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(jog_arm)
+project(moveit_jog_arm)
 
 add_compile_options(-std=c++11)
 
@@ -37,27 +37,27 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_server
-  src/jog_arm/collision_check_thread.cpp
-  src/jog_arm/jog_arm_server.cpp
-  src/jog_arm/jog_calcs.cpp
-  src/jog_arm/jog_ros_interface.cpp
-  src/jog_arm/low_pass_filter.cpp
+add_executable(jog_arm_server
+  src/moveit_jog_arm/collision_check_thread.cpp
+  src/moveit_jog_arm/jog_arm_server.cpp
+  src/moveit_jog_arm/jog_calcs.cpp
+  src/moveit_jog_arm/jog_ros_interface.cpp
+  src/moveit_jog_arm/low_pass_filter.cpp
 )
 
-add_dependencies(${PROJECT_NAME}_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+add_dependencies(jog_arm_server ${catkin_EXPORTED_TARGETS})
+target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 
-add_executable(${PROJECT_NAME}_spacenav_to_twist
-  src/jog_arm/teleop_examples/spacenav_to_twist.cpp
+add_executable(spacenav_to_twist
+  src/moveit_jog_arm/teleop_examples/spacenav_to_twist.cpp
 )
-add_dependencies(${PROJECT_NAME}_spacenav_to_twist ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_spacenav_to_twist ${catkin_LIBRARIES})
+add_dependencies(spacenav_to_twist ${catkin_EXPORTED_TARGETS})
+target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 
 install(
   TARGETS
-    ${PROJECT_NAME}_server
-    ${PROJECT_NAME}_spacenav_to_twist
+    jog_arm_server
+    spacenav_to_twist
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

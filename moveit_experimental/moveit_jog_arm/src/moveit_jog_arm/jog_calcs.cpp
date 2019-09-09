@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //      Title     : jog_calcs.h
-//      Project   : jog_arm
+//      Project   : moveit_jog_arm
 //      Created   : 1/11/2019
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
@@ -37,9 +37,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/jog_calcs.h>
+#include <moveit_jog_arm/jog_calcs.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
@@ -762,4 +762,4 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 
   return true;
 }
-}  // namespace jog_arm
+}  // namespace moveit_jog_arm

@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_server.cpp
-//      Project   : jog_arm
-//      Created   : 12/31/2018
+//      Title     : low_pass_filter.h
+//      Project   : moveit_jog_arm
+//      Created   : 1/11/2019
 //      Author    : Andy Zelenak
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2018, Los Alamos National Security, LLC
+// Copyright (c) 2019, Los Alamos National Security, LLC
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,29 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/jog_ros_interface.h>
+#pragma once
 
-int main(int argc, char** argv)
+namespace moveit_jog_arm
 {
-  ros::init(argc, argv, jog_arm::LOGNAME);
+/**
+ * Class LowPassFilter - Filter a signal to soften jerks.
+ * This is a first-order Butterworth low-pass filter.
+ *
+ * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
+ */
+class LowPassFilter
+{
+public:
+  explicit LowPassFilter(double low_pass_filter_coeff);
+  double filter(double new_measurement);
+  void reset(double data);
 
-  jog_arm::JogROSInterface ros_interface;
-
-  return 0;
-}
+private:
+  double previous_measurements_[2] = { 0., 0. };
+  double previous_filtered_measurement_ = 0.;
+  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
+  // Rough plot, with cutoff frequency on the y-axis:
+  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
+  double filter_coeff_ = 10.;
+};
+}  // namespace moveit_jog_arm

@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : low_pass_filter.cpp
-//      Project   : jog_arm
-//      Created   : 1/11/2019
+//      Title     : jog_arm_server.cpp
+//      Project   : moveit_jog_arm
+//      Created   : 12/31/2018
 //      Author    : Andy Zelenak
 //
 // BSD 3-Clause License
 //
-// Copyright (c) 2019, Los Alamos National Security, LLC
+// Copyright (c) 2018, Los Alamos National Security, LLC
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,35 +37,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/jog_ros_interface.h>
 
-namespace jog_arm
+int main(int argc, char** argv)
 {
-LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
-{
-  filter_coeff_ = low_pass_filter_coeff;
+  ros::init(argc, argv, moveit_jog_arm::LOGNAME);
+
+  moveit_jog_arm::JogROSInterface ros_interface;
+
+  return 0;
 }
-
-void LowPassFilter::reset(double data)
-{
-  previous_measurements_[0] = data;
-  previous_measurements_[1] = data;
-
-  previous_filtered_measurement_ = data;
-}
-
-double LowPassFilter::filter(double new_measurement)
-{
-  // Push in the new measurement
-  previous_measurements_[1] = previous_measurements_[0];
-  previous_measurements_[0] = new_measurement;
-
-  double new_filtered_msrmt = (1. / (1. + filter_coeff_)) * (previous_measurements_[1] + previous_measurements_[0] -
-                                                             (-filter_coeff_ + 1.) * previous_filtered_measurement_);
-
-  // Store the new filtered measurement
-  previous_filtered_measurement_ = new_filtered_msrmt;
-
-  return new_filtered_msrmt;
-}
-}  // namespace jog_arm

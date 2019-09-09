@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //      Title     : collision_check_thread.cpp
-//      Project   : jog_arm
+//      Project   : moveit_jog_arm
 //      Created   : 1/11/2019
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
@@ -37,12 +37,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <jog_arm/collision_check_thread.h>
+#include <moveit_jog_arm/collision_check_thread.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
-CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters parameters, JogArmShared& shared_variables,
+CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameters parameters, JogArmShared& shared_variables,
                                            pthread_mutex_t& mutex,
                                            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
@@ -134,4 +134,4 @@ CollisionCheckThread::CollisionCheckThread(const jog_arm::JogArmParameters param
     }
   }
 }
-}  // namespace jog_arm
+}  // namespace moveit_jog_arm

@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //      Title     : jog_calcs.h
-//      Project   : jog_arm
+//      Project   : moveit_jog_arm
 //      Created   : 1/11/2019
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
@@ -39,15 +39,15 @@
 
 #pragma once
 
-#include <jog_arm/jog_arm_data.h>
-#include <jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/jog_arm_data.h>
+#include <moveit_jog_arm/low_pass_filter.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <std_msgs/Bool.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 class JogCalcs
 {
@@ -132,4 +132,4 @@ protected:
 
   uint num_joints_;
 };
-}  // namespace jog_arm
+}  // namespace moveit_jog_arm

@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : low_pass_filter.h
-//      Project   : jog_arm
+//      Title     : low_pass_filter.cpp
+//      Project   : moveit_jog_arm
 //      Created   : 1/11/2019
 //      Author    : Andy Zelenak
 //
@@ -37,29 +37,35 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#include <moveit_jog_arm/low_pass_filter.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
-/**
- * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a first-order Butterworth low-pass filter.
- *
- * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
- */
-class LowPassFilter
+LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
 {
-public:
-  explicit LowPassFilter(double low_pass_filter_coeff);
-  double filter(double new_measurement);
-  void reset(double data);
+  filter_coeff_ = low_pass_filter_coeff;
+}
 
-private:
-  double previous_measurements_[2] = { 0., 0. };
-  double previous_filtered_measurement_ = 0.;
-  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
-  // Rough plot, with cutoff frequency on the y-axis:
-  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-  double filter_coeff_ = 10.;
-};
-}  // namespace jog_arm
+void LowPassFilter::reset(double data)
+{
+  previous_measurements_[0] = data;
+  previous_measurements_[1] = data;
+
+  previous_filtered_measurement_ = data;
+}
+
+double LowPassFilter::filter(double new_measurement)
+{
+  // Push in the new measurement
+  previous_measurements_[1] = previous_measurements_[0];
+  previous_measurements_[0] = new_measurement;
+
+  double new_filtered_msrmt = (1. / (1. + filter_coeff_)) * (previous_measurements_[1] + previous_measurements_[0] -
+                                                             (-filter_coeff_ + 1.) * previous_filtered_measurement_);
+
+  // Store the new filtered measurement
+  previous_filtered_measurement_ = new_filtered_msrmt;
+
+  return new_filtered_msrmt;
+}
+}  // namespace moveit_jog_arm

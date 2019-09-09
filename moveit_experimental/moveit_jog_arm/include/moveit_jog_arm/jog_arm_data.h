@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //      Title     : jog_arm_data.h
-//      Project   : jog_arm
+//      Project   : moveit_jog_arm
 //      Created   : 1/11/2019
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
@@ -45,7 +45,7 @@
 #include <thread>
 #include <trajectory_msgs/JointTrajectory.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 static const std::string LOGNAME = "jog_arm_server";
 static const double WHILE_LOOP_WAIT = 0.001;

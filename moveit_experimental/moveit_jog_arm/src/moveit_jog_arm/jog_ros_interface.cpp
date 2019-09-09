@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //      Title     : jog_ros_interface.cpp
-//      Project   : jog_arm
+//      Project   : moveit_jog_arm
 //      Created   : 3/9/2017
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 //
@@ -39,9 +39,9 @@
 
 // Server node for arm jogging with MoveIt.
 
-#include <jog_arm/jog_ros_interface.h>
+#include <moveit_jog_arm/jog_ros_interface.h>
 
-namespace jog_arm
+namespace moveit_jog_arm
 {
 /////////////////////////////////////////////////////////////////////////////////
 // JogROSInterface handles ROS subscriptions and instantiates the worker threads.
@@ -367,4 +367,4 @@ bool JogROSInterface::readParameters(ros::NodeHandle& n)
 
   return true;
 }
-}  // namespace jog_arm
+}  // namespace moveit_jog_arm
