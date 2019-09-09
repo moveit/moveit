@@ -383,6 +383,8 @@ void mesh_filter::MeshFilterBase::doFilter(const void* sensor_data, const int en
   glBindTexture(GL_TEXTURE_2D, color_texture);
   glCallList(canvas_);
   depth_filter_->end();
+  glPixelTransferf(GL_DEPTH_SCALE, 1.);
+  glPixelTransferf(GL_DEPTH_BIAS, 0.);
 }
 
 void mesh_filter::MeshFilterBase::setPaddingOffset(float offset)
