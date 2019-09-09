@@ -318,8 +318,9 @@ def plotAttribute(cur, planners, attribute, typename):
         measurementsPercentage = [sum(m) * 100. / len(m) for m in measurements]
         ind = range(len(measurements))
         plt.bar(ind, measurementsPercentage, width)
-	### Insert take out of this term, a practical solution for OMPL solvers
-	labels = [l.replace('kConfigDefault', '') for l in labels]
+	### uncommenting this line will remove the term 'kConfigDefault' from the labels for OMPL Solvers. 
+	### Fits situations where you need more control in the plot, such as in an academic publication for example
+	#labels = [l.replace('kConfigDefault', '') for l in labels]
 
         xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=45, fontsize=8)
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
@@ -334,8 +335,9 @@ def plotAttribute(cur, planners, attribute, typename):
         #xtickNames = plt.xticks(labels, rotation=30, fontsize=10)
         #plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
 	
-	### Insert take out of this term, a practical solution for OMPL solvers
-	labels = [l.replace('kConfigDefault', '') for l in labels]
+	### uncommenting this line will remove the term 'kConfigDefault' from the labels for OMPL Solvers. 
+	### Fits situations where you need more control in the plot, such as in an academic publication for example
+	#labels = [l.replace('kConfigDefault', '') for l in labels]
         
 	xtickNames = plt.setp(ax,xticklabels=labels)
         plt.setp(xtickNames, rotation=45)
@@ -348,7 +350,9 @@ def plotAttribute(cur, planners, attribute, typename):
         maxy = max([max(y) for y in measurements])
         for i in range(len(labels)):
             x = i+width/2 if typename=='BOOLEAN' else i+1
-            ### ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
+	    ### uncommenting the line, you will add to the chart for each label (planner) the number of times that planner 
+	    ### failed to solve that query
+            # ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
     plt.show()
 
 def plotProgressAttribute(cur, planners, attribute):
