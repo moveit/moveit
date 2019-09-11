@@ -306,7 +306,7 @@ def plotAttribute(cur, planners, attribute, typename):
                 color=matplotlib.cm.hot(int(floor(i*256/numValues))),
                 label=descriptions[i])
             heights = heights + measurements[i]
-        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=45, fontsize=8)
+        xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30, fontsize=8,ha='right')
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
@@ -322,7 +322,7 @@ def plotAttribute(cur, planners, attribute, typename):
         ### Fits situations where you need more control in the plot, such as in an academic publication for example
         #labels = [l.replace('kConfigDefault', '') for l in labels]
 
-        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=45, fontsize=8)
+        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30, fontsize=8,ha='right')
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
         plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
     else:
@@ -340,18 +340,19 @@ def plotAttribute(cur, planners, attribute, typename):
         #labels = [l.replace('kConfigDefault', '') for l in labels]
         
         xtickNames = plt.setp(ax,xticklabels=labels)
-        plt.setp(xtickNames, rotation=45)
+        plt.setp(xtickNames, rotation=30, fontsize=8,ha='right')
         for tick in ax.xaxis.get_major_ticks(): # shrink the font size of the x tick labels
             tick.label.set_fontsize(8)
         plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
-    ax.set_xlabel('Motion planning algorithm')
+    ax.set_xlabel('Motion planning algorithm', fontsize=12)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     if max(nanCounts)>0:
         maxy = max([max(y) for y in measurements])
         for i in range(len(labels)):
             x = i+width/2 if typename=='BOOLEAN' else i+1
-            # display the number of failed planning attempts
-            ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
+	    ### uncommenting the line, you will add to the chart for each label (planner) the number of times that planner 
+	    ### failed to solve that query. basically display the number of failed planning attempts
+            # ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
     plt.show()
 
 def plotProgressAttribute(cur, planners, attribute):
