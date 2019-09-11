@@ -167,7 +167,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   const std::string IKFAST_BASE_FRAME_ = "_BASE_LINK_";
 
   // prefix added to tip- and baseframe to allow different namespaces or multi-robot setups
-  std::string linkframeprefix_;
+  std::string link_prefix_;
 
   // The transform tip and base bool are set to true if this solver is used with a kinematic
   // chain that extends beyond the ikfast tip and base frame. The solution will be valid so
@@ -380,12 +380,8 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, c
   robot_state.reset(new RobotState(robot_model_));
   robot_state->setToDefaultValues();
 
-  auto* from_link = robot_state->getLinkModel(from);
+  auto* from_link = robot_state->getLinkModel(from);  // prints ROS_ERRORS for inexistent frames
   auto* to_link = robot_state->getLinkModel(to);
-  if (!from_link)
-    ROS_ERROR_STREAM_NAMED(name_, "Could not find frame " << from);
-  if (!to_link)
-    ROS_ERROR_STREAM_NAMED(name_, "Could not find frame " << to);
   if (!from_link || !to_link)
     return false;
 
@@ -412,31 +408,39 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
   }
 
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
-  if (!lookupParam("linkprefix", linkframeprefix_, std::string("")))
+  if (!lookupParam("link_prefix", link_prefix_, std::string("")))
   {
     ROS_INFO_NAMED(name_, "linkprefix parameter not set. Assuming empty prefix.");
   }
   else
   {
-    ROS_DEBUG_STREAM_NAMED(name_, "using linkprefix " << linkframeprefix_);
+    ROS_INFO_STREAM_NAMED(name_, "using link_prefix " << link_prefix_);
   }
+
+  // verbose error output. subsequent checks in computeRelativeTransform return false then
+  if (!robot_model.hasLinkModel(tip_frames_[0]))
+    ROS_ERROR_STREAM_NAMED(name_, "tip frame " << tip_frames_[0] << " does not exist.");
+  if (!robot_model.hasLinkModel(link_prefix_ + IKFAST_TIP_FRAME_))
+    ROS_ERROR_STREAM_NAMED(name_, "prefixed tip frame " << link_prefix_ + IKFAST_TIP_FRAME_
+                                                        << " does not exist. "
+                                                           "Please double check the link_prefix parameter.");
+  if (!robot_model.hasLinkModel(link_prefix_ + IKFAST_BASE_FRAME_))
+    ROS_ERROR_STREAM_NAMED(name_, "prefixed base frame " << link_prefix_ + IKFAST_BASE_FRAME_
+                                                         << " does not exist. "
+                                                            "Please double check the link_prefix parameter.");
+  if (!robot_model.hasLinkModel(base_frame_))
+    ROS_ERROR_STREAM_NAMED(name_, "base_frame " << base_frame_ << " does not exist.");
 
   // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
   // To support these use cases, we store the transform from the IKFAST_BASE_FRAME_ to the
   // base_frame_ and IKFAST_TIP_FRAME_ the tip_frame_ and transform to the input pose accordingly
-  if (!computeRelativeTransform(tip_frames_[0], linkframeprefix_ + IKFAST_TIP_FRAME_, group_tip_to_chain_tip_,
+  if (!computeRelativeTransform(tip_frames_[0], link_prefix_ + IKFAST_TIP_FRAME_, group_tip_to_chain_tip_,
                                 tip_transform_required_) ||
-      !computeRelativeTransform(linkframeprefix_ + IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_,
+      !computeRelativeTransform(link_prefix_ + IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_,
                                 base_transform_required_))
   {
-    if (!computeRelativeTransform(tip_frames_[0], linkframeprefix_ + IKFAST_TIP_FRAME_, group_tip_to_chain_tip_,
-                                  tip_transform_required_))
-      ROS_ERROR_NAMED(name_, "Failed to compute transform between IKFAST_TIP_FRAME_ and tip_frames_[0]");
-    if (!computeRelativeTransform(linkframeprefix_ + IKFAST_BASE_FRAME_, base_frame_, chain_base_to_group_base_,
-                                  base_transform_required_))
-      ROS_ERROR_NAMED(name_, "Failed to compute transform between base_frame_ and IKFAST_BASE_FRAME_");
     return false;
   }
 
