@@ -448,7 +448,6 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
 {
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
-  ros::NodeHandle nh;
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
     robot_state::RobotStateConstPtr s = handler->getState();
@@ -465,7 +464,6 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
                         im.scale);
       }
     }
-    ros::NodeHandle nh;
 
     for (std::size_t i = 0; i < active_eef_.size(); ++i)
     {
@@ -554,7 +552,6 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
 
 void RobotInteraction::registerMoveInteractiveMarkerTopic(const std::string& marker_name, const std::string& name)
 {
-  ros::NodeHandle nh;
   std::stringstream ss;
   ss << "/rviz/moveit/move_marker/";
   ss << name;
