@@ -410,7 +410,7 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
   if (!lookupParam("link_prefix", link_prefix_, std::string("")))
   {
-    ROS_INFO_NAMED(name_, "linkprefix parameter not set. Assuming empty prefix.");
+    ROS_INFO_NAMED(name_, "link_prefix parameter not set. Assuming empty prefix.");
   }
   else
   {
