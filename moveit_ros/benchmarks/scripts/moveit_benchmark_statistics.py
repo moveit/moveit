@@ -306,7 +306,7 @@ def plotAttribute(cur, planners, attribute, typename):
                 color=matplotlib.cm.hot(int(floor(i*256/numValues))),
                 label=descriptions[i])
             heights = heights + measurements[i]
-        xtickNames = plt.xticks([x+width/2. for x in ind], labels, rotation=30)
+        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30, fontsize=8, ha='right')
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
@@ -318,7 +318,11 @@ def plotAttribute(cur, planners, attribute, typename):
         measurementsPercentage = [sum(m) * 100. / len(m) for m in measurements]
         ind = range(len(measurements))
         plt.bar(ind, measurementsPercentage, width)
-        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30, fontsize=8)
+        ### uncommenting this line will remove the term 'kConfigDefault' from the labels for OMPL Solvers. 
+        ### Fits situations where you need more control in the plot, such as in an academic publication for example
+        #labels = [l.replace('kConfigDefault', '') for l in labels]
+
+        xtickNames = plt.xticks([x + width / 2. for x in ind], labels, rotation=30, fontsize=8, ha='right')
         ax.set_ylabel(attribute.replace('_',' ') + ' (%)')
         plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
     else:
@@ -330,19 +334,24 @@ def plotAttribute(cur, planners, attribute, typename):
 
         #xtickNames = plt.xticks(labels, rotation=30, fontsize=10)
         #plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
-
+	
+        ### uncommenting this line will remove the term 'kConfigDefault' from the labels for OMPL Solvers. 
+        ### Fits situations where you need more control in the plot, such as in an academic publication for example
+        #labels = [l.replace('kConfigDefault', '') for l in labels]
+        
         xtickNames = plt.setp(ax,xticklabels=labels)
-        plt.setp(xtickNames, rotation=30)
+        plt.setp(xtickNames, rotation=30, fontsize=8, ha='right')
         for tick in ax.xaxis.get_major_ticks(): # shrink the font size of the x tick labels
             tick.label.set_fontsize(8)
         plt.subplots_adjust(bottom=0.3) # Squish the plot into the upper 2/3 of the page.  Leave room for labels
-    ax.set_xlabel('Motion planning algorithm')
+    ax.set_xlabel('Motion planning algorithm', fontsize=12)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     if max(nanCounts)>0:
         maxy = max([max(y) for y in measurements])
         for i in range(len(labels)):
             x = i+width/2 if typename=='BOOLEAN' else i+1
-            ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
+        ### uncommenting the next line, the number of failed planning attempts will be added to each bar
+        # ax.text(x, .95*maxy, str(nanCounts[i]), horizontalalignment='center', size='small')
     plt.show()
 
 def plotProgressAttribute(cur, planners, attribute):
