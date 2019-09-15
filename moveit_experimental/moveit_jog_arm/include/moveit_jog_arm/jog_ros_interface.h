@@ -41,11 +41,11 @@
 
 #pragma once
 
+#include "collision_check_thread.h"
 #include <Eigen/Eigenvalues>
-#include <moveit_jog_arm/collision_check_thread.h>
-#include <moveit_jog_arm/jog_arm_data.h>
-#include <moveit_jog_arm/jog_calcs.h>
-#include <moveit_jog_arm/low_pass_filter.h>
+#include "jog_arm_data.h"
+#include "jog_calcs.h"
+#include "low_pass_filter.h"
 #include <moveit/robot_state/robot_state.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/Joy.h>

@@ -37,26 +37,26 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_executable(jog_arm_server
-  src/moveit_jog_arm/collision_check_thread.cpp
-  src/moveit_jog_arm/jog_arm_server.cpp
-  src/moveit_jog_arm/jog_calcs.cpp
-  src/moveit_jog_arm/jog_ros_interface.cpp
-  src/moveit_jog_arm/low_pass_filter.cpp
+add_executable(jog_server
+  src/collision_check_thread.cpp
+  src/jog_server.cpp
+  src/jog_calcs.cpp
+  src/jog_ros_interface.cpp
+  src/low_pass_filter.cpp
 )
 
-add_dependencies(jog_arm_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
+target_link_libraries(jog_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 
 add_executable(spacenav_to_twist
-  src/moveit_jog_arm/teleop_examples/spacenav_to_twist.cpp
+  src/teleop_examples/spacenav_to_twist.cpp
 )
 add_dependencies(spacenav_to_twist ${catkin_EXPORTED_TARGETS})
 target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 
 install(
   TARGETS
-    jog_arm_server
+    jog_server
     spacenav_to_twist
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

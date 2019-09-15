@@ -11,10 +11,10 @@ from trajectory_msgs.msg import JointTrajectory
 JOG_ARM_SETTLE_TIME_S = 10
 ROS_SETTLE_TIME_S = 10
 
-JOINT_JOG_COMMAND_TOPIC = 'jog_arm_server/joint_delta_jog_cmds'
-CARTESIAN_JOG_COMMAND_TOPIC = 'jog_arm_server/delta_jog_cmds'
+JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
+CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
-COMMAND_OUT_TOPIC = 'jog_arm_server/command'
+COMMAND_OUT_TOPIC = 'jog_server/command'
 
 
 @pytest.fixture

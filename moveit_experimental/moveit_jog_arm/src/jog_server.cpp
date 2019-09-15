@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : jog_arm_server.cpp
+//      Title     : jog_server.cpp
 //      Project   : moveit_jog_arm
 //      Created   : 12/31/2018
 //      Author    : Andy Zelenak

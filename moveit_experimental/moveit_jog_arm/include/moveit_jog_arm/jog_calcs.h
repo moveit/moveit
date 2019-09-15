@@ -39,8 +39,8 @@
 
 #pragma once
 
-#include <moveit_jog_arm/jog_arm_data.h>
-#include <moveit_jog_arm/low_pass_filter.h>
+#include "jog_arm_data.h"
+#include "low_pass_filter.h"
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <std_msgs/Bool.h>
