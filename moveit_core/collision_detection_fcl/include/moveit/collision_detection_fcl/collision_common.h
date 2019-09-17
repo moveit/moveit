@@ -245,7 +245,7 @@ struct FCLGeometry
 typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
 
-/** \brief A general hight-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
+/** \brief A general high-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
  *  structure which is used in the collision checking process. */
 struct FCLObject
 {
