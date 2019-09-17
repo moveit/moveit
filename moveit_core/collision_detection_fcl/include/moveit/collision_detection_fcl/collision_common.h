@@ -59,24 +59,29 @@ namespace collision_detection
 {
 MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 
+/** \brief Wrapper around world, link and attached objects' geometry data. */
 struct CollisionGeometryData
 {
+  /** \brief Constructor for a robot link collision geometry object. */
   CollisionGeometryData(const robot_model::LinkModel* link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
   {
     ptr.link = link;
   }
 
+  /** \brief Constructor for a new collision geometry object which is attached to the robot. */
   CollisionGeometryData(const robot_state::AttachedBody* ab, int index)
     : type(BodyTypes::ROBOT_ATTACHED), shape_index(index)
   {
     ptr.ab = ab;
   }
 
+  /** \brief Constructor for a new world collision geometry. */
   CollisionGeometryData(const World::Object* obj, int index) : type(BodyTypes::WORLD_OBJECT), shape_index(index)
   {
     ptr.obj = obj;
   }
 
+  /** \brief Returns the name which is saved in the member pointed to in \e ptr. */
   const std::string& getID() const
   {
     switch (type)
@@ -91,6 +96,7 @@ struct CollisionGeometryData
     return ptr.obj->id_;
   }
 
+  /** \brief Returns a string of the corresponding \e type. */
   std::string getTypeString() const
   {
     switch (type)
@@ -105,14 +111,22 @@ struct CollisionGeometryData
     return "Object";
   }
 
-  /** \brief Check if two CollisionGeometryData objects point to the same source object */
+  /** \brief Check if two CollisionGeometryData objects point to the same source object. */
   bool sameObject(const CollisionGeometryData& other) const
   {
     return type == other.type && ptr.raw == other.ptr.raw;
   }
 
+  /** \brief Indicates the body type of the object. */
   BodyType type;
+
+  /** \brief Multiple \e CollisionGeometryData objects construct a collision object. The collision object refers to an
+   *  array of coordinate transformations at a certain start index. The index of the transformation of a child \e
+   *  CollisionGeometryData object is then given by adding the parent collision object index and the \e shape_index of a
+   *  geometry data object. */
   int shape_index;
+
+  /** \brief Points to the type of body which contains the geometry. */
   union
   {
     const robot_model::LinkModel* link;
@@ -122,6 +136,7 @@ struct CollisionGeometryData
   } ptr;
 };
 
+/** \brief Data structure which is passed to the collision callback function of the collision manager. */
 struct CollisionData
 {
   CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
@@ -137,27 +152,29 @@ struct CollisionData
   {
   }
 
-  /// Compute \e active_components_only_ based on \e req_
+  /** \brief Compute \e active_components_only_ based on the joint group specified in \e req_ */
   void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
 
-  /// The collision request passed by the user
+  /** \brief The collision request passed by the user */
   const CollisionRequest* req_;
 
-  /// If the collision request includes a group name, this set contains the pointers to the link models that are
-  /// considered for collision;
-  /// If the pointer is NULL, all collisions are considered.
+  /** \brief  If the collision request includes a group name, this set contains the pointers to the link models that
+   *  are considered for collision.
+   *
+   *  If the pointer is NULL, all collisions are considered. */
   const std::set<const robot_model::LinkModel*>* active_components_only_;
 
-  /// The user specified response location
+  /** \brief The user-specified response location. */
   CollisionResult* res_;
 
-  /// The user specified collision matrix (may be NULL)
+  /** \brief The user-specified collision matrix (may be NULL). */
   const AllowedCollisionMatrix* acm_;
 
-  /// Flag indicating whether collision checking is complete
+  /** \brief Flag indicating whether collision checking is complete. */
   bool done_;
 };
 
+/** \brief Data structure which is passed to the distance callback function of the collision manager. */
 struct DistanceData
 {
   DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
@@ -167,42 +184,48 @@ struct DistanceData
   {
   }
 
-  /// Distance query request information
+  /** \brief Distance query request information. */
   const DistanceRequest* req;
 
-  /// Distance query results information
+  /** \brief Distance query results information. */
   DistanceResult* res;
 
-  /// Indicates if distance query is finished.
+  /** \brief Indicates if distance query is finished. */
   bool done;
 };
 
 MOVEIT_STRUCT_FORWARD(FCLGeometry);
 
+/** \brief Bundles the \e CollisionGeometryData and FCL collision geometry representation into a single class. */
 struct FCLGeometry
 {
   FCLGeometry()
   {
   }
 
+  /** \brief Constructor for a robot link. */
   FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_model::LinkModel* link, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
+  /** \brief Constructor for an attached body. */
   FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_state::AttachedBody* ab, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
+  /** \brief Constructor for a world object. */
   FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const World::Object* obj, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
+  /** \brief Updates the \e collision_geometry_data_ with new data while also setting the \e collision_geometry_ to the
+  *   new data. */
   template <typename T>
   void updateCollisionGeometryData(const T* data, int shape_index, bool newType)
   {
@@ -213,13 +236,18 @@ struct FCLGeometry
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
+  /** \brief Pointer to FCL collision geometry. */
   std::shared_ptr<fcl::CollisionGeometryd> collision_geometry_;
+
+  /** \brief Pointer to the user-defined geometry data. */
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
 typedef std::shared_ptr<fcl::CollisionObjectd> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObjectd> FCLCollisionObjectConstPtr;
 
+/** \brief A general high-level object which consists of multiple \e FCLCollisionObjects. It is the top level data
+ *  structure which is used in the collision checking process. */
 struct FCLObject
 {
   void registerTo(fcl::BroadPhaseCollisionManagerd* manager);
@@ -227,33 +255,65 @@ struct FCLObject
   void clear();
 
   std::vector<FCLCollisionObjectPtr> collision_objects_;
+
+  /** \brief Geometry data corresponding to \e collision_objects_. */
   std::vector<FCLGeometryConstPtr> collision_geometry_;
 };
 
+/** \brief Bundles an \e FCLObject and a broadphase FCL collision manager. */
 struct FCLManager
 {
   FCLObject object_;
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> manager_;
 };
 
+/** \brief Callback function used by the FCLManager used for each pair of collision objects to
+*   calculate object contact information.
+*
+*   \param o1 First FCL collision object
+*   \param o2 Second FCL collision object
+*   \data General pointer to arbitrary data which is used during the callback
+*   \return True terminates the distance check, false continues it to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
+/** \brief Callback function used by the FCLManager used for each pair of collision objects to
+*   calculate collisions and distances.
+*
+*   \param o1 First FCL collision object
+*   \param o2 Second FCL collision object
+*   \data General pointer to arbitrary data which is used during the callback
+*   \return True terminates the collision check, false continues it to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
+/** \brief Create new FCLGeometry object out of robot link model. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
                                             int shape_index);
+
+/** \brief Create new FCLGeometry object out of attached body. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_state::AttachedBody* ab,
                                             int shape_index);
+
+/** \brief Create new FCLGeometry object out of a world object.
+ *
+ *  A world object always consists only of a single shape, therefore we don't need the \e shape_index. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
 
+/** \brief Create new scaled and / or padded FCLGeometry object out of robot link model. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const robot_model::LinkModel* link, int shape_index);
+
+/** \brief Create new scaled and / or padded FCLGeometry object out of an attached body. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const robot_state::AttachedBody* ab, int shape_index);
+
+/** \brief Create new scaled and / or padded FCLGeometry object out of an world object. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
                                             const World::Object* obj);
+
+/** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */
 void cleanCollisionGeometryCache();
 
+/** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
 inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 {
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
@@ -265,6 +325,7 @@ inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 #endif
 }
 
+/** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
 inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
 {
   fcl::Transform3d t;
@@ -272,6 +333,7 @@ inline fcl::Transform3d transform2fcl(const Eigen::Isometry3d& b)
   return t;
 }
 
+/** \brief Transforms an FCL contact into a MoveIt contact point. */
 inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
 {
   c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
@@ -285,6 +347,7 @@ inline void fcl2contact(const fcl::Contactd& fc, Contact& c)
   c.body_type_2 = cgd2->type;
 }
 
+/** \brief Transforms the FCL internal representation to the MoveIt \e CostSource data structure. */
 inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
 {
   cs.aabb_min[0] = fcs.aabb_min[0];

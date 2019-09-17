@@ -101,7 +101,7 @@ public:
     return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
   }
 
-  /** Create an allocator for FCL collision detectors */
+  /** Create an allocator for collision detectors. */
   static CollisionDetectorAllocatorPtr create()
   {
     return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());
