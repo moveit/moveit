@@ -31,8 +31,7 @@
 
 /* Author: Levi Armstrong, Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_
+#pragma once
 
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_bvh_manager.h>
@@ -49,9 +48,9 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /** \brief Constructor */
-  BulletDiscreteBVHManager(){};
+  BulletDiscreteBVHManager() = default;
 
-  virtual ~BulletDiscreteBVHManager(){};
+  virtual ~BulletDiscreteBVHManager() = default;
 
   /**@brief Clone the manager
    *
@@ -70,4 +69,3 @@ public:
   void addCollisionObject(const CollisionObjectWrapperPtr& cow) override;
 };
 }  // namespace collision_detection_bullet
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_COLLISION_BULLET_DISCRETE_BVH_MANAGER_H_

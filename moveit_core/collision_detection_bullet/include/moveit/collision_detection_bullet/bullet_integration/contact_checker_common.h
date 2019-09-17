@@ -18,8 +18,7 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
+#pragma once
 
 #include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>
@@ -213,5 +212,3 @@ inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vecto
 }
 
 }  // namespace collision_detection_bullet
-
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_

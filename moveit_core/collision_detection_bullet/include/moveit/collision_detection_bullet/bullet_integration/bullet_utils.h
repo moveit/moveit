@@ -32,8 +32,7 @@
 
 /* Authors: John Schulman, Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_
+#pragma once
 
 #include <btBulletCollisionCommon.h>
 #include <geometric_shapes/mesh_operations.h>
@@ -969,4 +968,3 @@ struct BroadphaseFilterCallback : public btOverlapFilterCallback
 };
 
 }  // namespace collision_detection_bullet
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BULLET_UTILS_H_

@@ -31,8 +31,7 @@
 
 /* Author: Levi Armstrong, Jens Petit */
 
-#ifndef TESSERACT_COLLISION_BULLET_CAST_BVH_MANAGERS_H
-#define TESSERACT_COLLISION_BULLET_CAST_BVH_MANAGERS_H
+#pragma once
 
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_bvh_manager.h>
@@ -49,9 +48,9 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /** \brief Constructor */
-  BulletCastBVHManager(){};
+  BulletCastBVHManager() = default;
 
-  virtual ~BulletCastBVHManager(){};
+  virtual ~BulletCastBVHManager() = default;
 
   /**@brief Clone the manager
    *
@@ -80,4 +79,3 @@ public:
   void addCollisionObject(const CollisionObjectWrapperPtr& cow) override;
 };
 }  // namespace collision_detection_bullet
-#endif  //  TESSERACT_COLLISION_BULLET_CAST_BVH_MANAGERS_H

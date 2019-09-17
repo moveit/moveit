@@ -18,8 +18,7 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -82,5 +81,3 @@ struct ContactTestData
 };
 
 }  // namespace collision_detection_bullet
-
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_

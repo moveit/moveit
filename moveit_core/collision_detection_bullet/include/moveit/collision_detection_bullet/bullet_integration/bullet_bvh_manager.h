@@ -31,8 +31,7 @@
 
 /* Authors: Levi Armstrong, Jens Petit */
 
-#ifndef TESSERACT_COLLISION_BULLET_BVH_MANAGERS_H
-#define TESSERACT_COLLISION_BULLET_BVH_MANAGERS_H
+#pragma once
 
 #include <moveit/collision_detection_bullet/bullet_integration/bullet_utils.h>
 #include <moveit/macros/class_forward.h>
@@ -156,4 +155,3 @@ protected:
   BroadphaseFilterCallback filter_callback_;
 };
 }  // namespace collision_detection_bullet
-#endif  //  TESSERACT_COLLISION_BULLET_BVH_MANAGERS_H
