@@ -38,7 +38,6 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -46,20 +45,26 @@
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
 
-#include <urdf_parser/urdf_parser.h>
-
 const int TRIALS = 1000;
 const int THREADS = 2;
 
-void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
+bool runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
                            const robot_state::RobotState* state)
 {
   collision_detection::CollisionRequest req;
+  collision_detection::CollisionResult res;
   for (unsigned int i = 0; i < trials; ++i)
   {
-    collision_detection::CollisionResult res;
+    res.clear();
     scene->checkCollision(req, res, *state);
   }
+  return res.collision;
+}
+
+void runCollisionDetectionAssert(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
+                                 const robot_state::RobotState* state, bool expected_result)
+{
+  ASSERT_EQ(expected_result, runCollisionDetection(id, trials, scene, state));
 }
 
 class CollisionDetectorThreadedTest : public testing::Test
@@ -100,6 +105,7 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
 {
   std::vector<robot_state::RobotStatePtr> states;
   std::vector<std::thread*> threads;
+  std::vector<bool> collisions;
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
@@ -108,11 +114,12 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
     state->setToRandomPositions();
     state->update();
     states.push_back(robot_state::RobotStatePtr(state));
+    collisions.push_back(runCollisionDetection(0, 1, planning_scene_.get(), state));
   }
 
   for (unsigned int i = 0; i < THREADS; ++i)
-    threads.push_back(
-        new std::thread(std::bind(&runCollisionDetection, i, TRIALS, planning_scene_.get(), states[i].get())));
+    threads.push_back(new std::thread(
+        std::bind(&runCollisionDetectionAssert, i, TRIALS, planning_scene_.get(), states[i].get(), collisions[i])));
 
   for (unsigned int i = 0; i < states.size(); ++i)
   {

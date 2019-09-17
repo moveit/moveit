@@ -154,11 +154,6 @@ if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
   add_code_coverage(NAME ${PROJECT_NAME}_coverage)
 endif()
 
-if(CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(test_multi_threaded test/test_multi_threaded.cpp)
-  target_link_libraries(test_multi_threaded moveit_planning_scene moveit_test_utils ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
-endif()
-
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
                            )
