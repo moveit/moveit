@@ -42,8 +42,8 @@
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
-CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameters parameters, JogArmShared& shared_variables,
-                                           pthread_mutex_t& mutex,
+CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameters parameters,
+                                           JogArmShared& shared_variables, pthread_mutex_t& mutex,
                                            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
 {
   // If user specified true in yaml file
