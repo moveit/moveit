@@ -465,7 +465,7 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, pthread_mute
                                     trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
                                     double singularity_scale)
 {
-  pthread_mutex_unlock(&mutex);
+  pthread_mutex_lock(&mutex);
   double collision_scale = shared_variables.collision_velocity_scale;
   pthread_mutex_unlock(&mutex);
 
