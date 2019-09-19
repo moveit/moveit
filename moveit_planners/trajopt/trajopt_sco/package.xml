@@ -9,6 +9,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>trajopt_utils</depend>
 
+  <test_depend>rosunit</test_depend>
+
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
