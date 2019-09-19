@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="debug" value="false" />
+
+  <!-- send urdf to param server -->
+  <param name="robot_description"
+  command="$(find xacro)/xacro --inorder '$(find moveit_resources)/panda_description/urdf/panda.urdf'"/>
+
+  <!-- Note, we're using fake, simulated trajectory controllers.
+       These aren't suitable for actually jogging a robot in RViz, but they are good enough to 
+       test jog node output.
+  -->
+  <include file="$(find moveit_jog_arm)/test/arm_setup/launch/panda_move_group.launch">
+    <arg name="fake_execution" value="true"/>
+  </include>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="tool_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+  </node>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+	  <rosparam command="load" file="$(find moveit_jog_arm)/test/arm_setup/config/initial_position.yaml" />
+  </node>
+
+  <group ns="jog_server" if="$(arg debug)">
+    <rosparam command="load" file="$(find moveit_jog_arm)/test/arm_setup/config/jog_settings.yaml"/>
+  </group>
+
+  <group unless="$(arg debug)">
+    <node name="jog_server" pkg="moveit_jog_arm" type="jog_server" output="screen">
+      <param name="parameter_ns" type="string" value="jog_server"/>
+      <rosparam command="load" file="$(find moveit_jog_arm)/test/arm_setup/config/jog_settings.yaml"/>
+    </node>
+  </group>
+
+  <param name="test_module" value="$(find moveit_jog_arm)/test/integration" />
+  <test test-name="jog_arm_integration_test" pkg="ros_pytest" type="ros_pytest_runner" />
+</launch>

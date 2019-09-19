@@ -1,0 +1,33 @@
+use_gazebo: false # Whether the robot is started in a Gazebo simulation environment
+check_collisions: true # Check collisions?
+command_in_type: "unitless" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
+scale: # Only used if command_in_type=="unitless"
+  linear:  0.003  # Max linear velocity. Meters per publish_period.
+  rotational:  0.006  # Max angular velocity. Rads per publish_period.
+  joint: 0.01  # Max joint angular/linear velocity. Rads or Meters per publish period.
+cartesian_command_in_topic:  jog_server/delta_jog_cmds # Topic for xyz commands
+joint_command_in_topic: jog_server/joint_delta_jog_cmds # Topic for angle commands
+command_frame:  base_link  # TF frame that incoming cmds are given in
+incoming_command_timeout:  1  # Stop jogging if X seconds elapsed without a new cmd
+joint_topic:  joint_states
+move_group_name:  panda_arm  # Often 'manipulator' or 'arm'
+lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity). Larger --> closer to singularity
+hard_stop_singularity_threshold: 45 # Stop when the condition number hits this. Larger --> closer to singularity
+collision_proximity_threshold: 0.03 # Start decelerating when a collision is this far [m]
+planning_frame: base_link  # The MoveIt planning frame. Often 'base_link'
+low_pass_filter_coeff: 2.  # Larger-> more smoothing to jog commands, but more lag.
+publish_period: 0.01  # 1/Nominal publish rate [seconds]
+collision_check_rate: 5 # [Hz] Collision-checking can easily bog down a CPU if done too often.
+num_halt_msgs_to_publish: 1 # If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish
+# Publish boolean warnings to this topic
+warning_topic: jog_server/warning
+joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
+command_out_topic: jog_server/command # Find this topic by 'rostopic list' or 'rostopic list | grep command' or 'rqt_graph'
+# What type of topic does your robot driver expect?
+# Currently supported are std_msgs/Float64MultiArray (for ros_control JointGroupVelocityController)
+# or trajectory_msgs/JointTrajectory (for Universal Robots and other non-ros_control robots)
+command_out_type: trajectory_msgs/JointTrajectory
+# Can save some bandwidth as most robots only require positions or velocities
+publish_joint_positions: true
+publish_joint_velocities: true
+publish_joint_accelerations: false

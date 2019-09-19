@@ -1,0 +1,55 @@
+###############################################
+# Modify all parameters related to jogging here
+###############################################
+use_gazebo: true # Whether the robot is started in a Gazebo simulation environment
+
+## Properties of incoming commands
+command_frame:  world  # TF frame that incoming cmds are given in
+command_in_type: "speed_units" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
+scale: # Only used if command_in_type=="unitless"
+  linear:  0.6  # Max linear velocity. Meters per publish_period. Units is [m/s]
+  rotational:  0.3 # Max angular velocity. Rads per publish_period. Units is [rad/s]
+  joint: 0.3  # Max joint angular/linear velocity. Rads or Meters per publish period. Units is [rad/s] or [m/s].
+low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the measurements less.
+
+## Properties of outgoing commands
+publish_period: 0.008  # 1/Nominal publish rate [seconds]
+publish_delay: 0.005  # delay between calculation and execution start of command
+
+# What type of topic does your robot driver expect?
+# Currently supported are std_msgs/Float64MultiArray (for ros_control JointGroupVelocityController or JointGroupPositionController)
+# or trajectory_msgs/JointTrajectory (for Universal Robots and other non-ros_control robots)
+command_out_type: std_msgs/Float64MultiArray
+
+# What to publish? Can save some bandwidth as most robots only require positions or velocities
+publish_joint_positions: true
+publish_joint_velocities: false
+publish_joint_accelerations: false
+
+## MoveIt properties
+move_group_name:  manipulator  # Often 'manipulator' or 'arm'
+planning_frame: world  # The MoveIt! planning frame. Often 'base_link'
+
+## Stopping behaviour
+incoming_command_timeout:  2  # Stop jogging if X seconds elapse without a new cmd
+# If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish.
+# Important because ROS may drop some messages and we need the robot to halt reliably.
+num_halt_msgs_to_publish: 4
+
+## Configure handling of singularities and joint limits
+lower_singularity_threshold:  17  # Start decelerating when the condition number hits this (close to singularity)
+hard_stop_singularity_threshold: 30 # Stop when the condition number hits this
+joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
+
+## Topic names
+cartesian_command_in_topic: jog_server/delta_jog_cmds  # Topic for incoming Cartesian twist commands
+joint_command_in_topic: jog_server/joint_delta_jog_cmds # Topic for incoming joint angle commands
+joint_topic:  joint_states
+warning_topic: jog_server/halted # Publish boolean warnings to this topic
+command_out_topic: joint_group_position_controller/command # Publish outgoing commands here
+
+## Collision checking
+check_collisions: true # Check collisions?
+collision_check_rate: 5 # [Hz] Collision-checking can easily bog down a CPU if done too often.
+collision_proximity_threshold: 0.01 # Start decelerating when a collision is this far [m]
+hard_stop_collision_proximity_threshold: 0.0005 # Stop when a collision is this far [m]
