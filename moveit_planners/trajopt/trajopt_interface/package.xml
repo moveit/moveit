@@ -27,7 +27,9 @@
   <depend>trajopt</depend>
   <depend>trajopt_sco</depend>
   <depend>trajopt_utils</depend>    
-  <depend>rostest</depend>
+
+  <test_depend>rosunit</test_depend>
+  <test_depend>rostest</test_depend>
   
   <export>
     <moveit_core plugin="${prefix}/trajopt_interface_plugin_description.xml"/>

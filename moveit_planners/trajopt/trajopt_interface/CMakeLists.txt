@@ -20,6 +20,7 @@ find_package(catkin REQUIRED
       trajopt
       trajopt_sco
       trajopt_utils
+      rosparam_shortcuts
 )
 
 catkin_package(
