@@ -23,7 +23,6 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_visual_tools</depend>
   <depend>roscpp</depend>
-  <depend>rosparam_shortcuts</depend>
   <depend>trajopt</depend>
   <depend>trajopt_sco</depend>
   <depend>trajopt_utils</depend>    
