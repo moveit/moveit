@@ -29,8 +29,8 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
-#include <trajopt_interface/problem_description.h>
-#include <trajopt_interface/kinematic_terms.h>
+#include <trajopt/problem_description.h>
+#include <trajopt/kinematic_terms.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group_interface/move_group_interface.h>
@@ -67,7 +67,7 @@ TEST_F(TrajectoryTest, concatVectorValidation)
 {
   std::vector<double> vec_a = { 1, 2, 3, 4, 5 };
   std::vector<double> vec_b = { 6, 7, 8, 9, 10 };
-  std::vector<double> vec_c = trajopt_interface::concatVector(vec_a, vec_b);
+  std::vector<double> vec_c = trajopt::concatVector(vec_a, vec_b);
   EXPECT_EQ(vec_c.size(), vec_a.size() + vec_b.size());
 
   // Check if the output of concatVector is correct.
