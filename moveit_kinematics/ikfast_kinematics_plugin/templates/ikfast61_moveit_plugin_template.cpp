@@ -380,7 +380,7 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, c
   robot_state.reset(new RobotState(robot_model_));
   robot_state->setToDefaultValues();
 
-  auto* from_link = robot_state->getLinkModel(from);  // prints ROS_ERRORS for inexistent frames
+  auto* from_link = robot_state->getLinkModel(from);  // prints ROS_ERRORS for non-existent frames
   auto* to_link = robot_state->getLinkModel(to);
   if (!from_link || !to_link)
     return false;
