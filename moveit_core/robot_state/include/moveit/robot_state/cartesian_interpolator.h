@@ -49,7 +49,7 @@ namespace core
 /** \brief Struct for containing jump_threshold.
 
     For the purposes of maintaining API, we support both \e jump_threshold_factor which provides a scaling factor for
-    detecting joint space jumps and \e revolute_jump_threshold and \e prismatic_jump_threshold which provide abolute
+    detecting joint space jumps and \e revolute_jump_threshold and \e prismatic_jump_threshold which provide absolute
     thresholds for detecting joint space jumps. */
 struct JumpThreshold
 {
