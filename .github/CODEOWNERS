@@ -32,9 +32,10 @@
 
 # FOLDER-SPECIFIC REVIEWERS:
 
-/moveit_plugins/moveit_ros_control_interface/	              @ipa-mdl @bmagyar
+/moveit_plugins/moveit_ros_control_interface/	            @ipa-mdl @bmagyar
 /moveit_plugins/moveit_fake_controller_manager/	            @v4hn @rhaschke
-/moveit_plugins/moveit_simple_controller_manager/	          @mikeferguson @v4hn
+/moveit_plugins/moveit_simple_controller_manager/	    @mikeferguson @v4hn
+/moveit_plugins/moveit_controller_manager_example/	    @v4hn
 
 /moveit_core/background_processing/                         @mlautman
 /moveit_core/backtrace/                                     @mlautman
@@ -65,20 +66,20 @@
 
 /moveit_commander/                                          @rhaschke @willcbaker
 
-/moveit/	                                                  @130s
+/moveit/	                                            @130s
 
-/moveit_kinematics/	                                        @rhaschke @gavanderhoorn @jrgnicho
+/moveit_kinematics/	                                    @rhaschke @gavanderhoorn @jrgnicho
 
-/moveit_experimental/	                                      @AndyZe
+/moveit_experimental/	                                    @AndyZe
 
 /moveit_ros/perception/	                                    @mikeferguson @jonbinney
-/moveit_ros/manipulation/	                                  @v4hn @felixvd
+/moveit_ros/manipulation/	                            @v4hn @felixvd
 /moveit_ros/benchmarks/	                                    @henningkayser @MohmadAyman
 /moveit_ros/planning_interface/	                            @mintar @rhaschke
 /moveit_ros/robot_interaction/	                            @mikeferguson @rhaschke
 /moveit_ros/warehouse/	                                    @mikeferguson @dg-shadow
 /moveit_ros/move_group/	                                    @rhaschke @IanTheEngineer
-/moveit_ros/visualization/	                                @rhaschke @jonbinney @christian-rauch
+/moveit_ros/visualization/	                            @rhaschke @jonbinney @christian-rauch
 
 /moveit_ros/planning/collision_plugin_loader/               @rhaschke
 /moveit_ros/planning/constraint_sampler_manager_loader/     @henningkayser
@@ -92,9 +93,9 @@
 /moveit_ros/planning/robot_model_loader/                    @henningkayser
 /moveit_ros/planning/trajectory_execution_manager/          @rhaschke
 
-/moveit_setup_assistant/	                                  @davetcoleman @rhaschke @MohmadAyman
+/moveit_setup_assistant/	                            @davetcoleman @rhaschke @MohmadAyman
 
 /moveit_planners/ompl/	                                    @BryceStevenWilley @mamoll
 /moveit_planners/chomp/chomp_interface/                     @raghavendersahdev @knorth55 @bmagyar
 /moveit_planners/chomp/chomp_optimizer_adapter/	            @raghavendersahdev @knorth55 @bmagyar
-/moveit_planners/chomp/chomp_motion_planner/	              @raghavendersahdev @knorth55 @bmagyar
+/moveit_planners/chomp/chomp_motion_planner/	            @raghavendersahdev @knorth55 @bmagyar
