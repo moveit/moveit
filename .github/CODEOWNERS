@@ -95,7 +95,7 @@
 
 /moveit_setup_assistant/	                            @davetcoleman @rhaschke @MohmadAyman
 
-/moveit_planners/ompl/	                                    @BryceStevenWilley @zkingston
+/moveit_planners/ompl/	                                    @BryceStevenWilley @mamoll
 /moveit_planners/chomp/chomp_interface/                     @raghavendersahdev @knorth55 @bmagyar
 /moveit_planners/chomp/chomp_optimizer_adapter/	            @raghavendersahdev @knorth55 @bmagyar
 /moveit_planners/chomp/chomp_motion_planner/	            @raghavendersahdev @knorth55 @bmagyar
