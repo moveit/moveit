@@ -82,12 +82,12 @@ struct JointVelErrCalculator : sco::VectorOfVector
   {
   }
 
-  Eigen::VectorXd operator()(const Eigen::VectorXd& var_vals) const;
+  Eigen::VectorXd operator()(const Eigen::VectorXd& var_vals) const override;
 };
 
 struct JointVelJacobianCalculator : sco::MatrixOfVector
 {
-  Eigen::MatrixXd operator()(const Eigen::VectorXd& var_vals) const;
+  Eigen::MatrixXd operator()(const Eigen::VectorXd& var_vals) const override;
 };
 
 }  // namespace trajopt
