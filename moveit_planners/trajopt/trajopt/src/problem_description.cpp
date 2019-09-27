@@ -88,7 +88,7 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(planning_group_);
 
   moveit::core::JointBoundsVector bounds = joint_model_group->getActiveJointModelsBounds();
-  dof_ = joint_model_group->getActiveJointModelNames().size();  // or bounds.size();
+  dof_ = static_cast<int>(joint_model_group->getActiveJointModelNames().size());  // or bounds.size();
 
   int n_steps = problem_info.basic_info.n_steps;
 
