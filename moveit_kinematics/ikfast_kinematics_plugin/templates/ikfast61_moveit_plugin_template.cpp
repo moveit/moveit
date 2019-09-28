@@ -380,13 +380,14 @@ bool IKFastKinematicsPlugin::computeRelativeTransform(const std::string& from, c
   robot_state.reset(new RobotState(robot_model_));
   robot_state->setToDefaultValues();
 
-  auto* from_link = robot_state->getLinkModel(from);  // prints ROS_ERRORS for non-existent frames
-  auto* to_link = robot_state->getLinkModel(to);
+  bool has_link;  // to suppress ROS_ERRORs for non-existent frames
+  auto* from_link = robot_model_->getLinkModel(from, &has_link);
+  auto* to_link = robot_model_->getLinkModel(to, &has_link);
   if (!from_link || !to_link)
     return false;
 
-  if (robot_state->getRobotModel()->getRigidlyConnectedParentLinkModel(from_link) !=
-      robot_state->getRobotModel()->getRigidlyConnectedParentLinkModel(to_link))
+  if (robot_model_->getRigidlyConnectedParentLinkModel(from_link) !=
+      robot_model_->getRigidlyConnectedParentLinkModel(to_link))
   {
     ROS_ERROR_STREAM_NAMED(name_, "Link frames " << from << " and " << to << " are not rigidly connected.");
     return false;
@@ -419,18 +420,18 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
 
   // verbose error output. subsequent checks in computeRelativeTransform return false then
   if (!robot_model.hasLinkModel(tip_frames_[0]))
-    ROS_ERROR_STREAM_NAMED(name_, "tip frame " << tip_frames_[0] << " does not exist.");
+    ROS_ERROR_STREAM_NAMED(name_, "tip frame '" << tip_frames_[0] << "' does not exist.");
   if (!robot_model.hasLinkModel(base_frame_))
-    ROS_ERROR_STREAM_NAMED(name_, "base_frame " << base_frame_ << " does not exist.");
+    ROS_ERROR_STREAM_NAMED(name_, "base_frame '" << base_frame_ << "' does not exist.");
 
   if (!robot_model.hasLinkModel(link_prefix_ + IKFAST_TIP_FRAME_))
-    ROS_ERROR_STREAM_NAMED(name_, "prefixed tip frame " << link_prefix_ + IKFAST_TIP_FRAME_
-                                                        << " does not exist. "
-                                                           "Please double check the link_prefix parameter.");
+    ROS_ERROR_STREAM_NAMED(name_, "prefixed tip frame '" << link_prefix_ + IKFAST_TIP_FRAME_
+                                                         << "' does not exist. "
+                                                            "Please check your link_prefix parameter.");
   if (!robot_model.hasLinkModel(link_prefix_ + IKFAST_BASE_FRAME_))
-    ROS_ERROR_STREAM_NAMED(name_, "prefixed base frame " << link_prefix_ + IKFAST_BASE_FRAME_
-                                                         << " does not exist. "
-                                                            "Please double check the link_prefix parameter.");
+    ROS_ERROR_STREAM_NAMED(name_, "prefixed base frame '" << link_prefix_ + IKFAST_BASE_FRAME_
+                                                          << "' does not exist. "
+                                                             "Please check your link_prefix parameter.");
   // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
