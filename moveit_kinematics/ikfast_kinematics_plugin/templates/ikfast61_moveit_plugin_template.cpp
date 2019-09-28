@@ -410,16 +410,19 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
   if (!lookupParam("link_prefix", link_prefix_, std::string("")))
   {
-    ROS_INFO_NAMED(name_, "link_prefix parameter not set. Assuming empty prefix.");
+    ROS_INFO_NAMED(name_, "Using empty link_prefix.");
   }
   else
   {
-    ROS_INFO_STREAM_NAMED(name_, "using link_prefix " << link_prefix_);
+    ROS_INFO_STREAM_NAMED(name_, "Using link_prefix: '" << link_prefix_ << "'");
   }
 
   // verbose error output. subsequent checks in computeRelativeTransform return false then
   if (!robot_model.hasLinkModel(tip_frames_[0]))
     ROS_ERROR_STREAM_NAMED(name_, "tip frame " << tip_frames_[0] << " does not exist.");
+  if (!robot_model.hasLinkModel(base_frame_))
+    ROS_ERROR_STREAM_NAMED(name_, "base_frame " << base_frame_ << " does not exist.");
+
   if (!robot_model.hasLinkModel(link_prefix_ + IKFAST_TIP_FRAME_))
     ROS_ERROR_STREAM_NAMED(name_, "prefixed tip frame " << link_prefix_ + IKFAST_TIP_FRAME_
                                                         << " does not exist. "
@@ -428,9 +431,6 @@ bool IKFastKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_mo
     ROS_ERROR_STREAM_NAMED(name_, "prefixed base frame " << link_prefix_ + IKFAST_BASE_FRAME_
                                                          << " does not exist. "
                                                             "Please double check the link_prefix parameter.");
-  if (!robot_model.hasLinkModel(base_frame_))
-    ROS_ERROR_STREAM_NAMED(name_, "base_frame " << base_frame_ << " does not exist.");
-
   // This IKFast solution was generated with IKFAST_TIP_FRAME_ and IKFAST_BASE_FRAME_.
   // It is often the case that fixed joints are added to these links to model things like
   // a robot mounted on a table or a robot with an end effector attached to the last link.
