@@ -3,7 +3,7 @@
 - git:
     local-name: moveit
     uri: https://github.com/ros-planning/moveit.git
-    version: master
+    version: melodic-devel
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git
