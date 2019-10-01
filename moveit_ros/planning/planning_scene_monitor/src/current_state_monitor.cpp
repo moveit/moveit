@@ -383,18 +383,20 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       // optionally copy velocities and effort
       if (copy_dynamics_)
       {
-        // check if velocities exist
+        // update joint velocities
         if (joint_state->name.size() == joint_state->velocity.size() &&
             robot_state_.getJointVelocities(jm)[0] != joint_state->velocity[i])
         {
           update = true;
           robot_state_.setJointVelocities(jm, &(joint_state->velocity[i]));
+        }
 
-          // check if effort exist. assume they are not useful if no velocities were passed in
-          if (joint_state->name.size() == joint_state->effort.size())
-          {
-            robot_state_.setJointEfforts(jm, &(joint_state->effort[i]));
-          }
+        // update joint efforts
+        if (joint_state->name.size() == joint_state->effort.size() &&
+            robot_state_.getJointEffort(jm)[0] != joint_state->effort[i])
+        {
+          update = true;
+          robot_state_.setJointEfforts(jm, &(joint_state->effort[i]));
         }
       }
     }
