@@ -43,17 +43,17 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <rviz/robot/robot.h>
 
-#include <rviz/properties/property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/editable_enum_property.h>
-#include <rviz/properties/color_property.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <rviz/robot/robot_link.h>
 #include <rviz/display_context.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/robot/robot_link.h>
 #include <rviz/window_manager_interface.h>
 
 namespace moveit_rviz_plugin
@@ -70,8 +70,9 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   trajectory_topic_property_ =
       new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
                                  ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
-                                 "The topic on which the moveit_msgs::DisplayTrajectory messages are received", widget,
-                                 SLOT(changedTrajectoryTopic()), this);
+                                 "The topic on which the moveit_msgs::DisplayTrajectory messages are "
+                                 "received",
+                                 widget, SLOT(changedTrajectoryTopic()), this);
 
   display_path_visual_enabled_property_ =
       new rviz::BoolProperty("Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for "
@@ -109,9 +110,10 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
                                                     widget, SLOT(changedTrailStepSize()), this);
   trail_step_size_property_->setMin(1);
 
-  interrupt_display_property_ = new rviz::BoolProperty(
-      "Interrupt Display", false,
-      "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
+  interrupt_display_property_ =
+      new rviz::BoolProperty("Interrupt Display", false, "Immediately show newly planned trajectory, "
+                                                         "interrupting the currently displayed one.",
+                             widget);
 
   robot_color_property_ = new rviz::ColorProperty(
       "Robot Color", QColor(150, 50, 150), "The color of the animated robot", widget, SLOT(changedRobotColor()), this);
@@ -181,7 +183,8 @@ void TrajectoryVisualization::onRobotModelLoaded(const robot_model::RobotModelCo
 
   // Load rviz robot
   display_path_robot_->load(*robot_model_->getURDF());
-  enabledRobotColor();  // force-refresh to account for saved display configuration
+  enabledRobotColor();  // force-refresh to account for saved display
+                        // configuration
   // perform post-poned subscription to trajectory topic
   if (trajectory_topic_sub_.getTopic().empty())
     changedTrajectoryTopic();
@@ -261,7 +264,8 @@ void TrajectoryVisualization::changedRobotPathAlpha()
 void TrajectoryVisualization::changedTrajectoryTopic()
 {
   trajectory_topic_sub_.shutdown();
-  // post-pone subscription if robot_state_ is not yet defined, i.e. onRobotModelLoaded() not yet called
+  // post-pone subscription if robot_state_ is not yet defined, i.e.
+  // onRobotModelLoaded() not yet called
   if (!trajectory_topic_property_->getStdString().empty() && robot_state_)
   {
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2,
@@ -412,7 +416,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     current_state_time_ += wall_dt;
     float tm = getStateDisplayTime();
 
-    if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused()){
+    if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
+    {
       current_state_ = trajectory_slider_panel_->getSliderPosition();
       current_state_time_ = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_);
     }
@@ -426,10 +431,11 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       while (current_state_ < waypoint_count &&
              (tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1)) <
                  current_state_time_)
-      {  
-        current_state_time_ -= tm;        
-        if (tm < current_state_time_) // if we are stuck in the while loop we should move the robot along the path to keep up
-          display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));        
+      {
+        current_state_time_ -= tm;
+        if (tm < current_state_time_)  // if we are stuck in the while loop we should
+                                       // move the robot along the path to keep up
+          display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
         ++current_state_;
       }
     }
@@ -453,10 +459,11 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     }
     else
     {
-      animating_path_ = false;  // animation finished
-      if (trajectory_slider_panel_) // make sure we move the slider to the end so the user can re-play
+      animating_path_ = false;       // animation finished
+      if (trajectory_slider_panel_)  // make sure we move the slider to the end
+                                     // so the user can re-play
         trajectory_slider_panel_->setSliderPosition(waypoint_count);
-      display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(waypoint_count-1));
+      display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(waypoint_count - 1));
       display_path_robot_->setVisible(loop_display_property_->getBool());
       if (!loop_display_property_->getBool() && trajectory_slider_panel_)
         trajectory_slider_panel_->pauseButton(true);
@@ -478,8 +485,9 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
   }
 
   if (!msg->model_id.empty() && msg->model_id != robot_model_->getName())
-    ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected", msg->model_id.c_str(),
-             robot_model_->getName().c_str());
+    ROS_WARN("Received a trajectory to display for model '%s' but model '%s' "
+             "was expected",
+             msg->model_id.c_str(), robot_model_->getName().c_str());
 
   trajectory_message_to_display_.reset();
 
