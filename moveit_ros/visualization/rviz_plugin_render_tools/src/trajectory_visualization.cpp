@@ -412,8 +412,10 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     current_state_time_ += wall_dt;
     float tm = getStateDisplayTime();
 
-    if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
+    if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused()){
       current_state_ = trajectory_slider_panel_->getSliderPosition();
+      current_state_time_ = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_);
+    }
     else if (current_state_ < 0)
     {  // special case indicating restart of animation
       current_state_ = 0;
@@ -424,8 +426,10 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       while (current_state_ < waypoint_count &&
              (tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1)) <
                  current_state_time_)
-      {
-        current_state_time_ -= tm;
+      {  
+        current_state_time_ -= tm;        
+        if (tm < current_state_time_) // if we are stuck in the while loop we should move the robot along the path to keep up
+          display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));        
         ++current_state_;
       }
     }
@@ -450,6 +454,9 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     else
     {
       animating_path_ = false;  // animation finished
+      if (trajectory_slider_panel_) // make sure we move the slider to the end so the user can re-play
+        trajectory_slider_panel_->setSliderPosition(waypoint_count);
+      display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(waypoint_count-1));
       display_path_robot_->setVisible(loop_display_property_->getBool());
       if (!loop_display_property_->getBool() && trajectory_slider_panel_)
         trajectory_slider_panel_->pauseButton(true);
