@@ -134,83 +134,31 @@ ompl_interface::PlanningContextManager::plannerSelector(const std::string& plann
 
 void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 {
-  registerPlannerAllocator(                //
-      "geometric::AnytimePathShortening",  //
-      std::bind(&allocatePlanner<og::AnytimePathShortening>, std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::RRT",      //
-      std::bind(&allocatePlanner<og::RRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(     //
-      "geometric::RRTConnect",  //
-      std::bind(&allocatePlanner<og::RRTConnect>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::LazyRRT",  //
-      std::bind(&allocatePlanner<og::LazyRRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::TRRT",     //
-      std::bind(&allocatePlanner<og::TRRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::EST",      //
-      std::bind(&allocatePlanner<og::EST>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::SBL",      //
-      std::bind(&allocatePlanner<og::SBL>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::KPIECE",   //
-      std::bind(&allocatePlanner<og::KPIECE1>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::BKPIECE",  //
-      std::bind(&allocatePlanner<og::BKPIECE1>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(   //
-      "geometric::LBKPIECE",  //
-      std::bind(&allocatePlanner<og::LBKPIECE1>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::RRTstar",  //
-      std::bind(&allocatePlanner<og::RRTstar>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::PRM",      //
-      std::bind(&allocatePlanner<og::PRM>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::PRMstar",  //
-      std::bind(&allocatePlanner<og::PRMstar>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::FMT",      //
-      std::bind(&allocatePlanner<og::FMT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::BFMT",     //
-      std::bind(&allocatePlanner<og::BFMT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::PDST",     //
-      std::bind(&allocatePlanner<og::PDST>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::STRIDE",   //
-      std::bind(&allocatePlanner<og::STRIDE>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::BiTRRT",   //
-      std::bind(&allocatePlanner<og::BiTRRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::LBTRRT",   //
-      std::bind(&allocatePlanner<og::LBTRRT>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::BiEST",    //
-      std::bind(&allocatePlanner<og::BiEST>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::ProjEST",  //
-      std::bind(&allocatePlanner<og::ProjEST>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::LazyPRM",  //
-      std::bind(&allocatePlanner<og::LazyPRM>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(      //
-      "geometric::LazyPRMstar",  //
-      std::bind(&allocatePlanner<og::LazyPRMstar>, std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3));
-  registerPlannerAllocator(  //
-      "geometric::SPARS",    //
-      std::bind(&allocatePlanner<og::SPARS>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  registerPlannerAllocator(   //
-      "geometric::SPARStwo",  //
-      std::bind(&allocatePlanner<og::SPARStwo>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  registerPlannerAllocator("geometric::AnytimePathShortening", allocatePlanner<og::AnytimePathShortening>);
+  registerPlannerAllocator("geometric::BFMT", allocatePlanner<og::BFMT>);
+  registerPlannerAllocator("geometric::BiEST",  allocatePlanner<og::BiEST>);
+  registerPlannerAllocator("geometric::BiTRRT", allocatePlanner<og::BiTRRT>);
+  registerPlannerAllocator("geometric::BKPIECE", allocatePlanner<og::BKPIECE1>);
+  registerPlannerAllocator("geometric::EST", allocatePlanner<og::EST>);
+  registerPlannerAllocator("geometric::FMT", allocatePlanner<og::FMT>);
+  registerPlannerAllocator("geometric::KPIECE", allocatePlanner<og::KPIECE1>);
+  registerPlannerAllocator("geometric::LazyPRM",allocatePlanner<og::LazyPRM>);
+  registerPlannerAllocator("geometric::LazyPRMstar", allocatePlanner<og::LazyPRMstar>);
+  registerPlannerAllocator("geometric::LazyRRT", allocatePlanner<og::LazyRRT>);
+  registerPlannerAllocator("geometric::LBKPIECE", allocatePlanner<og::LBKPIECE1>);
+  registerPlannerAllocator("geometric::LBTRRT", allocatePlanner<og::LBTRRT>);
+  registerPlannerAllocator("geometric::PDST", allocatePlanner<og::PDST>);
+  registerPlannerAllocator("geometric::PRM", allocatePlanner<og::PRM>);
+  registerPlannerAllocator("geometric::PRMstar",allocatePlanner<og::PRMstar>);
+  registerPlannerAllocator("geometric::ProjEST",allocatePlanner<og::ProjEST>);
+  registerPlannerAllocator("geometric::RRT", allocatePlanner<og::RRT>);
+  registerPlannerAllocator("geometric::RRTConnect", allocatePlanner<og::RRTConnect>);
+  registerPlannerAllocator("geometric::RRTstar", allocatePlanner<og::RRTstar>);
+  registerPlannerAllocator("geometric::SBL", allocatePlanner<og::SBL>);
+  registerPlannerAllocator("geometric::SPARS", allocatePlanner<og::SPARS>);
+  registerPlannerAllocator("geometric::SPARStwo",allocatePlanner<og::SPARStwo>);
+  registerPlannerAllocator("geometric::STRIDE", allocatePlanner<og::STRIDE>);
+  registerPlannerAllocator("geometric::TRRT", allocatePlanner<og::TRRT>);
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
