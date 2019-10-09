@@ -182,7 +182,7 @@ void mesh_filter::GLRenderer::deleteFrameBuffers()
 
 void mesh_filter::GLRenderer::begin() const
 {
-  glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
+  glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT | GL_PIXEL_MODE_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, width_, height_);

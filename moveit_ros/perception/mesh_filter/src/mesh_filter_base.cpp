@@ -382,8 +382,6 @@ void mesh_filter::MeshFilterBase::doFilter(const void* sensor_data, const int en
   glActiveTexture(GL_TEXTURE4);
   glBindTexture(GL_TEXTURE_2D, color_texture);
   glCallList(canvas_);
-  glPixelTransferf(GL_DEPTH_SCALE, 1.);
-  glPixelTransferf(GL_DEPTH_BIAS, 0.);
   depth_filter_->end();
 }
 
