@@ -1,11 +1,17 @@
 #!/bin/bash -u
 
 # This script is used to run a docker container with graphics support.
+# Documentation: https://moveit.ros.org/install/docker/
 # http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
 
-# All arguments to this script will be appended to a docker run command.
-# Example command line:
-# ./gui-docker -it --rm moveit/moveit:master-source /bin/bash
+# Runs and enters a persistent docker container with moveit installed by default.
+# All arguments to this script except "-c" will be appended to a docker run command.
+
+# Example commands:
+# ./gui-docker
+# ./gui-docker -c different_container_name                              # To create a different persistent container
+# ./gui-docker --rm -it moveit/moveit:master-source /bin/bash           # To remove and recreate the container
+# ./gui-docker --volume="/home/your_user/dev/ws_moveit:/root/linked_ws_moveit" -it moveit/moveit:master-source /bin/bash      # To link a directory on your hard drive to the container
 
 function check_nvidia2() {
     # If we don't have an NVIDIA graphics card, bail out
@@ -78,8 +84,8 @@ function count_positional_args() {
 }
 
 if [ $# -eq 0 ] ; then
-   # If not options are specified at all, just run the default_container
-   CONTAINER_NAME=default_container
+   # If not options are specified at all, use the name "default_moveit_container"
+   CONTAINER_NAME=default_moveit_container
 else
   # Check for option -c or --container in first position
   case "$1" in
@@ -91,7 +97,7 @@ else
          shift
       fi
       # Set default container name if still undefined
-      CONTAINER_NAME="${CONTAINER_NAME:-default_container}"
+      CONTAINER_NAME="${CONTAINER_NAME:-default_moveit_container}"
       ;;
   esac
 fi
