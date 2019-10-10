@@ -6,13 +6,15 @@
 
 # All arguments to this script except "-c <container_name>" will be appended to a docker run command.
 # If a container name is specified, and this container already exists, the container is re-entered,
-# which easily allows to run persistent containers.
+# which easily allows entering the same persistent container from multiple terminals.
 
 # Example commands:
 # ./gui-docker --rm -it moveit/moveit:master-source /bin/bash     # Run a (randomly named) container that is removed on exit
-# ./gui-docker -v ~/ros_ws:/root/ros_ws --rm -it moveit/moveit:master-source /bin/bash   # Same, but also link host volume ~/ros_ws to /root/ros_ws
-# ./gui-docker -c different_container_name                        # Start (or continue) an interactive bash in a moveit/moveit:master-source container
+# ./gui-docker -v ~/ros_ws:/root/ros_ws --rm -it moveit/moveit:master-source /bin/bash   # Same, but also link host volume ~/ros_ws to /root/ros_ws in the container
+# ./gui-docker -c container_name                                  # Start (or continue) an interactive bash in a moveit/moveit:master-source container
 # ./gui-docker                                                    # Same, but use the default container name "default_moveit_container"
+# ./gui-docker -c container_name -v ~/ros_ws:/root/ros_ws -it moveit/moveit:master-source /bin/bash  # Same, but also link host volume ~/ros_ws to /root/ros_ws in the container
+
 
 function check_nvidia2() {
     # If we don't have an NVIDIA graphics card, bail out
