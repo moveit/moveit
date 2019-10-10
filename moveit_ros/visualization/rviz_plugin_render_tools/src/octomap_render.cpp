@@ -169,7 +169,7 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
 
   size_t point_count = 0;
   {
-    int stepSize = 1 << (octree->getTreeDepth() - octree_depth_);  // for pruning of occluded voxels
+    int step_size = 1 << (octree->getTreeDepth() - octree_depth_);  // for pruning of occluded voxels
 
     // traverse all leafs in the tree:
     for (octomap::OcTree::iterator it = octree->begin(octree_depth_), end = octree->end(); it != end; ++it)
@@ -200,13 +200,13 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
           for (int i = 0; all_neighbors_found && i < 2; ++i)
           {
             key[idx_0] = n_key[idx_0] + diff[i];
-            // if rendering is restricted to treeDepth < maximum tree depth inner nodes with distance stepSize can
+            // if rendering is restricted to treeDepth < maximum tree depth inner nodes with distance step_size can
             // already occlude a voxel
             for (key[idx_1] = n_key[idx_1] + diff[0] + 1; all_neighbors_found && key[idx_1] < n_key[idx_1] + diff[1];
-                 key[idx_1] += stepSize)
+                 key[idx_1] += step_size)
             {
               for (key[idx_2] = n_key[idx_2] + diff[0] + 1; all_neighbors_found && key[idx_2] < n_key[idx_2] + diff[1];
-                   key[idx_2] += stepSize)
+                   key[idx_2] += step_size)
               {
                 octomap::OcTreeNode* node = octree->search(key, octree_depth_);
 
