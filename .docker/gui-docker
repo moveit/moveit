@@ -1,17 +1,14 @@
 #!/bin/bash -u
 
 # This script is used to run a docker container with graphics support.
-# Documentation: https://moveit.ros.org/install/docker/
-# http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
-
 # All arguments to this script except "-c <container_name>" will be appended to a docker run command.
 # If a container name is specified, and this container already exists, the container is re-entered,
 # which easily allows entering the same persistent container from multiple terminals.
+# See documentation for detailed examples: https://moveit.ros.org/install/docker/
 
 # Example commands:
 # ./gui-docker --rm -it moveit/moveit:master-source /bin/bash     # Run a (randomly named) container that is removed on exit
 # ./gui-docker -v ~/ros_ws:/root/ros_ws --rm -it moveit/moveit:master-source /bin/bash   # Same, but also link host volume ~/ros_ws to /root/ros_ws in the container
-# ./gui-docker -c container_name -v ~/ros_ws:/root/ros_ws moveit/moveit:master-source echo  # Create a persistent container that links host volume ~/ros_ws to /root/ros_ws
 # ./gui-docker -c container_name                                  # Start (or continue) an interactive bash in a moveit/moveit:master-source container
 # ./gui-docker                                                    # Same, but use the default container name "default_moveit_container"
 
