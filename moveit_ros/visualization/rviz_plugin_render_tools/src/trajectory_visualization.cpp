@@ -70,9 +70,8 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   trajectory_topic_property_ =
       new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
                                  ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
-                                 "The topic on which the moveit_msgs::DisplayTrajectory messages are "
-                                 "received",
-                                 widget, SLOT(changedTrajectoryTopic()), this);
+                                 "The topic on which the moveit_msgs::DisplayTrajectory messages are received", widget,
+                                 SLOT(changedTrajectoryTopic()), this);
 
   display_path_visual_enabled_property_ =
       new rviz::BoolProperty("Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for "
@@ -110,10 +109,9 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
                                                     widget, SLOT(changedTrailStepSize()), this);
   trail_step_size_property_->setMin(1);
 
-  interrupt_display_property_ =
-      new rviz::BoolProperty("Interrupt Display", false, "Immediately show newly planned trajectory, "
-                                                         "interrupting the currently displayed one.",
-                             widget);
+  interrupt_display_property_ = new rviz::BoolProperty(
+      "Interrupt Display", false,
+      "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
 
   robot_color_property_ = new rviz::ColorProperty(
       "Robot Color", QColor(150, 50, 150), "The color of the animated robot", widget, SLOT(changedRobotColor()), this);
@@ -183,8 +181,7 @@ void TrajectoryVisualization::onRobotModelLoaded(const robot_model::RobotModelCo
 
   // Load rviz robot
   display_path_robot_->load(*robot_model_->getURDF());
-  enabledRobotColor();  // force-refresh to account for saved display
-                        // configuration
+  enabledRobotColor();  // force-refresh to account for saved display configuration
   // perform post-poned subscription to trajectory topic
   if (trajectory_topic_sub_.getTopic().empty())
     changedTrajectoryTopic();
@@ -264,8 +261,7 @@ void TrajectoryVisualization::changedRobotPathAlpha()
 void TrajectoryVisualization::changedTrajectoryTopic()
 {
   trajectory_topic_sub_.shutdown();
-  // post-pone subscription if robot_state_ is not yet defined, i.e.
-  // onRobotModelLoaded() not yet called
+  // post-pone subscription if robot_state_ is not yet defined, i.e. onRobotModelLoaded() not yet called
   if (!trajectory_topic_property_->getStdString().empty() && robot_state_)
   {
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2,
@@ -485,9 +481,8 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
   }
 
   if (!msg->model_id.empty() && msg->model_id != robot_model_->getName())
-    ROS_WARN("Received a trajectory to display for model '%s' but model '%s' "
-             "was expected",
-             msg->model_id.c_str(), robot_model_->getName().c_str());
+    ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected", msg->model_id.c_str(),
+             robot_model_->getName().c_str());
 
   trajectory_message_to_display_.reset();
 
