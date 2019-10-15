@@ -568,6 +568,7 @@ void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_chan
 bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_jt_traj)
 {
   bool halting = false;
+
   for (auto joint : joint_model_group_->getJointModels())
   {
     if (!kinematic_state_->satisfiesVelocityBounds(joint))
@@ -575,8 +576,9 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName() << " "
                                                                            << " close to a "
                                                                               " velocity limit. Enforcing limit.");
+
       kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < num_joints_; ++c)
+      for (std::size_t c = 0; c < new_jt_traj.points[0].velocities.size(); ++c)
       {
         if (new_jt_traj.joint_names[c] == joint->getName())
         {
@@ -588,7 +590,7 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
 
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
-    for (std::size_t c = 0; c < num_joints_; ++c)
+    for (std::size_t c = 0; c < original_jt_state_.name.size(); ++c)
     {
       if (original_jt_state_.name[c] == joint->getName())
       {
@@ -596,7 +598,6 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
         break;
       }
     }
-
     if (!kinematic_state_->satisfiesPositionBounds(joint, -parameters_.joint_limit_margin))
     {
       const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
