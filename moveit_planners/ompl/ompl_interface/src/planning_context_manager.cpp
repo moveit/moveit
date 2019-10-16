@@ -136,27 +136,27 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
 {
   registerPlannerAllocator("geometric::AnytimePathShortening", allocatePlanner<og::AnytimePathShortening>);
   registerPlannerAllocator("geometric::BFMT", allocatePlanner<og::BFMT>);
-  registerPlannerAllocator("geometric::BiEST",  allocatePlanner<og::BiEST>);
+  registerPlannerAllocator("geometric::BiEST", allocatePlanner<og::BiEST>);
   registerPlannerAllocator("geometric::BiTRRT", allocatePlanner<og::BiTRRT>);
   registerPlannerAllocator("geometric::BKPIECE", allocatePlanner<og::BKPIECE1>);
   registerPlannerAllocator("geometric::EST", allocatePlanner<og::EST>);
   registerPlannerAllocator("geometric::FMT", allocatePlanner<og::FMT>);
   registerPlannerAllocator("geometric::KPIECE", allocatePlanner<og::KPIECE1>);
-  registerPlannerAllocator("geometric::LazyPRM",allocatePlanner<og::LazyPRM>);
+  registerPlannerAllocator("geometric::LazyPRM", allocatePlanner<og::LazyPRM>);
   registerPlannerAllocator("geometric::LazyPRMstar", allocatePlanner<og::LazyPRMstar>);
   registerPlannerAllocator("geometric::LazyRRT", allocatePlanner<og::LazyRRT>);
   registerPlannerAllocator("geometric::LBKPIECE", allocatePlanner<og::LBKPIECE1>);
   registerPlannerAllocator("geometric::LBTRRT", allocatePlanner<og::LBTRRT>);
   registerPlannerAllocator("geometric::PDST", allocatePlanner<og::PDST>);
   registerPlannerAllocator("geometric::PRM", allocatePlanner<og::PRM>);
-  registerPlannerAllocator("geometric::PRMstar",allocatePlanner<og::PRMstar>);
-  registerPlannerAllocator("geometric::ProjEST",allocatePlanner<og::ProjEST>);
+  registerPlannerAllocator("geometric::PRMstar", allocatePlanner<og::PRMstar>);
+  registerPlannerAllocator("geometric::ProjEST", allocatePlanner<og::ProjEST>);
   registerPlannerAllocator("geometric::RRT", allocatePlanner<og::RRT>);
   registerPlannerAllocator("geometric::RRTConnect", allocatePlanner<og::RRTConnect>);
   registerPlannerAllocator("geometric::RRTstar", allocatePlanner<og::RRTstar>);
   registerPlannerAllocator("geometric::SBL", allocatePlanner<og::SBL>);
   registerPlannerAllocator("geometric::SPARS", allocatePlanner<og::SPARS>);
-  registerPlannerAllocator("geometric::SPARStwo",allocatePlanner<og::SPARStwo>);
+  registerPlannerAllocator("geometric::SPARStwo", allocatePlanner<og::SPARStwo>);
   registerPlannerAllocator("geometric::STRIDE", allocatePlanner<og::STRIDE>);
   registerPlannerAllocator("geometric::TRRT", allocatePlanner<og::TRRT>);
 }
