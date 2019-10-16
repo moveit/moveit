@@ -317,6 +317,8 @@ protected:
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const;
   virtual void useConfig();
   virtual ob::GoalPtr constructGoal();
+  virtual ob::PlannerTerminationCondition constructPlannerTerminationCondition(double timeout,
+                                                                               const ompl::time::point& start);
 
   void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
