@@ -48,13 +48,20 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
 
+#include <ompl/config.h>
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
+#if OMPL_VERSION_VALUE < 1005000
+#include <ompl/base/PlannerTerminationCondition.h>
+#else
+// IterationTerminationCondition was moved to a separate file and
+// CostConvergenceTerminationCondition was added in OMPL 1.5.0.
 #include <ompl/base/terminationconditions/IterationTerminationCondition.h>
 #include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
+#endif
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
@@ -470,6 +477,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
     else
       ROS_ERROR_NAMED("model_based_planning_context", "Missing argument to Iteration termination condition");
   }
+#if OMPL_VERSION_VALUE >= 1005000
   // Terminate if the cost has converged or a timeout occurs.
   // Only useful for anytime/optimizing planners.
   else if (termination_and_params[0] == "CostConvergence")
@@ -486,6 +494,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
         ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutionsWindow, epsilon));
   }
+#endif
   // Terminate as soon as an exact solution is found or a timeout occurs.
   // This modifies the behavior of anytime/optimizing planners to terminate upon discovering
   // the first feasible solution.
