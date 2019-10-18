@@ -46,6 +46,9 @@
 #include <ros/console.h>
 #include <ros/package.h>  // for getting file path for loading images
 
+// OMPL version
+#include <ompl/config.h>
+
 namespace moveit_setup_assistant
 {
 // File system
@@ -551,9 +554,12 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   aps.addParameter("hybridize", "true", "Compute hybrid solution trajectories");
   aps.addParameter("max_hybrid_paths", "24", "Number of hybrid paths generated per iteration");
   aps.addParameter("num_planners", "4", "The number of default planners to use for planning");
+#if OMPL_VERSION_VALUE >= 1005000
+  // This parameter was added in OMPL 1.5.0
   aps.addParameter("planners", "", "A comma-separated list of planner types (e.g., \"PRM,EST,RRTConnect\""
                                    "Optionally, planner parameters can be passed to change the default:"
                                    "\"PRM[max_nearest_neighbors=5],EST[goal_bias=.5],RRT[range=10. goal_bias=.1]\"");
+#endif
   planner_des.push_back(aps);
 
   OMPLPlannerDescription sbl("SBL", "geometric");

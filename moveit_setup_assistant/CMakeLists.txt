@@ -27,7 +27,8 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   srdfdom
 )
-include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+find_package(ompl REQUIRED)
+include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${OMPL_INCLUDE_DIRS})
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
