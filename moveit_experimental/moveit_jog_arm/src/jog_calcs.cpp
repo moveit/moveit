@@ -578,7 +578,7 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
                                                                               " velocity limit. Enforcing limit.");
 
       kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_jt_traj.points[0].velocities.size(); ++c)
+      for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
       {
         if (new_jt_traj.joint_names[c] == joint->getName())
         {
