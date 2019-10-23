@@ -27,5 +27,5 @@
 # Temporary for running CI to test new EigenPy
 - git:
     local-name: eigenpy
-    uri: https://github.com/wxmerkt/eigenpy.git
-    version: wxm-update-eigenpy-for-3rd-party-release
+    uri: https://github.com/stack-of-tasks/eigenpy.git
+    version: devel
