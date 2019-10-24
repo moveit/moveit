@@ -33,8 +33,8 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>python</depend>
-  <depend>eigenpy</depend>
 
+  <build_depend>eigenpy</build_depend>
   <build_depend>eigen</build_depend>
 
   <test_depend>moveit_resources</test_depend>
