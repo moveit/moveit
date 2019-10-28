@@ -118,26 +118,35 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Create ProblemInfo");
   trajopt::ProblemInfo problem_info(planning_scene, req.group_name);
-
   setProblemInfoParam(problem_info);
 
-  ROS_INFO(" ======================================= Populate init info, hard-coded");
-  // TODO: init info should be defined by user. To this end, we need to add seed trajectories to MotionPlanRequest.
-  // JOINT_INTERPOLATED: data is the current joint values
-  // GIVEN_TRAJ: data is the joint values of the current state copied to all timesteps
-  Eigen::VectorXd current_joint_values_eigen(dof);
-  for (int joint_index = 0; joint_index < dof; ++joint_index)
-  {
-    current_joint_values_eigen(joint_index) = current_joint_values[joint_index];
-  }
-
+  ROS_INFO(" ======================================= Populate init info");
+  // For type JOINT_INTERPOLATED, we need the configuration of the robot at one state (which should be the goal), we do
+  // not need the robot configuration along the whole trajectory. That is why we need one index which is 0 for "points[]"
   if (problem_info.init_info.type == trajopt::InitInfo::JOINT_INTERPOLATED)
   {
-    problem_info.init_info.data = current_joint_values_eigen;
+    Eigen::VectorXd initial_joint_values_eigen(dof); 
+    for (int joint_index = 0; joint_index < dof; ++joint_index)
+    {
+      initial_joint_values_eigen(joint_index) = req.reference_trajectories[0].joint_trajectory[0].points[0].positions[joint_index];
+    }
+    
+    problem_info.init_info.data =  initial_joint_values_eigen;
   }
   else if (problem_info.init_info.type == trajopt::InitInfo::GIVEN_TRAJ)
   {
-    problem_info.init_info.data = current_joint_values_eigen.transpose().replicate(problem_info.basic_info.n_steps, 1);
+    int num_steps = problem_info.basic_info.n_steps;
+    trajopt::TrajArray init_traj;
+    init_traj.resize(num_steps, dof);
+    for (std::size_t step = 0; step < num_steps; ++num_steps)
+    {
+      for (std::size_t joint_index = 0; joint_index < dof; ++joint_index )
+	{
+	  init_traj(step, joint_index) = req.reference_trajectories[0].joint_trajectory[0].points[step].positions[joint_index];
+	}
+    }
+    
+    problem_info.init_info.data = init_traj;
   }
 
   ROS_INFO(" ======================================= Create Constraints");
