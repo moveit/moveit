@@ -46,8 +46,6 @@ target_link_libraries(moveit_combine_predefined_poses_benchmark ${MOVEIT_LIB_NAM
 install(
   TARGETS
     ${MOVEIT_LIB_NAME}
-    moveit_run_benchmark
-    moveit_combine_predefined_poses_benchmark
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
@@ -55,6 +53,7 @@ install(
 install(
   TARGETS
     moveit_run_benchmark
+    moveit_combine_predefined_poses_benchmark
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
