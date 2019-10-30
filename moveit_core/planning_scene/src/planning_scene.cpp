@@ -204,10 +204,8 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
     detector->cenv_ = detector->alloc_->allocateEnv(parent_detector->cenv_, world_);
     detector->cenv_const_ = detector->cenv_;
 
-    // leave these empty and use parent collision_env_ unless/until a non-const one
-    // is requested (e.g. to modify link padding or scale)
-    detector->cenv_unpadded_.reset();
-    detector->cenv_unpadded_const_.reset();
+    detector->cenv_unpadded_ = detector->alloc_->allocateEnv(parent_detector->cenv_unpadded_, world_);
+    detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
   }
   setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
 }
@@ -286,12 +284,8 @@ void PlanningScene::addCollisionDetector(const collision_detection::CollisionDet
     detector->copyPadding(*active_collision_);
   }
 
-  // If we don't have a parent, allocate unpadded versions, otherwise use the parent's cenv_unpadded_.
-  if (!detector->parent_)
-  {
-    detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());
-    detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
-  }
+  detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());
+  detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
 }
 
 void PlanningScene::setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
@@ -393,11 +387,11 @@ void PlanningScene::clearDiffs()
 
     if (it.second->parent_)
     {
-      it.second->cenv_unpadded_.reset();
-      it.second->cenv_unpadded_const_.reset();
-
       it.second->cenv_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_, world_);
       it.second->cenv_const_ = it.second->cenv_;
+
+      it.second->cenv_unpadded_ = it.second->alloc_->allocateEnv(it.second->parent_->cenv_unpadded_, world_);
+      it.second->cenv_unpadded_const_ = it.second->cenv_unpadded_;
     }
     else
     {
@@ -1138,11 +1132,6 @@ void PlanningScene::decoupleParent()
 
   for (std::pair<const std::string, CollisionDetectorPtr>& it : collision_)
   {
-    if (!it.second->cenv_unpadded_)
-    {
-      it.second->cenv_unpadded_ = it.second->alloc_->allocateEnv(it.second->parent_->getCollisionEnvUnpadded(), world_);
-      it.second->cenv_unpadded_const_ = it.second->cenv_unpadded_;
-    }
     it.second->parent_.reset();
   }
   world_diff_.reset();
