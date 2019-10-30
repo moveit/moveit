@@ -1453,8 +1453,6 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           // Extract the shapes from the world
           shapes = obj_in_world->shapes_;
           poses = obj_in_world->shape_poses_;
-          // Remove the object from the collision world
-          world_->removeObject(object.object.id);
 
           // Transform shape poses to the link frame
           const Eigen::Isometry3d& inv_transform = robot_state_->getGlobalLinkTransform(link_model).inverse();
