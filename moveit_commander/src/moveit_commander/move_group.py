@@ -591,9 +591,42 @@ class MoveGroupCommander(object):
         self._g.set_support_surface_name(value)
 
     def retime_trajectory(self, ref_state_in, traj_in, velocity_scaling_factor=1.0, acceleration_scaling_factor=1.0, algorithm="iterative_time_parameterization"):
+        """ Retime the trajectory by the time parameterization algorithm """
+        if algorithm == "iterative_time_parameterization":
+            return self.retime_trajectory_itp(ref_state_in, traj_in, velocity_scaling_factor, acceleration_scaling_factor)
+        elif algorithm == "iterative_spline_parameterization":
+            return self.retime_trajectory_isp(ref_state_in, traj_in, velocity_scaling_factor, acceleration_scaling_factor)
+        elif algorithm == "time_optimal_trajectory_generation":
+            return self.retime_trajectory_totg(ref_state_in, traj_in, velocity_scaling_factor, acceleration_scaling_factor)
+        else:
+            raise MoveItCommanderException("Unknown time parameterization algorithm " + algorithm)
+
+    def retime_trajectory_itp(self, ref_state_in, traj_in, velocity_scaling_factor=1.0, acceleration_scaling_factor=1.0, max_iterations=100, max_time_change_per_it=0.01):
+        """ Retime the trajectory by the iterative time parameterization """
         ser_ref_state_in = conversions.msg_to_string(ref_state_in)
         ser_traj_in = conversions.msg_to_string(traj_in)
-        ser_traj_out = self._g.retime_trajectory(ser_ref_state_in, ser_traj_in, velocity_scaling_factor, acceleration_scaling_factor, algorithm)
+        ser_traj_out = self._g.retime_trajectory(ser_ref_state_in, ser_traj_in, velocity_scaling_factor, acceleration_scaling_factor, "iterative_time_parameterization",
+                                                 max_iterations, max_time_change_per_it, True, 0.1, 0.1)
+        traj_out = RobotTrajectory()
+        traj_out.deserialize(ser_traj_out)
+        return traj_out
+
+    def retime_trajectory_isp(self, ref_state_in, traj_in, velocity_scaling_factor=1.0, acceleration_scaling_factor=1.0, add_points=True):
+        """ Retime the trajectory by the iterative spline parameterization """
+        ser_ref_state_in = conversions.msg_to_string(ref_state_in)
+        ser_traj_in = conversions.msg_to_string(traj_in)
+        ser_traj_out = self._g.retime_trajectory(ser_ref_state_in, ser_traj_in, velocity_scaling_factor, acceleration_scaling_factor, "iterative_spline_parameterization",
+                                                 100, 0.01, add_points, 0.1, 0.1)
+        traj_out = RobotTrajectory()
+        traj_out.deserialize(ser_traj_out)
+        return traj_out
+
+    def retime_trajectory_totg(self, ref_state_in, traj_in, velocity_scaling_factor=1.0, acceleration_scaling_factor=1.0, path_tolerance=0.1, resample_dt=0.1):
+        """ Retime the trajectory by the time optimal trajectory generation """
+        ser_ref_state_in = conversions.msg_to_string(ref_state_in)
+        ser_traj_in = conversions.msg_to_string(traj_in)
+        ser_traj_out = self._g.retime_trajectory(ser_ref_state_in, ser_traj_in, velocity_scaling_factor, acceleration_scaling_factor, "time_optimal_trajectory_generation",
+                                                 100, 0.01, True, path_tolerance, resample_dt)
         traj_out = RobotTrajectory()
         traj_out.deserialize(ser_traj_out)
         return traj_out
