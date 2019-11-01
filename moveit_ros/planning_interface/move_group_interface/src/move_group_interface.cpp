@@ -488,8 +488,8 @@ public:
     const std::string& eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
 
     // if multiple pose targets are set, return the first one
-    std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
-    if (jt != pose_targets_.end())
+    const auto jt = pose_targets_.find(eef);
+    if (jt != pose_targets_.cend())
       if (!jt->second.empty())
         return jt->second.at(0);
 
@@ -503,8 +503,8 @@ public:
   {
     const std::string& eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
 
-    std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator jt = pose_targets_.find(eef);
-    if (jt != pose_targets_.end())
+    const auto jt = pose_targets_.find(eef);
+    if (jt != pose_targets_.cend())
       if (!jt->second.empty())
         return jt->second;
 
@@ -1018,9 +1018,8 @@ public:
     {
       // find out how many goals are specified
       std::size_t goal_count = 0;
-      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin();
-           it != pose_targets_.end(); ++it)
-        goal_count = std::max(goal_count, it->second.size());
+      for (const auto& pt : pose_targets_)
+        goal_count = std::max(goal_count, pt.second.size());
 
       // start filling the goals;
       // each end effector has a number of possible poses (K) as valid goals
@@ -1028,13 +1027,12 @@ public:
       // to reach the goal that corresponds to the goals of the other end effectors
       request.goal_constraints.resize(goal_count);
 
-      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin();
-           it != pose_targets_.end(); ++it)
+      for (const auto& pt : pose_targets_)
       {
-        for (std::size_t i = 0; i < it->second.size(); ++i)
+        for (std::size_t i = 0; i < pt.second.size(); ++i)
         {
           moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(
-              it->first, it->second[i], goal_position_tolerance_, goal_orientation_tolerance_);
+              pt.first, pt.second[i], goal_position_tolerance_, goal_orientation_tolerance_);
           if (active_target_ == ORIENTATION)
             c.position_constraints.clear();
           if (active_target_ == POSITION)
@@ -1537,12 +1535,12 @@ const std::vector<std::string>& MoveGroupInterface::getLinkNames() const
   return impl_->getJointModelGroup()->getLinkModelNames();
 }
 
-std::map<std::string, double> MoveGroupInterface::getNamedTargetValues(const std::string& name)
+std::map<std::string, double> MoveGroupInterface::getNamedTargetValues(const std::string& name) const
 {
-  std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
   std::map<std::string, double> positions;
 
-  if (it != remembered_joint_values_.end())
+  const auto it = remembered_joint_values_.find(name);
+  if (it != remembered_joint_values_.cend())
   {
     std::vector<std::string> names = impl_->getJointModelGroup()->getVariableNames();
     for (size_t x = 0; x < names.size(); ++x)
