@@ -569,7 +569,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
   move_group_interface_class.def("execute", &MoveGroupInterfaceWrapper::executePython);
   move_group_interface_class.def("async_execute", &MoveGroupInterfaceWrapper::asyncExecutePython);
-  moveit::planning_interface::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) =
+  moveit::planning_interface::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) const =
       &MoveGroupInterfaceWrapper::pick;
   move_group_interface_class.def("pick", pick_1);
   move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasp);

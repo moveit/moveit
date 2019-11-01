@@ -177,7 +177,7 @@ public:
   }
 
   template <typename T>
-  void waitForAction(const T& action, const std::string& name, const ros::WallTime& timeout, double allotted_time)
+  void waitForAction(const T& action, const std::string& name, const ros::WallTime& timeout, double allotted_time) const
   {
     ROS_DEBUG_NAMED("move_group_interface", "Waiting for move_group action server (%s)...", name.c_str());
 
@@ -345,7 +345,7 @@ public:
     max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
   }
 
-  robot_state::RobotState& getTargetRobotState()
+  robot_state::RobotState& getTargetRobotState() const
   {
     return *joint_state_target_;
   }
@@ -360,7 +360,7 @@ public:
     considered_start_state_.reset();
   }
 
-  robot_state::RobotStatePtr getStartState()
+  robot_state::RobotStatePtr getStartState() const
   {
     if (considered_start_state_)
       return considered_start_state_;
@@ -555,7 +555,7 @@ public:
     return true;
   }
 
-  bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds = 1.0)
+  bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds = 1.0) const
   {
     if (!current_state_monitor_)
     {
@@ -578,7 +578,8 @@ public:
   }
 
   /** \brief Convert a vector of PoseStamped to a vector of PlaceLocation */
-  std::vector<moveit_msgs::PlaceLocation> posesToPlaceLocations(const std::vector<geometry_msgs::PoseStamped>& poses)
+  std::vector<moveit_msgs::PlaceLocation>
+  posesToPlaceLocations(const std::vector<geometry_msgs::PoseStamped>& poses) const
   {
     std::vector<moveit_msgs::PlaceLocation> locations;
     for (const geometry_msgs::PoseStamped& pose : poses)
@@ -603,7 +604,7 @@ public:
     return locations;
   }
 
-  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal)
+  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal) const
   {
     if (!place_action_client_)
     {
@@ -634,7 +635,7 @@ public:
     }
   }
 
-  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal)
+  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal) const
   {
     if (!pick_action_client_)
     {
@@ -713,7 +714,7 @@ public:
     return pick(constructPickupGoal(object.id, std::move(response.grasps), plan_only));
   }
 
-  MoveItErrorCode plan(Plan& plan)
+  MoveItErrorCode plan(Plan& plan) const
   {
     if (!move_action_client_)
     {
@@ -752,7 +753,7 @@ public:
     }
   }
 
-  MoveItErrorCode move(bool wait)
+  MoveItErrorCode move(bool wait) const
   {
     if (!move_action_client_)
     {
@@ -795,7 +796,7 @@ public:
     }
   }
 
-  MoveItErrorCode execute(const Plan& plan, bool wait)
+  MoveItErrorCode execute(const Plan& plan, bool wait) const
   {
     if (!execute_action_client_->isServerConnected())
     {
@@ -992,7 +993,7 @@ public:
     return replan_delay_;
   }
 
-  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request)
+  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request) const
   {
     request.group_name = opt_.group_name_;
     request.num_planning_attempts = num_planning_attempts_;
@@ -1051,13 +1052,13 @@ public:
       request.trajectory_constraints = *trajectory_constraints_;
   }
 
-  void constructGoal(moveit_msgs::MoveGroupGoal& goal)
+  void constructGoal(moveit_msgs::MoveGroupGoal& goal) const
   {
     constructMotionPlanRequest(goal.request);
   }
 
   moveit_msgs::PickupGoal constructPickupGoal(const std::string& object, std::vector<moveit_msgs::Grasp>&& grasps,
-                                              bool plan_only = false)
+                                              bool plan_only = false) const
   {
     moveit_msgs::PickupGoal goal;
     goal.target_name = object;
@@ -1084,7 +1085,7 @@ public:
   }
 
   moveit_msgs::PlaceGoal constructPlaceGoal(const std::string& object,
-                                            std::vector<moveit_msgs::PlaceLocation>&& locations, bool plan_only = false)
+                                            std::vector<moveit_msgs::PlaceLocation>&& locations, bool plan_only = false) const
   {
     moveit_msgs::PlaceGoal goal;
     goal.group_name = opt_.group_name_;
@@ -1304,13 +1305,13 @@ MoveGroupInterface::~MoveGroupInterface()
   delete impl_;
 }
 
-MoveGroupInterface::MoveGroupInterface(MoveGroupInterface&& other)
+MoveGroupInterface::MoveGroupInterface(MoveGroupInterface&& other) noexcept
   : remembered_joint_values_(std::move(other.remembered_joint_values_)), impl_(other.impl_)
 {
   other.impl_ = nullptr;
 }
 
-MoveGroupInterface& MoveGroupInterface::operator=(MoveGroupInterface&& other)
+MoveGroupInterface& MoveGroupInterface::operator=(MoveGroupInterface&& other) noexcept
 {
   if (this != &other)
   {
@@ -1328,7 +1329,7 @@ const std::string& MoveGroupInterface::getName() const
   return impl_->getOptions().group_name_;
 }
 
-const std::vector<std::string> MoveGroupInterface::getNamedTargets()
+std::vector<std::string> MoveGroupInterface::getNamedTargets() const
 {
   const robot_model::RobotModelConstPtr& robot = getRobotModel();
   const std::string& group = getName();
@@ -1353,13 +1354,13 @@ const ros::NodeHandle& MoveGroupInterface::getNodeHandle() const
   return impl_->getOptions().node_handle_;
 }
 
-bool MoveGroupInterface::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc)
+bool MoveGroupInterface::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc) const
 {
   return impl_->getInterfaceDescription(desc);
 }
 
 std::map<std::string, std::string> MoveGroupInterface::getPlannerParams(const std::string& planner_id,
-                                                                        const std::string& group)
+                                                                        const std::string& group) const
 {
   return impl_->getPlannerParams(planner_id, group);
 }
@@ -1432,25 +1433,25 @@ MoveItErrorCode MoveGroupInterface::plan(Plan& plan)
 
 moveit_msgs::PickupGoal MoveGroupInterface::constructPickupGoal(const std::string& object,
                                                                 std::vector<moveit_msgs::Grasp> grasps,
-                                                                bool plan_only = false)
+                                                                bool plan_only = false) const
 {
   return impl_->constructPickupGoal(object, std::move(grasps), plan_only);
 }
 
 moveit_msgs::PlaceGoal MoveGroupInterface::constructPlaceGoal(const std::string& object,
                                                               std::vector<moveit_msgs::PlaceLocation> locations,
-                                                              bool plan_only = false)
+                                                              bool plan_only = false) const
 {
   return impl_->constructPlaceGoal(object, std::move(locations), plan_only);
 }
 
 std::vector<moveit_msgs::PlaceLocation>
-MoveGroupInterface::posesToPlaceLocations(const std::vector<geometry_msgs::PoseStamped>& poses)
+MoveGroupInterface::posesToPlaceLocations(const std::vector<geometry_msgs::PoseStamped>& poses) const
 {
   return impl_->posesToPlaceLocations(poses);
 }
 
-MoveItErrorCode MoveGroupInterface::pick(const moveit_msgs::PickupGoal& goal)
+MoveItErrorCode MoveGroupInterface::pick(const moveit_msgs::PickupGoal& goal) const
 {
   return impl_->pick(goal);
 }
@@ -1465,7 +1466,7 @@ MoveItErrorCode MoveGroupInterface::planGraspsAndPick(const moveit_msgs::Collisi
   return impl_->planGraspsAndPick(object, plan_only);
 }
 
-MoveItErrorCode MoveGroupInterface::place(const moveit_msgs::PlaceGoal& goal)
+MoveItErrorCode MoveGroupInterface::place(const moveit_msgs::PlaceGoal& goal) const
 {
   return impl_->place(goal);
 }
@@ -1526,12 +1527,12 @@ void MoveGroupInterface::setRandomTarget()
   impl_->setTargetType(JOINT);
 }
 
-const std::vector<std::string>& MoveGroupInterface::getJointNames()
+const std::vector<std::string>& MoveGroupInterface::getJointNames() const
 {
   return impl_->getJointModelGroup()->getVariableNames();
 }
 
-const std::vector<std::string>& MoveGroupInterface::getLinkNames()
+const std::vector<std::string>& MoveGroupInterface::getLinkNames() const
 {
   return impl_->getJointModelGroup()->getLinkModelNames();
 }
@@ -1966,7 +1967,7 @@ bool MoveGroupInterface::startStateMonitor(double wait)
   return impl_->startStateMonitor(wait);
 }
 
-std::vector<double> MoveGroupInterface::getCurrentJointValues()
+std::vector<double> MoveGroupInterface::getCurrentJointValues() const
 {
   robot_state::RobotStatePtr current_state;
   std::vector<double> values;
@@ -1975,14 +1976,14 @@ std::vector<double> MoveGroupInterface::getCurrentJointValues()
   return values;
 }
 
-std::vector<double> MoveGroupInterface::getRandomJointValues()
+std::vector<double> MoveGroupInterface::getRandomJointValues() const
 {
   std::vector<double> r;
   impl_->getJointModelGroup()->getVariableRandomPositions(impl_->getTargetRobotState().getRandomNumberGenerator(), r);
   return r;
 }
 
-geometry_msgs::PoseStamped MoveGroupInterface::getRandomPose(const std::string& end_effector_link)
+geometry_msgs::PoseStamped MoveGroupInterface::getRandomPose(const std::string& end_effector_link) const
 {
   const std::string& eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
   Eigen::Isometry3d pose;
@@ -2007,7 +2008,7 @@ geometry_msgs::PoseStamped MoveGroupInterface::getRandomPose(const std::string& 
   return pose_msg;
 }
 
-geometry_msgs::PoseStamped MoveGroupInterface::getCurrentPose(const std::string& end_effector_link)
+geometry_msgs::PoseStamped MoveGroupInterface::getCurrentPose(const std::string& end_effector_link) const
 {
   const std::string& eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
   Eigen::Isometry3d pose;
@@ -2031,7 +2032,7 @@ geometry_msgs::PoseStamped MoveGroupInterface::getCurrentPose(const std::string&
   return pose_msg;
 }
 
-std::vector<double> MoveGroupInterface::getCurrentRPY(const std::string& end_effector_link)
+std::vector<double> MoveGroupInterface::getCurrentRPY(const std::string& end_effector_link) const
 {
   std::vector<double> result;
   const std::string& eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
@@ -2073,7 +2074,7 @@ unsigned int MoveGroupInterface::getVariableCount() const
   return impl_->getJointModelGroup()->getVariableCount();
 }
 
-robot_state::RobotStatePtr MoveGroupInterface::getCurrentState(double wait)
+robot_state::RobotStatePtr MoveGroupInterface::getCurrentState(double wait) const
 {
   robot_state::RobotStatePtr current_state;
   impl_->getCurrentState(current_state, wait);
