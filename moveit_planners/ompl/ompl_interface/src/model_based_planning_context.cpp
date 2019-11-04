@@ -506,6 +506,9 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   }
   else
     ROS_ERROR_NAMED("model_based_planning_context", "Unknown planner termination condition");
+
+  // return a planner termination condition to suppress compiler warning
+  return ob::plannerAlwaysTerminatingCondition();
 }
 
 void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
