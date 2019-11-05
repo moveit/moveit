@@ -828,8 +828,7 @@ public:
     }
   }
 
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double step, double jump_threshold,
-                              moveit_msgs::RobotTrajectory& msg, const moveit_msgs::Constraints& path_constraints,
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double step, double jump_threshold,const std::string& algorithm, moveit_msgs::RobotTrajectory& msg, const moveit_msgs::Constraints& path_constraints,
                               bool avoid_collisions, moveit_msgs::MoveItErrorCodes& error_code)
   {
     moveit_msgs::GetCartesianPath::Request req;
@@ -846,6 +845,7 @@ public:
     req.waypoints = waypoints;
     req.max_step = step;
     req.jump_threshold = jump_threshold;
+    req.algorithm = algorithm
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
