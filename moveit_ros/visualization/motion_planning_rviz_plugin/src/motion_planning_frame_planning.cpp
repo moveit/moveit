@@ -135,8 +135,8 @@ bool MotionPlanningFrame::computeCartesianPlan()
 
   // compute trajectory
   moveit_msgs::RobotTrajectory trajectory;
-  double fraction =
-      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, algorithm, trajectory, avoid_collisions);
+  double fraction = move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, algorithm,
+                                                      trajectory, avoid_collisions);
 
   if (fraction >= 1.0)
   {

@@ -161,30 +161,32 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
 
           // time trajectory
           // \todo optionally compute timing to move the eef with constant speed
-          if(!req.algorithm.compare("IterativeparabolicParameterization"))
+          if (!req.algorithm.compare("IterativeparabolicParameterization"))
           {
             trajectory_processing::IterativeParabolicTimeParameterization time_param;
-            ROS_INFO_NAMED(getName(),"IterativeparabolicParameterization initialized");
+            ROS_INFO_NAMED(getName(), "IterativeparabolicParameterization initialized");
             time_param.computeTimeStamps(rt, 1.0);
           }
-          else if(!req.algorithm.compare("IterativeSplineParameterization")){
+          else if (!req.algorithm.compare("IterativeSplineParameterization"))
+          {
             trajectory_processing::IterativeSplineParameterization time_param;
-            ROS_INFO_NAMED(getName(),"IterativeSplineParameterization initialized");
+            ROS_INFO_NAMED(getName(), "IterativeSplineParameterization initialized");
             time_param.computeTimeStamps(rt, 1.0);
-          
-        }
-        else if(!req.algorithm.compare("TimeOptimalTrajectoryGeneration")){
+          }
+          else if (!req.algorithm.compare("TimeOptimalTrajectoryGeneration"))
+          {
             trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
-            ROS_INFO_NAMED(getName(),"TimeOptimalTrajectoryGeneration initialized");
+            ROS_INFO_NAMED(getName(), "TimeOptimalTrajectoryGeneration initialized");
             time_param.computeTimeStamps(rt, 1.0);
-        }
-        else{
+          }
+          else
+          {
             trajectory_processing::IterativeParabolicTimeParameterization time_param;
-            ROS_WARN_NAMED(getName(),"Unknown Time parametrization algorithm specified. Setting it to default algorithm");
-            ROS_INFO_NAMED(getName(),"IterativeparabolicParameterization initialized");
+            ROS_WARN_NAMED(getName(),
+                           "Unknown Time parametrization algorithm specified. Setting it to default algorithm");
+            ROS_INFO_NAMED(getName(), "IterativeparabolicParameterization initialized");
             time_param.computeTimeStamps(rt, 1.0);
-
-        }
+          }
           rt.getRobotTrajectoryMsg(res.solution);
           ROS_INFO_NAMED(getName(), "Computed Cartesian path with %u points (followed %lf%% of requested trajectory)",
                          (unsigned int)traj.size(), res.fraction * 100.0);

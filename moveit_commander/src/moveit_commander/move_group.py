@@ -1,36 +1,36 @@
-# Software License Agreement (BSD License)
+#Software License Agreement(BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
-# All rights reserved.
+#Copyright(c) 2012, Willow Garage, Inc.
+#All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions
+#are met:
 #
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above
-#    copyright notice, this list of conditions and the following
-#    disclaimer in the documentation and/or other materials provided
-#    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
+#* Redistributions of source code must retain the above copyright
+#notice, this list of conditions and the following disclaimer.
+#* Redistributions in binary form must reproduce the above
+#copyright notice, this list of conditions and the following
+#disclaimer in the documentation and / or other materials provided
+#with the distribution.
+#* Neither the name of Willow Garage, Inc.nor the names of its
+#contributors may be used to endorse or promote products derived
+#from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED.IN NO EVENT SHALL THE
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING,
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan, William Baker
+#Author : Ioan Sucan, William Baker
 
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints, RobotState
@@ -292,8 +292,8 @@ class MoveGroupCommander(object):
         """ Get the current pose of the end effector, add value to the corresponding axis (0..5: X, Y, Z, R, P, Y) and set the new pose as the pose target """
         if len(end_effector_link) > 0 or self.has_end_effector_link():
             pose = self._g.get_current_pose(end_effector_link)
-            # by default we get orientation as a quaternion list
-            # if we are updating a rotation axis however, we convert the orientation to RPY
+#by default we get orientation as a quaternion list
+#if we are updating a rotation axis however, we convert the orientation to RPY
             if axis > 2:
                 (r, p, y) = tf.transformations.euler_from_quaternion(pose[3:])
                 pose = [pose[0], pose[1], pose[2], r, p, y]
@@ -495,27 +495,25 @@ class MoveGroupCommander(object):
 
         elif joints is not None:
             try:
-                self.set_joint_value_target(self.get_remembered_joint_values()[joints])
-            except TypeError:
-                self.set_joint_value_target(joints)
-        if wait:
-            return self._g.move()
-        else:
-            return self._g.async_move()
+                self
+  .set_joint_value_target(self.get_remembered_joint_values()[joints]) except TypeError
+      : self.set_joint_value_target(joints) if wait : return self._g.move() else : return self._g
+                                                                                       .async_move()
 
-    def plan(self, joints=None):
-        """ Return a tuple of the motion planning results such as
-            (success flag : boolean, trajectory message : RobotTrajectory,
-             planning time : float, error code : MoveitErrorCodes) """
-        if type(joints) is JointState:
-            self.set_joint_value_target(joints)
+                                                                                           def plan(self, joints = None)
+    : ""
+      " Return a tuple of the motion planning results such as
+    (success flag
+     : boolean, trajectory message
+     : RobotTrajectory, planning time
+     : float, error code
+     : MoveitErrorCodes) ""
+                         "
+    if type(joints) is JointState : self.set_joint_value_target(joints)
 
-        elif type(joints) is Pose:
-            self.set_pose_target(joints)
+                                        elif type(joints) is Pose : self.set_pose_target(joints)
 
-        elif joints is not None:
-            try:
-                self.set_joint_value_target(self.get_remembered_joint_values()[joints])
+                                                                        elif joints is not None : try : self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except MoveItCommanderException:
                 self.set_joint_value_target(joints)
 
@@ -599,4 +597,3 @@ class MoveGroupCommander(object):
     def get_jacobian_matrix(self, joint_values, reference_point=None):
         """ Get the jacobian matrix of the group as a list"""
         return self._g.get_jacobian_matrix(joint_values, [0.0, 0.0, 0.0] if reference_point is None else reference_point)
-

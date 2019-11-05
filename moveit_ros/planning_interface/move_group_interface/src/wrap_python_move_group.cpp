@@ -429,28 +429,32 @@ public:
   }
 
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                       const std::string& algorithm,bool avoid_collisions)
+                                       const std::string& algorithm, bool avoid_collisions)
   {
     moveit_msgs::Constraints path_constraints_tmp;
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, algorithm, avoid_collisions, path_constraints_tmp);
+    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, algorithm, avoid_collisions,
+                                        path_constraints_tmp);
   }
 
   bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                                  const std::string& algorithm, bool avoid_collisions, const std::string& path_constraints_str)
+                                                  const std::string& algorithm, bool avoid_collisions,
+                                                  const std::string& path_constraints_str)
   {
     moveit_msgs::Constraints path_constraints;
     py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, algorithm, avoid_collisions, path_constraints);
+    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, algorithm, avoid_collisions,
+                                        path_constraints);
   }
 
   bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                         const std::string& algorithm,bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
+                                         const std::string& algorithm, bool avoid_collisions,
+                                         const moveit_msgs::Constraints& path_constraints)
   {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    double fraction =
-        computeCartesianPath(poses, eef_step, jump_threshold, algorithm, trajectory, path_constraints, avoid_collisions);
+    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, algorithm, trajectory, path_constraints,
+                                           avoid_collisions);
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
