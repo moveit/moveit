@@ -48,6 +48,8 @@
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
+#include "string"
+
 namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::planButtonClicked()
@@ -129,11 +131,12 @@ bool MotionPlanningFrame::computeCartesianPlan()
   double cart_step_size = 0.01;
   double cart_jump_thresh = 0.0;
   bool avoid_collisions = true;
+  std::string algorithm = "IterativeParabolicTimeParameterization";
 
   // compute trajectory
   moveit_msgs::RobotTrajectory trajectory;
   double fraction =
-      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
+      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, algorithm, trajectory, avoid_collisions);
 
   if (fraction >= 1.0)
   {
