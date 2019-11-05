@@ -845,7 +845,7 @@ public:
     req.waypoints = waypoints;
     req.max_step = step;
     req.jump_threshold = jump_threshold;
-    req.algorithm = algorithm
+    req.algorithm = algorithm;
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
     req.link_name = getEndEffectorLink();
