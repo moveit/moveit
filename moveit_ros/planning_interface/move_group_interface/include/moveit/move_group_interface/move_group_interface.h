@@ -222,8 +222,8 @@ public:
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription& desc) const;
 
   /** \brief Get the planner parameters for given group and planner_id */
-  std::map<std::string, std::string>
-  getPlannerParams(const std::string& planner_id, const std::string& group = "") const;
+  std::map<std::string, std::string> getPlannerParams(const std::string& planner_id,
+                                                      const std::string& group = "") const;
 
   /** \brief Set the planner parameters for given group and planner_id */
   void setPlannerParams(const std::string& planner_id, const std::string& group,
@@ -853,8 +853,7 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible location */
-  MoveItErrorCode place(const std::string& object,
-          const geometry_msgs::PoseStamped& pose, bool plan_only = false) const
+  MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false) const
   {
     return place(constructPlaceGoal(object, posesToPlaceLocations({ pose }), plan_only));
   }

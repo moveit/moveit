@@ -1083,7 +1083,8 @@ public:
   }
 
   moveit_msgs::PlaceGoal constructPlaceGoal(const std::string& object,
-                                            std::vector<moveit_msgs::PlaceLocation>&& locations, bool plan_only = false) const
+                                            std::vector<moveit_msgs::PlaceLocation>&& locations,
+                                            bool plan_only = false) const
   {
     moveit_msgs::PlaceGoal goal;
     goal.group_name = opt_.group_name_;
