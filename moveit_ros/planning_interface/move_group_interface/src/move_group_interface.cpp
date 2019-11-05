@@ -1471,28 +1471,28 @@ MoveItErrorCode MoveGroupInterface::place(const moveit_msgs::PlaceGoal& goal)
 }
 
 double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
-                                                double jump_threshold, moveit_msgs::RobotTrajectory& trajectory,
+                                                double jump_threshold, const std::string& algorithm, moveit_msgs::RobotTrajectory& trajectory,
                                                 bool avoid_collisions, moveit_msgs::MoveItErrorCodes* error_code)
 {
   moveit_msgs::Constraints path_constraints_tmp;
-  return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints_tmp, avoid_collisions,
+  return computeCartesianPath(waypoints, eef_step, jump_threshold, algorithm, trajectory, path_constraints_tmp, avoid_collisions,
                               error_code);
 }
 
 double MoveGroupInterface::computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step,
-                                                double jump_threshold, moveit_msgs::RobotTrajectory& trajectory,
+                                                double jump_threshold, const std::string& algorithm, moveit_msgs::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints, bool avoid_collisions,
                                                 moveit_msgs::MoveItErrorCodes* error_code)
 {
   if (error_code)
   {
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, algorithm, trajectory, path_constraints,
                                        avoid_collisions, *error_code);
   }
   else
   {
     moveit_msgs::MoveItErrorCodes error_code_tmp;
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints,
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, algorithm, trajectory, path_constraints,
                                        avoid_collisions, error_code_tmp);
   }
 }

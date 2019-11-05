@@ -742,8 +742,7 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
-                              const std::string& algorithm,moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold, const std::string& algorithm,moveit_msgs::RobotTrajectory& trajectory, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = NULL);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
@@ -758,8 +757,7 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
      waypoints.
       Return -1.0 in case of error. */
-  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
-                              const std::string& algorithm,moveit_msgs::RobotTrajectory& trajectory,
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold, const std::string& algorithm,moveit_msgs::RobotTrajectory& trajectory,
                               const moveit_msgs::Constraints& path_constraints, bool avoid_collisions = true,
                               moveit_msgs::MoveItErrorCodes* error_code = NULL);
 
