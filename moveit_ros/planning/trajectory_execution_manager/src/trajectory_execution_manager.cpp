@@ -1154,7 +1154,7 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 
   if (!execution_complete_)
   {
-    execution_state_mutex_.lock();
+    boost::mutex::scoped_lock lock(execution_state_mutex_);
     if (!execution_complete_)
     {
       // we call cancel for all active handles; we know these are not being modified as we loop through them because of
@@ -1166,24 +1166,26 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 
       // we set the status here; executePart() will not set status when execution_complete_ is true ahead of time
       last_execution_status_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
-      execution_state_mutex_.unlock();
-      ROS_INFO_NAMED(name_, "Stopped trajectory execution.");
-
       // wait for the execution thread to finish
       execution_thread_->join();
       execution_thread_.reset();
 
+      lock.unlock();
+      ROS_INFO_NAMED(name_, "Stopped trajectory execution.");
+
       if (auto_clear)
         clear();
     }
-    else
-      execution_state_mutex_.unlock();
   }
   else if (execution_thread_)  // just in case we have some thread waiting to be joined from some point in the past, we
                                // join it now
   {
-    execution_thread_->join();
-    execution_thread_.reset();
+    boost::mutex::scoped_lock lock(execution_state_mutex_);
+    if (execution_thread_)
+    {
+      execution_thread_->join();
+      execution_thread_.reset();
+    }
   }
 }
 
@@ -1209,6 +1211,7 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
   }
 
   // start the execution thread
+  boost::unique_lock<boost::mutex> ulock(execution_state_mutex_);
   execution_complete_ = false;
   execution_thread_.reset(
       new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, part_callback, auto_clear));

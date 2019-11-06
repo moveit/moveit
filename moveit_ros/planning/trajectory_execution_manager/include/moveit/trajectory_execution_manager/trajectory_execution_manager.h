@@ -318,8 +318,8 @@ private:
   // thread used to execute trajectories using pushAndExecute()
   std::unique_ptr<boost::thread> continuous_execution_thread_;
 
-  boost::mutex execution_state_mutex_;
-  boost::mutex continuous_execution_mutex_;
+  boost::mutex execution_state_mutex_;       //< protect execution_complete_, active_handles_, execution_thread_
+  boost::mutex continuous_execution_mutex_;  //< protect continuous_execution_queue_
 
   boost::condition_variable continuous_execution_condition_;
 
