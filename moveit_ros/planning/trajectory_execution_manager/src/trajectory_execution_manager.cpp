@@ -1171,8 +1171,7 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
 
       // wait for the execution thread to finish
       boost::mutex::scoped_lock lock(execution_thread_mutex_);
-
-      if (execution_thread_ != nullptr)
+      if (execution_thread_)
       {
         execution_thread_->join();
         execution_thread_.reset();
@@ -1184,12 +1183,11 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
     else
       execution_state_mutex_.unlock();
   }
-  else  // just in case we have some thread waiting to be joined from some point in the past, we
-        // join it now
+  else if (execution_thread_)  // just in case we have some thread waiting to be joined from some point in the past, we
+                               // join it now
   {
     boost::mutex::scoped_lock lock(execution_thread_mutex_);
-
-    if (execution_thread_ != nullptr)
+    if (execution_thread_)
     {
       execution_thread_->join();
       execution_thread_.reset();
