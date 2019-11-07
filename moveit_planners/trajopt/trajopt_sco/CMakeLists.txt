@@ -3,12 +3,16 @@ project(trajopt_sco)
 
 add_compile_options(-std=c++11 -Wall -Wextra)
 
+set(osqp_DIR "/home/omid/osqp/build")
+message(WARNING "osqp_dir ---------------> ${osqp_DIR}")
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 find_package(catkin REQUIRED COMPONENTS trajopt_utils)
 find_package(GUROBI QUIET)
-find_package(osqp QUIET)
+find_package(osqp)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
