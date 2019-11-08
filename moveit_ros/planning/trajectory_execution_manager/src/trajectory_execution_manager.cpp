@@ -1170,8 +1170,12 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
       ROS_INFO_NAMED(name_, "Stopped trajectory execution.");
 
       // wait for the execution thread to finish
-      execution_thread_->join();
-      execution_thread_.reset();
+      boost::mutex::scoped_lock lock(execution_thread_mutex_);
+      if (execution_thread_)
+      {
+        execution_thread_->join();
+        execution_thread_.reset();
+      }
 
       if (auto_clear)
         clear();
@@ -1182,8 +1186,12 @@ void TrajectoryExecutionManager::stopExecution(bool auto_clear)
   else if (execution_thread_)  // just in case we have some thread waiting to be joined from some point in the past, we
                                // join it now
   {
-    execution_thread_->join();
-    execution_thread_.reset();
+    boost::mutex::scoped_lock lock(execution_thread_mutex_);
+    if (execution_thread_)
+    {
+      execution_thread_->join();
+      execution_thread_.reset();
+    }
   }
 }
 
