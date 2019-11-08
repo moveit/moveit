@@ -321,6 +321,7 @@ private:
 
   boost::mutex execution_state_mutex_;
   boost::mutex continuous_execution_mutex_;
+  boost::mutex execution_thread_mutex_;
 
   boost::condition_variable continuous_execution_condition_;
 
