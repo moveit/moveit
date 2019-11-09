@@ -143,6 +143,8 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
+  CFG_EXTRAS
+    Coverage.cmake
     )
 
 
