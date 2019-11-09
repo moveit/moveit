@@ -3,13 +3,23 @@ project(trajopt_sco)
 
 add_compile_options(-std=c++11 -Wall -Wextra)
 
-set(osqp_DIR "/home/omid/osqp/build")
-message(WARNING "osqp_dir ---------------> ${osqp_DIR}")
+include(ExternalProject)
+
+ExternalProject_Add(osqp
+    PREFIX osqp
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=osqp-install
+    # Github tar balls don't code in submodules, so need to
+    # download via git
+    GIT_REPOSITORY https://github.com/oxfordcontrol/osqp.git 
+    GIT_TAG v0.5.0 # currently, not compatible with v0.6.0
+)
+find_package(osqp CONFIG 
+    PATHS "${CMAKE_CURRENT_BINARY_DIR}/osqp/src/osqp-build/osqp-install"
+    NO_DEFAULT_PATH)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 find_package(catkin REQUIRED COMPONENTS trajopt_utils)
 find_package(GUROBI QUIET)
-find_package(osqp)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
 
@@ -28,9 +38,8 @@ set(SCO_SOURCE_FILES
     src/num_diff.cpp
 )
 
-if (NOT APPLE)
-  set (HAVE_BPMPD TRUE)
-endif()
+find_library(BPMPD_LIBRARY bpmpd)
+option(HAVE_BPMPD "Whether the BPMPD library is installed" BPMPD_LIBRARY)
 
 catkin_package(
   INCLUDE_DIRS
@@ -51,12 +60,6 @@ include_directories(
 
 if (HAVE_BPMPD)
   add_executable(bpmpd_caller src/bpmpd_caller.cpp)
-
-  if( CMAKE_SIZEOF_VOID_P EQUAL 8 ) # 64 bits
-        set(BPMPD_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/3rdpartylib/bpmpd_linux64.a")
-  else()
-        set(BPMPD_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/3rdpartylib/bpmpd_linux32.a")
-  endif()
 
   target_link_libraries(bpmpd_caller ${BPMPD_LIBRARY} -static)
   target_compile_options(bpmpd_caller PRIVATE -Wsuggest-override -Wconversion -Wsign-conversion)
