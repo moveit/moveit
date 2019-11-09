@@ -34,8 +34,8 @@ cmake_minimum_required(VERSION 3.3)
 
 include(CMakeDependentOption)
 
-set(COVERAGE_COMPILER_FLAGS  "-g -O0 --coverage" CACHE INTERNAL "")
-set(COVERAGE_LINKER_FLAGS    "--coverage"        CACHE INTERNAL "")
+set(COVERAGE_COMPILER_FLAGS  "--coverage" CACHE INTERNAL "")
+set(COVERAGE_LINKER_FLAGS    "--coverage" CACHE INTERNAL "")
 
 get_property(ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 
