@@ -261,6 +261,31 @@ bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions:
   return true;
 }
 
+bool JogROSInterface::changeControlDimensions(moveit_jog_arm::ChangeControlDimensions::Request& req,
+                                              moveit_jog_arm::ChangeControlDimensions::Response& res)
+{
+  shared_variables_mutex_.lock();
+  if(req.dimensions_to_control.empty()) shared_variables_.control_dimensions.assign(6, true);
+  else if(req.dimensions_to_control.size() != 6)
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Dimensions to control must be size 6, was passed size: " << req.dimensions_to_control.size());
+    shared_variables_mutex_.unlock();
+    res.success = false;
+    return false;
+  }
+  else
+  {
+    for(size_t i=0; i<req.dimensions_to_control.size(); ++i)
+    {
+      shared_variables_.control_dimensions[i] = req.dimensions_to_control[i];
+    }
+  }
+  shared_variables_mutex_.unlock();
+
+  res.success = true;
+  return true;
+}
+
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {

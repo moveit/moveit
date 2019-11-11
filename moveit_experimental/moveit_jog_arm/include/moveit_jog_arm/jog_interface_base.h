@@ -73,6 +73,10 @@ public:
                              moveit_msgs::ChangeDriftDimensions::Response& res);
 
   /** \brief Start the main calculation thread */
+  // Service callback for changing jogging dimensions
+  bool changeControlDimensions(moveit_jog_arm::ChangeControlDimensions::Request& req, moveit_jog_arm::ChangeControlDimensions::Response& res);
+
+  // Jogging calculation thread
   bool startJogCalcThread();
 
   /** \brief Stop the main calculation thread */

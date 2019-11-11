@@ -31,6 +31,9 @@
   <exec_depend>joy_teleop</exec_depend>
   <exec_depend>spacenav_node</exec_depend>
 
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
   <test_depend>rostest</test_depend>
   <test_depend>ros_pytest</test_depend>
   <test_depend>moveit_resources</test_depend>

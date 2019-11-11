@@ -101,6 +101,9 @@ struct JogArmShared : public std::mutex
 
   // Stop jog loop threads - threads are not stopped by default
   std::atomic<bool> stop_requested{ false };
+  
+  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
+  std::vector<bool> control_dimensions{true, true, true, true, true, true};
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

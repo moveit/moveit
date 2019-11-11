@@ -1,0 +1,8 @@
+# Turn on/off jogging along these dimensions.
+# Order matters: [translation-x, translation-y, translation-z, rotation-x, rotation-y, rotation-z]
+# Give 'true' to enable jogging in the direction, 'false' to disable
+# E.g. [true, false, false, true, false, false] would enable jogging in the EEF x translation and roll
+# An empty array enables all control dimensions
+bool[] dimensions_to_control
+---
+bool success
