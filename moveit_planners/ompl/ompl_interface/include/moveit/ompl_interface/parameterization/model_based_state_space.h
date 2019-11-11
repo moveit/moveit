@@ -51,13 +51,13 @@ typedef std::function<double(const ompl::base::State* state1, const ompl::base::
 
 struct ModelBasedStateSpaceSpecification
 {
-  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr& robot_model,
+  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr robot_model,
                                     const robot_model::JointModelGroup* jmg)
     : robot_model_(robot_model), joint_model_group_(jmg)
   {
   }
 
-  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name)
+  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr robot_model, const std::string& group_name)
     : robot_model_(robot_model), joint_model_group_(robot_model_->getJointModelGroup(group_name))
   {
     if (!joint_model_group_)
@@ -200,7 +200,7 @@ public:
 
   ompl::base::StateSamplerPtr allocDefaultStateSampler() const override;
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return spec_.robot_model_;
   }

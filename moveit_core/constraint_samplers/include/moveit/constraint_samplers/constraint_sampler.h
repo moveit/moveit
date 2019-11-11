@@ -72,7 +72,7 @@ public:
    * joint model group cannot be found in the kinematic model
    *
    */
-  ConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name);
+  ConstraintSampler(const planning_scene::PlanningSceneConstPtr scene, const std::string& group_name);
 
   virtual ~ConstraintSampler()
   {
@@ -115,7 +115,7 @@ public:
    *
    * @return The planning scene as a const ptr
    */
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr getPlanningScene() const
   {
     return scene_;
   }

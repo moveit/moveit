@@ -107,17 +107,17 @@ public:
     return query_goal_state_->getState();
   }
 
-  const robot_interaction::RobotInteractionPtr& getRobotInteraction() const
+  const robot_interaction::RobotInteractionPtr getRobotInteraction() const
   {
     return robot_interaction_;
   }
 
-  const robot_interaction::InteractionHandlerPtr& getQueryStartStateHandler() const
+  const robot_interaction::InteractionHandlerPtr getQueryStartStateHandler() const
   {
     return query_start_state_;
   }
 
-  const robot_interaction::InteractionHandlerPtr& getQueryGoalStateHandler() const
+  const robot_interaction::InteractionHandlerPtr getQueryGoalStateHandler() const
   {
     return query_goal_state_;
   }
@@ -220,7 +220,7 @@ protected:
   void setQueryStateHelper(bool use_start_state, const std::string& v);
   void populateMenuHandler(std::shared_ptr<interactive_markers::MenuHandler>& mh);
 
-  void selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg);
+  void selectPlanningGroupCallback(const std_msgs::StringConstPtr msg);
 
   // overrides from Display
   void onInitialize() override;

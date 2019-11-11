@@ -98,7 +98,7 @@ public:
   }
 
   /** \brief Get the planning scene associated to this planning context */
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr getPlanningScene() const
   {
     return planning_scene_;
   }
@@ -110,7 +110,7 @@ public:
   }
 
   /** \brief Set the planning scene for this context */
-  void setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  void setPlanningScene(const planning_scene::PlanningSceneConstPtr planning_scene);
 
   /** \brief Set the planning request for this context */
   void setMotionPlanRequest(const MotionPlanRequest& request);
@@ -163,7 +163,7 @@ public:
   /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed ROS
   /// functionality
   /// or required ROS parameters are namespaced by \e ns
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns);
+  virtual bool initialize(const robot_model::RobotModelConstPtr model, const std::string& ns);
 
   /// Get \brief a short string that identifies the planning interface
   virtual std::string getDescription() const;
@@ -179,12 +179,12 @@ public:
   /// \param planning_scene A const planning scene to use for planning
   /// \param req The representation of the planning request
   /// \param error_code This is where the error is set if constructing the planning context fails
-  virtual PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr planning_scene,
                                                 const MotionPlanRequest& req,
                                                 moveit_msgs::MoveItErrorCodes& error_code) const = 0;
 
   /// \brief Calls the function above but ignores the error_code
-  PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr planning_scene,
                                         const MotionPlanRequest& req) const;
 
   /// \brief Determine whether this plugin instance is able to represent this planning request

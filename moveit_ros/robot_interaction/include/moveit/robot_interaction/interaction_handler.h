@@ -76,19 +76,19 @@ class InteractionHandler : public LockedRobotState
 {
 public:
   // Use this constructor if you have an initial RobotState already.
-  InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
+  InteractionHandler(const RobotInteractionPtr robot_interaction, const std::string& name,
                      const robot_state::RobotState& initial_robot_state,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   // Use this constructor to start with a default state.
-  InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
+  InteractionHandler(const RobotInteractionPtr robot_interaction, const std::string& name,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   // DEPRECATED.
   InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
   // DEPRECATED.
-  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& model,
+  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr model,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   ~InteractionHandler() override
@@ -190,17 +190,17 @@ public:
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
   virtual void handleEndEffector(const EndEffectorInteraction& eef,
-                                 const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+                                 const visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
   virtual void handleJoint(const JointInteraction& vj,
-                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
   virtual void handleGeneric(const GenericInteraction& g,
-                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback);
 
   /** \brief Check if the marker corresponding to this end-effector leads to an
    * invalid state */
@@ -218,7 +218,7 @@ public:
   void clearError(void);
 
 protected:
-  bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback,
+  bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback,
                              const geometry_msgs::Pose& offset, geometry_msgs::PoseStamped& tpose);
 
   const std::string name_;

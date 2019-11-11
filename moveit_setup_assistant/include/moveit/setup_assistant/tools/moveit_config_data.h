@@ -277,7 +277,7 @@ public:
   // ******************************************************************************************
 
   /// Load a robot model
-  void setRobotModel(const moveit::core::RobotModelPtr& robot_model);
+  void setRobotModel(const moveit::core::RobotModelPtr robot_model);
 
   /// Provide a shared kinematic model loader
   robot_model::RobotModelConstPtr getRobotModel();

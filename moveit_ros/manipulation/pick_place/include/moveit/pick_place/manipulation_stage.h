@@ -75,7 +75,7 @@ public:
     signal_stop_ = true;
   }
 
-  virtual bool evaluate(const ManipulationPlanPtr& plan) const = 0;
+  virtual bool evaluate(const ManipulationPlanPtr plan) const = 0;
 
 protected:
   std::string name_;

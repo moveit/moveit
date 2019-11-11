@@ -60,7 +60,7 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  KinematicChainWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  KinematicChainWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   /// Loads the availble data list
   void setAvailable();

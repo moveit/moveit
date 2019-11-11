@@ -71,14 +71,14 @@ public:
 
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
    *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
-  const OccMapTreePtr& getOcTreePtr()
+  const OccMapTreePtr getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  const OccMapTreeConstPtr& getOcTreePtr() const
+  const OccMapTreeConstPtr getOcTreePtr() const
   {
     return tree_const_;
   }
@@ -100,10 +100,10 @@ public:
     return tf_buffer_;
   }
 
-  void addUpdater(const OccupancyMapUpdaterPtr& updater);
+  void addUpdater(const OccupancyMapUpdaterPtr updater);
 
   /** \brief Add this shape to the set of shapes to be filtered out from the octomap */
-  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape);
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr shape);
 
   /** \brief Forget about this shape handle and the shapes it corresponds to */
   void forgetShape(ShapeHandle handle);

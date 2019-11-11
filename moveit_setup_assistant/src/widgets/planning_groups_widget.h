@@ -82,7 +82,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  PlanningGroupsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  PlanningGroupsWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   void changeScreen(int index);
 

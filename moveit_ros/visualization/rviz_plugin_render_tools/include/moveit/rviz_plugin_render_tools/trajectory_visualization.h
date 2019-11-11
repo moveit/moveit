@@ -89,7 +89,7 @@ public:
   virtual void reset();
 
   void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, const ros::NodeHandle& update_nh);
-  void onRobotModelLoaded(const robot_model::RobotModelConstPtr& robot_model);
+  void onRobotModelLoaded(const robot_model::RobotModelConstPtr robot_model);
   void onEnable();
   void onDisable();
   void setName(const QString& name);
@@ -121,7 +121,7 @@ protected:
   /**
    * \brief ROS callback for an incoming path message
    */
-  void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
+  void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr msg);
   float getStateDisplayTime();
   void clearTrajectoryTrail();
 

@@ -84,7 +84,7 @@ public:
   ~RobotModelLoader();
 
   /** @brief Get the constructed planning_models::RobotModel */
-  const robot_model::RobotModelPtr& getModel() const
+  const robot_model::RobotModelPtr getModel() const
   {
     return model_;
   }
@@ -96,33 +96,33 @@ public:
   }
 
   /** @brief Get the parsed URDF model*/
-  const urdf::ModelInterfaceSharedPtr& getURDF() const
+  const urdf::ModelInterfaceSharedPtr getURDF() const
   {
     return rdf_loader_->getURDF();
   }
 
   /** @brief Get the parsed SRDF model*/
-  const srdf::ModelSharedPtr& getSRDF() const
+  const srdf::ModelSharedPtr getSRDF() const
   {
     return rdf_loader_->getSRDF();
   }
 
   /** @brief Get the instance of rdf_loader::RDFLoader that was used to load the robot description */
-  const rdf_loader::RDFLoaderPtr& getRDFLoader() const
+  const rdf_loader::RDFLoaderPtr getRDFLoader() const
   {
     return rdf_loader_;
   }
 
   /** \brief Get the kinematics solvers plugin loader.
       \note This instance needs to be kept in scope, otherwise kinematics solver plugins may get unloaded. */
-  const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader() const
+  const kinematics_plugin_loader::KinematicsPluginLoaderPtr getKinematicsPluginLoader() const
   {
     return kinematics_loader_;
   }
 
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly
    * by the options passed to the constructor */
-  void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr& kloader =
+  void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr kloader =
                                  kinematics_plugin_loader::KinematicsPluginLoaderPtr());
 
 private:

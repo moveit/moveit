@@ -68,7 +68,7 @@ public:
    * @brief A (simple) semantic world representation for pick and place and other tasks.
    * Currently this is used only to represent tables.
    */
-  SemanticWorld(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  SemanticWorld(const planning_scene::PlanningSceneConstPtr planning_scene);
 
   /**
    * @brief Get all the tables within a region of interest
@@ -88,7 +88,7 @@ public:
    * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const std::string& table_name,
-                                                             const shapes::ShapeConstPtr& object_shape,
+                                                             const shapes::ShapeConstPtr object_shape,
                                                              const geometry_msgs::Quaternion& object_orientation,
                                                              double resolution, double delta_height = 0.01,
                                                              unsigned int num_heights = 2) const;
@@ -99,7 +99,7 @@ public:
    * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table& table,
-                                                             const shapes::ShapeConstPtr& object_shape,
+                                                             const shapes::ShapeConstPtr object_shape,
                                                              const geometry_msgs::Quaternion& object_orientation,
                                                              double resolution, double delta_height = 0.01,
                                                              unsigned int num_heights = 2) const;
@@ -137,7 +137,7 @@ private:
 
   shapes::Mesh* orientPlanarPolygon(const shapes::Mesh& polygon) const;
 
-  void tableCallback(const object_recognition_msgs::TableArrayPtr& msg);
+  void tableCallback(const object_recognition_msgs::TableArrayPtr msg);
 
   void transformTableArray(object_recognition_msgs::TableArray& table_array) const;
 

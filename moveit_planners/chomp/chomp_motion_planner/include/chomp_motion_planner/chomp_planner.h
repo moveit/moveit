@@ -49,7 +49,7 @@ public:
   ChompPlanner() = default;
   virtual ~ChompPlanner() = default;
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene,
              const planning_interface::MotionPlanRequest& req, const ChompParameters& params,
              planning_interface::MotionPlanDetailedResponse& res) const;
 };

@@ -65,7 +65,7 @@ public:
   {
   }
 
-  void setContext(const MoveGroupContextPtr& context);
+  void setContext(const MoveGroupContextPtr context);
 
   virtual void initialize() = 0;
 
@@ -82,7 +82,7 @@ protected:
   void convertToMsg(const std::vector<plan_execution::ExecutableTrajectory>& trajectory,
                     moveit_msgs::RobotState& first_state_msg,
                     std::vector<moveit_msgs::RobotTrajectory>& trajectory_msg) const;
-  void convertToMsg(const robot_trajectory::RobotTrajectoryPtr& trajectory, moveit_msgs::RobotState& first_state_msg,
+  void convertToMsg(const robot_trajectory::RobotTrajectoryPtr trajectory, moveit_msgs::RobotState& first_state_msg,
                     moveit_msgs::RobotTrajectory& trajectory_msg) const;
   void convertToMsg(const std::vector<plan_execution::ExecutableTrajectory>& trajectory,
                     moveit_msgs::RobotState& first_state_msg, moveit_msgs::RobotTrajectory& trajectory_msg) const;

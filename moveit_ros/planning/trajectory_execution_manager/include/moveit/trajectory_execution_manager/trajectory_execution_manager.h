@@ -81,12 +81,12 @@ public:
   };
 
   /// Load the controller manager plugin, start listening for events on a topic.
-  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm);
+  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr robot_model,
+                             const planning_scene_monitor::CurrentStateMonitorPtr csm);
 
   /// Load the controller manager plugin, start listening for events on a topic.
-  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
-                             const planning_scene_monitor::CurrentStateMonitorPtr& csm, bool manage_controllers);
+  TrajectoryExecutionManager(const robot_model::RobotModelConstPtr robot_model,
+                             const planning_scene_monitor::CurrentStateMonitorPtr csm, bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
   ~TrajectoryExecutionManager();
@@ -95,7 +95,7 @@ public:
   bool isManagingControllers() const;
 
   /// Get the instance of the controller manager used (this is the plugin instance loaded)
-  const moveit_controller_manager::MoveItControllerManagerPtr& getControllerManager() const;
+  const moveit_controller_manager::MoveItControllerManagerPtr getControllerManager() const;
 
   /** \brief Execute a named event (e.g., 'stop') */
   void processEvent(const std::string& event);
@@ -296,7 +296,7 @@ private:
 
   void stopExecutionInternal();
 
-  void receiveEvent(const std_msgs::StringConstPtr& event);
+  void receiveEvent(const std_msgs::StringConstPtr event);
 
   void loadControllerParams();
 

@@ -99,7 +99,7 @@ typedef boost::function<bool(const robot_state::RobotState& state, visualization
 ///           is somehow invalid or erronious (e.g. in collision).  true if
 ///           everything worked well.
 typedef boost::function<bool(robot_state::RobotState& state,
-                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)>
+                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr feedback)>
     ProcessFeedbackFn;
 
 /// Type of function for updating marker pose for new state.

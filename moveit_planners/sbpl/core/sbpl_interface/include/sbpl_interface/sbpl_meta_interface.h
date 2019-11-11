@@ -45,12 +45,12 @@ namespace sbpl_interface
 class SBPLMetaInterface
 {
 public:
-  SBPLMetaInterface(const planning_models::RobotModelConstPtr& robot_model);
+  SBPLMetaInterface(const planning_models::RobotModelConstPtr robot_model);
   virtual ~SBPLMetaInterface()
   {
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene,
              const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res);
 
   const PlanningStatistics& getLastPlanningStatistics() const
@@ -59,7 +59,7 @@ public:
   }
 
 protected:
-  void runSolver(bool use_first, const planning_scene::PlanningSceneConstPtr& planning_scene,
+  void runSolver(bool use_first, const planning_scene::PlanningSceneConstPtr planning_scene,
                  const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
                  const PlanningParameters& params);
 

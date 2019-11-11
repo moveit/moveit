@@ -51,10 +51,10 @@ public:
   void initialize() override;
 
 private:
-  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal);
-  void executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal,
+  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr goal);
+  void executeMoveCallbackPlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr goal,
                                          moveit_msgs::MoveGroupResult& action_res);
-  void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
+  void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupGoalConstPtr goal,
                                    moveit_msgs::MoveGroupResult& action_res);
   void startMoveExecutionCallback();
   void startMoveLookCallback();

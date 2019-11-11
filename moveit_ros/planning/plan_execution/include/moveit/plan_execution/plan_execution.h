@@ -88,16 +88,16 @@ public:
     boost::function<void()> done_callback_;
   };
 
-  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
+  PlanExecution(const planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor,
+                const trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution);
   ~PlanExecution();
 
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor() const
+  const planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor() const
   {
     return planning_scene_monitor_;
   }
 
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }

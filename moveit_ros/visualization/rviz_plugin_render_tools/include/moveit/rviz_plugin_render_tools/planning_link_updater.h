@@ -45,7 +45,7 @@ namespace moveit_rviz_plugin
 class PlanningLinkUpdater : public rviz::LinkUpdater
 {
 public:
-  PlanningLinkUpdater(const robot_state::RobotStateConstPtr& state) : kinematic_state_(state)
+  PlanningLinkUpdater(const robot_state::RobotStateConstPtr state) : kinematic_state_(state)
   {
   }
 

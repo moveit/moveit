@@ -49,7 +49,7 @@ MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);
 class PlanningRequestAdapter
 {
 public:
-  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr planning_scene,
                                const planning_interface::MotionPlanRequest& req,
                                planning_interface::MotionPlanResponse& res)>
       PlannerFn;
@@ -72,13 +72,13 @@ public:
     return "";
   }
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool adaptAndPlan(const planning_interface::PlannerManagerPtr planner,
+                    const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res) const;
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool adaptAndPlan(const planning_interface::PlannerManagerPtr planner,
+                    const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t>& added_path_index) const;
 
@@ -87,7 +87,7 @@ public:
       needed. If the response is changed, the index values of the
       states added without planning are added to \e
       added_path_index */
-  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr planning_scene,
                             const planning_interface::MotionPlanRequest& req,
                             planning_interface::MotionPlanResponse& res,
                             std::vector<std::size_t>& added_path_index) const = 0;
@@ -101,18 +101,18 @@ public:
   {
   }
 
-  void addAdapter(const PlanningRequestAdapterConstPtr& adapter)
+  void addAdapter(const PlanningRequestAdapterConstPtr adapter)
   {
     adapters_.push_back(adapter);
   }
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool adaptAndPlan(const planning_interface::PlannerManagerPtr planner,
+                    const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res) const;
 
-  bool adaptAndPlan(const planning_interface::PlannerManagerPtr& planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool adaptAndPlan(const planning_interface::PlannerManagerPtr planner,
+                    const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t>& added_path_index) const;
 

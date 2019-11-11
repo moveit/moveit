@@ -46,10 +46,10 @@ namespace collision_detection
 class CollisionEnvAllValid : public CollisionEnv
 {
 public:
-  CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model, double padding = 0.0, double scale = 1.0);
-  CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model, const WorldPtr& world, double padding = 0.0,
+  CollisionEnvAllValid(const robot_model::RobotModelConstPtr robot_model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvAllValid(const robot_model::RobotModelConstPtr robot_model, const WorldPtr world, double padding = 0.0,
                        double scale = 1.0);
-  CollisionEnvAllValid(const CollisionEnv& other, const WorldPtr& world);
+  CollisionEnvAllValid(const CollisionEnv& other, const WorldPtr world);
 
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                            const robot_state::RobotState& state) const override;

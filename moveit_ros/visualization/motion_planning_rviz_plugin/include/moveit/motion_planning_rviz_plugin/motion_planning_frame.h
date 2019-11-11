@@ -236,7 +236,7 @@ private:
   void goalStateTextChangedExec(const std::string& goal_state);
 
   // Scene objects tab
-  void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
+  void addObject(const collision_detection::WorldPtr world, const std::string& id, const shapes::ShapeConstPtr shape,
                  const Eigen::Isometry3d& pose);
   void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();
@@ -284,7 +284,7 @@ private:
   template <typename T>
   void waitForAction(const T& action, const ros::NodeHandle& node_handle, const ros::Duration& wait_for_server,
                      const std::string& name);
-  void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& msg);
+  void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr msg);
   ros::Subscriber object_recognition_subscriber_;
 
   ros::Subscriber plan_subscriber_;
@@ -299,13 +299,13 @@ private:
   void importResource(const std::string& path);
   void loadStoredStates(const std::string& pattern);
 
-  void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteExecuteCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteStopCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
-  void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
+  void remotePlanCallback(const std_msgs::EmptyConstPtr msg);
+  void remoteExecuteCallback(const std_msgs::EmptyConstPtr msg);
+  void remoteStopCallback(const std_msgs::EmptyConstPtr msg);
+  void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr msg);
+  void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr msg);
+  void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr msg);
+  void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr msg);
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);

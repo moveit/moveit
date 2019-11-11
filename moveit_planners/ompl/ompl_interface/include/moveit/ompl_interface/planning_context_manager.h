@@ -135,7 +135,7 @@ public:
     minimum_waypoint_count_ = mwc;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -143,7 +143,7 @@ public:
   ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
                                                   const std::string& factory_type = "") const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr planning_scene,
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const;
 
@@ -152,7 +152,7 @@ public:
     known_planners_[planner_id] = pa;
   }
 
-  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr& factory)
+  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr factory)
   {
     state_space_factories_[factory->getType()] = factory;
   }
@@ -170,7 +170,7 @@ public:
   ConfiguredPlannerSelector getPlannerSelector() const;
 
 protected:
-  typedef std::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
+  typedef std::function<const ModelBasedStateSpaceFactoryPtr(const std::string&)> StateSpaceFactoryTypeSelector;
 
   ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
 
@@ -182,9 +182,9 @@ protected:
                                                   const StateSpaceFactoryTypeSelector& factory_selector,
                                                   const moveit_msgs::MotionPlanRequest& req) const;
 
-  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string& group_name,
+  const ModelBasedStateSpaceFactoryPtr getStateSpaceFactory1(const std::string& group_name,
                                                               const std::string& factory_type) const;
-  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
+  const ModelBasedStateSpaceFactoryPtr getStateSpaceFactory2(const std::string& group_name,
                                                               const moveit_msgs::MotionPlanRequest& req) const;
 
   /** \brief The kinematic model for which motion plans are computed */

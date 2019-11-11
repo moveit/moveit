@@ -152,7 +152,7 @@ struct CollisionData
   }
 
   /** \brief Compute \e active_components_only_ based on the joint group specified in \e req_ */
-  void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
+  void enableGroup(const robot_model::RobotModelConstPtr robot_model);
 
   /** \brief The collision request passed by the user */
   const CollisionRequest* req_;
@@ -285,28 +285,28 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
 /** \brief Create new FCLGeometry object out of robot link model. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, const robot_model::LinkModel* link,
                                             int shape_index);
 
 /** \brief Create new FCLGeometry object out of attached body. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_state::AttachedBody* ab,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, const robot_state::AttachedBody* ab,
                                             int shape_index);
 
 /** \brief Create new FCLGeometry object out of a world object.
  *
  *  A world object always consists only of a single shape, therefore we don't need the \e shape_index. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, const World::Object* obj);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of robot link model. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, double scale, double padding,
                                             const robot_model::LinkModel* link, int shape_index);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of an attached body. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, double scale, double padding,
                                             const robot_state::AttachedBody* ab, int shape_index);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of an world object. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr shape, double scale, double padding,
                                             const World::Object* obj);
 
 /** \brief Increases the counter of the caches which can trigger the cleaning of expired entries from them. */

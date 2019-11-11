@@ -171,11 +171,11 @@ public:
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
-  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr shape, const Eigen::Isometry3d& pose);
 
   /** \brief Update the pose of a shape in an object. Shape equality is
    * verified by comparing pointers. Returns true on success. */
-  bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+  bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr shape,
                          const Eigen::Isometry3d& pose);
 
   /** \brief Move all shapes in an object according to the given transform specified in world frame */
@@ -187,7 +187,7 @@ public:
    * exist) if this was the last shape in the object.
    * Returns true on success and false if the object did not exist or did not
    * contain the shape. */
-  bool removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape);
+  bool removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr shape);
 
   /** \brief Remove a particular object.
    * If there are no external pointers to the corresponding instance of
@@ -253,7 +253,7 @@ public:
     friend class World;
   };
 
-  typedef boost::function<void(const ObjectConstPtr&, Action)> ObserverCallbackFn;
+  typedef boost::function<void(const ObjectConstPtr, Action)> ObserverCallbackFn;
 
   /** \brief register a callback function for notification of changes.
    * \e callback will be called right after any change occurs to any Object.
@@ -270,7 +270,7 @@ public:
 
 private:
   /** notify all observers of a change */
-  void notify(const ObjectConstPtr&, Action);
+  void notify(const ObjectConstPtr, Action);
 
   /** send notification of change to all objects. */
   void notifyAll(Action action);
@@ -278,10 +278,10 @@ private:
   /** \brief Make sure that the object named \e id is known only to this
    * instance of the World. If the object is known outside of it, a
    * clone is made so that it can be safely modified later on. */
-  void ensureUnique(ObjectPtr& obj);
+  void ensureUnique(ObjectPtr obj);
 
   /* Add a shape with no checking */
-  virtual void addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
+  virtual void addToObjectInternal(const ObjectPtr obj, const shapes::ShapeConstPtr shape,
                                    const Eigen::Isometry3d& pose);
 
   /** The objects maintained in the world */

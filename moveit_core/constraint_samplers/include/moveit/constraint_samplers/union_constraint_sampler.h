@@ -94,7 +94,7 @@ public:
    *
    * @return
    */
-  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr scene, const std::string& group_name,
                          const std::vector<ConstraintSamplerPtr>& samplers);
 
   /**

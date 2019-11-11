@@ -44,14 +44,14 @@ namespace sbpl_interface
 class SBPLInterface
 {
 public:
-  SBPLInterface(const planning_models::RobotModelConstPtr& robot_model)
+  SBPLInterface(const planning_models::RobotModelConstPtr robot_model)
   {
   }
   virtual ~SBPLInterface()
   {
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene,
              const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
              const PlanningParameters& params) const;
 

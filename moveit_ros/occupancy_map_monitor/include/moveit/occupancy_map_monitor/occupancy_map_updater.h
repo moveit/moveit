@@ -78,7 +78,7 @@ public:
 
   virtual void stop() = 0;
 
-  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) = 0;
+  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr shape) = 0;
 
   virtual void forgetShape(ShapeHandle handle) = 0;
 

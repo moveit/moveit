@@ -66,7 +66,7 @@ public:
    * joint model group cannot be found in the kinematic model
    *
    */
-  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name)
+  JointConstraintSampler(const planning_scene::PlanningSceneConstPtr scene, const std::string& group_name)
     : ConstraintSampler(scene, group_name)
   {
   }
@@ -251,7 +251,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc);
+  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr pc);
 
   /**
    * \brief Constructor that takes a pointer to a orientation constraint.
@@ -260,7 +260,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc);
+  IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr oc);
 
   /**
    * \brief Constructor that takes a pointer to both position and orientation constraints.
@@ -270,8 +270,8 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
-                 const kinematic_constraints::OrientationConstraintPtr& oc);
+  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr pc,
+                 const kinematic_constraints::OrientationConstraintPtr oc);
 
   kinematic_constraints::PositionConstraintPtr position_constraint_; /**< \brief Holds the position constraint for
                                                                         sampling */
@@ -302,7 +302,7 @@ public:
    * joint model group cannot be found in the kinematic model
    *
    */
-  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name)
+  IKConstraintSampler(const planning_scene::PlanningSceneConstPtr scene, const std::string& group_name)
     : ConstraintSampler(scene, group_name)
   {
   }
@@ -386,7 +386,7 @@ public:
    *
    * @return The position constraint, or an empty shared_ptr if none has been specified
    */
-  const kinematic_constraints::PositionConstraintPtr& getPositionConstraint() const
+  const kinematic_constraints::PositionConstraintPtr getPositionConstraint() const
   {
     return sampling_pose_.position_constraint_;
   }
@@ -396,7 +396,7 @@ public:
    *
    * @return The orientation constraint, or an empty shared_ptr if none has been specified
    */
-  const kinematic_constraints::OrientationConstraintPtr& getOrientationConstraint() const
+  const kinematic_constraints::OrientationConstraintPtr getOrientationConstraint() const
   {
     return sampling_pose_.orientation_constraint_;
   }

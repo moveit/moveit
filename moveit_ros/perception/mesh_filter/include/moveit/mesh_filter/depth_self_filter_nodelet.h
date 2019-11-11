@@ -73,7 +73,7 @@ private:
    * \brief main filtering routine
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void filter(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
+  void filter(const sensor_msgs::ImageConstPtr depth_msg, const sensor_msgs::CameraInfoConstPtr info_msg);
 
   /**
    * \brief Callback for connection/deconnection of listener
@@ -87,7 +87,7 @@ private:
    * @param depth_msg depth image
    * @param info_msg camera information containing parameters frame, etc.
    */
-  void depthCb(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
+  void depthCb(const sensor_msgs::ImageConstPtr depth_msg, const sensor_msgs::CameraInfoConstPtr info_msg);
 
 private:
   // member variables to handle ros messages

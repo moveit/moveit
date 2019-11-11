@@ -53,10 +53,10 @@ MOVEIT_CLASS_FORWARD(PlanWithSensing);
 class PlanWithSensing
 {
 public:
-  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
+  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution);
   ~PlanWithSensing();
 
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }

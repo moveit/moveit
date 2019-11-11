@@ -45,7 +45,7 @@ namespace collision_detection
 class CollisionRobotDistanceFieldROS : public CollisionRobotDistanceField
 {
 public:
-  CollisionRobotDistanceFieldROS(const planning_models::RobotModelConstPtr& robot_model, double size_x = DEFAULT_SIZE_X,
+  CollisionRobotDistanceFieldROS(const planning_models::RobotModelConstPtr robot_model, double size_x = DEFAULT_SIZE_X,
                                  double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
                                  bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                                  double resolution = DEFAULT_RESOLUTION,

@@ -49,12 +49,12 @@ typedef std::function<bool(const ompl::base::State*, const ompl::base::State*)> 
 
 struct ConstraintApproximation
 {
-  ConstraintApproximation(const planning_models::RobotModelConstPtr& kinematic_model, const std::string& group,
+  ConstraintApproximation(const planning_models::RobotModelConstPtr kinematic_model, const std::string& group,
                           const std::string& factory, const std::string& serialization, const std::string& filename,
-                          const ompl::base::StateStoragePtr& storage);
-  ConstraintApproximation(const planning_models::RobotModelConstPtr& kinematic_model, const std::string& group,
+                          const ompl::base::StateStoragePtr storage);
+  ConstraintApproximation(const planning_models::RobotModelConstPtr kinematic_model, const std::string& group,
                           const std::string& factory, const moveit_msgs::Constraints& msg, const std::string& filename,
-                          const ompl::base::StateStoragePtr& storage);
+                          const ompl::base::StateStoragePtr storage);
 
   void visualizeDistribution(const std::string& link_name, unsigned int count,
                              visualization_msgs::MarkerArray& arr) const;

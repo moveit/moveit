@@ -67,7 +67,7 @@ class RobotModel
 {
 public:
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
-  RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model);
+  RobotModel(const urdf::ModelInterfaceSharedPtr urdf_model, const srdf::ModelConstSharedPtr srdf_model);
 
   /** \brief Destructor. Clear all memory. */
   ~RobotModel();
@@ -94,13 +94,13 @@ public:
   }
 
   /** \brief Get the parsed URDF model */
-  const urdf::ModelInterfaceSharedPtr& getURDF() const
+  const urdf::ModelInterfaceSharedPtr getURDF() const
   {
     return urdf_;
   }
 
   /** \brief Get the parsed SRDF model */
-  const srdf::ModelConstSharedPtr& getSRDF() const
+  const srdf::ModelConstSharedPtr getSRDF() const
   {
     return srdf_;
   }

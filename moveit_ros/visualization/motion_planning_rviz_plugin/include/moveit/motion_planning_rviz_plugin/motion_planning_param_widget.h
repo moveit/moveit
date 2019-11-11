@@ -56,7 +56,7 @@ public:
   MotionPlanningParamWidget(QWidget* parent = 0);
   ~MotionPlanningParamWidget() override;
 
-  void setMoveGroup(const moveit::planning_interface::MoveGroupInterfacePtr& mg);
+  void setMoveGroup(const moveit::planning_interface::MoveGroupInterfacePtr mg);
   void setGroupName(const std::string& group_name);
 
 public Q_SLOTS:

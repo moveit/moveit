@@ -56,7 +56,7 @@ MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
 MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
-typedef std::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
+typedef std::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr si, const std::string& name,
                                      const ModelBasedPlanningContextSpecification& spec)>
     ConfiguredPlannerAllocator;
 typedef std::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
@@ -103,7 +103,7 @@ public:
     spec_.config_ = config;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return spec_.state_space_->getRobotModel();
   }
@@ -118,17 +118,17 @@ public:
     return complete_initial_robot_state_;
   }
 
-  const ModelBasedStateSpacePtr& getOMPLStateSpace() const
+  const ModelBasedStateSpacePtr getOMPLStateSpace() const
   {
     return spec_.state_space_;
   }
 
-  const og::SimpleSetupPtr& getOMPLSimpleSetup() const
+  const og::SimpleSetupPtr getOMPLSimpleSetup() const
   {
     return ompl_simple_setup_;
   }
 
-  og::SimpleSetupPtr& getOMPLSimpleSetup()
+  og::SimpleSetupPtr getOMPLSimpleSetup()
   {
     return ompl_simple_setup_;
   }
@@ -143,7 +143,7 @@ public:
     return ompl_benchmark_;
   }
 
-  const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints() const
+  const kinematic_constraints::KinematicConstraintSetPtr getPathConstraints() const
   {
     return path_constraints_;
   }
@@ -219,12 +219,12 @@ public:
     minimum_waypoint_count_ = mwc;
   }
 
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
+  const constraint_samplers::ConstraintSamplerManagerPtr getConstraintSamplerManager()
   {
     return spec_.constraint_sampler_manager_;
   }
 
-  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr& csm)
+  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr csm)
   {
     spec_.constraint_sampler_manager_ = csm;
   }
@@ -241,7 +241,7 @@ public:
                           const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
   bool setPathConstraints(const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
 
-  void setConstraintsApproximations(const ConstraintsLibraryConstPtr& constraints_library)
+  void setConstraintsApproximations(const ConstraintsLibraryConstPtr constraints_library)
   {
     spec_.constraints_library_ = constraints_library;
   }

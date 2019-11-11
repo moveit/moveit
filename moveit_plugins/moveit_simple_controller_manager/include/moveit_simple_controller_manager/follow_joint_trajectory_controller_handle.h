@@ -66,11 +66,11 @@ protected:
                                                     const std::string& name);
 
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::FollowJointTrajectoryResultConstPtr& result);
+                              const control_msgs::FollowJointTrajectoryResultConstPtr result);
 
   void controllerActiveCallback();
 
-  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
+  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr feedback);
 
   control_msgs::FollowJointTrajectoryGoal goal_template_;
 };

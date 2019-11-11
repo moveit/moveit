@@ -64,7 +64,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  SimulationWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  SimulationWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
 private Q_SLOTS:
 

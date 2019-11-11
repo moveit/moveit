@@ -44,7 +44,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const robot_state::RobotStateConstPtr& state, const ros::Time& stamp)>
+typedef boost::function<void(const robot_state::RobotStateConstPtr state, const ros::Time& stamp)>
     TrajectoryStateAddedCallback;
 
 MOVEIT_CLASS_FORWARD(TrajectoryMonitor);
@@ -56,7 +56,7 @@ class TrajectoryMonitor
 public:
   /** @brief Constructor.
    */
-  TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor, double sampling_frequency = 0.0);
+  TrajectoryMonitor(const CurrentStateMonitorConstPtr state_monitor, double sampling_frequency = 0.0);
 
   ~TrajectoryMonitor();
 

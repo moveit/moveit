@@ -57,13 +57,13 @@ public:
   /**
    * \brief Constructs a trajectory for a given robot model, trajectory duration, and discretization
    */
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration, double discretization,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr robot_model, double duration, double discretization,
                   const std::string& group_name);
 
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, size_t num_points, double discretization,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr robot_model, size_t num_points, double discretization,
                   const std::string& group_name);
 
   /**
@@ -72,7 +72,7 @@ public:
    */
   ChompTrajectory(const ChompTrajectory& source_traj, const std::string& group_name, int diff_rule_length);
 
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr robot_model, const std::string& group_name,
                   const trajectory_msgs::JointTrajectory& traj);
 
   /**

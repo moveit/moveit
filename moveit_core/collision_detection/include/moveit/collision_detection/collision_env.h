@@ -58,18 +58,18 @@ public:
    *  @param padding The padding to use for all objects/links on the robot
    *  @scale scale A common scaling to use for all objects/links on the robot
    */
-  CollisionEnv(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnv(const robot_model::RobotModelConstPtr model, double padding = 0.0, double scale = 1.0);
 
   /** @brief Constructor
    *  @param model A robot model to construct the collision robot from
    *  @param padding The padding to use for all objects/links on the robot
    *  @scale scale A common scaling to use for all objects/links on the robot
    */
-  CollisionEnv(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+  CollisionEnv(const robot_model::RobotModelConstPtr model, const WorldPtr world, double padding = 0.0,
                double scale = 1.0);
 
   /** \brief Copy constructor */
-  CollisionEnv(const CollisionEnv& other, const WorldPtr& world);
+  CollisionEnv(const CollisionEnv& other, const WorldPtr world);
 
   virtual ~CollisionEnv()
   {
@@ -234,16 +234,16 @@ public:
   /** set the world to use.
    * This can be expensive unless the new and old world are empty.
    * Passing NULL will result in a new empty world being created. */
-  virtual void setWorld(const WorldPtr& world);
+  virtual void setWorld(const WorldPtr world);
 
   /** access the world geometry */
-  const WorldPtr& getWorld()
+  const WorldPtr getWorld()
   {
     return world_;
   }
 
   /** access the world geometry */
-  const WorldConstPtr& getWorld() const
+  const WorldConstPtr getWorld() const
   {
     return world_const_;
   }
@@ -252,7 +252,7 @@ public:
   typedef World::ObjectConstPtr ObjectConstPtr;
 
   /** @brief The kinematic model corresponding to this collision model*/
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }

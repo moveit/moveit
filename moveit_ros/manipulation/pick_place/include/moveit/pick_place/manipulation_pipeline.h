@@ -66,9 +66,9 @@ public:
     empty_queue_callback_ = callback;
   }
 
-  ManipulationPipeline& addStage(const ManipulationStagePtr& next);
-  const ManipulationStagePtr& getFirstStage() const;
-  const ManipulationStagePtr& getLastStage() const;
+  ManipulationPipeline& addStage(const ManipulationStagePtr next);
+  const ManipulationStagePtr getFirstStage() const;
+  const ManipulationStagePtr getLastStage() const;
   void reset();
 
   void setVerbose(bool flag);
@@ -77,7 +77,7 @@ public:
   void start();
   void stop();
 
-  void push(const ManipulationPlanPtr& grasp);
+  void push(const ManipulationPlanPtr grasp);
   void clear();
 
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const

@@ -92,7 +92,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  KinematicConstraint(const robot_model::RobotModelConstPtr& model);
+  KinematicConstraint(const robot_model::RobotModelConstPtr model);
   virtual ~KinematicConstraint();
 
   /** \brief Clear the stored constraint */
@@ -166,7 +166,7 @@ public:
    *
    * @return The kinematic model associated with this constraint
    */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -207,7 +207,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  JointConstraint(const robot_model::RobotModelConstPtr& model)
+  JointConstraint(const robot_model::RobotModelConstPtr model)
     : KinematicConstraint(model), joint_model_(NULL), joint_variable_index_(-1)
   {
     type_ = JOINT_CONSTRAINT;
@@ -355,7 +355,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  OrientationConstraint(const robot_model::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(NULL)
+  OrientationConstraint(const robot_model::RobotModelConstPtr model) : KinematicConstraint(model), link_model_(NULL)
   {
     type_ = ORIENTATION_CONSTRAINT;
   }
@@ -512,7 +512,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  PositionConstraint(const robot_model::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(NULL)
+  PositionConstraint(const robot_model::RobotModelConstPtr model) : KinematicConstraint(model), link_model_(NULL)
   {
     type_ = POSITION_CONSTRAINT;
   }
@@ -757,7 +757,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  VisibilityConstraint(const robot_model::RobotModelConstPtr& model);
+  VisibilityConstraint(const robot_model::RobotModelConstPtr model);
 
   /**
    * \brief Configure the constraint based on a
@@ -868,7 +868,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  KinematicConstraintSet(const robot_model::RobotModelConstPtr& model) : robot_model_(model)
+  KinematicConstraintSet(const robot_model::RobotModelConstPtr model) : robot_model_(model)
   {
   }
 

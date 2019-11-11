@@ -72,7 +72,7 @@ public:
   /**
    * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  StartScreenWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   ~StartScreenWidget() override;
 

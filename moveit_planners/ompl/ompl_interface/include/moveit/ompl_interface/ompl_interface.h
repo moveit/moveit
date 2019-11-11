@@ -57,13 +57,13 @@ class OMPLInterface
 public:
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
    * NodeHandle */
-  OMPLInterface(const robot_model::RobotModelConstPtr& robot_model, const ros::NodeHandle& nh = ros::NodeHandle("~"));
+  OMPLInterface(const robot_model::RobotModelConstPtr robot_model, const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
      NodeHandle. However,
       planner configurations are used as specified in \e pconfig instead of reading them from the ROS parameter server
      */
-  OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
+  OMPLInterface(const robot_model::RobotModelConstPtr robot_model,
                 const planning_interface::PlannerConfigurationMap& pconfig,
                 const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
@@ -80,9 +80,9 @@ public:
     return context_manager_.getPlannerConfigurations();
   }
 
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr planning_scene,
                                                   const planning_interface::MotionPlanRequest& req) const;
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr planning_scene,
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const;
 
@@ -166,11 +166,11 @@ protected:
   /** @brief Load the additional plugins for sampling constraints */
   void loadConstraintSamplers();
 
-  void configureContext(const ModelBasedPlanningContextPtr& context) const;
+  void configureContext(const ModelBasedPlanningContextPtr context) const;
 
   /** \brief Configure the OMPL planning context for a new planning request */
   ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest& req,
-                                               const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                               const planning_scene::PlanningSceneConstPtr planning_scene,
                                                moveit_msgs::MoveItErrorCodes* error_code, unsigned int* attempts,
                                                double* timeout) const;
 

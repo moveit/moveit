@@ -70,7 +70,7 @@ public:
   /** \brief Destructor to clean up */
   ~ShapeMask();
 
-  ShapeHandle addShape(const shapes::ShapeConstPtr& shape, double scale = 1.0, double padding = 0.0);
+  ShapeHandle addShape(const shapes::ShapeConstPtr shape, double scale = 1.0, double padding = 0.0);
   void removeShape(ShapeHandle handle);
 
   void setTransformCallback(const TransformCallback& transform_callback);

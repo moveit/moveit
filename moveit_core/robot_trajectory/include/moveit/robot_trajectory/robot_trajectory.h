@@ -52,11 +52,11 @@ MOVEIT_CLASS_FORWARD(RobotTrajectory);
 class RobotTrajectory
 {
 public:
-  RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const std::string& group);
+  RobotTrajectory(const robot_model::RobotModelConstPtr robot_model, const std::string& group);
 
-  RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
+  RobotTrajectory(const robot_model::RobotModelConstPtr robot_model, const robot_model::JointModelGroup* group);
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -90,17 +90,17 @@ public:
     return *waypoints_.front();
   }
 
-  robot_state::RobotStatePtr& getWayPointPtr(std::size_t index)
+  robot_state::RobotStatePtr getWayPointPtr(std::size_t index)
   {
     return waypoints_[index];
   }
 
-  robot_state::RobotStatePtr& getLastWayPointPtr()
+  robot_state::RobotStatePtr getLastWayPointPtr()
   {
     return waypoints_.back();
   }
 
-  robot_state::RobotStatePtr& getFirstWayPointPtr()
+  robot_state::RobotStatePtr getFirstWayPointPtr()
   {
     return waypoints_.front();
   }
@@ -153,7 +153,7 @@ public:
    * \param state - current robot state
    * \param dt - duration from previous
    */
-  void addSuffixWayPoint(const robot_state::RobotStatePtr& state, double dt)
+  void addSuffixWayPoint(const robot_state::RobotStatePtr state, double dt)
   {
     state->update();
     waypoints_.push_back(state);
@@ -165,7 +165,7 @@ public:
     addPrefixWayPoint(robot_state::RobotStatePtr(new robot_state::RobotState(state)), dt);
   }
 
-  void addPrefixWayPoint(const robot_state::RobotStatePtr& state, double dt)
+  void addPrefixWayPoint(const robot_state::RobotStatePtr state, double dt)
   {
     state->update();
     waypoints_.push_front(state);
@@ -177,7 +177,7 @@ public:
     insertWayPoint(index, robot_state::RobotStatePtr(new robot_state::RobotState(state)), dt);
   }
 
-  void insertWayPoint(std::size_t index, const robot_state::RobotStatePtr& state, double dt)
+  void insertWayPoint(std::size_t index, const robot_state::RobotStatePtr state, double dt)
   {
     state->update();
     waypoints_.insert(waypoints_.begin() + index, state);
@@ -255,7 +255,7 @@ public:
    *  @param The resulting robot state.
    *  @return True if state is valid, false otherwise (trajectory is empty).
    */
-  bool getStateAtDurationFromStart(const double request_duration, robot_state::RobotStatePtr& output_state) const;
+  bool getStateAtDurationFromStart(const double request_duration, robot_state::RobotStatePtr output_state) const;
 
 private:
   robot_model::RobotModelConstPtr robot_model_;

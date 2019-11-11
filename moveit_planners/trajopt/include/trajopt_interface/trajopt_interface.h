@@ -54,7 +54,7 @@ public:
     return params_;
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene,
              const planning_interface::MotionPlanRequest& req, moveit_msgs::MotionPlanDetailedResponse& res);
 
 protected:
@@ -62,7 +62,7 @@ protected:
   void setTrajOptParams(sco::BasicTrustRegionSQPParameters& param);
   void setDefaultTrajOPtParams();
   void setProblemInfoParam(ProblemInfo& problem_info);
-  void setJointPoseTermInfoParams(JointPoseTermInfoPtr& jp, std::string name);
+  void setJointPoseTermInfoParams(JointPoseTermInfoPtr jp, std::string name);
   trajopt::DblVec extractStartJointValues(const planning_interface::MotionPlanRequest& req,
                                           const std::vector<std::string>& group_joint_names);
 

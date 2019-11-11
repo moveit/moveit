@@ -84,7 +84,7 @@ typedef std::map<std::pair<std::string, std::string>, LinkPairData> LinkPairMap;
  * "always" in collision
  * \return Adj List of unique set of pairs of links in string-based form
  */
-LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr& parent_scene, unsigned int* progress,
+LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr parent_scene, unsigned int* progress,
                                      const bool include_never_colliding, const unsigned int trials,
                                      const double min_collision_faction, const bool verbose);
 

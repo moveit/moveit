@@ -52,7 +52,7 @@ class KinematicsMetrics
 {
 public:
   /** \brief Construct a KinematicsMetricss from a RobotModel */
-  KinematicsMetrics(const robot_model::RobotModelConstPtr& robot_model)
+  KinematicsMetrics(const robot_model::RobotModelConstPtr robot_model)
     : robot_model_(robot_model), penalty_multiplier_(0.0)
   {
   }

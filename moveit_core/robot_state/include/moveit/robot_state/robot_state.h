@@ -85,7 +85,7 @@ class RobotState
 public:
   /** \brief A state can be constructed from a specified robot model. No values are initialized.
       Call setToDefaultValues() if a state needs to provide valid information. */
-  RobotState(const RobotModelConstPtr& robot_model);
+  RobotState(const RobotModelConstPtr robot_model);
   ~RobotState();
 
   /** \brief Copy constructor. */
@@ -95,7 +95,7 @@ public:
   RobotState& operator=(const RobotState& other);
 
   /** \brief Get the robot model this state is constructed for. */
-  const RobotModelConstPtr& getRobotModel() const
+  const RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -896,7 +896,7 @@ as the new values that correspond to the group */
    * @param solver - a kin solver whose base frame is important to us
    * @return true if no error
    */
-  bool setToIKSolverFrame(Eigen::Isometry3d& pose, const kinematics::KinematicsBaseConstPtr& solver);
+  bool setToIKSolverFrame(Eigen::Isometry3d& pose, const kinematics::KinematicsBaseConstPtr solver);
 
   /**
    * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects

@@ -225,7 +225,7 @@ class BodyDecomposition
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  BodyDecomposition(const shapes::ShapeConstPtr& shape, double resolution, double padding = 0.01);
+  BodyDecomposition(const shapes::ShapeConstPtr shape, double resolution, double padding = 0.01);
 
   BodyDecomposition(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Isometry3d& poses,
                     double resolution, double padding);
@@ -296,7 +296,7 @@ class PosedBodySphereDecomposition
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition);
+  PosedBodySphereDecomposition(const BodyDecompositionConstPtr body_decomposition);
 
   const std::vector<CollisionSphere>& getCollisionSpheres() const
   {
@@ -343,9 +343,9 @@ class PosedBodyPointDecomposition
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
+  PosedBodyPointDecomposition(const BodyDecompositionConstPtr body_decomposition);
 
-  PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition, const Eigen::Isometry3d& pose);
+  PosedBodyPointDecomposition(const BodyDecompositionConstPtr body_decomposition, const Eigen::Isometry3d& pose);
 
   PosedBodyPointDecomposition(const std::shared_ptr<const octomap::OcTree>& octree);
 
@@ -385,7 +385,7 @@ public:
     return sphere_radii_;
   }
 
-  void addToVector(PosedBodySphereDecompositionPtr& bd)
+  void addToVector(PosedBodySphereDecompositionPtr bd)
   {
     sphere_index_map_[decomp_vector_.size()] = collision_spheres_.size();
     decomp_vector_.push_back(bd);
@@ -454,7 +454,7 @@ public:
     return ret_points;
   }
 
-  void addToVector(PosedBodyPointDecompositionPtr& bd)
+  void addToVector(PosedBodyPointDecompositionPtr bd)
   {
     decomp_vector_.push_back(bd);
   }
@@ -505,8 +505,8 @@ struct ProximityInfo
   Eigen::Vector3d closest_gradient;
 };
 
-bool doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr& p1,
-                                const PosedBodySphereDecompositionConstPtr& p2);
+bool doBoundingSpheresIntersect(const PosedBodySphereDecompositionConstPtr p1,
+                                const PosedBodySphereDecompositionConstPtr p2);
 
 void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color, const std::string& frame_id, const std::string& ns,
                                const ros::Duration& dur,

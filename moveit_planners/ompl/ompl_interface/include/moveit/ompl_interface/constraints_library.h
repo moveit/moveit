@@ -100,7 +100,7 @@ public:
     return constraint_msg_;
   }
 
-  const ompl::base::StateStoragePtr& getStateStorage() const
+  const ompl::base::StateStoragePtr getStateStorage() const
   {
     return state_storage_ptr_;
   }
@@ -171,27 +171,27 @@ public:
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints& constr_sampling,
                              const moveit_msgs::Constraints& constr_hard, const std::string& group,
-                             const planning_scene::PlanningSceneConstPtr& scene,
+                             const planning_scene::PlanningSceneConstPtr scene,
                              const ConstraintApproximationConstructionOptions& options);
 
   ConstraintApproximationConstructionResults
   addConstraintApproximation(const moveit_msgs::Constraints& constr, const std::string& group,
-                             const planning_scene::PlanningSceneConstPtr& scene,
+                             const planning_scene::PlanningSceneConstPtr scene,
                              const ConstraintApproximationConstructionOptions& options);
 
   void printConstraintApproximations(std::ostream& out = std::cout) const;
   void clearConstraintApproximations();
 
-  void registerConstraintApproximation(const ConstraintApproximationPtr& approx)
+  void registerConstraintApproximation(const ConstraintApproximationPtr approx)
   {
     constraint_approximations_[approx->getName()] = approx;
   }
 
-  const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
+  const ConstraintApproximationPtr getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
 
 private:
   ompl::base::StateStoragePtr constructConstraintApproximation(
-      const ModelBasedPlanningContextPtr& pcontext, const moveit_msgs::Constraints& constr_sampling,
+      const ModelBasedPlanningContextPtr pcontext, const moveit_msgs::Constraints& constr_sampling,
       const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
       ConstraintApproximationConstructionResults& result);
 

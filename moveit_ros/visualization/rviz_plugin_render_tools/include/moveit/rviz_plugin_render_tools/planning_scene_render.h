@@ -62,7 +62,7 @@ class PlanningSceneRender
 {
 public:
   PlanningSceneRender(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
-                      const RobotStateVisualizationPtr& robot);
+                      const RobotStateVisualizationPtr robot);
   ~PlanningSceneRender();
 
   Ogre::SceneNode* getGeometryNode()
@@ -70,12 +70,12 @@ public:
     return planning_scene_geometry_node_;
   }
 
-  const RobotStateVisualizationPtr& getRobotVisualization()
+  const RobotStateVisualizationPtr getRobotVisualization()
   {
     return scene_robot_;
   }
 
-  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr& scene, const rviz::Color& default_scene_color,
+  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr scene, const rviz::Color& default_scene_color,
                            const rviz::Color& default_attached_color, OctreeVoxelRenderMode voxel_render_mode,
                            OctreeVoxelColorMode voxel_color_mode, float default_scene_alpha);
   void clear();

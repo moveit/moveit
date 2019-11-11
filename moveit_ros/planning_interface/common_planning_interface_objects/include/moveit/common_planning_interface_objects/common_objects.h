@@ -55,7 +55,7 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string& robot_des
   @param tf_buffer
   @return
  */
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr robot_model,
                                                                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer);
 
 /**
@@ -66,7 +66,7 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
   @param nh A ros::NodeHandle to pass node specific configurations, such as callbacks queues.
   @return
  */
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr robot_model,
                                                                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                                                      const ros::NodeHandle& nh);
 

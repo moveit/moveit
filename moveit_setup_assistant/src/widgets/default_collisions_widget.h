@@ -84,7 +84,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  DefaultCollisionsWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
   ~DefaultCollisionsWidget() override;
 
   /**

@@ -165,7 +165,7 @@ struct DistanceFieldCacheEntry
   std::vector<std::vector<bool>> intra_group_collision_enabled_;
 };
 
-BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape, double resolution);
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr shape, double resolution);
 
 PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
                                                                           double resolution);
@@ -176,6 +176,6 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const r
 PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution);
 
-void getBodySphereVisualizationMarkers(const GroupStateRepresentationPtr& gsr, const std::string& reference_frame,
+void getBodySphereVisualizationMarkers(const GroupStateRepresentationPtr gsr, const std::string& reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array);
 }

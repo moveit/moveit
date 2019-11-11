@@ -57,7 +57,7 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  ControllerEditWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  ControllerEditWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   /// Set the previous data
   void setSelected(const std::string& controller_name);

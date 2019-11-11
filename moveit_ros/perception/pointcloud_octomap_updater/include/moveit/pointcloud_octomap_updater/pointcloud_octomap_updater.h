@@ -59,7 +59,7 @@ public:
   bool initialize() override;
   void start() override;
   void stop() override;
-  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr shape) override;
   void forgetShape(ShapeHandle handle) override;
 
 protected:
@@ -68,7 +68,7 @@ protected:
 
 private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
-  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
+  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr cloud_msg);
   void stopHelper();
 
   ros::NodeHandle root_nh_;

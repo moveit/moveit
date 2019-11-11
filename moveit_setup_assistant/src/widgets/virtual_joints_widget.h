@@ -66,7 +66,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  VirtualJointsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  VirtualJointsWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   /// Received when this widget is chosen from the navigation menu
   void focusGiven() override;

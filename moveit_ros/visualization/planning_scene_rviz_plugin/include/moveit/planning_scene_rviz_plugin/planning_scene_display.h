@@ -102,7 +102,7 @@ public:
   void clearJobs();
 
   const std::string getMoveGroupNS() const;
-  const robot_model::RobotModelConstPtr& getRobotModel() const;
+  const robot_model::RobotModelConstPtr getRobotModel() const;
 
   /// wait for robot state more recent than t
   bool waitForCurrentRobotState(const ros::Time& t = ros::Time::now());
@@ -110,7 +110,7 @@ public:
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
   /// get write access to planning scene
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
-  const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
+  const planning_scene_monitor::PlanningSceneMonitorPtr getPlanningSceneMonitor();
 
 private Q_SLOTS:
 

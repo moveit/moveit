@@ -53,7 +53,7 @@ namespace chomp
 class ChompOptimizer
 {
 public:
-  ChompOptimizer(ChompTrajectory* trajectory, const planning_scene::PlanningSceneConstPtr& planning_scene,
+  ChompOptimizer(ChompTrajectory* trajectory, const planning_scene::PlanningSceneConstPtr planning_scene,
                  const std::string& planning_group, const ChompParameters* parameters,
                  const moveit::core::RobotState& start_state);
 
@@ -122,7 +122,7 @@ private:
   unsigned int collision_free_iteration_;
 
   ChompTrajectory* full_trajectory_;
-  const moveit::core::RobotModelConstPtr& robot_model_;
+  const moveit::core::RobotModelConstPtr robot_model_;
   std::string planning_group_;
   const ChompParameters* parameters_;
   ChompTrajectory group_trajectory_;

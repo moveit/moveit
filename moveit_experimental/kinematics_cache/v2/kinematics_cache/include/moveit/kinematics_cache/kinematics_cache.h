@@ -102,17 +102,17 @@ public:
    *  @param opt Parameters needed for defining the cache workspace
    *  @return False if any error occured during initialization
    */
-  bool initialize(kinematics::KinematicsBaseConstPtr& solver, const robot_model::RobotModelConstPtr& kinematic_model,
+  bool initialize(kinematics::KinematicsBaseConstPtr solver, const robot_model::RobotModelConstPtr kinematic_model,
                   const KinematicsCache::Options& opt);
 
   /** @brief Return the instance of the kinematics solver */
-  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
+  const kinematics::KinematicsBaseConstPtr getSolverInstance() const
   {
     return kinematics_solver_;
   }
 
   /** @brief Return the instance of the kinematics model */
-  const robot_model::RobotModelConstPtr& getModelInstance() const
+  const robot_model::RobotModelConstPtr getModelInstance() const
   {
     return kinematic_model_;
   }

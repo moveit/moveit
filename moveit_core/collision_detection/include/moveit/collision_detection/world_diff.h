@@ -53,7 +53,7 @@ public:
   WorldDiff();
 
   /** \brief Constructor */
-  WorldDiff(const WorldPtr& world);
+  WorldDiff(const WorldPtr world);
 
   /** \brief copy constructor. */
   WorldDiff(WorldDiff& other);
@@ -63,11 +63,11 @@ public:
   /** \brief Set which world to record.  Records all objects in old world (if
    * any) as DESTROYED and all objects in new world as CREATED and ADD_SHAPE
    * */
-  void setWorld(const WorldPtr& world);
+  void setWorld(const WorldPtr world);
 
   /** \brief Set which world to record.  Erases all previously recorded
    * changes.  */
-  void reset(const WorldPtr& world);
+  void reset(const WorldPtr world);
 
   /** \brief Turn off recording and erase all previously recorded changes. */
   void reset();
@@ -113,7 +113,7 @@ public:
 
 private:
   /** \brief Notification function */
-  void notify(const World::ObjectConstPtr&, World::Action);
+  void notify(const World::ObjectConstPtr, World::Action);
 
   /** keep changes in a map so they can be coalesced */
   std::map<std::string, World::Action> changes_;

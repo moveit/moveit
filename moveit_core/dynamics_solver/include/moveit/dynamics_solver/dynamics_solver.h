@@ -66,7 +66,7 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  DynamicsSolver(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+  DynamicsSolver(const robot_model::RobotModelConstPtr robot_model, const std::string& group_name,
                  const geometry_msgs::Vector3& gravity_vector);
 
   /**
@@ -124,7 +124,7 @@ public:
    * @brief Get the kinematic model
    * @return kinematic model
    */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }

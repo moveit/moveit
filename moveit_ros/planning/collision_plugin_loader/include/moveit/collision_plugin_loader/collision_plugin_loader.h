@@ -50,7 +50,7 @@ public:
   ~CollisionPluginLoader();
 
   /** @brief This can be called on a new planning scene to setup the collision detector. */
-  void setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene);
+  void setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr scene);
 
   /**
    * @brief Load a collision detection robot/world into a planning scene instance.
@@ -59,7 +59,7 @@ public:
    * @param exclusive If true, sets the new detection robot/world to be the only one.
    * @return True if collision robot/world were added to scene.
    */
-  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive);
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr scene, bool exclusive);
 
 private:
   MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);

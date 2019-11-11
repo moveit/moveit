@@ -116,7 +116,7 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr& rml,
+  PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr rml,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -126,7 +126,7 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene, const std::string& robot_description,
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene, const std::string& robot_description,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -136,8 +136,8 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
-                       const robot_model_loader::RobotModelLoaderPtr& rml,
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene,
+                       const robot_model_loader::RobotModelLoaderPtr rml,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -150,8 +150,8 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr& scene,
-                       const robot_model_loader::RobotModelLoaderPtr& rml, const ros::NodeHandle& nh,
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene,
+                       const robot_model_loader::RobotModelLoaderPtr rml, const ros::NodeHandle& nh,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -164,12 +164,12 @@ public:
   }
 
   /** \brief Get the user kinematic model loader */
-  const robot_model_loader::RobotModelLoaderPtr& getRobotModelLoader() const
+  const robot_model_loader::RobotModelLoaderPtr getRobotModelLoader() const
   {
     return rm_loader_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -188,7 +188,7 @@ public:
    * @see LockedPlanningSceneRO
    * @see LockedPlanningSceneRW.
    * @return A pointer to the current planning scene.*/
-  const planning_scene::PlanningScenePtr& getPlanningScene()
+  const planning_scene::PlanningScenePtr getPlanningScene()
   {
     return scene_;
   }
@@ -196,7 +196,7 @@ public:
   /*! @brief <b>Avoid this function!</b>  Returns an @b
    *         unsafe pointer to the current planning scene.
    * @copydetails PlanningSceneMonitor::getPlanningScene() */
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr getPlanningScene() const
   {
     return scene_const_;
   }
@@ -205,13 +205,13 @@ public:
       or indirectly by this monitor. This function will return true if
       the pointer of the scene is the same as the one maintained,
       or if a parent of the scene is the one maintained. */
-  bool updatesScene(const planning_scene::PlanningSceneConstPtr& scene) const;
+  bool updatesScene(const planning_scene::PlanningSceneConstPtr scene) const;
 
   /** @brief Return true if the scene \e scene can be updated directly
       or indirectly by this monitor. This function will return true if
       the pointer of the scene is the same as the one maintained,
       or if a parent of the scene is the one maintained. */
-  bool updatesScene(const planning_scene::PlanningScenePtr& scene) const;
+  bool updatesScene(const planning_scene::PlanningScenePtr scene) const;
 
   /** @brief Get the stored robot description
    *  @return An instance of the stored robot description*/
@@ -277,12 +277,12 @@ public:
 
   /** @brief Get the stored instance of the stored current state monitor
    *  @return An instance of the stored current state monitor*/
-  const CurrentStateMonitorPtr& getStateMonitor() const
+  const CurrentStateMonitorPtr getStateMonitor() const
   {
     return current_state_monitor_;
   }
 
-  CurrentStateMonitorPtr& getStateMonitorNonConst()
+  CurrentStateMonitorPtr getStateMonitorNonConst()
   {
     return current_state_monitor_;
   }
@@ -405,31 +405,31 @@ protected:
   /** @brief Initialize the planning scene monitor
    *  @param scene The scene instance to fill with data (an instance is allocated if the one passed in is not allocated)
    */
-  void initialize(const planning_scene::PlanningScenePtr& scene);
+  void initialize(const planning_scene::PlanningScenePtr scene);
 
   /** @brief Configure the collision matrix for a particular scene */
-  void configureCollisionMatrix(const planning_scene::PlanningScenePtr& scene);
+  void configureCollisionMatrix(const planning_scene::PlanningScenePtr scene);
 
   /** @brief Configure the default padding*/
   void configureDefaultPadding();
 
   /** @brief Callback for a new collision object msg*/
-  void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr& obj);
+  void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr obj);
 
   /** @brief Callback for a new planning scene world*/
-  void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr& world);
+  void newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr world);
 
   /** @brief Callback for octomap updates */
   void octomapUpdateCallback();
 
   /** @brief Callback for a new attached object msg*/
-  void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr& obj);
+  void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr obj);
 
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
   void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody* attached_body, bool just_attached);
 
   /** @brief Callback for a change in the world maintained by the planning scene */
-  void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& object,
+  void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr object,
                                         collision_detection::World::Action action);
 
   void includeRobotLinksInOctree();
@@ -437,8 +437,8 @@ protected:
 
   void excludeWorldObjectsFromOctree();
   void includeWorldObjectsInOctree();
-  void excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr& obj);
-  void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr& obj);
+  void excludeWorldObjectFromOctree(const collision_detection::World::ObjectConstPtr obj);
+  void includeWorldObjectInOctree(const collision_detection::World::ObjectConstPtr obj);
 
   void excludeAttachedBodiesFromOctree();
   void includeAttachedBodiesInOctree();
@@ -527,13 +527,13 @@ private:
   void scenePublishingThread();
 
   // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
-  void onStateUpdate(const sensor_msgs::JointStateConstPtr& joint_state);
+  void onStateUpdate(const sensor_msgs::JointStateConstPtr joint_state);
 
   // called by state_update_timer_ when a state update it pending
   void stateUpdateTimerCallback(const ros::WallTimerEvent& event);
 
   // Callback for a new planning scene msg
-  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr& scene);
+  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr scene);
 
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
@@ -593,13 +593,13 @@ private:
 class LockedPlanningSceneRO
 {
 public:
-  LockedPlanningSceneRO(const PlanningSceneMonitorPtr& planning_scene_monitor)
+  LockedPlanningSceneRO(const PlanningSceneMonitorPtr planning_scene_monitor)
     : planning_scene_monitor_(planning_scene_monitor)
   {
     initialize(true);
   }
 
-  const PlanningSceneMonitorPtr& getPlanningSceneMonitor()
+  const PlanningSceneMonitorPtr getPlanningSceneMonitor()
   {
     return planning_scene_monitor_;
   }
@@ -609,18 +609,18 @@ public:
     return planning_scene_monitor_ && planning_scene_monitor_->getPlanningScene();
   }
 
-  operator const planning_scene::PlanningSceneConstPtr&() const
+  operator const planning_scene::PlanningSceneConstPtr() const
   {
     return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
   }
 
-  const planning_scene::PlanningSceneConstPtr& operator->() const
+  const planning_scene::PlanningSceneConstPtr operator->() const
   {
     return static_cast<const PlanningSceneMonitor*>(planning_scene_monitor_.get())->getPlanningScene();
   }
 
 protected:
-  LockedPlanningSceneRO(const PlanningSceneMonitorPtr& planning_scene_monitor, bool read_only)
+  LockedPlanningSceneRO(const PlanningSceneMonitorPtr planning_scene_monitor, bool read_only)
     : planning_scene_monitor_(planning_scene_monitor)
   {
     initialize(read_only);
@@ -685,17 +685,17 @@ protected:
 class LockedPlanningSceneRW : public LockedPlanningSceneRO
 {
 public:
-  LockedPlanningSceneRW(const PlanningSceneMonitorPtr& planning_scene_monitor)
+  LockedPlanningSceneRW(const PlanningSceneMonitorPtr planning_scene_monitor)
     : LockedPlanningSceneRO(planning_scene_monitor, false)
   {
   }
 
-  operator const planning_scene::PlanningScenePtr&()
+  operator const planning_scene::PlanningScenePtr()
   {
     return planning_scene_monitor_->getPlanningScene();
   }
 
-  const planning_scene::PlanningScenePtr& operator->()
+  const planning_scene::PlanningScenePtr operator->()
   {
     return planning_scene_monitor_->getPlanningScene();
   }

@@ -45,10 +45,10 @@ namespace pick_place
 class ApproachAndTranslateStage : public ManipulationStage
 {
 public:
-  ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr& scene,
-                            const collision_detection::AllowedCollisionMatrixConstPtr& collision_matrix);
+  ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr scene,
+                            const collision_detection::AllowedCollisionMatrixConstPtr collision_matrix);
 
-  bool evaluate(const ManipulationPlanPtr& plan) const override;
+  bool evaluate(const ManipulationPlanPtr plan) const override;
 
 private:
   planning_scene::PlanningSceneConstPtr planning_scene_;

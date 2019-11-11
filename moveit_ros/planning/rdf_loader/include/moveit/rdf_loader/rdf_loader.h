@@ -65,13 +65,13 @@ public:
   }
 
   /** @brief Get the parsed URDF model*/
-  const urdf::ModelInterfaceSharedPtr& getURDF() const
+  const urdf::ModelInterfaceSharedPtr getURDF() const
   {
     return urdf_;
   }
 
   /** @brief Get the parsed SRDF model*/
-  const srdf::ModelSharedPtr& getSRDF() const
+  const srdf::ModelSharedPtr getSRDF() const
   {
     return srdf_;
   }

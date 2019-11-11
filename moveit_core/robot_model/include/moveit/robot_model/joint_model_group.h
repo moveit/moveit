@@ -531,7 +531,7 @@ public:
     return group_kinematics_.first.solver_instance_;
   }
 
-  const kinematics::KinematicsBasePtr& getSolverInstance()
+  const kinematics::KinematicsBasePtr getSolverInstance()
   {
     return group_kinematics_.first.solver_instance_;
   }

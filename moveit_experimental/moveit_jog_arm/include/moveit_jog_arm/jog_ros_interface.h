@@ -64,9 +64,9 @@ public:
 
 private:
   // ROS subscriber callbacks
-  void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
-  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+  void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr msg);
+  void deltaJointCmdCB(const control_msgs::JointJogConstPtr msg);
+  void jointsCB(const sensor_msgs::JointStateConstPtr msg);
 
   bool readParameters(ros::NodeHandle& n);
 

@@ -170,7 +170,7 @@ public:
 
 private:
   void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::GripperCommandResultConstPtr& result)
+                              const control_msgs::GripperCommandResultConstPtr result)
   {
     if (state == actionlib::SimpleClientGoalState::ABORTED && allow_failure_)
       finishControllerExecution(actionlib::SimpleClientGoalState::SUCCEEDED);
@@ -183,7 +183,7 @@ private:
     ROS_DEBUG_STREAM_NAMED("GripperController", name_ << " started execution");
   }
 
-  void controllerFeedbackCallback(const control_msgs::GripperCommandFeedbackConstPtr& feedback)
+  void controllerFeedbackCallback(const control_msgs::GripperCommandFeedbackConstPtr feedback)
   {
   }
 

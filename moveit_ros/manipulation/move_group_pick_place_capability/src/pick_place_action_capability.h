@@ -53,16 +53,16 @@ public:
   void initialize() override;
 
 private:
-  void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal);
-  void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal);
+  void executePickupCallback(const moveit_msgs::PickupGoalConstPtr goal);
+  void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr goal);
 
-  void executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr& goal,
+  void executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr goal,
                                      moveit_msgs::PickupResult& action_res);
-  void executePickupCallbackPlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal,
+  void executePickupCallbackPlanAndExecute(const moveit_msgs::PickupGoalConstPtr goal,
                                            moveit_msgs::PickupResult& action_res);
 
-  void executePlaceCallbackPlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult& action_res);
-  void executePlaceCallbackPlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal,
+  void executePlaceCallbackPlanOnly(const moveit_msgs::PlaceGoalConstPtr goal, moveit_msgs::PlaceResult& action_res);
+  void executePlaceCallbackPlanAndExecute(const moveit_msgs::PlaceGoalConstPtr goal,
                                           moveit_msgs::PlaceResult& action_res);
 
   bool planUsingPickPlacePickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult* action_res,

@@ -61,10 +61,10 @@ public:
   void load(const urdf::ModelInterface& descr, bool visual = true, bool collision = true);
   void clear();
 
-  void update(const robot_state::RobotStateConstPtr& kinematic_state);
-  void update(const robot_state::RobotStateConstPtr& kinematic_state,
+  void update(const robot_state::RobotStateConstPtr kinematic_state);
+  void update(const robot_state::RobotStateConstPtr kinematic_state,
               const std_msgs::ColorRGBA& default_attached_object_color);
-  void update(const robot_state::RobotStateConstPtr& kinematic_state,
+  void update(const robot_state::RobotStateConstPtr kinematic_state,
               const std_msgs::ColorRGBA& default_attached_object_color,
               const std::map<std::string, std_msgs::ColorRGBA>& color_map);
   void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color);
@@ -95,7 +95,7 @@ public:
   void setAlpha(float alpha);
 
 private:
-  void updateHelper(const robot_state::RobotStateConstPtr& kinematic_state,
+  void updateHelper(const robot_state::RobotStateConstPtr kinematic_state,
                     const std_msgs::ColorRGBA& default_attached_object_color,
                     const std::map<std::string, std_msgs::ColorRGBA>* color_map);
   rviz::Robot robot_;

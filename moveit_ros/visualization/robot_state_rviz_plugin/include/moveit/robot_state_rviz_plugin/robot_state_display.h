@@ -75,7 +75,7 @@ public:
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -109,7 +109,7 @@ protected:
   void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
 
-  void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr& state);
+  void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr state);
 
   void setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links);
   void setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color);

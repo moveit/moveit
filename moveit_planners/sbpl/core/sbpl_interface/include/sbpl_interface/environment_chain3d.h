@@ -101,7 +101,7 @@ public:
   /**
    * @brief Default constructor
    */
-  EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr& planning_scene);
+  EnvironmentChain3D(const planning_scene::PlanningSceneConstPtr planning_scene);
 
   /**
    * @brief Destructor
@@ -208,7 +208,7 @@ public:
    */
   virtual bool AreEquivalent(int StateID1, int StateID2);
 
-  bool setupForMotionPlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool setupForMotionPlan(const planning_scene::PlanningSceneConstPtr planning_scene,
                           const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
                           const PlanningParameters& params);
 

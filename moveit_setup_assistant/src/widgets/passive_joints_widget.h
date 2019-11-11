@@ -67,7 +67,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  PassiveJointsWidget(QWidget* parent, const MoveItConfigDataPtr& config_data);
+  PassiveJointsWidget(QWidget* parent, const MoveItConfigDataPtr config_data);
 
   /// Received when this widget is chosen from the navigation menu
   void focusGiven() override;

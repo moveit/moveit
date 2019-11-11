@@ -61,7 +61,7 @@ class LockedRobotState
 {
 public:
   LockedRobotState(const robot_state::RobotState& state);
-  LockedRobotState(const robot_model::RobotModelPtr& model);
+  LockedRobotState(const robot_model::RobotModelPtr model);
 
   virtual ~LockedRobotState();
 

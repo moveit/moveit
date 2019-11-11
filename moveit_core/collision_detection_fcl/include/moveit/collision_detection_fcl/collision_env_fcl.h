@@ -55,12 +55,12 @@ class CollisionEnvFCL : public CollisionEnv
 public:
   CollisionEnvFCL() = delete;
 
-  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvFCL(const robot_model::RobotModelConstPtr model, double padding = 0.0, double scale = 1.0);
 
-  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+  CollisionEnvFCL(const robot_model::RobotModelConstPtr model, const WorldPtr world, double padding = 0.0,
                   double scale = 1.0);
 
-  CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr& world);
+  CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr world);
 
   ~CollisionEnvFCL() override;
 
@@ -92,7 +92,7 @@ public:
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
                              const robot_state::RobotState& state) const override;
 
-  void setWorld(const WorldPtr& world) override;
+  void setWorld(const WorldPtr world) override;
 
 protected:
   /** \brief Updates the FCL collision geometry and objects saved in the CollisionRobotFCL members to reflect a new
@@ -156,7 +156,7 @@ protected:
 
 private:
   /** \brief Callback function executed for each change to the world environment */
-  void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
+  void notifyObjectChange(const ObjectConstPtr obj, World::Action action);
 
   World::ObserverHandle observer_handle_;
 };

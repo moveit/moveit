@@ -221,7 +221,7 @@ protected:
    * \brief add a Job for the main thread that needs to be executed there
    * \param[in] job the job object that has the function o be executed
    */
-  void addJob(const JobPtr& job) const;
+  void addJob(const JobPtr job) const;
 
   /**
    * \brief sets the size of the fram buffers

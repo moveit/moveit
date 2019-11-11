@@ -46,7 +46,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const sensor_msgs::JointStateConstPtr& joint_state)> JointStateUpdateCallback;
+typedef boost::function<void(const sensor_msgs::JointStateConstPtr joint_state)> JointStateUpdateCallback;
 
 /** @class CurrentStateMonitor
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
@@ -60,7 +60,7 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf_buffer A pointer to the tf2_ros Buffer to use
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr robot_model,
                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer);
 
   /** @brief Constructor.
@@ -68,7 +68,7 @@ public:
    *  @param tf_buffer A pointer to the tf2_ros Buffer to use
    *  @param nh A ros::NodeHandle to pass node specific options
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr robot_model,
                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const ros::NodeHandle& nh);
 
   ~CurrentStateMonitor();
@@ -86,7 +86,7 @@ public:
   bool isActive() const;
 
   /** @brief Get the RobotModel for which we are monitoring state */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
@@ -188,7 +188,7 @@ public:
   }
 
 private:
-  void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+  void jointStateCallback(const sensor_msgs::JointStateConstPtr joint_state);
   void tfCallback();
 
   ros::NodeHandle nh_;

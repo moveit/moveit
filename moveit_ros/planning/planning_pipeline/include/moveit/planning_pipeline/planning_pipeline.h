@@ -75,7 +75,7 @@ public:
       \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter
      plugins are specified (plugin names separated by space; order matters)
   */
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh = ros::NodeHandle("~"),
+  PlanningPipeline(const robot_model::RobotModelConstPtr model, const ros::NodeHandle& nh = ros::NodeHandle("~"),
                    const std::string& planning_plugin_param_name = "planning_plugin",
                    const std::string& adapter_plugins_param_name = "request_adapters");
 
@@ -85,7 +85,7 @@ public:
       \param planning_plugin_name The name of the planning plugin to load
       \param adapter_plugins_names The names of the planning request adapter plugins to load
   */
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh,
+  PlanningPipeline(const robot_model::RobotModelConstPtr model, const ros::NodeHandle& nh,
                    const std::string& planning_plugin_name, const std::vector<std::string>& adapter_plugin_names);
 
   /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC.
@@ -122,7 +122,7 @@ public:
       \param planning_scene The planning scene where motion planning is to be done
       \param req The request for motion planning
       \param res The motion planning response */
-  bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool generatePlan(const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req,
                     planning_interface::MotionPlanResponse& res) const;
 
@@ -134,7 +134,7 @@ public:
      add the current state of the robot as prefix, when the robot started to plan only from near that state, as the
      current state itself appears to touch obstacles). This is helpful because the added states should not be considered
      invalid in all situations. */
-  bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool generatePlan(const planning_scene::PlanningSceneConstPtr planning_scene,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
                     std::vector<std::size_t>& adapter_added_state_index) const;
 
@@ -154,13 +154,13 @@ public:
   }
 
   /** \brief Get the planner manager for the loaded planning plugin */
-  const planning_interface::PlannerManagerPtr& getPlannerManager()
+  const planning_interface::PlannerManagerPtr getPlannerManager()
   {
     return planner_instance_;
   }
 
   /** \brief Get the robot model that this pipeline is using */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr getRobotModel() const
   {
     return robot_model_;
   }
