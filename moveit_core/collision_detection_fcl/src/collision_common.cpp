@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Jia Pan */
+/* Author: Ioan Sucan, Jia Pan, Jens Petit */
 
 #include <moveit/collision_detection_fcl/collision_common.h>
 #include <geometric_shapes/shapes.h>

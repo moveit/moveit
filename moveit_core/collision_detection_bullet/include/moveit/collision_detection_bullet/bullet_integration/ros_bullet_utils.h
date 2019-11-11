@@ -18,8 +18,7 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_
+#pragma once
 
 #include <octomap_msgs/conversions.h>
 #include <geometric_shapes/shape_messages.h>
@@ -106,4 +105,3 @@ inline Eigen::Isometry3d urdfPose2Eigen(const urdf::Pose& pose)
   return result;
 }
 }  // namespace collision_detection_bullet
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_ROS_BULLET_UTILS_H_

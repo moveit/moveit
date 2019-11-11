@@ -264,23 +264,33 @@ btCollisionShape* createShapePrimitive(const shapes::ShapeConstPtr& geom,
 CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const collision_detection::BodyType& type_id,
                                                const std::vector<shapes::ShapeConstPtr>& shapes,
                                                const AlignedVector<Eigen::Isometry3d>& shape_poses,
-                                               const std::vector<CollisionObjectType>& collision_object_types)
+                                               const std::vector<CollisionObjectType>& collision_object_types,
+                                               bool active)
   : m_name(name)
   , m_type_id(type_id)
   , m_shapes(shapes)
   , m_shape_poses(shape_poses)
   , m_collision_object_types(collision_object_types)
 {
-  this->setContactProcessingThreshold(0);
-  assert(!shapes.empty());
-  assert(!shape_poses.empty());
-  assert(!collision_object_types.empty());
-  assert(!name.empty());
-  assert(shapes.size() == shape_poses.size());
-  assert(shapes.size() == collision_object_types.size());
+  if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size() || collision_object_types.empty() ||
+                                                shapes.size() != collision_object_types.size()))
+  {
+    throw std::exception();
+  }
 
-  m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
-  m_collisionFilterMask = btBroadphaseProxy::KinematicFilter;
+  this->setContactProcessingThreshold(BULLET_DEFAULT_CONTACT_DISTANCE);
+  assert(!name.empty());
+
+  if (active)
+  {
+    m_collisionFilterGroup = btBroadphaseProxy::KinematicFilter;
+    m_collisionFilterMask = btBroadphaseProxy::KinematicFilter | btBroadphaseProxy::StaticFilter;
+  }
+  else
+  {
+    m_collisionFilterGroup = btBroadphaseProxy::StaticFilter;
+    m_collisionFilterMask = btBroadphaseProxy::KinematicFilter;
+  }
 
   if (shapes.size() == 1)
   {
@@ -321,7 +331,7 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
                                                const AlignedVector<Eigen::Isometry3d>& shape_poses,
                                                const std::vector<CollisionObjectType>& collision_object_types,
                                                const std::set<std::string>& touch_links)
-  : CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types)
+  : CollisionObjectWrapper(name, type_id, shapes, shape_poses, collision_object_types, true)
 {
   m_touch_links = touch_links;
 }
@@ -338,6 +348,5 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   , m_collision_object_types(collision_object_types)
   , m_data(data)
 {
-  this->setContactProcessingThreshold(0);
 }
 }  // namespace collision_detection_bullet

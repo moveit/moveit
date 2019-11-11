@@ -1,3 +1,39 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, Jens Petit
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Jens Petit */
+
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 
@@ -9,12 +45,13 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
-#include <moveit/collision_detection_bullet/collision_world_bullet.h>
-#include <moveit/collision_detection_bullet/collision_robot_bullet.h>
+#include <moveit/collision_detection_bullet/collision_env_bullet.h>
 #include <moveit/collision_detection_bullet/bullet_integration/basic_types.h>
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
+
+namespace cb = collision_detection_bullet;
 
 /** \brief Brings the panda robot in user defined home position */
 inline void setToHome(robot_state::RobotState& panda_state)
@@ -49,8 +86,7 @@ protected:
     for (const srdf::Model::DisabledCollision& it : dc)
       acm_->setEntry(it.link1_, it.link2_, true);
 
-    crobot_.reset(new collision_detection::CollisionRobotBullet(robot_model_));
-    cworld_.reset(new collision_detection::CollisionWorldBullet());
+    cenv_.reset(new collision_detection::CollisionEnvBullet(robot_model_));
 
     robot_state_.reset(new robot_state::RobotState(robot_model_));
 
@@ -66,15 +102,14 @@ protected:
 
   robot_model::RobotModelPtr robot_model_;
 
-  collision_detection::CollisionWorldPtr cworld_;
-  collision_detection::CollisionRobotPtr crobot_;
+  collision_detection::CollisionEnvPtr cenv_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
   robot_state::RobotStatePtr robot_state_;
 };
 
-void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& checker)
+void addCollisionObjects(cb::BulletCastBVHManager& checker)
 {
   ////////////////////////////
   // Add static box to checker
@@ -84,14 +119,15 @@ void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& check
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj1_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj1_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<cb::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  checker.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses,
-                             obj1_types);
+  cb::CollisionObjectWrapperPtr cow_1(new cb::CollisionObjectWrapper(
+      "static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses, obj1_types));
+  checker.addCollisionObject(cow_1);
 
   ////////////////////////////
   // Add moving box to checker
@@ -103,17 +139,18 @@ void addCollisionObjects(collision_detection_bullet::BulletCastBVHManager& check
   moving_box_pose.translation() = Eigen::Vector3d(0.5, -0.5, 0);
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj2_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj2_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<cb::CollisionObjectType> obj2_types;
   obj2_shapes.push_back(moving_box);
   obj2_poses.push_back(moving_box_pose);
-  obj2_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj2_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  checker.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses,
-                             obj2_types);
+  cb::CollisionObjectWrapperPtr cow_2(new cb::CollisionObjectWrapper(
+      "moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses, obj2_types));
+  checker.addCollisionObject(cow_2);
 }
 
-void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& checker)
+void addCollisionObjectsMesh(cb::BulletCastBVHManager& checker)
 {
   ////////////////////////////
   // Add static box to checker
@@ -123,25 +160,25 @@ void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& c
   static_box_pose.setIdentity();
 
   std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj1_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj1_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj1_poses;
+  std::vector<cb::CollisionObjectType> obj1_types;
   obj1_shapes.push_back(static_box);
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
-  checker.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses,
-                             obj1_types);
-
+  cb::CollisionObjectWrapperPtr cow_1(new cb::CollisionObjectWrapper(
+      "static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes, obj1_poses, obj1_types));
+  checker.addCollisionObject(cow_1);
   ////////////////////////////
   // Add moving mesh to checker
   ////////////////////////////
 
   std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj2_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj2_types;
+  cb::AlignedVector<Eigen::Isometry3d> obj2_poses;
+  std::vector<cb::CollisionObjectType> obj2_types;
 
   obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
+  obj1_types.push_back(cb::CollisionObjectType::USE_SHAPE_TYPE);
 
   Eigen::Isometry3d s_pose;
   s_pose.setIdentity();
@@ -150,14 +187,15 @@ void addCollisionObjectsMesh(collision_detection_bullet::BulletCastBVHManager& c
   shapes::ShapeConstPtr s;
   s.reset(shapes::createMeshFromResource(kinect));
   obj2_shapes.push_back(s);
-  obj2_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
+  obj2_types.push_back(cb::CollisionObjectType::CONVEX_HULL);
   obj2_poses.push_back(s_pose);
 
-  checker.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses,
-                             obj2_types);
+  cb::CollisionObjectWrapperPtr cow_2(new cb::CollisionObjectWrapper(
+      "moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes, obj2_poses, obj2_types));
+  checker.addCollisionObject(cow_2);
 }
 
-void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collision_detection::CollisionResult& result,
+void runTest(cb::BulletCastBVHManager& checker, collision_detection::CollisionResult& result,
              std::vector<collision_detection::Contact>& result_vector, Eigen::Isometry3d& start_pos,
              Eigen::Isometry3d& end_pos)
 {
@@ -169,13 +207,13 @@ void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collisio
 
   // Set the collision object transforms
   checker.setCollisionObjectsTransform("static_box_link", Eigen::Isometry3d::Identity());
-  checker.setCollisionObjectsTransform("moving_box_link", start_pos, end_pos);
+  checker.setCastCollisionObjectsTransform("moving_box_link", start_pos, end_pos);
 
   // Perform collision check
   collision_detection::CollisionRequest request;
   request.contacts = true;
-  // collision_detection_bullet::ContactResultMap result;
-  checker.contactTest(result, request, nullptr);
+  // cb::ContactResultMap result;
+  checker.contactTest(result, request, nullptr, false);
 
   for (const auto& contacts_all : result.contacts)
   {
@@ -186,7 +224,7 @@ void runTest(collision_detection_bullet::BulletCastBVHManager& checker, collisio
   }
 }
 
-// TODO: Add continuous to continuous collision checking
+// TODO(j-petit): Add continuous to continuous collision checking
 /** \brief Continuous self collision checks are not supported yet by the bullet integration */
 TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
 {
@@ -207,7 +245,7 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   state1.setJointPositions("panda_joint7", &joint7);
   state1.update();
 
-  crobot_->checkSelfCollision(req, res, state1, *acm_);
+  cenv_->checkSelfCollision(req, res, state1, *acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
@@ -219,11 +257,10 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   state2.setJointPositions("panda_joint7", &joint7);
   state2.update();
 
-  crobot_->checkSelfCollision(req, res, state2, *acm_);
+  cenv_->checkSelfCollision(req, res, state2, *acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  crobot_->checkSelfCollision(req, res, state1, state2, *acm_);
   ROS_INFO_STREAM("Continous to continous collisions are not supported yet, therefore fail here.");
   ASSERT_TRUE(res.collision);
   res.clear();
@@ -250,7 +287,7 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   state2.setJointPositions("panda_joint4", &joint_4);
   state2.update();
 
-  cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
+  cenv_->checkRobotCollision(req, res, state1, state2, *acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
@@ -262,17 +299,17 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+  cenv_->getWorld()->addToObject("box", shape_ptr, pos);
 
-  cworld_->checkRobotCollision(req, res, *crobot_, state1, *acm_);
+  cenv_->checkRobotCollision(req, res, state1, *acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  cworld_->checkRobotCollision(req, res, *crobot_, state2, *acm_);
+  cenv_->checkRobotCollision(req, res, state2, *acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  cworld_->checkRobotCollision(req, res, *crobot_, state1, state2, *acm_);
+  cenv_->checkRobotCollision(req, res, state1, state2, *acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_EQ(res.contact_count, 4u);
   res.clear();
@@ -289,7 +326,7 @@ TEST(ContinuousCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
   end_pos.setIdentity();
   end_pos.translation().x() = 2;
 
-  collision_detection_bullet::BulletCastBVHManager checker;
+  cb::BulletCastBVHManager checker;
   addCollisionObjects(checker);
   runTest(checker, result, result_vector, start_pos, end_pos);
 
@@ -300,7 +337,7 @@ TEST(ContinuousCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
 
 TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
 {
-  collision_detection_bullet::BulletCastBVHManager checker;
+  cb::BulletCastBVHManager checker;
   addCollisionObjectsMesh(checker);
 
   Eigen::Isometry3d start_pos, end_pos;
@@ -315,83 +352,6 @@ TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
   runTest(checker, result, result_vector, start_pos, end_pos);
 
   ASSERT_TRUE(result.collision);
-}
-
-TEST(ContinuousCollisionUnit, TwoManagers)
-{
-  collision_detection_bullet::BulletCastBVHManager checker_continuous;
-  collision_detection_bullet::BulletDiscreteBVHManager checker_discrete;
-
-  ////////////////////////////
-  // Add static box to checker
-  ////////////////////////////
-  shapes::ShapePtr static_box(new shapes::Box(.1, .1, .1));
-  Eigen::Isometry3d static_box_pose;
-  static_box_pose.setIdentity();
-
-  std::vector<shapes::ShapeConstPtr> obj1_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj1_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj1_types;
-  obj1_shapes.push_back(static_box);
-  obj1_poses.push_back(static_box_pose);
-  obj1_types.push_back(collision_detection_bullet::CollisionObjectType::USE_SHAPE_TYPE);
-
-  checker_continuous.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes,
-                                        obj1_poses, obj1_types);
-  checker_discrete.addCollisionObject("static_box_link", collision_detection::BodyType::WORLD_OBJECT, obj1_shapes,
-                                      obj1_poses, obj1_types);
-
-  ////////////////////////
-  // Add moving sphere to checker
-  ////////////////////////
-  shapes::ShapePtr sphere;
-  sphere.reset(
-      shapes::createMeshFromResource("package://moveit_resources/panda_description/meshes/collision/link0.stl"));
-
-  Eigen::Isometry3d sphere_pose;
-  sphere_pose.setIdentity();
-
-  std::vector<shapes::ShapeConstPtr> obj2_shapes;
-  collision_detection_bullet::AlignedVector<Eigen::Isometry3d> obj2_poses;
-  std::vector<collision_detection_bullet::CollisionObjectType> obj2_types;
-  obj2_shapes.push_back(sphere);
-  obj2_poses.push_back(sphere_pose);
-  obj2_types.push_back(collision_detection_bullet::CollisionObjectType::CONVEX_HULL);
-
-  checker_continuous.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes,
-                                        obj2_poses, obj2_types);
-  checker_discrete.addCollisionObject("moving_box_link", collision_detection::BodyType::WORLD_OBJECT, obj2_shapes,
-                                      obj2_poses, obj2_types);
-
-  checker_continuous.setActiveCollisionObjects({ "moving_box_link" });
-  checker_continuous.setContactDistanceThreshold(0.1);
-
-  // Set the collision object transforms
-  checker_continuous.setCollisionObjectsTransform("static_box_link", Eigen::Isometry3d::Identity());
-  checker_discrete.setCollisionObjectsTransform("static_box_link", Eigen::Isometry3d::Identity());
-
-  Eigen::Isometry3d start_pos, end_pos;
-  start_pos.setIdentity();
-  start_pos.translation().x() = -1.9;
-  end_pos.setIdentity();
-  end_pos.translation().x() = 1.9;
-  checker_continuous.setCollisionObjectsTransform("moving_box_link", start_pos, end_pos);
-
-  Eigen::Isometry3d start_pos_2;
-  start_pos_2.setIdentity();
-  start_pos_2.translation().x() = -1.9;
-  checker_discrete.setCollisionObjectsTransform("moving_box_link", start_pos_2);
-
-  collision_detection::CollisionResult result;
-  collision_detection::CollisionResult result_2;
-  collision_detection::CollisionRequest request;
-
-  // Perform collision check
-  checker_discrete.contactTest(result_2, request, nullptr);
-  checker_continuous.contactTest(result, request, nullptr);
-
-  ASSERT_TRUE(result.collision);
-  ASSERT_FALSE(result_2.collision);
 }
 
 int main(int argc, char** argv)

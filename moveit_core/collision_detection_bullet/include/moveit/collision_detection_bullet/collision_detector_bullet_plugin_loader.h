@@ -34,8 +34,7 @@
 
 /* Author: Jens Petit */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
+#pragma once
 
 #include <moveit/collision_detection/collision_plugin.h>
 #include <moveit/collision_detection_bullet/collision_detector_allocator_bullet.h>
@@ -48,4 +47,3 @@ public:
   bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const override;
 };
 }
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_COLLISION_DETECTOR_BULLET_PLUGIN_LOADER_H_
