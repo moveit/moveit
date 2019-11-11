@@ -1,11 +1,11 @@
 set(MOVEIT_LIB_NAME moveit_collision_detection_bullet)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/collision_robot_bullet.cpp
-  src/collision_world_bullet.cpp
   src/bullet_integration/bullet_utils.cpp
   src/bullet_integration/bullet_discrete_bvh_manager.cpp
   src/bullet_integration/bullet_cast_bvh_manager.cpp
+  src/collision_env_bullet.cpp
+  src/bullet_integration/bullet_bvh_manager.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 

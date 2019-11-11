@@ -38,8 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
 #include <moveit/collision_detection/collision_common.h>
-#include <moveit/collision_detection/collision_world.h>
-#include <moveit/collision_detection/collision_robot.h>
+#include <moveit/collision_detection/collision_env.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
 
 #include <urdf_parser/urdf_parser.h>
@@ -89,8 +88,7 @@ protected:
     for (const srdf::Model::DisabledCollision& it : dc)
       acm_->setEntry(it.link1_, it.link2_, true);
 
-    crobot_ = value_->allocateRobot(robot_model_);
-    cworld_ = value_->allocateWorld(collision_detection::WorldPtr(new collision_detection::World()));
+    cenv_ = value_->allocateEnv(robot_model_);
 
     robot_state_.reset(new robot_state::RobotState(robot_model_));
     setToHome(*robot_state_);
@@ -104,8 +102,7 @@ protected:
 
   robot_model::RobotModelPtr robot_model_;
 
-  collision_detection::CollisionWorldPtr cworld_;
-  collision_detection::CollisionRobotPtr crobot_;
+  collision_detection::CollisionEnvPtr cenv_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
@@ -125,7 +122,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DefaultNotInCollision)
 {
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
+  this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
 }
 
@@ -141,30 +138,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, LinksInCollision)
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-  this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
-  ASSERT_TRUE(res.collision);
-}
-
-// TODO: Add collision check capability within world itself and then enable test
-/** \brief Two boxes in collision in the world environment. */
-TYPED_TEST_P(CollisionDetectorPandaTest, DISABLED_WorldToWorldCollision)
-{
-  collision_detection::CollisionRequest req;
-  collision_detection::CollisionResult res;
-
-  shapes::Shape* shape = new shapes::Box(.5, .5, .5);
-  shapes::ShapeConstPtr shape_ptr(shape);
-
-  Eigen::Isometry3d pos_1 = Eigen::Isometry3d::Identity();
-  pos_1.translation().x() = 1;
-  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos_1);
-
-  Eigen::Isometry3d pos_2 = Eigen::Isometry3d::Identity();
-  pos_2.translation().x() = 1.2;
-  this->cworld_->getWorld()->addToObject("box_2", shape_ptr, pos_2);
-
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
-
+  this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
 }
 
@@ -179,22 +153,22 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_1)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
 
-  this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
+  this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   res.clear();
 
-  this->cworld_->getWorld()->moveObject("box", pos1);
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->getWorld()->moveObject("box", pos1);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   res.clear();
 
-  this->cworld_->getWorld()->moveObject("box", pos1);
+  this->cenv_->getWorld()->moveObject("box", pos1);
   ASSERT_FALSE(res.collision);
 }
 
@@ -212,8 +186,8 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_2)
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
   pos1.translation().z() = 0.3;
-  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos1);
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos1);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   ASSERT_GE(res.contact_count, 3u);
   res.clear();
@@ -227,7 +201,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, PaddingTest)
   req.max_contacts = 10;
   collision_detection::CollisionResult res;
 
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
   res.clear();
 
@@ -239,15 +213,15 @@ TYPED_TEST_P(CollisionDetectorPandaTest, PaddingTest)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
 
-  this->crobot_->setLinkPadding("panda_hand", 0.08);
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->setLinkPadding("panda_hand", 0.08);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
   res.clear();
 
-  this->crobot_->setLinkPadding("panda_hand", 0.0);
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->setLinkPadding("panda_hand", 0.0);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
 }
 
@@ -257,7 +231,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceSelf)
   collision_detection::CollisionRequest req;
   req.distance = true;
   collision_detection::CollisionResult res;
-  this->crobot_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
+  this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
   EXPECT_NEAR(res.distance, 0.13, 0.01);
 }
@@ -276,14 +250,13 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
   pos.translation().x() = 0.43;
   pos.translation().y() = 0;
   pos.translation().z() = 0.55;
-  this->cworld_->getWorld()->addToObject("box", shape_ptr, pos);
+  this->cenv_->getWorld()->addToObject("box", shape_ptr, pos);
 
-  this->crobot_->setLinkPadding("panda_hand", 0.0);
-  this->cworld_->checkRobotCollision(req, res, *this->crobot_, *this->robot_state_, *this->acm_);
+  this->cenv_->setLinkPadding("panda_hand", 0.0);
+  this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
   EXPECT_NEAR(res.distance, 0.029, 0.01);
 }
 
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
-                           DISABLED_WorldToWorldCollision, RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest,
-                           DistanceSelf, DistanceWorld);
+                           RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);

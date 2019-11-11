@@ -18,8 +18,7 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_
+#pragma once
 
 #include <LinearMath/btConvexHullComputer.h>
 #include <cstdio>
@@ -51,41 +50,6 @@ inline std::pair<std::string, std::string> getObjectPairKey(const std::string& o
 inline bool isLinkActive(const std::vector<std::string>& active, const std::string& name)
 {
   return active.empty() || (std::find(active.begin(), active.end(), name) != active.end());
-}
-
-/**
- * @brief Determine if contact is allowed between two objects.
- * @param name1 The name of the first object
- * @param name2 The name of the second object
- * @param acm The contact allowed function
- * @param verbose If true print debug informaton
- * @return True if contact is allowed between the two object, otherwise false.
- */
-inline bool isContactAllowed(const std::string& name1, const std::string& name2, const IsContactAllowedFn& acm_fn,
-                             const collision_detection::AllowedCollisionMatrix* acm, bool verbose = false)
-{
-  // do not distance check geoms part of the same object / link / attached body
-  if (name1 == name2)
-    return true;
-
-  if (acm_fn != nullptr && acm_fn(name1, name2, acm))
-  {
-    if (verbose)
-    {
-      ROS_DEBUG_NAMED("collision_detection.bullet",
-                      "Collision between '%s' and '%s' is allowed. No contacts are computed.", name1.c_str(),
-                      name2.c_str());
-    }
-    return true;
-  }
-
-  if (verbose)
-  {
-    ROS_DEBUG_NAMED("collision_detection.bullet", "Actually checking collisions between %s and %s", name1.c_str(),
-                    name2.c_str());
-  }
-
-  return false;
 }
 
 /** \brief Stores a single contact result in the requested way.
@@ -247,42 +211,4 @@ inline int createConvexHull(AlignedVector<Eigen::Vector3d>& vertices, std::vecto
   return num_faces;
 }
 
-inline bool allowedCollisionCheck(const std::string& body_1, const std::string& body_2,
-                                  const collision_detection::AllowedCollisionMatrix* acm)
-{
-  collision_detection::AllowedCollision::Type allowed_type;
-
-  if (acm != nullptr)
-  {
-    if (acm->getEntry(body_1, body_2, allowed_type))
-    {
-      if (allowed_type == collision_detection::AllowedCollision::Type::NEVER)
-      {
-        ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not allowed entry in ACM found, collision check between "
-                                                                 << body_1 << " and " << body_2);
-        return false;
-      }
-      else
-      {
-        ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Entry in ACM found, skipping collision check as allowed "
-                                                                 << body_1 << " and " << body_2);
-        return true;
-      }
-    }
-    else
-    {
-      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No entry in ACM found, collision check between "
-                                                               << body_1 << " and " << body_2);
-      return false;
-    }
-  }
-  else
-  {
-    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No ACM, collision check between " << body_1 << " and "
-                                                                                            << body_2);
-    return false;
-  }
-}
 }  // namespace collision_detection_bullet
-
-#endif  //  MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_CONTACT_CHECKER_COMMON_H_

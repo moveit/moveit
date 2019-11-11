@@ -18,8 +18,7 @@
 
 /* Author: Levi Armstrong */
 
-#ifndef MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_
-#define MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -44,12 +43,6 @@ template <typename Key, typename Value>
 using AlignedUnorderedMap = std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>,
                                                Eigen::aligned_allocator<std::pair<const Key, Value>>>;
 
-/** @brief Checks if contact is allowed or not. Returns true if yes, otherwise false.
- *
- * The order of strings should not matter, the function should handled by the function. */
-typedef std::function<bool(const std::string&, const std::string&, const collision_detection::AllowedCollisionMatrix*)>
-    IsContactAllowedFn;
-
 enum class CollisionObjectType
 {
   USE_SHAPE_TYPE = 0, /**< @brief Infer the type from the type specified in the shapes::Shape class */
@@ -66,17 +59,9 @@ struct ContactTestData
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  ContactTestData(const std::vector<std::string>& active, const double& contact_distance, const IsContactAllowedFn& fn,
-                  collision_detection::CollisionResult& res, const collision_detection::CollisionRequest& req,
-                  const collision_detection::AllowedCollisionMatrix* acm)
-    : active(active)
-    , contact_distance(contact_distance)
-    , fn(fn)
-    , acm(acm)
-    , res(res)
-    , req(req)
-    , done(false)
-    , pair_done(false)
+  ContactTestData(const std::vector<std::string>& active, const double& contact_distance,
+                  collision_detection::CollisionResult& res, const collision_detection::CollisionRequest& req)
+    : active(active), contact_distance(contact_distance), res(res), req(req), done(false), pair_done(false)
   {
   }
 
@@ -84,12 +69,6 @@ struct ContactTestData
 
   /** \brief If after a positive broadphase check the distance is below this threshold, a contact is added. */
   const double& contact_distance;
-
-  /** \brief User defined function which checks if contact is allowed between two objects */
-  const IsContactAllowedFn& fn;
-
-  /** \brief Indicates collision objects which are allowed to be in contact */
-  const collision_detection::AllowedCollisionMatrix* acm;
 
   collision_detection::CollisionResult& res;
   const collision_detection::CollisionRequest& req;
@@ -102,5 +81,3 @@ struct ContactTestData
 };
 
 }  // namespace collision_detection_bullet
-
-#endif  // MOVEIT_COLLISION_DETECTION_BULLET_BULLET_INTEGRATION_BASIC_TYPES_H_
