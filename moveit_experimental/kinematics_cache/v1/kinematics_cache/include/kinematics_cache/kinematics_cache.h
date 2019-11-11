@@ -102,8 +102,8 @@ public:
    *  @param opt Parameters needed for defining the cache workspace
    *  @return False if any error occured during initialization
    */
-  bool initialize(kinematics::KinematicsBaseConstPtr solver,
-                  const planning_models::RobotModelConstPtr kinematic_model, const KinematicsCache::Options& opt);
+  bool initialize(kinematics::KinematicsBaseConstPtr solver, const planning_models::RobotModelConstPtr kinematic_model,
+                  const KinematicsCache::Options& opt);
 
   /** @brief Return the instance of the kinematics solver */
   const kinematics::KinematicsBaseConstPtr getSolverInstance() const

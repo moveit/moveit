@@ -50,8 +50,8 @@ public:
   {
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene,
-             const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res);
+  bool solve(const planning_scene::PlanningSceneConstPtr planning_scene, const moveit_msgs::GetMotionPlan::Request& req,
+             moveit_msgs::GetMotionPlan::Response& res);
 
   const PlanningStatistics& getLastPlanningStatistics() const
   {

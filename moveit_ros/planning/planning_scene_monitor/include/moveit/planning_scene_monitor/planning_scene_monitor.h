@@ -136,8 +136,7 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene,
-                       const robot_model_loader::RobotModelLoaderPtr rml,
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene, const robot_model_loader::RobotModelLoaderPtr rml,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
@@ -150,8 +149,8 @@ public:
    *  @param tf_buffer A pointer to a tf2_ros::Buffer
    *  @param name A name identifying this planning scene monitor
    */
-  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene,
-                       const robot_model_loader::RobotModelLoaderPtr rml, const ros::NodeHandle& nh,
+  PlanningSceneMonitor(const planning_scene::PlanningScenePtr scene, const robot_model_loader::RobotModelLoaderPtr rml,
+                       const ros::NodeHandle& nh,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
 
