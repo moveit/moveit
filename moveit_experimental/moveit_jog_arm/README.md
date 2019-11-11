@@ -51,6 +51,8 @@ twist:
 
 If you see a warning about "close to singularity", try changing the direction of motion.
 
+The `change_control_dimensions` service allows you to select which directions (in the EE output frame) to allow jogging motion in. The input is an array of 6 booleans ordered as [translation-x, translation-y, translation-z, rotation-x, rotation-y, rotation-z]. Setting one of the dimensions to `false` will set the velocity to 0 in that direction, regardless of user input.
+
 #### Running Tests
 
 Run tests from the jog\_arm folder:
