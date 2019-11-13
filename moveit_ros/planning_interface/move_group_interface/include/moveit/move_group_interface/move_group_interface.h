@@ -185,7 +185,7 @@ public:
 
   /** \brief Get the names of the named robot states available as targets, both either remembered states or default
    * states from srdf */
-  std::vector<std::string> getNamedTargets() const;
+  const std::vector<std::string>& getNamedTargets() const;
 
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;
@@ -799,19 +799,19 @@ public:
   /** \brief Pick up an object
 
       This applies a number of hard-coded default grasps */
-  MoveItErrorCode pick(const std::string& object, bool plan_only = false) const
+  MoveItErrorCode pick(const std::string& object, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, std::vector<moveit_msgs::Grasp>(), plan_only));
   }
 
   /** \brief Pick up an object given a grasp pose */
-  MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only = false) const
+  MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, { grasp }, plan_only));
   }
 
   /** \brief Pick up an object given possible grasp poses */
-  MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp> grasps, bool plan_only = false) const
+  MoveItErrorCode pick(const std::string& object, std::vector<moveit_msgs::Grasp> grasps, bool plan_only = false)
   {
     return pick(constructPickupGoal(object, std::move(grasps), plan_only));
   }
@@ -820,7 +820,7 @@ public:
 
       Use as follows: first create the goal with constructPickupGoal(), then set \e possible_grasps and any other
       desired variable in the goal, and finally pass it on to this function */
-  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal) const;
+  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal);
 
   /** \brief Pick up an object
 
@@ -833,27 +833,27 @@ public:
   MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
-  MoveItErrorCode place(const std::string& object, bool plan_only = false) const
+  MoveItErrorCode place(const std::string& object, bool plan_only = false)
   {
     return place(constructPlaceGoal(object, std::vector<moveit_msgs::PlaceLocation>(), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, std::vector<moveit_msgs::PlaceLocation> locations,
-                        bool plan_only = false) const
+                        bool plan_only = false)
   {
     return place(constructPlaceGoal(object, std::move(locations), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
-                        bool plan_only = false) const
+                        bool plan_only = false)
   {
     return place(constructPlaceGoal(object, posesToPlaceLocations(poses), plan_only));
   }
 
   /** \brief Place an object at one of the specified possible location */
-  MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false) const
+  MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false)
   {
     return place(constructPlaceGoal(object, posesToPlaceLocations({ pose }), plan_only));
   }
@@ -862,7 +862,7 @@ public:
 
       Use as follows: first create the goal with constructPlaceGoal(), then set \e place_locations and any other
       desired variable in the goal, and finally pass it on to this function */
-  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal) const;
+  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal);
 
   /** \brief Given the name of an object in the planning scene, make
       the object attached to a link of the robot.  If no link name is
