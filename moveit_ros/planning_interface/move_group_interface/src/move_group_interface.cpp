@@ -609,7 +609,7 @@ public:
     return locations;
   }
 
-  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal) const
+  MoveItErrorCode place(const moveit_msgs::PlaceGoal& goal)
   {
     if (!place_action_client_)
     {
@@ -640,7 +640,7 @@ public:
     }
   }
 
-  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal) const
+  MoveItErrorCode pick(const moveit_msgs::PickupGoal& goal)
   {
     if (!pick_action_client_)
     {
@@ -1023,9 +1023,8 @@ public:
     {
       // find out how many goals are specified
       std::size_t goal_count = 0;
-      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin();
-           it != pose_targets_.end(); ++it)
-        goal_count = std::max(goal_count, it->second.size());
+      for (const auto& pose_target : pose_targets_)
+        goal_count = std::max(goal_count, pose_target.second.size());
 
       // start filling the goals;
       // each end effector has a number of possible poses (K) as valid goals
@@ -1033,13 +1032,12 @@ public:
       // to reach the goal that corresponds to the goals of the other end effectors
       request.goal_constraints.resize(goal_count);
 
-      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin();
-           it != pose_targets_.end(); ++it)
+      for (const auto& pose_target : pose_targets_)
       {
-        for (std::size_t i = 0; i < it->second.size(); ++i)
+        for (std::size_t i = 0; i < pose_target.second.size(); ++i)
         {
           moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(
-              it->first, it->second[i], goal_position_tolerance_, goal_orientation_tolerance_);
+              pose_target.first, pose_target.second[i], goal_position_tolerance_, goal_orientation_tolerance_);
           if (active_target_ == ORIENTATION)
             c.position_constraints.clear();
           if (active_target_ == POSITION)
@@ -1337,12 +1335,9 @@ const std::string& MoveGroupInterface::getName() const
 
 const std::vector<std::string>& MoveGroupInterface::getNamedTargets() const
 {
-  const robot_model::RobotModelConstPtr& robot = getRobotModel();
-  const std::string& group = getName();
-  const robot_model::JointModelGroup* joint_group = robot->getJointModelGroup(group);
-
-  // The pointer is guaranteed by the class constructor to always be non-null
-  return joint_group->getDefaultStateNames();
+  // The pointer returned by getJointModelGroup is guaranteed by the class
+  // constructor to always be non-null
+  return impl_->getJointModelGroup()->getDefaultStateNames();
 }
 
 robot_model::RobotModelConstPtr MoveGroupInterface::getRobotModel() const
