@@ -538,6 +538,10 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
     if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
     {
+      if (path_pos - next_discontinuity->first < 10e-8)
+      {
+        continue;
+      }
       path_vel = old_path_vel +
                  (next_discontinuity->first - old_path_pos) * (path_vel - old_path_vel) / (path_pos - old_path_pos);
       path_pos = next_discontinuity->first;
