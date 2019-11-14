@@ -538,7 +538,7 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
     if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
     {
-      if (path_pos - next_discontinuity->first < 10e-8)
+      if (path_pos - next_discontinuity->first < 1e-8)
       {
         continue;
       }
