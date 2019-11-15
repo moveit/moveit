@@ -8,6 +8,8 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+#avoid https://github.com/fkie/catkin_lint/issues/73
+#catkin_lint: ignore_once no_catkin_component
 find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
