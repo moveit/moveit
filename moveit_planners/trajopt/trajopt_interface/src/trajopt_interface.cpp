@@ -122,16 +122,18 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= Populate init info");
   // For type JOINT_INTERPOLATED, we need the configuration of the robot at one state (which should be the goal), we do
-  // not need the robot configuration along the whole trajectory. That is why we need one index which is 0 for "points[]"
+  // not need the robot configuration along the whole trajectory. That is why we need one index which is 0 for
+  // "points[]"
   if (problem_info.init_info.type == trajopt::InitInfo::JOINT_INTERPOLATED)
   {
-    Eigen::VectorXd initial_joint_values_eigen(dof); 
+    Eigen::VectorXd initial_joint_values_eigen(dof);
     for (int joint_index = 0; joint_index < dof; ++joint_index)
     {
-      initial_joint_values_eigen(joint_index) = req.reference_trajectories[0].joint_trajectory[0].points[0].positions[joint_index];
+      initial_joint_values_eigen(joint_index) =
+          req.reference_trajectories[0].joint_trajectory[0].points[0].positions[joint_index];
     }
-    
-    problem_info.init_info.data =  initial_joint_values_eigen;
+
+    problem_info.init_info.data = initial_joint_values_eigen;
   }
   else if (problem_info.init_info.type == trajopt::InitInfo::GIVEN_TRAJ)
   {
@@ -140,12 +142,13 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     init_traj.resize(num_steps, dof);
     for (std::size_t step = 0; step < num_steps; ++num_steps)
     {
-      for (std::size_t joint_index = 0; joint_index < dof; ++joint_index )
-	{
-	  init_traj(step, joint_index) = req.reference_trajectories[0].joint_trajectory[0].points[step].positions[joint_index];
-	}
+      for (std::size_t joint_index = 0; joint_index < dof; ++joint_index)
+      {
+        init_traj(step, joint_index) =
+            req.reference_trajectories[0].joint_trajectory[0].points[step].positions[joint_index];
+      }
     }
-    
+
     problem_info.init_info.data = init_traj;
   }
 
