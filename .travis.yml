@@ -22,11 +22,11 @@ env:
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
   matrix:
-    - TEST="clang-format catkin_lint"
-    - ROS_DISTRO=melodic
-    - ROS_DISTRO=kinetic
     - TEST=code-coverage TEST_WHITELIST="moveit_core"
     - TEST=code-coverage TEST_BLACKLIST="moveit_ros_perception moveit_core"
+    # - TEST="clang-format catkin_lint"
+    # - ROS_DISTRO=melodic
+    # - ROS_DISTRO=kinetic
 
 matrix: # Add a separate config to the matrix, using clang as compiler
   include:
