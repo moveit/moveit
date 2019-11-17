@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_geometry_msgs
   tf2_ros
-  eigenpy
   roscpp
   actionlib
   rospy
@@ -44,6 +43,7 @@ find_package(Boost REQUIRED COMPONENTS
   thread
 )
 find_package(Eigen3 REQUIRED)
+find_package(eigenpy REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
@@ -80,6 +80,7 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
+                    ${eigenpy_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
 
 add_subdirectory(py_bindings_tools)
