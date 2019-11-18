@@ -32,7 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Henning Kayser */
+/* Author: Henning Kayser
+   Desc: API for planning and execution capabilities of a JointModelGroup */
 
 #pragma once
 
@@ -74,13 +75,13 @@ public:
     {
       return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
-    bool operator==(const int c) const
+    bool operator==(const int code) const
     {
-      return val == c;
+      return val == code;
     }
-    bool operator!=(const int c) const
+    bool operator!=(const int code) const
     {
-      return val != c;
+      return val != code;
     }
   };
 
@@ -93,7 +94,7 @@ public:
     /// The trajectory of the robot (may not contain joints that are the same as for the start_state_)
     robot_trajectory::RobotTrajectoryPtr trajectory;
 
-    /// Error code
+    /// Reason why the plan failed
     MoveItErrorCode error_code;
 
     explicit operator bool() const
@@ -115,7 +116,7 @@ public:
 
   /** \brief Constructor */
   PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh);
-  PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_context);
+  PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_cpp);
 
   /**
    * @brief This class owns unique resources (e.g. action clients, threads) and its not very
@@ -132,13 +133,13 @@ public:
   ~PlanningComponent();
 
   /** \brief Get the name of the planning group */
-  const std::string& getName() const;
+  const std::string& getPlanningGroupName() const;
 
   /** \brief Get the names of the named robot states available as targets */
-  const std::vector<std::string> getNamedTargets();
+  const std::vector<std::string> getNamedTargetStates();
 
   /** \brief Get the joint values for targets specified by name */
-  std::map<std::string, double> getNamedTargetValues(const std::string& name);
+  std::map<std::string, double> getNamedTargetStateValues(const std::string& name);
 
   /** \brief Specify the workspace bounding box.
        The box is specified in the planning frame (i.e. relative to the robot root link start position).
@@ -193,6 +194,7 @@ private:
 
   // Planning
   std::set<std::string> planning_pipeline_names_;
+  // The start state used in the planning motion request
   robot_state::RobotStatePtr considered_start_state_;
   std::vector<moveit_msgs::Constraints> current_goal_constraints_;
   PlanRequestParameters plan_request_parameters_;

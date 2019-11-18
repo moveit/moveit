@@ -32,7 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Henning Kayser */
+/* Author: Henning Kayser
+   Desc: A high level interface that does not require the use of ROS Actions, Services, and Messages to access the
+   core MoveIt functionality
+*/
 
 #pragma once
 
@@ -78,6 +81,8 @@ public:
     std::string publish_planning_scene_topic;
     double wait_for_initial_state_timeout;
   };
+
+  /// struct contains the the variables used for loading the planning pipeline
   struct PlanningPipelineOptions
   {
     void load(const ros::NodeHandle& nh)
@@ -89,20 +94,6 @@ public:
     std::vector<std::string> pipeline_names;
     std::string parent_namespace;
   };
-  struct PlannerOptions
-  {
-    void load(const ros::NodeHandle& nh)
-    {
-      std::string ns = "default_planner_options/";
-      nh.getParam(ns + "planning_attempts", planning_attempts);
-      nh.getParam(ns + "max_velocity_scaling_factor", max_velocity_scaling_factor);
-      nh.getParam(ns + "max_acceleration_scaling_factor", max_acceleration_scaling_factor);
-    }
-    int planning_attempts;
-    double planning_time;
-    double max_velocity_scaling_factor;
-    double max_acceleration_scaling_factor;
-  };
 
   /// Parameter container for initializing MoveItCpp
   struct Options
@@ -110,18 +101,16 @@ public:
     Options(const ros::NodeHandle& nh)
     {
       planning_scene_monitor_options.load(nh);
-      default_planner_options.load(nh);
       planning_pipeline_options.load(nh);
     }
 
     PlanningSceneMonitorOptions planning_scene_monitor_options;
     PlanningPipelineOptions planning_pipeline_options;
-    PlannerOptions default_planner_options;
   };
 
   /** \brief Constructor */
   MoveItCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
-  MoveItCpp(const Options& opt, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
+  MoveItCpp(const Options& options, const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = {});
 
   /**
    * @brief This class owns unique resources (e.g. action clients, threads) and its not very
@@ -143,10 +132,12 @@ public:
   /** \brief Get the ROS node handle of this instance operates on */
   const ros::NodeHandle& getNodeHandle() const;
 
-  /** \brief Get the current state queried from the current state monitor */
+  /** \brief Get the current state queried from the current state monitor
+      \param wait_seconds the time in seconds for the state monitor to wait for a robot state. */
   bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds);
 
-  /** \brief Get the current state queried from the current state monitor */
+  /** \brief Get the current state queried from the current state monitor
+      \param wait_seconds the time in seconds for the state monitor to wait for a robot state. */
   robot_state::RobotStatePtr getCurrentState(double wait_seconds = 0.0);
 
   /** \brief Get all loaded planning pipeline instances mapped to their reference names */
@@ -178,7 +169,6 @@ protected:
 private:
   //  Core properties and instances
   ros::NodeHandle node_handle_;
-  std::string robot_description_;
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
@@ -194,10 +184,10 @@ private:
   void clearContents();
 
   /** \brief Initialize and setup the planning scene monitor */
-  bool loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& opt);
+  bool loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& options);
 
   /** \brief Initialize and setup the planning pipelines */
-  bool loadPlanningPipelines(const PlanningPipelineOptions& opt);
+  bool loadPlanningPipelines(const PlanningPipelineOptions& options);
 };
 }  // namespace planning_interface
 }  // namespace moveit
