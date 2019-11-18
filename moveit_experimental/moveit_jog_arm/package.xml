@@ -30,7 +30,6 @@
   <test_depend>rostest</test_depend>
   <test_depend>ros_pytest</test_depend>
   <test_depend>moveit_resources</test_depend>
-  <test_depend>code_coverage</test_depend>
 
   <export>
   </export>
