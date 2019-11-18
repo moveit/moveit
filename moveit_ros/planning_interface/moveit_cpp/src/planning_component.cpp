@@ -70,8 +70,8 @@ namespace planning_interface
 {
 constexpr char LOGNAME[] = "planning_component";
 
-PlanningComponent::PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_context)
-  : group_name_(group_name), nh_(moveit_context->getNodeHandle()), moveit_cpp_(moveit_context)
+PlanningComponent::PlanningComponent(const std::string& group_name, const MoveItCppPtr& moveit_cpp)
+  : nh_(moveit_cpp->getNodeHandle()), moveit_cpp_(moveit_cpp), group_name_(group_name)
 {
   joint_model_group_ = moveit_cpp_->getRobotModel()->getJointModelGroup(group_name);
   if (!joint_model_group_)
@@ -84,7 +84,7 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const MoveIt
 }
 
 PlanningComponent::PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh)
-  : group_name_(group_name), nh_(nh), moveit_cpp_(new MoveItCpp(nh))
+  : nh_(nh), moveit_cpp_(new MoveItCpp(nh)), group_name_(group_name)
 {
 }
 
@@ -106,7 +106,7 @@ PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other)
   return *this;
 }
 
-const std::vector<std::string> PlanningComponent::getNamedTargets()
+const std::vector<std::string> PlanningComponent::getNamedTargetStates()
 {
   if (joint_model_group_)
   {
@@ -121,7 +121,7 @@ const std::vector<std::string> PlanningComponent::getNamedTargets()
   return empty;
 }
 
-const std::string& PlanningComponent::getName() const
+const std::string& PlanningComponent::getPlanningGroupName() const
 {
   return group_name_;
 }
@@ -238,7 +238,7 @@ robot_state::RobotStatePtr PlanningComponent::getStartState()
 
 bool PlanningComponent::setStartState(const std::string& start_state_name)
 {
-  const auto& named_targets = getNamedTargets();
+  const auto& named_targets = getNamedTargetStates();
   if (std::find(named_targets.begin(), named_targets.end(), start_state_name) == named_targets.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "No predefined joint state found for target name '%s'", start_state_name.c_str());
@@ -254,7 +254,7 @@ void PlanningComponent::setStartStateToCurrentState()
   considered_start_state_.reset();
 }
 
-std::map<std::string, double> PlanningComponent::getNamedTargetValues(const std::string& name)
+std::map<std::string, double> PlanningComponent::getNamedTargetStateValues(const std::string& name)
 {
   // TODO(henningkayser): verify result
   std::map<std::string, double> positions;
@@ -294,20 +294,13 @@ bool PlanningComponent::setGoal(const robot_state::RobotState& goal_state)
 
 bool PlanningComponent::setGoal(const geometry_msgs::PoseStamped& goal_pose, const std::string& link_name)
 {
-  const auto& joint_names = joint_model_group_->getLinkModelNames();
-  // if (std::find(joint_names.begin(), joint_names.end(), link_name) == joint_names.end())
-  //{
-  //  ROS_ERROR_NAMED(LOGNAME, "Link '%s' is not part of joint model group '%s'.", link_name.c_str(),
-  //                  group_name_.c_str());
-  //  return false;
-  //}
   current_goal_constraints_ = { kinematic_constraints::constructGoalConstraints(link_name, goal_pose) };
   return true;
 }
 
 bool PlanningComponent::setGoal(const std::string& goal_state_name)
 {
-  const auto& named_targets = getNamedTargets();
+  const auto& named_targets = getNamedTargetStates();
   if (std::find(named_targets.begin(), named_targets.end(), goal_state_name) == named_targets.end())
   {
     ROS_ERROR_NAMED(LOGNAME, "No predefined joint state found for target name '%s'", goal_state_name.c_str());
@@ -350,5 +343,5 @@ void PlanningComponent::clearContents()
   moveit_cpp_.reset();
   planning_pipeline_names_.clear();
 }
-}  //  planning_interface
-}  //  moveit
+}  // namespace planning_interface
+}  // namespace moveit
