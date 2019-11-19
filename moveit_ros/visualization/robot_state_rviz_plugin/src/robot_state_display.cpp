@@ -341,6 +341,11 @@ void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
   unsetLinkColor(&robot_->getRobot(), link_name);
 }
 
+void RobotStateDisplay::setVisible(bool visible)
+{
+  robot_->setVisible(visible);
+}
+
 void RobotStateDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color)
 {
   rviz::RobotLink* link = robot->getLink(link_name);
@@ -416,7 +421,10 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
   if (load_robot_model_)
   {
     loadRobotModel();
+    // The following call to changedRobotStateTopic() should not change visibility
+    bool visible = robot_->isVisible();
     changedRobotStateTopic();
+    robot_->setVisible(visible);
   }
 
   calculateOffsetPosition();
