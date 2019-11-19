@@ -21,6 +21,8 @@
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>roscpp</depend>
 
+  <test_depend>code_coverage</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/moveit_fake_controller_manager_plugin_description.xml"/>
   </export>

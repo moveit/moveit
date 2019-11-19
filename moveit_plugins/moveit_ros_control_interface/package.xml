@@ -19,6 +19,8 @@
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>trajectory_msgs</depend>
 
+  <test_depend>code_coverage</test_depend>
+
   <export>
      <moveit_core plugin="${prefix}/moveit_core_plugins.xml" />
      <moveit_ros_control_interface plugin="${prefix}/moveit_ros_control_interface_plugins.xml" />

@@ -26,4 +26,5 @@
   <depend>interactive_markers</depend>
 
   <test_depend>rosunit</test_depend>
+  <test_depend>code_coverage</test_depend>
 </package>

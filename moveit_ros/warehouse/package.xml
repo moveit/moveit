@@ -23,4 +23,6 @@
   <depend>tf2_eigen</depend>
   <depend>tf2_ros</depend>
 
+  <test_depend>code_coverage</test_depend>
+
 </package>

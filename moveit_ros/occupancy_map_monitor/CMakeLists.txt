@@ -37,6 +37,12 @@ catkin_package(
     OCTOMAP
 )
 
+if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
+  find_package(code_coverage REQUIRED)   # catkin package ros-*-code-coverage
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif()
+
 include_directories(include
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}

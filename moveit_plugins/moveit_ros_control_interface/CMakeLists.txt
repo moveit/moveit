@@ -27,6 +27,12 @@ catkin_package(
   DEPENDS Boost
 )
 
+if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
+  find_package(code_coverage REQUIRED)   # catkin package ros-*-code-coverage
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif()
+
 # support indigo's ros_control - This can be removed upon EOL indigo
 if("${controller_manager_msgs_VERSION}" VERSION_LESS "0.10.0")
   add_definitions(-DMOVEIT_ROS_CONTROL_INTERFACE_OLD_ROS_CONTROL)

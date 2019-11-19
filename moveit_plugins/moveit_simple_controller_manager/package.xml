@@ -23,6 +23,8 @@
   <depend>control_msgs</depend>
   <depend>actionlib</depend>
 
+  <test_depend>code_coverage</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/moveit_simple_controller_manager_plugin_description.xml"/>
   </export>

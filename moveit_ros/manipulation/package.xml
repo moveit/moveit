@@ -31,6 +31,8 @@
 
   <build_depend>eigen</build_depend>
 
+  <test_depend>code_coverage</test_depend>
+
   <export>
     <moveit_ros_move_group plugin="${prefix}/pick_place_capability_plugin_description.xml"/>
   </export>

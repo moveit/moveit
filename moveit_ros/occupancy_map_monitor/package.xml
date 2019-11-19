@@ -27,5 +27,6 @@
   <build_depend>eigen</build_depend>
 
   <test_depend>rosunit</test_depend>
+  <test_depend>code_coverage</test_depend>
 
 </package>

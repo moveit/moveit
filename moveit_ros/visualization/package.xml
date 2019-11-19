@@ -41,6 +41,7 @@
   <depend>tf2_eigen</depend>
 
   <test_depend>rostest</test_depend>
+  <test_depend>code_coverage</test_depend>
 
   <export>
     <rviz plugin="${prefix}/robot_state_rviz_plugin_description.xml"/>

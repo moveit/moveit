@@ -37,6 +37,8 @@
 
   <build_depend>eigen</build_depend>
 
+  <test_depend>code_coverage</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
   </export>
