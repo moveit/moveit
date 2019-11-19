@@ -80,6 +80,9 @@ public:
   void setLinkColor(const std::string& link_name, const QColor& color);
   void unsetLinkColor(const std::string& link_name);
 
+public Q_SLOTS:
+  void setVisible(bool visible);
+
 private Q_SLOTS:
 
   // ******************************************************************************************

@@ -396,6 +396,7 @@ void SetupAssistantWidget::loadRviz()
 
   // Set robot description
   robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
+  robot_state_display_->setVisible(true);
 
   // Zoom into robot
   rviz::ViewController* view = rviz_manager_->getViewManager()->getCurrent();

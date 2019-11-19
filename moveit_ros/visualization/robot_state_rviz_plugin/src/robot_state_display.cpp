@@ -334,6 +334,11 @@ void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
   unsetLinkColor(&robot_->getRobot(), link_name);
 }
 
+void RobotStateDisplay::setVisible(bool visible)
+{
+  robot_->setVisible(visible);
+}
+
 void RobotStateDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color)
 {
   rviz::RobotLink* link = robot->getLink(link_name);
