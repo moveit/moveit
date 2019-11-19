@@ -36,6 +36,7 @@
   <test_depend>moveit_ros_planning</test_depend>
   <test_depend>moveit_resources</test_depend>
   <test_depend>xmlrpcpp</test_depend>
+  <test_depend>code_coverage</test_depend>
 
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
