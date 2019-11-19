@@ -27,7 +27,7 @@ env:
     - TEST="code-coverage"
       TEST_WHITELIST="chomp_motion_planner moveit_chomp_optimizer_adapter moveit_planners moveit_ros_move_group moveit_ros_manipulation moveit_ros_robot_interaction moveit_ros_warehouse moveit_ros_benchmarks moveit_ros_planning_interface moveit_planners_chomp moveit_planners_ompl"
     - TEST="code-coverage"
-      TEST_WHITELIST="moveit_plugins moveit_ros moveit_ros_occupancy_map_monitor moveit_ros_perception moveit_ros_planning moveit_fake_controller_manager moveit_ros_control_interface moveit_jog_arm"
+      TEST_WHITELIST="moveit_plugins moveit_ros moveit_ros_occupancy_map_monitor moveit_ros_planning moveit_fake_controller_manager moveit_ros_control_interface moveit_jog_arm"
     # - TEST="clang-format catkin_lint"
     # - ROS_DISTRO=melodic
     # - ROS_DISTRO=kinetic
