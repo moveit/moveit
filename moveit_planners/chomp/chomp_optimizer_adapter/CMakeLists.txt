@@ -12,6 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package()
 
+if(CATKIN_ENABLE_TESTING AND ENABLE_COVERAGE_TESTING)
+  find_package(code_coverage REQUIRED)   # catkin package ros-*-code-coverage
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif()
+
 include_directories(${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} src/chomp_optimizer_adapter.cpp)
