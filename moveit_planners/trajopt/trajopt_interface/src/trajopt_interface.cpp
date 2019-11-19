@@ -140,7 +140,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     int num_steps = problem_info.basic_info.n_steps;
     trajopt::TrajArray init_traj;
     init_traj.resize(num_steps, dof);
-    for (std::size_t step = 0; step < num_steps; ++num_steps)
+    for (std::size_t step = 0; step < num_steps; ++step)
     {
       for (std::size_t joint_index = 0; joint_index < dof; ++joint_index)
       {
