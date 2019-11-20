@@ -119,6 +119,10 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## TESTING ##
 #############
 
+#############
+## TESTING ##
+#############
+
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(ros_pytest REQUIRED)
