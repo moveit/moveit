@@ -1007,31 +1007,27 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
-  emitter << YAML::BeginMap;
+  emitter << YAML::Comment("The name of this file shouldn't be changed, else the Setup Assistant won't detect it");
 
-  emitter << YAML::Comment("The name of this file shouldn't be changed, or else the Setup Assistant won't detect it");
+  emitter << YAML::BeginMap;
   emitter << YAML::Key << "sensors";
   emitter << YAML::Value << YAML::BeginSeq;
 
-  // Can we have more than one plugin config?
-  emitter << YAML::BeginMap;
-
-  // Make sure sensors_plugin_config_parameter_list_ is not empty
-  if (!sensors_plugin_config_parameter_list_.empty())
+  // Make sure sensors_plugin_config_parameter_list_ parameters map is not empty
+  if (!sensors_plugin_config_parameter_list_[0].empty())
   {
+    // Can we have more than one plugin config?
+    emitter << YAML::BeginMap;
     for (auto& parameter : sensors_plugin_config_parameter_list_[0])
     {
       emitter << YAML::Key << parameter.first;
       emitter << YAML::Value << parameter.second.getValue();
     }
+    emitter << YAML::EndMap;
   }
 
-  emitter << YAML::EndMap;
-
   emitter << YAML::EndSeq;
-
   emitter << YAML::EndMap;
-
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
   if (!output_stream.good())
   {
