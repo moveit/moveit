@@ -35,8 +35,9 @@
 #pragma once
 
 /** \def MOVEIT_DEPRECATED
-    Macro that marks functions as deprecated */
+    Deprecated macro that marks functions as deprecated (TODO: Remove for Noetic) */
 
+#warning "The usage of MOVEIT_DEPRECATED is deprecated. Use the CPP14 [[deprecated]] instead."
 #ifdef __GNUC__
 #define MOVEIT_DEPRECATED __attribute__((deprecated))
 #elif defined(_MSC_VER)
