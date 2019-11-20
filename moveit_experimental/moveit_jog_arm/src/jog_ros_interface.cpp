@@ -65,10 +65,10 @@ JogROSInterface::JogROSInterface()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
   // Crunch the numbers in this thread
-  std::thread jogging_thread(&JogROSInterface::startJogCalcThread, this);
+  std::thread jogging_thread(&JogInterfaceBase::startJogCalcThread, dynamic_cast<JogInterfaceBase*>(this));
 
   // Check collisions in this thread
-  std::thread collision_thread(&JogROSInterface::startCollisionCheckThread, this);
+  std::thread collision_thread(&JogInterfaceBase::startCollisionCheckThread, dynamic_cast<JogInterfaceBase*>(this));
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber cmd_sub =
@@ -151,25 +151,6 @@ ros::Subscriber joints_sub = nh.subscribe(ros_parameters_.joint_topic, 1, &JogIn
 
   jogging_thread.join();
   collision_thread.join();
-}
-
-JogROSInterface::~JogROSInterface()
-{
-  pthread_mutex_destroy(&shared_variables_mutex_);
-}
-
-// A separate thread for the heavy jogging calculations.
-bool JogROSInterface::startJogCalcThread()
-{
-  JogCalcs ja(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
-  return true;
-}
-
-// A separate thread for collision checking.
-bool JogROSInterface::startCollisionCheckThread()
-{
-  CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
-  return true;
 }
 
 // Listen to cartesian delta commands. Store them in a shared variable.

@@ -60,17 +60,10 @@ class JogROSInterface : JogInterfaceBase
 {
 public:
   JogROSInterface();
-  ~JogROSInterface();
 
 private:
   // ROS subscriber callbacks
   void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
   void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
-
-  // Jogging calculation thread
-  bool startJogCalcThread();
-
-  // Collision checking thread
-  bool startCollisionCheckThread();
 };
 }  // namespace moveit_jog_arm

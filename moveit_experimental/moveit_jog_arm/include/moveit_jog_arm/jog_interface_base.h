@@ -56,7 +56,15 @@ namespace moveit_jog_arm
 class JogInterfaceBase
 {
 public:
+  ~JogInterfaceBase();
+
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  // Jogging calculation thread
+  bool startJogCalcThread();
+
+  // Collision checking thread
+  bool startCollisionCheckThread();
 
 protected:
   bool readParameters(ros::NodeHandle& n);
