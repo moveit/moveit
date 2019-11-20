@@ -5,7 +5,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/xmlrpc_casts.cpp
   src/message_checks.cpp
 )
-
+add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
