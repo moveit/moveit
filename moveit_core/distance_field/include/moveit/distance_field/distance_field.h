@@ -231,7 +231,7 @@ public:
 
   // DEPRECATED form
   [[deprecated]] void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
-                                          const geometry_msgs::Pose& new_pose);
+                                       const geometry_msgs::Pose& new_pose);
 
   /**
    * \brief All points corresponding to the shape are removed from the

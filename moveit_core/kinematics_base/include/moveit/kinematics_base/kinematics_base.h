@@ -336,8 +336,8 @@ public:
    */
   /* Replace by tip_frames-based method! */
   [[deprecated]] virtual void setValues(const std::string& robot_description, const std::string& group_name,
-                                           const std::string& base_frame, const std::string& tip_frame,
-                                           double search_discretization);
+                                        const std::string& base_frame, const std::string& tip_frame,
+                                        double search_discretization);
 
   /**
    * @brief Set the parameters for the solver, for use with non-chain IK solvers
@@ -368,8 +368,8 @@ public:
    * Default implementation returns false, indicating that this API is not supported.
    */
   [[deprecated]] virtual bool initialize(const std::string& robot_description, const std::string& group_name,
-                                            const std::string& base_frame, const std::string& tip_frame,
-                                            double search_discretization);
+                                         const std::string& base_frame, const std::string& tip_frame,
+                                         double search_discretization);
 
   /**
    * @brief  Initialization function for the kinematics, for use with non-chain IK solvers

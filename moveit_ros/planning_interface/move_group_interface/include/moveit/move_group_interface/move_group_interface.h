@@ -150,7 +150,7 @@ public:
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                      const ros::WallDuration& wait_for_servers = ros::WallDuration());
   [[deprecated]] MoveGroupInterface(const Options& opt, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                                       const ros::Duration& wait_for_servers);
+                                    const ros::Duration& wait_for_servers);
 
   /**
       \brief Construct a client for the MoveGroup action for a particular \e group.
@@ -163,7 +163,7 @@ public:
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                      const ros::WallDuration& wait_for_servers = ros::WallDuration());
   [[deprecated]] MoveGroupInterface(const std::string& group, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                                       const ros::Duration& wait_for_servers);
+                                    const ros::Duration& wait_for_servers);
 
   ~MoveGroupInterface();
 
