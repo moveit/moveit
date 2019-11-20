@@ -124,8 +124,14 @@ public:
 
   bool waitForExecution(const ros::Duration& timeout = ros::Duration(0)) override
   {
+    ros::Time end_time = ros::Time::now() + timeout;
     if (controller_action_client_ && !done_)
-      return controller_action_client_->waitForResult(timeout);
+    {
+      bool result = controller_action_client_->waitForResult(timeout);
+      while(ros::ok() && !done_ && (timeout.isZero() || ros::Time::now() < end_time))
+        ros::Duration(0.0001).sleep();// wait for done callback (race-condition)
+      return result && (timeout.isZero() || ros::Time::now() < end_time);
+    }
     return true;
   }
 
