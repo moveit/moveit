@@ -37,6 +37,36 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+#########################################
+## A library providing a C++ interface ##
+#########################################
+
+set(LIBRARY_NAME jog_arm_cpp_api)
+add_library(${LIBRARY_NAME} SHARED
+  src/collision_check_thread.cpp
+  src/jog_calcs.cpp
+  src/jog_cpp_api.cpp
+  src/low_pass_filter.cpp
+)
+
+# An example of using the C++ library
+add_executable(cpp_api_example
+  src/collision_check_thread.cpp
+  src/cpp_api_example.cpp
+  src/jog_calcs.cpp
+  src/low_pass_filter.cpp
+)
+add_dependencies(cpp_api_example ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cpp_api_example
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${LIBRARY_NAME}
+)
+
+############################
+## ROS message-based node ##
+############################
+
 add_executable(jog_server
   src/collision_check_thread.cpp
   src/jog_server.cpp
@@ -44,9 +74,12 @@ add_executable(jog_server
   src/jog_ros_interface.cpp
   src/low_pass_filter.cpp
 )
-
 add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
 target_link_libraries(jog_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+
+################################################
+## An example of converting joystick commands ##
+################################################
 
 add_executable(spacenav_to_twist
   src/teleop_examples/spacenav_to_twist.cpp
@@ -62,6 +95,10 @@ install(
 )
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+
+#############
+## TESTING ##
+#############
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)

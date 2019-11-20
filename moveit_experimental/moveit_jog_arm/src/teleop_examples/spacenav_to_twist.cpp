@@ -1,8 +1,8 @@
 /*
-     Title     : collision_check_thread.cpp
+     Title     : spacenav_to_twist.cpp
      Project   : moveit_jog_arm
      Created   : 1/11/2019
-     Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+     Author    : Andy Zelenak
 
 BSD 3-Clause License
 
