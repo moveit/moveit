@@ -126,7 +126,6 @@ TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
     threads[i]->join();
     delete threads[i];
   }
-  ASSERT_TRUE(true);
 }
 
 int main(int argc, char** argv)
