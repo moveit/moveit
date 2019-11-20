@@ -56,6 +56,14 @@ public:
 
   RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
 
+  RobotTrajectory(const RobotTrajectory&) = delete;
+
+  RobotTrajectory& operator=(const RobotTrajectory&) = delete;
+
+  void copy(const RobotTrajectory&);
+
+  void deepCopy(const RobotTrajectory&);
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
