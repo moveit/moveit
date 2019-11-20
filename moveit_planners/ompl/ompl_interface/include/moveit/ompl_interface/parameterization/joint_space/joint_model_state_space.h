@@ -46,5 +46,10 @@ public:
   static const std::string PARAMETERIZATION_TYPE;
 
   JointModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
+
+  const std::string& getParameterizationType() const override
+  {
+    return PARAMETERIZATION_TYPE;
+  }
 };
 }

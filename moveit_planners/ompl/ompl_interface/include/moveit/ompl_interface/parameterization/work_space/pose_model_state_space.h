@@ -110,6 +110,11 @@ public:
   void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const override;
   void sanityChecks() const override;
 
+  const std::string& getParameterizationType() const override
+  {
+    return PARAMETERIZATION_TYPE;
+  }
+
 private:
   struct PoseComponent
   {

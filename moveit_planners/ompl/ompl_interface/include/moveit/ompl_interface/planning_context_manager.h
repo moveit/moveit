@@ -140,12 +140,10 @@ public:
     return robot_model_;
   }
 
-  ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
-                                                  const std::string& factory_type = "") const;
-
   ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                   const planning_interface::MotionPlanRequest& req,
-                                                  moveit_msgs::MoveItErrorCodes& error_code) const;
+                                                  moveit_msgs::MoveItErrorCodes& error_code, const ros::NodeHandle& nh,
+                                                  bool use_constraints_approximations) const;
 
   void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
   {

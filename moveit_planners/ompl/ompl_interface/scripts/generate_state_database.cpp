@@ -36,10 +36,12 @@
 /* Authors: Ioan Sucan, Michael Goerner */
 
 #include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/robot_state/conversions.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/utils/message_checks.h>
@@ -119,26 +121,47 @@ void computeDB(const planning_scene::PlanningScenePtr& scene, struct GenerateSta
   scene->getCurrentStateNonConst().update();
 
   ompl_interface::OMPLInterface ompl_interface(scene->getRobotModel());
+  planning_interface::MotionPlanRequest req;
+  req.group_name = params.planning_group;
+  req.path_constraints = params.constraints;
+  moveit::core::robotStateToRobotStateMsg(scene->getCurrentState(), req.start_state);
+  req.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(
+      scene->getCurrentState(), scene->getRobotModel()->getJointModelGroup(params.planning_group)));
+
+  ompl_interface::ModelBasedPlanningContextPtr context = ompl_interface.getPlanningContext(scene, req);
 
   ROS_INFO_STREAM_NAMED(LOGNAME, "Generating Joint Space Constraint Approximation Database for constraint:\n"
                                      << params.constraints);
 
   ompl_interface::ConstraintApproximationConstructionResults result =
-      ompl_interface.getConstraintsLibrary().addConstraintApproximation(params.constraints, params.planning_group,
-                                                                        scene, params.construction_opts);
+      context->getConstraintsLibraryNonConst()->addConstraintApproximation(params.constraints, params.planning_group,
+                                                                           scene, params.construction_opts);
 
   if (!result.approx)
   {
     ROS_FATAL_NAMED(LOGNAME, "Failed to generate approximation.");
     return;
   }
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations(params.output_folder);
+  context->getConstraintsLibraryNonConst()->saveConstraintApproximations(params.output_folder);
   ROS_INFO_STREAM_NAMED(LOGNAME,
                         "Successfully generated Joint Space Constraint Approximation Database for constraint:\n"
                             << params.constraints);
   ROS_INFO_STREAM_NAMED(LOGNAME, "The database has been saved in your local folder '" << params.output_folder << "'");
 }
 
+/**
+ * Generates a database of states that follow the given constraints.
+ * An example of the constraint yaml that should be loaded to rosparam:
+ * "name: tool0_upright
+ *  constraints:
+ *  - type: orientation
+ *    frame_id: world
+ *    link_name: tool0
+ *    orientation: [0, 0, 0]
+ *    tolerances: [0.01, 0.01, 3.15]
+ *    weight: 1.0
+ * "
+ */
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "construct_tool_constraint_database", ros::init_options::AnonymousName);

@@ -48,13 +48,11 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , robot_model_(robot_model)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
   , context_manager_(robot_model, constraint_sampler_manager_)
-  , constraints_library_(new ConstraintsLibrary(context_manager_))
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
   ROS_INFO("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
-  loadConstraintApproximations();
   loadConstraintSamplers();
 }
 
@@ -65,13 +63,11 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , robot_model_(robot_model)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
   , context_manager_(robot_model, constraint_sampler_manager_)
-  , constraints_library_(new ConstraintsLibrary(context_manager_))
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
   ROS_INFO("Initializing OMPL interface using specified configuration");
   setPlannerConfigurations(pconfig);
-  loadConstraintApproximations();
   loadConstraintSamplers();
 }
 
@@ -107,16 +103,8 @@ ompl_interface::OMPLInterface::getPlanningContext(const planning_scene::Planning
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const
 {
-  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(planning_scene, req, error_code);
-  if (ctx)
-    configureContext(ctx);
-  return ctx;
-}
-
-ompl_interface::ModelBasedPlanningContextPtr
-ompl_interface::OMPLInterface::getPlanningContext(const std::string& config, const std::string& factory_type) const
-{
-  ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
+  ModelBasedPlanningContextPtr ctx =
+      context_manager_.getPlanningContext(planning_scene, req, error_code, nh_, use_constraints_approximations_);
   if (ctx)
     configureContext(ctx);
   return ctx;
@@ -124,47 +112,7 @@ ompl_interface::OMPLInterface::getPlanningContext(const std::string& config, con
 
 void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningContextPtr& context) const
 {
-  if (use_constraints_approximations_)
-    context->setConstraintsApproximations(constraints_library_);
-  else
-    context->setConstraintsApproximations(ConstraintsLibraryPtr());
   context->simplifySolutions(simplify_solutions_);
-}
-
-void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string& path)
-{
-  constraints_library_->loadConstraintApproximations(path);
-  std::stringstream ss;
-  constraints_library_->printConstraintApproximations(ss);
-  ROS_INFO_STREAM(ss.str());
-}
-
-void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::string& path)
-{
-  constraints_library_->saveConstraintApproximations(path);
-}
-
-bool ompl_interface::OMPLInterface::saveConstraintApproximations()
-{
-  std::string cpath;
-  if (nh_.getParam("constraint_approximations_path", cpath))
-  {
-    saveConstraintApproximations(cpath);
-    return true;
-  }
-  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
-  return false;
-}
-
-bool ompl_interface::OMPLInterface::loadConstraintApproximations()
-{
-  std::string cpath;
-  if (nh_.getParam("constraint_approximations_path", cpath))
-  {
-    loadConstraintApproximations(cpath);
-    return true;
-  }
-  return false;
 }
 
 void ompl_interface::OMPLInterface::loadConstraintSamplers()
