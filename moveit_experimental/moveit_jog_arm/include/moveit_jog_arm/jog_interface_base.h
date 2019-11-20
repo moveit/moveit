@@ -1,8 +1,8 @@
 /*
-     Title     : jog_ros_interface.h
+     Title     : jog_interface_base.cpp
      Project   : moveit_jog_arm
      Created   : 3/9/2017
-     Author    : Brian O'Neil, Blake Anderson, Andy Zelenak
+     Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
 
 BSD 3-Clause License
 
@@ -34,17 +34,13 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 */
-
-// Server node for arm jogging with MoveIt.
-
-#pragma once
 
 #include "collision_check_thread.h"
 #include <Eigen/Eigenvalues>
 #include "jog_arm_data.h"
 #include "jog_calcs.h"
-#include "jog_interface_base.h"
 #include "low_pass_filter.h"
 #include <moveit/robot_state/robot_state.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -54,23 +50,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace moveit_jog_arm
 {
 /**
- * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and creates the worker threads.
+ * Class JogInterfaceBase - Base class for C++ interface and ROS node.
+ * Handles ROS subs & pubs and creates the worker threads.
  */
-class JogROSInterface : JogInterfaceBase
+class JogInterfaceBase
 {
 public:
-  JogROSInterface();
-  ~JogROSInterface();
+  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
-private:
-  // ROS subscriber callbacks
-  void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
+protected:
+  bool readParameters(ros::NodeHandle& n);
 
-  // Jogging calculation thread
-  bool startJogCalcThread();
+  // Share data between threads
+  JogArmShared shared_variables_;
+  pthread_mutex_t shared_variables_mutex_;
 
-  // Collision checking thread
-  bool startCollisionCheckThread();
+  robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
+
+  // Store the parameters that were read from ROS server
+  JogArmParameters ros_parameters_;
 };
 }  // namespace moveit_jog_arm
