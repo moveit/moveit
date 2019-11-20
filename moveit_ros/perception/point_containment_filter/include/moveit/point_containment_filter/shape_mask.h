@@ -68,7 +68,7 @@ public:
   ShapeMask(const TransformCallback& transform_callback = TransformCallback());
 
   /** \brief Destructor to clean up */
-  ~ShapeMask();
+  virtual ~ShapeMask();
 
   ShapeHandle addShape(const shapes::ShapeConstPtr& shape, double scale = 1.0, double padding = 0.0);
   void removeShape(ShapeHandle handle);
@@ -90,7 +90,7 @@ public:
       It is assumed the point is in the frame corresponding to the TransformCallback */
   int getMaskContainment(const Eigen::Vector3d& pt) const;
 
-private:
+protected:
   struct SeeShape
   {
     SeeShape()
@@ -115,16 +115,19 @@ private:
     }
   };
 
+  TransformCallback transform_callback_;
+
+  /** \brief Protects, bodies_ and bspheres_. All public methods acquire this mutex for their whole duration. */
+  mutable boost::mutex shapes_lock_;
+  std::set<SeeShape, SortBodies> bodies_;
+  std::vector<bodies::BoundingSphere> bspheres_;
+
+private:
   /** \brief Free memory. */
   void freeMemory();
 
-  TransformCallback transform_callback_;
   ShapeHandle next_handle_;
   ShapeHandle min_handle_;
-
-  mutable boost::mutex shapes_lock_;
-  std::set<SeeShape, SortBodies> bodies_;
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator> used_handles_;
-  std::vector<bodies::BoundingSphere> bspheres_;
 };
 }
