@@ -121,16 +121,35 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   setProblemInfoParam(problem_info);
 
   ROS_INFO(" ======================================= Populate init info");
+  // Check if the reference trajectoriy is empty when init_info.type is not set to STATIONARY
+  if (problem_info.init_info.type != trajopt::InitInfo::STATIONARY)
+  {
+    if (req.reference_trajectories.empty())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "reference_trajectoies is empty. If you are using Motion Planning Display in RViz, "
+                                    "set init_info.type in the yaml file to STATIONARY");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+      return false;
+    }
+    else if (req.reference_trajectories[0].joint_trajectory.empty())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "joint_trajectory is empty. If you are using Motion Planning Display in RViz, set "
+                                    "init_info.type in the yaml file to STATIONARY");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+      return false;
+    }
+  }
+
   // For type JOINT_INTERPOLATED, we need the configuration of the robot at one state (which should be the goal), we do
-  // not need the robot configuration along the whole trajectory. That is why we need one index which is 0 for
-  // "points[]"
+  // not need the robot configuration along the whole trajectory. That is why the last element of points, i.e.
+  // poinst.back() is considered.
   if (problem_info.init_info.type == trajopt::InitInfo::JOINT_INTERPOLATED)
   {
     Eigen::VectorXd initial_joint_values_eigen(dof);
     for (int joint_index = 0; joint_index < dof; ++joint_index)
     {
       initial_joint_values_eigen(joint_index) =
-          req.reference_trajectories[0].joint_trajectory[0].points[0].positions[joint_index];
+          req.reference_trajectories[0].joint_trajectory[0].points.back().positions[joint_index];
     }
 
     problem_info.init_info.data = initial_joint_values_eigen;
@@ -290,7 +309,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   ROS_INFO(" ======================================= TrajOpt Solution");
   trajopt::TrajArray opt_solution = trajopt::getTraj(opt.x(), trajopt_problem_->GetVars());
 
-  // assume that the trajectory is now optimized, fill in the output structure:
+  // Assume that the trajectory is now optimized, fill in the output structure:
   ROS_INFO_STREAM_NAMED("num_rows", opt_solution.rows());
   ROS_INFO_STREAM_NAMED("num_cols", opt_solution.cols());
 
@@ -298,9 +317,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
   res.trajectory[0].joint_trajectory.joint_names = group_joint_names;
   res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;
 
-  // fill in the entire trajectory
+  // Fill in the entire trajectory
   res.trajectory[0].joint_trajectory.points.resize(opt_solution.rows());
-  for (int i = 0; i < opt_solution.rows(); i++)
+  for (size_t i = 0; i < opt_solution.rows(); i++)
   {
     res.trajectory[0].joint_trajectory.points[i].positions.resize(opt_solution.cols());
     for (size_t j = 0; j < opt_solution.cols(); j++)
@@ -321,8 +340,9 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   for (int jn = 0; jn < res.trajectory[0].joint_trajectory.points.back().positions.size(); ++jn)
   {
-    ROS_INFO_STREAM_NAMED("joint_value", res.trajectory[0].joint_trajectory.points.back().positions[jn]
-                                             << "   " << req.goal_constraints.back().joint_constraints[jn].position);
+    ROS_INFO_STREAM_NAMED("joint_value",
+                          "response: " << res.trajectory[0].joint_trajectory.points.back().positions[jn]
+                                       << "   goal: " << req.goal_constraints.back().joint_constraints[jn].position);
   }
 
   bool constraints_are_ok = true;
