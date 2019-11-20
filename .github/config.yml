@@ -10,7 +10,7 @@ newIssueWelcomeComment: >
 
 # Comment to be posted to on PRs from first time contributors in your repository
 newPRWelcomeComment: >
-  Thanks for helping in improve MoveIt and open source robotics!
+  Thanks for helping in improving MoveIt and open source robotics!
 
 # Configuration for first-pr-merge - https://github.com/behaviorbot/first-pr-merge
 
