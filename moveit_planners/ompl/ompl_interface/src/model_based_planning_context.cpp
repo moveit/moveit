@@ -468,7 +468,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   // Terminate if a maximum number of iterations is exceeded or a timeout occurs.
   // The semantics of "iterations" are planner-specific, but typically it corresponds to the number of times
   // an attempt was made to grow a roadmap/tree.
-  if (termination_and_params[0] == "Iteration")
+  else if (termination_and_params[0] == "Iteration")
   {
     if (termination_and_params.size() > 1)
       return ob::plannerOrTerminationCondition(
