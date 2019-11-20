@@ -936,6 +936,11 @@ void MotionPlanningDisplay::updateQueryGoalState()
   context_->queueRender();
 }
 
+void MotionPlanningDisplay::updatePreviousState()
+{
+  *previous_state_ = *query_start_state_->getState();
+}
+
 void MotionPlanningDisplay::setQueryStartState(const robot_state::RobotState& start)
 {
   query_start_state_->setState(start);
@@ -1142,6 +1147,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
                                                                     planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
+  previous_state_ = ks;
 
   // Interactive marker menus
   populateMenuHandler(menu_handler_start_);

@@ -242,6 +242,16 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   // update query start state to current if neccessary
   if (ui_->start_state_combo_box->currentText() == "<current>")
     startStateTextChanged(ui_->start_state_combo_box->currentText());
+
+  // update previous state if plan is successfully executed
+  if (success)
+  {
+    planning_display_->updatePreviousState();
+    if (ui_->goal_state_combo_box->currentText() == "<previous>")
+    {
+      goalStateTextChanged(ui_->goal_state_combo_box->currentText());
+    }
+  }
 }
 
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
@@ -341,6 +351,12 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state,
   if (v == "<same as start>")
   {
     state = *planning_display_->getQueryStartState();
+    return;
+  }
+
+  if (v == "<previous>")
+  {
+    state = planning_display_->getPreviousState();
     return;
   }
 
