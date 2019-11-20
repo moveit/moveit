@@ -21,6 +21,8 @@ env:
     - TEST_BLACKLIST="moveit_ros_perception"
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
+    - CCACHE_SLOPPINESS="include_file_ctime,include_file_mtime"
+    - CCACHE_MAXSIZE=1G
   matrix:
     - TEST="code-coverage"
       TEST_WHITELIST="moveit moveit_commander moveit_core moveit_kinematics moveit_ros_visualization moveit_runtime moveit_setup_assistant moveit_simple_controller_manager"
