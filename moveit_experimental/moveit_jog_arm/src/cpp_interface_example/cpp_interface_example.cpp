@@ -45,9 +45,13 @@ int main(int argc, char** argv)
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
   moveit_jog_arm::JogCppApi jog_interface;
-  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::TestMemberFunction, jog_interface);
+  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, jog_interface);
 
   jog_interface.TestMemberFunction();
+
+  while (ros::ok())
+  {
+	}
 
   jogging_thread.join();
   return 0;

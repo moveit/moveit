@@ -50,14 +50,14 @@ add_library(${LIBRARY_NAME} SHARED
 )
 
 # An example of using the C++ library
-add_executable(cpp_api_example
+add_executable(cpp_interface_example
   src/collision_check_thread.cpp
-  src/cpp_api_example.cpp
+  src/cpp_interface_example/cpp_interface_example.cpp
   src/jog_calcs.cpp
   src/low_pass_filter.cpp
 )
-add_dependencies(cpp_api_example ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cpp_api_example
+add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cpp_interface_example
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
   ${LIBRARY_NAME}

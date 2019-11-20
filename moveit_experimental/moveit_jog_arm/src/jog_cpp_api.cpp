@@ -38,3 +38,26 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "moveit_jog_arm/jog_cpp_api.h"
+
+namespace moveit_jog_arm
+{
+
+JogCppApi::JogCppApi()
+{
+  ;
+}
+
+void JogCppApi::MainLoop()
+{
+  while (ros::ok())
+  {
+    std::cout << "looping" << std::endl;
+  }
+}
+
+void JogCppApi::TestMemberFunction()
+{
+  std::cout << "printing" << std::endl;
+};
+
+}  // namespace moveit_jog_arm

@@ -59,11 +59,10 @@ namespace moveit_jog_arm
 class JogCppApi
 {
 public:
-  JogCppApi(){};
+  JogCppApi();
 
-  void TestMemberFunction()
-  {
-  	std::cout << "printing" << std::endl;
-  };
+  void MainLoop();
+
+  void TestMemberFunction();
 };
 }  // namespace moveit_jog_arm
