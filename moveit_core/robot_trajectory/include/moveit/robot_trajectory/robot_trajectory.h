@@ -59,10 +59,14 @@ public:
   RobotTrajectory(const RobotTrajectory&) = delete;
 
   RobotTrajectory& operator=(const RobotTrajectory&) = delete;
-
-  void copy(const RobotTrajectory&);
-
-  void deepCopy(const RobotTrajectory&);
+  /** @brief  Shallow copy the passed object.
+   *  @param  robot_model RobotTrajectory object.
+   */
+  void copy(const RobotTrajectory& robot_traj);
+  /** @brief  Deep copy the passed object.
+   *  @param  robot_model RobotTrajectory object.
+   */
+  void deepCopy(const RobotTrajectory& robot_traj);
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
