@@ -54,6 +54,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
+// \todo remove when ROS Melodic and older are no longer supported
 #if OMPL_VERSION_VALUE < 1005000
 #include <ompl/base/PlannerTerminationCondition.h>
 #else
