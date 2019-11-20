@@ -12,4 +12,7 @@ if (CATKIN_ENABLE_TESTING)
   add_rostest(python_move_group_ns.test)
   add_rostest(robot_state_update.test)
   add_rostest(cleanup.test)
+
+  add_rostest_gtest(plan_using_subframes plan_using_subframes.test plan_using_subframes.cpp)
+  target_link_libraries(plan_using_subframes moveit_move_group_interface ${catkin_LIBRARIES})
 endif()
