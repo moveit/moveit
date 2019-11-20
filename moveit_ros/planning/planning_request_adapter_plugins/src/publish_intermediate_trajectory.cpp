@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2019, Iron Ox.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Iron Ox nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -43,9 +43,8 @@ class PublishIntermediateTrajectory : public planning_request_adapter::PlanningR
 {
 public:
   ros::Publisher intermediate_trajectory_;
-  ros::NodeHandle nh_;
 
-  PublishIntermediateTrajectory() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
+  PublishIntermediateTrajectory() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
@@ -53,12 +52,13 @@ public:
   {
     std::string topic_name = "intermediate_trajectory";
     node_handle.getParam("intermediate_trajectory_topic_name", topic_name);
-    intermediate_trajectory_ = nh_.advertise<moveit_msgs::RobotTrajectory>(topic_name, 1000);
+    ros::NodeHandle nh = node_handle;
+    intermediate_trajectory_ = nh.advertise<moveit_msgs::RobotTrajectory>(topic_name, 1000);
   }
 
   std::string getDescription() const override
   {
-    return "Publish intermediate trajectory.";
+    return "Publish intermediate trajectory at current location within planning adapter chain.";
   }
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
