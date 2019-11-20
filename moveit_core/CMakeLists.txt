@@ -21,13 +21,18 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
- # TODO: Move collision detection into separate packages
 
+# TODO: Move collision detection into separate packages
 find_package(Bullet CONFIG)
-if (BULLET_VERSION_STRING VERSION_GREATER "2.86")
-  set(MOVEIT_HAVE_BULLET 1)
-  # TODO: Add here all cmake code which is bullet specific
-  add_subdirectory(collision_detection_bullet)
+if(BULLET_FOUND AND BULLET_VERSION_STRING VERSION_GREATER "2.86")
+  set(BULLET_ENABLE "BULLET")
+  set(BULLET_INCLUDE_DIRS "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIRS}")
+  set(BULLET_INCLUDE_DIR "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIR}")
+  set(BULLET_LIBRARY_DIRS "${BULLET_ROOT_DIR}/${BULLET_LIBRARY_DIRS}")
+  set(BULLET_LIBRARIES "libBulletDynamics.so;libBulletCollision.so;libLinearMath.so;libBulletSoftBody.so")
+  message(STATUS "Compiling with Bullet")
+else()
+  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin")
 endif()
 
 find_package(PkgConfig REQUIRED)
@@ -151,7 +156,7 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
-    BULLET
+    ${BULLET_ENABLE}
     )
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
@@ -196,7 +201,6 @@ add_subdirectory(robot_state)
 add_subdirectory(robot_trajectory)
 add_subdirectory(collision_detection)
 add_subdirectory(collision_detection_fcl)
-add_subdirectory(collision_detection_bullet)
 add_subdirectory(kinematic_constraints)
 add_subdirectory(planning_scene)
 add_subdirectory(constraint_samplers)
@@ -207,3 +211,7 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+
+if(BULLET_ENABLE)
+  add_subdirectory(collision_detection_bullet)
+endif()
