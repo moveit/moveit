@@ -129,7 +129,7 @@ public:
     {
       bool result = controller_action_client_->waitForResult(timeout);
       while(ros::ok() && !done_ && (timeout.isZero() || ros::Time::now() < end_time))
-        ros::Duration(0.0001).sleep();// wait for done callback (race-condition)
+        ros::Duration(0.0001).sleep();  // wait for done callback (race-condition)
       return result && (timeout.isZero() || ros::Time::now() < end_time);
     }
     return true;
