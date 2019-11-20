@@ -350,18 +350,12 @@ public:
 
   /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in
    * compound distances */
-  double getDistanceFactor() const
-  {
-    return distance_factor_;
-  }
-
+  double getDistanceFactor() const = 0;
+ 
   /** \brief Set the factor that should be applied to the value returned by distance() when that value is used in
    * compound distances */
-  void setDistanceFactor(double factor)
-  {
-    distance_factor_ = factor;
-  }
-
+  void setDistanceFactor(double factor);
+  
   /** \brief Get the dimension of the state space that corresponds to this joint */
   virtual unsigned int getStateSpaceDimension() const = 0;
 
