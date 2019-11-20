@@ -198,4 +198,23 @@ bool JogInterfaceBase::startCollisionCheckThread()
   CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
   return true;
 }
+
+// A separate thread for the heavy jogging calculations.
+bool JogInterfaceBase::startJogCalcThread()
+{
+  JogCalcs ja(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
+  return true;
+}
+
+// A separate thread for collision checking.
+bool JogInterfaceBase::startCollisionCheckThread()
+{
+  CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
+  return true;
+}
+
+JogInterfaceBase::~JogInterfaceBase()
+{
+  pthread_mutex_destroy(&shared_variables_mutex_);
+}
 }  // namespace moveit_jog_arm

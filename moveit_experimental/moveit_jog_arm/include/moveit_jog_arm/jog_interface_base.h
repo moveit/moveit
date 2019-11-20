@@ -55,6 +55,8 @@ namespace moveit_jog_arm
 class JogInterfaceBase
 {
 public:
+  ~JogInterfaceBase();
+
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
   // Jogging calculation thread
