@@ -54,7 +54,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
-// \todo remove when ROS Melodic and older are no longer supported
+// TODO: remove when ROS Melodic and older are no longer supported
 #if OMPL_VERSION_VALUE < 1005000
 #include <ompl/base/PlannerTerminationCondition.h>
 #else
@@ -478,6 +478,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
     else
       ROS_ERROR_NAMED("model_based_planning_context", "Missing argument to Iteration termination condition");
   }
+// TODO: remove when ROS Melodic and older are no longer supported
 #if OMPL_VERSION_VALUE >= 1005000
   // Terminate if the cost has converged or a timeout occurs.
   // Only useful for anytime/optimizing planners.
