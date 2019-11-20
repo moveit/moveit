@@ -22,7 +22,13 @@ endif()
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
  # TODO: Move collision detection into separate packages
-find_package(Bullet REQUIRED)
+
+find_package(Bullet CONFIG)
+if (BULLET_VERSION_STRING VERSION_GREATER "2.86")
+  set(MOVEIT_HAVE_BULLET 1)
+  # TODO: Add here all cmake code which is bullet specific
+  add_subdirectory(collision_detection_bullet)
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL_PC REQUIRED fcl)
