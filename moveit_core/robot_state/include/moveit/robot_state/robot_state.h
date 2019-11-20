@@ -40,7 +40,6 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/attached_body.h>
 #include <moveit/transforms/transforms.h>
-#include <moveit/macros/deprecation.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/ColorRGBA.h>
@@ -1119,7 +1118,7 @@ as the new values that correspond to the group */
 
      NOTE: As of ROS-Melodic these are deprecated and should not be used
      */
-  MOVEIT_DEPRECATED double
+  [[deprecated]] double
   computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                        const Eigen::Vector3d& direction, bool global_reference_frame, double distance, double max_step,
                        double jump_threshold_factor,
@@ -1135,7 +1134,7 @@ as the new values that correspond to the group */
 
      NOTE: As of ROS-Melodic these are deprecated and should not be used
      */
-  MOVEIT_DEPRECATED double
+  [[deprecated]] double
   computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                        const Eigen::Isometry3d& target, bool global_reference_frame, double max_step,
                        double jump_threshold_factor,
@@ -1151,7 +1150,7 @@ as the new values that correspond to the group */
 
      NOTE: As of ROS-Melodic these are deprecated and should not be used
      */
-  MOVEIT_DEPRECATED double
+  [[deprecated]] double
   computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                        const EigenSTL::vector_Isometry3d& waypoints, bool global_reference_frame, double max_step,
                        double jump_threshold_factor,
@@ -1757,7 +1756,7 @@ private:
 
   /** \brief Update a set of joints that are certain to be mimicking other joints */
   /* use updateMimicJoints() instead, which also marks joints dirty */
-  MOVEIT_DEPRECATED void updateMimicJoint(const std::vector<const JointModel*>& mim)
+  [[deprecated]] void updateMimicJoint(const std::vector<const JointModel*>& mim)
   {
     for (std::size_t i = 0; i < mim.size(); ++i)
     {
