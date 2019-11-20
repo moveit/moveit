@@ -40,7 +40,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/deprecation.h>
 #include <ros/node_handle.h>
 
 #include <boost/function.hpp>
@@ -336,7 +335,7 @@ public:
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    */
   /* Replace by tip_frames-based method! */
-  MOVEIT_DEPRECATED virtual void setValues(const std::string& robot_description, const std::string& group_name,
+  [[deprecated]] virtual void setValues(const std::string& robot_description, const std::string& group_name,
                                            const std::string& base_frame, const std::string& tip_frame,
                                            double search_discretization);
 
@@ -368,7 +367,7 @@ public:
    * Instead of this method, use the method passing in a RobotModel!
    * Default implementation returns false, indicating that this API is not supported.
    */
-  MOVEIT_DEPRECATED virtual bool initialize(const std::string& robot_description, const std::string& group_name,
+  [[deprecated]] virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                                             const std::string& base_frame, const std::string& tip_frame,
                                             double search_discretization);
 
@@ -588,8 +587,8 @@ protected:
   // The next two variables still exists for backwards compatibility
   // with previously generated custom ik solvers like IKFast
   // Replace tip_frame_ -> tip_frames_[0], search_discretization_ -> redundant_joint_discretization_
-  MOVEIT_DEPRECATED std::string tip_frame_;
-  MOVEIT_DEPRECATED double search_discretization_;
+  [[deprecated]] std::string tip_frame_;
+  [[deprecated]] double search_discretization_;
 
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;

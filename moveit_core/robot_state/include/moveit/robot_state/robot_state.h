@@ -40,7 +40,6 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/attached_body.h>
-#include <moveit/macros/deprecation.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/ColorRGBA.h>
@@ -1845,7 +1844,7 @@ private:
 
   /** \brief Update a set of joints that are certain to be mimicking other joints */
   /* use updateMimicJoints() instead, which also marks joints dirty */
-  MOVEIT_DEPRECATED void updateMimicJoint(const std::vector<const JointModel*>& mim)
+  [[deprecated]] void updateMimicJoint(const std::vector<const JointModel*>& mim)
   {
     for (std::size_t i = 0; i < mim.size(); ++i)
     {

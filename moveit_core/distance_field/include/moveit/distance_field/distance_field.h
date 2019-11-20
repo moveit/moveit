@@ -38,7 +38,6 @@
 #define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/deprecation.h>
 #include <moveit/distance_field/voxel_grid.h>
 #include <vector>
 #include <list>
@@ -192,7 +191,7 @@ public:
   void addShapeToField(const shapes::Shape* shape, const Eigen::Isometry3d& pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
+  [[deprecated]] void addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
 
   /**
    * \brief Adds an octree to the distance field.  Cells that are
@@ -231,7 +230,7 @@ public:
                         const Eigen::Isometry3d& new_pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
+  [[deprecated]] void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
                                           const geometry_msgs::Pose& new_pose);
 
   /**
@@ -246,7 +245,7 @@ public:
   void removeShapeFromField(const shapes::Shape* shape, const Eigen::Isometry3d& pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
+  [[deprecated]] void removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
 
   /**
    * \brief Resets all points in the distance field to an uninitialize
