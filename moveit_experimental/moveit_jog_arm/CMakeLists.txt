@@ -41,27 +41,33 @@ include_directories(
 ## A library providing a C++ interface ##
 #########################################
 
-#set(LIBRARY_NAME jog_arm_cpp_api)
-#add_library(${LIBRARY_NAME} SHARED
-#  src/collision_check_thread.cpp
-#  src/jog_calcs.cpp
-#  src/jog_cpp_api.cpp
-#  src/low_pass_filter.cpp
-#)
+set(LIBRARY_NAME jog_arm_cpp_api)
+add_library(${LIBRARY_NAME} SHARED
+  src/collision_check_thread.cpp
+  src/jog_calcs.cpp
+  src/jog_cpp_interface.cpp
+  src/jog_interface_base.cpp
+  src/low_pass_filter.cpp
+)
+add_dependencies(${LIBRARY_NAME} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${LIBRARY_NAME}
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+)
 
-## An example of using the C++ library
-#add_executable(cpp_interface_example
-#  src/collision_check_thread.cpp
-#  src/cpp_interface_example/cpp_interface_example.cpp
-#  src/jog_calcs.cpp
-#  src/low_pass_filter.cpp
-#)
-#add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(cpp_interface_example
-#  ${catkin_LIBRARIES}
-#  ${Eigen_LIBRARIES}
-#  ${LIBRARY_NAME}
-#)
+# An example of using the C++ library
+add_executable(cpp_interface_example
+  src/collision_check_thread.cpp
+  src/cpp_interface_example/cpp_interface_example.cpp
+  src/jog_calcs.cpp
+  src/low_pass_filter.cpp
+)
+add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cpp_interface_example
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${LIBRARY_NAME}
+)
 
 ############################
 ## ROS message-based node ##

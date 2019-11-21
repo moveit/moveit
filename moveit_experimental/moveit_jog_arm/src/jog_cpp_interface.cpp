@@ -1,8 +1,8 @@
 /*
-     Title     : jog_ros_interface.cpp
+     Title     : jog_cpp_interface.cpp
      Project   : moveit_jog_arm
-     Created   : 3/9/2017
-     Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+     Created   : 11/20/2019
+     Author    : Andy Zelenak
 
 BSD 3-Clause License
 
@@ -36,32 +36,25 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Server node for arm jogging with MoveIt.
-
-#include <moveit_jog_arm/jog_ros_interface.h>
+#include "moveit_jog_arm/jog_cpp_interface.h"
 
 namespace moveit_jog_arm
 {
-/////////////////////////////////////////////////////////////////////////////////
-// JogROSInterface handles ROS subscriptions and instantiates the worker threads.
-// One worker thread does the jogging calculations.
-// Another worker thread does collision checking.
-/////////////////////////////////////////////////////////////////////////////////
 
-// Constructor for the main ROS interface node
-JogROSInterface::JogROSInterface()
+JogCppApi::JogCppApi()
 {
-  ros::NodeHandle nh;
-
   pthread_mutex_init(&shared_variables_mutex_, nullptr);
 
   // Read ROS parameters, typically from YAML file
-  if (!readParameters(nh))
+  if (!readParameters(nh_))
     exit(EXIT_FAILURE);
 
   // Load the robot model. This is used by the worker threads.
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
+}
 
+void JogCppApi::MainLoop()
+{
   // Crunch the numbers in this thread
   std::thread jogging_thread(&JogInterfaceBase::startJogCalcThread, dynamic_cast<JogInterfaceBase*>(this));
 
@@ -69,19 +62,15 @@ JogROSInterface::JogROSInterface()
   std::thread collision_thread(&JogInterfaceBase::startCollisionCheckThread, dynamic_cast<JogInterfaceBase*>(this));
 
   // ROS subscriptions. Share the data with the worker threads
-  ros::Subscriber cmd_sub =
-      nh.subscribe(ros_parameters_.cartesian_command_in_topic, 1, &JogROSInterface::deltaCartesianCmdCB, this);
-  ros::Subscriber joint_jog_cmd_sub =
-      nh.subscribe(ros_parameters_.joint_command_in_topic, 1, &JogROSInterface::deltaJointCmdCB, this);
-  ros::Subscriber joints_sub = nh.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
+  ros::Subscriber joints_sub = nh_.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
 
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
   ros::Publisher outgoing_cmd_pub;
   if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    outgoing_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>(ros_parameters_.command_out_topic, 1);
+    outgoing_cmd_pub = nh_.advertise<trajectory_msgs::JointTrajectory>(ros_parameters_.command_out_topic, 1);
   else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    outgoing_cmd_pub = nh.advertise<std_msgs::Float64MultiArray>(ros_parameters_.command_out_topic, 1);
+    outgoing_cmd_pub = nh_.advertise<std_msgs::Float64MultiArray>(ros_parameters_.command_out_topic, 1);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
@@ -151,55 +140,9 @@ JogROSInterface::JogROSInterface()
   collision_thread.join();
 }
 
-// Listen to cartesian delta commands. Store them in a shared variable.
-void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
+void JogCppApi::ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command)
 {
-  pthread_mutex_lock(&shared_variables_mutex_);
+  ROS_ERROR_STREAM("Received a new command!");
+};
 
-  // Copy everything but the frame name. The frame name is set by yaml file at startup.
-  // (so it isn't copied over and over)
-  shared_variables_.command_deltas.twist = msg->twist;
-  shared_variables_.command_deltas.header = msg->header;
-
-  // Input frame determined by YAML file if not passed with message
-  if (shared_variables_.command_deltas.header.frame_id.empty())
-  {
-    shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
-  }
-
-  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_halt_msgs_to_publish
-  shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
-                                              shared_variables_.command_deltas.twist.linear.y == 0.0 &&
-                                              shared_variables_.command_deltas.twist.linear.z == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.x == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.y == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.z == 0.0;
-
-  if (!shared_variables_.zero_cartesian_cmd_flag)
-  {
-    shared_variables_.latest_nonzero_cmd_stamp = msg->header.stamp;
-  }
-  pthread_mutex_unlock(&shared_variables_mutex_);
-}
-
-// Listen to joint delta commands. Store them in a shared variable.
-void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
-{
-  pthread_mutex_lock(&shared_variables_mutex_);
-  shared_variables_.joint_command_deltas = *msg;
-
-  // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
-  bool all_zeros = true;
-  for (double delta : shared_variables_.joint_command_deltas.velocities)
-  {
-    all_zeros &= (delta == 0.0);
-  };
-  shared_variables_.zero_joint_cmd_flag = all_zeros;
-
-  if (!shared_variables_.zero_joint_cmd_flag)
-  {
-    shared_variables_.latest_nonzero_cmd_stamp = msg->header.stamp;
-  }
-  pthread_mutex_unlock(&shared_variables_mutex_);
-}
 }  // namespace moveit_jog_arm

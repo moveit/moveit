@@ -40,16 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "collision_check_thread.h"
-#include <Eigen/Eigenvalues>
-#include "jog_arm_data.h"
-#include "jog_calcs.h"
 #include "jog_interface_base.h"
-#include "low_pass_filter.h"
-#include <moveit/robot_state/robot_state.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <sensor_msgs/Joy.h>
-#include <std_msgs/Float64MultiArray.h>
 
 namespace moveit_jog_arm
 {

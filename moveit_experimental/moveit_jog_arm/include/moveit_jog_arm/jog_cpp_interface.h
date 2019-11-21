@@ -1,12 +1,12 @@
 /*
-     Title     : jog_cpp_api.cpp
+     Title     : jog_cpp_interface.h
      Project   : moveit_jog_arm
      Created   : 11/20/2019
      Author    : Andy Zelenak
 
 BSD 3-Clause License
 
-Copyright (c) 2018, Los Alamos National Security, LLC
+Copyright (c) 2019, Los Alamos National Security, LLC
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,27 +36,27 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "moveit_jog_arm/jog_cpp_api.h"
+
+#pragma once
+
+#include "jog_interface_base.h"
 
 namespace moveit_jog_arm
 {
-
-JogCppApi::JogCppApi()
+/**
+* Class JogCppApi - This class should be instantiated in a new thread
+* See cpp_interface_example.cpp
+*/
+class JogCppApi : JogInterfaceBase
 {
-  ;
-}
+public:
+  JogCppApi();
 
-void JogCppApi::MainLoop()
-{
-  while (ros::ok())
-  {
-    std::cout << "looping" << std::endl;
-  }
-}
+  void MainLoop();
 
-void JogCppApi::TestMemberFunction()
-{
-  std::cout << "printing" << std::endl;
+  void ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command);
+
+private:
+  ros::NodeHandle nh_;
 };
-
 }  // namespace moveit_jog_arm
