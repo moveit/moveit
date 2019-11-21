@@ -110,7 +110,7 @@ void RobotModelLoader::configure(const Options& opt)
     for (moveit::core::JointModel* jmodel : model_->getJointModels())
     {
       std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableBoundsMsg();
-      std::vector<double> jw = jmodel->getDistanceFactor();			
+      std::vector<double> jweight = jmodel->getDistanceFactor();			
 
       for (std::size_t j = 0; j < jlim.size(); ++j)
       {
@@ -121,7 +121,7 @@ void RobotModelLoader::configure(const Options& opt)
         {
           if (canSpecifyPosition(jmodel, j))
           {
-            jw[j].distance_factor_ = weight;
+            jweight[j].distance_factor_ = weight;
           }
         }
 
@@ -164,7 +164,7 @@ void RobotModelLoader::configure(const Options& opt)
           jlim[j].has_acceleration_limits = has_acc_limits;
       }
       jmodel->setVariableBounds(jlim);
-      jmodel->setDistanceFactor(jw);
+      jmodel->setDistanceFactor(jweight);
     }
   }
 
