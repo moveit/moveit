@@ -182,6 +182,7 @@ void testNearSubframe(const std::string& subframe_name,
   auto attached_objects = planning_scene_interface->getAttachedObjects();
   tip_in_hand_msg = attached_objects["cylinder"].object.subframe_poses[0];
   hand_in_world_msg = group->getCurrentPose("panda_hand").pose;
+  tip_in_hand_msg.position.x += 0.01;
   poseMsgToEigen(tip_in_hand_msg, tip_in_hand);
   poseMsgToEigen(hand_in_world_msg, hand_in_word);
   tip_in_world = hand_in_word * tip_in_hand;
@@ -202,9 +203,9 @@ void testNearSubframe(const std::string& subframe_name,
 
   poseMsgToEigen(box_subframe_msg, box_subframe_in_world);
 
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[0] - tip_in_world.translation()[0]), 0.1 + 1e-5);
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 0.1 + 1e-5);
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 0.1 + 1e-5);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[0] - tip_in_world.translation()[0]), 1e-3);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 1e-3);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 1e-3);
 }
 
 TEST(TestPlanUsingSubframes, SubframesTests)
