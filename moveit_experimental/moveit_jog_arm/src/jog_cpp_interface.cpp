@@ -142,7 +142,9 @@ void JogCppApi::MainLoop()
 
 void JogCppApi::ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command)
 {
-  ROS_ERROR_STREAM("Received a new command!");
+  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_.command_deltas = velocity_command;
+  pthread_mutex_unlock(&shared_variables_mutex_);
 };
 
 }  // namespace moveit_jog_arm

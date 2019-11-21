@@ -69,13 +69,13 @@ public:
 protected:
   bool readParameters(ros::NodeHandle& n);
 
-  // Share data between threads
-  JogArmShared shared_variables_;
-  pthread_mutex_t shared_variables_mutex_;
-
   robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
 
   // Store the parameters that were read from ROS server
   JogArmParameters ros_parameters_;
+
+  // Share data between threads
+  JogArmShared shared_variables_;
+  pthread_mutex_t shared_variables_mutex_;
 };
 }  // namespace moveit_jog_arm

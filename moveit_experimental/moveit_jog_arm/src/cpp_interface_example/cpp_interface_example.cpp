@@ -44,18 +44,20 @@ int main(int argc, char** argv)
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
   moveit_jog_arm::JogCppApi jog_interface;
-  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, jog_interface);
+  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, &jog_interface);
 
-  // Send a few seconds of Cartesian velocity commands
   geometry_msgs::TwistStamped velocity_msg;
   velocity_msg.header.frame_id = "base_link";
   velocity_msg.twist.linear.y = 0.01;
   velocity_msg.twist.linear.z = -0.01;
 
-  ros::Time start = ros::Time::now();
   ros::Rate cmd_rate(100);
-  while (ros::ok() && (ros::Time::now() - start).toSec() < 20)
+  uint num_commands = 0;
+
+  // Send a few Cartesian velocity commands
+  while (ros::ok() && num_commands < 100)
   {
+    ++num_commands;
     velocity_msg.header.stamp = ros::Time::now();
     jog_interface.ProvideTwistStampedCommand(velocity_msg);
     cmd_rate.sleep();
