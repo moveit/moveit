@@ -36,7 +36,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <moveit_jog_arm/jog_cpp_api.h>
+#include <moveit_jog_arm/jog_cpp_interface.h>
 
 int main(int argc, char** argv)
 {
@@ -46,11 +46,20 @@ int main(int argc, char** argv)
   moveit_jog_arm::JogCppApi jog_interface;
   std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, jog_interface);
 
-  jog_interface.TestMemberFunction();
+  // Send a few seconds of Cartesian velocity commands
+  geometry_msgs::TwistStamped velocity_msg;
+  velocity_msg.header.frame_id = "base_link";
+  velocity_msg.twist.linear.y = 0.01;
+  velocity_msg.twist.linear.z = -0.01;
 
-  while (ros::ok())
+  ros::Time start = ros::Time::now();
+  ros::Rate cmd_rate(100);
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 20)
   {
-	}
+    velocity_msg.header.stamp = ros::Time::now();
+    jog_interface.ProvideTwistStampedCommand(velocity_msg);
+    cmd_rate.sleep();
+  }
 
   jogging_thread.join();
   return 0;

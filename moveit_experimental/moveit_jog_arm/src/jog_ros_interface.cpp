@@ -57,8 +57,6 @@ JogROSInterface::JogROSInterface()
   if (!readParameters(nh))
     exit(EXIT_FAILURE);
 
-  ROS_ERROR_STREAM(ros_parameters_.move_group_name);
-
   // Load the robot model. This is used by the worker threads.
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
