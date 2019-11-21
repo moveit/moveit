@@ -38,6 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <moveit_jog_arm/jog_cpp_interface.h>
 
+/**
+ * Instantiate the C++ jogging interface.
+ * Send some Cartesian commands, then some joint commands.
+ * Then retrieve the current joint state from the jogger.
+ */
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, moveit_jog_arm::LOGNAME);
@@ -56,7 +61,7 @@ int main(int argc, char** argv)
   uint num_commands = 0;
 
   // Send a few Cartesian velocity commands
-  while (ros::ok() && num_commands < 100)
+  while (ros::ok() && num_commands < 200)
   {
     ++num_commands;
     velocity_msg.header.stamp = ros::Time::now();
@@ -64,15 +69,19 @@ int main(int argc, char** argv)
     cmd_rate.sleep();
   }
 
-  // Make a base joint command
+  // Leave plenty of time for the jogger to halt its previous motion.
+  // For a faster response, adjust the incoming_command_timeout yaml parameter
+  ros::Duration(2).sleep();
+
+  // Make a joint command
   control_msgs::JointJog base_joint_command;
-  base_joint_command.joint_names.push_back("shoulder_pan_joint");
+  base_joint_command.joint_names.push_back("elbow_joint");
   base_joint_command.velocities.push_back(0.2);
   base_joint_command.header.stamp = ros::Time::now();
 
   // Send a few joint commands
   num_commands = 0;
-  while(ros::ok() && num_commands < 100)
+  while(ros::ok() && num_commands < 200)
   {
     ++num_commands;
     base_joint_command.header.stamp = ros::Time::now();
