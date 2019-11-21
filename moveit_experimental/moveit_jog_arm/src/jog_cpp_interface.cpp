@@ -140,7 +140,7 @@ void JogCppApi::MainLoop()
   collision_thread.join();
 }
 
-void JogCppApi::ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command)
+void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped &velocity_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
 
@@ -169,5 +169,25 @@ void JogCppApi::ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity
   }
   pthread_mutex_unlock(&shared_variables_mutex_);
 };
+
+void JogCppApi::ProvideJointCommand(const control_msgs::JointJog &joint_command)
+{
+  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_.joint_command_deltas = joint_command;
+
+  // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
+  bool all_zeros = true;
+  for (double delta : shared_variables_.joint_command_deltas.velocities)
+  {
+    all_zeros &= (delta == 0.0);
+  };
+  shared_variables_.zero_joint_cmd_flag = all_zeros;
+
+  if (!shared_variables_.zero_joint_cmd_flag)
+  {
+    shared_variables_.latest_nonzero_cmd_stamp = joint_command.header.stamp;
+  }
+  pthread_mutex_unlock(&shared_variables_mutex_);
+}
 
 }  // namespace moveit_jog_arm
