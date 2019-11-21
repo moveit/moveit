@@ -197,9 +197,13 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
-sensor_msgs::JointState GetJointState()
+sensor_msgs::JointState JogCppApi::GetJointState()
 {
-  ;
+  pthread_mutex_lock(&shared_variables_mutex_);
+  sensor_msgs::JointState current_joints = shared_variables_.joints;
+  pthread_mutex_unlock(&shared_variables_mutex_);
+
+  return current_joints;
 }
 
 }  // namespace moveit_jog_arm

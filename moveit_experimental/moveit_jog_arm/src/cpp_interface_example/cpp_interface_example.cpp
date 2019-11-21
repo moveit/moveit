@@ -89,6 +89,10 @@ int main(int argc, char** argv)
     cmd_rate.sleep();
   }
 
+  // Retrieve the current joint state from the jogger
+  sensor_msgs::JointState current_joint_state = jog_interface.GetJointState();
+  ROS_INFO_STREAM(current_joint_state);
+
   jogging_thread.join();
   return 0;
 }
