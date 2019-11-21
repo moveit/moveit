@@ -46,6 +46,7 @@ int main(int argc, char** argv)
   moveit_jog_arm::JogCppApi jog_interface;
   std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, &jog_interface);
 
+  // Make a Cartesian velocity message
   geometry_msgs::TwistStamped velocity_msg;
   velocity_msg.header.frame_id = "base_link";
   velocity_msg.twist.linear.y = 0.01;
