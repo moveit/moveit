@@ -64,6 +64,22 @@ int main(int argc, char** argv)
     cmd_rate.sleep();
   }
 
+  // Make a base joint command
+  control_msgs::JointJog base_joint_command;
+  base_joint_command.joint_names.push_back("shoulder_pan_joint");
+  base_joint_command.velocities.push_back(0.2);
+  base_joint_command.header.stamp = ros::Time::now();
+
+  // Send a few joint commands
+  num_commands = 0;
+  while(ros::ok() && num_commands < 100)
+  {
+    ++num_commands;
+    base_joint_command.header.stamp = ros::Time::now();
+    jog_interface.ProvideJointCommand(base_joint_command);
+    cmd_rate.sleep();
+  }
+
   jogging_thread.join();
   return 0;
 }

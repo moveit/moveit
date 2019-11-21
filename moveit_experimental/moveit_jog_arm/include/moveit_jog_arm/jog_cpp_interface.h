@@ -56,7 +56,10 @@ public:
 
   // Provide a Cartesian velocity command to the jogger.
   // The units are determined by settings in the yaml file.
-  void ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command);
+  void ProvideTwistStampedCommand(const geometry_msgs::TwistStamped &velocity_command);
+
+  // Send joint position(s) commands
+  void ProvideJointCommand(const control_msgs::JointJog &joint_command);
 
 private:
   ros::NodeHandle nh_;
