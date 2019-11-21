@@ -207,7 +207,7 @@ void testAtSubframe(const std::string& subframe_name,
 
   std::map<std::string, moveit_msgs::AttachedCollisionObject> attached_objects =
       planning_scene_interface->getAttachedObjects();
-  EXPECT_EQ(attached_objects["cylinder"].object.subframe_poses.size(), 1);
+  EXPECT_EQ(attached_objects["cylinder"].object.subframe_poses.size(), std::size_t(1));
   tip_in_hand_msg = attached_objects["cylinder"].object.subframe_poses[0];
   hand_in_world_msg = group->getCurrentPose("panda_hand").pose;
   tip_in_hand_msg.position.x += 0.01;
