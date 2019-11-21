@@ -31,7 +31,7 @@ move_group_name:  manipulator  # Often 'manipulator' or 'arm'
 planning_frame: world  # The MoveIt! planning frame. Often 'base_link'
 
 ## Stopping behaviour
-incoming_command_timeout:  2  # Stop jogging if X seconds elapse without a new cmd
+incoming_command_timeout:  0.1  # Stop jogging if X seconds elapse without a new cmd
 # If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish.
 # Important because ROS may drop some messages and we need the robot to halt reliably.
 num_halt_msgs_to_publish: 4

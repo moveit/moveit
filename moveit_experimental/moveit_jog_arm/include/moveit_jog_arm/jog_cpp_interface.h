@@ -61,6 +61,10 @@ public:
   // Send joint position(s) commands
   void ProvideJointCommand(const control_msgs::JointJog &joint_command);
 
+  // Returns the most recent JointState that the jogger has received.
+  // May eliminate the need to create your own joint_state subscriber.
+  sensor_msgs::JointState GetJointState();
+
 private:
   ros::NodeHandle nh_;
 };

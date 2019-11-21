@@ -190,4 +190,9 @@ void JogCppApi::ProvideJointCommand(const control_msgs::JointJog &joint_command)
   pthread_mutex_unlock(&shared_variables_mutex_);
 }
 
+sensor_msgs::JointState GetJointState()
+{
+  ;
+}
+
 }  // namespace moveit_jog_arm
