@@ -38,6 +38,10 @@
   <depend>tf2_ros</depend>
   <depend>moveit_ros_occupancy_map_monitor</depend>
 
+  <exec_depend>handeye</exec_depend>
+  <exec_depend>criutils</exec_depend>
+  <exec_depend>baldor</exec_depend>
+
   <build_depend>eigen</build_depend>
   <build_depend>octomap</build_depend>
 
