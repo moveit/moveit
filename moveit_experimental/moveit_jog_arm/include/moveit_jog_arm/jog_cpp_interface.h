@@ -54,6 +54,8 @@ public:
 
   void MainLoop();
 
+  // Provide a Cartesian velocity command to the jogger.
+  // The units are determined by settings in the yaml file.
   void ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command);
 
 private:
