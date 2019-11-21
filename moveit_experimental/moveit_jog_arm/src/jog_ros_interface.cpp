@@ -73,7 +73,8 @@ JogROSInterface::JogROSInterface()
       nh.subscribe(ros_parameters_.cartesian_command_in_topic, 1, &JogROSInterface::deltaCartesianCmdCB, this);
   ros::Subscriber joint_jog_cmd_sub =
       nh.subscribe(ros_parameters_.joint_command_in_topic, 1, &JogROSInterface::deltaJointCmdCB, this);
-  ros::Subscriber joints_sub = nh.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
+  ros::Subscriber joints_sub =
+      nh.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
 
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).

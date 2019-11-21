@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
   // Send a few joint commands
   num_commands = 0;
-  while(ros::ok() && num_commands < 200)
+  while (ros::ok() && num_commands < 200)
   {
     ++num_commands;
     base_joint_command.header.stamp = ros::Time::now();

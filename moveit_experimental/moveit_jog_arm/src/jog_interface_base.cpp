@@ -41,7 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace moveit_jog_arm
 {
-
 // Read ROS parameters, typically from YAML file
 bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 {

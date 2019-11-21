@@ -40,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace moveit_jog_arm
 {
-
 JogCppApi::JogCppApi()
 {
   pthread_mutex_init(&shared_variables_mutex_, nullptr);
@@ -62,7 +61,8 @@ void JogCppApi::MainLoop()
   std::thread collision_thread(&JogInterfaceBase::startCollisionCheckThread, dynamic_cast<JogInterfaceBase*>(this));
 
   // ROS subscriptions. Share the data with the worker threads
-  ros::Subscriber joints_sub = nh_.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
+  ros::Subscriber joints_sub =
+      nh_.subscribe(ros_parameters_.joint_topic, 1, &JogInterfaceBase::jointsCB, dynamic_cast<JogInterfaceBase*>(this));
 
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
@@ -140,7 +140,7 @@ void JogCppApi::MainLoop()
   collision_thread.join();
 }
 
-void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped &velocity_command)
+void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
 
@@ -170,7 +170,7 @@ void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped &ve
   pthread_mutex_unlock(&shared_variables_mutex_);
 };
 
-void JogCppApi::ProvideJointCommand(const control_msgs::JointJog &joint_command)
+void JogCppApi::ProvideJointCommand(const control_msgs::JointJog& joint_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.joint_command_deltas = joint_command;
