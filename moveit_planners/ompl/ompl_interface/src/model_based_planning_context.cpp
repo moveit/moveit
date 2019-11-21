@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
@@ -48,11 +49,21 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit/utils/lexical_casts.h>
 
+#include <ompl/config.h>
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>
 #include <ompl/tools/config/SelfConfig.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE < 1005000
+#include <ompl/base/PlannerTerminationCondition.h>
+#else
+// IterationTerminationCondition was moved to a separate file and
+// CostConvergenceTerminationCondition was added in OMPL 1.5.0.
+#include <ompl/base/terminationconditions/IterationTerminationCondition.h>
+#include <ompl/base/terminationconditions/CostConvergenceTerminationCondition.h>
+#endif
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
@@ -455,6 +466,65 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   return ob::GoalPtr();
 }
 
+ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContext::constructPlannerTerminationCondition(
+    double timeout, const ompl::time::point& start)
+{
+  auto it = spec_.config_.find("termination_condition");
+  if (it == spec_.config_.end())
+    return ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+  std::string termination_string = it->second;
+  std::vector<std::string> termination_and_params;
+  boost::split(termination_and_params, termination_string, boost::is_any_of("[ ,]"));
+
+  if (termination_and_params.empty())
+    ROS_ERROR_NAMED("model_based_planning_context", "Termination condition not specified");
+  // Terminate if a maximum number of iterations is exceeded or a timeout occurs.
+  // The semantics of "iterations" are planner-specific, but typically it corresponds to the number of times
+  // an attempt was made to grow a roadmap/tree.
+  else if (termination_and_params[0] == "Iteration")
+  {
+    if (termination_and_params.size() > 1)
+      return ob::plannerOrTerminationCondition(
+          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
+          ob::IterationTerminationCondition(std::stoul(termination_and_params[1])));
+    else
+      ROS_ERROR_NAMED("model_based_planning_context", "Missing argument to Iteration termination condition");
+  }
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
+  // Terminate if the cost has converged or a timeout occurs.
+  // Only useful for anytime/optimizing planners.
+  else if (termination_and_params[0] == "CostConvergence")
+  {
+    std::size_t solutionsWindow = 10u;
+    double epsilon = 0.1;
+    if (termination_and_params.size() > 1)
+    {
+      solutionsWindow = std::stoul(termination_and_params[1]);
+      if (termination_and_params.size() > 2)
+        epsilon = moveit::core::toDouble(termination_and_params[2]);
+    }
+    return ob::plannerOrTerminationCondition(
+        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
+        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutionsWindow, epsilon));
+  }
+#endif
+  // Terminate as soon as an exact solution is found or a timeout occurs.
+  // This modifies the behavior of anytime/optimizing planners to terminate upon discovering
+  // the first feasible solution.
+  else if (termination_and_params[0] == "ExactSolution")
+  {
+    return ob::plannerOrTerminationCondition(
+        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
+        ob::exactSolnPlannerTerminationCondition(ompl_simple_setup_->getProblemDefinition()));
+  }
+  else
+    ROS_ERROR_NAMED("model_based_planning_context", "Unknown planner termination condition");
+
+  // return a planner termination condition to suppress compiler warning
+  return ob::plannerAlwaysTerminatingCondition();
+}
+
 void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
     const robot_state::RobotState& complete_initial_robot_state)
 {
@@ -659,8 +729,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   if (count <= 1)
   {
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem once...", name_.c_str());
-    ob::PlannerTerminationCondition ptc =
-        ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+    ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
     registerTerminationCondition(ptc);
     result = ompl_simple_setup_->solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
     last_plan_time_ = ompl_simple_setup_->getLastPlanComputationTime();
@@ -681,8 +750,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         for (unsigned int i = 0; i < count; ++i)
           ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
 
-      ob::PlannerTerminationCondition ptc =
-          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+      ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
       result = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
@@ -690,8 +758,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     }
     else
     {
-      ob::PlannerTerminationCondition ptc =
-          ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
+      ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);
       registerTerminationCondition(ptc);
       int n = count / max_planning_threads_;
       result = true;
