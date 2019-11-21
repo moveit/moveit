@@ -79,7 +79,7 @@
 /moveit_ros/robot_interaction/	                            @mikeferguson @rhaschke
 /moveit_ros/warehouse/	                                    @mikeferguson @dg-shadow
 /moveit_ros/move_group/	                                    @rhaschke @IanTheEngineer
-/moveit_ros/visualization/	                            @rhaschke @jonbinney @christian-rauch
+/moveit_ros/visualization/	                            @rhaschke @jonbinney @RoboticsYY
 
 /moveit_ros/planning/collision_plugin_loader/               @j-petit
 /moveit_ros/planning/constraint_sampler_manager_loader/     @nbbrooks
