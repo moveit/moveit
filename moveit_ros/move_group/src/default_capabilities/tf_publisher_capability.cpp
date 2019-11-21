@@ -56,15 +56,17 @@ void MoveGroupTfPublisher::publishPlanningSceneFrames()
 
   while (ros::ok())
   {
-    planning_scene_monitor::LockedPlanningSceneRO locked_planning_scene(context_->planning_scene_monitor_);
-    collision_detection::WorldConstPtr world = locked_planning_scene->getWorld();
-    std::string planning_frame = locked_planning_scene->getPlanningFrame();
-
-    for (auto obj = world->begin(); obj != world->end(); ++obj)
     {
-      tf::poseEigenToTF(obj->second->shape_poses_[0], transform);
-      broadcaster.sendTransform(
-          tf::StampedTransform(transform, ros::Time::now(), planning_frame, prefix + obj->second->id_));
+      planning_scene_monitor::LockedPlanningSceneRO locked_planning_scene(context_->planning_scene_monitor_);
+      collision_detection::WorldConstPtr world = locked_planning_scene->getWorld();
+      std::string planning_frame = locked_planning_scene->getPlanningFrame();
+
+      for (auto obj = world->begin(); obj != world->end(); ++obj)
+      {
+        tf::poseEigenToTF(obj->second->shape_poses_[0], transform);
+        broadcaster.sendTransform(
+            tf::StampedTransform(transform, ros::Time::now(), planning_frame, prefix + obj->second->id_));
+      }
     }
 
     rate.sleep();
