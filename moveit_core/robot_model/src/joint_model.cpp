@@ -96,14 +96,14 @@ bool JointModel::harmonizePosition(double* values, const Bounds& other_bounds) c
 }
 
 double JointModel::getDistanceFactor() const
-  {
-    return distance_factor_;
-  }
+{
+  return distance_factor_;
+}
 
 void JointModel::setDistanceFactor(double factor)
-  {
-    distance_factor_ = factor;
-  }
+{
+  distance_factor_ = factor;
+}
 
 bool JointModel::enforceVelocityBounds(double* values, const Bounds& other_bounds) const
 {
