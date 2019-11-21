@@ -61,9 +61,9 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
 
   // Wait for initial messages
-  ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
-  ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
 
   resetVelocityFilters();
 

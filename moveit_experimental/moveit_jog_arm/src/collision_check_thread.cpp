@@ -82,9 +82,9 @@ CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameter
     double velocity_scale_coefficient = -log(0.001) / parameters.collision_proximity_threshold;
 
     // Wait for initial messages
-    ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
+    ROS_INFO_NAMED(LOGNAME, "collision_check_thread: Waiting for first joint msg.");
     ros::topic::waitForMessage<sensor_msgs::JointState>(parameters.joint_topic);
-    ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
+    ROS_INFO_NAMED(LOGNAME, "collision_check_thread: Received first joint msg.");
 
     ROS_INFO_NAMED(LOGNAME, "Waiting for first command msg.");
     ros::topic::waitForMessage<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic);

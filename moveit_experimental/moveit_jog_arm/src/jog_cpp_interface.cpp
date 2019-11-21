@@ -143,7 +143,30 @@ void JogCppApi::MainLoop()
 void JogCppApi::ProvideTwistStampedCommand(geometry_msgs::TwistStamped &velocity_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
-  shared_variables_.command_deltas = velocity_command;
+
+  // Copy everything but the frame name. The frame name is set by yaml file at startup.
+  // (so it isn't copied over and over)
+  shared_variables_.command_deltas.twist = velocity_command.twist;
+  shared_variables_.command_deltas.header = velocity_command.header;
+
+  // Input frame determined by YAML file if not passed with message
+  if (shared_variables_.command_deltas.header.frame_id.empty())
+  {
+    shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
+  }
+
+  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_halt_msgs_to_publish
+  shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
+                                              shared_variables_.command_deltas.twist.linear.y == 0.0 &&
+                                              shared_variables_.command_deltas.twist.linear.z == 0.0 &&
+                                              shared_variables_.command_deltas.twist.angular.x == 0.0 &&
+                                              shared_variables_.command_deltas.twist.angular.y == 0.0 &&
+                                              shared_variables_.command_deltas.twist.angular.z == 0.0;
+
+  if (!shared_variables_.zero_cartesian_cmd_flag)
+  {
+    shared_variables_.latest_nonzero_cmd_stamp = velocity_command.header.stamp;
+  }
   pthread_mutex_unlock(&shared_variables_mutex_);
 };
 
