@@ -1140,14 +1140,14 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_robot_start_->load(*getRobotModel()->getURDF());
   query_robot_goal_->load(*getRobotModel()->getURDF());
 
-  robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
-  query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start", *ks,
+  robot_state::RobotStatePtr robot_state(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
+  query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start", *robot_state,
                                                                      planning_scene_monitor_->getTFClient()));
-  query_goal_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "goal", *ks,
+  query_goal_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "goal", *robot_state,
                                                                     planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
-  previous_state_ = ks;
+  previous_state_ = robot_state;
 
   // Interactive marker menus
   populateMenuHandler(menu_handler_start_);
