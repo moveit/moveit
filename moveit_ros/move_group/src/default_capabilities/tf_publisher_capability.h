@@ -50,5 +50,6 @@ public:
 private:
   void publishPlanningSceneFrames();
   int rate_;
+  std::string prefix_;
 };
 }
