@@ -172,6 +172,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
+  planning_display_->rememberPreviousStartState();
   bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState()) ?
                      computeCartesianPlan() :
                      computeJointSpacePlan();
@@ -206,6 +207,7 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   if (!move_group_)
     return;
   configureForPlanning();
+  planning_display_->rememberPreviousStartState();
   // move_group::move() on the server side, will always start from the current state
   // to suppress a warning, we pass an empty state (which encodes "start from current state")
   move_group_->setStartStateToCurrentState();
@@ -243,15 +245,10 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   if (ui_->start_state_combo_box->currentText() == "<current>")
     startStateTextChanged(ui_->start_state_combo_box->currentText());
 
-  // update previous state if plan is successfully executed
-  if (success)
-  {
-    planning_display_->rememberPreviousStartState();
-    if (ui_->goal_state_combo_box->currentText() == "<previous>")
-    {
-      goalStateTextChanged(ui_->goal_state_combo_box->currentText());
-    }
-  }
+  // auto-update goal to stored previous state (but only on success)
+  // on failure, the user must update the goal to the previous state himself
+  if (ui_->goal_state_combo_box->currentText() == "<previous>")
+    goalStateTextChanged(ui_->goal_state_combo_box->currentText());
 }
 
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
