@@ -23,6 +23,7 @@ env:
     - WARNINGS_OK=false
   matrix:
     - TEST="clang-format catkin_lint"
+    - TEST=code-coverage
     - ROS_DISTRO=melodic
     - ROS_DISTRO=kinetic
 
@@ -36,7 +37,7 @@ matrix: # Add a separate config to the matrix, using clang as compiler
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
 before_script:
-  - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
+  - git clone -q --depth=1 -b codecov https://github.com/rhaschke/moveit_ci.git .moveit_ci
 
 script:
   - .moveit_ci/travis.sh
