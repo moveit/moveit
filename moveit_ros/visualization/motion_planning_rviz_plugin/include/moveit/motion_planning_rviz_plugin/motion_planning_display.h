@@ -260,6 +260,7 @@ protected:
   std::shared_ptr<interactive_markers::MenuHandler> menu_handler_goal_;
   std::map<std::string, LinkDisplayStatus> status_links_start_;
   std::map<std::string, LinkDisplayStatus> status_links_goal_;
+  /// remember previous start state (updated before starting execution)
   robot_state::RobotStatePtr previous_state_;
 
   /// Hold the names of the groups for which the query states have been updated (and should not be altered when new info
