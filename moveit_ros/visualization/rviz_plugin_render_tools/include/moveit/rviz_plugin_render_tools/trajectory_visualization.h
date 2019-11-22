@@ -135,7 +135,7 @@ protected:
 
   robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
   robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
-  std::vector<rviz::Robot*> trajectory_trail_;
+  std::vector<RobotStateVisualizationPtr> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
   bool animating_path_;
   bool drop_displaying_trajectory_;
