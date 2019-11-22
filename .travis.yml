@@ -23,6 +23,7 @@ env:
     - WARNINGS_OK=false
   matrix:
     - TEST="clang-format catkin_lint"
+    - TEST=code-coverage
     - ROS_DISTRO=melodic
     - ROS_DISTRO=kinetic
 
