@@ -281,7 +281,6 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     ui_->start_state_combo_box->addItem(QString("<random>"));
     ui_->start_state_combo_box->addItem(QString("<current>"));
     ui_->start_state_combo_box->addItem(QString("<same as goal>"));
-    ui_->start_state_combo_box->addItem(QString("<previous>"));
 
     ui_->goal_state_combo_box->addItem(QString("<random valid>"));
     ui_->goal_state_combo_box->addItem(QString("<random>"));
