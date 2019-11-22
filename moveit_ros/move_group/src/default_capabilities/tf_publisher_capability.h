@@ -49,5 +49,6 @@ public:
 
 private:
   void publishPlanningSceneFrames();
+  int rate_;
 };
 }
