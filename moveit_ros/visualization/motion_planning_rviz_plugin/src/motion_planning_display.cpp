@@ -936,7 +936,7 @@ void MotionPlanningDisplay::updateQueryGoalState()
   context_->queueRender();
 }
 
-void MotionPlanningDisplay::updatePreviousState()
+void MotionPlanningDisplay::rememberPreviousStartState()
 {
   *previous_state_ = *query_start_state_->getState();
 }

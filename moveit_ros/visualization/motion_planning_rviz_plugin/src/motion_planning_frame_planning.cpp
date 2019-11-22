@@ -246,7 +246,7 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
   // update previous state if plan is successfully executed
   if (success)
   {
-    planning_display_->updatePreviousState();
+    planning_display_->rememberPreviousStartState();
     if (ui_->goal_state_combo_box->currentText() == "<previous>")
     {
       goalStateTextChanged(ui_->goal_state_combo_box->currentText());

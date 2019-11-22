@@ -138,7 +138,7 @@ public:
 
   void updateQueryStartState();
   void updateQueryGoalState();
-  void updatePreviousState();
+  void rememberPreviousStartState();
 
   void useApproximateIK(bool flag);
 
