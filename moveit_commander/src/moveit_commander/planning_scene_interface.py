@@ -60,12 +60,13 @@ class PlanningSceneInterface(object):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
-        self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
-        self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
         self.__synchronous = synchronous
         if self.__synchronous:
             self._apply_planning_scene_diff = rospy.ServiceProxy('apply_planning_scene', ApplyPlanningScene)
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
+        else:
+            self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
+            self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
 
     def __submit(self, collision_object, attach=False):
         if self.__synchronous:
@@ -309,7 +310,11 @@ class PlanningSceneInterface(object):
     def __make_planning_scene_diff_req(collision_object):
         scene = PlanningScene()
         scene.is_diff = True
-        scene.world.collision_objects = [collision_object]
+        if isinstance(collision_object, CollisionObject):
+            scene.world.collision_objects = [collision_object]
+        else:
+            scene.robot_state.is_diff = True
+            scene.robot_state.attached_collision_objects = [collision_object]
         planning_scene_diff_req = ApplyPlanningSceneRequest()
         planning_scene_diff_req.scene = scene
         return planning_scene_diff_req
