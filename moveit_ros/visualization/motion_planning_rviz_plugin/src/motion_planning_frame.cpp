@@ -286,6 +286,7 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     ui_->goal_state_combo_box->addItem(QString("<random>"));
     ui_->goal_state_combo_box->addItem(QString("<current>"));
     ui_->goal_state_combo_box->addItem(QString("<same as start>"));
+    ui_->goal_state_combo_box->addItem(QString("<previous>"));
 
     const std::vector<std::string>& known_states = jmg->getDefaultStateNames();
     if (!known_states.empty())

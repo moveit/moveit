@@ -936,6 +936,11 @@ void MotionPlanningDisplay::updateQueryGoalState()
   context_->queueRender();
 }
 
+void MotionPlanningDisplay::rememberPreviousStartState()
+{
+  *previous_state_ = *query_start_state_->getState();
+}
+
 void MotionPlanningDisplay::setQueryStartState(const robot_state::RobotState& start)
 {
   query_start_state_->setState(start);
@@ -1135,10 +1140,11 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_robot_start_->load(*getRobotModel()->getURDF());
   query_robot_goal_->load(*getRobotModel()->getURDF());
 
-  robot_state::RobotStatePtr ks(new robot_state::RobotState(getPlanningSceneRO()->getCurrentState()));
-  query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start", *ks,
+  // initialize previous state to current state
+  previous_state_ = std::make_shared<robot_state::RobotState>(getPlanningSceneRO()->getCurrentState());
+  query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start", *previous_state_,
                                                                      planning_scene_monitor_->getTFClient()));
-  query_goal_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "goal", *ks,
+  query_goal_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "goal", *previous_state_,
                                                                     planning_scene_monitor_->getTFClient()));
   query_start_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryStartState, this, _1, _2));
   query_goal_state_->setUpdateCallback(boost::bind(&MotionPlanningDisplay::scheduleDrawQueryGoalState, this, _1, _2));
