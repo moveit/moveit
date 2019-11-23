@@ -229,8 +229,8 @@ void TrajectoryVisualization::changedShowTrail()
   for (std::size_t i = 0; i < trajectory_trail_.size(); i++)
   {
     int waypoint_i = std::min(i * stepsize, t->getWayPointCount() - 1);  // limit to last trajectory point
-    RobotStateVisualizationUniquePtr r(new RobotStateVisualization(
-        scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), nullptr));
+    auto r = std::make_unique<RobotStateVisualization>(scene_node_, context_,
+                                                       "Trail Robot " + boost::lexical_cast<std::string>(i), nullptr);
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
