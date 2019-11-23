@@ -834,7 +834,6 @@ bool ompl_interface::ModelBasedPlanningContext::loadConstraintApproximations(con
   std::string constraint_path;
   if (nh.getParam("constraint_approximations_path", constraint_path))
   {
-    loadConstraintApproximations(constraint_path);
     constraints_library_->loadConstraintApproximations(constraint_path);
     std::stringstream ss;
     constraints_library_->printConstraintApproximations(ss);
