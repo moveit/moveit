@@ -70,6 +70,7 @@ public:
   void renderShape(Ogre::SceneNode* node, const shapes::Shape* s, const Eigen::Isometry3d& p,
                    OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
                    const rviz::Color& color, float alpha);
+  void updateShapeColors(float r, float g, float b, float a);
   void clear();
 
 private:

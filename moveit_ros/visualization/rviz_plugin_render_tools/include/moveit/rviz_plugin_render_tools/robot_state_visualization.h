@@ -69,6 +69,8 @@ public:
               const std_msgs::ColorRGBA& default_attached_object_color,
               const std::map<std::string, std_msgs::ColorRGBA>& color_map);
   void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color);
+  /// update color of all attached object shapes
+  void updateAttachedObjectColors(const std_msgs::ColorRGBA& attached_object_color);
 
   /**
    * \brief Set the robot as a whole to be visible or not
