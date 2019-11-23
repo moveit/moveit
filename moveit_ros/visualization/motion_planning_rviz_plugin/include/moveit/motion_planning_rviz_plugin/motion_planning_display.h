@@ -108,6 +108,11 @@ public:
     return query_goal_state_->getState();
   }
 
+  const robot_state::RobotState& getPreviousState() const
+  {
+    return *previous_state_;
+  }
+
   const robot_interaction::RobotInteractionPtr& getRobotInteraction() const
   {
     return robot_interaction_;
@@ -133,6 +138,7 @@ public:
 
   void updateQueryStartState();
   void updateQueryGoalState();
+  void rememberPreviousStartState();
 
   void useApproximateIK(bool flag);
 
@@ -254,6 +260,8 @@ protected:
   std::shared_ptr<interactive_markers::MenuHandler> menu_handler_goal_;
   std::map<std::string, LinkDisplayStatus> status_links_start_;
   std::map<std::string, LinkDisplayStatus> status_links_goal_;
+  /// remember previous start state (updated before starting execution)
+  robot_state::RobotStatePtr previous_state_;
 
   /// Hold the names of the groups for which the query states have been updated (and should not be altered when new info
   /// is received from the planning scene)
