@@ -237,7 +237,7 @@ void TrajectoryVisualization::changedShowTrail()
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
     r->setAlpha(robot_path_alpha_property_->getFloat());
-    r->update(t->getWayPointPtr(waypoint_i));
+    r->update(t->getWayPointPtr(waypoint_i), default_attached_object_color_);
     if (enable_robot_color_property_->getBool())
       setRobotColor(&(r->getRobot()), robot_color_property_->getColor());
     r->setVisible(display_->isEnabled() && (!animating_path_ || waypoint_i <= current_state_));
@@ -531,15 +531,13 @@ void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
 
 void TrajectoryVisualization::setDefaultAttachedObjectColor(const QColor& color)
 {
-  if (!display_path_robot_)
-    return;
+  default_attached_object_color_.r = color.redF();
+  default_attached_object_color_.g = color.greenF();
+  default_attached_object_color_.b = color.blueF();
+  default_attached_object_color_.a = color.alphaF();
 
-  std_msgs::ColorRGBA color_msg;
-  color_msg.r = color.redF();
-  color_msg.g = color.greenF();
-  color_msg.b = color.blueF();
-  color_msg.a = color.alphaF();
-  display_path_robot_->setDefaultAttachedObjectColor(color_msg);
+  if (display_path_robot_)
+    display_path_robot_->setDefaultAttachedObjectColor(default_attached_object_color_);
 }
 
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)

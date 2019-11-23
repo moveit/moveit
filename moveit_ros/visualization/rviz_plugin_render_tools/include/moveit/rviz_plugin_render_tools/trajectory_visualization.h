@@ -128,6 +128,7 @@ protected:
 
   // Handles actually drawing the robot along motion plans
   RobotStateVisualizationPtr display_path_robot_;
+  std_msgs::ColorRGBA default_attached_object_color_;
 
   // Handle colouring of robot
   void setRobotColor(rviz::Robot* robot, const QColor& color);
