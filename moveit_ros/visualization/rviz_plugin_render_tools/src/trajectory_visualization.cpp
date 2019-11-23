@@ -202,7 +202,7 @@ void TrajectoryVisualization::reset()
 void TrajectoryVisualization::clearTrajectoryTrail()
 {
   for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-    trajectory_trail_[i].reset();
+    delete trajectory_trail_[i];
   trajectory_trail_.clear();
 }
 
@@ -231,16 +231,17 @@ void TrajectoryVisualization::changedShowTrail()
   for (std::size_t i = 0; i < trajectory_trail_.size(); i++)
   {
     int waypoint_i = std::min(i * stepsize, t->getWayPointCount() - 1);  // limit to last trajectory point
-    trajectory_trail_[i].reset(new RobotStateVisualization(
-        scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), nullptr));
-    trajectory_trail_[i]->load(*robot_model_->getURDF());
-    trajectory_trail_[i]->setVisualVisible(display_path_visual_enabled_property_->getBool());
-    trajectory_trail_[i]->setCollisionVisible(display_path_collision_enabled_property_->getBool());
-    trajectory_trail_[i]->setAlpha(robot_path_alpha_property_->getFloat());
-    trajectory_trail_[i]->update(t->getWayPointPtr(waypoint_i));
+    auto r = new RobotStateVisualization(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i),
+                                         nullptr);
+    r->load(*robot_model_->getURDF());
+    r->setVisualVisible(display_path_visual_enabled_property_->getBool());
+    r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    r->setAlpha(robot_path_alpha_property_->getFloat());
+    r->update(t->getWayPointPtr(waypoint_i));
     if (enable_robot_color_property_->getBool())
-      setRobotColor(&(trajectory_trail_[i]->getRobot()), robot_color_property_->getColor());
-    trajectory_trail_[i]->setVisible(display_->isEnabled() && (!animating_path_ || waypoint_i <= current_state_));
+      setRobotColor(&(r->getRobot()), robot_color_property_->getColor());
+    r->setVisible(display_->isEnabled() && (!animating_path_ || waypoint_i <= current_state_));
+    trajectory_trail_[i] = r;
   }
 }
 
