@@ -80,6 +80,12 @@ void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::Colo
   default_attached_object_color_ = default_attached_object_color;
 }
 
+void RobotStateVisualization::updateAttachedObjectColors(const std_msgs::ColorRGBA& attached_object_color)
+{
+  render_shapes_->updateShapeColors(attached_object_color.r, attached_object_color.g, attached_object_color.b,
+                                    robot_.getAlpha());
+}
+
 void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state)
 {
   updateHelper(kinematic_state, default_attached_object_color_, nullptr);

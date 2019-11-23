@@ -537,7 +537,12 @@ void TrajectoryVisualization::setDefaultAttachedObjectColor(const QColor& color)
   default_attached_object_color_.a = color.alphaF();
 
   if (display_path_robot_)
+  {
     display_path_robot_->setDefaultAttachedObjectColor(default_attached_object_color_);
+    display_path_robot_->updateAttachedObjectColors(default_attached_object_color_);
+  }
+  for (RobotStateVisualization* r : trajectory_trail_)
+    r->updateAttachedObjectColors(default_attached_object_color_);
 }
 
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)
