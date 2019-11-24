@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
   moveit_jog_arm::JogCppApi jog_interface;
-  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::MainLoop, &jog_interface);
+  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::mainLoop, &jog_interface);
 
   // Make a Cartesian velocity message
   geometry_msgs::TwistStamped velocity_msg;
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   {
     ++num_commands;
     velocity_msg.header.stamp = ros::Time::now();
-    jog_interface.ProvideTwistStampedCommand(velocity_msg);
+    jog_interface.provideTwistStampedCommand(velocity_msg);
     cmd_rate.sleep();
   }
 
@@ -85,12 +85,12 @@ int main(int argc, char** argv)
   {
     ++num_commands;
     base_joint_command.header.stamp = ros::Time::now();
-    jog_interface.ProvideJointCommand(base_joint_command);
+    jog_interface.provideJointCommand(base_joint_command);
     cmd_rate.sleep();
   }
 
   // Retrieve the current joint state from the jogger
-  sensor_msgs::JointState current_joint_state = jog_interface.GetJointState();
+  sensor_msgs::JointState current_joint_state = jog_interface.getJointState();
   ROS_INFO_STREAM(current_joint_state);
 
   jogging_thread.join();

@@ -52,7 +52,7 @@ JogCppApi::JogCppApi()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 }
 
-void JogCppApi::MainLoop()
+void JogCppApi::mainLoop()
 {
   // Crunch the numbers in this thread
   std::thread jogging_thread(&JogInterfaceBase::startJogCalcThread, dynamic_cast<JogInterfaceBase*>(this));
@@ -140,7 +140,7 @@ void JogCppApi::MainLoop()
   collision_thread.join();
 }
 
-void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
+void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
 
@@ -170,7 +170,7 @@ void JogCppApi::ProvideTwistStampedCommand(const geometry_msgs::TwistStamped& ve
   pthread_mutex_unlock(&shared_variables_mutex_);
 };
 
-void JogCppApi::ProvideJointCommand(const control_msgs::JointJog& joint_command)
+void JogCppApi::provideJointCommand(const control_msgs::JointJog& joint_command)
 {
   pthread_mutex_lock(&shared_variables_mutex_);
   shared_variables_.joint_command_deltas = joint_command;
@@ -190,7 +190,7 @@ void JogCppApi::ProvideJointCommand(const control_msgs::JointJog& joint_command)
   pthread_mutex_unlock(&shared_variables_mutex_);
 }
 
-sensor_msgs::JointState JogCppApi::GetJointState()
+sensor_msgs::JointState JogCppApi::getJointState()
 {
   pthread_mutex_lock(&shared_variables_mutex_);
   sensor_msgs::JointState current_joints = shared_variables_.joints;
