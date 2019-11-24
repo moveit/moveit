@@ -41,9 +41,7 @@
 
 /**
  * \def MOVEIT_CLASS_FORWARD
- * Macro that forward declares a class and defines two shared ptrs types:
- *  - ${Class}Ptr      = shared_ptr<${Class}>
- *  - ${Class}ConstPtr = shared_ptr<const ${Class}>
+ * Macro that forward declares a class and defines the respective smartpointers through MOVEIT_DECLARE_PTR.
  */
 
 #define MOVEIT_CLASS_FORWARD(C)                                                                                        \
