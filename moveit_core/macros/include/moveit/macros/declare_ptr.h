@@ -39,8 +39,12 @@
 /**
  * \def MOVEIT_DELCARE_PTR
  * Macro that given a Name and a Type declares the following types:
- * - ${Name}Ptr      = shared_ptr<${Type}>
- * - ${Name}ConstPtr = shared_ptr<const ${Type}>
+ * - ${Name}Ptr            = shared_ptr<${Type}>
+ * - ${Name}ConstPtr       = shared_ptr<const ${Type}>
+ * - ${Name}WeakPtr        = weak_ptr<${Type}>
+ * - ${Name}ConstWeakPtr   = weak_ptr<const ${Type}>
+ * - ${Name}UniquePtr      = unique_ptr<${Type}>
+ * - ${Name}ConstUniquePtr = unique_ptr<const ${Type}>
  *
  * For best portability the exact type of shared_ptr declared by the macro
  * should be considered to be an implementation detail, liable to change in
