@@ -51,18 +51,18 @@ class JogCppApi : JogInterfaceBase
 public:
   JogCppApi();
 
-  void MainLoop();
+  void mainLoop();
 
   // Provide a Cartesian velocity command to the jogger.
   // The units are determined by settings in the yaml file.
-  void ProvideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
+  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
 
   // Send joint position(s) commands
-  void ProvideJointCommand(const control_msgs::JointJog& joint_command);
+  void provideJointCommand(const control_msgs::JointJog& joint_command);
 
   // Returns the most recent JointState that the jogger has received.
   // May eliminate the need to create your own joint_state subscriber.
-  sensor_msgs::JointState GetJointState();
+  sensor_msgs::JointState getJointState();
 
 private:
   ros::NodeHandle nh_;

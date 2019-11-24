@@ -197,7 +197,7 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
-sensor_msgs::JointState JogCppApi::GetJointState()
+sensor_msgs::JointState JogCppApi::getJointState()
 {
   pthread_mutex_lock(&shared_variables_mutex_);
   sensor_msgs::JointState current_joints = shared_variables_.joints;
