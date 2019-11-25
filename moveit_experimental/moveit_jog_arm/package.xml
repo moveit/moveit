@@ -7,7 +7,6 @@
 
   <maintainer email="blakeanderson@utexas.edu">Blake Anderson</maintainer>
   <maintainer email="andyz@utexas.edu">Andy Zelenak</maintainer>
-  <maintainer email="adam.pettinger@utexas.edu">Adam Pettinger</maintainer>
 
   <license>BSD 3-Clause</license>
 
@@ -19,7 +18,6 @@
   <author email="alex@machinekoder.com">Alexander Rössler</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>message_generation</build_depend>
 
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
