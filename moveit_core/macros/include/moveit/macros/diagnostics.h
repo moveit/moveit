@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2019, Bielefeld University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Bielefeld University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,52 +32,42 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Robert Haschke */
-
 #pragma once
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/macros/diagnostics.h>
-DIAGNOSTIC_PUSH
-SILENT_UNUSED_PARAM
-#include <rviz/properties/property_tree_widget.h>
-DIAGNOSTIC_POP
+/** The following macros allow to temporarily disable specific warnings,
+ *  which in turn allows us to compile the MoveIt code base with rather strict
+ *  compiler warnings, and still avoid corresponding issues in external sources.
+ *  Just wrap an offending include with:
+ *
+ *  DIAGNOSTIC_PUSH
+ *  SILENT_UNUSED_PARAM
+ *  #include <offender.h>
+ *  DIAGNOSTIC_PUSH
+ *
+ *  The push and pop operations ensure that the old status is restored afterwards.
+ */
 
-namespace moveit
-{
-namespace planning_interface
-{
-MOVEIT_CLASS_FORWARD(MoveGroupInterface);
-}
-}
+#if defined(_MSC_VER)
+#define DIAGNOSTIC_PUSH __pragma(warning(push))
+#define DIAGNOSTIC_POP __pragma(warning(pop))
+#define SILENT_UNUSED_PARAM __pragma(warning(disable : 4100))
 
-namespace moveit_rviz_plugin
-{
-class MotionPlanningParamWidget : public rviz::PropertyTreeWidget
-{
-  Q_OBJECT
-public:
-  MotionPlanningParamWidget(const MotionPlanningParamWidget&) = delete;
-  MotionPlanningParamWidget(QWidget* parent = 0);
-  ~MotionPlanningParamWidget() override;
+#elif defined(__GNUC__) || defined(__clang__)
+#define DO_PRAGMA(X) _Pragma(#X)
+#define DIAGNOSTIC_PUSH DO_PRAGMA(GCC diagnostic push)
+#define DIAGNOSTIC_POP DO_PRAGMA(GCC diagnostic pop)
 
-  void setMoveGroup(const moveit::planning_interface::MoveGroupInterfacePtr& mg);
-  void setGroupName(const std::string& group_name);
+#if defined(__clang__)
+#define SILENT_UNUSED_PARAM DO_PRAGMA(GCC diagnostic ignored "-Wunused-parameter")
+#else
+#define SILENT_UNUSED_PARAM                                                                                            \
+  DO_PRAGMA(GCC diagnostic ignored "-Wunused-parameter")                                                               \
+  DO_PRAGMA(GCC diagnostic ignored "-Wunused-but-set-parameter")
+#endif
 
-public Q_SLOTS:
-  void setPlannerId(const std::string& planner_id);
+#else
+#define DIAGNOSTIC_PUSH
+#define DIAGNOSTIC_POP
+#define SILENT_UNUSED_PARAM
 
-private Q_SLOTS:
-  void changedValue();
-
-private:
-  rviz::Property* createPropertyTree();
-
-private:
-  rviz::PropertyTreeModel* property_tree_model_;
-
-  moveit::planning_interface::MoveGroupInterfacePtr move_group_;
-  std::string group_name_;
-  std::string planner_id_;
-};
-}
+#endif

@@ -35,8 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/warehouse/moveit_message_storage.h>
+#include <moveit/macros/diagnostics.h>
+DIAGNOSTIC_PUSH
+SILENT_UNUSED_PARAM
 #include <warehouse_ros/database_loader.h>
-//#include <warehouse_ros_mongo/database_connection.h>
+DIAGNOSTIC_PUSH
 #include <boost/regex.hpp>
 #include <memory>
 #include <utility>
