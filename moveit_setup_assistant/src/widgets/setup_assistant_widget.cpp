@@ -495,7 +495,7 @@ void SetupAssistantWidget::closeEvent(QCloseEvent* event)
 // ******************************************************************************************
 // Qt Error Handling - TODO
 // ******************************************************************************************
-bool SetupAssistantWidget::notify(QObject* reciever, QEvent* event)
+bool SetupAssistantWidget::notify(QObject* /*receiver*/, QEvent* /*event*/)
 {
   QMessageBox::critical(this, "Error", "An error occurred and was caught by Qt notify event handler.", QMessageBox::Ok);
 

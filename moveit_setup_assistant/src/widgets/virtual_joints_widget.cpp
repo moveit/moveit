@@ -245,7 +245,7 @@ void VirtualJointsWidget::showNewScreen()
 // ******************************************************************************************
 // Edit whatever element is selected
 // ******************************************************************************************
-void VirtualJointsWidget::editDoubleClicked(int row, int column)
+void VirtualJointsWidget::editDoubleClicked(int /*row*/, int /*column*/)
 {
   editSelected();
 }
@@ -253,7 +253,7 @@ void VirtualJointsWidget::editDoubleClicked(int row, int column)
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void VirtualJointsWidget::previewClicked(int row, int column)
+void VirtualJointsWidget::previewClicked(int /*row*/, int /*column*/)
 {
   // TODO: highlight the virtual joint?
 

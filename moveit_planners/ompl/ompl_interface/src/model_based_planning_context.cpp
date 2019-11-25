@@ -544,7 +544,7 @@ void ompl_interface::ModelBasedPlanningContext::clear()
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints& path_constraints,
-                                                                   moveit_msgs::MoveItErrorCodes* error)
+                                                                   moveit_msgs::MoveItErrorCodes* /*error*/)
 {
   // ******************* set the path constraints to use
   path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));

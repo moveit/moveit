@@ -335,7 +335,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   return true;
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*shared_variables*/)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)

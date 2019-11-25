@@ -241,8 +241,8 @@ bool BenchmarkExecutor::runBenchmarks(const BenchmarkOptions& opts)
   return false;
 }
 
-bool BenchmarkExecutor::queriesAndPlannersCompatible(const std::vector<BenchmarkRequest>& requests,
-                                                     const std::map<std::string, std::vector<std::string>>& planners)
+bool BenchmarkExecutor::queriesAndPlannersCompatible(
+    const std::vector<BenchmarkRequest>& requests, const std::map<std::string, std::vector<std::string>>& /*planners*/)
 {
   // Make sure that the planner interfaces can service the desired queries
   for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)

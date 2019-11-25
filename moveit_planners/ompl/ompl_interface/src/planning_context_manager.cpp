@@ -180,7 +180,7 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
     const planning_interface::PlannerConfigurationSettings& config,
-    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& req) const
+    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& /*req*/) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
 

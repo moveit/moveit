@@ -61,7 +61,7 @@ public:
 private:
   PickPlaceParams params_;
 
-  void dynamicReconfigureCallback(PickPlaceDynamicReconfigureConfig& config, uint32_t level)
+  void dynamicReconfigureCallback(PickPlaceDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     params_.max_goal_count_ = config.max_attempted_states_per_pose;
     params_.max_fail_ = config.max_consecutive_fail_attempts;

@@ -42,7 +42,7 @@
 #include <signal.h>
 #include <locale.h>
 
-static void siginthandler(int param)
+static void siginthandler(int /*param*/)
 {
   QApplication::quit();
 }

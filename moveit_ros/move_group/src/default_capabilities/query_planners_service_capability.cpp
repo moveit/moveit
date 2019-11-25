@@ -55,7 +55,7 @@ void MoveGroupQueryPlannersService::initialize()
                                                     &MoveGroupQueryPlannersService::setParams, this);
 }
 
-bool MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& req,
+bool MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& /*req*/,
                                                    moveit_msgs::QueryPlannerInterfaces::Response& res)
 {
   const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
@@ -103,7 +103,7 @@ bool MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlannerParams::Req
 }
 
 bool MoveGroupQueryPlannersService::setParams(moveit_msgs::SetPlannerParams::Request& req,
-                                              moveit_msgs::SetPlannerParams::Response& res)
+                                              moveit_msgs::SetPlannerParams::Response& /*res*/)
 {
   const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (req.params.keys.size() != req.params.values.size())

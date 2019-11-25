@@ -1827,7 +1827,7 @@ std::vector<ROSControlConfig>& MoveItConfigData::getROSControllers()
 // Used to add a sensor plugin configuation parameter to the sensor plugin configuration parameter list
 // ******************************************************************************************
 void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string& name, const std::string& value,
-                                                               const std::string& comment)
+                                                               const std::string& /*comment*/)
 {
   // Use index 0 since we only write one plugin
   GenericParameter new_parameter;

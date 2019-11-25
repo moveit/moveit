@@ -84,7 +84,7 @@ private:
     return ns;
   }
 
-  void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig& config, uint32_t level)
+  void dynamicReconfigureCallback(PlanningSceneMonitorDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     PlanningSceneMonitor::SceneUpdateType event = PlanningSceneMonitor::UPDATE_NONE;
     if (config.publish_geometry_updates)
@@ -1143,7 +1143,7 @@ void PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& 
     updateSceneWithCurrentState();
 }
 
-void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& event)
+void PlanningSceneMonitor::stateUpdateTimerCallback(const ros::WallTimerEvent& /*unused*/)
 {
   if (state_update_pending_)
   {

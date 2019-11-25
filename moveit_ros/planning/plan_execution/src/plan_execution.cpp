@@ -59,7 +59,7 @@ public:
   }
 
 private:
-  void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig& config, uint32_t level)
+  void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
     owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
@@ -479,7 +479,7 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(
 }
 
 void plan_execution::PlanExecution::doneWithTrajectoryExecution(
-    const moveit_controller_manager::ExecutionStatus& status)
+    const moveit_controller_manager::ExecutionStatus& /*status*/)
 {
   execution_complete_ = true;
 }

@@ -38,7 +38,7 @@
 #include <pluginlib/class_loader.hpp>
 #include <boost/algorithm/string/join.hpp>
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
   try
   {

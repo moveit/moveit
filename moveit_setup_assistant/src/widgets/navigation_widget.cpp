@@ -116,7 +116,7 @@ NavDelegate::NavDelegate(QObject* parent) : QStyledItemDelegate(parent)
 {
 }
 
-QSize NavDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+QSize NavDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& /*index*/) const
 {
   return QSize(option.rect.width(), 45);
 }

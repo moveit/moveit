@@ -162,8 +162,8 @@ bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Isometry3
   return it != transform_cache_.end();
 }
 
-void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
-                                          std::vector<int>& mask)
+void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*cloud*/,
+                                          const Eigen::Vector3d& /*sensor_origin*/, std::vector<int>& /*mask*/)
 {
 }
 

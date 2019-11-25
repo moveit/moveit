@@ -43,8 +43,8 @@ using namespace std;
 
 namespace chomp
 {
-ChompCost::ChompCost(const ChompTrajectory& trajectory, int joint_number, const std::vector<double>& derivative_costs,
-                     double ridge_factor)
+ChompCost::ChompCost(const ChompTrajectory& trajectory, int /* joint_number */,
+                     const std::vector<double>& derivative_costs, double ridge_factor)
 {
   int num_vars_all = trajectory.getNumPoints();
   int num_vars_free = num_vars_all - 2 * (DIFF_RULE_LENGTH - 1);

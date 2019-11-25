@@ -43,8 +43,8 @@ ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory() : Mod
 }
 
 int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(
-    const std::string& group, const moveit_msgs::MotionPlanRequest& req,
-    const robot_model::RobotModelConstPtr& robot_model) const
+    const std::string& /*group*/, const moveit_msgs::MotionPlanRequest& /*req*/,
+    const robot_model::RobotModelConstPtr& /*robot_model*/) const
 {
   return 100;
 }

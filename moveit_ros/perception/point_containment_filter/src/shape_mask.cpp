@@ -111,7 +111,7 @@ void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
 }
 
 void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::PointCloud2& data_in,
-                                                          const Eigen::Vector3d& sensor_origin,
+                                                          const Eigen::Vector3d& /*sensor_origin*/,
                                                           const double min_sensor_dist, const double max_sensor_dist,
                                                           std::vector<int>& mask)
 {

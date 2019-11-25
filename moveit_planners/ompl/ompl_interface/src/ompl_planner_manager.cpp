@@ -259,7 +259,7 @@ private:
   }
   */
 
-  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level)
+  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     if (config.link_for_exploration_tree.empty() && !planner_data_link_name_.empty())
     {

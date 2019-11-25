@@ -233,11 +233,11 @@ bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 }
 
 bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
-                                           const std::vector<double>& ik_seed_state, double timeout,
-                                           const std::vector<double>& consistency_limits, std::vector<double>& solution,
-                                           const IKCallbackFn& solution_callback,
+                                           const std::vector<double>& ik_seed_state, double /*timeout*/,
+                                           const std::vector<double>& /*consistency_limits*/,
+                                           std::vector<double>& solution, const IKCallbackFn& solution_callback,
                                            moveit_msgs::MoveItErrorCodes& error_code,
-                                           const kinematics::KinematicsQueryOptions& options) const
+                                           const kinematics::KinematicsQueryOptions& /*options*/) const
 {
   // Check if active
   if (!active_)

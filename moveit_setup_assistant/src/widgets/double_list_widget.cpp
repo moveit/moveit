@@ -299,7 +299,7 @@ void DoubleListWidget::deselectDataButtonClicked()
 // ******************************************************************************************
 // Highlight links of robot for left list
 // ******************************************************************************************
-void DoubleListWidget::previewSelectedLeft(const QItemSelection& selected, const QItemSelection& deselected)
+void DoubleListWidget::previewSelectedLeft(const QItemSelection& /*selected*/, const QItemSelection& /*deselected*/)
 {
   const QList<QTableWidgetItem*> selected_items = data_table_->selectedItems();
   previewSelected(selected_items);
@@ -308,7 +308,7 @@ void DoubleListWidget::previewSelectedLeft(const QItemSelection& selected, const
 // ******************************************************************************************
 // Highlight links of robot for right list
 // ******************************************************************************************
-void DoubleListWidget::previewSelectedRight(const QItemSelection& selected, const QItemSelection& deselected)
+void DoubleListWidget::previewSelectedRight(const QItemSelection& /*selected*/, const QItemSelection& /*deselected*/)
 {
   const QList<QTableWidgetItem*> selected_items = selected_data_table_->selectedItems();
   previewSelected(selected_items);

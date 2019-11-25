@@ -113,7 +113,7 @@ void MotionPlanningFrame::selectedDetectedObjectChanged()
   }
 }
 
-void MotionPlanningFrame::detectedObjectChanged(QListWidgetItem* item)
+void MotionPlanningFrame::detectedObjectChanged(QListWidgetItem* /*item*/)
 {
 }
 
@@ -147,14 +147,14 @@ void MotionPlanningFrame::triggerObjectDetection()
   }
 }
 
-void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& msg)
+void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& /*msg*/)
 {
   ros::Duration(1.0).sleep();
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));
 }
 
 void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string>& object_ids,
-                                                    const std::vector<std::string>& objects)
+                                                    const std::vector<std::string>& /*objects*/)
 {
   ui_->detected_objects_list->setUpdatesEnabled(false);
   bool old_state = ui_->detected_objects_list->blockSignals(true);

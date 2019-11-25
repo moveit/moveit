@@ -96,7 +96,8 @@ bool getState(moveit_msgs::GetRobotStateFromWarehouse::Request& request,
 }
 
 bool renameState(moveit_msgs::RenameRobotStateInWarehouse::Request& request,
-                 moveit_msgs::RenameRobotStateInWarehouse::Response& response, moveit_warehouse::RobotStateStorage* rs)
+                 moveit_msgs::RenameRobotStateInWarehouse::Response& /*response*/,
+                 moveit_warehouse::RobotStateStorage* rs)
 {
   if (!rs->hasRobotState(request.old_name, request.robot))
   {
@@ -108,7 +109,7 @@ bool renameState(moveit_msgs::RenameRobotStateInWarehouse::Request& request,
 }
 
 bool deleteState(moveit_msgs::DeleteRobotStateFromWarehouse::Request& request,
-                 moveit_msgs::DeleteRobotStateFromWarehouse::Response& response,
+                 moveit_msgs::DeleteRobotStateFromWarehouse::Response& /*response*/,
                  moveit_warehouse::RobotStateStorage* rs)
 {
   if (!rs->hasRobotState(request.name, request.robot))

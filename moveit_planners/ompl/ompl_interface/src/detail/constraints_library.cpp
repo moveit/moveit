@@ -219,7 +219,7 @@ ompl_interface::ConstraintApproximation::ConstraintApproximation(
 }
 
 ompl::base::StateSamplerAllocator
-ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const
+ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints& /*unused*/) const
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();

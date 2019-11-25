@@ -214,7 +214,7 @@ void FollowJointTrajectoryControllerHandle::controllerActiveCallback()
 }
 
 void FollowJointTrajectoryControllerHandle::controllerFeedbackCallback(
-    const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
+    const control_msgs::FollowJointTrajectoryFeedbackConstPtr& /* feedback */)
 {
 }
 

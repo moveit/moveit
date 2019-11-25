@@ -298,7 +298,7 @@ void StartScreenWidget::loadFilesClick()
   }
 }
 
-void StartScreenWidget::onPackagePathChanged(const QString& path)
+void StartScreenWidget::onPackagePathChanged(const QString& /*path*/)
 {
   if (!loadPackageSettings(false))
     return;

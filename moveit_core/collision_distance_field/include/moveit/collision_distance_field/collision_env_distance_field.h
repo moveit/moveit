@@ -105,19 +105,19 @@ public:
   void createCollisionModelMarker(const moveit::core::RobotState& state,
                                   visualization_msgs::MarkerArray& model_markers) const;
 
-  virtual double distanceSelf(const moveit::core::RobotState& state) const
+  virtual double distanceSelf(const moveit::core::RobotState& /* state */) const
   {
     return 0.0;
-  };
+  }
 
-  virtual double distanceSelf(const moveit::core::RobotState& state,
-                              const collision_detection::AllowedCollisionMatrix& acm) const
+  virtual double distanceSelf(const moveit::core::RobotState& /* state */,
+                              const collision_detection::AllowedCollisionMatrix& /* acm */) const
   {
     return 0.0;
-  };
+  }
 
-  void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                    const robot_state::RobotState& state) const override
+  void distanceSelf(const DistanceRequest& /* req */, DistanceResult& /* res */,
+                    const robot_state::RobotState& /* state */) const override
   {
     ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
   }
@@ -179,17 +179,22 @@ public:
 
   virtual double distanceRobot(const robot_state::RobotState& state, bool verbose = false) const
   {
+    (void)state;
+    (void)verbose;
     return 0.0;
   }
 
   virtual double distanceRobot(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
                                bool verbose = false) const
   {
+    (void)state;
+    (void)acm;
+    (void)verbose;
     return 0.0;
   }
 
-  void distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                     const robot_state::RobotState& state) const override
+  void distanceRobot(const DistanceRequest& /* req */, DistanceResult& /* res */,
+                     const robot_state::RobotState& /* state */) const override
   {
     ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
   }
@@ -263,7 +268,7 @@ protected:
   bool compareCacheEntryToAllowedCollisionMatrix(const DistanceFieldCacheEntryConstPtr& dfce,
                                                  const collision_detection::AllowedCollisionMatrix& acm) const;
 
-  void updatedPaddingOrScaling(const std::vector<std::string>& links) override{};
+  void updatedPaddingOrScaling(const std::vector<std::string>& /*links*/) override{};
 
   DistanceFieldCacheEntryWorldPtr generateDistanceFieldCacheEntryWorld();
 

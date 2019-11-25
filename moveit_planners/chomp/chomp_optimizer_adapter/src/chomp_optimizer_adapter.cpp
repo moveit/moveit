@@ -166,7 +166,7 @@ public:
 
   bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& ps,
                     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& added_path_index) const override
+                    std::vector<std::size_t>& /*added_path_index*/) const override
   {
     // following call to planner() calls the OMPL planner and stores the trajectory inside the MotionPlanResponse res
     // variable which is then used by CHOMP for optimization of the computed trajectory

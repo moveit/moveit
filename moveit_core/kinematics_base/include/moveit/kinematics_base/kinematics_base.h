@@ -297,8 +297,9 @@ public:
                    double timeout, const std::vector<double>& consistency_limits, std::vector<double>& solution,
                    const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
                    const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions(),
-                   const moveit::core::RobotState* context_state = NULL) const
+                   const moveit::core::RobotState* context_state = nullptr) const
   {
+    (void)context_state;
     // For IK solvers that do not support multiple poses, fall back to single pose call
     if (ik_poses.size() == 1)
     {
