@@ -197,8 +197,8 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
     req.contacts = true;
     req.max_contacts = 99;
     req.max_contacts_per_pair = 10;
-    // If distance is turned on, this will slow down the collision checking very much and needs reduction in the number
-    // of trials
+    // If distance is turned on it will slow down the collision checking a lot. Try reducing the
+    // number of contacts consequently.
     // req.distance = true;
   }
 

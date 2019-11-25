@@ -5,7 +5,7 @@ The launch file `collision_checker_compare.launch` starts a benchmark between FC
 
 The collision scenarios can be visualized. By default, visualization is turned off in the launch file but can be activated through `visualization:=true` as an argument to the `roslaunch`. If activated, rviz is launched and visualizations like in the images below are created. For the speed test, either meshes or other available shape primitives like the box can be used.
 
-The clutter world objects are randomely placed and in such a way that they don't collide with the robot. The robot can then be moved in a colliding configuration. In the images, the red color of world objects indicates a collision with the robot.
+The clutter world objects are randomly placed such that they don't collide with the robot. The robot can then be moved to a colliding configuration. In the images, the red color of world objects indicates a collision with the robot.
 
 <p align="center">
     <img src="images/collision_speed_100_meshes_no_collision.png" width="400">
