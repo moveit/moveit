@@ -24,6 +24,8 @@ find_package(Eigen3 REQUIRED)
 
 # TODO: Move collision detection into separate packages
 find_package(Bullet CONFIG)
+
+# TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
 if(BULLET_FOUND AND BULLET_VERSION_STRING VERSION_GREATER "2.86")
   set(BULLET_ENABLE "BULLET")
   set(BULLET_INCLUDE_DIRS "${BULLET_ROOT_DIR}/${BULLET_INCLUDE_DIRS}")
@@ -32,7 +34,7 @@ if(BULLET_FOUND AND BULLET_VERSION_STRING VERSION_GREATER "2.86")
   set(BULLET_LIBRARIES "libBulletDynamics.so;libBulletCollision.so;libLinearMath.so;libBulletSoftBody.so")
   message(STATUS "Compiling with Bullet")
 else()
-  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin")
+  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
 endif()
 
 find_package(PkgConfig REQUIRED)
