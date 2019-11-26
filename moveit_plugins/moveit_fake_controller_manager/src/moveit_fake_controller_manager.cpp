@@ -133,7 +133,7 @@ public:
     if (!node_handle_.getParam("initial", initial))
     {
       ROS_INFO_NAMED("loadInitialJointValues",
-                     "No initial pose specifid for any joint model group, using the default values for the joints");
+                     "No initial pose specified for any joint model group, using the default values for the joints");
     }
     else
     {
