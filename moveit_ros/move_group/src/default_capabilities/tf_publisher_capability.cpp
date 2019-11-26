@@ -84,8 +84,9 @@ void MoveGroupTfPublisher::initialize()
 {
   ros::NodeHandle nh = ros::NodeHandle("~");
 
-  prefix_ = nh.getNamespace() + "/";
+  std::string prefix = nh.getNamespace() + "/";
   nh.param("planning_scene_frame_publishing_rate", rate_, 10);
+  nh.param("planning_scene_tf_prefix", prefix_, prefix);
 
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
   std::thread publisher_thread(&MoveGroupTfPublisher::publishPlanningSceneFrames, this);
