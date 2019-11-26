@@ -125,7 +125,6 @@ public:
     XmlRpc::XmlRpcValue initial;
     robot_model_loader::RobotModelLoader robot_model_loader(ROBOT_DESCRIPTION);
     const robot_model::RobotModelPtr& robot_model = robot_model_loader.getModel();
-
     typedef std::map<std::string, double> JointPoseMap;
     JointPoseMap joints;
 
