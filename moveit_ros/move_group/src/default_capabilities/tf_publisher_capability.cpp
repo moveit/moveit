@@ -37,8 +37,8 @@
 #include "tf_publisher_capability.h"
 #include <moveit/utils/message_checks.h>
 #include <moveit/move_group/capability_names.h>
-#include <tf/transform_broadcaster.h>
-#include <tf_conversions/tf_eigen.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace move_group
 {
@@ -53,8 +53,8 @@ TfPublisher::~TfPublisher()
 
 void TfPublisher::publishPlanningSceneFrames()
 {
-  tf::TransformBroadcaster broadcaster;
-  tf::Transform transform;
+  tf2_ros::TransformBroadcaster broadcaster;
+  geometry_msgs::TransformStamped transform;
   ros::Rate rate(rate_);
 
   while (ros::ok())
@@ -66,16 +66,19 @@ void TfPublisher::publishPlanningSceneFrames()
 
       for (auto obj = world->begin(); obj != world->end(); ++obj)
       {
-        tf::poseEigenToTF(obj->second->shape_poses_[0], transform);
         std::string parent_frame = prefix_ + obj->second->id_;
-        broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), planning_frame, parent_frame));
+        transform = tf2::eigenToTransform(obj->second->shape_poses_[0]);
+        transform.child_frame_id = parent_frame;
+        transform.header.frame_id = planning_frame;
+        broadcaster.sendTransform(transform);
 
         moveit::core::FixedTransformsMap subframes = obj->second->subframe_poses_;
         for (auto frame = subframes.begin(); frame != subframes.end(); ++frame)
         {
-          tf::poseEigenToTF(frame->second, transform);
-          broadcaster.sendTransform(
-              tf::StampedTransform(transform, ros::Time::now(), parent_frame, parent_frame + "/" + frame->first));
+          transform = tf2::eigenToTransform(frame->second);
+          transform.child_frame_id = parent_frame + "/" + frame->first;
+          transform.header.frame_id = parent_frame;
+          broadcaster.sendTransform(transform);
         }
       }
     }
