@@ -328,6 +328,7 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
     if (hasJointModelGroup(ds[i].group_))
     {
       JointModelGroup* jmg = getJointModelGroup(ds[i].group_);
+      std::vector<const JointModel*> remaining_joints = jmg->getActiveJointModels();
       std::map<std::string, double> state;
       for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin();
            jt != ds[i].joint_values_.end(); ++jt)
@@ -336,6 +337,10 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
         {
           const JointModel* jm = jmg->getJointModel(jt->first);
           const std::vector<std::string>& vn = jm->getVariableNames();
+          // Remove current joint name from remaining list.
+          auto it_found = std::find(remaining_joints.begin(), remaining_joints.end(), jm);
+          if (it_found != remaining_joints.end())
+            remaining_joints.erase(it_found);
           if (vn.size() == jt->second.size())
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
@@ -350,6 +355,8 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
                                    "but that joint is not part of group '%s'",
                           ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
+      if (!remaining_joints.empty())
+        ROS_WARN_NAMED(LOGNAME, "Group state '%s' doesn't specify all group joints.", group_state.name_.c_str());
       if (!state.empty())
         jmg->addDefaultState(ds[i].name_, state);
     }
