@@ -32,14 +32,18 @@
 #
 # Author: Ioan Sucan
 
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 from moveit_commander import MoveItCommanderException
 from geometry_msgs.msg import Pose, PoseStamped, Transform
 import rospy
 import tf
 
 def msg_to_string(msg):
-    buf = StringIO.StringIO()
+    buf = StringIO()
     msg.serialize(buf)
     return buf.getvalue()
 
