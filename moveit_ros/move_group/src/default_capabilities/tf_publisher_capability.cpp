@@ -48,6 +48,7 @@ TfPublisher::TfPublisher() : MoveGroupCapability("TfPublisher")
 
 TfPublisher::~TfPublisher()
 {
+  keep_running_ = false;
   thread_.join();
 }
 
@@ -57,7 +58,7 @@ void TfPublisher::publishPlanningSceneFrames()
   geometry_msgs::TransformStamped transform;
   ros::Rate rate(rate_);
 
-  while (ros::ok())
+  while (keep_running_)
   {
     {
       planning_scene_monitor::LockedPlanningSceneRO locked_planning_scene(context_->planning_scene_monitor_);
@@ -94,6 +95,7 @@ void TfPublisher::initialize()
   std::string prefix = nh.getNamespace() + "/";
   nh.param("planning_scene_frame_publishing_rate", rate_, 10);
   nh.param("planning_scene_tf_prefix", prefix_, prefix);
+  keep_running_ = true;
 
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
   thread_ = std::thread(&TfPublisher::publishPlanningSceneFrames, this);

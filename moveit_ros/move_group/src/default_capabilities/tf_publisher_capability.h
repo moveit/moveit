@@ -54,5 +54,6 @@ private:
   int rate_;
   std::string prefix_;
   std::thread thread_;
+  bool keep_running_;
 };
 }
