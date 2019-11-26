@@ -41,6 +41,7 @@ import rostest
 import os
 
 from moveit_commander import RobotCommander
+from moveit_commander.conversions import MoveItCommanderException
 
 
 class PythonTimeParameterizationTest(unittest.TestCase):
@@ -63,26 +64,33 @@ class PythonTimeParameterizationTest(unittest.TestCase):
         self.assertEqual(fraction, 1.0, "Cartesian path plan failed")
         return plan
 
-    def time_parameterization(self, plan, algorithm):
-        ref_state = self.commander.get_current_state()
-        retimed_plan = self.group.retime_trajectory(
-            ref_state, plan,
-            velocity_scaling_factor=0.1,
-            acceleration_scaling_factor=0.1,
-            algorithm=algorithm)
-        return retimed_plan
-
-
     def test_plan_and_time_parameterization(self):
         plan = self.plan()
-        retimed_plan = self.time_parameterization(plan, "iterative_time_parameterization")
+        ref_state = self.commander.get_current_state()
+
+        # retime a plan with each algorithm from a common method
+        retimed_plan = self.group.retime_trajectory(ref_state, plan, algorithm="iterative_time_parameterization")
         self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
-        retimed_plan = self.time_parameterization(plan, "iterative_spline_parameterization")
+        retimed_plan = self.group.retime_trajectory(ref_state, plan, algorithm="iterative_spline_parameterization")
         self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
-        retimed_plan = self.time_parameterization(plan, "time_optimal_trajectory_generation")
+        retimed_plan = self.group.retime_trajectory(ref_state, plan, algorithm="time_optimal_trajectory_generation")
         self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
-        retimed_plan = self.time_parameterization(plan, "")
-        self.assertTrue(len(retimed_plan.joint_trajectory.points) == 0, "Invalid retime algorithm")
+        retimed_plan = self.group.retime_trajectory(ref_state, plan) # default algorithm
+        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+        retimed_plan = self.group.retime_trajectory(ref_state, plan, velocity_scaling_factor=1.0, acceleration_scaling_factor=1.0, algorithm="iterative_time_parameterization") # specify scaling factors
+        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+
+        # retime a plan with each algorithm from a dedicated method specifying detailed parameters
+        retimed_plan = self.group.retime_trajectory_itp(ref_state, plan, max_iterations=10, max_time_change_per_it=0.1)
+        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+        retimed_plan = self.group.retime_trajectory_isp(ref_state, plan, add_points=False)
+        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+        retimed_plan = self.group.retime_trajectory_totg(ref_state, plan, path_tolerance=0.05, resample_dt=0.05)
+        self.assertTrue(len(retimed_plan.joint_trajectory.points) > 0, "Retimed plan is invalid")
+
+        # try to retime a plan with specifying an invalid algorithm name
+        with self.assertRaises(MoveItCommanderException):
+            retimed_plan = self.group.retime_trajectory(ref_state, plan, algorithm="invalid algorithm name")
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
