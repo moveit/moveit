@@ -43,11 +43,11 @@
 
 namespace move_group
 {
-MoveGroupTfPublisher::MoveGroupTfPublisher() : MoveGroupCapability("TfPublisher")
+TfPublisher::TfPublisher() : MoveGroupCapability("TfPublisher")
 {
 }
 
-void MoveGroupTfPublisher::publishPlanningSceneFrames()
+void TfPublisher::publishPlanningSceneFrames()
 {
   tf::TransformBroadcaster broadcaster;
   tf::Transform transform;
@@ -80,7 +80,7 @@ void MoveGroupTfPublisher::publishPlanningSceneFrames()
   }
 }
 
-void MoveGroupTfPublisher::initialize()
+void TfPublisher::initialize()
 {
   ros::NodeHandle nh = ros::NodeHandle("~");
 
@@ -89,10 +89,10 @@ void MoveGroupTfPublisher::initialize()
   nh.param("planning_scene_tf_prefix", prefix_, prefix);
 
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
-  std::thread publisher_thread(&MoveGroupTfPublisher::publishPlanningSceneFrames, this);
+  std::thread publisher_thread(&TfPublisher::publishPlanningSceneFrames, this);
   publisher_thread.detach();
 }
 }
 
 #include <class_loader/class_loader.hpp>
-CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupTfPublisher, move_group::MoveGroupCapability)
+CLASS_LOADER_REGISTER_CLASS(move_group::TfPublisher, move_group::MoveGroupCapability)

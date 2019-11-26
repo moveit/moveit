@@ -40,10 +40,10 @@
 
 namespace move_group
 {
-class MoveGroupTfPublisher : public MoveGroupCapability
+class TfPublisher : public MoveGroupCapability
 {
 public:
-  MoveGroupTfPublisher();
+  TfPublisher();
 
   void initialize() override;
 
