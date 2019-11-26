@@ -52,7 +52,7 @@ void MoveGroupTfPublisher::publishPlanningSceneFrames()
   tf::TransformBroadcaster broadcaster;
   tf::Transform transform;
   ros::Rate rate(rate_);
-  
+
   while (ros::ok())
   {
     {
@@ -63,8 +63,16 @@ void MoveGroupTfPublisher::publishPlanningSceneFrames()
       for (auto obj = world->begin(); obj != world->end(); ++obj)
       {
         tf::poseEigenToTF(obj->second->shape_poses_[0], transform);
-        broadcaster.sendTransform(
-            tf::StampedTransform(transform, ros::Time::now(), planning_frame, prefix_ + obj->second->id_));
+        std::string parent_frame = prefix_ + obj->second->id_;
+        broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), planning_frame, parent_frame));
+
+        moveit::core::FixedTransformsMap subframes = obj->second->subframe_poses_;
+        for (auto frame = subframes.begin(); frame != subframes.end(); ++frame)
+        {
+          tf::poseEigenToTF(frame->second, transform);
+          broadcaster.sendTransform(
+              tf::StampedTransform(transform, ros::Time::now(), parent_frame, parent_frame + "/" + frame->first));
+        }
       }
     }
 
@@ -77,7 +85,7 @@ void MoveGroupTfPublisher::initialize()
   ros::NodeHandle nh = ros::NodeHandle("~");
 
   prefix_ = nh.getNamespace() + "/";
-  nh.param("planning_scene_frame_publishing_rate",rate_,10);
+  nh.param("planning_scene_frame_publishing_rate", rate_, 10);
 
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
   std::thread publisher_thread(&MoveGroupTfPublisher::publishPlanningSceneFrames, this);
