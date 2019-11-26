@@ -73,8 +73,7 @@ protected:
   void SetUp() override
   {
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
-
-    ASSERT_TRUE(robot_model_);
+    ASSERT_TRUE(static_cast<bool>(robot_model_));
 
     robot_state_.reset(new robot_state::RobotState(robot_model_));
     planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
