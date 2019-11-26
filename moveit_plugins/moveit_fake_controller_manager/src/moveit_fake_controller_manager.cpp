@@ -136,9 +136,11 @@ public:
 
     robot_model_loader::RobotModelLoader robot_model_loader(ROBOT_DESCRIPTION);
     const robot_model::RobotModelPtr& robot_model = robot_model_loader.getModel();
+    moveit::core::RobotState robot_state(robot_model);
     typedef std::map<std::string, double> JointPoseMap;
     JointPoseMap joints;
 
+    robot_state.setToDefaultValues();  // initialize all joint values (just in case...)
     for (int i = 0, end = param.size(); i != end; ++i)
     {
       try
@@ -151,7 +153,6 @@ public:
           continue;
         }
         moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
-        moveit::core::RobotState robot_state(robot_model);
         const std::vector<std::string>& joint_names = jmg->getActiveJointModelNames();
 
         if (!robot_state.setToDefaultValues(jmg, pose_name))
