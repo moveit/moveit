@@ -128,9 +128,13 @@ public:
     if (controller_action_client_ && !done_)
     {
       bool result = controller_action_client_->waitForResult(timeout);
+#if 1  // TODO: remove when https://github.com/ros/actionlib/issues/155 is fixed
+      // workaround for actionlib issue: waitForResult() might return before our doneCB finished
       while (ros::ok() && !done_ && (timeout.isZero() || ros::Time::now() < end_time))
-        ros::Duration(0.0001).sleep();  // wait for done callback (race-condition)
-      return result && (timeout.isZero() || ros::Time::now() < end_time);
+        ros::Duration(0.0001).sleep();  // thus check the done_ flag explicitly
+      result = result && (timeout.isZero() || ros::Time::now() < end_time);
+#endif
+      return result;
     }
     return true;
   }
