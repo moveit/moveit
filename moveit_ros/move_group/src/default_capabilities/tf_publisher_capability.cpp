@@ -37,7 +37,6 @@
 #include "tf_publisher_capability.h"
 #include <moveit/utils/message_checks.h>
 #include <moveit/move_group/capability_names.h>
-#include <thread>
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
 
@@ -45,6 +44,11 @@ namespace move_group
 {
 TfPublisher::TfPublisher() : MoveGroupCapability("TfPublisher")
 {
+}
+
+TfPublisher::~TfPublisher()
+{
+  thread_.join();
 }
 
 void TfPublisher::publishPlanningSceneFrames()
@@ -89,8 +93,7 @@ void TfPublisher::initialize()
   nh.param("planning_scene_tf_prefix", prefix_, prefix);
 
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
-  std::thread publisher_thread(&TfPublisher::publishPlanningSceneFrames, this);
-  publisher_thread.detach();
+  thread_ = std::thread(&TfPublisher::publishPlanningSceneFrames, this);
 }
 }
 

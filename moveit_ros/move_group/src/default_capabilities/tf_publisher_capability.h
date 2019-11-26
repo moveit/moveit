@@ -37,6 +37,7 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
+#include <thread>
 
 namespace move_group
 {
@@ -44,6 +45,7 @@ class TfPublisher : public MoveGroupCapability
 {
 public:
   TfPublisher();
+  ~TfPublisher();
 
   void initialize() override;
 
@@ -51,5 +53,6 @@ private:
   void publishPlanningSceneFrames();
   int rate_;
   std::string prefix_;
+  std::thread thread_;
 };
 }
