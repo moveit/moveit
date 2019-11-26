@@ -131,8 +131,6 @@ TEST_F(MoveItCppTest, TestSetStartStateToCurrentState)
 TEST_F(MoveItCppTest, TestSetGoalFromPoseStamped)
 {
   planning_component_ptr->setStartStateToCurrentState();
-
-  geometry_msgs::PoseStamped target_pose1;
   planning_component_ptr->setGoal(target_pose1, "panda_link8");
 
   ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));

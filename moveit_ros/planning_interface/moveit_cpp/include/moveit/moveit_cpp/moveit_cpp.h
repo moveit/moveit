@@ -124,7 +124,7 @@ public:
   MoveItCpp& operator=(MoveItCpp&& other);
 
   /** \brief Destructor */
-  ~MoveItCpp();
+  ~MoveItCpp() = default;
 
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;

@@ -88,12 +88,6 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const ros::N
 {
 }
 
-PlanningComponent::~PlanningComponent()
-{
-  ROS_INFO_NAMED(LOGNAME, "Deleting PlanningComponent '%s'", group_name_.c_str());
-  clearContents();
-}
-
 PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other)
 {
   if (this != &other)
@@ -160,6 +154,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   moveit::core::RobotStatePtr start_state = considered_start_state_;
   if (!start_state)
     start_state = moveit_cpp_->getCurrentState();
+  start_state->update();
   moveit::core::robotStateToRobotStateMsg(*start_state, req.start_state);
   planning_scene->setCurrentState(*start_state);
 

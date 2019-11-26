@@ -130,7 +130,7 @@ public:
   PlanningComponent& operator=(PlanningComponent&& other);
 
   /** \brief Destructor */
-  ~PlanningComponent();
+  ~PlanningComponent() = default;
 
   /** \brief Get the name of the planning group */
   const std::string& getPlanningGroupName() const;

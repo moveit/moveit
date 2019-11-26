@@ -101,12 +101,6 @@ MoveItCpp::MoveItCpp(MoveItCpp&& other)
   other.clearContents();
 }
 
-MoveItCpp::~MoveItCpp()
-{
-  ROS_INFO_NAMED(LOGNAME, "Deleting MoveItCpp");
-  clearContents();
-}
-
 MoveItCpp& MoveItCpp::operator=(MoveItCpp&& other)
 {
   if (this != &other)
