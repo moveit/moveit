@@ -30,5 +30,5 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
     <!-- Unit Test /-->
-    <test test-name="moveit_cpp_test" pkg="moveit_ros_planning_interface" type="moveit_cpp_test" />
+    <test test-name="moveit_cpp_test" pkg="moveit_ros_planning_interface" type="moveit_cpp_test" args="--gtest_repeat=350 --gtest_break_on_failure" time-limit="2500"/>
 </launch>
