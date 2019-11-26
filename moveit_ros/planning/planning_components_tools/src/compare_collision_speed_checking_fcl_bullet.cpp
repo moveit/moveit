@@ -45,9 +45,14 @@
 #include <moveit/utils/robot_model_test_utils.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
+
+/** \brief Factor to compute the maximum number of trials random clutter generation. */
 static const int MAX_SEARCH_FACTOR_CLUTTER = 3;
+
+/** \brief Factor to compute the maximum number of trials for random state generation. */
 static const int MAX_SEARCH_FACTOR_STATES = 30;
 
+/** \brief Defines a random robot state. */
 enum class RobotStateSelector
 {
   IN_COLLISION,
@@ -55,12 +60,14 @@ enum class RobotStateSelector
   RANDOM,
 };
 
+/** \brief Enumerates the available collision detectors. */
 enum class CollisionDetector
 {
   FCL,
   BULLET,
 };
 
+/** \brief Enumerates the different types of collision objects. */
 enum class CollisionObjectType
 {
   MESH,
@@ -68,7 +75,7 @@ enum class CollisionObjectType
 };
 
 /** \brief Clutters the world of the planning scene with random objects in a certain area around the origin. All added
- *  objects are not in collision.
+ *  objects are not in collision with the robot.
 *
 *   \param planning_scene The planning scene
 *   \param num_objects The number of objects to be cluttered
@@ -188,8 +195,11 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
   if (!only_self)
   {
     req.contacts = true;
-    req.max_contacts = 999;
-    req.max_contacts_per_pair = 99;
+    req.max_contacts = 99;
+    req.max_contacts_per_pair = 10;
+    // If distance is turned on it will slow down the collision checking a lot. Try reducing the
+    // number of contacts consequently.
+    // req.distance = true;
   }
 
   ros::WallTime start = ros::WallTime::now();
@@ -286,7 +296,7 @@ int main(int argc, char** argv)
 
   ros::Publisher planning_scene_diff_publisher = node_handle.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
 
-  unsigned int trials = 5000;
+  unsigned int trials = 10000;
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -331,6 +341,7 @@ int main(int argc, char** argv)
     runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::BULLET, false);
     runCollisionDetection(trials, planning_scene, sampled_states, CollisionDetector::FCL, false);
 
+    // bring the robot into a position which collides with the world clutter
     double joint_2 = 1.5;
     current_state.setJointPositions("panda_joint2", &joint_2);
     current_state.update();
@@ -342,9 +353,15 @@ int main(int argc, char** argv)
     runCollisionDetection(trials, planning_scene, sampled_states_2, CollisionDetector::BULLET, false);
     runCollisionDetection(trials, planning_scene, sampled_states_2, CollisionDetector::FCL, false);
 
-    moveit_msgs::PlanningScene planning_scene_msg;
-    planning_scene->getPlanningSceneMsg(planning_scene_msg);
-    planning_scene_diff_publisher.publish(planning_scene_msg);
+    bool visualize;
+    node_handle.getParam("/compare_collision_checking_speed/visualization", visualize);
+    if (visualize)
+    {
+      // publishes the planning scene to visualize in rviz if possible
+      moveit_msgs::PlanningScene planning_scene_msg;
+      planning_scene->getPlanningSceneMsg(planning_scene_msg);
+      planning_scene_diff_publisher.publish(planning_scene_msg);
+    }
   }
   else
   {
