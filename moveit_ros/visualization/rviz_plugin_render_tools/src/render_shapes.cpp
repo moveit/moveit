@@ -193,8 +193,8 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
 
 void RenderShapes::updateShapeColors(float r, float g, float b, float a)
 {
-  for (auto it = scene_shapes_.begin(), end = scene_shapes_.end(); it != end; ++it)
-    (**it).setColor(r, g, b, a);
+  for (const std::unique_ptr<rviz::Shape>& shape : scene_shapes_)
+    shape->setColor(r, g, b, a);
 }
 
 }  // namespace moveit_rviz_plugin
