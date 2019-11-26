@@ -73,7 +73,8 @@ protected:
   void SetUp() override
   {
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
-    robot_model_ok_ = static_cast<bool>(robot_model_);
+    ASSERT_TRUE(static_cast<bool>(robot_model_));
+
     robot_state_.reset(new robot_state::RobotState(robot_model_));
     planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
   }
@@ -94,11 +95,6 @@ protected:
 
   planning_scene::PlanningScenePtr planning_scene_;
 };
-
-TEST_F(CollisionDetectorThreadedTest, InitOk)
-{
-  ASSERT_TRUE(robot_model_ok_);
-}
 
 /** \brief Tests the FCL collision detector in multiple threads. */
 TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
