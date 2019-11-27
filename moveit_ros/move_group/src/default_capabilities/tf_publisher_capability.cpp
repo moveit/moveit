@@ -65,19 +65,19 @@ void TfPublisher::publishPlanningSceneFrames()
       collision_detection::WorldConstPtr world = locked_planning_scene->getWorld();
       std::string planning_frame = locked_planning_scene->getPlanningFrame();
 
-      for (auto obj = world->begin(); obj != world->end(); ++obj)
+      for (const auto& obj : *world)
       {
-        std::string parent_frame = prefix_ + obj->second->id_;
-        transform = tf2::eigenToTransform(obj->second->shape_poses_[0]);
+        std::string parent_frame = prefix_ + obj.second->id_;
+        transform = tf2::eigenToTransform(obj.second->shape_poses_[0]);
         transform.child_frame_id = parent_frame;
         transform.header.frame_id = planning_frame;
         broadcaster.sendTransform(transform);
 
-        moveit::core::FixedTransformsMap subframes = obj->second->subframe_poses_;
-        for (auto frame = subframes.begin(); frame != subframes.end(); ++frame)
+        moveit::core::FixedTransformsMap subframes = obj.second->subframe_poses_;
+        for (auto& subframe : subframes)
         {
-          transform = tf2::eigenToTransform(frame->second);
-          transform.child_frame_id = parent_frame + "/" + frame->first;
+          transform = tf2::eigenToTransform(subframe.second);
+          transform.child_frame_id = parent_frame + "/" + subframe.first;
           transform.header.frame_id = parent_frame;
           broadcaster.sendTransform(transform);
         }
@@ -100,7 +100,7 @@ void TfPublisher::initialize()
   ROS_INFO("Initializing MoveGroupTfPublisher with a frame publishing rate of %d", rate_);
   thread_ = std::thread(&TfPublisher::publishPlanningSceneFrames, this);
 }
-}
+}  // namespace move_group
 
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::TfPublisher, move_group::MoveGroupCapability)
