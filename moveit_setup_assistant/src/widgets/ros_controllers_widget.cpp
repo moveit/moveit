@@ -512,7 +512,7 @@ void ROSControllersWidget::previewSelectedGroup(std::vector<std::string> groups)
 // ******************************************************************************************
 // Called when an item is seleceted from the controllers tree
 // ******************************************************************************************
-void ROSControllersWidget::previewSelected(QTreeWidgetItem* selected_item, int column)
+void ROSControllersWidget::previewSelected(QTreeWidgetItem* selected_item, int /*column*/)
 {
   // Get the user custom properties of the currently selected row
   int type = selected_item->data(0, Qt::UserRole).value<int>();

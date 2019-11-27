@@ -357,7 +357,7 @@ void TrajectoryVisualization::dropTrajectory()
   drop_displaying_trajectory_ = true;
 }
 
-void TrajectoryVisualization::update(float wall_dt, float ros_dt)
+void TrajectoryVisualization::update(float wall_dt, float /*ros_dt*/)
 {
   if (drop_displaying_trajectory_)
   {

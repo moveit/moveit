@@ -49,7 +49,7 @@ class JointTrajectoryControllerAllocator : public ControllerHandleAllocator
 {
 public:
   moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string& name,
-                                                             const std::vector<std::string>& resources) override
+                                                             const std::vector<std::string>& /* resources */) override
   {
     return std::make_shared<moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle>(
         name, "follow_joint_trajectory");

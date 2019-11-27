@@ -19,7 +19,7 @@ env:
     - UPSTREAM_WORKSPACE=moveit.rosinstall
     # moveit_ros_perception: mesh_filter_test fails due to broken Mesa OpenGL
     - TEST_BLACKLIST="moveit_ros_perception"
-    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
+    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
     - WARNINGS_OK=false
   matrix:
     - TEST="clang-format catkin_lint"
@@ -33,7 +33,7 @@ matrix: # Add a separate config to the matrix, using clang as compiler
       env: ROS_REPO=ros-shadow-fixed
            TEST=clang-tidy-fix
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
-           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
+           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci

@@ -513,7 +513,7 @@ void MotionPlanningFrame::tabChanged(int index)
     selectedCollisionObjectChanged();
 }
 
-void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
+void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float /*ros_dt*/)
 {
   if (scene_marker_)
     scene_marker_->update(wall_dt);

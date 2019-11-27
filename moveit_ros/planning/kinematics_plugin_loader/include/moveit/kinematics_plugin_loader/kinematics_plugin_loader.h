@@ -67,7 +67,7 @@ public:
       parameter under which the robot description can be found. This
       is passed to the kinematics solver initialization as well as
       used to read the SRDF document when needed. */
-  KinematicsPluginLoader(const std::string& solver_plugin, double solve_timeout, unsigned int ik_attempts,
+  KinematicsPluginLoader(const std::string& solver_plugin, double solve_timeout, unsigned int /*ik_attempts*/,
                          const std::string& robot_description = "robot_description",
                          double default_search_resolution = 0.0)
     : robot_description_(robot_description)

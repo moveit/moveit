@@ -218,7 +218,7 @@ void SimulationWidget::generateURDFClick()
 // ******************************************************************************************
 // Called the copy to clipboard button is clicked
 // ******************************************************************************************
-void SimulationWidget::copyURDF(const QString& link)
+void SimulationWidget::copyURDF(const QString& /*link*/)
 {
   simulation_text_->selectAll();
   simulation_text_->copy();

@@ -47,7 +47,7 @@ public:
   {
   }
 
-  bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory) override
+  bool sendTrajectory(const moveit_msgs::RobotTrajectory& /*trajectory*/) override
   {
     return true;
   }
@@ -59,6 +59,7 @@ public:
 
   bool waitForExecution(const ros::Duration& timeout = ros::Duration(0)) override
   {
+    (void)timeout;
     return false;
   }
 

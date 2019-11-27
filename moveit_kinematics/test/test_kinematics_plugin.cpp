@@ -203,7 +203,7 @@ protected:
   }
 
 public:
-  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* abs_error_expr,
+  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* /*abs_error_expr*/,
                                   const geometry_msgs::Point& val1, const geometry_msgs::Point& val2, double abs_error)
   {
     // clang-format off
@@ -218,7 +218,7 @@ public:
         << "Actual: " << expr2 << " [" << val2.x << ", " << val2.y << ", " << val2.z << "]";
     // clang-format on
   }
-  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* abs_error_expr,
+  testing::AssertionResult isNear(const char* expr1, const char* expr2, const char* /*abs_error_expr*/,
                                   const geometry_msgs::Quaternion& val1, const geometry_msgs::Quaternion& val2,
                                   double abs_error)
   {
@@ -261,7 +261,7 @@ public:
     return testing::AssertionSuccess();
   }
 
-  void searchIKCallback(const geometry_msgs::Pose& ik_pose, const std::vector<double>& joint_state,
+  void searchIKCallback(const geometry_msgs::Pose& /*ik_pose*/, const std::vector<double>& joint_state,
                         moveit_msgs::MoveItErrorCodes& error_code)
   {
     std::vector<std::string> link_names = { tip_link_ };

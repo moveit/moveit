@@ -247,7 +247,7 @@ void EndEffectorsWidget::showNewScreen()
 // ******************************************************************************************
 // Edit whatever element is selected
 // ******************************************************************************************
-void EndEffectorsWidget::editDoubleClicked(int row, int column)
+void EndEffectorsWidget::editDoubleClicked(int /*row*/, int /*column*/)
 {
   editSelected();
 }
@@ -255,7 +255,7 @@ void EndEffectorsWidget::editDoubleClicked(int row, int column)
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void EndEffectorsWidget::previewClicked(int row, int column)
+void EndEffectorsWidget::previewClicked(int /*row*/, int /*column*/)
 {
   // Get list of all selected items
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();

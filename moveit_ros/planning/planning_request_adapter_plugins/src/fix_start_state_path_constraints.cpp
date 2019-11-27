@@ -50,7 +50,7 @@ public:
   {
   }
 
-  void initialize(const ros::NodeHandle& nh) override
+  void initialize(const ros::NodeHandle& /*nh*/) override
   {
   }
 

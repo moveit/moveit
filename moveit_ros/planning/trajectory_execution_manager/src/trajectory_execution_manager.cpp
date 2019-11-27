@@ -64,7 +64,7 @@ public:
   }
 
 private:
-  void dynamicReconfigureCallback(TrajectoryExecutionDynamicReconfigureConfig& config, uint32_t level)
+  void dynamicReconfigureCallback(TrajectoryExecutionDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);

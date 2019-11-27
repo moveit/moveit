@@ -441,7 +441,7 @@ inline double VoxelGrid<T>::getResolution() const
 }
 
 template <typename T>
-inline double VoxelGrid<T>::getResolution(Dimension dim) const
+inline double VoxelGrid<T>::getResolution(Dimension /*dim*/) const
 {
   return resolution_;
 }

@@ -224,7 +224,7 @@ public:
    * Controllers are all active and default -- that's what makes this thing simple.
    */
   moveit_controller_manager::MoveItControllerManager::ControllerState
-  getControllerState(const std::string& name) override
+  getControllerState(const std::string& /* name */) override
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = true;
@@ -233,7 +233,8 @@ public:
   }
 
   /* Cannot switch our controllers */
-  bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
+  bool switchControllers(const std::vector<std::string>& /* activate */,
+                         const std::vector<std::string>& /* deactivate */) override
   {
     return false;
   }

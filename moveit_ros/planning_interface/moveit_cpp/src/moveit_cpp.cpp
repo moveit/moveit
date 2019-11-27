@@ -57,8 +57,9 @@ MoveItCpp::MoveItCpp(const ros::NodeHandle& nh, const std::shared_ptr<tf2_ros::B
 {
 }
 
-MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& nh,
+MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& /*unused*/,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
+  : tf_buffer_(tf_buffer)
 {
   if (!tf_buffer_)
     tf_buffer_.reset(new tf2_ros::Buffer());

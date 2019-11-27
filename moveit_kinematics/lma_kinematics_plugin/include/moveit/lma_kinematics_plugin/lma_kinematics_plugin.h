@@ -115,24 +115,6 @@ public:
    */
   const std::vector<std::string>& getLinkNames() const override;
 
-protected:
-  /**
-   * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
-   * This particular method is intended for "searching" for a solutions by randomly re-seeding on failure.
-   * @param ik_pose the desired pose of the link
-   * @param ik_seed_state an initial guess solution for the inverse kinematics
-   * @param timeout The amount of time (in seconds) available to the solver
-   * @param solution the solution vector
-   * @param solution_callback A callback to validate an IK solution
-   * @param error_code an error code that encodes the reason for failure or success
-   * @param consistency_limits The returned solutuion will not deviate more than these from the seed
-   * @return True if a valid solution was found, false otherwise
-   */
-  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
-                        std::vector<double>& solution, const IKCallbackFn& solution_callback,
-                        moveit_msgs::MoveItErrorCodes& error_code, const std::vector<double>& consistency_limits,
-                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
-
 private:
   bool timedOut(const ros::WallTime& start_time, double duration) const;
 

@@ -87,7 +87,7 @@ public:
                 const Eigen::Matrix<double, 6, 1>& cartesian_weights);
 
   /// not implemented.
-  int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out) override
+  int CartToJnt(const JntArray& /*q_init*/, const FrameVel& /*v_in*/, JntArrayVel& /*q_out*/) override
   {
     return -1;
   }

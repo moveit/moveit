@@ -78,23 +78,23 @@ QModelIndex CollisionLinearModel::mapToSource(const QModelIndex& proxyIndex) con
   return sourceModel()->index(r, c);
 }
 
-int CollisionLinearModel::rowCount(const QModelIndex& parent) const
+int CollisionLinearModel::rowCount(const QModelIndex& /*parent*/) const
 {
   int n = this->sourceModel()->rowCount();
   return (n * (n - 1) / 2);
 }
 
-int CollisionLinearModel::columnCount(const QModelIndex& parent) const
+int CollisionLinearModel::columnCount(const QModelIndex& /*parent*/) const
 {
   return 4;
 }
 
-QModelIndex CollisionLinearModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex CollisionLinearModel::index(int row, int column, const QModelIndex& /*parent*/) const
 {
   return createIndex(row, column);
 }
 
-QModelIndex CollisionLinearModel::parent(const QModelIndex& child) const
+QModelIndex CollisionLinearModel::parent(const QModelIndex& /*child*/) const
 {
   return QModelIndex();
 }

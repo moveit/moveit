@@ -330,7 +330,7 @@ bool InteractionHandler::inError(const GenericInteraction& g) const
   return getErrorState(g.marker_name_suffix);
 }
 
-bool InteractionHandler::inError(const JointInteraction& vj) const
+bool InteractionHandler::inError(const JointInteraction& /*unused*/) const
 {
   return false;
 }

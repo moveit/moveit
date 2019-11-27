@@ -308,7 +308,7 @@ void RobotPosesWidget::showNewScreen()
 // ******************************************************************************************
 // Edit whatever element is selected
 // ******************************************************************************************
-void RobotPosesWidget::editDoubleClicked(int row, int column)
+void RobotPosesWidget::editDoubleClicked(int /*row*/, int /*column*/)
 {
   // We'll just base the edit on the selection highlight
   editSelected();
@@ -317,7 +317,7 @@ void RobotPosesWidget::editDoubleClicked(int row, int column)
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void RobotPosesWidget::previewClicked(int row, int column)
+void RobotPosesWidget::previewClicked(int row, int /*column*/)
 {
   const std::string& name = data_table_->item(row, 0)->text().toStdString();
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
