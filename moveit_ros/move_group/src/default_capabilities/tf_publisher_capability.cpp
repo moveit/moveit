@@ -70,6 +70,7 @@ void TfPublisher::publishPlanningSceneFrames()
         std::string parent_frame = prefix_ + obj.second->id_;
         transform = tf2::eigenToTransform(obj.second->shape_poses_[0]);
         transform.child_frame_id = parent_frame;
+        transform.header.stamp = ros::Time::now();
         transform.header.frame_id = planning_frame;
         broadcaster.sendTransform(transform);
 
@@ -78,6 +79,7 @@ void TfPublisher::publishPlanningSceneFrames()
         {
           transform = tf2::eigenToTransform(subframe.second);
           transform.child_frame_id = parent_frame + "/" + subframe.first;
+          transform.header.stamp = ros::Time::now();
           transform.header.frame_id = parent_frame;
           broadcaster.sendTransform(transform);
         }
