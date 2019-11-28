@@ -5,6 +5,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/iterative_spline_parameterization.cpp
   src/trajectory_tools.cpp
   src/time_optimal_trajectory_generation.cpp
+  src/cartesian_speed.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
