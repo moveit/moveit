@@ -103,6 +103,17 @@ public:
   void stateChanged(const moveit::core::RobotState& state);
 };
 
+class JointsWidgetEventFilter : public QObject
+{
+  Q_OBJECT
+
+public:
+  JointsWidgetEventFilter(QAbstractItemView* view);
+
+protected:
+  bool eventFilter(QObject* target, QEvent* event) override;
+};
+
 class MotionPlanningDisplay;
 class MotionPlanningFrameJointsWidget : public QWidget
 {
@@ -192,6 +203,7 @@ Q_SIGNALS:
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
 

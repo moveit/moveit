@@ -195,6 +195,8 @@ MotionPlanningFrameJointsWidget::MotionPlanningFrameJointsWidget(MotionPlanningD
   : QWidget(parent), ui_(new Ui::MotionPlanningFrameJointsUI()), planning_display_(display)
 {
   ui_->setupUi(this);
+  // intercept mouse events delivered to joints_view_ to open editor on first mouse press
+  ui_->joints_view_->viewport()->installEventFilter(new JointsWidgetEventFilter(ui_->joints_view_));
   ui_->joints_view_->setItemDelegateForColumn(1, new ProgressBarDelegate(this));
   svd_.setThreshold(0.001);
 }
@@ -463,10 +465,32 @@ void ProgressBarDelegate::commitAndCloseEditor()
   closeEditor(editor);
 }
 
+JointsWidgetEventFilter::JointsWidgetEventFilter(QAbstractItemView* view) : QObject(view)
+{
+}
+
+bool JointsWidgetEventFilter::eventFilter(QObject* target, QEvent* event)
+{
+  if (event->type() == QEvent::MouseButtonPress)
+  {
+    QAbstractItemView* view = qobject_cast<QAbstractItemView*>(parent());
+    QModelIndex index = view->indexAt(static_cast<QMouseEvent*>(event)->pos());
+    if (index.isValid() && index.column() == 1)  // mouse event on any of joint indexes?
+    {
+      view->setCurrentIndex(index);
+      view->edit(index);
+      return true;  // event handled
+    }
+  }
+  return false;
+}
+
 ProgressBarEditor::ProgressBarEditor(QWidget* parent, float scale, float offset, int digits)
   : QWidget(parent), scale_(scale), offset_(offset), digits_(digits)
 {
-  setMouseTracking(true);
+  // if left mouse button is pressed, grab all future mouse events until button(s) released
+  if (QApplication::mouseButtons() & Qt::LeftButton)
+    this->grabMouse();
 }
 
 void ProgressBarEditor::paintEvent(QPaintEvent*)
@@ -483,6 +507,12 @@ void ProgressBarEditor::paintEvent(QPaintEvent*)
   opt.textAlignment = Qt::AlignRight;
   opt.textVisible = true;
   style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
+}
+
+void ProgressBarEditor::mousePressEvent(QMouseEvent* event)
+{
+  if (event->button() == Qt::LeftButton)
+    mouseMoveEvent(event);
 }
 
 void ProgressBarEditor::mouseMoveEvent(QMouseEvent* event)
@@ -504,8 +534,11 @@ void ProgressBarEditor::mouseMoveEvent(QMouseEvent* event)
 
 void ProgressBarEditor::mouseReleaseEvent(QMouseEvent* event)
 {
-  event->accept();
-  editingFinished();
+  if (event->button() == Qt::LeftButton)
+  {
+    event->accept();
+    editingFinished();
+  }
 }
 
 JogSlider::JogSlider(QWidget* parent) : QSlider(parent)

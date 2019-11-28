@@ -26,7 +26,10 @@
      <item>
       <widget class="QTreeView" name="joints_view_">
        <property name="editTriggers">
-        <set>QAbstractItemView::CurrentChanged|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+        <set>QAbstractItemView::EditKeyPressed</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
        </property>
        <property name="rootIsDecorated">
         <bool>false</bool>
