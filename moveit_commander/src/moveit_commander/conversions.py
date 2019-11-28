@@ -32,14 +32,20 @@
 #
 # Author: Ioan Sucan
 
-import StringIO
+try:
+    # Try Python 2.7 behaviour first
+    from StringIO import StringIO
+except ImportError:
+    # Use Python 3.x behaviour as fallback
+    from io import StringIO
+
 from moveit_commander import MoveItCommanderException
 from geometry_msgs.msg import Pose, PoseStamped, Transform
 import rospy
 import tf
 
 def msg_to_string(msg):
-    buf = StringIO.StringIO()
+    buf = StringIO()
     msg.serialize(buf)
     return buf.getvalue()
 
