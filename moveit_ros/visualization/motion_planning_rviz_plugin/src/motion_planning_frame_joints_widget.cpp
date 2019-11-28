@@ -301,7 +301,7 @@ static Eigen::Index findMatching(const Eigen::VectorXd& key, const Eigen::Matrix
 void MotionPlanningFrameJointsWidget::updateNullspaceSliders()
 {
   JMGItemModel* model = dynamic_cast<JMGItemModel*>(ui_->joints_view_->model());
-  int i = 0;
+  std::size_t i = 0;
   if (model && model->getJointModelGroup() && model->getJointModelGroup()->isChain())
   {
     model->getRobotState().updateLinkTransforms();
@@ -313,10 +313,10 @@ void MotionPlanningFrameJointsWidget::updateNullspaceSliders()
 
     svd_.compute(J, Eigen::ComputeFullV);
     Eigen::Index rank = svd_.rank();
-    Eigen::Index ns_dim = svd_.cols() - rank;
+    std::size_t ns_dim = svd_.cols() - rank;
     Eigen::MatrixXd ns(svd_.cols(), ns_dim);
     Eigen::VectorXi available(ns_dim);
-    for (int j = 0; j < ns_dim; ++j)
+    for (std::size_t j = 0; j < ns_dim; ++j)
       available[j] = j;
 
     ns_sliders_.reserve(ns_dim);
@@ -363,7 +363,7 @@ void MotionPlanningFrameJointsWidget::jogNullspace(double value)
     return;
 
   std::size_t index = std::find(ns_sliders_.begin(), ns_sliders_.end(), sender()) - ns_sliders_.begin();
-  if (index >= nullspace_.cols())
+  if (static_cast<int>(index) >= nullspace_.cols())
     return;
 
   JMGItemModel* model = dynamic_cast<JMGItemModel*>(ui_->joints_view_->model());
