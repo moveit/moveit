@@ -33,8 +33,10 @@
 # Author: Ioan Sucan
 
 try:
+    # Try Python 2.7 behaviour first
     from StringIO import StringIO
 except ImportError:
+    # Use Python 3.x behaviour as fallback
     from io import StringIO
 
 from moveit_commander import MoveItCommanderException
