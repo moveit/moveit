@@ -98,23 +98,27 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
     case 1:  // joint value column
     {
       double value = robot_state_.getVariablePosition(idx);
+      const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx);
       switch (role)
       {
         case Qt::DisplayRole:
           return value;
         case Qt::EditRole:
-          if (const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx))
+          if (jm)
             return jm->getType() == moveit::core::JointModel::REVOLUTE ? value * 180 / M_PI : value;
           break;
         case ProgressBarDelegate::JointTypeRole:
-          if (const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(idx))
+          if (jm)
             return jm->getType();
           break;
         case ProgressBarDelegate::PercentageRole:
-          if (const moveit::core::VariableBounds* bounds = getVariableBounds(index))
-            if (bounds->position_bounded_)
-              return static_cast<int>(100. * (value - bounds->min_position_) /
-                                      (bounds->max_position_ - bounds->min_position_));
+          if (const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index))
+            return static_cast<int>(100. * (value - bounds->min_position_) /
+                                    (bounds->max_position_ - bounds->min_position_));
+          break;
+        case ProgressBarDelegate::VariableBoundsRole:
+          if (const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index))
+            return QPointF(bounds->min_position_, bounds->max_position_);
           break;
         case Qt::TextAlignmentRole:
           return Qt::AlignRight;
@@ -138,7 +142,7 @@ bool JMGItemModel::setData(const QModelIndex& index, const QVariant& value, int 
 
   int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
   const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(var_idx);
-  const moveit::core::VariableBounds* bounds = getVariableBounds(index);
+  const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index);
   double v;
   if (bounds && value.userType() == QVariant::Int)  // int is interpreted as percentage between bounds
     v = bounds->min_position_ + value.toInt() / 100. * (bounds->max_position_ - bounds->min_position_);
@@ -167,13 +171,14 @@ const moveit::core::JointModel* JMGItemModel::getJointModel(const QModelIndex& i
   return robot_state_.getRobotModel()->getJointOfVariable(var_idx);
 }
 
-const moveit::core::VariableBounds* JMGItemModel::getVariableBounds(const QModelIndex& index) const
+const moveit::core::VariableBounds* JMGItemModel::getVariableBounds(const moveit::core::JointModel* jm,
+                                                                    const QModelIndex& index) const
 {
-  const moveit::core::JointModel* jm = getJointModel(index);
   if (!jm)
     return nullptr;
   int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
-  return &jm->getVariableBounds()[var_idx - jm->getFirstVariableIndex()];
+  const moveit::core::VariableBounds* bounds = &jm->getVariableBounds()[var_idx - jm->getFirstVariableIndex()];
+  return bounds->position_bounded_ ? bounds : nullptr;
 }
 
 // copy positions from new_state and notify about these changes
@@ -415,12 +420,20 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
     QVariant percentage = index.data(PercentageRole);
     if (percentage.isValid())
     {
-      auto* editor = new ProgressBarEditor(parent);
+      QPointF bounds = index.data(VariableBoundsRole).toPointF();
+      float min = bounds.x();
+      float max = bounds.y();
+      bool is_revolute = (index.data(JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
+      if (is_revolute)
+      {
+        min *= 180. / M_PI;
+        max *= 180. / M_PI;
+      }
+      float scale = (max - min) / 100.;
+      auto* editor = new ProgressBarEditor(parent, scale, min, is_revolute ? 0 : 3);
       connect(editor, &ProgressBarEditor::editingFinished, this, &ProgressBarDelegate::commitAndCloseEditor);
-      connect(editor, &ProgressBarEditor::valueChanged, this, [=](int value) {
-        JMGItemModel* model = dynamic_cast<JMGItemModel*>(const_cast<QAbstractItemModel*>(index.model()));
-        model->setData(index, QVariant(value), Qt::EditRole);
-      });
+      connect(editor, &ProgressBarEditor::valueChanged, this,
+              [=](int value) { const_cast<QAbstractItemModel*>(index.model())->setData(index, value, Qt::EditRole); });
       return editor;
     }
   }
@@ -450,7 +463,8 @@ void ProgressBarDelegate::commitAndCloseEditor()
   closeEditor(editor);
 }
 
-ProgressBarEditor::ProgressBarEditor(QWidget* parent) : QWidget(parent)
+ProgressBarEditor::ProgressBarEditor(QWidget* parent, float scale, float offset, int digits)
+  : QWidget(parent), scale_(scale), offset_(offset), digits_(digits)
 {
   setMouseTracking(true);
 }
@@ -465,7 +479,9 @@ void ProgressBarEditor::paintEvent(QPaintEvent*)
   opt.minimum = 0;
   opt.maximum = 100;
   opt.progress = percentage_;
-  opt.textVisible = false;
+  opt.text = QLocale().toString(scale_ * percentage_ + offset_, 'f', digits_);
+  opt.textAlignment = Qt::AlignRight;
+  opt.textVisible = true;
   style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
 }
 

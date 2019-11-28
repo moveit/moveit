@@ -97,7 +97,8 @@ public:
   /// retrieve the JointModel corresponding to the variable referenced by index
   const moveit::core::JointModel* getJointModel(const QModelIndex& index) const;
   /// retrieve the variable bounds referenced by variable index
-  const moveit::core::VariableBounds* getVariableBounds(const QModelIndex& index) const;
+  const moveit::core::VariableBounds* getVariableBounds(const moveit::core::JointModel* jm,
+                                                        const QModelIndex& index) const;
   /// call this on any change of the RobotState
   void stateChanged(const moveit::core::RobotState& state);
 };
@@ -151,7 +152,8 @@ public:
   enum CustomRole
   {
     JointTypeRole = Qt::UserRole,
-    PercentageRole
+    PercentageRole,
+    VariableBoundsRole
   };
 
   ProgressBarDelegate(QWidget* parent = 0) : QStyledItemDelegate(parent)
@@ -173,7 +175,7 @@ class ProgressBarEditor : public QWidget
   Q_OBJECT
 
 public:
-  ProgressBarEditor(QWidget* parent = 0);
+  ProgressBarEditor(QWidget* parent = nullptr, float scale = 1.0, float offset = 0.0, int digits = 0);
 
   void setPercentage(int p)
   {
@@ -195,6 +197,10 @@ protected:
 
 private:
   int percentage_;
+  // formating options to display percentage_
+  float scale_;
+  float offset_;
+  int digits_;
 };
 
 /// Slider that jumps back to zero
