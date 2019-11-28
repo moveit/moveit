@@ -86,6 +86,7 @@ MOVEIT_CLASS_FORWARD(RobotStateStorage);
 namespace moveit_rviz_plugin
 {
 class MotionPlanningDisplay;
+class MotionPlanningFrameJointsWidget;
 
 const std::string OBJECT_RECOGNITION_ACTION = "/recognize_objects";
 
@@ -125,6 +126,7 @@ protected:
   MotionPlanningDisplay* planning_display_;
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI* ui_;
+  MotionPlanningFrameJointsWidget* joints_tab_;
 
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterfacePtr planning_scene_interface_;
