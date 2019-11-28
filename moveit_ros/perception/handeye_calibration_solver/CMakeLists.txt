@@ -1,3 +1,6 @@
+# Suppress the warning 'int _import_array()' defined but not used in 'usr/include/python2.7/numpy/__multiarray_api.h'
+add_compile_options(-Wno-unused-function)
+
 set(HEADERS
   include/moveit/handeye_calibration_solver/handeye_solver_base.h
   include/moveit/handeye_calibration_solver/handeye_solver_default.h
