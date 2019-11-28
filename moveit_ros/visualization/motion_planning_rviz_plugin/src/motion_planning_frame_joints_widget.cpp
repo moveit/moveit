@@ -43,7 +43,7 @@
 
 namespace moveit_rviz_plugin
 {
-JMGItemModel::JMGItemModel(const moveit::core::RobotState& robot_state, const std::string group_name, QObject* parent)
+JMGItemModel::JMGItemModel(const moveit::core::RobotState& robot_state, const std::string& group_name, QObject* parent)
   : QAbstractTableModel(parent), robot_state_(robot_state), jmg_(nullptr)
 {
   if (robot_state_.getRobotModel()->hasJointModelGroup(group_name))
@@ -66,7 +66,7 @@ int JMGItemModel::columnCount(const QModelIndex& parent) const
 Qt::ItemFlags JMGItemModel::flags(const QModelIndex& index) const
 {
   if (!index.isValid())
-    return 0;
+    return Qt::ItemFlags();
 
   Qt::ItemFlags f = QAbstractTableModel::flags(index);
   if (index.column() == 1)
@@ -307,13 +307,13 @@ void MotionPlanningFrameJointsWidget::updateNullspaceSliders()
   if (model && model->getJointModelGroup() && model->getJointModelGroup()->isChain())
   {
     model->getRobotState().updateLinkTransforms();
-    Eigen::MatrixXd J;
+    Eigen::MatrixXd jacobian;
     if (!model->getRobotState().getJacobian(model->getJointModelGroup(),
                                             model->getJointModelGroup()->getLinkModels().back(),
-                                            Eigen::Vector3d::Zero(), J, false))
+                                            Eigen::Vector3d::Zero(), jacobian, false))
       goto cleanup;
 
-    svd_.compute(J, Eigen::ComputeFullV);
+    svd_.compute(jacobian, Eigen::ComputeFullV);
     Eigen::Index rank = svd_.rank();
     std::size_t ns_dim = svd_.cols() - rank;
     Eigen::MatrixXd ns(svd_.cols(), ns_dim);
@@ -493,7 +493,7 @@ ProgressBarEditor::ProgressBarEditor(QWidget* parent, float scale, float offset,
     this->grabMouse();
 }
 
-void ProgressBarEditor::paintEvent(QPaintEvent*)
+void ProgressBarEditor::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
 
@@ -583,4 +583,4 @@ void JogSlider::mouseReleaseEvent(QMouseEvent* event)
   setValue(0);
 }
 
-}  // namespace
+}  // namespace moveit_rviz_plugin

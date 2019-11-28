@@ -71,7 +71,7 @@ class JMGItemModel : public QAbstractTableModel
   const moveit::core::JointModelGroup* jmg_;
 
 public:
-  JMGItemModel(const moveit::core::RobotState& robot_state, const std::string group_name, QObject* parent = nullptr);
+  JMGItemModel(const moveit::core::RobotState& robot_state, const std::string& group_name, QObject* parent = nullptr);
 
   // QAbstractItemModel interface
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
