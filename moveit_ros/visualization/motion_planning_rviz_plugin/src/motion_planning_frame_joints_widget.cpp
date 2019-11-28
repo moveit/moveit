@@ -111,17 +111,12 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
           if (jm)
             return jm->getType();
           break;
-        case ProgressBarDelegate::PercentageRole:
-          if (const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index))
-            return static_cast<int>(100. * (value - bounds->min_position_) /
-                                    (bounds->max_position_ - bounds->min_position_));
-          break;
         case ProgressBarDelegate::VariableBoundsRole:
           if (const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index))
             return QPointF(bounds->min_position_, bounds->max_position_);
           break;
         case Qt::TextAlignmentRole:
-          return Qt::AlignRight;
+          return Qt::AlignLeft;
       }
     }
   }
@@ -142,20 +137,17 @@ bool JMGItemModel::setData(const QModelIndex& index, const QVariant& value, int 
 
   int var_idx = jmg_ ? jmg_->getVariableIndexList()[index.row()] : index.row();
   const moveit::core::JointModel* jm = robot_state_.getRobotModel()->getJointOfVariable(var_idx);
-  const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index);
-  double v;
-  if (bounds && value.userType() == QVariant::Int)  // int is interpreted as percentage between bounds
-    v = bounds->min_position_ + value.toInt() / 100. * (bounds->max_position_ - bounds->min_position_);
-  else if (value.userType() == QVariant::Double)
-  {
-    v = value.toDouble();
-    // for revolute joints, we convert degrees to radians
-    if (jm)
-      if (jm->getType() == moveit::core::JointModel::REVOLUTE)
-        v *= M_PI / 180;
-  }
-  else  // cannot handle this value
+  if (!value.canConvert<double>())
     return false;
+
+  bool ok;
+  double v = value.toDouble(&ok);
+  if (!ok)
+    return false;
+
+  // for revolute joints, we convert degrees to radians
+  if (jm && jm->getType() == moveit::core::JointModel::REVOLUTE)
+    v *= M_PI / 180;
 
   robot_state_.setVariablePosition(var_idx, v);
   jm->enforcePositionBounds(robot_state_.getVariablePositions() + jm->getFirstVariableIndex());
@@ -182,7 +174,7 @@ const moveit::core::VariableBounds* JMGItemModel::getVariableBounds(const moveit
 }
 
 // copy positions from new_state and notify about these changes
-void JMGItemModel::stateChanged(const moveit::core::RobotState& state)
+void JMGItemModel::updateRobotState(const moveit::core::RobotState& state)
 {
   if (robot_state_.getRobotModel() != state.getRobotModel())
     return;
@@ -241,7 +233,7 @@ void MotionPlanningFrameJointsWidget::queryStartStateChanged()
   if (!start_state_model_ || !start_state_handler_)
     return;
   ignore_state_changes_ = true;
-  start_state_model_->stateChanged(*start_state_handler_->getState());
+  start_state_model_->updateRobotState(*start_state_handler_->getState());
   ignore_state_changes_ = false;
   setActiveModel(start_state_model_.get());
   updateNullspaceSliders();
@@ -252,7 +244,7 @@ void MotionPlanningFrameJointsWidget::queryGoalStateChanged()
   if (!goal_state_model_ || !goal_state_handler_)
     return;
   ignore_state_changes_ = true;
-  goal_state_model_->stateChanged(*goal_state_handler_->getState());
+  goal_state_model_->updateRobotState(*goal_state_handler_->getState());
   ignore_state_changes_ = false;
   setActiveModel(goal_state_model_.get());
   updateNullspaceSliders();
@@ -394,14 +386,18 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     bool is_revolute = joint_type.isValid() && joint_type.toInt() == moveit::core::JointModel::REVOLUTE;
     style_option.text = option.locale.toString(is_revolute ? value * 180 / M_PI : value, 'f', is_revolute ? 0 : 3);
 
-    QVariant percentage = index.data(PercentageRole);
-    if (percentage.isValid())
+    QVariant vbounds = index.data(VariableBoundsRole);
+    if (vbounds.isValid())
     {
+      QPointF bounds = vbounds.toPointF();
+      const float min = bounds.x();
+      const float max = bounds.y();
+
       QStyleOptionProgressBar opt;
       opt.rect = option.rect;
       opt.minimum = 0;
-      opt.maximum = 100;
-      opt.progress = percentage.toInt();
+      opt.maximum = 1000;
+      opt.progress = 1000. * (value - min) / (max - min);
       opt.text = style_option.text;
       opt.textAlignment = style_option.displayAlignment;
       opt.textVisible = true;
@@ -419,10 +415,10 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
 {
   if (index.column() == 1)
   {
-    QVariant percentage = index.data(PercentageRole);
-    if (percentage.isValid())
+    QVariant vbounds = index.data(VariableBoundsRole);
+    if (vbounds.isValid())
     {
-      QPointF bounds = index.data(VariableBoundsRole).toPointF();
+      QPointF bounds = vbounds.toPointF();
       float min = bounds.x();
       float max = bounds.y();
       bool is_revolute = (index.data(JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
@@ -431,31 +427,15 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
         min *= 180. / M_PI;
         max *= 180. / M_PI;
       }
-      float scale = (max - min) / 100.;
-      auto* editor = new ProgressBarEditor(parent, scale, min, is_revolute ? 0 : 3);
+      auto* editor = new ProgressBarEditor(parent, min, max, is_revolute ? 0 : 3);
       connect(editor, &ProgressBarEditor::editingFinished, this, &ProgressBarDelegate::commitAndCloseEditor);
-      connect(editor, &ProgressBarEditor::valueChanged, this,
-              [=](int value) { const_cast<QAbstractItemModel*>(index.model())->setData(index, value, Qt::EditRole); });
+      connect(editor, &ProgressBarEditor::valueChanged, this, [=](float value) {
+        const_cast<QAbstractItemModel*>(index.model())->setData(index, value, Qt::EditRole);
+      });
       return editor;
     }
   }
   return QStyledItemDelegate::createEditor(parent, option, index);
-}
-
-void ProgressBarDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
-{
-  if (ProgressBarEditor* pb_editor = qobject_cast<ProgressBarEditor*>(editor))
-    pb_editor->setPercentage(index.data(PercentageRole).toInt());
-  else
-    QStyledItemDelegate::setEditorData(editor, index);
-}
-
-void ProgressBarDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
-{
-  if (ProgressBarEditor* pb_editor = qobject_cast<ProgressBarEditor*>(editor))
-    model->setData(index, pb_editor->percentage());
-  else
-    QStyledItemDelegate::setModelData(editor, model, index);
 }
 
 void ProgressBarDelegate::commitAndCloseEditor()
@@ -485,8 +465,8 @@ bool JointsWidgetEventFilter::eventFilter(QObject* target, QEvent* event)
   return false;
 }
 
-ProgressBarEditor::ProgressBarEditor(QWidget* parent, float scale, float offset, int digits)
-  : QWidget(parent), scale_(scale), offset_(offset), digits_(digits)
+ProgressBarEditor::ProgressBarEditor(QWidget* parent, float min, float max, int digits)
+  : QWidget(parent), min_(min), max_(max), digits_(digits)
 {
   // if left mouse button is pressed, grab all future mouse events until button(s) released
   if (QApplication::mouseButtons() & Qt::LeftButton)
@@ -501,9 +481,9 @@ void ProgressBarEditor::paintEvent(QPaintEvent* /*event*/)
   opt.rect = rect();
   opt.palette = this->palette();
   opt.minimum = 0;
-  opt.maximum = 100;
-  opt.progress = percentage_;
-  opt.text = QLocale().toString(scale_ * percentage_ + offset_, 'f', digits_);
+  opt.maximum = 1000;
+  opt.progress = 1000. * (value_ - min_) / (max_ - min_);
+  opt.text = QLocale().toString(value_, 'f', digits_);
   opt.textAlignment = Qt::AlignRight;
   opt.textVisible = true;
   style()->drawControl(QStyle::CE_ProgressBar, &opt, &painter);
@@ -517,16 +497,11 @@ void ProgressBarEditor::mousePressEvent(QMouseEvent* event)
 
 void ProgressBarEditor::mouseMoveEvent(QMouseEvent* event)
 {
-  int p = 100 * event->x() / width();
-  if (p < 0)
-    p = 0;
-  if (p > 100)
-    p = 100;
-
-  if (percentage_ != p)
+  float v = std::min(max_, std::max(min_, min_ + event->x() * (max_ - min_) / width()));
+  if (value_ != v)
   {
-    percentage_ = p;
-    valueChanged(p);
+    value_ = v;
+    valueChanged(v);
     update();
   }
   event->accept();

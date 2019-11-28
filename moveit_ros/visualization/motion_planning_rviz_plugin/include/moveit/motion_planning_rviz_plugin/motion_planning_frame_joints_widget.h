@@ -81,6 +81,9 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
+  /// call this on any external change of the RobotState
+  void updateRobotState(const moveit::core::RobotState& state);
+
   moveit::core::RobotState& getRobotState()
   {
     return robot_state_;
@@ -94,13 +97,12 @@ public:
     return jmg_;
   }
 
+private:
   /// retrieve the JointModel corresponding to the variable referenced by index
   const moveit::core::JointModel* getJointModel(const QModelIndex& index) const;
   /// retrieve the variable bounds referenced by variable index
   const moveit::core::VariableBounds* getVariableBounds(const moveit::core::JointModel* jm,
                                                         const QModelIndex& index) const;
-  /// call this on any change of the RobotState
-  void stateChanged(const moveit::core::RobotState& state);
 };
 
 class JointsWidgetEventFilter : public QObject
@@ -163,7 +165,6 @@ public:
   enum CustomRole
   {
     JointTypeRole = Qt::UserRole,
-    PercentageRole,
     VariableBoundsRole
   };
 
@@ -173,8 +174,6 @@ public:
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
-  void setEditorData(QWidget* editor, const QModelIndex& index) const override;
-  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 
 private Q_SLOTS:
   void commitAndCloseEditor();
@@ -184,21 +183,23 @@ private Q_SLOTS:
 class ProgressBarEditor : public QWidget
 {
   Q_OBJECT
+  Q_PROPERTY(float value READ value WRITE setValue NOTIFY valueChanged USER true)
 
 public:
-  ProgressBarEditor(QWidget* parent = nullptr, float scale = 1.0, float offset = 0.0, int digits = 0);
+  /// Create a progressbar-like slider for editing values in range mix..max
+  ProgressBarEditor(QWidget* parent = nullptr, float min = -1.0, float max = 0.0, int digits = 0);
 
-  void setPercentage(int p)
+  void setValue(float value)
   {
-    percentage_ = p;
+    value_ = value;
   }
-  int percentage()
+  float value() const
   {
-    return percentage_;
+    return value_;
   }
 
 Q_SIGNALS:
-  void valueChanged(int percentage);
+  void valueChanged(float value);
   void editingFinished();
 
 protected:
@@ -208,11 +209,10 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
-  int percentage_;
-  // formating options to display percentage_
-  float scale_;
-  float offset_;
-  int digits_;
+  float value_;
+  float min_;
+  float max_;
+  int digits_;  ///< number of decimal digits for formatting of the value
 };
 
 /// Slider that jumps back to zero
