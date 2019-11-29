@@ -316,6 +316,8 @@ void EndEffectorsWidget::edit(const std::string& name)
 
   // Find the selected in datastruture
   srdf::Model::EndEffector* effector = findEffectorByName(name);
+  if (effector == NULL)
+    return;
 
   // Set effector name
   effector_name_field_->setText(effector->name_.c_str());

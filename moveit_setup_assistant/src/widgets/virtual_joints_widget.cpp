@@ -306,6 +306,8 @@ void VirtualJointsWidget::edit(const std::string& name)
 
   // Find the selected in datastruture
   srdf::Model::VirtualJoint* vjoint = findVJointByName(name);
+  if (vjoint == NULL)
+    return;
 
   // Set vjoint name
   vjoint_name_field_->setText(vjoint->name_.c_str());

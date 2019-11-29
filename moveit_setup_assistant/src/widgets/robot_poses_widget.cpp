@@ -421,6 +421,8 @@ void RobotPosesWidget::edit(int row)
 
   // Find the selected in datastruture
   srdf::Model::GroupState* pose = findPoseByName(name, group);
+  if (pose == NULL)
+    return;
   current_edit_pose_ = pose;
 
   // Set pose name

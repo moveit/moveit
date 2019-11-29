@@ -87,11 +87,15 @@ void NavigationWidget::setNavs(const QList<QString>& navs)
 
 void NavigationWidget::setEnabled(const int& index, bool enabled)
 {
+  QStandardItem* item = model_->item(index);
+  if (item == nullptr)
+    return;
+
   if (enabled)
-    model_->item(index)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
-                                  Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
+	  item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
+                     Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
   else
-    model_->item(index)->setFlags(Qt::NoItemFlags);
+	  item->setFlags(Qt::NoItemFlags);
 }
 
 void NavigationWidget::setSelected(const int& index)

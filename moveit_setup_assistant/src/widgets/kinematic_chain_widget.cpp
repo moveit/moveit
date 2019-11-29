@@ -206,9 +206,13 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent, const 
   {
     for (int i = 0; i < parent->childCount(); i++)
     {
-      if (addLinkChildRecursive(parent->child(i), link, parent_name))
+      QTreeWidgetItem* item = parent->child(i);
+      if (item != NULL)
       {
-        return true;
+        if (addLinkChildRecursive(item, link, parent_name))
+        {
+          return true;
+        }
       }
     }
   }

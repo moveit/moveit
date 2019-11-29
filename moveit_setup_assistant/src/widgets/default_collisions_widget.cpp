@@ -448,8 +448,11 @@ void DefaultCollisionsWidget::hideSections()
     list << clicked_section_;
   }
 
-  for (auto index : list)
-    header->setSectionHidden(index, true);
+  if (header != nullptr)
+  {
+    for (auto index : list)
+      header->setSectionHidden(index, true);
+  }
 }
 
 void DefaultCollisionsWidget::hideOtherSections()
@@ -478,13 +481,16 @@ void DefaultCollisionsWidget::hideOtherSections()
     list << clicked_section_;
   }
 
-  // first hide all sections
-  for (std::size_t index = 0, end = header->count(); index != end; ++index)
-    header->setSectionHidden(index, true);
+  if (header != nullptr)
+  {
+    // first hide all sections
+    for (std::size_t index = 0, end = header->count(); index != end; ++index)
+      header->setSectionHidden(index, true);
 
-  // and subsequently show selected ones
-  for (auto index : list)
-    header->setSectionHidden(index, false);
+    // and subsequently show selected ones
+    for (auto index : list)
+      header->setSectionHidden(index, false);
+  }
 }
 
 void DefaultCollisionsWidget::showSections()
@@ -529,7 +535,11 @@ void DefaultCollisionsWidget::showSections()
     list.clear();
     list << clicked_section_;
   }
-  showSections(header, list);
+
+  if (header != nullptr)
+  {
+    showSections(header, list);
+  }
 }
 void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>& logicalIndexes)
 {
@@ -659,7 +669,8 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 void DefaultCollisionsWidget::checkedFilterChanged()
 {
   SortFilterProxyModel* m = qobject_cast<SortFilterProxyModel*>(model_);
-  m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
+  if (m)
+    m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
 }
 
 // Output Link Pairs to SRDF Format and update the collision matrix
