@@ -52,8 +52,6 @@ public:
 
 private:
   void publishPlanningSceneFrames();
-  void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, moveit::core::FixedTransformsMap& subframes,
-                        std::string parent_frame);
   int rate_;
   std::string prefix_;
   std::thread thread_;
