@@ -77,8 +77,15 @@ QSize RotatedHeaderView::sectionSizeFromContents(int logicalIndex) const
 
   ensurePolished();
 
+  QAbstractItemModel* m = model();
+  if (m == nullptr)
+  {
+    Q_ASSERT(m);
+    return QSize();
+  }
+  
   // use SizeHintRole
-  QVariant variant = model()->headerData(logicalIndex, Qt::Vertical, Qt::SizeHintRole);
+  QVariant variant = m->headerData(logicalIndex, Qt::Vertical, Qt::SizeHintRole);
   if (variant.isValid())
     return qvariant_cast<QSize>(variant);
 
@@ -86,7 +93,7 @@ QSize RotatedHeaderView::sectionSizeFromContents(int logicalIndex) const
   QStyleOptionHeader opt;
   initStyleOption(&opt);
   opt.section = logicalIndex;
-  QVariant var = model()->headerData(logicalIndex, orientation(), Qt::FontRole);
+  QVariant var = m->headerData(logicalIndex, orientation(), Qt::FontRole);
   QFont fnt;
   if (var.isValid() && var.canConvert<QFont>())
     fnt = qvariant_cast<QFont>(var);
@@ -94,8 +101,8 @@ QSize RotatedHeaderView::sectionSizeFromContents(int logicalIndex) const
     fnt = font();
   fnt.setBold(true);
   opt.fontMetrics = QFontMetrics(fnt);
-  opt.text = model()->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
-  variant = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
+  opt.text = m->headerData(logicalIndex, orientation(), Qt::DisplayRole).toString();
+  variant = m->headerData(logicalIndex, orientation(), Qt::DecorationRole);
   opt.icon = qvariant_cast<QIcon>(variant);
   if (opt.icon.isNull())
     opt.icon = qvariant_cast<QPixmap>(variant);
@@ -118,7 +125,10 @@ int RotatedHeaderView::sectionSizeHint(int logicalIndex) const
   if (logicalIndex < 0 || logicalIndex >= count())
     return -1;
   QSize size;
-  QVariant value = model()->headerData(logicalIndex, orientation(), Qt::SizeHintRole);
+  QAbstractItemModel* m = model();
+  if (m == nullptr)
+    return -1;
+  QVariant value = m->headerData(logicalIndex, orientation(), Qt::SizeHintRole);
   if (value.isValid())
     size = qvariant_cast<QSize>(value);
   else

@@ -129,8 +129,15 @@ QVariant CollisionLinearModel::data(const QModelIndex& index, int role) const
 
 DisabledReason CollisionLinearModel::reason(int row) const
 {
+  CollisionMatrixModel* m = qobject_cast<CollisionMatrixModel*>(sourceModel());
+  if (!m)
+  {
+    Q_ASSERT(m);
+    return moveit_setup_assistant::NOT_DISABLED;
+  }
   QModelIndex srcIndex = this->mapToSource(index(row, 0));
-  return qobject_cast<CollisionMatrixModel*>(sourceModel())->reason(srcIndex);
+
+  return m->reason(srcIndex);
 }
 
 bool CollisionLinearModel::setData(const QModelIndex& index, const QVariant& value, int role)
@@ -239,6 +246,9 @@ void SortFilterProxyModel::setShowAll(bool show_all)
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
 {
   CollisionLinearModel* m = qobject_cast<CollisionLinearModel*>(sourceModel());
+  if (!m)
+    return false;
+
   if (!(show_all_ || m->reason(source_row) <= moveit_setup_assistant::ALWAYS ||
         m->data(m->index(source_row, 2), Qt::CheckStateRole) == Qt::Checked))
     return false;  // not accepted due to check state
