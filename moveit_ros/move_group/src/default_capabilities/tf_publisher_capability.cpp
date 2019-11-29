@@ -68,7 +68,7 @@ void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, const moveit::
     broadcaster.sendTransform(transform);
   }
 }
-}
+}  // namespace
 
 void TfPublisher::publishPlanningSceneFrames()
 {
