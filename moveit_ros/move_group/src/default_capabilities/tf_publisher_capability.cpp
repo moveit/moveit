@@ -37,7 +37,6 @@
 #include "tf_publisher_capability.h"
 #include <moveit/utils/message_checks.h>
 #include <moveit/move_group/capability_names.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/attached_body.h>
@@ -52,6 +51,20 @@ TfPublisher::~TfPublisher()
 {
   keep_running_ = false;
   thread_.join();
+}
+
+void TfPublisher::publishSubframes(tf2_ros::TransformBroadcaster& broadcaster,
+                                   moveit::core::FixedTransformsMap& subframes, std::string parent_frame)
+{
+  geometry_msgs::TransformStamped transform;
+  for (auto& subframe : subframes)
+  {
+    transform = tf2::eigenToTransform(subframe.second);
+    transform.child_frame_id = parent_frame + "/" + subframe.first;
+    transform.header.stamp = ros::Time::now();
+    transform.header.frame_id = parent_frame;
+    broadcaster.sendTransform(transform);
+  }
 }
 
 void TfPublisher::publishPlanningSceneFrames()
@@ -77,14 +90,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         moveit::core::FixedTransformsMap subframes = obj.second->subframe_poses_;
-        for (auto& subframe : subframes)
-        {
-          transform = tf2::eigenToTransform(subframe.second);
-          transform.child_frame_id = parent_frame + "/" + subframe.first;
-          transform.header.stamp = ros::Time::now();
-          transform.header.frame_id = parent_frame;
-          broadcaster.sendTransform(transform);
-        }
+        publishSubframes(broadcaster, subframes, parent_frame);
       }
 
       const robot_state::RobotState& rs = locked_planning_scene->getCurrentState();
@@ -100,14 +106,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         moveit::core::FixedTransformsMap subframes = attached_body->getSubframeTransforms();
-        for (auto& subframe : subframes)
-        {
-          transform = tf2::eigenToTransform(subframe.second);
-          transform.child_frame_id = parent_frame + "/" + subframe.first;
-          transform.header.stamp = ros::Time::now();
-          transform.header.frame_id = parent_frame;
-          broadcaster.sendTransform(transform);
-        }
+        publishSubframes(broadcaster, subframes, parent_frame);
       }
     }
 

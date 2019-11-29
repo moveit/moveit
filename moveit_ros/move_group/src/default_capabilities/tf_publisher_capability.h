@@ -37,6 +37,7 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <thread>
 
 namespace move_group
@@ -51,6 +52,8 @@ public:
 
 private:
   void publishPlanningSceneFrames();
+  void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, moveit::core::FixedTransformsMap& subframes,
+                        std::string parent_frame);
   int rate_;
   std::string prefix_;
   std::thread thread_;
