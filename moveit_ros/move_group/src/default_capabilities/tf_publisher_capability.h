@@ -37,7 +37,6 @@
 #pragma once
 
 #include <moveit/move_group/move_group_capability.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <thread>
 
 namespace move_group

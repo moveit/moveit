@@ -37,6 +37,7 @@
 #include "tf_publisher_capability.h"
 #include <moveit/utils/message_checks.h>
 #include <moveit/move_group/capability_names.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/attached_body.h>
@@ -56,7 +57,7 @@ TfPublisher::~TfPublisher()
 namespace
 {
 void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, const moveit::core::FixedTransformsMap& subframes,
-                      std::string& parent_frame, ros::Time stamp)
+                      const std::string& parent_frame, const ros::Time& stamp)
 {
   geometry_msgs::TransformStamped transform;
   for (auto& subframe : subframes)
@@ -93,14 +94,14 @@ void TfPublisher::publishPlanningSceneFrames()
         transform.header.frame_id = planning_frame;
         broadcaster.sendTransform(transform);
 
-        moveit::core::FixedTransformsMap subframes = obj.second->subframe_poses_;
+        const moveit::core::FixedTransformsMap& subframes = obj.second->subframe_poses_;
         publishSubframes(broadcaster, subframes, parent_frame, stamp);
       }
 
       const robot_state::RobotState& rs = locked_planning_scene->getCurrentState();
       std::vector<const robot_state::AttachedBody*> attached_collision_objects;
       rs.getAttachedBodies(attached_collision_objects);
-      for (auto& attached_body : attached_collision_objects)
+      for (const robot_state::AttachedBody* attached_body : attached_collision_objects)
       {
         std::string parent_frame = prefix_ + attached_body->getName();
         transform = tf2::eigenToTransform(attached_body->getFixedTransforms()[0]);
