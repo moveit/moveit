@@ -319,6 +319,7 @@ const std::shared_ptr<tf2_ros::Buffer>& MoveItCpp::getTFBuffer() const
 
 void MoveItCpp::clearContents()
 {
+  tf_listener_.reset();
   tf_buffer_.reset();
   planning_scene_monitor_.reset();
   robot_model_.reset();
