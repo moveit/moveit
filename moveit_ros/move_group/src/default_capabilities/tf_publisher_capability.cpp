@@ -39,6 +39,8 @@
 #include <moveit/move_group/capability_names.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_state/attached_body.h>
 
 namespace move_group
 {
@@ -52,6 +54,23 @@ TfPublisher::~TfPublisher()
   thread_.join();
 }
 
+namespace
+{
+void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, const moveit::core::FixedTransformsMap& subframes,
+                      const std::string& parent_frame, const ros::Time& stamp)
+{
+  geometry_msgs::TransformStamped transform;
+  for (auto& subframe : subframes)
+  {
+    transform = tf2::eigenToTransform(subframe.second);
+    transform.child_frame_id = parent_frame + "/" + subframe.first;
+    transform.header.stamp = stamp;
+    transform.header.frame_id = parent_frame;
+    broadcaster.sendTransform(transform);
+  }
+}
+}  // namespace
+
 void TfPublisher::publishPlanningSceneFrames()
 {
   tf2_ros::TransformBroadcaster broadcaster;
@@ -61,26 +80,38 @@ void TfPublisher::publishPlanningSceneFrames()
   while (keep_running_)
   {
     {
+      ros::Time stamp = ros::Time::now();
       planning_scene_monitor::LockedPlanningSceneRO locked_planning_scene(context_->planning_scene_monitor_);
       collision_detection::WorldConstPtr world = locked_planning_scene->getWorld();
       std::string planning_frame = locked_planning_scene->getPlanningFrame();
 
       for (const auto& obj : *world)
       {
-        std::string parent_frame = prefix_ + obj.second->id_;
+        std::string object_frame = prefix_ + obj.second->id_;
         transform = tf2::eigenToTransform(obj.second->shape_poses_[0]);
-        transform.child_frame_id = parent_frame;
+        transform.child_frame_id = object_frame;
+        transform.header.stamp = stamp;
         transform.header.frame_id = planning_frame;
         broadcaster.sendTransform(transform);
 
-        moveit::core::FixedTransformsMap subframes = obj.second->subframe_poses_;
-        for (auto& subframe : subframes)
-        {
-          transform = tf2::eigenToTransform(subframe.second);
-          transform.child_frame_id = parent_frame + "/" + subframe.first;
-          transform.header.frame_id = parent_frame;
-          broadcaster.sendTransform(transform);
-        }
+        const moveit::core::FixedTransformsMap& subframes = obj.second->subframe_poses_;
+        publishSubframes(broadcaster, subframes, object_frame, stamp);
+      }
+
+      const robot_state::RobotState& rs = locked_planning_scene->getCurrentState();
+      std::vector<const robot_state::AttachedBody*> attached_collision_objects;
+      rs.getAttachedBodies(attached_collision_objects);
+      for (const robot_state::AttachedBody* attached_body : attached_collision_objects)
+      {
+        std::string object_frame = prefix_ + attached_body->getName();
+        transform = tf2::eigenToTransform(attached_body->getFixedTransforms()[0]);
+        transform.child_frame_id = object_frame;
+        transform.header.stamp = stamp;
+        transform.header.frame_id = attached_body->getAttachedLinkName();
+        broadcaster.sendTransform(transform);
+
+        const moveit::core::FixedTransformsMap& subframes = attached_body->getSubframeTransforms();
+        publishSubframes(broadcaster, subframes, object_frame, stamp);
       }
     }
 
