@@ -249,6 +249,8 @@ private:
   void populateCollisionObjectsList();
   void computeImportFromText(const std::string& path);
   void computeExportAsText(const std::string& path);
+  visualization_msgs::InteractiveMarker
+  createObjectMarkerMsg(const collision_detection::CollisionWorld::ObjectConstPtr& obj);
 
   // Stored scenes tab
   void computeSaveSceneButtonClicked();
