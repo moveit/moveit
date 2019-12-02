@@ -538,6 +538,12 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
     if (next_discontinuity != switching_points.end() && path_pos > next_discontinuity->first)
     {
+      // Avoid having a TrajectoryStep with path_pos near a switching point which will cause an almost identical
+      // TrajectoryStep get added in the next run (https://github.com/ros-planning/moveit/issues/1665)
+      if (path_pos - next_discontinuity->first < EPS)
+      {
+        continue;
+      }
       path_vel = old_path_vel +
                  (next_discontinuity->first - old_path_pos) * (path_vel - old_path_vel) / (path_pos - old_path_pos);
       path_pos = next_discontinuity->first;
