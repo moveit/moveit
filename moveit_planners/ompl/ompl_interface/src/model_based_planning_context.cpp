@@ -89,6 +89,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
+  , multi_query_planning_enabled_(false) // maintain "old" behavior by default
   , simplify_solutions_(true)
 {
   complete_initial_robot_state_.update();
@@ -298,44 +299,43 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   std::string optimizer;
   ompl::base::OptimizationObjectivePtr objective;
   it = cfg.find("optimization_objective");
-  if (it == cfg.end())
-  {
-    optimizer = "PathLengthOptimizationObjective";
-    ROS_DEBUG_NAMED("model_based_planning_context", "No optimization objective specified, defaulting to %s",
-                    optimizer.c_str());
-  }
-  else
+  if (it != cfg.end())
   {
     optimizer = it->second;
     cfg.erase(it);
+
+    if (optimizer == "PathLengthOptimizationObjective")
+    {
+      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "MinimaxObjective")
+    {
+      objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "StateCostIntegralObjective")
+    {
+      objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "MechanicalWorkOptimizationObjective")
+    {
+      objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "MaximizeMinClearanceObjective")
+    {
+      objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else
+    {
+      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+
+    ompl_simple_setup_->setOptimizationObjective(objective);
   }
 
-  if (optimizer == "PathLengthOptimizationObjective")
-  {
-    objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-  else if (optimizer == "MinimaxObjective")
-  {
-    objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-  else if (optimizer == "StateCostIntegralObjective")
-  {
-    objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-  else if (optimizer == "MechanicalWorkOptimizationObjective")
-  {
-    objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-  else if (optimizer == "MaximizeMinClearanceObjective")
-  {
-    objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-  else
-  {
-    objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-  }
-
-  ompl_simple_setup_->setOptimizationObjective(objective);
+  // Don't clear planner data if multi-query planning is enabled
+  it = cfg.find("multi_query_planning_enabled");
+  if (it != cfg.end())
+    multi_query_planning_enabled_ = boost::lexical_cast<bool>(it->second);
 
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
@@ -349,8 +349,9 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     std::string type = it->second;
     cfg.erase(it);
-    ompl_simple_setup_->setPlannerAllocator(std::bind(spec_.planner_selector_(type), std::placeholders::_1,
-                                                      name_ != getGroupName() ? name_ : "", std::cref(spec_)));
+    const std::string planner_name = getGroupName() + "/" + name_;
+    ompl_simple_setup_->setPlannerAllocator(
+        std::bind(spec_.planner_selector_(type), std::placeholders::_1, planner_name, std::cref(spec_)));
     ROS_INFO_NAMED("model_based_planning_context",
                    "Planner configuration '%s' will use planner '%s'. "
                    "Additional configuration parameters will be set when the planner is constructed.",
@@ -534,7 +535,8 @@ void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
 
 void ompl_interface::ModelBasedPlanningContext::clear()
 {
-  ompl_simple_setup_->clear();
+  if (!multi_query_planning_enabled_)
+    ompl_simple_setup_->clear();
   ompl_simple_setup_->clearStartStates();
   ompl_simple_setup_->setGoal(ob::GoalPtr());
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());
@@ -627,7 +629,7 @@ void ompl_interface::ModelBasedPlanningContext::preSolve()
   // clear previously computed solutions
   ompl_simple_setup_->getProblemDefinition()->clearSolutionPaths();
   const ob::PlannerPtr planner = ompl_simple_setup_->getPlanner();
-  if (planner)
+  if (planner && !multi_query_planning_enabled_)
     planner->clear();
   startSampling();
   ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
@@ -726,7 +728,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   preSolve();
 
   bool result = false;
-  if (count <= 1)
+  if (count <= 1 || multi_query_planning_enabled_)  // multi-query planners should always run in single instances
   {
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = constructPlannerTerminationCondition(timeout, start);

@@ -41,12 +41,47 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/macros/class_forward.h>
 
+#include <ompl/base/PlannerDataStorage.h>
+
 #include <vector>
 #include <string>
 #include <map>
 
 namespace ompl_interface
 {
+
+class MultiQueryPlannerAllocator
+{
+public:
+  MultiQueryPlannerAllocator() = default;
+  ~MultiQueryPlannerAllocator();
+
+  template <typename T>
+  ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si,
+                                 const std::string& new_name,
+                                 const ModelBasedPlanningContextSpecification& spec);
+
+private:
+  template <typename T>
+  ob::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si,
+                                     const std::string& new_name,
+                                     const ModelBasedPlanningContextSpecification& spec,
+                                     bool load_planner_data = false,
+                                     bool store_planner_data = false,
+                                     const std::string& file_path = "");
+
+  template <typename T>
+  inline ob::Planner* allocatePersistentPlanner(const ob::PlannerData& data);
+
+  // Storing multi-query planners
+  std::map<std::string, ob::PlannerPtr> planners_;
+
+  std::map<std::string, std::string> planner_data_storage_paths_;
+
+  // Store and load planner data
+  ob::PlannerDataStorage storage_;
+};
+
 class PlanningContextManager
 {
 public:
@@ -175,6 +210,9 @@ protected:
   void registerDefaultPlanners();
   void registerDefaultStateSpaces();
 
+  template <typename T>
+  void registerPlannerAllocatorHelper(const std::string& planner_id);
+
   /** \brief This is the function that constructs new planning contexts if no previous ones exist that are suitable */
   ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings& config,
                                                   const StateSpaceFactoryTypeSelector& factory_selector,
@@ -220,6 +258,9 @@ protected:
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
   /// needed)
   unsigned int minimum_waypoint_count_;
+
+  /// Multi-query planner allocator
+  MultiQueryPlannerAllocator planner_allocator_;
 
 private:
   MOVEIT_STRUCT_FORWARD(CachedContexts);
