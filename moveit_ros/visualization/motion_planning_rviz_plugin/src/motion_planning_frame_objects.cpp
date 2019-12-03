@@ -106,61 +106,32 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
 
-          // get shape bound size
-          double half_bound = -std::numeric_limits<double>::max();
-          switch(s->type){
-            case shapes::ShapeType::SPHERE:{
-              shapes::Sphere* sphere = static_cast<shapes::Sphere*>(s);
-              half_bound = sphere->radius;
-              break;
-            }
-            case shapes::ShapeType::CYLINDER:{
-              shapes::Cylinder* cylinder = static_cast<shapes::Cylinder*>(s);
-              half_bound = (cylinder->radius > cylinder->length/2.0) ? cylinder->radius : cylinder->length/2.0;
-              break;
-            }
-            case shapes::ShapeType::CONE:{
-              shapes::Cone* cone = static_cast<shapes::Cone*>(s);
-              half_bound = (cone->radius > cone->length/2.0) ? cone->radius : cone->length/2.0;
-              break;
-            }
-            case shapes::ShapeType::BOX:{
-              shapes::Box* box = static_cast<shapes::Box*>(s);
-              for(std::size_t i = 0; i < 3; i++)
-                half_bound = (half_bound < box->size[i]/2.0) ? box->size[i]/2.0 : half_bound;
-              break;
-            }
-            case shapes::ShapeType::MESH:{
-              shapes::Mesh* mesh = static_cast<shapes::Mesh*>(s);
-              for(std::size_t i = 0; i < mesh->vertex_count*3+3; i++)
-                half_bound = (half_bound < abs(mesh->vertices[i])) ? abs(mesh->vertices[i]) : half_bound;
-              break;
-            }
-            default:
-              break;
-          }
-          // Change marker size
+          // Resize the marker scale
+          // 1. Get obj shape bound size
+          Eigen::Vector3d center;
+          double radius;
+          shapes::computeShapeBoundingSphere(s,center,radius);
+          double bound = (center.cwiseAbs().maxCoeff() + radius)*2.0;
+          // bound + padding (20%) size
+          bound *= 1.2;
+          // 2. Change marker size
           for(std::size_t i = 0; i < viz_scene_marker_->controls.size(); i++)
           {
             for(std::size_t j = 0; j < viz_scene_marker_->controls[i].markers.size(); j++)
             {
               switch(viz_scene_marker_->controls[i].markers[j].type){
                 case visualization_msgs::Marker::ARROW:{
-                  // // bound + padding (40%) size
-                  double bound_size = half_bound*2.0*1.4;
-                  viz_scene_marker_->controls[i].markers[j].points[0].x = pow(-1.0,j%2)*(bound_size*0.5);
-                  viz_scene_marker_->controls[i].markers[j].points[1].x = pow(-1.0,j%2)*(bound_size*0.9);
-                  viz_scene_marker_->controls[i].markers[j].scale.x = bound_size*0.15;
-                  viz_scene_marker_->controls[i].markers[j].scale.y = bound_size*0.25;
-                  viz_scene_marker_->controls[i].markers[j].scale.z = bound_size*0.2;                  
+                  viz_scene_marker_->controls[i].markers[j].points[0].x = pow(-1.0,j%2)*(bound*0.5);
+                  viz_scene_marker_->controls[i].markers[j].points[1].x = pow(-1.0,j%2)*(bound*0.9);
+                  viz_scene_marker_->controls[i].markers[j].scale.x = bound*0.15;
+                  viz_scene_marker_->controls[i].markers[j].scale.y = bound*0.25;
+                  viz_scene_marker_->controls[i].markers[j].scale.z = bound*0.2;                  
                   break;
                 }
                 case visualization_msgs::Marker::TRIANGLE_LIST:{
-                  // bound + padding (40%) size
-                  double bound_size = half_bound*2.0*1.4;
-                  viz_scene_marker_->controls[i].markers[j].scale.x = bound_size;
-                  viz_scene_marker_->controls[i].markers[j].scale.y = bound_size;
-                  viz_scene_marker_->controls[i].markers[j].scale.z = bound_size;
+                  viz_scene_marker_->controls[i].markers[j].scale.x = bound;
+                  viz_scene_marker_->controls[i].markers[j].scale.y = bound;
+                  viz_scene_marker_->controls[i].markers[j].scale.z = bound;
                   break;
                 }
                 default:
@@ -791,39 +762,13 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
     interactive_markers::autoComplete(int_marker);
 
     // Resize the marker scale
-    // 1. get obj shape bound size
-    double half_bound = -std::numeric_limits<double>::max();
-    switch(obj->shapes_[0]->type){
-      case shapes::ShapeType::SPHERE:{
-        shapes::Sphere* sphere = static_cast<shapes::Sphere*>(obj->shapes_[0]->clone());
-        half_bound = sphere->radius;
-        break;
-      }
-      case shapes::ShapeType::CYLINDER:{
-        shapes::Cylinder* cylinder = static_cast<shapes::Cylinder*>(obj->shapes_[0]->clone());
-        half_bound = (cylinder->radius > cylinder->length/2.0) ? cylinder->radius : cylinder->length/2.0;
-        break;
-      }
-      case shapes::ShapeType::CONE:{
-        shapes::Cone* cone = static_cast<shapes::Cone*>(obj->shapes_[0]->clone());
-        half_bound = (cone->radius > cone->length/2.0) ? cone->radius : cone->length/2.0;
-        break;
-      }
-      case shapes::ShapeType::BOX:{
-        shapes::Box* box = static_cast<shapes::Box*>(obj->shapes_[0]->clone());
-        for(std::size_t i = 0; i < 3; i++)
-          half_bound = (half_bound < box->size[i]/2.0) ? box->size[i]/2.0 : half_bound;
-        break;
-      }
-      case shapes::ShapeType::MESH:{
-        shapes::Mesh* mesh = static_cast<shapes::Mesh*>(obj->shapes_[0]->clone());
-        for(std::size_t i = 0; i < mesh->vertex_count*3+3; i++)
-          half_bound = (half_bound < abs(mesh->vertices[i])) ? abs(mesh->vertices[i]) : half_bound;
-        break;
-      }
-      default:
-        break;
-    }
+    // 1. Get obj shape bound size
+    Eigen::Vector3d center;
+    double radius;
+    shapes::computeShapeBoundingSphere(obj->shapes_[0]->clone(),center,radius);
+    double bound = (center.cwiseAbs().maxCoeff() + radius)*2.0;
+    // bound + padding (20%) size
+    bound *= 1.2;
     // 2. Change marker size
     for(std::size_t i = 0; i < int_marker.controls.size(); i++)
     {
@@ -831,21 +776,17 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
       {
         switch(int_marker.controls[i].markers[j].type){
           case visualization_msgs::Marker::ARROW:{
-            // // bound + padding (40%) size
-            double bound_size = half_bound*2.0*1.4;
-            int_marker.controls[i].markers[j].points[0].x = pow(-1.0,j%2)*(bound_size*0.5);
-            int_marker.controls[i].markers[j].points[1].x = pow(-1.0,j%2)*(bound_size*0.9);
-            int_marker.controls[i].markers[j].scale.x = bound_size*0.15;
-            int_marker.controls[i].markers[j].scale.y = bound_size*0.25;
-            int_marker.controls[i].markers[j].scale.z = bound_size*0.2;                  
+            int_marker.controls[i].markers[j].points[0].x = pow(-1.0,j%2)*(bound*0.5);
+            int_marker.controls[i].markers[j].points[1].x = pow(-1.0,j%2)*(bound*0.9);
+            int_marker.controls[i].markers[j].scale.x = bound*0.15;
+            int_marker.controls[i].markers[j].scale.y = bound*0.25;
+            int_marker.controls[i].markers[j].scale.z = bound*0.2;
             break;
           }
           case visualization_msgs::Marker::TRIANGLE_LIST:{
-            // bound + padding (40%) size
-            double bound_size = half_bound*2.0*1.4;
-            int_marker.controls[i].markers[j].scale.x = bound_size;
-            int_marker.controls[i].markers[j].scale.y = bound_size;
-            int_marker.controls[i].markers[j].scale.z = bound_size;
+            int_marker.controls[i].markers[j].scale.x = bound;
+            int_marker.controls[i].markers[j].scale.y = bound;
+            int_marker.controls[i].markers[j].scale.z = bound;
             break;
           }
           default:
