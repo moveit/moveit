@@ -169,6 +169,8 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
     ob::PlannerData data(si);
     storage_.load(file_path.c_str(), data);
     planner.reset(allocatePersistentPlanner<T>(data));
+    if (!planner)
+      ROS_ERROR_NAMED("planning_context_manager", "Creating a '%s' planner from persistent data is not supported. Going to create a new instance.", new_name.c_str());
   }
   if (!planner)
     planner.reset(new T(si));
