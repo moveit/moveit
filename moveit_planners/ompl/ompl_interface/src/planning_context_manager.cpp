@@ -187,7 +187,7 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
 // default implementation
 template <typename T>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::PlannerData& data)
+ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::PlannerData& /*data*/)
 {
   return nullptr;
 };
