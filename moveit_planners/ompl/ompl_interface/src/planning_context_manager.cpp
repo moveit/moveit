@@ -187,7 +187,6 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
 template <typename T>
 inline ompl::base::Planner* ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::PlannerData& data)
 {
-  ROS_ERROR_NAMED("planning_context_manager", "Creating a planner instance from PlannerData failed");
   return nullptr;
 };
 // TODO: remove when ROS Melodic and older are no longer supported
