@@ -85,7 +85,6 @@ struct PlanningContextManager::CachedContexts
 
 }  // namespace ompl_interface
 
-
 ompl_interface::MultiQueryPlannerAllocator::~MultiQueryPlannerAllocator()
 {
   // Store all planner data
@@ -100,8 +99,7 @@ ompl_interface::MultiQueryPlannerAllocator::~MultiQueryPlannerAllocator()
 
 template <typename T>
 ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlanner(
-  const ob::SpaceInformationPtr& si, const std::string& new_name,
-  const ModelBasedPlanningContextSpecification& spec)
+    const ob::SpaceInformationPtr& si, const std::string& new_name, const ModelBasedPlanningContextSpecification& spec)
 {
   // Store planner instance if multi-query planning is enabled
   auto cfg = spec.config_;
@@ -115,8 +113,9 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
   if (multi_query_planning_enabled)
   {
     // If we already have an instance, use that one
-    if (planners_.count(new_name))
-      return planners_.at(new_name);
+    auto planner_map_it = planners_.find(new_name);
+    if (planner_map_it != planners_.end())
+      return planner_map_it->second;
 
     // Certain multi-query planners allow loading and storing the generated planner data. This feature can be
     // selectively enabled for loading and storing using the bool parameters 'load_planner_data' and
@@ -158,8 +157,8 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
 
 template <typename T>
 ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlannerImpl(
-  const ob::SpaceInformationPtr& si, const std::string& new_name, const ModelBasedPlanningContextSpecification& spec,
-  bool load_planner_data, bool store_planner_data, const std::string& file_path)
+    const ob::SpaceInformationPtr& si, const std::string& new_name, const ModelBasedPlanningContextSpecification& spec,
+    bool load_planner_data, bool store_planner_data, const std::string& file_path)
 {
   ob::PlannerPtr planner;
   // Try to initialize planner with loaded planner data
@@ -170,7 +169,9 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
     storage_.load(file_path.c_str(), data);
     planner.reset(allocatePersistentPlanner<T>(data));
     if (!planner)
-      ROS_ERROR_NAMED("planning_context_manager", "Creating a '%s' planner from persistent data is not supported. Going to create a new instance.", new_name.c_str());
+      ROS_ERROR_NAMED("planning_context_manager",
+                      "Creating a '%s' planner from persistent data is not supported. Going to create a new instance.",
+                      new_name.c_str());
   }
   if (!planner)
     planner.reset(new T(si));
@@ -185,7 +186,8 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
 
 // default implementation
 template <typename T>
-inline ompl::base::Planner* ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::PlannerData& data)
+inline ompl::base::Planner*
+ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::PlannerData& data)
 {
   return nullptr;
 };
@@ -199,19 +201,22 @@ ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geom
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRMstar>(const ob::PlannerData& data)
+ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRMstar>(
+    const ob::PlannerData& data)
 {
   return new og::PRMstar(data);
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRM>(const ob::PlannerData& data)
+ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRM>(
+    const ob::PlannerData& data)
 {
   return new og::LazyPRM(data);
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMstar>(const ob::PlannerData& data)
+ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMstar>(
+    const ob::PlannerData& data)
 {
   return new og::LazyPRMstar(data);
 };
@@ -252,8 +257,8 @@ template <typename T>
 void ompl_interface::PlanningContextManager::registerPlannerAllocatorHelper(const std::string& planner_id)
 {
   registerPlannerAllocator(planner_id, [&](const ob::SpaceInformationPtr& si, const std::string& new_name,
-          const ModelBasedPlanningContextSpecification& spec) {
-        return planner_allocator_.allocatePlanner<T>(si, new_name, spec);
+                                           const ModelBasedPlanningContextSpecification& spec) {
+    return planner_allocator_.allocatePlanner<T>(si, new_name, spec);
   });
 }
 

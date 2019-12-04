@@ -89,7 +89,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
-  , multi_query_planning_enabled_(false) // maintain "old" behavior by default
+  , multi_query_planning_enabled_(false)  // maintain "old" behavior by default
   , simplify_solutions_(true)
 {
   complete_initial_robot_state_.update();

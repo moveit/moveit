@@ -49,7 +49,6 @@
 
 namespace ompl_interface
 {
-
 class MultiQueryPlannerAllocator
 {
 public:
@@ -57,18 +56,14 @@ public:
   ~MultiQueryPlannerAllocator();
 
   template <typename T>
-  ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si,
-                                 const std::string& new_name,
+  ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
                                  const ModelBasedPlanningContextSpecification& spec);
 
 private:
   template <typename T>
-  ob::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si,
-                                     const std::string& new_name,
-                                     const ModelBasedPlanningContextSpecification& spec,
-                                     bool load_planner_data = false,
-                                     bool store_planner_data = false,
-                                     const std::string& file_path = "");
+  ob::PlannerPtr allocatePlannerImpl(const ob::SpaceInformationPtr& si, const std::string& new_name,
+                                     const ModelBasedPlanningContextSpecification& spec, bool load_planner_data = false,
+                                     bool store_planner_data = false, const std::string& file_path = "");
 
   template <typename T>
   inline ob::Planner* allocatePersistentPlanner(const ob::PlannerData& data);
