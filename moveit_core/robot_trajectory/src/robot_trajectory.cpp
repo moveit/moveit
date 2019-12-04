@@ -53,6 +53,11 @@ RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_mo
 {
 }
 
+RobotTrajectory::RobotTrajectory(const RobotTrajectory& robot_traj)
+{
+  this->copy(robot_traj);
+}
+
 void RobotTrajectory::copy(const RobotTrajectory& robot_traj)
 {
   this->robot_model_ = robot_traj.robot_model_;
