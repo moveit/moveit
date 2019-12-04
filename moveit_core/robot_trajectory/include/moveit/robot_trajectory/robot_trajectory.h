@@ -55,7 +55,7 @@ public:
 
   RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
 
-  RobotTrajectory(const RobotTrajectory&) = delete;
+  [[deprecated("The attempted argument is not supported anymore.")]] RobotTrajectory(const RobotTrajectory&);
 
   RobotTrajectory& operator=(const RobotTrajectory&) = delete;
   /** @brief  Shallow copy the passed object.
