@@ -70,6 +70,7 @@
 #include "ompl/base/objectives/MinimaxObjective.h"
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
+#include <ompl/geometric/planners/prm/LazyPRM.h>
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string& name,
                                                                      const ModelBasedPlanningContextSpecification& spec)
@@ -537,6 +538,16 @@ void ompl_interface::ModelBasedPlanningContext::clear()
 {
   if (!multi_query_planning_enabled_)
     ompl_simple_setup_->clear();
+  else
+  {
+    // For LazyPRM and LazyPRMstar we assume that the environment *could* have changed
+    // This means that we need to reset the validity flags for every node and edge in
+    // the roadmap. For PRM and PRMstar we assume that the environment is static. If
+    // this is not the case, then multi-query planning should not be enabled.
+    auto planner = dynamic_cast<ompl::geometric::LazyPRM*>(ompl_simple_setup_->getPlanner().get());
+    if (planner != nullptr)
+      planner->clearValidity();
+  }
   ompl_simple_setup_->clearStartStates();
   ompl_simple_setup_->setGoal(ob::GoalPtr());
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());
