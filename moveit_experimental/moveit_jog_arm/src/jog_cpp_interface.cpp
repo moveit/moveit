@@ -129,7 +129,7 @@ void JogCppApi::mainLoop()
       ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
 
-   shared_variables_mutex_.unlock();
+    shared_variables_mutex_.unlock();
 
     main_rate.sleep();
   }

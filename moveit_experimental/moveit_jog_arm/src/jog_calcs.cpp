@@ -226,8 +226,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
 }
 
 // Perform the jogging calculations
-bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables,
-                                 std::mutex& mutex)
+bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
