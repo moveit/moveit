@@ -538,6 +538,8 @@ void ompl_interface::ModelBasedPlanningContext::clear()
 {
   if (!multi_query_planning_enabled_)
     ompl_simple_setup_->clear();
+// TODO: remove when ROS Melodic and older are no longer supported
+#if OMPL_VERSION_VALUE >= 1005000
   else
   {
     // For LazyPRM and LazyPRMstar we assume that the environment *could* have changed
@@ -548,6 +550,7 @@ void ompl_interface::ModelBasedPlanningContext::clear()
     if (planner != nullptr)
       planner->clearValidity();
   }
+#endif
   ompl_simple_setup_->clearStartStates();
   ompl_simple_setup_->setGoal(ob::GoalPtr());
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());
