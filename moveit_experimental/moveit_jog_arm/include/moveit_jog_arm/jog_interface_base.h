@@ -55,8 +55,6 @@ namespace moveit_jog_arm
 class JogInterfaceBase
 {
 public:
-  ~JogInterfaceBase();
-
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
   // Jogging calculation thread
@@ -75,6 +73,6 @@ protected:
 
   // Share data between threads
   JogArmShared shared_variables_;
-  pthread_mutex_t shared_variables_mutex_;
+  std::mutex shared_variables_mutex_;
 };
 }  // namespace moveit_jog_arm

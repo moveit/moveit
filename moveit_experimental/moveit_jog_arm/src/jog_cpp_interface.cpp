@@ -42,8 +42,6 @@ namespace moveit_jog_arm
 {
 JogCppApi::JogCppApi()
 {
-  pthread_mutex_init(&shared_variables_mutex_, nullptr);
-
   // Read ROS parameters, typically from YAML file
   if (!readParameters(nh_))
     exit(EXIT_FAILURE);
@@ -86,7 +84,7 @@ void JogCppApi::mainLoop()
   {
     ros::spinOnce();
 
-    pthread_mutex_lock(&shared_variables_mutex_);
+    shared_variables_mutex_.lock();
     trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
     // Check for stale cmds
@@ -131,7 +129,7 @@ void JogCppApi::mainLoop()
       ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
 
-    pthread_mutex_unlock(&shared_variables_mutex_);
+   shared_variables_mutex_.unlock();
 
     main_rate.sleep();
   }
@@ -142,7 +140,7 @@ void JogCppApi::mainLoop()
 
 void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
 {
-  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_mutex_.lock();
 
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
   // (so it isn't copied over and over)
@@ -167,12 +165,12 @@ void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& ve
   {
     shared_variables_.latest_nonzero_cmd_stamp = velocity_command.header.stamp;
   }
-  pthread_mutex_unlock(&shared_variables_mutex_);
+  shared_variables_mutex_.unlock();
 };
 
 void JogCppApi::provideJointCommand(const control_msgs::JointJog& joint_command)
 {
-  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_mutex_.lock();
   shared_variables_.joint_command_deltas = joint_command;
 
   // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
@@ -187,14 +185,14 @@ void JogCppApi::provideJointCommand(const control_msgs::JointJog& joint_command)
   {
     shared_variables_.latest_nonzero_cmd_stamp = joint_command.header.stamp;
   }
-  pthread_mutex_unlock(&shared_variables_mutex_);
+  shared_variables_mutex_.unlock();
 }
 
 sensor_msgs::JointState JogCppApi::getJointState()
 {
-  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_mutex_.lock();
   sensor_msgs::JointState current_joints = shared_variables_.joints;
-  pthread_mutex_unlock(&shared_variables_mutex_);
+  shared_variables_mutex_.unlock();
 
   return current_joints;
 }

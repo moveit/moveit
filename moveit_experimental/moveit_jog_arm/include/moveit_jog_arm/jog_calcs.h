@@ -51,7 +51,7 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
+  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, std::mutex& mutex,
            const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
 protected:
@@ -59,7 +59,7 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, pthread_mutex_t& mutex);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
 
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
@@ -92,7 +92,7 @@ protected:
                                   const Eigen::JacobiSVD<Eigen::MatrixXd>& svd);
 
   // Apply velocity scaling for proximity of collisions and singularities
-  bool applyVelocityScaling(JogArmShared& shared_variables, pthread_mutex_t& mutex,
+  bool applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
                             trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
                             double singularity_scale);
 

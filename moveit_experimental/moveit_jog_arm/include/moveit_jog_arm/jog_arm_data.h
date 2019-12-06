@@ -40,6 +40,7 @@
 
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <mutex>
 #include <sensor_msgs/JointState.h>
 #include <thread>
 #include <trajectory_msgs/JointTrajectory.h>

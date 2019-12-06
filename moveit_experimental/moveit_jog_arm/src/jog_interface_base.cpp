@@ -180,9 +180,9 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 // Listen to joint angles. Store them in a shared variable.
 void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  pthread_mutex_lock(&shared_variables_mutex_);
+  shared_variables_mutex_.lock();
   shared_variables_.joints = *msg;
-  pthread_mutex_unlock(&shared_variables_mutex_);
+  shared_variables_mutex_.unlock();
 }
 
 // A separate thread for the heavy jogging calculations.
@@ -197,10 +197,5 @@ bool JogInterfaceBase::startCollisionCheckThread()
 {
   CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
   return true;
-}
-
-JogInterfaceBase::~JogInterfaceBase()
-{
-  pthread_mutex_destroy(&shared_variables_mutex_);
 }
 }  // namespace moveit_jog_arm
