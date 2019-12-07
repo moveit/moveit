@@ -83,7 +83,7 @@ struct JogArmShared
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {
-  std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
+  std::string move_group_name, joint_topic, cartesian_command_in_topic, robot_link_command_frame, command_out_topic,
       planning_frame, warning_topic, joint_command_in_topic, command_in_type, command_out_type;
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
       collision_proximity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout,

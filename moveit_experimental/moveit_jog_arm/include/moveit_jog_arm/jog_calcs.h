@@ -112,9 +112,6 @@ protected:
   std::map<std::string, std::size_t> jt_state_name_map_;
   trajectory_msgs::JointTrajectory outgoing_command_;
 
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
-
   std::vector<LowPassFilter> velocity_filters_;
   std::vector<LowPassFilter> position_filters_;
 
