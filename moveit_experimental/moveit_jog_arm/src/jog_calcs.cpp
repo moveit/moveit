@@ -247,12 +247,15 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
+  kinematic_state_->setVariableValues(jt_state_);
+  original_jt_state_ = jt_state_;
+
   // Transform the command to the MoveGroup planning frame
   Eigen::Affine3d tf_moveit_to_cmd_frame = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
   Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
   Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
-  translation_vector = tf_moveit_to_cmd_frame * translation_vector;
-  angular_vector = tf_moveit_to_cmd_frame * angular_vector;
+  translation_vector = tf_moveit_to_cmd_frame.linear() * translation_vector;
+  angular_vector = tf_moveit_to_cmd_frame.linear() * angular_vector;
 
   // Put these components back into a TwistStamped
   cmd.header.frame_id = parameters_.planning_frame;
@@ -264,9 +267,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   cmd.twist.angular.z = angular_vector(2);
 
   const Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
-
-  kinematic_state_->setVariableValues(jt_state_);
-  original_jt_state_ = jt_state_;
 
   // Convert from cartesian commands to joint commands
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
