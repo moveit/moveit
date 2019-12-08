@@ -39,6 +39,7 @@
 #pragma once
 
 #include <control_msgs/JointJog.h>
+#include <Eigen/Geometry>
 #include <geometry_msgs/TwistStamped.h>
 #include <mutex>
 #include <sensor_msgs/JointState.h>
@@ -78,6 +79,9 @@ struct JogArmShared
 
   // Indicates no collision, etc, so outgoing commands can be sent
   bool ok_to_publish = false;
+
+  // The transform from the MoveIt planning frame to robot_link_command_frame
+  Eigen::Affine3d tf_moveit_to_cmd_frame;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

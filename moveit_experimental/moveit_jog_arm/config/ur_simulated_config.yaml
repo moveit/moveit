@@ -28,7 +28,7 @@ publish_joint_accelerations: false
 
 ## MoveIt properties
 move_group_name:  manipulator  # Often 'manipulator' or 'arm'
-planning_frame: world  # The MoveIt! planning frame. Often 'base_link'
+planning_frame: world  # The MoveIt planning frame. Often 'base_link'
 
 ## Stopping behaviour
 incoming_command_timeout:  0.1  # Stop jogging if X seconds elapse without a new cmd

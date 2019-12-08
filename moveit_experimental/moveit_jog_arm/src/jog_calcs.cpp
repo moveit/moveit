@@ -250,8 +250,13 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   kinematic_state_->setVariableValues(jt_state_);
   original_jt_state_ = jt_state_;
 
-  // Transform the command to the MoveGroup planning frame
+  // Get the transform from MoveIt planning frame to jogging command frame
   Eigen::Affine3d tf_moveit_to_cmd_frame = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+  mutex.lock();
+  shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame;
+  mutex.unlock();
+
+  // Transform the command to the MoveGroup planning frame 
   Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
   Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
   translation_vector = tf_moveit_to_cmd_frame.linear() * translation_vector;
