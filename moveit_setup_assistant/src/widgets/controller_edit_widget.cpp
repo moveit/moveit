@@ -200,7 +200,7 @@ void ControllerEditWidget::loadControllersTypesComboBox()
     "effort_controllers/JointVelocityController",     "effort_controllers/JointEffortController",
     "position_controllers/JointPositionController",   "position_controllers/JointTrajectoryController",
     "velocity_controllers/JointTrajectoryController", "velocity_controllers/JointVelocityController",
-    "pos_vel_controllers/JointTrajectoryController", "pos_vel_acc_controllers/JointTrajectoryController"
+    "pos_vel_controllers/JointTrajectoryController",  "pos_vel_acc_controllers/JointTrajectoryController"
   };
 
   // Remove all old items
