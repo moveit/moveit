@@ -182,6 +182,7 @@ private Q_SLOTS:
   void copySelectedCollisionObject();
   void exportAsTextButtonClicked();
   void importFromTextButtonClicked();
+  void resizeInteractiveMarker(const shapes::Shape* shape);
 
   // Stored scenes tab
   void saveSceneButtonClicked();

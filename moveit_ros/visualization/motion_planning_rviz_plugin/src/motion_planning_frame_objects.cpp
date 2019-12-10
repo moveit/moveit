@@ -105,44 +105,7 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           s->scale((double)value / 100.0);
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
-
-          // Resize the marker scale
-          // 1. Get obj shape bound size
-          Eigen::Vector3d center;
-          double radius;
-          shapes::computeShapeBoundingSphere(s, center, radius);
-          double bound = (center.cwiseAbs().maxCoeff() + radius) * 2.0;
-          // bound + padding (20%) size
-          bound *= 1.2;
-          // 2. Change marker size
-          for (std::size_t i = 0; i < viz_scene_marker_->controls.size(); i++)
-          {
-            for (std::size_t j = 0; j < viz_scene_marker_->controls[i].markers.size(); j++)
-            {
-              switch (viz_scene_marker_->controls[i].markers[j].type)
-              {
-                case visualization_msgs::Marker::ARROW:
-                {
-                  viz_scene_marker_->controls[i].markers[j].points[0].x = pow(-1.0, j % 2) * (bound * 0.5);
-                  viz_scene_marker_->controls[i].markers[j].points[1].x = pow(-1.0, j % 2) * (bound * 0.9);
-                  viz_scene_marker_->controls[i].markers[j].scale.x = bound * 0.15;
-                  viz_scene_marker_->controls[i].markers[j].scale.y = bound * 0.25;
-                  viz_scene_marker_->controls[i].markers[j].scale.z = bound * 0.2;
-                  break;
-                }
-                case visualization_msgs::Marker::TRIANGLE_LIST:
-                {
-                  viz_scene_marker_->controls[i].markers[j].scale.x = bound;
-                  viz_scene_marker_->controls[i].markers[j].scale.y = bound;
-                  viz_scene_marker_->controls[i].markers[j].scale.z = bound;
-                  break;
-                }
-                default:
-                  break;
-              }
-            }
-          }
-          scene_marker_->processMessage(*viz_scene_marker_);
+          resizeInteractiveMarker(s);
         }
         planning_display_->queueRenderSceneGeometry();
       }
@@ -764,48 +727,11 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
 
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_);
     interactive_markers::autoComplete(int_marker);
-
-    // Resize the marker scale
-    // 1. Get obj shape bound size
-    Eigen::Vector3d center;
-    double radius;
-    shapes::computeShapeBoundingSphere(obj->shapes_[0]->clone(), center, radius);
-    double bound = (center.cwiseAbs().maxCoeff() + radius) * 2.0;
-    // bound + padding (20%) size
-    bound *= 1.2;
-    // 2. Change marker size
-    for (std::size_t i = 0; i < int_marker.controls.size(); i++)
-    {
-      for (std::size_t j = 0; j < int_marker.controls[i].markers.size(); j++)
-      {
-        switch (int_marker.controls[i].markers[j].type)
-        {
-          case visualization_msgs::Marker::ARROW:
-          {
-            int_marker.controls[i].markers[j].points[0].x = pow(-1.0, j % 2) * (bound * 0.5);
-            int_marker.controls[i].markers[j].points[1].x = pow(-1.0, j % 2) * (bound * 0.9);
-            int_marker.controls[i].markers[j].scale.x = bound * 0.15;
-            int_marker.controls[i].markers[j].scale.y = bound * 0.25;
-            int_marker.controls[i].markers[j].scale.z = bound * 0.2;
-            break;
-          }
-          case visualization_msgs::Marker::TRIANGLE_LIST:
-          {
-            int_marker.controls[i].markers[j].scale.x = bound;
-            int_marker.controls[i].markers[j].scale.y = bound;
-            int_marker.controls[i].markers[j].scale.z = bound;
-            break;
-          }
-          default:
-            break;
-        }
-      }
-    }
-    imarker->processMessage(int_marker);
     imarker->setShowAxes(false);
     scene_marker_.reset(imarker);
     viz_scene_marker_.reset(new visualization_msgs::InteractiveMarker);
     *viz_scene_marker_ = int_marker;
+    resizeInteractiveMarker(obj->shapes_[0]->clone());
 
     // Connect signals
     connect(imarker, SIGNAL(userFeedback(visualization_msgs::InteractiveMarkerFeedback&)), this,
@@ -1050,5 +976,46 @@ void MotionPlanningFrame::importFromTextButtonClicked()
   if (!path.isEmpty())
     planning_display_->addBackgroundJob(
         boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
+}
+
+void MotionPlanningFrame::resizeInteractiveMarker(const shapes::Shape* shape)
+{
+  // Resize the marker scale
+  // 1. Get obj shape bound size
+  Eigen::Vector3d center;
+  double radius;
+  shapes::computeShapeBoundingSphere(shape, center, radius);
+  double bound = (center.cwiseAbs().maxCoeff() + radius) * 2.0;
+  // bound + padding (20%) size
+  bound *= 1.2;
+  // 2. Change marker size
+  for (std::size_t i = 0; i < viz_scene_marker_->controls.size(); i++)
+  {
+    for (std::size_t j = 0; j < viz_scene_marker_->controls[i].markers.size(); j++)
+    {
+      switch (viz_scene_marker_->controls[i].markers[j].type)
+      {
+        case visualization_msgs::Marker::ARROW:
+        {
+          viz_scene_marker_->controls[i].markers[j].points[0].x = pow(-1.0, j % 2) * (bound * 0.5);
+          viz_scene_marker_->controls[i].markers[j].points[1].x = pow(-1.0, j % 2) * (bound * 0.9);
+          viz_scene_marker_->controls[i].markers[j].scale.x = bound * 0.15;
+          viz_scene_marker_->controls[i].markers[j].scale.y = bound * 0.25;
+          viz_scene_marker_->controls[i].markers[j].scale.z = bound * 0.2;
+          break;
+        }
+        case visualization_msgs::Marker::TRIANGLE_LIST:
+        {
+          viz_scene_marker_->controls[i].markers[j].scale.x = bound;
+          viz_scene_marker_->controls[i].markers[j].scale.y = bound;
+          viz_scene_marker_->controls[i].markers[j].scale.z = bound;
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+  scene_marker_->processMessage(*viz_scene_marker_);
 }
 }  // namespace moveit_rviz_plugin
