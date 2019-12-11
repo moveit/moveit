@@ -1246,8 +1246,7 @@ void MotionPlanningDisplay::onEnable()
   int_marker_display_->setEnabled(true);
   int_marker_display_->setFixedFrame(fixed_frame_);
 
-  if (frame_ && frame_->parentWidget())
-    frame_->parentWidget()->show();
+  frame_->enable();
 }
 
 // ******************************************************************************************
@@ -1268,8 +1267,7 @@ void MotionPlanningDisplay::onDisable()
   // Planned Path Display
   trajectory_visual_->onDisable();
 
-  if (frame_ && frame_->parentWidget())
-    frame_->parentWidget()->hide();
+  frame_->disable();
 }
 
 // ******************************************************************************************
