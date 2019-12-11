@@ -536,6 +536,7 @@ void MotionPlanningFrame::enable()
 void MotionPlanningFrame::disable()
 {
   move_group_.reset();
+  scene_marker_.reset();
   parentWidget()->hide();
 }
 
