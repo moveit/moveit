@@ -1,7 +1,7 @@
 /*******************************************************************************
- *      Title     : low_pass_filter.h
+ *      Title     : jog_cpp_interface.h
  *      Project   : moveit_jog_arm
- *      Created   : 1/11/2019
+ *      Created   : 11/20/2019
  *      Author    : Andy Zelenak
  *
  * BSD 3-Clause License
@@ -38,27 +38,33 @@
 
 #pragma once
 
+#include "jog_interface_base.h"
+
 namespace moveit_jog_arm
 {
 /**
- * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a first-order Butterworth low-pass filter.
- *
- * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
- */
-class LowPassFilter
+* Class JogCppApi - This class should be instantiated in a new thread
+* See cpp_interface_example.cpp
+*/
+class JogCppApi : JogInterfaceBase
 {
 public:
-  explicit LowPassFilter(double low_pass_filter_coeff);
-  double filter(double new_measurement);
-  void reset(double data);
+  JogCppApi();
+
+  void mainLoop();
+
+  // Provide a Cartesian velocity command to the jogger.
+  // The units are determined by settings in the yaml file.
+  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
+
+  // Send joint position(s) commands
+  void provideJointCommand(const control_msgs::JointJog& joint_command);
+
+  // Returns the most recent JointState that the jogger has received.
+  // May eliminate the need to create your own joint_state subscriber.
+  sensor_msgs::JointState getJointState();
 
 private:
-  double previous_measurements_[2] = { 0., 0. };
-  double previous_filtered_measurement_ = 0.;
-  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
-  // Rough plot, with cutoff frequency on the y-axis:
-  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-  double filter_coeff_ = 10.;
+  ros::NodeHandle nh_;
 };
 }  // namespace moveit_jog_arm

@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : low_pass_filter.h
+ *      Title     : jog_interface_base.cpp
  *      Project   : moveit_jog_arm
- *      Created   : 1/11/2019
- *      Author    : Andy Zelenak
+ *      Created   : 3/9/2017
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
  * BSD 3-Clause License
  *
@@ -36,29 +36,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#pragma once
+#include "collision_check_thread.h"
+#include <Eigen/Eigenvalues>
+#include "jog_arm_data.h"
+#include "jog_calcs.h"
+#include "low_pass_filter.h"
+#include <moveit/robot_state/robot_state.h>
+#include <rosparam_shortcuts/rosparam_shortcuts.h>
+#include <sensor_msgs/Joy.h>
+#include <std_msgs/Float64MultiArray.h>
 
 namespace moveit_jog_arm
 {
 /**
- * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a first-order Butterworth low-pass filter.
- *
- * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
+ * Class JogInterfaceBase - Base class for C++ interface and ROS node.
+ * Handles ROS subs & pubs and creates the worker threads.
  */
-class LowPassFilter
+class JogInterfaceBase
 {
 public:
-  explicit LowPassFilter(double low_pass_filter_coeff);
-  double filter(double new_measurement);
-  void reset(double data);
+  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
-private:
-  double previous_measurements_[2] = { 0., 0. };
-  double previous_filtered_measurement_ = 0.;
-  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
-  // Rough plot, with cutoff frequency on the y-axis:
-  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-  double filter_coeff_ = 10.;
+  // Jogging calculation thread
+  bool startJogCalcThread();
+
+  // Collision checking thread
+  bool startCollisionCheckThread();
+
+protected:
+  bool readParameters(ros::NodeHandle& n);
+
+  robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
+
+  // Store the parameters that were read from ROS server
+  JogArmParameters ros_parameters_;
+
+  // Share data between threads
+  JogArmShared shared_variables_;
+  std::mutex shared_variables_mutex_;
 };
 }  // namespace moveit_jog_arm
