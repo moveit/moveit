@@ -81,7 +81,7 @@ struct JogArmShared
   bool ok_to_publish = false;
 
   // The transform from the MoveIt planning frame to robot_link_command_frame
-  Eigen::Affine3d tf_moveit_to_cmd_frame;
+  Eigen::Isometry3d tf_moveit_to_cmd_frame;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

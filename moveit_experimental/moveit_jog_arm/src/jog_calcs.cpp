@@ -251,7 +251,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   original_jt_state_ = jt_state_;
 
   // Get the transform from MoveIt planning frame to jogging command frame
-  Eigen::Affine3d tf_moveit_to_cmd_frame = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+  Eigen::Isometry3d tf_moveit_to_cmd_frame = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
   mutex.lock();
   shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame;
   mutex.unlock();

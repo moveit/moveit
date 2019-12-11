@@ -66,7 +66,7 @@ public:
 
   // Get planning link transform.
   // The transform from the MoveIt planning frame to robot_link_command_frame
-  Eigen::Affine3d getCommandFrameTransform();
+  Eigen::Isometry3d getCommandFrameTransform();
 
 private:
   ros::NodeHandle nh_;
