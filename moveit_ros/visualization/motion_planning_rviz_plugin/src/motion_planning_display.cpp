@@ -1210,14 +1210,14 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
   robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
-  if (query_start_state_property_->getBool() && !group.empty())
+  if (query_start_state_ && query_start_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState start = *getQueryStartState();
     updateStateExceptModified(start, current_state);
     setQueryStartState(start);
   }
 
-  if (query_goal_state_property_->getBool() && !group.empty())
+  if (query_goal_state_ && query_goal_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState goal = *getQueryGoalState();
     updateStateExceptModified(goal, current_state);
