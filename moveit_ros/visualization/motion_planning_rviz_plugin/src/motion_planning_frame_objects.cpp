@@ -217,14 +217,14 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
 
     ui_->object_status->setText("");
     scene_marker_.reset();
-    ui_->scene_scale->setEnabled(false);
+    ui_->pose_scale_group_box->setEnabled(false);
   }
   else if (planning_display_->getPlanningSceneMonitor())
   {
     // if this is a CollisionWorld element
     if (sel[0]->checkState() == Qt::Unchecked)
     {
-      ui_->scene_scale->setEnabled(true);
+      ui_->pose_scale_group_box->setEnabled(true);
       bool update_scene_marker = false;
       Eigen::Isometry3d obj_pose;
       {
@@ -276,7 +276,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
     }
     else
     {
-      ui_->scene_scale->setEnabled(false);
+      ui_->pose_scale_group_box->setEnabled(false);
       // if it is an attached object
       scene_marker_.reset();
       const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
