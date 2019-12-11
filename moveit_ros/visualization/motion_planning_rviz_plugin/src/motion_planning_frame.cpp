@@ -505,11 +505,8 @@ void MotionPlanningFrame::disable()
 
 void MotionPlanningFrame::tabChanged(int index)
 {
-  if (scene_marker_ && viz_scene_marker_ && ui_->tabWidget->tabText(index).toStdString() != TAB_OBJECTS)
-  {
+  if (scene_marker_ && ui_->tabWidget->tabText(index).toStdString() != TAB_OBJECTS)
     scene_marker_.reset();
-    viz_scene_marker_.reset();
-  }
   else if (ui_->tabWidget->tabText(index).toStdString() == TAB_OBJECTS)
     selectedCollisionObjectChanged();
 }

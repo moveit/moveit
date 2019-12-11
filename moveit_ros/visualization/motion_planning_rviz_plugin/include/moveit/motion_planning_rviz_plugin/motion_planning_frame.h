@@ -133,7 +133,6 @@ protected:
   moveit_warehouse::RobotStateStoragePtr robot_state_storage_;
 
   std::shared_ptr<rviz::InteractiveMarker> scene_marker_;
-  std::shared_ptr<visualization_msgs::InteractiveMarker> viz_scene_marker_;
 
   typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
@@ -182,7 +181,6 @@ private Q_SLOTS:
   void copySelectedCollisionObject();
   void exportAsTextButtonClicked();
   void importFromTextButtonClicked();
-  void resizeInteractiveMarker(const shapes::Shape* shape);
 
   // Stored scenes tab
   void saveSceneButtonClicked();
@@ -248,6 +246,7 @@ private:
   void populateCollisionObjectsList();
   void computeImportFromText(const std::string& path);
   void computeExportAsText(const std::string& path);
+  visualization_msgs::InteractiveMarker createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj);
 
   // Stored scenes tab
   void computeSaveSceneButtonClicked();

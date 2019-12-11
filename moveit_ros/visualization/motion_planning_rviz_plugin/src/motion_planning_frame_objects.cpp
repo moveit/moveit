@@ -105,8 +105,8 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           s->scale((double)value / 100.0);
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
-          resizeInteractiveMarker(s);
         }
+        scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
         planning_display_->queueRenderSceneGeometry();
       }
       else
@@ -152,7 +152,6 @@ void MotionPlanningFrame::removeObjectButtonClicked()
       else
         ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
-    viz_scene_marker_.reset();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
@@ -218,7 +217,6 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
 
     ui_->object_status->setText("");
     scene_marker_.reset();
-    viz_scene_marker_.reset();
     ui_->scene_scale->setEnabled(false);
   }
   else if (planning_display_->getPlanningSceneMonitor())
@@ -321,18 +319,6 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
       ps->getWorldNonConst()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
       planning_display_->queueRenderSceneGeometry();
 
-      // Update visualization_msgs interactive marker pose update
-      if (viz_scene_marker_)
-      {
-        Eigen::Quaterniond eq(p.rotation());
-        viz_scene_marker_->pose.position.x = ui_->object_x->value();
-        viz_scene_marker_->pose.position.y = ui_->object_y->value();
-        viz_scene_marker_->pose.position.z = ui_->object_z->value();
-        viz_scene_marker_->pose.orientation.w = eq.w();
-        viz_scene_marker_->pose.orientation.x = eq.x();
-        viz_scene_marker_->pose.orientation.y = eq.y();
-        viz_scene_marker_->pose.orientation.z = eq.z();
-      }
       // Update the interactive marker pose to match the manually introduced one
       if (update_marker_position && scene_marker_)
       {
@@ -695,6 +681,24 @@ void MotionPlanningFrame::addObject(const collision_detection::WorldPtr& world, 
   planning_display_->queueRenderSceneGeometry();
 }
 
+visualization_msgs::InteractiveMarker
+MotionPlanningFrame::createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj)
+{
+  Eigen::Vector3d center;
+  double scale;
+  shapes::computeShapeBoundingSphere(obj->shapes_[0].get(), center, scale);
+  geometry_msgs::PoseStamped shape_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+      obj->shape_poses_[0], ros::Time(), planning_display_->getRobotModel()->getModelFrame()));
+  scale = (scale + center.cwiseAbs().maxCoeff()) * 2.0 * 1.2;  // add padding of 20% size
+
+  // create an interactive marker msg for the given shape
+  visualization_msgs::InteractiveMarker imarker =
+      robot_interaction::make6DOFMarker("marker_scene_object", shape_pose, scale);
+  imarker.description = obj->id_;
+  interactive_markers::autoComplete(imarker);
+  return imarker;
+}
+
 void MotionPlanningFrame::createSceneInteractiveMarker()
 {
   QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
@@ -709,38 +713,17 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
       ps->getWorld()->getObject(sel[0]->text().toStdString());
   if (obj && obj->shapes_.size() == 1)
   {
-    Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
-    geometry_msgs::PoseStamped shape_pose;
-    shape_pose.pose.position.x = obj->shape_poses_[0].translation()[0];
-    shape_pose.pose.position.y = obj->shape_poses_[0].translation()[1];
-    shape_pose.pose.position.z = obj->shape_poses_[0].translation()[2];
-    shape_pose.pose.orientation.x = eq.x();
-    shape_pose.pose.orientation.y = eq.y();
-    shape_pose.pose.orientation.z = eq.z();
-    shape_pose.pose.orientation.w = eq.w();
-
-    // create an interactive marker for moving the shape in the world
-    visualization_msgs::InteractiveMarker int_marker =
-        robot_interaction::make6DOFMarker(std::string("marker_") + sel[0]->text().toStdString(), shape_pose, 1.0);
-    int_marker.header.frame_id = planning_display_->getRobotModel()->getModelFrame();
-    int_marker.description = sel[0]->text().toStdString();
-
-    rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_);
-    interactive_markers::autoComplete(int_marker);
-    imarker->setShowAxes(false);
-    scene_marker_.reset(imarker);
-    viz_scene_marker_.reset(new visualization_msgs::InteractiveMarker);
-    *viz_scene_marker_ = int_marker;
-    resizeInteractiveMarker(obj->shapes_[0]->clone());
+    scene_marker_ = std::make_shared<rviz::InteractiveMarker>(planning_display_->getSceneNode(), context_);
+    scene_marker_->processMessage(createObjectMarkerMsg(obj));
+    scene_marker_->setShowAxes(false);
 
     // Connect signals
-    connect(imarker, SIGNAL(userFeedback(visualization_msgs::InteractiveMarkerFeedback&)), this,
+    connect(scene_marker_.get(), SIGNAL(userFeedback(visualization_msgs::InteractiveMarkerFeedback&)), this,
             SLOT(imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
   }
   else
   {
     scene_marker_.reset();
-    viz_scene_marker_.reset();
   }
 }
 
@@ -786,10 +769,6 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
       {
         scene_marker_.reset();
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::createSceneInteractiveMarker, this));
-      }
-      if (viz_scene_marker_)
-      {
-        viz_scene_marker_.reset();
       }
     }
   }
@@ -976,46 +955,5 @@ void MotionPlanningFrame::importFromTextButtonClicked()
   if (!path.isEmpty())
     planning_display_->addBackgroundJob(
         boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
-}
-
-void MotionPlanningFrame::resizeInteractiveMarker(const shapes::Shape* shape)
-{
-  // Resize the marker scale
-  // 1. Get obj shape bound size
-  Eigen::Vector3d center;
-  double radius;
-  shapes::computeShapeBoundingSphere(shape, center, radius);
-  double bound = (center.cwiseAbs().maxCoeff() + radius) * 2.0;
-  // bound + padding (20%) size
-  bound *= 1.2;
-  // 2. Change marker size
-  for (std::size_t i = 0; i < viz_scene_marker_->controls.size(); i++)
-  {
-    for (std::size_t j = 0; j < viz_scene_marker_->controls[i].markers.size(); j++)
-    {
-      switch (viz_scene_marker_->controls[i].markers[j].type)
-      {
-        case visualization_msgs::Marker::ARROW:
-        {
-          viz_scene_marker_->controls[i].markers[j].points[0].x = pow(-1.0, j % 2) * (bound * 0.5);
-          viz_scene_marker_->controls[i].markers[j].points[1].x = pow(-1.0, j % 2) * (bound * 0.9);
-          viz_scene_marker_->controls[i].markers[j].scale.x = bound * 0.15;
-          viz_scene_marker_->controls[i].markers[j].scale.y = bound * 0.25;
-          viz_scene_marker_->controls[i].markers[j].scale.z = bound * 0.2;
-          break;
-        }
-        case visualization_msgs::Marker::TRIANGLE_LIST:
-        {
-          viz_scene_marker_->controls[i].markers[j].scale.x = bound;
-          viz_scene_marker_->controls[i].markers[j].scale.y = bound;
-          viz_scene_marker_->controls[i].markers[j].scale.z = bound;
-          break;
-        }
-        default:
-          break;
-      }
-    }
-  }
-  scene_marker_->processMessage(*viz_scene_marker_);
 }
 }  // namespace moveit_rviz_plugin
