@@ -134,6 +134,15 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
     incoming_jts_ = shared_variables.joints;
     mutex.unlock();
 
+    kinematic_state_->setVariableValues(jt_state_);
+    original_jt_state_ = jt_state_;
+
+    // Get the transform from MoveIt planning frame to jogging command frame
+    tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+    mutex.lock();
+    shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
+    mutex.unlock();
+
     // Initialize the position filters to initial robot joints
     while (!updateJoints() && ros::ok())
     {
@@ -247,20 +256,11 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
-  kinematic_state_->setVariableValues(jt_state_);
-  original_jt_state_ = jt_state_;
-
-  // Get the transform from MoveIt planning frame to jogging command frame
-  Eigen::Isometry3d tf_moveit_to_cmd_frame = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
-  mutex.lock();
-  shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame;
-  mutex.unlock();
-
   // Transform the command to the MoveGroup planning frame 
   Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
   Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
-  translation_vector = tf_moveit_to_cmd_frame.linear() * translation_vector;
-  angular_vector = tf_moveit_to_cmd_frame.linear() * angular_vector;
+  translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
+  angular_vector = tf_moveit_to_cmd_frame_.linear() * angular_vector;
 
   // Put these components back into a TwistStamped
   cmd.header.frame_id = parameters_.planning_frame;

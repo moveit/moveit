@@ -122,6 +122,8 @@ protected:
   Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
   Eigen::VectorXd delta_theta_;
 
+  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+
   const int gazebo_redundant_message_count_ = 30;
 
   uint num_joints_;
