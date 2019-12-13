@@ -97,7 +97,7 @@ void ChompCost::scale(double scale)
 {
   if (scale == 0.0)
   {
-    ROS_WARN("ChompCost::scale recieved factor 0. Not changing cost.");
+    ROS_WARN_NAMED("chomp_cost", "Scale received factor 0. Not changing cost.");
     return;
   }
 
