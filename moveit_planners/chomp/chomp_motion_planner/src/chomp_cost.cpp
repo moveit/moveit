@@ -95,6 +95,12 @@ double ChompCost::getMaxQuadCostInvValue() const
 
 void ChompCost::scale(double scale)
 {
+  if (scale == 0.0)
+  {
+    ROS_WARN_NAMED("chomp_cost", "Scale received factor 0. Not changing cost.");
+    return;
+  }
+
   double inv_scale = 1.0 / scale;
   quad_cost_inv_ *= inv_scale;
   quad_cost_ *= scale;
