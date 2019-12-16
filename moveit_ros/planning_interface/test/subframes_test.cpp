@@ -205,37 +205,93 @@ bool findStringIndex(int* index, const std::vector<std::string>& list, const std
   return false;
 }
 
-// Test method to check if the cylinder tip is close to the subframe "subframe_name" of the box object
-void testIsCylinderTipAtTarget(const std::string& subframe_name,
-                               moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
-                               moveit::planning_interface::MoveGroupInterface* group)
+// Helper function to get the box subframe in world
+bool getBoxSubframeInWorld(Eigen::Affine3d& box_subframe_in_world, const std::string& subframe_name,
+                           moveit::planning_interface::PlanningSceneInterface* planning_scene_interface)
 {
-  geometry_msgs::Pose tip_in_hand_msg, hand_in_world_msg, tip_in_world_msg, box_subframe_msg, target_in_subframe_msg;
-  Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_world, box_subframe_in_world, target_in_subframe, target_in_world;
+  const std::string log_name = "get_box_subframe_in_world";
+  std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface->getObjects();
+  if (objects.find("box") == objects.end())
+  {
+    ROS_ERROR_NAMED(log_name, "No box object");
+    return false;
+  }
+  moveit_msgs::CollisionObject box = objects["box"];
+
+  std::vector<std::string> box_subframe_names = box.subframe_names;
+  int index = 0;
+  if (!findStringIndex(&index, box_subframe_names, subframe_name))
+  {
+    ROS_ERROR_STREAM_NAMED(log_name, "Subframe " << subframe_name << " not found.");
+    return false;
+  }
+  geometry_msgs::Pose box_subframe_msg = box.subframe_poses[index];
+  poseMsgToEigen(box_subframe_in_world, box_subframe_msg);
+
+  return true;
+}
+
+// Helper function to get the cylinder tip in world
+bool getCylinderTipInWorld(Eigen::Affine3d& tip_in_world,
+                           moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
+                           moveit::planning_interface::MoveGroupInterface* group)
+{
+  const std::string log_name = "get_cylinder_tip_in_world";
+  geometry_msgs::Pose tip_in_hand_msg, hand_in_world_msg;
+  Eigen::Affine3d tip_in_hand, hand_in_world;
 
   std::map<std::string, moveit_msgs::AttachedCollisionObject> attached_objects =
       planning_scene_interface->getAttachedObjects();
-  EXPECT_EQ(attached_objects["cylinder"].object.subframe_poses.size(), std::size_t(1));
+  if (attached_objects.find("cylinder") == attached_objects.end())
+  {
+    ROS_ERROR_NAMED(log_name, "No cylinder object");
+    return false;
+  }
+  if (attached_objects["cylinder"].object.subframe_poses.size() != std::size_t(1))
+  {
+    ROS_ERROR_NAMED(log_name, "more than one subframe_pose on cylinder");
+    return false;
+  }
   tip_in_hand_msg = attached_objects["cylinder"].object.subframe_poses[0];
   hand_in_world_msg = group->getCurrentPose("panda_hand").pose;
   poseMsgToEigen(tip_in_hand, tip_in_hand_msg);
   poseMsgToEigen(hand_in_world, hand_in_world_msg);
   tip_in_world = hand_in_world * tip_in_hand;
 
-  std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface->getObjects();
-  ASSERT_NE(objects.find("box"), objects.end());
-  moveit_msgs::CollisionObject box = objects["box"];
+  return true;
+}
 
-  std::vector<std::string> box_subframe_names = box.subframe_names;
-  int index = 0;
-  ASSERT_TRUE(findStringIndex(&index, box_subframe_names, subframe_name));
-  box_subframe_msg = box.subframe_poses[index];
-  poseMsgToEigen(box_subframe_in_world, box_subframe_msg);
-
+// Helper function for getting target location relative to a box subframe
+bool getTargetInWorld(Eigen::Affine3d& target_in_world, const Eigen::Affine3d& box_subframe_in_world)
+{
   // Calculate the target location relative to the subframe (z offset)
+  geometry_msgs::Pose target_in_subframe_msg;
   target_in_subframe_msg.position.z = kZOffset;
+  Eigen::Affine3d target_in_subframe;
   poseMsgToEigen(target_in_subframe, target_in_subframe_msg);
   target_in_world = box_subframe_in_world * target_in_subframe;
+
+  return true;
+}
+
+// Test method to check if the cylinder tip is close to the subframe "subframe_name" of the box object
+void testIsCylinderTipAtTarget(const std::string& subframe_name,
+                               moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
+                               moveit::planning_interface::MoveGroupInterface* group)
+{
+  ROS_INFO_STREAM("Testing if cylinder/tip is at target location relative to box/" << subframe_name);
+
+  // get the tip location in world
+  Eigen::Affine3d tip_in_world;
+  ASSERT_TRUE(getCylinderTipInWorld(tip_in_world, planning_scene_interface, group));
+
+  // get the box subframe location
+  Eigen::Affine3d box_subframe_in_world;
+  ASSERT_TRUE(getBoxSubframeInWorld(box_subframe_in_world, subframe_name, planning_scene_interface));
+
+  // Calculate the target location relative to the subframe
+  Eigen::Affine3d target_in_world;
+  ASSERT_TRUE(getTargetInWorld(target_in_world, box_subframe_in_world));
 
   // test that the cylinder tip and target are in the same position
   ASSERT_LT(std::abs(target_in_world.translation()[0] - tip_in_world.translation()[0]), kEpsilon);
