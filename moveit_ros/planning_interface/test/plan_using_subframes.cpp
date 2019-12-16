@@ -279,7 +279,6 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
   testAtSubframe("bottom", &planning_scene_interface, &group);
 
-  // The command "2" moves the cylinder tip to the top of the box (the right side in the top animation).
   ROS_INFO_STREAM("Moving to top of box with cylinder tip");
   temp_pose_stamped.header.frame_id = "box/top";
   orientation_1.setRPY((90.0 / 180.0 * M_PI), 0, 0);
