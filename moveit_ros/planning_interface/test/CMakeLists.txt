@@ -8,8 +8,8 @@ if (CATKIN_ENABLE_TESTING)
   add_rostest_gtest(moveit_cpp_test moveit_cpp_test.test moveit_cpp_test.cpp)
   target_link_libraries(moveit_cpp_test moveit_cpp ${catkin_LIBRARIES})
 
-  add_rostest_gtest(plan_using_subframes plan_using_subframes.test plan_using_subframes.cpp)
-  target_link_libraries(plan_using_subframes moveit_move_group_interface ${catkin_LIBRARIES})
+  add_rostest_gtest(subframes_test subframes_test.test subframes_test.cpp)
+  target_link_libraries(subframes_test moveit_move_group_interface ${catkin_LIBRARIES})
 
   add_rostest(python_move_group.test)
   add_rostest(python_move_group_ns.test)

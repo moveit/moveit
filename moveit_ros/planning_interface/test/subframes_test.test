@@ -9,7 +9,6 @@
 
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="/use_gui" value="true"/>
     <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
   </node>
   <node name="joint_state_desired_publisher" pkg="topic_tools" type="relay" args="joint_states joint_states_desired" />
@@ -25,6 +24,6 @@
   </include>
 
   <!-- Subframes test -->
-  <test pkg="moveit_ros_planning_interface" type="plan_using_subframes" test-name="plan_using_subframes"
+  <test pkg="moveit_ros_planning_interface" type="subframes_test" test-name="subframes_test"
         time-limit="30" args=""/>
 </launch>
