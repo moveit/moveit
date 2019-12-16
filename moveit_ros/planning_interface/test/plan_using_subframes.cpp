@@ -56,6 +56,8 @@
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
+constexpr double kEpsilon = 1e-3;
+
 // Function copied from tutorial
 // a small helper function to create our planning requests and move the robot.
 bool moveToCartPose(geometry_msgs::PoseStamped pose, moveit::planning_interface::MoveGroupInterface& group,
@@ -83,6 +85,7 @@ bool moveToCartPose(geometry_msgs::PoseStamped pose, moveit::planning_interface:
 // The box spawns in front of the gripper, the cylinder at the tip of the gripper, as if it had been grasped.
 void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface)
 {
+  const std::string log_name = "sapwn_collision_objects";
   double z_offset_box = .25;  // The z-axis points away from the gripper
   double z_offset_cylinder = .12;
 
@@ -144,6 +147,8 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   orientation.setRPY(0, (180.0 / 180.0 * M_PI), 0);
   box.subframe_poses[4].orientation = tf2::toMsg(orientation);
 
+  ROS_WARN_STREAM_NAMED(log_name, "box: " << box);
+
   // Next, define the cylinder
   moveit_msgs::CollisionObject cylinder;
   cylinder.id = "cylinder";
@@ -168,6 +173,8 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   cylinder.subframe_poses[0].position.z = 0.0 + z_offset_cylinder;
   orientation.setRPY(0, (90.0 / 180.0 * M_PI), 0);
   cylinder.subframe_poses[0].orientation = tf2::toMsg(orientation);
+
+  ROS_WARN_STREAM_NAMED(log_name, "cylinder: " << cylinder);
 
   // Lastly, the objects are published to the PlanningScene. In this tutorial, we publish a box and a cylinder.
   box.operation = moveit_msgs::CollisionObject::ADD;
@@ -198,22 +205,22 @@ bool findStringIndex(int* index, const std::vector<std::string>& list, const std
 }
 
 // Test method to check if the cylinder tip is close to the subframe "subframe_name" of the box object
-void testAtSubframe(const std::string& subframe_name,
+void testIsCylinderTipAtBoxSubframe(const std::string& subframe_name,
                     moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
                     moveit::planning_interface::MoveGroupInterface* group)
 {
   geometry_msgs::Pose tip_in_hand_msg, hand_in_world_msg, tip_in_world_msg, box_subframe_msg;
-  Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_word, box_subframe_in_world;
+  Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_world, box_subframe_in_world;
 
   std::map<std::string, moveit_msgs::AttachedCollisionObject> attached_objects =
       planning_scene_interface->getAttachedObjects();
   EXPECT_EQ(attached_objects["cylinder"].object.subframe_poses.size(), std::size_t(1));
   tip_in_hand_msg = attached_objects["cylinder"].object.subframe_poses[0];
   hand_in_world_msg = group->getCurrentPose("panda_hand").pose;
-  tip_in_hand_msg.position.x += 0.01;
+  // tip_in_hand_msg.position.x += 0.01;
   poseMsgToEigen(tip_in_hand, tip_in_hand_msg);
-  poseMsgToEigen(hand_in_word, hand_in_world_msg);
-  tip_in_world = hand_in_word * tip_in_hand;
+  poseMsgToEigen(hand_in_world, hand_in_world_msg);
+  tip_in_world = hand_in_world * tip_in_hand;
 
   std::map<std::string, moveit_msgs::CollisionObject> objects = planning_scene_interface->getObjects();
   ASSERT_NE(objects.find("box"), objects.end());
@@ -225,21 +232,25 @@ void testAtSubframe(const std::string& subframe_name,
   box_subframe_msg = box.subframe_poses[index];
   poseMsgToEigen(box_subframe_in_world, box_subframe_msg);
 
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[0] - tip_in_world.translation()[0]), 0.1);
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 0.1);
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[2] - tip_in_world.translation()[2]), 0.1);
+  ROS_INFO_STREAM("box subframe: " << box_subframe_in_world.translation());
+  ROS_INFO_STREAM("cylinder tip: " << tip_in_world.translation());
+
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[0] - tip_in_world.translation()[0]), kEpsilon);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), kEpsilon);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[2] - tip_in_world.translation()[2]), kEpsilon);
 }
 
 TEST(TestPlanUsingSubframes, SubframesTests)
 {
-  SCOPED_TRACE("TestPlanUsingSubframes");
+  const std::string log_name = "test_plan_using_subframes";
+  SCOPED_TRACE(log_name);
 
   ros::NodeHandle nh;
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
   geometry_msgs::Pose tip_in_hand_msg, hand_in_world_msg, tip_in_world_msg;
-  Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_word;
+  Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_world;
 
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
   moveit::planning_interface::MoveGroupInterface group("panda_arm");
@@ -250,7 +261,8 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   att_coll_object.object.id = "cylinder";
   att_coll_object.link_name = "panda_hand";
   att_coll_object.object.operation = att_coll_object.object.ADD;
-  ROS_INFO_STREAM("Attaching cylinder to robot.");
+  ROS_WARN_STREAM_NAMED(log_name, "Attaching cylinder to robot.");
+  ROS_WARN_STREAM_NAMED(log_name, "att_coll_object: " << att_coll_object);
   planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
 
   // Define a pose in the robot base.
@@ -267,7 +279,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   tf2::Quaternion flip_around_y;  // This is used to rotate the orientation of the target pose.
   flip_around_y.setRPY(0, (180.0 / 180.0 * M_PI), 0);
 
-  ROS_INFO_STREAM("Moving to bottom of box with cylinder tip");
+  ROS_WARN_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip");
   temp_pose_stamped.header.frame_id = "box/bottom";
 
   // When constructing the target pose for the robot, we multiply the quaternions to get the
@@ -276,42 +288,42 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
-  moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
-  testAtSubframe("bottom", &planning_scene_interface, &group);
+  ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
+  testIsCylinderTipAtBoxSubframe("bottom", &planning_scene_interface, &group);
 
-  ROS_INFO_STREAM("Moving to top of box with cylinder tip");
+  ROS_WARN_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
   temp_pose_stamped.header.frame_id = "box/top";
   orientation_1.setRPY((90.0 / 180.0 * M_PI), 0, 0);
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
   ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
-  testAtSubframe("top", &planning_scene_interface, &group);
+  testIsCylinderTipAtBoxSubframe("top", &planning_scene_interface, &group);
 
-  ROS_INFO_STREAM("Moving to top of box with cylinder tip");
+  ROS_WARN_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
   temp_pose_stamped.header.frame_id = "box/corner_1";
   orientation_1.setRPY(-(90.0 / 180.0 * M_PI), 0, 0);
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
-  moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
-  testAtSubframe("corner_1", &planning_scene_interface, &group);
+  ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
+  testIsCylinderTipAtBoxSubframe("corner_1", &planning_scene_interface, &group);
 
   temp_pose_stamped.header.frame_id = "box/corner_2";
   orientation_1.setRPY(-(90.0 / 180.0 * M_PI), 0, 0);
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
-  moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
-  testAtSubframe("corner_2", &planning_scene_interface, &group);
+  ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
+  testIsCylinderTipAtBoxSubframe("corner_2", &planning_scene_interface, &group);
 
   temp_pose_stamped.header.frame_id = "box/side";
   orientation_1.setRPY(-(90.0 / 180.0 * M_PI), 0, 0);
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
-  moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
-  testAtSubframe("side", &planning_scene_interface, &group);
+  ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
+  testIsCylinderTipAtBoxSubframe("side", &planning_scene_interface, &group);
 }
 
 int main(int argc, char** argv)
