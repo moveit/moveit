@@ -285,7 +285,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   target_orientation = flip_around_y * orientation_1;
   temp_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   temp_pose_stamped.pose.position.z = 0.01;
-  moveToCartPose(temp_pose_stamped, group, "cylinder/tip");
+  ASSERT_TRUE(moveToCartPose(temp_pose_stamped, group, "cylinder/tip"));
   testAtSubframe("top", &planning_scene_interface, &group);
 
   ROS_INFO_STREAM("Moving to top of box with cylinder tip");
