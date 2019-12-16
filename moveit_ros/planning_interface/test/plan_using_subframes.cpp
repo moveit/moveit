@@ -227,7 +227,7 @@ void testAtSubframe(const std::string& subframe_name,
 
   ASSERT_LT(std::abs(box_subframe_in_world.translation()[0] - tip_in_world.translation()[0]), 0.1);
   ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 0.1);
-  ASSERT_LT(std::abs(box_subframe_in_world.translation()[1] - tip_in_world.translation()[1]), 0.1);
+  ASSERT_LT(std::abs(box_subframe_in_world.translation()[2] - tip_in_world.translation()[2]), 0.1);
 }
 
 TEST(TestPlanUsingSubframes, SubframesTests)
