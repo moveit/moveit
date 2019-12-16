@@ -197,7 +197,7 @@ bool findStringIndex(int* index, const std::vector<std::string>& list, const std
   return false;
 }
 
-// Test method to test if the cylinder tip at near the box subrame_name meantioned
+// Test method to check if the cylinder tip is close to the subframe "subframe_name" of the box object
 void testAtSubframe(const std::string& subframe_name,
                     moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
                     moveit::planning_interface::MoveGroupInterface* group)
