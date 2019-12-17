@@ -78,7 +78,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return false;
   }
-  
+
   ROS_INFO(" ======================================= Extract current state information");
   ros::WallTime start_time = ros::WallTime::now();
   moveit::core::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
