@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <arg name="use_gui" default="false" />
+
+  <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
+  <arg name="load_robot_description" default="true"/>
+
+  <!-- The name of the parameter under which the URDF is loaded -->
+  <arg name="robot_description" default="robot_description"/>
+
+  <!-- Load universal robot description format (URDF) -->
+  <param name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'"/>
+
+  <!-- The semantic description that corresponds to the URDF -->
+  <param name="$(arg robot_description)_semantic" command="$(find xacro)/xacro --inorder '$(find panda_moveit_config)/config/panda_arm.srdf.xacro'"/>
+
+  <!-- Load updated joint limits (override information from URDF) -->
+  <group ns="$(arg robot_description)_planning">
+    <rosparam command="load" file="$(find moveit_planners_trajopt)/test/joint_limits.yaml"/>
+  </group>
+
+  <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
+  <group ns="$(arg robot_description)_kinematics">
+    <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+  </group>
+
+  <!-- We do not have a robot connected, so publish fake joint states -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="$(arg use_gui)"/>
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- trajOpt Plugin for MoveIt -->
+  <arg name="planning_plugin" value="trajopt_interface/TrajOptPlanner" />
+  <arg name="start_state_max_bounds_error" value="0.1" />
+
+  <param name="planning_plugin" value="$(arg planning_plugin)" />
+  <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
+
+  <rosparam ns="trajectory_test" command="load" file="$(find moveit_planners_trajopt)/test/trajopt_planning.yaml"/>
+
+</launch>
