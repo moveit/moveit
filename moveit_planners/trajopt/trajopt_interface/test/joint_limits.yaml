@@ -1,0 +1,55 @@
+# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed
+# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
+# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
+
+# As MoveIt! does not support jerk limits, the acceleration limits provided here are the highest values that guarantee
+# that no jerk limits will be violated. More precisely, applying Euler differentiation in the worst case (from min accel
+# to max accel in 1 ms) the acceleration limits are the ones that satisfy
+# max_jerk = (max_acceleration - min_acceleration) / 0.001
+
+joint_limits:
+  panda_joint1:
+    has_velocity_limits: true
+    max_velocity: 2.1750
+    has_acceleration_limits: true
+    max_acceleration: 3.75
+  panda_joint2:
+    has_velocity_limits: true
+    max_velocity: 2.1750
+    has_acceleration_limits: true
+    max_acceleration: 1.875
+  panda_joint3:
+    has_velocity_limits: true
+    max_velocity: 2.1750
+    has_acceleration_limits: true
+    max_acceleration: 2.5
+  panda_joint4:
+    has_velocity_limits: true
+    max_velocity: 2.1750
+    has_acceleration_limits: true
+    max_acceleration: 3.125
+  panda_joint5:
+    has_velocity_limits: true
+    max_velocity: 2.6100
+    has_acceleration_limits: true
+    max_acceleration: 3.75
+  panda_joint6:
+    has_velocity_limits: true
+    max_velocity: 2.6100
+    has_acceleration_limits: true
+    max_acceleration: 5
+  panda_joint7:
+    has_velocity_limits: true
+    max_velocity: 2.6100
+    has_acceleration_limits: true
+    max_acceleration: 5
+  panda_finger_joint1:
+    has_velocity_limits: true
+    max_velocity: 0.1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  panda_finger_joint2:
+    has_velocity_limits: true
+    max_velocity: 0.1
+    has_acceleration_limits: false
+    max_acceleration: 0
