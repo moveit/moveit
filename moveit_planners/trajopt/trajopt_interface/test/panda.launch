@@ -10,10 +10,10 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <param name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'"/>
+  <param name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find moveit_planners_trajopt)/test/urdf/panda_arm.urdf.xacro'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="$(arg robot_description)_semantic" command="$(find xacro)/xacro --inorder '$(find panda_moveit_config)/config/panda_arm.srdf.xacro'"/>
+  <param name="$(arg robot_description)_semantic" command="$(find xacro)/xacro --inorder '$(find moveit_planners_trajopt)/test/semantic/panda_arm.srdf.xacro'"/>
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
@@ -22,7 +22,7 @@
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="$(arg robot_description)_kinematics">
-    <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find moveit_planners_trajopt)/test/kinematics.yaml"/>
   </group>
 
   <!-- We do not have a robot connected, so publish fake joint states -->
