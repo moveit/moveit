@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+  <xacro:include filename="$(find moveit_planners_trajopt)/test/semantic/panda_arm.xacro" />
+  <xacro:panda_arm />
+</robot>
