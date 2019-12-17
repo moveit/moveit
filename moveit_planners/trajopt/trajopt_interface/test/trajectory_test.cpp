@@ -29,14 +29,14 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
 #include <trajopt/problem_description.h>
 #include <trajopt/kinematic_terms.h>
 #include <trajopt/common.hpp>
 
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 
 #include <tf2/utils.h>
@@ -45,8 +45,9 @@
 
 class TrajectoryTest : public ::testing::Test
 {
+
 public:
-  TrajectoryTest()
+  TrajectoryTest() 
   {
   }
 
@@ -70,6 +71,13 @@ protected:
 
 TEST_F(TrajectoryTest, concatVectorValidation)
 {
+  std::vector<std::string> keys;
+  node_handle_.getParamNames(keys);
+  for (std::string key : keys)
+  {
+    std::cerr << key << std::endl;
+  }
+
   std::vector<double> vec_a = { 1, 2, 3, 4, 5 };
   std::vector<double> vec_b = { 6, 7, 8, 9, 10 };
   std::vector<double> vec_c = trajopt::concatVector(vec_a, vec_b);
@@ -136,13 +144,6 @@ TEST_F(TrajectoryTest, goalTolerance)
   // Create response and request
   planning_interface::MotionPlanRequest req;
   planning_interface::MotionPlanResponse res;
-
-  std::vector<std::string> keys;
-  node_handle_.getParamNames(keys);
-  for (std::string key : keys)
-  {
-    std::cerr << key << std::endl;
-  }
 
   // Set start state
   // ========================================================================================
