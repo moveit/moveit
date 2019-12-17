@@ -45,9 +45,8 @@
 
 class TrajectoryTest : public ::testing::Test
 {
-
 public:
-  TrajectoryTest() 
+  TrajectoryTest()
   {
   }
 
