@@ -162,7 +162,7 @@ PlanningSceneDisplay::~PlanningSceneDisplay()
 
   planning_scene_render_.reset();
   if (context_ && context_->getSceneManager() && planning_scene_node_)
-    context_->getSceneManager()->destroySceneNode(planning_scene_node_->getName());
+    context_->getSceneManager()->destroySceneNode(planning_scene_node_);
   if (planning_scene_robot_)
     planning_scene_robot_.reset();
   planning_scene_monitor_.reset();
