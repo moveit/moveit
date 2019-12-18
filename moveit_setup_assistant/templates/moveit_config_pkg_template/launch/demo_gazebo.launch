@@ -58,7 +58,7 @@
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/moveit_rviz.launch">
-    <arg name="config" value="true"/>
+    <arg name="rviz_config" value="$(find [GENERATED_PACKAGE_NAME])/launch/moveit.rviz"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
