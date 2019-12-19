@@ -9,6 +9,7 @@ API changes in MoveIt releases
 - Requests to `get_planning_scene` service without explicitly setting "components" now return full scene
 - `moveit_ros_plannning` no longer depends on `moveit_ros_perception`
 - `CollisionRobot` and `CollisionWorld` are combined into a single `CollisionEnv` class. This applies for all derived collision checkers as `FCL`, `ALL_VALID`, `HYBRID` and `DISTANCE_FIELD`. Consequently, `getCollisionRobot[Unpadded] / getCollisionWorld` functions are replaced through a `getCollisionEnv` in the planning scene and return the new combined environment. This unified collision environment provides the union of all member functions of `CollisionRobot` and `CollisionWorld`. Note that calling `checkRobotCollision` of the `CollisionEnv` does not take a `CollisionRobot` as an argument anymore as it is implicitly contained in the `CollisionEnv`.
+- `RobotTrajectory` now exposes a copy method that enables the user to decide if they want to make copies of the robot_state data
 
 ## ROS Melodic
 
