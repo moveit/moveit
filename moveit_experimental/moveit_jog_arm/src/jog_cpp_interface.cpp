@@ -197,13 +197,12 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
-sensor_msgs::JointState JogCppApi::getJointState()
+Eigen::Isometry3d JogCppApi::getCommandFrameTransform()
 {
   shared_variables_mutex_.lock();
-  sensor_msgs::JointState current_joints = shared_variables_.joints;
+  Eigen::Isometry3d tf_moveit_to_cmd_frame = shared_variables_.tf_moveit_to_cmd_frame;
   shared_variables_mutex_.unlock();
 
-  return current_joints;
+  return tf_moveit_to_cmd_frame;
 }
-
 }  // namespace moveit_jog_arm
