@@ -53,6 +53,19 @@ RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_mo
 {
 }
 
+RobotTrajectory::RobotTrajectory(const RobotTrajectory& other, bool deepcopy)
+{
+  *this = other;  // default assignment operator performs a shallow copy
+  this->waypoints_.clear();
+  if (deepcopy)
+  {
+    for (const auto& waypoint : other.waypoints_)
+    {
+      this->waypoints_.emplace_back(std::make_shared<moveit::core::RobotState>(*waypoint));
+    }
+  }
+}
+
 void RobotTrajectory::setGroupName(const std::string& group_name)
 {
   group_ = robot_model_->getJointModelGroup(group_name);

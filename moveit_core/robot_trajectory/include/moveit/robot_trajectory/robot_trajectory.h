@@ -55,6 +55,15 @@ public:
 
   RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
 
+  /** Assignment operator, performing a shallow copy, i.e. copying waypoints by pointer */
+  RobotTrajectory& operator=(const RobotTrajectory&) = default;
+
+  /** @brief  Copy constructor allowing a shallow or deep copy of waypoints
+   *  @param  other - RobotTrajectory to copy from
+   *  @param  deepcopy - copy waypoints by value (true) or by pointer (false)?
+   */
+  RobotTrajectory(const RobotTrajectory& other, bool deepcopy = false);
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
