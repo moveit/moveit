@@ -83,7 +83,7 @@ QSize RotatedHeaderView::sectionSizeFromContents(int logicalIndex) const
     Q_ASSERT(m);
     return QSize();
   }
-  
+
   // use SizeHintRole
   QVariant variant = m->headerData(logicalIndex, Qt::Vertical, Qt::SizeHintRole);
   if (variant.isValid())

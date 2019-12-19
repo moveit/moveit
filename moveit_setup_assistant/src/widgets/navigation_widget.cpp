@@ -92,10 +92,10 @@ void NavigationWidget::setEnabled(const int& index, bool enabled)
     return;
 
   if (enabled)
-	  item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
-                     Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled |
+                   Qt::ItemIsEnabled);
   else
-	  item->setFlags(Qt::NoItemFlags);
+    item->setFlags(Qt::NoItemFlags);
 }
 
 void NavigationWidget::setSelected(const int& index)
