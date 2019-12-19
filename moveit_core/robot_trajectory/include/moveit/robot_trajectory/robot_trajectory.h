@@ -64,7 +64,6 @@ public:
    *  @param  deepcopy - copy waypoints by value (true) or by pointer (false)?
    */
   RobotTrajectory(const RobotTrajectory& other, bool deepcopy = false);
-  void copy(const RobotTrajectory& robot_traj, bool shallow_copy_waypoints = false);
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
