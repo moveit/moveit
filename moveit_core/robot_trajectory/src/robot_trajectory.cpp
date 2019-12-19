@@ -55,27 +55,27 @@ RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_mo
 
 RobotTrajectory::RobotTrajectory(const RobotTrajectory& robot_traj)
 {
-  this->copy(robot_traj);
+  bool shallow_copy_waypoints = true;
+  this->copy(robot_traj, shallow_copy_waypoints);
 }
 
-void RobotTrajectory::copy(const RobotTrajectory& robot_traj)
+void RobotTrajectory::copy(const RobotTrajectory& robot_traj, bool shallow_copy_waypoints)
 {
   this->robot_model_ = robot_traj.robot_model_;
   this->group_ = robot_traj.group_;
-  this->waypoints_ = robot_traj.waypoints_;
   this->duration_from_previous_ = robot_traj.duration_from_previous_;
-}
-
-void RobotTrajectory::deepCopy(const RobotTrajectory& robot_traj)
-{
-  this->robot_model_ = robot_traj.robot_model_;
-  this->group_ = robot_traj.group_;
-  this->waypoints_.resize(robot_traj.waypoints_.size());
-  for (const auto& waypoint : robot_traj.waypoints_)
+  this->waypoints_.clear();
+  if (shallow_copy_waypoints)
   {
-    (this->waypoints_).emplace_back(std::make_shared<moveit::core::RobotState>(*waypoint));
+    this->waypoints_ = robot_traj.waypoints_;
   }
-  this->duration_from_previous_ = robot_traj.duration_from_previous_;
+  else
+  {
+    for (const auto& waypoint : robot_traj.waypoints_)
+    {
+      this->waypoints_.emplace_back(std::make_shared<moveit::core::RobotState>(*waypoint));
+    }
+  }
 }
 
 void RobotTrajectory::setGroupName(const std::string& group_name)

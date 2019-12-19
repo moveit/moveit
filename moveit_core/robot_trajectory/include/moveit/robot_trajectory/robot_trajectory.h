@@ -56,17 +56,19 @@ public:
 
   RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
 
-  [[deprecated("The attempted argument is not supported anymore.")]] RobotTrajectory(const RobotTrajectory&);
+  /** @brief  Copy constructor that copies the waypoint values from other by pointer (shallow copy)
+   *  @param  other - some other RobotTrajectory
+   */
+  RobotTrajectory(const RobotTrajectory& other);
 
   RobotTrajectory& operator=(const RobotTrajectory&) = delete;
-  /** @brief  Shallow copy the passed object.
-   *  @param  robot_model RobotTrajectory object.
+
+  /** @brief  Copy the values from the passed object
+   *  @param  robot_traj RobotTrajectory object to copy from.
+   *  @param  shallow_copy_waypoints if the waypoints should contain shared pointers to the same underlying RobotState
+   * data
    */
-  void copy(const RobotTrajectory& robot_traj);
-  /** @brief  Deep copy the passed object.
-   *  @param  robot_model RobotTrajectory object.
-   */
-  void deepCopy(const RobotTrajectory& robot_traj);
+  void copy(const RobotTrajectory& robot_traj, bool shallow_copy_waypoints = false);
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
