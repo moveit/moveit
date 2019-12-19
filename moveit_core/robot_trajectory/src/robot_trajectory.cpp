@@ -53,25 +53,13 @@ RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_mo
 {
 }
 
-RobotTrajectory::RobotTrajectory(const RobotTrajectory& robot_traj)
+RobotTrajectory::RobotTrajectory(const RobotTrajectory& other, bool deepcopy)
 {
-  bool shallow_copy_waypoints = true;
-  this->copy(robot_traj, shallow_copy_waypoints);
-}
-
-void RobotTrajectory::copy(const RobotTrajectory& robot_traj, bool shallow_copy_waypoints)
-{
-  this->robot_model_ = robot_traj.robot_model_;
-  this->group_ = robot_traj.group_;
-  this->duration_from_previous_ = robot_traj.duration_from_previous_;
+  *this = other;  // default assignment operator performs a shallow copy
   this->waypoints_.clear();
-  if (shallow_copy_waypoints)
+  if (deepcopy)
   {
-    this->waypoints_ = robot_traj.waypoints_;
-  }
-  else
-  {
-    for (const auto& waypoint : robot_traj.waypoints_)
+    for (const auto& waypoint : other.waypoints_)
     {
       this->waypoints_.emplace_back(std::make_shared<moveit::core::RobotState>(*waypoint));
     }

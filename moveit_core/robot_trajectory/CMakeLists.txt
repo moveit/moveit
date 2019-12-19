@@ -19,5 +19,4 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_robot_trajectory test/test_robot_trajectory.cpp)
   target_link_libraries(test_robot_trajectory moveit_test_utils ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
-
 endif()

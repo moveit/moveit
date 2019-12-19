@@ -43,10 +43,14 @@
 class RobotTrajectoryTestFixture : public testing::Test
 {
 protected:
+  moveit::core::RobotModelConstPtr robot_model_;
+  robot_state::RobotStatePtr robot_state_;
+  const std::string robot_model_name_ = "panda";
+  const std::string arm_jmg_name_ = "panda_arm";
+
+protected:
   void SetUp() override
   {
-    robot_model_name_ = "panda";
-    arm_jmg_name_ = "panda_arm";
     robot_model_ = moveit::core::loadTestingRobotModel(robot_model_name_);
     robot_state_ = std::make_shared<robot_state::RobotState>(robot_model_);
     robot_state_->setToDefaultValues();
@@ -65,8 +69,8 @@ protected:
 
     trajectory = std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, arm_jmg_name_);
 
-    ASSERT_EQ(trajectory->getGroupName(), arm_jmg_name_) << "Generated trajectory group name does not match";
-    ASSERT_TRUE(trajectory->empty()) << "Generated trajectory not empty";
+    EXPECT_EQ(trajectory->getGroupName(), arm_jmg_name_) << "Generated trajectory group name does not match";
+    EXPECT_TRUE(trajectory->empty()) << "Generated trajectory not empty";
 
     double duration_from_previous = 0.1;
     std::size_t waypoint_count = 5;
@@ -80,11 +84,10 @@ protected:
   }
 
   void copyTrajectory(const robot_trajectory::RobotTrajectoryPtr& trajectory,
-                      robot_trajectory::RobotTrajectoryPtr& trajectory_copy, bool shallow_copy_waypoints)
+                      robot_trajectory::RobotTrajectoryPtr& trajectory_copy, bool deepcopy)
   {
     // Copy the trajectory
-    trajectory_copy = std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, arm_jmg_name_);
-    trajectory_copy->copy(*trajectory, shallow_copy_waypoints);
+    trajectory_copy = std::make_shared<robot_trajectory::RobotTrajectory>(*trajectory, deepcopy);
     // Quick check that the getDuration values match
     EXPECT_EQ(trajectory_copy->getDuration(), trajectory->getDuration());
     EXPECT_EQ(trajectory_copy->getWayPointDurations().size(), trajectory->getWayPointDurations().size());
@@ -133,18 +136,8 @@ protected:
     trajectory_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
     EXPECT_NE(trajectory_first_state[0], trajectory_first_state_after_update[0]);
   }
-
-protected:
-  moveit::core::RobotModelConstPtr robot_model_;
-  robot_state::RobotStatePtr robot_state_;
-  std::string robot_model_name_;
-  std::string arm_jmg_name_;
 };
 
-TEST_F(RobotTrajectoryTestFixture, EmptyTest)
-{
-  ASSERT_TRUE(true);
-}
 TEST_F(RobotTrajectoryTestFixture, ModifyFirstWaypointByPtr)
 {
   robot_trajectory::RobotTrajectoryPtr trajectory;
@@ -161,13 +154,13 @@ TEST_F(RobotTrajectoryTestFixture, ModifyFirstWaypointByValue)
 
 TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryShallowCopy)
 {
-  bool shallow_copy_waypoints = true;
+  bool deepcopy = false;
 
   robot_trajectory::RobotTrajectoryPtr trajectory;
   robot_trajectory::RobotTrajectoryPtr trajectory_copy;
 
   initTestTrajectory(trajectory);
-  copyTrajectory(trajectory, trajectory_copy, shallow_copy_waypoints);
+  copyTrajectory(trajectory, trajectory_copy, deepcopy);
   modifyFirstWaypointPtrAndCheckTrajectory(trajectory);
 
   // Check that modifying the waypoint also modified the trajectory
@@ -187,13 +180,13 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryShallowCopy)
 
 TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryDeepCopy)
 {
-  bool shallow_copy_waypoints = false;
+  bool deepcopy = true;
 
   robot_trajectory::RobotTrajectoryPtr trajectory;
   robot_trajectory::RobotTrajectoryPtr trajectory_copy;
 
   initTestTrajectory(trajectory);
-  copyTrajectory(trajectory, trajectory_copy, shallow_copy_waypoints);
+  copyTrajectory(trajectory, trajectory_copy, deepcopy);
   modifyFirstWaypointPtrAndCheckTrajectory(trajectory);
 
   // Check that modifying the waypoint also modified the trajectory
