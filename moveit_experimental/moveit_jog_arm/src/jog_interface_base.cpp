@@ -103,7 +103,8 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   // Input checking
   if (ros_parameters_.num_outgoing_halt_msgs_to_publish < 0)
   {
-    ROS_WARN_NAMED(LOGNAME, "Parameter 'num_outgoing_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
+    ROS_WARN_NAMED(LOGNAME,
+                   "Parameter 'num_outgoing_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
     return false;
   }
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)

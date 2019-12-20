@@ -441,8 +441,8 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
 // Scale for collisions is read from a shared variable.
 // Key equation: new_velocity = collision_scale*singularity_scale*previous_velocity
 bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
-                                    trajectory_msgs::JointTrajectory& new_joint_traj, const Eigen::VectorXd& delta_theta,
-                                    double singularity_scale)
+                                    trajectory_msgs::JointTrajectory& new_joint_traj,
+                                    const Eigen::VectorXd& delta_theta, double singularity_scale)
 {
   mutex.lock();
   double collision_scale = shared_variables.collision_velocity_scale;
