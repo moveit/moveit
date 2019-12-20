@@ -8,8 +8,11 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
-JOG_ARM_SETTLE_TIME_S = 10
-ROS_SETTLE_TIME_S = 10
+# This can be run as part of a pytest, or like a normal ROS executable:
+# rosrun moveit_jog_arm test_jog_arm_integration.py
+
+JOG_ARM_SETTLE_TIME_S = 3
+ROS_SETTLE_TIME_S = 3
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
@@ -47,6 +50,7 @@ class CartesianJogCmd(object):
         ts.twist.angular.x, ts.twist.angular.y, ts.twist.angular.z = angular
         self._pub.publish(ts)
 
+
 def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(node):
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda x: received.append(x)
@@ -74,6 +78,11 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     received = []
     rospy.sleep(test_duration)
     # test_duration/publish_period is the expected number of messages in this duration.
-     # Allow a small +/- window due to rounding/timing errors
+    # Allow a small +/- window due to rounding/timing errors
     assert len(received) >= test_duration/publish_period - 5
     assert len(received) <= test_duration/publish_period + 5
+
+
+if __name__ == '__main__':
+   node = node()
+   test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(node)
