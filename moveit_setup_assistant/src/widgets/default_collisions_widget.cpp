@@ -448,11 +448,13 @@ void DefaultCollisionsWidget::hideSections()
     list << clicked_section_;
   }
 
-  if (header != nullptr)
+  if (header == nullptr)
   {
-    for (auto index : list)
-      header->setSectionHidden(index, true);
+    ROS_FATAL_NAMED("default_collisions_widget", "QHeaderView is null");
+    ROS_BREAK();
   }
+  for (auto index : list)
+    header->setSectionHidden(index, true);
 }
 
 void DefaultCollisionsWidget::hideOtherSections()
@@ -481,16 +483,18 @@ void DefaultCollisionsWidget::hideOtherSections()
     list << clicked_section_;
   }
 
-  if (header != nullptr)
+  if (header == nullptr)
   {
-    // first hide all sections
-    for (std::size_t index = 0, end = header->count(); index != end; ++index)
-      header->setSectionHidden(index, true);
-
-    // and subsequently show selected ones
-    for (auto index : list)
-      header->setSectionHidden(index, false);
+    ROS_FATAL_NAMED("default_collisions_widget", "QHeaderView is null");
+    ROS_BREAK();
   }
+  // first hide all sections
+  for (std::size_t index = 0, end = header->count(); index != end; ++index)
+    header->setSectionHidden(index, true);
+
+  // and subsequently show selected ones
+  for (auto index : list)
+    header->setSectionHidden(index, false);
 }
 
 void DefaultCollisionsWidget::showSections()
@@ -536,10 +540,12 @@ void DefaultCollisionsWidget::showSections()
     list << clicked_section_;
   }
 
-  if (header != nullptr)
+  if (header == nullptr)
   {
-    showSections(header, list);
+    ROS_FATAL_NAMED("default_collisions_widget", "header is null");
+    ROS_BREAK();
   }
+  showSections(header, list);
 }
 void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>& logicalIndexes)
 {
@@ -669,8 +675,12 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 void DefaultCollisionsWidget::checkedFilterChanged()
 {
   SortFilterProxyModel* m = qobject_cast<SortFilterProxyModel*>(model_);
-  if (m)
-    m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
+  if (!m)
+  {
+    ROS_FATAL_NAMED("default_collisions_widget", "SortFilterProxyModel is null");
+    ROS_BREAK();
+  }
+  m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
 }
 
 // Output Link Pairs to SRDF Format and update the collision matrix

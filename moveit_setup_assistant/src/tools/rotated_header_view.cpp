@@ -80,8 +80,8 @@ QSize RotatedHeaderView::sectionSizeFromContents(int logicalIndex) const
   QAbstractItemModel* m = model();
   if (m == nullptr)
   {
-    Q_ASSERT(m);
-    return QSize();
+    ROS_FATAL_NAMED("rotated_header_view", "model() is null");
+    ROS_BREAK();
   }
 
   // use SizeHintRole
@@ -127,7 +127,10 @@ int RotatedHeaderView::sectionSizeHint(int logicalIndex) const
   QSize size;
   QAbstractItemModel* m = model();
   if (m == nullptr)
-    return -1;
+  {
+    ROS_FATAL_NAMED("rotated_header_view", "QAbstractItemModel is null");
+    ROS_BREAK();
+  }
   QVariant value = m->headerData(logicalIndex, orientation(), Qt::SizeHintRole);
   if (value.isValid())
     size = qvariant_cast<QSize>(value);

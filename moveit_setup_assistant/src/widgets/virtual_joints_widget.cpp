@@ -307,7 +307,10 @@ void VirtualJointsWidget::edit(const std::string& name)
   // Find the selected in datastruture
   srdf::Model::VirtualJoint* vjoint = findVJointByName(name);
   if (vjoint == NULL)
-    return;
+  {
+    ROS_FATAL_NAMED("virtual_joints_widget", "findVJointByName() returned null");
+    ROS_BREAK();
+  }
 
   // Set vjoint name
   vjoint_name_field_->setText(vjoint->name_.c_str());

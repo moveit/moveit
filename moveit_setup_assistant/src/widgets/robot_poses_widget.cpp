@@ -422,7 +422,10 @@ void RobotPosesWidget::edit(int row)
   // Find the selected in datastruture
   srdf::Model::GroupState* pose = findPoseByName(name, group);
   if (pose == NULL)
-    return;
+  {
+    ROS_FATAL_NAMED("robot_poses_widget", "findPoseByName() returned null");
+    ROS_BREAK();
+  }
   current_edit_pose_ = pose;
 
   // Set pose name

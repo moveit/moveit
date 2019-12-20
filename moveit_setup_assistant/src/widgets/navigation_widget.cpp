@@ -89,7 +89,10 @@ void NavigationWidget::setEnabled(const int& index, bool enabled)
 {
   QStandardItem* item = model_->item(index);
   if (item == nullptr)
-    return;
+  {
+    ROS_FATAL_NAMED("navigation_widget", "QStandardItem is null");
+    ROS_BREAK();
+  }
 
   if (enabled)
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled |

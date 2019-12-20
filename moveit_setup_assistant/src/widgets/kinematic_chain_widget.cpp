@@ -207,12 +207,14 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent, const 
     for (int i = 0; i < parent->childCount(); i++)
     {
       QTreeWidgetItem* item = parent->child(i);
-      if (item != NULL)
+      if (item == NULL)
       {
-        if (addLinkChildRecursive(item, link, parent_name))
-        {
+        ROS_FATAL_NAMED("kinematic_chain_widget", "QTreeWidgetItem is null");
+        ROS_BREAK();
+      }
+      if (addLinkChildRecursive(item, link, parent_name))
+      {
           return true;
-        }
       }
     }
   }

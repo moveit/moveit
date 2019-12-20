@@ -212,13 +212,15 @@ void SetupAssistantWidget::moveToScreen(const int index)
   {
     // Send the focus lost command to the screen widget
     SetupScreenWidget* ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(current_index_));
-    if (ssw != NULL)
+    if (ssw == NULL)
     {
-      if (!ssw->focusLost())
-      {
-        navs_view_->setSelected(current_index_);
-        return;  // switching not accepted
-      }
+      ROS_FATAL_NAMED("setup_assistant_widget", "SetupScreenWidget is null");
+      ROS_BREAK();
+    }
+    if (!ssw->focusLost())
+    {
+      navs_view_->setSelected(current_index_);
+      return;  // switching not accepted
     }
 
     current_index_ = index;
@@ -231,8 +233,12 @@ void SetupAssistantWidget::moveToScreen(const int index)
 
     // Send the focus given command to the screen widget
     ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(index));
-    if (ssw != NULL)
-      ssw->focusGiven();
+    if (ssw == NULL)
+    {
+      ROS_FATAL_NAMED("setup_assistant_widget", "SetupScreenWidget is null");
+      ROS_BREAK();
+    }
+    ssw->focusGiven();
 
     // Change navigation selected option
     navs_view_->setSelected(index);  // Select first item in list

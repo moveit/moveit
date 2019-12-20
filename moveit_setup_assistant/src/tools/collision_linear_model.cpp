@@ -132,8 +132,8 @@ DisabledReason CollisionLinearModel::reason(int row) const
   CollisionMatrixModel* m = qobject_cast<CollisionMatrixModel*>(sourceModel());
   if (!m)
   {
-    Q_ASSERT(m);
-    return moveit_setup_assistant::NOT_DISABLED;
+    ROS_FATAL_NAMED("collision_linear_model", "sourceModel() is null");
+    ROS_BREAK();
   }
   QModelIndex srcIndex = this->mapToSource(index(row, 0));
 
@@ -247,7 +247,10 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex& s
 {
   CollisionLinearModel* m = qobject_cast<CollisionLinearModel*>(sourceModel());
   if (!m)
-    return false;
+  {
+    ROS_FATAL_NAMED("collision_linear_model", "sourceModel() is null");
+    ROS_BREAK();
+  }
 
   if (!(show_all_ || m->reason(source_row) <= moveit_setup_assistant::ALWAYS ||
         m->data(m->index(source_row, 2), Qt::CheckStateRole) == Qt::Checked))
