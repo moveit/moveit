@@ -256,7 +256,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
-  // Transform the command to the MoveGroup planning frame 
+  // Transform the command to the MoveGroup planning frame
   Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
   Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
   translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
