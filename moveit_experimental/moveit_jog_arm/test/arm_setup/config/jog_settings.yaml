@@ -14,7 +14,7 @@ low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the 
 
 ## Properties of outgoing commands
 publish_period: 0.01  # 1/Nominal publish rate [seconds]
-publish_delay: 0.005  # delay between calculation and execution start of command
+publish_delay: 0.005  # Delay between calculation and execution start of command
 
 # What type of topic does your robot driver expect?
 # Currently supported are std_msgs/Float64MultiArray (for ros_control JointGroupVelocityController or JointGroupPositionController)
@@ -31,10 +31,10 @@ move_group_name:  panda_arm  # Often 'manipulator' or 'arm'
 planning_frame: panda_link0  # The MoveIt planning frame. Often 'panda_link0' or 'world'
 
 ## Stopping behaviour
-incoming_command_timeout:  1  # Stop jogging if X seconds elapse without a new cmd
+incoming_command_timeout:  1  # Stop jogging if X seconds elapse without a new command
 # If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish.
 # Important because ROS may drop some messages and we need the robot to halt reliably.
-num_halt_msgs_to_publish: 1
+num_outgoing_halt_msgs_to_publish: 1
 
 ## Configure handling of singularities and joint limits
 lower_singularity_threshold:  30  # Start decelerating when the condition number hits this (close to singularity)
@@ -48,7 +48,7 @@ joint_topic:  joint_states
 warning_topic: jog_server/halted # Publish boolean warnings to this topic
 command_out_topic: jog_server/command # Publish outgoing commands here
 
-## Collision checking
+## Collision checking for the entire robot body
 check_collisions: true # Check collisions?
 collision_check_rate: 5 # [Hz] Collision-checking can easily bog down a CPU if done too often.
 collision_proximity_threshold: 0.03 # Start decelerating when a collision is this far [m]

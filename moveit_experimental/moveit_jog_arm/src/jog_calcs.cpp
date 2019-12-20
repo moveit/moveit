@@ -67,15 +67,15 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
 
   resetVelocityFilters();
 
-  jt_state_.name = joint_model_group_->getVariableNames();
-  num_joints_ = jt_state_.name.size();
-  jt_state_.position.resize(num_joints_);
-  jt_state_.velocity.resize(num_joints_);
-  jt_state_.effort.resize(num_joints_);
+  joint_state_.name = joint_model_group_->getVariableNames();
+  num_joints_ = joint_state_.name.size();
+  joint_state_.position.resize(num_joints_);
+  joint_state_.velocity.resize(num_joints_);
+  joint_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < joint_state_.name.size(); ++i)
   {
-    jt_state_name_map_[jt_state_.name[i]] = i;
+    joint_state_name_map_[joint_state_.name[i]] = i;
   }
 
   // Low-pass filters for the joint positions & velocities
@@ -89,12 +89,12 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   while (!updateJoints() && ros::ok())
   {
     mutex.lock();
-    incoming_jts_ = shared_variables.joints;
+    incoming_joints_ = shared_variables.joints;
     mutex.unlock();
     ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
   for (std::size_t i = 0; i < num_joints_; ++i)
-    position_filters_[i].reset(jt_state_.position[i]);
+    position_filters_[i].reset(joint_state_.position[i]);
 
   // Wait for the first jogging cmd.
   // Store it in a class member for further calcs, then free up the shared variable again.
@@ -131,11 +131,11 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
 
     // Pull data from the shared variables.
     mutex.lock();
-    incoming_jts_ = shared_variables.joints;
+    incoming_joints_ = shared_variables.joints;
     mutex.unlock();
 
-    kinematic_state_->setVariableValues(jt_state_);
-    original_jt_state_ = jt_state_;
+    kinematic_state_->setVariableValues(joint_state_);
+    original_joint_state_ = joint_state_;
 
     // Get the transform from MoveIt planning frame to jogging command frame
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
@@ -147,7 +147,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
     while (!updateJoints() && ros::ok())
     {
       mutex.lock();
-      incoming_jts_ = shared_variables.joints;
+      incoming_joints_ = shared_variables.joints;
       mutex.unlock();
       ros::Duration(WHILE_LOOP_WAIT).sleep();
     }
@@ -173,8 +173,8 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
     }
     else
     {
-      original_jt_state_ = jt_state_;
-      outgoing_command_ = composeOutgoingMessage(jt_state_);
+      original_joint_state_ = joint_state_;
+      outgoing_command_ = composeOutgoingMessage(joint_state_);
     }
 
     // Halt if the command is stale or inputs are all zero, or commands were zero
@@ -202,15 +202,15 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
         shared_variables.ok_to_publish = true;
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row.
-      // num_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
-      else if ((parameters_.num_halt_msgs_to_publish != 0) &&
-               (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
+      // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
+      else if ((parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
+               (zero_velocity_count > parameters_.num_outgoing_halt_msgs_to_publish))
       {
         shared_variables.ok_to_publish = false;
         // Reset the velocity filters so robot doesn't jump when commands resume
         resetVelocityFilters();
       }
-      // The command is invalid but we are publishing num_halt_msgs_to_publish
+      // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
       else
       {
         shared_variables.outgoing_command = outgoing_command_;
@@ -282,7 +282,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   enforceJointVelocityLimits(delta_theta_);
 
-  if (!addJointIncrements(jt_state_, delta_theta_))
+  if (!addJointIncrements(joint_state_, delta_theta_))
     return false;
 
   // Include a velocity estimate for velocity-controlled robots
@@ -291,7 +291,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   lowPassFilterVelocities(joint_vel);
   lowPassFilterPositions();
 
-  outgoing_command_ = composeOutgoingMessage(jt_state_);
+  outgoing_command_ = composeOutgoingMessage(joint_state_);
 
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
@@ -329,10 +329,10 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   // Apply user-defined scaling
   const Eigen::VectorXd delta = scaleJointCommand(cmd);
 
-  kinematic_state_->setVariableValues(jt_state_);
-  original_jt_state_ = jt_state_;
+  kinematic_state_->setVariableValues(joint_state_);
+  original_joint_state_ = joint_state_;
 
-  if (!addJointIncrements(jt_state_, delta))
+  if (!addJointIncrements(joint_state_, delta))
     return false;
 
   // Include a velocity estimate for velocity-controlled robots
@@ -342,9 +342,9 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   lowPassFilterPositions();
 
   // update joint state with new values
-  kinematic_state_->setVariableValues(jt_state_);
+  kinematic_state_->setVariableValues(joint_state_);
 
-  outgoing_command_ = composeOutgoingMessage(jt_state_);
+  outgoing_command_ = composeOutgoingMessage(joint_state_);
 
   // check if new joint state is valid
   if (!checkIfJointsWithinURDFBounds(outgoing_command_))
@@ -384,13 +384,13 @@ void JogCalcs::lowPassFilterPositions()
 {
   for (size_t i = 0; i < num_joints_; ++i)
   {
-    jt_state_.position[i] = position_filters_[i].filter(jt_state_.position[i]);
+    joint_state_.position[i] = position_filters_[i].filter(joint_state_.position[i]);
 
     // Check for nan's
-    if (std::isnan(jt_state_.position[i]))
+    if (std::isnan(joint_state_.position[i]))
     {
-      jt_state_.position[i] = original_jt_state_.position[i];
-      jt_state_.velocity[i] = 0.;
+      joint_state_.position[i] = original_joint_state_.position[i];
+      joint_state_.velocity[i] = 0.;
     }
   }
 }
@@ -399,13 +399,13 @@ void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
 {
   for (size_t i = 0; i < num_joints_; ++i)
   {
-    jt_state_.velocity[i] = velocity_filters_[i].filter(joint_vel[static_cast<long>(i)]);
+    joint_state_.velocity[i] = velocity_filters_[i].filter(joint_vel[static_cast<long>(i)]);
 
     // Check for nan's
-    if (std::isnan(jt_state_.velocity[static_cast<long>(i)]))
+    if (std::isnan(joint_state_.velocity[static_cast<long>(i)]))
     {
-      jt_state_.position[i] = original_jt_state_.position[i];
-      jt_state_.velocity[i] = 0.;
+      joint_state_.position[i] = original_joint_state_.position[i];
+      joint_state_.velocity[i] = 0.;
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in velocity filter");
     }
   }
@@ -413,10 +413,10 @@ void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
 
 trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::JointState& joint_state) const
 {
-  trajectory_msgs::JointTrajectory new_jt_traj;
-  new_jt_traj.header.frame_id = parameters_.planning_frame;
-  new_jt_traj.header.stamp = ros::Time::now();
-  new_jt_traj.joint_names = joint_state.name;
+  trajectory_msgs::JointTrajectory new_joint_traj;
+  new_joint_traj.header.frame_id = parameters_.planning_frame;
+  new_joint_traj.header.stamp = ros::Time::now();
+  new_joint_traj.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
@@ -432,16 +432,16 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
     std::vector<double> acceleration(num_joints_);
     point.accelerations = acceleration;
   }
-  new_jt_traj.points.push_back(point);
+  new_joint_traj.points.push_back(point);
 
-  return new_jt_traj;
+  return new_joint_traj;
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
 // Scale for collisions is read from a shared variable.
 // Key equation: new_velocity = collision_scale*singularity_scale*previous_velocity
 bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
-                                    trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
+                                    trajectory_msgs::JointTrajectory& new_joint_traj, const Eigen::VectorXd& delta_theta,
                                     double singularity_scale)
 {
   mutex.lock();
@@ -453,12 +453,12 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, std::mutex& 
     if (parameters_.publish_joint_positions)
     {
       // If close to a singularity or joint limit, undo any change to the joint angles
-      new_jt_traj.points[0].positions[i] =
-          new_jt_traj.points[0].positions[i] -
+      new_joint_traj.points[0].positions[i] =
+          new_joint_traj.points[0].positions[i] -
           (1. - singularity_scale * collision_scale) * delta_theta[static_cast<long>(i)];
     }
     if (parameters_.publish_joint_velocities)
-      new_jt_traj.points[0].velocities[i] *= singularity_scale * collision_scale;
+      new_joint_traj.points[0].velocities[i] *= singularity_scale * collision_scale;
   }
 
   return true;
@@ -544,7 +544,7 @@ void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_chan
   }
 }
 
-bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_jt_traj)
+bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
 {
   bool halting = false;
 
@@ -557,11 +557,11 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
                                                                               " velocity limit. Enforcing limit.");
 
       kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
+      for (std::size_t c = 0; c < new_joint_traj.joint_names.size(); ++c)
       {
-        if (new_jt_traj.joint_names[c] == joint->getName())
+        if (new_joint_traj.joint_names[c] == joint->getName())
         {
-          new_jt_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
+          new_joint_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
           break;
         }
       }
@@ -569,11 +569,11 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
 
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
-    for (std::size_t c = 0; c < original_jt_state_.name.size(); ++c)
+    for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
     {
-      if (original_jt_state_.name[c] == joint->getName())
+      if (original_joint_state_.name[c] == joint->getName())
       {
-        joint_angle = original_jt_state_.position.at(c);
+        joint_angle = original_joint_state_.position.at(c);
         break;
       }
     }
@@ -610,17 +610,17 @@ void JogCalcs::publishWarning(bool active) const
 
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
-void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& jt_traj)
+void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 {
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      jt_traj.points[0].positions[i] = original_jt_state_.position[i];
+      joint_traj.points[0].positions[i] = original_joint_state_.position[i];
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      jt_traj.points[0].velocities[i] = 0;
+      joint_traj.points[0].velocities[i] = 0;
   }
 }
 
@@ -635,16 +635,16 @@ void JogCalcs::resetVelocityFilters()
 bool JogCalcs::updateJoints()
 {
   // Check that the msg contains enough joints
-  if (incoming_jts_.name.size() < num_joints_)
+  if (incoming_joints_.name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_jts_.name.size(); ++m)
+  for (std::size_t m = 0; m < incoming_joints_.name.size(); ++m)
   {
     std::size_t c;
     try
     {
-      c = jt_state_name_map_.at(incoming_jts_.name[m]);
+      c = joint_state_name_map_.at(incoming_joints_.name[m]);
     }
     catch (const std::out_of_range& e)
     {
@@ -652,7 +652,7 @@ bool JogCalcs::updateJoints()
       continue;
     }
 
-    jt_state_.position[c] = incoming_jts_.position[m];
+    joint_state_.position[c] = incoming_joints_.position[m];
   }
 
   return true;
@@ -703,7 +703,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
   {
     try
     {
-      c = jt_state_name_map_.at(command.joint_names[m]);
+      c = joint_state_name_map_.at(command.joint_names[m]);
     }
     catch (const std::out_of_range& e)
     {

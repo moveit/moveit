@@ -68,7 +68,7 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     received = []
     rospy.sleep(1)
-    assert len(received) <= 2 # 2 is 'num_halt_msgs_to_publish' in the config file
+    assert len(received) <= 2 # 2 is 'num_outgoing_halt_msgs_to_publish' in the config file
 
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`

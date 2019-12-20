@@ -92,7 +92,7 @@ struct JogArmParameters
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
       collision_proximity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout,
       joint_limit_margin, collision_check_rate;
-  int num_halt_msgs_to_publish;
+  int num_outgoing_halt_msgs_to_publish;
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 }
