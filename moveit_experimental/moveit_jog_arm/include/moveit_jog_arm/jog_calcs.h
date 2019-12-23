@@ -43,8 +43,6 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <std_msgs/Bool.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 
 namespace moveit_jog_arm
 {
@@ -57,7 +55,7 @@ public:
 protected:
   ros::NodeHandle nh_;
 
-  sensor_msgs::JointState incoming_jts_;
+  sensor_msgs::JointState incoming_joints_;
 
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
 
@@ -80,11 +78,11 @@ protected:
 
   // Suddenly halt for a joint limit or other critical issue.
   // Is handled differently for position vs. velocity control.
-  void suddenHalt(trajectory_msgs::JointTrajectory& jt_traj);
+  void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
 
   void publishWarning(bool active) const;
 
-  bool checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_jt_traj);
+  bool checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
@@ -93,7 +91,7 @@ protected:
 
   // Apply velocity scaling for proximity of collisions and singularities
   bool applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
-                            trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
+                            trajectory_msgs::JointTrajectory& new_joint_traj, const Eigen::VectorXd& delta_theta,
                             double singularity_scale);
 
   trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state) const;
@@ -108,12 +106,9 @@ protected:
 
   robot_state::RobotStatePtr kinematic_state_;
 
-  sensor_msgs::JointState jt_state_, original_jt_state_;
-  std::map<std::string, std::size_t> jt_state_name_map_;
+  sensor_msgs::JointState joint_state_, original_joint_state_;
+  std::map<std::string, std::size_t> joint_state_name_map_;
   trajectory_msgs::JointTrajectory outgoing_command_;
-
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
 
   std::vector<LowPassFilter> velocity_filters_;
   std::vector<LowPassFilter> position_filters_;
@@ -126,6 +121,8 @@ protected:
   Eigen::MatrixXd jacobian_, pseudo_inverse_, matrix_s_;
   Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
   Eigen::VectorXd delta_theta_;
+
+  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 
   const int gazebo_redundant_message_count_ = 30;
 

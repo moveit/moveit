@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(LIBRARY_NAME jog_arm_cpp_api)
 
+set(LIBRARY_NAME jog_arm_cpp_api)
+
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -16,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
-  tf2_ros
 )
 find_package(Eigen3 REQUIRED)
 
@@ -30,7 +31,6 @@ catkin_package(
     geometry_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
-    tf2_ros
   DEPENDS
     EIGEN3
 )
@@ -114,6 +114,10 @@ install(
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
+
+#############
+## TESTING ##
+#############
 
 #############
 ## TESTING ##

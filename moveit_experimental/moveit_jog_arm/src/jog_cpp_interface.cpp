@@ -87,11 +87,10 @@ void JogCppApi::mainLoop()
     shared_variables_mutex_.lock();
     trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
-    // Check for stale cmds
+    // Check if incoming commands are stale
     if ((ros::Time::now() - shared_variables_.latest_nonzero_cmd_stamp) <
         ros::Duration(ros_parameters_.incoming_command_timeout))
     {
-      // Mark that incoming commands are not stale
       shared_variables_.command_is_stale = false;
     }
     else
@@ -142,18 +141,16 @@ void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& ve
 {
   shared_variables_mutex_.lock();
 
-  // Copy everything but the frame name. The frame name is set by yaml file at startup.
-  // (so it isn't copied over and over)
   shared_variables_.command_deltas.twist = velocity_command.twist;
   shared_variables_.command_deltas.header = velocity_command.header;
 
   // Input frame determined by YAML file if not passed with message
   if (shared_variables_.command_deltas.header.frame_id.empty())
   {
-    shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
+    shared_variables_.command_deltas.header.frame_id = ros_parameters_.robot_link_command_frame;
   }
 
-  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_halt_msgs_to_publish
+  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_outgoing_halt_msgs_to_publish
   shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.y == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.z == 0.0 &&
@@ -197,4 +194,12 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
+Eigen::Isometry3d JogCppApi::getCommandFrameTransform()
+{
+  shared_variables_mutex_.lock();
+  Eigen::Isometry3d tf_moveit_to_cmd_frame = shared_variables_.tf_moveit_to_cmd_frame;
+  shared_variables_mutex_.unlock();
+
+  return tf_moveit_to_cmd_frame;
+}
 }  // namespace moveit_jog_arm
