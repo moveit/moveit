@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "jog_interface_base.h"
 
 namespace moveit_jog_arm
@@ -51,7 +52,11 @@ class JogCppApi : JogInterfaceBase
 public:
   JogCppApi();
 
-  void mainLoop();
+  ~JogCppApi();
+
+  void startMainLoop();
+
+  void stopMainLoop();
 
   // Provide a Cartesian velocity command to the jogger.
   // The units are determined by settings in the yaml file.
@@ -70,5 +75,7 @@ public:
 
 private:
   ros::NodeHandle nh_;
+
+  std::atomic<bool> stop_requested_;
 };
 }  // namespace moveit_jog_arm

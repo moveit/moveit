@@ -61,10 +61,11 @@ JogROSInterface::JogROSInterface()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 
   // Crunch the numbers in this thread
-  std::thread jogging_thread(&JogInterfaceBase::startJogCalcThread, dynamic_cast<JogInterfaceBase*>(this));
+  startJogCalcThread();
 
   // Check collisions in this thread
-  std::thread collision_thread(&JogInterfaceBase::startCollisionCheckThread, dynamic_cast<JogInterfaceBase*>(this));
+  if (ros_parameters_.check_collisions)
+    startCollisionCheckThread();
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber cmd_sub =
@@ -146,8 +147,8 @@ JogROSInterface::JogROSInterface()
     main_rate.sleep();
   }
 
-  jogging_thread.join();
-  collision_thread.join();
+  stopJogCalcThread();
+  stopCollisionCheckThread();
 }
 
 // Listen to cartesian delta commands. Store them in a shared variable.
