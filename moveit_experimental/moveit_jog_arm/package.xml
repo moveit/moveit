@@ -23,7 +23,6 @@
   <depend>geometry_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
-  <depend>tf2_ros</depend>
 
   <exec_depend>joy_teleop</exec_depend>
 

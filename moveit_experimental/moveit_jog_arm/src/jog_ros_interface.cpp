@@ -163,10 +163,10 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   // Input frame determined by YAML file if not passed with message
   if (shared_variables_.command_deltas.header.frame_id.empty())
   {
-    shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
+    shared_variables_.command_deltas.header.frame_id = ros_parameters_.robot_link_command_frame;
   }
 
-  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_halt_msgs_to_publish
+  // Check if input is all zeros. Flag it if so to skip calculations/publication after num_outgoing_halt_msgs_to_publish
   shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.y == 0.0 &&
                                               shared_variables_.command_deltas.twist.linear.z == 0.0 &&

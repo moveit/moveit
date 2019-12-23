@@ -4,17 +4,17 @@
 use_gazebo: true # Whether the robot is started in a Gazebo simulation environment
 
 ## Properties of incoming commands
-command_frame:  world  # TF frame that incoming cmds are given in
+robot_link_command_frame:  world  # commands must be given in the frame of a robot link. Usually either the base or end effector
 command_in_type: "speed_units" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
-scale: # Only used if command_in_type=="unitless"
-  linear:  0.6  # Max linear velocity. Meters per publish_period. Units is [m/s]
-  rotational:  0.3 # Max angular velocity. Rads per publish_period. Units is [rad/s]
+scale:
+  linear:  0.6  # Max linear velocity. Meters per publish_period. Units is [m/s]. Only used if command_in_type=="unitless"
+  rotational:  0.3 # Max angular velocity. Rads per publish_period. Units is [rad/s]. Only used if command_in_type=="unitless"
   joint: 0.3  # Max joint angular/linear velocity. Rads or Meters per publish period. Units is [rad/s] or [m/s].
 low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the measurements less.
 
 ## Properties of outgoing commands
 publish_period: 0.008  # 1/Nominal publish rate [seconds]
-publish_delay: 0.005  # delay between calculation and execution start of command
+publish_delay: 0.005  # Delay between calculation and execution start of command
 
 # What type of topic does your robot driver expect?
 # Currently supported are std_msgs/Float64MultiArray (for ros_control JointGroupVelocityController or JointGroupPositionController)
@@ -28,13 +28,13 @@ publish_joint_accelerations: false
 
 ## MoveIt properties
 move_group_name:  manipulator  # Often 'manipulator' or 'arm'
-planning_frame: world  # The MoveIt! planning frame. Often 'base_link'
+planning_frame: world  # The MoveIt planning frame. Often 'base_link' or 'world'
 
 ## Stopping behaviour
-incoming_command_timeout:  0.1  # Stop jogging if X seconds elapse without a new cmd
+incoming_command_timeout:  0.1  # Stop jogging if X seconds elapse without a new command
 # If 0, republish commands forever even if the robot is stationary. Otherwise, specify num. to publish.
 # Important because ROS may drop some messages and we need the robot to halt reliably.
-num_halt_msgs_to_publish: 4
+num_outgoing_halt_msgs_to_publish: 4
 
 ## Configure handling of singularities and joint limits
 lower_singularity_threshold:  17  # Start decelerating when the condition number hits this (close to singularity)
@@ -48,7 +48,7 @@ joint_topic:  joint_states
 warning_topic: jog_server/halted # Publish boolean warnings to this topic
 command_out_topic: joint_group_position_controller/command # Publish outgoing commands here
 
-## Collision checking
+## Collision checking for the entire robot body
 check_collisions: true # Check collisions?
 collision_check_rate: 5 # [Hz] Collision-checking can easily bog down a CPU if done too often.
 collision_proximity_threshold: 0.01 # Start decelerating when a collision is this far [m]

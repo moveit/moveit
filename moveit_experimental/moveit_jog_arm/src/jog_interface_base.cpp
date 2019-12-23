@@ -60,8 +60,8 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_period", ros_parameters_.publish_period);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/num_halt_msgs_to_publish",
-                                    ros_parameters_.num_halt_msgs_to_publish);
+  error += !rosparam_shortcuts::get("", n, parameter_ns + "/num_outgoing_halt_msgs_to_publish",
+                                    ros_parameters_.num_outgoing_halt_msgs_to_publish);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/linear", ros_parameters_.linear_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/rotational", ros_parameters_.rotational_scale);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/scale/joint", ros_parameters_.joint_scale);
@@ -73,7 +73,8 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.cartesian_command_in_topic);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/joint_command_in_topic", ros_parameters_.joint_command_in_topic);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/command_frame", ros_parameters_.command_frame);
+  error += !rosparam_shortcuts::get("", n, parameter_ns + "/robot_link_command_frame",
+                                    ros_parameters_.robot_link_command_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/incoming_command_timeout",
                                     ros_parameters_.incoming_command_timeout);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/lower_singularity_threshold",
@@ -100,9 +101,10 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Input checking
-  if (ros_parameters_.num_halt_msgs_to_publish < 0)
+  if (ros_parameters_.num_outgoing_halt_msgs_to_publish < 0)
   {
-    ROS_WARN_NAMED(LOGNAME, "Parameter 'num_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
+    ROS_WARN_NAMED(LOGNAME,
+                   "Parameter 'num_outgoing_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
     return false;
   }
   if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)

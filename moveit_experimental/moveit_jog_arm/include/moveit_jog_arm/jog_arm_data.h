@@ -39,6 +39,7 @@
 #pragma once
 
 #include <control_msgs/JointJog.h>
+#include <Eigen/Geometry>
 #include <geometry_msgs/TwistStamped.h>
 #include <mutex>
 #include <sensor_msgs/JointState.h>
@@ -78,17 +79,20 @@ struct JogArmShared
 
   // Indicates no collision, etc, so outgoing commands can be sent
   bool ok_to_publish = false;
+
+  // The transform from the MoveIt planning frame to robot_link_command_frame
+  Eigen::Isometry3d tf_moveit_to_cmd_frame;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {
-  std::string move_group_name, joint_topic, cartesian_command_in_topic, command_frame, command_out_topic,
+  std::string move_group_name, joint_topic, cartesian_command_in_topic, robot_link_command_frame, command_out_topic,
       planning_frame, warning_topic, joint_command_in_topic, command_in_type, command_out_type;
   double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
       collision_proximity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout,
       joint_limit_margin, collision_check_rate;
-  int num_halt_msgs_to_publish;
+  int num_outgoing_halt_msgs_to_publish;
   bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
 };
 }
