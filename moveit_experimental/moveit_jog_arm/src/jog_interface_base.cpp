@@ -190,14 +190,56 @@ void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {
-  JogCalcs ja(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
+  if (!jog_calcs_)
+    jog_calcs_.reset(new JogCalcs(ros_parameters_, model_loader_ptr_));
+
+  jog_calc_thread_.reset(
+      new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+
+  return true;
+}
+
+bool JogInterfaceBase::stopJogCalcThread()
+{
+  if (jog_calcs_)
+    jog_calcs_->stopMainLoop();
+
+  if (jog_calc_thread_)
+  {
+    if (jog_calc_thread_->joinable())
+      jog_calc_thread_->join();
+
+    jog_calc_thread_.reset();
+  }
+
   return true;
 }
 
 // A separate thread for collision checking.
 bool JogInterfaceBase::startCollisionCheckThread()
 {
-  CollisionCheckThread cc(ros_parameters_, shared_variables_, shared_variables_mutex_, model_loader_ptr_);
+  if (!collision_checker_)
+    collision_checker_.reset(new CollisionCheckThread(ros_parameters_, model_loader_ptr_));
+
+  collision_check_thread_.reset(
+      new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+
+  return true;
+}
+
+bool JogInterfaceBase::stopCollisionCheckThread()
+{
+  if (collision_checker_)
+    collision_checker_->stopMainLoop();
+
+  if (collision_check_thread_)
+  {
+    if (collision_check_thread_->joinable())
+      collision_check_thread_->join();
+
+    collision_check_thread_.reset();
+  }
+
   return true;
 }
 }  // namespace moveit_jog_arm

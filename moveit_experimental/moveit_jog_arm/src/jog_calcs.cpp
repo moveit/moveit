@@ -41,8 +41,7 @@
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, std::mutex& mutex,
-                   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
   : parameters_(parameters)
 {
   // Publish collision status
@@ -59,13 +58,17 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
+}
+
+void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
+{
+  // Reset loop termination flag
+  stop_requested_ = false;
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
-
-  resetVelocityFilters();
 
   joint_state_.name = joint_model_group_->getVariableNames();
   num_joints_ = joint_state_.name.size();
@@ -86,7 +89,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   }
 
   // Initialize the position filters to initial robot joints
-  while (!updateJoints() && ros::ok())
+  while (!updateJoints() && ros::ok() && !stop_requested_)
   {
     mutex.lock();
     incoming_joints_ = shared_variables.joints;
@@ -100,7 +103,8 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   // Store it in a class member for further calcs, then free up the shared variable again.
   geometry_msgs::TwistStamped cartesian_deltas;
   control_msgs::JointJog joint_deltas;
-  while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
+  while (ros::ok() && !stop_requested_ && (cartesian_deltas.header.stamp == ros::Time(0.)) &&
+         (joint_deltas.header.stamp == ros::Time(0.)))
   {
     ros::Duration(WHILE_LOOP_WAIT).sleep();
 
@@ -117,7 +121,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   ros::Rate loop_rate(1. / parameters_.publish_period);
 
   // Now do jogging calcs
-  while (ros::ok())
+  while (ros::ok() && !stop_requested_)
   {
     // Flag that incoming commands are all zero. May be used to skip calculations/publication
     mutex.lock();
@@ -144,7 +148,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
     mutex.unlock();
 
     // Initialize the position filters to initial robot joints
-    while (!updateJoints() && ros::ok())
+    while (!updateJoints() && ros::ok() && !stop_requested_)
     {
       mutex.lock();
       incoming_joints_ = shared_variables.joints;
@@ -232,6 +236,11 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
 
     loop_rate.sleep();
   }
+}
+
+void JogCalcs::stopMainLoop()
+{
+  stop_requested_ = true;
 }
 
 // Perform the jogging calculations
@@ -648,7 +657,7 @@ bool JogCalcs::updateJoints()
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joints_.name[m]);
       continue;
     }
 
@@ -707,7 +716,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joints_.name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
