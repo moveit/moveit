@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "jog_arm_data.h"
 #include "low_pass_filter.h"
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -49,11 +50,17 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, std::mutex& mutex,
-           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+
+  void startMainLoop(JogArmShared& shared_variables, std::mutex& mutex);
+
+  void stopMainLoop();
 
 protected:
   ros::NodeHandle nh_;
+
+  // Loop termination flag
+  std::atomic<bool> stop_requested_;
 
   sensor_msgs::JointState incoming_joints_;
 

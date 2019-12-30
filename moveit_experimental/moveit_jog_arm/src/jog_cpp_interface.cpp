@@ -50,13 +50,22 @@ JogCppApi::JogCppApi()
   model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 }
 
-void JogCppApi::mainLoop()
+JogCppApi::~JogCppApi()
 {
+  stopMainLoop();
+}
+
+void JogCppApi::startMainLoop()
+{
+  // Reset loop termination flag
+  stop_requested_ = false;
+
   // Crunch the numbers in this thread
-  std::thread jogging_thread(&JogInterfaceBase::startJogCalcThread, dynamic_cast<JogInterfaceBase*>(this));
+  startJogCalcThread();
 
   // Check collisions in this thread
-  std::thread collision_thread(&JogInterfaceBase::startCollisionCheckThread, dynamic_cast<JogInterfaceBase*>(this));
+  if (ros_parameters_.check_collisions)
+    startCollisionCheckThread();
 
   // ROS subscriptions. Share the data with the worker threads
   ros::Subscriber joints_sub =
@@ -80,7 +89,7 @@ void JogCppApi::mainLoop()
 
   ros::Rate main_rate(1. / ros_parameters_.publish_period);
 
-  while (ros::ok())
+  while (ros::ok() && !stop_requested_)
   {
     ros::spinOnce();
 
@@ -133,8 +142,14 @@ void JogCppApi::mainLoop()
     main_rate.sleep();
   }
 
-  jogging_thread.join();
-  collision_thread.join();
+  ROS_ERROR("Stopping main loop");
+  stopJogCalcThread();
+  stopCollisionCheckThread();
+}
+
+void JogCppApi::stopMainLoop()
+{
+  stop_requested_ = true;
 }
 
 void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)

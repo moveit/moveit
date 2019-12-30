@@ -59,9 +59,11 @@ public:
 
   // Jogging calculation thread
   bool startJogCalcThread();
+  bool stopJogCalcThread();
 
   // Collision checking thread
   bool startCollisionCheckThread();
+  bool stopCollisionCheckThread();
 
 protected:
   bool readParameters(ros::NodeHandle& n);
@@ -74,5 +76,13 @@ protected:
   // Share data between threads
   JogArmShared shared_variables_;
   std::mutex shared_variables_mutex_;
+
+  // Jog calcs
+  std::unique_ptr<JogCalcs> jog_calcs_;
+  std::unique_ptr<std::thread> jog_calc_thread_;
+
+  // Collision checks
+  std::unique_ptr<CollisionCheckThread> collision_checker_;
+  std::unique_ptr<std::thread> collision_check_thread_;
 };
 }  // namespace moveit_jog_arm

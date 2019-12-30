@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
   moveit_jog_arm::JogCppApi jog_interface;
-  std::thread jogging_thread(&moveit_jog_arm::JogCppApi::mainLoop, &jog_interface);
+  std::thread jogging_thread([&]() { jog_interface.startMainLoop(); });
 
   // Make a Cartesian velocity message
   geometry_msgs::TwistStamped velocity_msg;
@@ -93,6 +93,7 @@ int main(int argc, char** argv)
   sensor_msgs::JointState current_joint_state = jog_interface.getJointState();
   ROS_INFO_STREAM(current_joint_state);
 
+  jog_interface.stopMainLoop();
   jogging_thread.join();
   return 0;
 }

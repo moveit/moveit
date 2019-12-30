@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "jog_arm_data.h"
 #include "low_pass_filter.h"
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -48,8 +49,19 @@ namespace moveit_jog_arm
 class CollisionCheckThread
 {
 public:
-  CollisionCheckThread(const moveit_jog_arm::JogArmParameters parameters,
-                       moveit_jog_arm::JogArmShared& shared_variables, std::mutex& mutex,
+  CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
                        const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+
+  void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables, std::mutex& mutex);
+
+  void stopMainLoop();
+
+private:
+  // Loop termination flag
+  std::atomic<bool> stop_requested_;
+
+  const moveit_jog_arm::JogArmParameters parameters_;
+
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };
 }
