@@ -880,7 +880,7 @@ const AttachedBody* RobotState::getAttachedBody(const std::string& id) const
 
 void RobotState::attachBody(AttachedBody* attached_body)
 {
-  // Remove the old attached body if it still exists
+  // If an attached body with the same id exists, remove it
   clearAttachedBody(attached_body->getName());
 
   attached_body_map_[attached_body->getName()] = attached_body;
