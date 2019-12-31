@@ -73,8 +73,10 @@ void parseStart(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* 
           if (marker != "=")
             joint = ".";
           else
+          {
             in >> value;
-          v[joint] = value;
+            v[joint] = value;
+          }
           if (joint != ".")
             in >> joint;
         }
