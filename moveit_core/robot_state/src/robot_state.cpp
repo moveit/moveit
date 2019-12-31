@@ -880,6 +880,15 @@ const AttachedBody* RobotState::getAttachedBody(const std::string& id) const
 
 void RobotState::attachBody(AttachedBody* attached_body)
 {
+  // Does the old attached body hang around?
+  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(attached_body->getName());
+  if (it != attached_body_map_.end())
+  {
+    if (attached_body_update_callback_)
+      attached_body_update_callback_(it->second, false);
+    delete it->second;
+  }
+
   attached_body_map_[attached_body->getName()] = attached_body;
   attached_body->computeTransform(getGlobalLinkTransform(attached_body->getAttachedLink()));
   if (attached_body_update_callback_)
