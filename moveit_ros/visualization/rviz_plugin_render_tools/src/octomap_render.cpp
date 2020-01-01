@@ -54,15 +54,9 @@ typedef std::vector<VPoint> VVPoint;
 
 OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree>& octree,
                            OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
-                           std::size_t max_octree_depth, Ogre::SceneManager* /*scene_manager*/,
-                           Ogre::SceneNode* parent_node = nullptr)
+                           std::size_t max_octree_depth, Ogre::SceneNode* parent_node)
   : octree_(octree), colorFactor_(0.8)
 {
-  if (!parent_node)
-  {
-    parent_node = scene_manager_->getRootSceneNode();
-  }
-
   if (!max_octree_depth)
   {
     octree_depth_ = octree->getTreeDepth();
