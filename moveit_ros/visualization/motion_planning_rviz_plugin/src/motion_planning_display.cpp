@@ -1213,14 +1213,14 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
   robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
-  if (query_start_state_property_->getBool() && !group.empty())
+  if (query_start_state_ && query_start_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState start = *getQueryStartState();
     updateStateExceptModified(start, current_state);
     setQueryStartState(start);
   }
 
-  if (query_goal_state_property_->getBool() && !group.empty())
+  if (query_goal_state_ && query_goal_state_property_->getBool() && !group.empty())
   {
     robot_state::RobotState goal = *getQueryGoalState();
     updateStateExceptModified(goal, current_state);
@@ -1249,8 +1249,7 @@ void MotionPlanningDisplay::onEnable()
   int_marker_display_->setEnabled(true);
   int_marker_display_->setFixedFrame(fixed_frame_);
 
-  if (frame_ && frame_->parentWidget())
-    frame_->parentWidget()->show();
+  frame_->enable();
 }
 
 // ******************************************************************************************
@@ -1271,8 +1270,7 @@ void MotionPlanningDisplay::onDisable()
   // Planned Path Display
   trajectory_visual_->onDisable();
 
-  if (frame_ && frame_->parentWidget())
-    frame_->parentWidget()->hide();
+  frame_->disable();
 }
 
 // ******************************************************************************************
