@@ -98,6 +98,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
       current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
     collision_result.clear();
+    current_state.updateCollisionBodyTransforms();
     planning_scene_monitor_->getPlanningScene()->checkCollision(collision_request, collision_result, current_state);
 
     // Scale robot velocity according to collision proximity and user-defined thresholds.
