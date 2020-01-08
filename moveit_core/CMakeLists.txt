@@ -25,10 +25,10 @@ find_package(Eigen3 REQUIRED)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 # TODO: Move collision detection into separate packages
-find_package(Bullet)
+find_package(Bullet 2.87)
 
 # TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
-if(BULLET_FOUND AND BULLET_VERSION_STRING VERSION_GREATER "2.86")
+if(BULLET_FOUND)
   set(BULLET_ENABLE "BULLET")
   message(STATUS "Compiling with Bullet")
 else()
@@ -40,6 +40,7 @@ pkg_check_modules(LIBFCL_PC REQUIRED fcl)
 # find *absolute* paths to LIBFCL_INCLUDE_DIRS and LIBFCL_LIBRARIES
 find_path(LIBFCL_INCLUDE_DIRS fcl/config.h HINTS ${LIBFCL_PC_INCLUDE_DIR} ${LIBFCL_PC_INCLUDE_DIRS})
 find_library(LIBFCL_LIBRARIES fcl HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
