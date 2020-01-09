@@ -486,13 +486,12 @@ void EndEffectorsWidget::doneEditing()
   }
 
   // Check that the effector name is unique
-  for (std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin();
-       data_it != config_data_->srdf_->end_effectors_.end(); ++data_it)
+  for (const auto& eef : config_data_->srdf_->end_effectors_)
   {
-    if (data_it->name_.compare(effector_name) == 0)  // the names are the same
+    if (eef.name_ == effector_name)
     {
       // is this our existing effector? check if effector pointers are same
-      if (&(*data_it) != searched_data)
+      if (&eef != searched_data)
       {
         QMessageBox::warning(
             this, "Error Saving",
