@@ -65,13 +65,13 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  urdf::Model* umodel = new urdf::Model();
-  if (!umodel->initString(content))
+  std::unique_ptr<urdf::Model> urdf(new urdf::Model());
+  if (!urdf->initString(content))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
     return;
   }
-  urdf_.reset(umodel);
+  urdf_ = std::move(urdf);
 
   const std::string srdf_description(robot_description_ + "_semantic");
   std::string scontent;
@@ -82,13 +82,13 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  srdf_.reset(new srdf::Model());
-  if (!srdf_->initString(*urdf_, scontent))
+  srdf::ModelSharedPtr srdf(new srdf::Model());
+  if (!srdf->initString(*urdf_, scontent))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str());
-    srdf_.reset();
     return;
   }
+  srdf_ = std::move(srdf);
 
   ROS_DEBUG_STREAM_NAMED("rdf", "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
