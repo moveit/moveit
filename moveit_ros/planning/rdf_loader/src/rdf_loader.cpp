@@ -65,7 +65,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  urdf::ModelInterfaceSharedPtr urdf(new urdf::Model());
+  std::unique_ptr<urdf::Model> urdf(new urdf::Model());
   if (!urdf->initString(content))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
