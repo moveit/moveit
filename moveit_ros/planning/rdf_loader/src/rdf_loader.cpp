@@ -65,7 +65,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  urdf::ModelPtr urdf(new urdf::Model());
+  urdf::ModelInterfaceSharedPtr urdf(new urdf::Model());
   if (!urdf->initString(content))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
@@ -82,7 +82,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
     return;
   }
 
-  srdf::ModelPtr srdf(new srdf::Model());
+  srdf::ModelSharedPtr srdf(new srdf::Model());
   if (!srdf->initString(*urdf_, scontent))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str());
