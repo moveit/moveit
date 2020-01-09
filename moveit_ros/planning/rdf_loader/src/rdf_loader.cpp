@@ -69,6 +69,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
   if (!umodel->initString(content))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
+    delete umodel;
     return;
   }
   urdf_.reset(umodel);
