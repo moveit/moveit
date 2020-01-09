@@ -566,6 +566,7 @@ void EndEffectorsWidget::doneEditing()
   if (isNew)
   {
     config_data_->srdf_->end_effectors_.push_back(*searched_data);
+    delete searched_data;
   }
 
   // Finish up ------------------------------------------------------
