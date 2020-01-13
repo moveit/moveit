@@ -145,7 +145,13 @@ public:
           continue;
         }
 
-        /* add list of joints, used by controller manager and MoveIt! */
+        moveit_controller_manager::MoveItControllerManager::ControllerState state;
+        state.default_ = controller_list[i].hasMember("default") ? (bool)controller_list[i]["default"] : false;
+        state.active_ = true;
+
+        controller_states_[name] = state;
+
+        /* add list of joints, used by controller manager and MoveIt */
         for (int j = 0; j < controller_list[i]["joints"].size(); ++j)
           new_handle->addJoint(std::string(controller_list[i]["joints"][j]));
 
@@ -220,16 +226,10 @@ public:
     }
   }
 
-  /*
-   * Controllers are all active and default -- that's what makes this thing simple.
-   */
   moveit_controller_manager::MoveItControllerManager::ControllerState
   getControllerState(const std::string& name) override
   {
-    moveit_controller_manager::MoveItControllerManager::ControllerState state;
-    state.active_ = true;
-    state.default_ = true;
-    return state;
+    return controller_states_[name];
   }
 
   /* Cannot switch our controllers */
@@ -241,6 +241,7 @@ public:
 protected:
   ros::NodeHandle node_handle_;
   std::map<std::string, ActionBasedControllerHandleBasePtr> controllers_;
+  std::map<std::string, moveit_controller_manager::MoveItControllerManager::ControllerState> controller_states_;
 };
 
 }  // end namespace moveit_simple_controller_manager

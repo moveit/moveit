@@ -115,6 +115,12 @@ public:
           controllers_[name].reset(new InterpolatingController(name, joints, pub_));
         else
           ROS_ERROR_STREAM("Unknown fake controller type: " << type);
+
+        moveit_controller_manager::MoveItControllerManager::ControllerState state;
+        state.default_ = controller_list[i].hasMember("default") ? (bool)controller_list[i]["default"] : false;
+        state.active_ = true;
+
+        controller_states_[name] = state;
       }
       catch (...)
       {
@@ -259,16 +265,10 @@ public:
     }
   }
 
-  /*
-   * Controllers are all active and default.
-   */
   moveit_controller_manager::MoveItControllerManager::ControllerState
   getControllerState(const std::string& name) override
   {
-    moveit_controller_manager::MoveItControllerManager::ControllerState state;
-    state.active_ = true;
-    state.default_ = true;
-    return state;
+    return controller_states_[name];
   }
 
   /* Cannot switch our controllers */
@@ -281,6 +281,7 @@ protected:
   ros::NodeHandle node_handle_;
   ros::Publisher pub_;
   std::map<std::string, BaseFakeControllerPtr> controllers_;
+  std::map<std::string, moveit_controller_manager::MoveItControllerManager::ControllerState> controller_states_;
 };
 
 }  // end namespace moveit_fake_controller_manager
