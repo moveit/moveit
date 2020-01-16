@@ -18,6 +18,9 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
+  sensor_msgs
+  std_msgs
+  trajectory_msgs
 )
 find_package(Eigen3 REQUIRED)
 
@@ -31,6 +34,9 @@ catkin_package(
     geometry_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
+    sensor_msgs
+    std_msgs
+    trajectory_msgs
   DEPENDS
     EIGEN3
 )
@@ -78,10 +84,10 @@ target_link_libraries(cpp_interface_example
 
 add_executable(jog_server
   src/collision_check_thread.cpp
-  src/jog_server.cpp
   src/jog_calcs.cpp
   src/jog_interface_base.cpp
   src/jog_ros_interface.cpp
+  src/jog_server.cpp
   src/low_pass_filter.cpp
 )
 add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
