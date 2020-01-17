@@ -21,14 +21,28 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(Eigen3 REQUIRED)
- # TODO: Move collision detection into separate packages
-find_package(Bullet REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+
+# TODO: Move collision detection into separate packages
+find_package(Bullet 2.87)
+
+# TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
+if(BULLET_FOUND)
+  set(BULLET_ENABLE "BULLET")
+  set(BULLET_LIB "moveit_collision_detection_bullet")
+  set(BULLET_INC "collision_detection_bullet/include")
+  message(STATUS "Compiling with Bullet")
+else()
+  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL_PC REQUIRED fcl)
 # find *absolute* paths to LIBFCL_INCLUDE_DIRS and LIBFCL_LIBRARIES
 find_path(LIBFCL_INCLUDE_DIRS fcl/config.h HINTS ${LIBFCL_PC_INCLUDE_DIR} ${LIBFCL_PC_INCLUDE_DIRS})
 find_library(LIBFCL_LIBRARIES fcl HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
@@ -71,7 +85,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     backtrace/include
     collision_detection/include
     collision_detection_fcl/include
-    collision_detection_bullet/include
+    ${BULLET_INC}
     constraint_samplers/include
     controller_manager/include
     distance_field/include
@@ -108,7 +122,7 @@ catkin_package(
     moveit_planning_interface
     moveit_collision_detection
     moveit_collision_detection_fcl
-    moveit_collision_detection_bullet
+    ${BULLET_LIB}
     moveit_kinematic_constraints
     moveit_planning_scene
     moveit_constraint_samplers
@@ -145,7 +159,7 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
-    BULLET
+    ${BULLET_ENABLE}
     )
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
@@ -190,7 +204,6 @@ add_subdirectory(robot_state)
 add_subdirectory(robot_trajectory)
 add_subdirectory(collision_detection)
 add_subdirectory(collision_detection_fcl)
-add_subdirectory(collision_detection_bullet)
 add_subdirectory(kinematic_constraints)
 add_subdirectory(planning_scene)
 add_subdirectory(constraint_samplers)
@@ -201,3 +214,7 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+
+if(BULLET_ENABLE)
+  add_subdirectory(collision_detection_bullet)
+endif()
