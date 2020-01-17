@@ -570,8 +570,11 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
       {
         if (new_joint_traj.joint_names[c] == joint->getName())
         {
-          new_joint_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
-          break;
+          if (new_joint_traj.points[0].velocities.size() > c + 1)
+          {
+            new_joint_traj.points[0].velocities[c] = *(kinematic_state_->getJointVelocities(joint));
+            break;
+          }
         }
       }
     }
