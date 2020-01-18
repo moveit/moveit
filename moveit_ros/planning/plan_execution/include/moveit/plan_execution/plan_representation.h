@@ -53,7 +53,7 @@ struct ExecutableTrajectory
   }
 
   ExecutableTrajectory(const robot_trajectory::RobotTrajectoryPtr& trajectory, const std::string& description,
-                       std::vector<std::string> controller_names = {""})
+                       std::vector<std::string> controller_names = {})
     : trajectory_(trajectory)
     , description_(description)
     , trajectory_monitoring_(true)
