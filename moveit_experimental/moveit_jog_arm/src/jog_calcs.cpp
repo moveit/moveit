@@ -142,6 +142,8 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     original_joint_state_ = joint_state_;
 
     // Get the transform from MoveIt planning frame to jogging command frame
+    // We solve (planning_frame -> base -> robot_link_command_frame)
+    // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                               kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
     mutex.lock();
@@ -272,6 +274,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
     Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
 
+    // We solve (planning_frame -> base -> cmd.header.frame_id)
+    // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
     const auto tf_planning_to_cmd_frame =
         kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
         kinematic_state_->getGlobalLinkTransform(cmd.header.frame_id);
