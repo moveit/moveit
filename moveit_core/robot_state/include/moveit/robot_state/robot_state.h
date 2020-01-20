@@ -1311,7 +1311,7 @@ as the new values that correspond to the group */
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward = false);
 
-  /** \brief Get the transform of the given link with respect to the root link of the RobotModel.
+  /** \brief Get the link transform w.r.t. the root link of the RobotModel (= PlanningFrame)
       This is usually the same as the root link of the URDF unless a virtual joint was added. */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name)
   {
