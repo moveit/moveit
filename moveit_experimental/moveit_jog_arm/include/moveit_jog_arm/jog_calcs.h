@@ -89,7 +89,12 @@ protected:
 
   void publishWarning(bool active) const;
 
-  bool checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_joint_traj);
+  // Checks the current robot state for compliance with joint limits.
+  // If out of bounds, returns a halt trajectory that will stop the robot
+  // @param halting_joint_traj - the trajectory to execute to stop the robot if joints are out of bounds
+  // @return halting - false if robot is not within bounds and needs to hault
+  bool checkJointSRDFBoundsAndCreateHaltTrajectory(
+      trajectory_msgs::JointTrajectory_<std::allocator<void>>& halting_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion

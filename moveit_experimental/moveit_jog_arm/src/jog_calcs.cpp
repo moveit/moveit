@@ -306,8 +306,9 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
                        decelerateForSingularity(delta_x, svd_));
 
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!checkJointSRDFBoundsAndCreateHaltTrajectory(outgoing_command_))
   {
+    // Error state
     suddenHalt(outgoing_command_);
     publishWarning(true);
   }
@@ -356,7 +357,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   outgoing_command_ = composeOutgoingMessage(joint_state_);
 
   // check if new joint state is valid
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!checkJointSRDFBoundsAndCreateHaltTrajectory(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
@@ -553,61 +554,72 @@ void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_chan
   }
 }
 
-bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
+bool JogCalcs::checkJointSRDFBoundsAndCreateHaltTrajectory(trajectory_msgs::JointTrajectory& halting_joint_traj)
 {
-  bool halting = false;
+  ROS_ASSERT_MSG(kinematic_state_->hasVelocities(), "Velocities not available for state");
 
+  bool is_halting = false;
+
+  // Check each joint for limits
   for (auto joint : joint_model_group_->getJointModels())
   {
+    // Check Velocity Limits
     if (!kinematic_state_->satisfiesVelocityBounds(joint))
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName() << " "
-                                                                           << " close to a "
-                                                                              " velocity limit. Enforcing limit.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName()
+                                                     << " " << joint->getName() << " "
+                                                     << " close to a "
+                                                        " velocity limit. Enforcing velocity limit.");
 
       kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_joint_traj.joint_names.size(); ++c)
+
+      // Match each joint from halting_joint_traj to current joint
+      for (std::size_t joint_id = 0; joint_id < halting_joint_traj.joint_names.size(); ++joint_id)
       {
-        if (new_joint_traj.joint_names[c] == joint->getName())
+        if (halting_joint_traj.joint_names[joint_id] == joint->getName())
         {
-          new_joint_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
-          break;
+          // Enforce the joint velocity limit
+          halting_joint_traj.points[0].velocities[joint_id] = kinematic_state_->getJointVelocities(joint)[0];
+          break;  // current joint found
         }
       }
-    }
+    }  // end if
 
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
-    for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
+    for (std::size_t joint_id = 0; joint_id < original_joint_state_.name.size(); ++joint_id)
     {
-      if (original_joint_state_.name[c] == joint->getName())
+      if (original_joint_state_.name[joint_id] == joint->getName())
       {
-        joint_angle = original_joint_state_.position.at(c);
+        joint_angle = original_joint_state_.position.at(joint_id);
         break;
       }
     }
+
+    // Check Position Limits
     if (!kinematic_state_->satisfiesPositionBounds(joint, -parameters_.joint_limit_margin))
     {
-      const std::vector<moveit_msgs::JointLimits> limits = joint->getVariableBoundsMsg();
+      const std::vector<moveit_msgs::JointLimits> joint_limits = joint->getVariableBoundsMsg();
 
-      // Joint limits are not defined for some joints. Skip them.
-      if (!limits.empty())
+      // Joint limits are not defined for some joints, like revolute joints. Skip them.
+      if (!joint_limits.empty())
       {
+        // Check if position of joint is too close to joint limit margin
         if ((kinematic_state_->getJointVelocities(joint)[0] < 0 &&
-             (joint_angle < (limits[0].min_position + parameters_.joint_limit_margin))) ||
+             (joint_angle < (joint_limits[0].min_position + parameters_.joint_limit_margin))) ||
             (kinematic_state_->getJointVelocities(joint)[0] > 0 &&
-             (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
+             (joint_angle > (joint_limits[0].max_position - parameters_.joint_limit_margin))))
         {
           ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName()
                                                                                << " close to a "
                                                                                   " position limit. Halting.");
-          halting = true;
+          is_halting = true;
         }
       }
     }
   }
 
-  return !halting;
+  return !is_halting;
 }
 
 void JogCalcs::publishWarning(bool active) const
