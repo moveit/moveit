@@ -51,7 +51,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
-  ROS_INFO("Initializing OMPL interface using ROS parameters");
+  ROS_DEBUG("Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
   loadConstraintSamplers();
 }
@@ -66,7 +66,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
-  ROS_INFO("Initializing OMPL interface using specified configuration");
+  ROS_DEBUG("Initializing OMPL interface using specified configuration");
   setPlannerConfigurations(pconfig);
   loadConstraintSamplers();
 }

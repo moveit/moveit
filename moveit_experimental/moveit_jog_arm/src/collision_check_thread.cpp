@@ -37,6 +37,7 @@
 *******************************************************************************/
 
 #include <moveit_jog_arm/collision_check_thread.h>
+#include <tf2_ros/buffer.h>
 
 namespace moveit_jog_arm
 {
@@ -52,7 +53,7 @@ CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameter
     ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
 
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
+  planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(model_loader_ptr, std::make_shared<tf2_ros::Buffer>());
   planning_scene_monitor_->startSceneMonitor();
   planning_scene_monitor_->startStateMonitor();
 
