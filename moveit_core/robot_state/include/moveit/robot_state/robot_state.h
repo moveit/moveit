@@ -1311,11 +1311,13 @@ as the new values that correspond to the group */
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const LinkModel* link, const Eigen::Isometry3d& transform, bool backward = false);
 
+  /** \brief Get the transform of the given link with respect to the root link of the URDF. */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name)
   {
     return getGlobalLinkTransform(robot_model_->getLinkModel(link_name));
   }
 
+  /** \brief Get the transform of the given link with respect to the root link of the URDF. */
   const Eigen::Isometry3d& getGlobalLinkTransform(const LinkModel* link)
   {
     updateLinkTransforms();
@@ -1350,11 +1352,13 @@ as the new values that correspond to the group */
     return variable_joint_transforms_[idx];
   }
 
+  /** \brief Get the transform of the given link with respect to the root link of the URDF. */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name) const
   {
     return getGlobalLinkTransform(robot_model_->getLinkModel(link_name));
   }
 
+  /** \brief Get the transform of the given link with respect to the root link of the URDF. */
   const Eigen::Isometry3d& getGlobalLinkTransform(const LinkModel* link) const
   {
     BOOST_VERIFY(checkLinkTransforms());
