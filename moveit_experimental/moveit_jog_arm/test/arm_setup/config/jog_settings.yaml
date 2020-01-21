@@ -7,9 +7,11 @@ use_gazebo: false # Whether the robot is started in a Gazebo simulation environm
 robot_link_command_frame:  panda_link0  # commands must be given in the frame of a robot link. Usually either the base or end effector
 command_in_type: "unitless" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
 scale:
-  linear:  0.003  # Max linear velocity. Meters per publish_period. Units is [m/s]. Only used if command_in_type=="unitless"
-  rotational:  0.006 # Max angular velocity. Rads per publish_period. Units is [rad/s]. Only used if command_in_type=="unitless"
-  joint: 0.01  # Max joint angular/linear velocity. Rads or Meters per publish period. Units is [rad/s] or [m/s].
+  # Scale parameters are only used if command_in_type=="unitless"
+  linear:  0.003  # Max linear velocity. Meters per publish_period. Unit is [m/s]. Only used for Cartesian commands.
+  rotational:  0.006 # Max angular velocity. Rads per publish_period. Unit is [rad/s]. Only used for Cartesian commands.
+  # Max joint angular/linear velocity. Rads or Meters per publish period. Only used for joint commands on joint_command_in_topic.
+  joint: 0.01
 low_pass_filter_coeff: 2.  # Larger --> trust the filtered data more, trust the measurements less.
 
 ## Properties of outgoing commands

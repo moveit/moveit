@@ -87,12 +87,32 @@ struct JogArmShared
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {
-  std::string move_group_name, joint_topic, cartesian_command_in_topic, robot_link_command_frame, command_out_topic,
-      planning_frame, warning_topic, joint_command_in_topic, command_in_type, command_out_type;
-  double linear_scale, rotational_scale, joint_scale, lower_singularity_threshold, hard_stop_singularity_threshold,
-      collision_proximity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout,
-      joint_limit_margin, collision_check_rate;
+  std::string move_group_name;
+  std::string joint_topic;
+  std::string cartesian_command_in_topic;
+  std::string robot_link_command_frame;
+  std::string command_out_topic;
+  std::string planning_frame;
+  std::string warning_topic;
+  std::string joint_command_in_topic;
+  std::string command_in_type;
+  std::string command_out_type;
+  double linear_scale;
+  double rotational_scale;
+  double joint_scale;
+  double lower_singularity_threshold;
+  double hard_stop_singularity_threshold;
+  double collision_proximity_threshold;
+  double low_pass_filter_coeff;
+  double publish_period;
+  double incoming_command_timeout;
+  double joint_limit_margin;
+  double collision_check_rate;
   int num_outgoing_halt_msgs_to_publish;
-  bool use_gazebo, check_collisions, publish_joint_positions, publish_joint_velocities, publish_joint_accelerations;
+  bool use_gazebo;
+  bool check_collisions;
+  bool publish_joint_positions;
+  bool publish_joint_velocities;
+  bool publish_joint_accelerations;
 };
 }

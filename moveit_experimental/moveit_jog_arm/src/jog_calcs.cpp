@@ -289,8 +289,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();
   delta_theta_ = pseudo_inverse_ * delta_x;
 
-  enforceJointVelocityLimits(delta_theta_);
-
   if (!addJointIncrements(joint_state_, delta_theta_))
     return false;
 
@@ -306,13 +304,14 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
                        decelerateForSingularity(delta_x, svd_));
 
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!checkIfJointsWithinSRDFBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
   }
   else
     publishWarning(false);
+
 
   // If using Gazebo simulator, insert redundant points
   if (parameters_.use_gazebo)
@@ -336,7 +335,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   }
 
   // Apply user-defined scaling
-  const Eigen::VectorXd delta = scaleJointCommand(cmd);
+  Eigen::ArrayXd delta = scaleJointCommand(cmd);
 
   kinematic_state_->setVariableValues(joint_state_);
   original_joint_state_ = joint_state_;
@@ -355,8 +354,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
 
   outgoing_command_ = composeOutgoingMessage(joint_state_);
 
-  // check if new joint state is valid
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!checkIfJointsWithinSRDFBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
@@ -365,6 +363,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   {
     publishWarning(false);
   }
+
 
   // done with calculations
   if (parameters_.use_gazebo)
@@ -541,19 +540,7 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   return velocity_scale;
 }
 
-void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_change)
-{
-  double maximum_joint_change = calculated_joint_change.cwiseAbs().maxCoeff();
-  if (maximum_joint_change > parameters_.joint_scale * parameters_.publish_period)
-  {
-    // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is
-    // scaled uniformly to match expected motion
-    calculated_joint_change =
-        calculated_joint_change * parameters_.joint_scale * parameters_.publish_period / maximum_joint_change;
-  }
-}
-
-bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
+bool JogCalcs::checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
 {
   bool halting = false;
 
@@ -606,7 +593,6 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
       }
     }
   }
-
   return !halting;
 }
 

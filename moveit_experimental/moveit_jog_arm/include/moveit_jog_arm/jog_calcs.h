@@ -77,9 +77,6 @@ protected:
 
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
-  // Scale the delta theta to match joint velocity limits. Uniform scaling
-  void enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_velocity);
-
   // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
   void resetVelocityFilters();
 
@@ -89,7 +86,8 @@ protected:
 
   void publishWarning(bool active) const;
 
-  bool checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory_<std::allocator<void>>& new_joint_traj);
+  // Scale the delta theta to match joint velocity limits
+  bool checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
@@ -127,7 +125,8 @@ protected:
   // For jacobian calculations
   Eigen::MatrixXd jacobian_, pseudo_inverse_, matrix_s_;
   Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
-  Eigen::VectorXd delta_theta_;
+  // Use ArrayXd type to enable more coefficient-wise operations
+  Eigen::ArrayXd delta_theta_;
 
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 
