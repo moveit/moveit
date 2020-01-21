@@ -38,8 +38,14 @@
 
 #include "moveit_jog_arm/jog_interface_base.h"
 
+static const std::string LOGNAME = "jog_interface_base";
+
 namespace moveit_jog_arm
 {
+JogInterfaceBase::JogInterfaceBase()
+{
+}
+
 // Read ROS parameters, typically from YAML file
 bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 {
@@ -191,7 +197,7 @@ void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 bool JogInterfaceBase::startJogCalcThread()
 {
   if (!jog_calcs_)
-    jog_calcs_.reset(new JogCalcs(ros_parameters_, model_loader_ptr_));
+    jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
 
   jog_calc_thread_.reset(
       new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
@@ -219,7 +225,7 @@ bool JogInterfaceBase::stopJogCalcThread()
 bool JogInterfaceBase::startCollisionCheckThread()
 {
   if (!collision_checker_)
-    collision_checker_.reset(new CollisionCheckThread(ros_parameters_, model_loader_ptr_));
+    collision_checker_.reset(new CollisionCheckThread(ros_parameters_, planning_scene_monitor_));
 
   collision_check_thread_.reset(
       new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_, shared_variables_mutex_); }));

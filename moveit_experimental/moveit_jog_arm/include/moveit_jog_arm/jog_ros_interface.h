@@ -47,7 +47,7 @@ namespace moveit_jog_arm
 /**
  * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and creates the worker threads.
  */
-class JogROSInterface : JogInterfaceBase
+class JogROSInterface : protected JogInterfaceBase
 {
 public:
   JogROSInterface();

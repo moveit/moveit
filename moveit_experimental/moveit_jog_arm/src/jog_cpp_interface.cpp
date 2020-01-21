@@ -38,16 +38,19 @@
 
 #include "moveit_jog_arm/jog_cpp_interface.h"
 
+// TODO(davetcoleman): rename JogCppApi to JogCppInterface to match file name
+
+static const std::string LOGNAME = "jog_cpp_interface";
+
 namespace moveit_jog_arm
 {
-JogCppApi::JogCppApi()
+JogCppApi::JogCppApi(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
 {
+  planning_scene_monitor_ = planning_scene_monitor;
+
   // Read ROS parameters, typically from YAML file
   if (!readParameters(nh_))
     exit(EXIT_FAILURE);
-
-  // Load the robot model. This is used by the worker threads.
-  model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
 }
 
 JogCppApi::~JogCppApi()

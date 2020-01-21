@@ -38,33 +38,21 @@
 
 #include <moveit_jog_arm/collision_check_thread.h>
 
+static const std::string LOGNAME = "collision_check_thread";
+
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
-CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
-                                           const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
-  : parameters_(parameters)
+CollisionCheckThread::CollisionCheckThread(
+    const moveit_jog_arm::JogArmParameters& parameters,
+    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : parameters_(parameters), planning_scene_monitor_(planning_scene_monitor)
 {
-  // MoveIt Setup
-  while (ros::ok() && !model_loader_ptr)
-  {
-    ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
-  }
+}
 
-  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
-  if (!planning_scene_monitor_->getPlanningScene())
-  {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
-    exit(EXIT_FAILURE);
-  }
-
-  planning_scene_monitor_->startSceneMonitor();
-  planning_scene_monitor_->startWorldGeometryMonitor(
-      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-      false /* skip octomap monitor */);
-  planning_scene_monitor_->startStateMonitor();
+planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
+{
+  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
 void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
@@ -72,15 +60,16 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
   // Reset loop termination flag
   stop_requested_ = false;
 
-  // Init collision request and current state
+  // Init collision request
   collision_detection::CollisionRequest collision_request;
   collision_request.group_name = parameters_.move_group_name;
   collision_request.distance = true;
   collision_detection::CollisionResult collision_result;
-  robot_state::RobotState& current_state = planning_scene_monitor_->getPlanningScene()->getCurrentStateNonConst();
+
+  // Copy the planning scene's version of current state into new memory
+  robot_state::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
 
   double velocity_scale_coefficient = -log(0.001) / parameters_.collision_proximity_threshold;
-
   ros::Rate collision_rate(parameters_.collision_check_rate);
 
   /////////////////////////////////////////////////
@@ -97,7 +86,8 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
 
     collision_result.clear();
     current_state.updateCollisionBodyTransforms();
-    planning_scene_monitor_->getPlanningScene()->checkCollision(collision_request, collision_result, current_state);
+    // Do thread-safe collsion collision checking
+    getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
 
     // Scale robot velocity according to collision proximity and user-defined thresholds.
     // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
