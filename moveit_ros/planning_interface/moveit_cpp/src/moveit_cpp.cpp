@@ -94,7 +94,7 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& /*unused*/,
   trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(
       robot_model_, planning_scene_monitor_->getStateMonitor()));
 
-  ROS_INFO_NAMED(LOGNAME, "MoveItCpp running");
+  ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp running");
 }
 
 MoveItCpp::MoveItCpp(MoveItCpp&& other)
