@@ -53,7 +53,7 @@ CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameter
   }
 
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
-  if (planning_scene_monitor_->getPlanningScene())
+  if (!planning_scene_monitor_->getPlanningScene())
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
     exit(EXIT_FAILURE);
