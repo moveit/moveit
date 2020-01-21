@@ -557,7 +557,7 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
 {
   bool halting = false;
 
-  if (new_joint_traj.points.size() > 0)
+  if (!new_joint_traj.points.empty())
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Empty trajectory passed into checkIfJointsWithinURDFBounds().");
     return true;  // technically an empty trajectory is still within bounds
