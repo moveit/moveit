@@ -631,21 +631,21 @@ void RobotState::updateLinkTransformsInternal(const JointModel* start)
     if (parent)  // root JointModel will not have a parent
     {
       int idx_parent = parent->getLinkIndex();
-      if (link->parentJointIsFixed())
+      if (link->parentJointIsFixed())  // fixed joint
         global_link_transforms_[idx_link].affine().noalias() =
             global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix();
-      else
+      else  // non-fixed joint
       {
-        if (link->jointOriginTransformIsIdentity())
+        if (link->jointOriginTransformIsIdentity())  // Link has identity transform
           global_link_transforms_[idx_link].affine().noalias() =
               global_link_transforms_[idx_parent].affine() * getJointTransform(link->getParentJointModel()).matrix();
-        else
+        else  // Link has non-identity transform
           global_link_transforms_[idx_link].affine().noalias() =
               global_link_transforms_[idx_parent].affine() * link->getJointOriginTransform().matrix() *
               getJointTransform(link->getParentJointModel()).matrix();
       }
     }
-    else
+    else  // is the origin / root / 'model frame'
     {
       if (link->jointOriginTransformIsIdentity())
         global_link_transforms_[idx_link] = getJointTransform(link->getParentJointModel());
