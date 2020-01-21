@@ -322,6 +322,21 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   // Convert from cartesian commands to joint commands
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
+
+  // May allow some dimensions to drift, based on shared_variables.drift_dimensions
+  // i.e. take advantage of task redundancy.
+  // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
+  // Work backwards through the 6-vector so indices don't get out of order
+  mutex.lock();
+  for (size_t dimension = 5; dimension > 0; --dimension)
+  {
+    if (shared_variables.drift_dimensions[dimension] == true)
+    {
+      jacobian_ = removeMatrixRow(jacobian_, dimension);
+    }
+  }
+  mutex.unlock();
+
   svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
   matrix_s_ = svd_.singularValues().asDiagonal();
   pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();

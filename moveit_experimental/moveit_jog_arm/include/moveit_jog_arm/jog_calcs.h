@@ -128,6 +128,14 @@ protected:
 
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
+  template<typename T>
+  inline constexpr auto removeMatrixRow(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix, const int& rowNum)
+  {
+      return (Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>(matrix.rows() - 1, matrix.cols())
+          << static_cast<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>(matrix.topRows(rowNum - 1)),
+          static_cast<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>(matrix.bottomRows(matrix.rows() - rowNum))).finished();
+  }
+
   const robot_state::JointModelGroup* joint_model_group_;
 
   robot_state::RobotStatePtr kinematic_state_;

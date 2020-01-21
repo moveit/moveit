@@ -42,6 +42,7 @@
 #include "jog_calcs.h"
 #include "low_pass_filter.h"
 #include <moveit/robot_state/robot_state.h>
+#include <moveit_msgs/ChangeDriftDimensions.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Float64MultiArray.h>
@@ -58,6 +59,10 @@ public:
   JogInterfaceBase();
 
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  // Service callback for changing drift dimensions,
+  // e.g. to allow the wrist joint to rotate
+  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req, moveit_msgs::ChangeDriftDimensions::Response& res);
 
   // Jogging calculation thread
   bool startJogCalcThread();
