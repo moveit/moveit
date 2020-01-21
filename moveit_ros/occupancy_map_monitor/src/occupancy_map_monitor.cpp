@@ -90,7 +90,8 @@ void OccupancyMapMonitor::initialize()
         ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
 
   if (!tf_buffer_ && !map_frame_.empty())
-    ROS_WARN_STREAM("Target frame \"" << map_frame_ << "\" specified but no TF instance (buffer) specified. No transforms will be applied to received data.");
+    ROS_WARN_STREAM("Target frame \"" << map_frame_ << "\" specified but no TF instance (buffer) specified. "
+                                                       "No transforms will be applied to received data.");
 
   tree_.reset(new OccMapTree(map_resolution_));
   tree_const_ = tree_;
