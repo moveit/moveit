@@ -312,7 +312,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   else
     publishWarning(false);
 
-
   // If using Gazebo simulator, insert redundant points
   if (parameters_.use_gazebo)
   {
@@ -363,7 +362,6 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   {
     publishWarning(false);
   }
-
 
   // done with calculations
   if (parameters_.use_gazebo)
