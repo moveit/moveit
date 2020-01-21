@@ -53,20 +53,18 @@ CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameter
   }
 
   planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
-  planning_scene_monitor_->startSceneMonitor();
-  planning_scene_monitor_->startStateMonitor();
-
-  if (planning_scene_monitor_->getPlanningScene())
-  {
-    planning_scene_monitor_->startSceneMonitor("/planning_scene");
-    planning_scene_monitor_->startWorldGeometryMonitor();
-    planning_scene_monitor_->startStateMonitor();
-  }
-  else
+  if (!planning_scene_monitor_->getPlanningScene())
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
     exit(EXIT_FAILURE);
   }
+
+  planning_scene_monitor_->startSceneMonitor();
+  planning_scene_monitor_->startWorldGeometryMonitor(
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+      false /* skip octomap monitor */);
+  planning_scene_monitor_->startStateMonitor();
 }
 
 void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
