@@ -37,7 +37,6 @@
 *******************************************************************************/
 
 #include <moveit_jog_arm/collision_check_thread.h>
-#include <tf2_ros/buffer.h>
 
 namespace moveit_jog_arm
 {
@@ -53,21 +52,19 @@ CollisionCheckThread::CollisionCheckThread(const moveit_jog_arm::JogArmParameter
     ros::Duration(WHILE_LOOP_WAIT).sleep();
   }
 
-  planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(model_loader_ptr, std::make_shared<tf2_ros::Buffer>());
-  planning_scene_monitor_->startSceneMonitor();
-  planning_scene_monitor_->startStateMonitor();
-
+  planning_scene_monitor_.reset(new planning_scene_monitor::PlanningSceneMonitor(model_loader_ptr));
   if (planning_scene_monitor_->getPlanningScene())
-  {
-    planning_scene_monitor_->startSceneMonitor("/planning_scene");
-    planning_scene_monitor_->startWorldGeometryMonitor();
-    planning_scene_monitor_->startStateMonitor();
-  }
-  else
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
     exit(EXIT_FAILURE);
   }
+
+  planning_scene_monitor_->startSceneMonitor();
+  planning_scene_monitor_->startWorldGeometryMonitor(
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+      false /* skip octomap monitor */);
+  planning_scene_monitor_->startStateMonitor();
 }
 
 void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
