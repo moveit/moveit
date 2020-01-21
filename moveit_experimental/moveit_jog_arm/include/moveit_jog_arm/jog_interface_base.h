@@ -43,6 +43,7 @@
 #include "low_pass_filter.h"
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
+#include <moveit_msgs/ChangeControlDimensions.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Float64MultiArray.h>
@@ -74,7 +75,7 @@ public:
 
   /** \brief Start the main calculation thread */
   // Service callback for changing jogging dimensions
-  bool changeControlDimensions(moveit_jog_arm::ChangeControlDimensions::Request& req, moveit_jog_arm::ChangeControlDimensions::Response& res);
+  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req, moveit_msgs::ChangeControlDimensions::Response& res);
 
   // Jogging calculation thread
   bool startJogCalcThread();
