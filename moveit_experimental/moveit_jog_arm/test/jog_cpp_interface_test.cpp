@@ -76,7 +76,7 @@ protected:
 TEST_F(TestJogCppInterface, InitTest)
 {
   moveit_jog_arm::JogCppApi jog_cpp_interface(planning_scene_monitor_);
-  ros::Duration(2).sleep();
+  ros::Duration(1).sleep();  // Give the started thread some time to run
 }
 
 // TODO(davetcoleman): due to many blocking checks for ROS messages, and
