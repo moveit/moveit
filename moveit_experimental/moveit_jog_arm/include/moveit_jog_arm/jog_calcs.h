@@ -128,20 +128,8 @@ protected:
 
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
-  inline Eigen::MatrixXd removeMatrixRow(const Eigen::MatrixXd original_matrix, const int row_to_remove)
-  {
-    Eigen::MatrixXd new_matrix(original_matrix.rows()-1, original_matrix.cols());
-    int row_to_fill = 0;
-    for (int orig_matrix_row = 0; orig_matrix_row < original_matrix.rows(); ++orig_matrix_row)
-    {
-      if (orig_matrix_row != row_to_remove)
-      {
-        new_matrix.row(row_to_fill) = original_matrix.row(orig_matrix_row);
-        ++row_to_fill;
-      }
-    }
-    return new_matrix;
-  }
+  // Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
+  inline void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, const int row_to_remove);
 
   const robot_state::JointModelGroup* joint_model_group_;
 

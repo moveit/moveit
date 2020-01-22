@@ -318,7 +318,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     cmd.twist.angular.z = angular_vector(2);
   }
 
-  const Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
+  Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
 
   // Convert from cartesian commands to joint commands
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
@@ -332,7 +332,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   {
     if (shared_variables.drift_dimensions[dimension] == true && jacobian_.rows() > 1)
     {
-      jacobian_ = removeMatrixRow(jacobian_, dimension);
+      removeDimension(jacobian_, delta_x, dimension);
     }
   }
   mutex.unlock();
@@ -340,6 +340,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
   matrix_s_ = svd_.singularValues().asDiagonal();
   pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();
+
   delta_theta_ = pseudo_inverse_ * delta_x;
 
   // If close to a collision or a singularity, decelerate
@@ -748,5 +749,25 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   }
 
   return true;
+}
+
+void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, const int row_to_remove)
+{
+  Eigen::MatrixXd new_matrix(jacobian.rows()-1, jacobian.cols());
+  Eigen::VectorXd new_vector(jacobian.rows()-1);
+  int row_to_fill = 0;
+  for (int orig_matrix_row = 0; orig_matrix_row < jacobian.rows(); ++orig_matrix_row)
+  {
+    // Keep elements we want
+    if (orig_matrix_row != row_to_remove)
+    {
+      new_matrix.row(row_to_fill) = jacobian.row(orig_matrix_row);
+      new_vector(row_to_fill) = delta_x(orig_matrix_row);
+      ++row_to_fill;
+    }
+  }
+
+  jacobian = new_matrix;
+  delta_x = new_vector;
 }
 }  // namespace moveit_jog_arm
