@@ -49,11 +49,11 @@
 #include <boost/assert.hpp>
 
 /* Terminology
- *   Model Frame: RobotModel's root frame == PlanningScene's planning frame
+   * Model Frame: RobotModel's root frame == PlanningScene's planning frame
      If the SRDF defines a virtual, non-fixed (e.g. floating) joint, this is the parent of this virtual joint.
      Otherwise, it is the root link of the URDF model.
- *   Dirty Link Transforms: a caching tool for reducing the frequency of calculating forward kinematics
- */
+   * Dirty Link Transforms: a caching tool for reducing the frequency of calculating forward kinematics
+*/
 
 namespace moveit
 {
@@ -1302,9 +1302,9 @@ public:
 
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
-   *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed
-   *   A related, more comprehensive function is |getFrameTransform| which includes this functionality
-   *   but also other frame sources (attached objects, subframes).
+   *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
+   *   A related, more comprehensive function is |getFrameTransform| which, additionally to link frames,
+   *   but also searches for attached object frames and their subframes.
    */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name)
   {
@@ -1330,9 +1330,7 @@ public:
 
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
-   *   Checks the cache and if there are any dirty (non-updated) transforms first and updates transforms cache as needed
-   *   A related, more comprehensive function is |getFrameTransform| which includes this functionality
-   *   but also other frame sources (attached objects, subframes).
+   *   Checks the cache and if there are any dirty (non-updated) transforms first and updates them as needed.
    *
    *   As opposed to the visual links in |getGlobalLinkTransform|, this function returns
    *   the collision link transform used for collision checking.
@@ -1819,12 +1817,12 @@ private:
   const JointModel* dirty_link_transforms_;
   const JointModel* dirty_collision_body_transforms_;
 
-  Eigen::Isometry3d* variable_joint_transforms_;  // this points to an element in transforms_, so it is aligned
-
-  // For each robot model link, store the transform from the model frame (root) to itself
-  // To save computation, these transforms are cached and recalcuted as needed basd on the dirty_link_transforms lookup
-  Eigen::Isometry3d* global_link_transforms_;            // this points to an element in transforms_, so it is aligned
-  Eigen::Isometry3d* global_collision_body_transforms_;  // this points to an element in transforms_, so it is aligned
+  // All the following transform variables point into aligned memory in memory_
+  // They are updated lazily, based on the flags in dirty_joint_transforms_
+  // resp. the pointers dirty_link_transforms_ and dirty_collision_body_transforms_
+  Eigen::Isometry3d* variable_joint_transforms_;         ///< Local transforms of all joints
+  Eigen::Isometry3d* global_link_transforms_;            ///< Transforms from model frame to link frame for each link
+  Eigen::Isometry3d* global_collision_body_transforms_;  ///< Transforms from model frame to collision bodies
   unsigned char* dirty_joint_transforms_;
 
   /** \brief All attached bodies that are part of this state, indexed by their name */
