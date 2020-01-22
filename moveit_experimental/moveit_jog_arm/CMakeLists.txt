@@ -14,6 +14,7 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
+  moveit_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
   sensor_msgs
@@ -30,6 +31,7 @@ catkin_package(
   CATKIN_DEPENDS
     control_msgs
     geometry_msgs
+    moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
     sensor_msgs

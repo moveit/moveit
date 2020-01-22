@@ -330,7 +330,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   mutex.lock();
   for (size_t dimension = 5; dimension > 0; --dimension)
   {
-    if (shared_variables.drift_dimensions[dimension] == true)
+    if (shared_variables.drift_dimensions[dimension] == true && jacobian_.cols() > 1)
     {
       jacobian_ = removeMatrixRow(jacobian_, dimension);
     }
