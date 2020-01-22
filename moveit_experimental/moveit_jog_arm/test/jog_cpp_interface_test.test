@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Note, we're using fake, simulated trajectory controllers.  -->
-
   <!-- Load URDF, SRDF -->
   <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch" >
     <arg name="load_robot_description" value="true"/>

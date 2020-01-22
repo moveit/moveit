@@ -50,7 +50,7 @@ class CollisionCheckThread
 {
 public:
   /** \brief Constructor
-   *  \param parameters: common settings of jog_rm
+   *  \param parameters: common settings of jog_arm
    *  \param planning_scene_monitor: PSM should already have scene monitor and state monitor started when passed into
    * this class
    */

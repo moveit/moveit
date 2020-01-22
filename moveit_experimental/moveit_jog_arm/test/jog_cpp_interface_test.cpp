@@ -73,14 +73,10 @@ protected:
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };  // class TestJogCppInterface
 
-TEST_F(TestJogCppInterface, PlanningSceneTest)
-{
-  EXPECT_TRUE(planning_scene_monitor_->getPlanningScene());
-}
-
 TEST_F(TestJogCppInterface, InitTest)
 {
   moveit_jog_arm::JogCppApi jog_cpp_interface(planning_scene_monitor_);
+  ros::Duration(2).sleep();
 }
 
 // TODO(davetcoleman): due to many blocking checks for ROS messages, and
