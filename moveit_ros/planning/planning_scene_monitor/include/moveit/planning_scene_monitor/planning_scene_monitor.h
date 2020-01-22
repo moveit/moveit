@@ -45,6 +45,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit_msgs/GetPlanningScene.h>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
@@ -337,6 +338,13 @@ public:
    */
   bool requestPlanningSceneState(const std::string& service_name = DEFAULT_PLANNING_SCENE_SERVICE);
 
+  /** @brief Create an optional service for getting the complete planning scene
+   *         This is useful for satisfying the Rviz PlanningScene display's need for a service
+   *         without having to use MoveGroup
+   *  @param service_name The topic to provide the service
+   */
+  void providePlanningSceneService(const std::string& service_name = DEFAULT_PLANNING_SCENE_SERVICE);
+
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor();
 
@@ -495,6 +503,10 @@ protected:
   ros::Subscriber attached_collision_object_subscriber_;
   ros::Subscriber collision_object_subscriber_;
 
+  // provide an optional service to get the full planning scene state
+  // this is used by MoveGroup and related application nodes
+  ros::ServiceServer get_scene_service_;
+
   // include a octomap monitor
   std::unique_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
 
@@ -534,6 +546,10 @@ private:
 
   // Callback for a new planning scene msg
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr& scene);
+
+  // Callback for requesting the full planning scene via service
+  bool getPlanningSceneServiceCallback(moveit_msgs::GetPlanningScene::Request& req,
+                                       moveit_msgs::GetPlanningScene::Response& res);
 
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
