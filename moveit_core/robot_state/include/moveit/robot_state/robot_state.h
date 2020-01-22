@@ -1303,8 +1303,8 @@ public:
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
    *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
-   *   A related, more comprehensive function is |getFrameTransform| which, additionally to link frames,
-   *   but also searches for attached object frames and their subframes.
+   *   A related, more comprehensive function is |getFrameTransform|, which additionally to link frames
+   *   also searches for attached object frames and their subframes.
    */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name)
   {
@@ -1330,7 +1330,7 @@ public:
 
   /** \brief Get the link transform w.r.t. the root link (model frame) of the RobotModel.
    *   This is typically the root link of the URDF unless a virtual joint is present.
-   *   Checks the cache and if there are any dirty (non-updated) transforms first and updates them as needed.
+   *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
    *
    *   As opposed to the visual links in |getGlobalLinkTransform|, this function returns
    *   the collision link transform used for collision checking.
