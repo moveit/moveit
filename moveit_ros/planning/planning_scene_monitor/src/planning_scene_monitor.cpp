@@ -492,6 +492,28 @@ bool PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_
   return true;
 }
 
+void PlanningSceneMonitor::providePlanningSceneService(const std::string& service_name)
+{
+  // Load the service
+  get_scene_service_ =
+      root_nh_.advertiseService(service_name, &PlanningSceneMonitor::getPlanningSceneServiceCallback, this);
+}
+
+bool PlanningSceneMonitor::getPlanningSceneServiceCallback(moveit_msgs::GetPlanningScene::Request& req,
+                                                           moveit_msgs::GetPlanningScene::Response& res)
+{
+  if (req.components.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
+    updateFrameTransforms();
+
+  moveit_msgs::PlanningSceneComponents all_components;
+  all_components.components = UINT_MAX;  // Return all scene components if nothing is specified.
+
+  boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+  scene_->getPlanningSceneMsg(res.scene, req.components.components ? req.components : all_components);
+
+  return true;
+}
+
 void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr& scene)
 {
   newPlanningSceneMessage(*scene);
