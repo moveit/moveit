@@ -108,6 +108,12 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Input checking
+  if (ros_parameters_.publish_period <= 0.)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'publish_period' should be "
+                            "greater than zero. Check yaml file.");
+    return false;
+  }
   if (ros_parameters_.num_outgoing_halt_msgs_to_publish < 0)
   {
     ROS_WARN_NAMED(LOGNAME,
