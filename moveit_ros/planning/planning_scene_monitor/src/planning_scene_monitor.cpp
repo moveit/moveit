@@ -485,8 +485,10 @@ bool PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_
   }
   else
   {
-    ROS_INFO_NAMED(LOGNAME, "Failed to call service %s, have you launched move_group? at %s:%d", service_name.c_str(),
-                   __FILE__, __LINE__);
+    ROS_INFO_NAMED(
+        LOGNAME,
+        "Failed to call service %s, have you launched move_group or called psm.providePlanningSceneService()? at %s:%d",
+        service_name.c_str(), __FILE__, __LINE__);
     return false;
   }
   return true;
