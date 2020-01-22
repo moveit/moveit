@@ -9,5 +9,11 @@
     <class name="effort_controllers/JointTrajectoryController" type="moveit_ros_control_interface::JointTrajectoryControllerAllocator" base_class_type="moveit_ros_control_interface::ControllerHandleAllocator">
         <description></description>
     </class>
+    <class name="pos_vel_controllers/JointTrajectoryController" type="moveit_ros_control_interface::JointTrajectoryControllerAllocator" base_class_type="moveit_ros_control_interface::ControllerHandleAllocator">
+        <description></description>
+    </class>
+    <class name="pos_vel_acc_controllers/JointTrajectoryController" type="moveit_ros_control_interface::JointTrajectoryControllerAllocator" base_class_type="moveit_ros_control_interface::ControllerHandleAllocator">
+        <description></description>
+    </class>
   </library>
 </class_libraries>
