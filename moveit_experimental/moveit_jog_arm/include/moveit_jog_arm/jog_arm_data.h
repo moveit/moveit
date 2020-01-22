@@ -80,8 +80,8 @@ struct JogArmShared
   // The transform from the MoveIt planning frame to robot_link_command_frame
   Eigen::Isometry3d tf_moveit_to_cmd_frame;
 
-  // Allow these dimensions to drift. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::vector<bool> drift_dimensions{ false, true, false, true, true, true };
+  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
+  std::vector<bool> drift_dimensions{ false, false, false, false, false, false };
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

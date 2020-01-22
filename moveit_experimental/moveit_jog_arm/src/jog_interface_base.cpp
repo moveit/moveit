@@ -200,6 +200,22 @@ void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
   shared_variables_mutex_.unlock();
 }
 
+bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                                              moveit_msgs::ChangeDriftDimensions::Response& res)
+{
+  shared_variables_mutex_.lock();
+  shared_variables_.drift_dimensions[0] = req.drift_x_translation;
+  shared_variables_.drift_dimensions[1] = req.drift_y_translation;
+  shared_variables_.drift_dimensions[2] = req.drift_z_translation;
+  shared_variables_.drift_dimensions[3] = req.drift_x_rotation;
+  shared_variables_.drift_dimensions[4] = req.drift_y_rotation;
+  shared_variables_.drift_dimensions[5] = req.drift_z_rotation;
+  shared_variables_mutex_.unlock();
+
+  res.success = true;
+  return true;
+}
+
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {
