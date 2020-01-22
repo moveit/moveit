@@ -1,9 +1,4 @@
 /*******************************************************************************
- *      Title     : jog_calcs.cpp
- *      Project   : moveit_jog_arm
- *      Created   : 1/11/2019
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
- *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -35,6 +30,12 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
+
+/*      Title     : jog_calcs.cpp
+ *      Project   : moveit_jog_arm
+ *      Created   : 1/11/2019
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ */
 
 #include <moveit_jog_arm/jog_calcs.h>
 
