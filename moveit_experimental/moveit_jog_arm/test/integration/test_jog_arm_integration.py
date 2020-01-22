@@ -29,11 +29,11 @@ class JointJogCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=1)
 
-    def send_cmd(self, joint_pos):
+    def send_joint_velocity_cmd(self, joint_pos):
         jj = JointJog()
         jj.header.stamp = rospy.Time.now()
         jj.joint_names = ['joint_{}'.format(i) for i in range(len(joint_pos))]
-        jj.deltas = list(map(float, joint_pos))
+        jj.velocities = list(map(float, joint_pos))
         self._pub.publish(jj)
 
 
@@ -51,11 +51,10 @@ class CartesianJogCmd(object):
         self._pub.publish(ts)
 
 
-def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(node):
+def test_jog_arm_trajectory_generated_when_jog_command_is_received(node):
     sub = rospy.Subscriber(
-        COMMAND_OUT_TOPIC, JointTrajectory, lambda x: received.append(x)
+        COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
-    joint_cmd = JointJogCmd()
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
     time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
@@ -72,17 +71,42 @@ def test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(n
 
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
-    test_duration = 1
-    publish_period = 0.01 # 'publish_period' from config file
+    TEST_DURATION = 1
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from config file
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
     received = []
-    rospy.sleep(test_duration)
-    # test_duration/publish_period is the expected number of messages in this duration.
+    rospy.sleep(TEST_DURATION)
+    # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
-    assert len(received) >= test_duration/publish_period - 5
-    assert len(received) <= test_duration/publish_period + 5
+    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
+    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 5
+
+
+def test_jog_arm_joint_command(node):
+    # Test sending a joint command
+
+    sub = rospy.Subscriber(
+        COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
+    )
+
+    joint_cmd = JointJogCmd()
+    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
+    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+
+    received = []
+    TEST_DURATION = 1
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from config file
+    JOINT_VELOCITY_LIMIT = 1
+    velocities = [0.1]
+    joint_cmd.send_joint_velocity_cmd(velocities)
+    rospy.sleep(TEST_DURATION)
+    # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
+    # Allow a small +/- window due to rounding/timing errors
+    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
+    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 5
 
 
 if __name__ == '__main__':
    node = node()
-   test_jog_arm_generates_joint_trajectory_when_joint_jog_command_is_received(node)
+   test_jog_arm_trajectory_generated_when_jog_command_is_received(node)
+   test_jog_arm_joint_command(node)
