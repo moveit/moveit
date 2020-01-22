@@ -1,9 +1,4 @@
 /*******************************************************************************
- *      Title     : jog_server.cpp
- *      Project   : moveit_jog_arm
- *      Created   : 12/31/2018
- *      Author    : Andy Zelenak
- *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -35,6 +30,12 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
+
+/*      Title     : jog_server.cpp
+ *      Project   : moveit_jog_arm
+ *      Created   : 12/31/2018
+ *      Author    : Andy Zelenak
+ */
 
 #include <moveit_jog_arm/jog_ros_interface.h>
 
