@@ -558,6 +558,12 @@ bool JogCalcs::checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& n
 {
   bool halting = false;
 
+  if (!new_joint_traj.points.empty())
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Empty trajectory passed into checkIfJointsWithinURDFBounds().");
+    return true;  // technically an empty trajectory is still within bounds
+  }
+
   for (auto joint : joint_model_group_->getJointModels())
   {
     if (!kinematic_state_->satisfiesVelocityBounds(joint))
@@ -565,14 +571,19 @@ bool JogCalcs::checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& n
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName() << " "
                                                                            << " close to a "
                                                                               " velocity limit. Enforcing limit.");
-
       kinematic_state_->enforceVelocityBounds(joint);
       for (std::size_t c = 0; c < new_joint_traj.joint_names.size(); ++c)
       {
         if (new_joint_traj.joint_names[c] == joint->getName())
         {
-          new_joint_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
-          break;
+          // TODO(andyz): This is caused by publishing in position mode -- which does not initialize the velocity
+          // members.
+          // TODO(andyz): Also need to adjust the joint positions that would be published.
+          if (new_joint_traj.points[0].velocities.size() > c + 1)
+          {
+            new_joint_traj.points[0].velocities[c] = *(kinematic_state_->getJointVelocities(joint));
+            break;
+          }
         }
       }
     }
