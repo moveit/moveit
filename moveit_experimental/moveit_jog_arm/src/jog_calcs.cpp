@@ -328,9 +328,9 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
   mutex.lock();
-  for (size_t dimension = 5; dimension > 0; --dimension)
+  for (auto dimension = jacobian_.rows(); dimension >= 0; --dimension)
   {
-    if (shared_variables.drift_dimensions[dimension] == true && jacobian_.cols() > 1)
+    if (shared_variables.drift_dimensions[dimension] == true && jacobian_.rows() > 1)
     {
       jacobian_ = removeMatrixRow(jacobian_, dimension);
     }
