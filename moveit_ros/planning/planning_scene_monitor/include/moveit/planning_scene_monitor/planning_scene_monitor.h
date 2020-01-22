@@ -325,14 +325,14 @@ public:
       return 0.0;
   }
 
-  /** @brief Start the scene monitor (ROS message-based, not service-based)
+  /** @brief Start the scene monitor (ROS topic-based)
    *  @param scene_topic The name of the planning scene topic
    */
   void startSceneMonitor(const std::string& scene_topic = DEFAULT_PLANNING_SCENE_TOPIC);
 
   /** @brief Request a full planning scene state using a service call
-   *         Becareful not to use this in conjunction with providePlanningSceneService(),
-   *         as it will create a pointless feedback loop
+   *         Be careful not to use this in conjunction with providePlanningSceneService(),
+   *         as it will create a pointless feedback loop.
    *  @param service_name The name of the service to use for requesting the planning scene.
    *         This must be a service of type moveit_msgs::GetPlanningScene and is usually called
    *         "/get_planning_scene".
@@ -341,9 +341,9 @@ public:
 
   /** @brief Create an optional service for getting the complete planning scene
    *         This is useful for satisfying the Rviz PlanningScene display's need for a service
-   *         without having to use MoveGroup
-   *         Becareful not to use this in conjunction with requestPlanningSceneState(),
-   *         as it will create a pointless feedback loop
+   *         without having to use a move_group node.
+   *         Be careful not to use this in conjunction with requestPlanningSceneState(),
+   *         as it will create a pointless feedback loop.
    *  @param service_name The topic to provide the service
    */
   void providePlanningSceneService(const std::string& service_name = DEFAULT_PLANNING_SCENE_SERVICE);
