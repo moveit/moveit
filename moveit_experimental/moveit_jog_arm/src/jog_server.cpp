@@ -39,9 +39,11 @@
 
 #include <moveit_jog_arm/jog_ros_interface.h>
 
+static const std::string LOGNAME = "jog_server";
+
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, moveit_jog_arm::LOGNAME);
+  ros::init(argc, argv, LOGNAME);
 
   moveit_jog_arm::JogROSInterface ros_interface;
 

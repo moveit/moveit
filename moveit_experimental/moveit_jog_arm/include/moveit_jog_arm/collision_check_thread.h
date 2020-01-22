@@ -49,8 +49,16 @@ namespace moveit_jog_arm
 class CollisionCheckThread
 {
 public:
+  /** \brief Constructor
+   *  \param parameters: common settings of jog_arm
+   *  \param planning_scene_monitor: PSM should already have scene monitor and state monitor started when passed into
+   * this class
+   */
   CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
-                       const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+
+  // Get thread-safe read only lock of planning scene
+  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
 
   void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables, std::mutex& mutex);
 
@@ -62,6 +70,7 @@ private:
 
   const moveit_jog_arm::JogArmParameters parameters_;
 
+  // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };
 }

@@ -7,8 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(LIBRARY_NAME jog_arm_cpp_api)
 
-set(LIBRARY_NAME jog_arm_cpp_api)
-
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -66,10 +64,7 @@ target_link_libraries(${LIBRARY_NAME}
 
 # An example of using the C++ library
 add_executable(cpp_interface_example
-  src/collision_check_thread.cpp
   src/cpp_interface_example/cpp_interface_example.cpp
-  src/jog_calcs.cpp
-  src/low_pass_filter.cpp
 )
 add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cpp_interface_example
@@ -125,12 +120,21 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## TESTING ##
 #############
 
-#############
-## TESTING ##
-#############
-
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(ros_pytest REQUIRED)
+
+  # jog_server
   add_rostest(test/launch/jog_arm_integration_test.test)
+
+  # jog_cpp_interface
+  add_rostest_gtest(jog_cpp_interface_test
+    test/jog_cpp_interface_test.test
+    test/jog_cpp_interface_test.cpp
+  )
+  target_link_libraries(jog_cpp_interface_test
+    ${LIBRARY_NAME}
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+  )
 endif()

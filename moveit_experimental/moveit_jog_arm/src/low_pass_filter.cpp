@@ -38,6 +38,9 @@
  */
 
 #include <moveit_jog_arm/low_pass_filter.h>
+#include <string>
+
+static const std::string LOGNAME = "low_pass_filter";
 
 namespace moveit_jog_arm
 {

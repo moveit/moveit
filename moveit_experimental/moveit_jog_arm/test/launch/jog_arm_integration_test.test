@@ -2,12 +2,13 @@
 <launch>
   <arg name="debug" value="false" />
 
-  <!-- send urdf to param server -->
-  <param name="robot_description"
-  command="$(find xacro)/xacro --inorder '$(find moveit_resources)/panda_description/urdf/panda.urdf'"/>
+  <!-- Load URDF, SRDF -->
+  <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch" >
+    <arg name="load_robot_description" value="true"/>
+  </include>
 
   <!-- Note, we're using fake, simulated trajectory controllers.
-       These aren't suitable for actually jogging a robot in RViz, but they are good enough to 
+       These aren't suitable for actually jogging a robot in RViz, but they are good enough to
        test jog node output.
   -->
   <include file="$(find moveit_jog_arm)/test/arm_setup/launch/panda_move_group.launch">

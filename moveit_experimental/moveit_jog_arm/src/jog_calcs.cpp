@@ -39,6 +39,8 @@
 
 #include <moveit_jog_arm/jog_calcs.h>
 
+static const std::string LOGNAME = "jog_calcs";
+
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles jogging calculations

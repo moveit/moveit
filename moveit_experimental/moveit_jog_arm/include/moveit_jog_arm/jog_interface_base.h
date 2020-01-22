@@ -55,6 +55,8 @@ namespace moveit_jog_arm
 class JogInterfaceBase
 {
 public:
+  JogInterfaceBase();
+
   void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
   // Jogging calculation thread
@@ -68,7 +70,8 @@ public:
 protected:
   bool readParameters(ros::NodeHandle& n);
 
-  robot_model_loader::RobotModelLoaderPtr model_loader_ptr_;
+  // Pointer to the collision environment
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
   JogArmParameters ros_parameters_;

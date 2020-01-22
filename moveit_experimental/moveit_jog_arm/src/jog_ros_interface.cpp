@@ -41,6 +41,8 @@
 
 #include <moveit_jog_arm/jog_ros_interface.h>
 
+static const std::string LOGNAME = "jog_ros_interface";
+
 namespace moveit_jog_arm
 {
 /////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +60,20 @@ JogROSInterface::JogROSInterface()
   if (!readParameters(nh))
     exit(EXIT_FAILURE);
 
-  // Load the robot model. This is used by the worker threads.
-  model_loader_ptr_ = std::shared_ptr<robot_model_loader::RobotModelLoader>(new robot_model_loader::RobotModelLoader);
+  // Load the planning scene monitor
+  planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+  if (!planning_scene_monitor_->getPlanningScene())
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+    exit(EXIT_FAILURE);
+  }
+
+  planning_scene_monitor_->startSceneMonitor();
+  planning_scene_monitor_->startWorldGeometryMonitor(
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+      false /* skip octomap monitor */);
+  planning_scene_monitor_->startStateMonitor();
 
   // Crunch the numbers in this thread
   startJogCalcThread();
