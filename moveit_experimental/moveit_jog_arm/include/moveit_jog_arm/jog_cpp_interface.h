@@ -47,10 +47,10 @@ namespace moveit_jog_arm
 * Class JogCppApi - This class should be instantiated in a new thread
 * See cpp_interface_example.cpp
 */
-class JogCppApi : JogInterfaceBase
+class JogCppApi : protected JogInterfaceBase
 {
 public:
-  JogCppApi();
+  JogCppApi(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   ~JogCppApi();
 
