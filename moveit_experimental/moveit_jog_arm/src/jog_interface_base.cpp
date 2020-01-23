@@ -264,14 +264,12 @@ bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions:
 bool JogInterfaceBase::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                               moveit_msgs::ChangeControlDimensions::Response& res)
 {
-  shared_variables_mutex_.lock();
   shared_variables_.control_dimensions[0] = req.control_x_translation;
   shared_variables_.control_dimensions[1] = req.control_y_translation;
   shared_variables_.control_dimensions[2] = req.control_z_translation;
   shared_variables_.control_dimensions[3] = req.control_x_rotation;
   shared_variables_.control_dimensions[4] = req.control_y_rotation;
   shared_variables_.control_dimensions[5] = req.control_z_rotation;
-  shared_variables_mutex_.unlock();
 
   res.success = true;
   return true;
@@ -280,6 +278,14 @@ bool JogInterfaceBase::changeControlDimensions(moveit_msgs::ChangeControlDimensi
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {
+  // Set control dimensions to all true
+  shared_variables_.control_dimensions[0] = true;
+  shared_variables_.control_dimensions[1] = true;
+  shared_variables_.control_dimensions[2] = true;
+  shared_variables_.control_dimensions[3] = true;
+  shared_variables_.control_dimensions[4] = true;
+  shared_variables_.control_dimensions[5] = true;
+  
   if (!jog_calcs_)
     jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
 
