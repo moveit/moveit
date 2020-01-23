@@ -14,11 +14,6 @@ target_link_libraries(moveit_visualize_robot_collision_volume moveit_planning_sc
 add_executable(moveit_evaluate_collision_checking_speed src/evaluate_collision_checking_speed.cpp)
 target_link_libraries(moveit_evaluate_collision_checking_speed moveit_planning_scene_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-if("${catkin_LIBRARIES}" MATCHES "moveit_collision_detection_bullet")
-  add_executable(moveit_compare_collision_checking_speed_fcl_bullet src/compare_collision_speed_checking_fcl_bullet.cpp)
-  target_link_libraries(moveit_compare_collision_checking_speed_fcl_bullet moveit_planning_scene_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-endif()
-
 add_executable(moveit_kinematics_speed_and_validity_evaluator src/kinematics_speed_and_validity_evaluator.cpp)
 target_link_libraries(moveit_kinematics_speed_and_validity_evaluator moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
