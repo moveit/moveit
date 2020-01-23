@@ -320,7 +320,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
                        decelerateForSingularity(delta_x, svd_));
 
-  if (!checkIfJointsWithinSRDFBounds(outgoing_command_))
+  if (!enforceSRDFJointBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
@@ -369,7 +369,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
 
   outgoing_command_ = composeOutgoingMessage(joint_state_);
 
-  if (!checkIfJointsWithinSRDFBounds(outgoing_command_))
+  if (!enforceSRDFJointBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
@@ -554,11 +554,11 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   return velocity_scale;
 }
 
-bool JogCalcs::checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
+bool JogCalcs::enforceSRDFJointBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
 {
   bool halting = false;
 
-  if (!new_joint_traj.points.empty())
+  if (new_joint_traj.points.empty())
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Empty trajectory passed into checkIfJointsWithinURDFBounds().");
     return true;  // technically an empty trajectory is still within bounds
