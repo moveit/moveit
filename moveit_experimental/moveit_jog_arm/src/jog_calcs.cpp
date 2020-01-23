@@ -141,17 +141,18 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     incoming_joints_ = shared_variables.joints;
     mutex.unlock();
 
-    kinematic_state_->setVariableValues(joint_state_);
-    original_joint_state_ = joint_state_;
-
     // Get the transform from MoveIt planning frame to jogging command frame
     // We solve (planning_frame -> base -> robot_link_command_frame)
     // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+    kinematic_state_->setVariableValues(incoming_joints_);
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                               kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
     mutex.lock();
     shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
     mutex.unlock();
+
+    kinematic_state_->setVariableValues(joint_state_);
+    original_joint_state_ = joint_state_;
 
     // Initialize the position filters to initial robot joints
     while (!updateJoints() && ros::ok() && !stop_requested_)

@@ -215,10 +215,8 @@ sensor_msgs::JointState JogCppApi::getJointState()
 
 Eigen::Isometry3d JogCppApi::getCommandFrameTransform()
 {
-  shared_variables_mutex_.lock();
-  Eigen::Isometry3d tf_moveit_to_cmd_frame = shared_variables_.tf_moveit_to_cmd_frame;
-  shared_variables_mutex_.unlock();
+  const std::lock_guard<std::mutex> lock(shared_variables_mutex_);
 
-  return tf_moveit_to_cmd_frame;
+  return shared_variables_.tf_moveit_to_cmd_frame;
 }
 }  // namespace moveit_jog_arm
