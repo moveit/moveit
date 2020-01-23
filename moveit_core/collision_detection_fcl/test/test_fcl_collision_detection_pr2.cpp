@@ -35,7 +35,7 @@
 /* Author: Jens Petit */
 
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
-#include <moveit/collision_detection/test_collision_common.h>
+#include <moveit/collision_detection/test_collision_common_pr2.h>
 
 INSTANTIATE_TYPED_TEST_CASE_P(FCLCollisionCheck, CollisionDetectorTest,
                               collision_detection::CollisionDetectorAllocatorFCL);
