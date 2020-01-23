@@ -121,7 +121,7 @@ public:
     }
 
     // directions must be different at this point so angle is always non-zero
-    const double angle = acos(start_direction.dot(end_direction));
+    const double angle = acos(std::max(-1.0, start_direction.dot(end_direction)));
     const double start_distance = (start - intersection).norm();
     const double end_distance = (end - intersection).norm();
 
