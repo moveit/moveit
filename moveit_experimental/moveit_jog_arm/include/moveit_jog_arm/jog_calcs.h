@@ -87,7 +87,7 @@ protected:
   void publishWarning(bool active) const;
 
   // Scale the delta theta to match joint velocity limits
-  bool checkIfJointsWithinSRDFBounds(trajectory_msgs::JointTrajectory& new_joint_traj);
+  bool enforceSRDFJointBounds(trajectory_msgs::JointTrajectory& new_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion

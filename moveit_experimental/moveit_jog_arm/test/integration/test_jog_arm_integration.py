@@ -11,8 +11,8 @@ from trajectory_msgs.msg import JointTrajectory
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_jog_arm_integration.py
 
-JOG_ARM_SETTLE_TIME_S = 3
-ROS_SETTLE_TIME_S = 3
+JOG_ARM_SETTLE_TIME_S = 10
+ROS_SETTLE_TIME_S = 10
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
