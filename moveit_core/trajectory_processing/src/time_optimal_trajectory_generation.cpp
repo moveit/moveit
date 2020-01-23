@@ -110,7 +110,6 @@ public:
     const Eigen::VectorXd start_direction = (intersection - start).normalized();
     const Eigen::VectorXd end_direction = (end - intersection).normalized();
 
-    // check if directions are divergent
     if ((start_direction - end_direction).norm() < 0.000001)
     {
       length_ = 0.0;
