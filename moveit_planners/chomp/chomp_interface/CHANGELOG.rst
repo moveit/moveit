@@ -2,6 +2,11 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.18 (2020-01-24)
+-------------------
+* [fix] Add missing tf dependency in chomp packages
+* Contributors: Robert Haschke
+
 0.9.17 (2019-07-09)
 -------------------
 

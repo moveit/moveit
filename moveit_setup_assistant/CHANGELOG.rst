@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.18 (2020-01-24)
+-------------------
+* [feature] Add joint state controller config by default (`#1024 <https://github.com/ros-planning/moveit/issues/1024>`_)
+* Contributors: Mohmmad Ayman
+
 0.9.17 (2019-07-09)
 -------------------
 

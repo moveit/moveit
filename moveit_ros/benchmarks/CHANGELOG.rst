@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.18 (2020-01-24)
+-------------------
+* [maintanance] Fix plot details, correcting xlabels positions and cleaning the graph (`#1658 <https://github.com/ros-planning/moveit/issues/1658>`_)
+* Contributors: Kaike W. Reis
+
 0.9.17 (2019-07-09)
 -------------------
 

@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.18 (2020-01-24)
+-------------------
+* [maintanance] Removed dependency moveit_core -> moveit_experimental again
+* Contributors: Robert Haschke
+
 0.9.17 (2019-07-09)
 -------------------
 
