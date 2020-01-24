@@ -32,8 +32,9 @@ namespace KDL
 {
 ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min,
                                                            const JntArray& _q_max, ChainFkSolverPos& _fksolver,
-                                                           ChainIkSolverVel& _iksolver, unsigned int _maxiter,
-                                                           double _eps, bool _position_ik)
+                                                           ChainIkSolverVel& _iksolver,
+                                                           const Eigen::VectorXd& _bounds, const Eigen::VectorXd& _cartesian_weights,
+                                                           unsigned int _maxiter, bool _position_ik)
   : chain(_chain)
   , q_min(_q_min)
   , q_min_mimic(chain.getNrOfJoints())
@@ -44,7 +45,8 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   , iksolver(_iksolver)
   , delta_q(_chain.getNrOfJoints())
   , maxiter(_maxiter)
-  , eps(_eps)
+  , bounds(_bounds)
+  , cartesian_weights(_cartesian_weights)
   , position_ik(_position_ik)
 {
   mimic_joints.resize(chain.getNrOfJoints());
@@ -109,86 +111,98 @@ void ChainIkSolverPos_NR_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_resu
 
 int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
-  return CartToJntAdvanced(q_init, p_in, q_out, false);
-}
-
-int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
-                                                    bool lock_redundant_joints)
-{
   //  Note that q_init and q_out will be of size chain.getNrOfJoints()
-  //  qToqMimic(q_init,q_temp);
-
-  q_temp = q_init;
+  double last_delta_twist_err = DBL_MAX;
+  double step_size = 1.0;
+  q_out = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input:");
   for (std::size_t i = 0; i < q_out.rows(); ++i)
-    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_out(i));
+    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_init(i));
 
+  double min_bound = bounds.minCoeff();
   unsigned int i;
+  bool success = false;
   for (i = 0; i < maxiter; ++i)
   {
-    fksolver.JntToCart(q_temp, f);
+    fksolver.JntToCart(q_out, f);
     delta_twist = diff(f, p_in);
 
-    if (position_ik)
+    // compute largest component error
+    double delta_twist_err = 0;
+    success = true;
+    bool success_weak = true;
+    for (int j = position_ik ? 2 : 5; j >= 0; --j) {
+      double err = std::abs(delta_twist(j));
+      success &= err < min_bound;
+      success_weak &= err < bounds[j];
+      delta_twist_err = std::max(delta_twist_err, err * cartesian_weights[j]);
+    }
+    if (success)  // return with success, if we reached min_bound
+        break;
+    success = success_weak;
+
+    if (delta_twist_err >= last_delta_twist_err)
     {
-      if (fabs(delta_twist(0)) < eps && fabs(delta_twist(1)) < eps && fabs(delta_twist(2)) < eps)
+      // if the error increased, we are close to a singularity -> reduce step size
+      double old_step_size = step_size;
+      step_size *= 0.5;  // reduce scale;
+      Multiply(delta_q, step_size / old_step_size, delta_q);
+      ROS_DEBUG_NAMED("kdl", "error increased: %f -> %f, scale: %f", last_delta_twist_err, delta_twist_err, step_size);
+      q_out = q_temp;  // restore previous unclipped joint values
+      if (step_size < min_bound ||  // cannot reach target
+          success)  // stalling, but weakly succeeded
         break;
     }
     else
     {
-      if (Equal(delta_twist, Twist::Zero(), eps))
-        break;
+      q_temp = q_out;  // remember joint values of last successful step
+      last_delta_twist_err = delta_twist_err;
+
+      delta_twist = delta_twist * step_size;
+      iksolver.CartToJnt(q_out, delta_twist, delta_q);
+      double delta_q_norm = delta_q.data.array().abs().sum();
+
+      ROS_INFO_NAMED("kdl", "error: %f  delta_q: %f", delta_twist_err, delta_q_norm);
+      for (std::size_t i = 0; i < 6; ++i)
+        ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_twist(i));
+
+      if (delta_q_norm < min_bound)
+        break;  // cannot reach target
     }
-
-    ROS_DEBUG_STREAM_NAMED("kdl", "delta_twist");
-    for (std::size_t i = 0; i < 6; ++i)
-      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_twist(i));
-
-    iksolver.CartToJnt(q_temp, delta_twist, delta_q);
-
-    Add(q_temp, delta_q, q_temp);
+    Add(q_out, delta_q, q_out);
 
     ROS_DEBUG_STREAM_NAMED("kdl", "delta_q");
     for (std::size_t i = 0; i < delta_q.rows(); ++i)
       ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_q(i));
 
-    ROS_DEBUG_STREAM_NAMED("kdl", "q_temp");
-    for (std::size_t i = 0; i < q_temp.rows(); ++i)
-      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_temp(i));
+    ROS_DEBUG_STREAM_NAMED("kdl", "q_out");
+    for (std::size_t i = 0; i < q_out.rows(); ++i)
+      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_out(i));
 
     for (std::size_t j = 0; j < q_min.rows(); ++j)
     {
-      //      if(mimic_joints[j].active)
-      if (q_temp(j) < q_min(j))
-        q_temp(j) = q_min(j);
+      if (q_out(j) < q_min(j))
+        q_out(j) = q_min(j);
     }
     for (std::size_t j = 0; j < q_max.rows(); ++j)
     {
-      //      if(mimic_joints[j].active)
-      if (q_temp(j) > q_max(j))
-        q_temp(j) = q_max(j);
+      if (q_out(j) > q_max(j))
+        q_out(j) = q_max(j);
     }
-
-    //    q_out = q_temp;
-    // Make sure limits are applied on the mimic joints to
-    //    qMimicToq(q_temp,q_out);
-    //    qToqMimic(q_out,q_temp);
   }
 
-  //  qMimicToq(q_temp, q_out);
-  q_out = q_temp;
-  ROS_DEBUG_STREAM_NAMED("kdl", "Full Solution:");
-  for (std::size_t i = 0; i < q_temp.rows(); ++i)
-    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_temp(i));
-
-  ROS_DEBUG_STREAM_NAMED("kdl", "Actual Solution:");
+  int result = (i == maxiter) ? -3 : (success ? 0 : -2);
+  ROS_INFO_NAMED("kdl", "Result %d after %d iterations:", result, i);
   for (std::size_t i = 0; i < q_out.rows(); ++i)
     ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_out(i));
 
-  if (i != maxiter)
-    return 0;
-  else
-    return -3;
+  return result;
+}
+
+int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
+                                                    bool lock_redundant_joints)
+{
+  return CartToJnt(q_init, p_in, q_out);
 }
 
 ChainIkSolverPos_NR_JL_Mimic::~ChainIkSolverPos_NR_JL_Mimic()

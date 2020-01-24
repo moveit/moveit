@@ -161,18 +161,6 @@ private:
 
   int getKDLSegmentIndex(const std::string& name) const;
 
-  void getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const;
-
-  /** @brief Get a random configuration within joint limits close to the seed state
-   *  @param seed_state Seed state
-   *  @param redundancy Index of the redundant joint within the chain
-   *  @param consistency_limit The returned state will contain a value for the redundant joint in the range
-   * [seed_state(redundancy_limit)-consistency_limit,seed_state(redundancy_limit)+consistency_limit]
-   *  @param jnt_array Returned random configuration
-   */
-  void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
-                              KDL::JntArray& jnt_array, bool lock_redundancy) const;
-
   bool isRedundantJoint(unsigned int index) const;
 
   bool active_; /** Internal variable that indicates whether solvers are configured and ready */
@@ -191,16 +179,20 @@ private:
 
   robot_model::RobotModelPtr robot_model_;
 
-  robot_state::RobotStatePtr state_, state_2_;
+  robot_state::RobotStatePtr state_;
 
   int num_possible_redundant_joints_;
   std::vector<unsigned int> redundant_joints_map_index_;
 
   // Storage required for when the set of redundant joints is reset
   bool position_ik_;  // whether this solver is only being used for position ik
+  // axes bounds w.r.t. tool frame
+  Eigen::VectorXd bounds_;
+  // weights derived from ratio of bounds
+  Eigen::VectorXd cartesian_weights_;
+
   robot_model::JointModelGroup* joint_model_group_;
-  double max_solver_iterations_;
-  double epsilon_;
+  int max_solver_iterations_;
   std::vector<JointMimic> mimic_joints_;
 };
 }
