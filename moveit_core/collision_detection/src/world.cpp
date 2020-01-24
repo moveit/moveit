@@ -219,12 +219,26 @@ bool World::moveObject(const std::string& object_id, const Eigen::Isometry3d& tr
   if (transform.isApprox(Eigen::Isometry3d::Identity()))
     return true;  // object already at correct location
   ensureUnique(it->second);
-  for (size_t i = 0, n = it->second->shapes_.size(); i < n; ++i)
+  for (Eigen::Isometry3d& shape_pose : it->second->shape_poses_)
   {
-    it->second->shape_poses_[i] = transform * it->second->shape_poses_[i];
+    shape_pose = transform * shape_pose;
+  }
+  for (std::pair<const std::string, Eigen::Isometry3d> subframe : it->second->subframe_poses_)
+  {
+    subframe.second = transform * subframe.second;
   }
   notify(it->second, MOVE_SHAPE);
   return true;
+}
+
+bool World::moveObjectAbsolute(const std::string& object_id, const Eigen::Isometry3d& pose)
+{
+  auto it = objects_.find(object_id);
+  if (it == objects_.end())
+    return false;
+  ensureUnique(it->second);
+  // Pass to moveObject the relative transform from the "main" shape to the new desired pose
+  moveObject(object_id, it->second->shape_poses_[0].inverse() * pose);
 }
 
 bool World::removeShapeFromObject(const std::string& object_id, const shapes::ShapeConstPtr& shape)

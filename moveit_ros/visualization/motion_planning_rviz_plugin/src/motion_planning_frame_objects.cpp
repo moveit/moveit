@@ -235,7 +235,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
         {
           ui_->object_status->setText(decideStatusText(obj));
 
-          if (obj->shapes_.size() == 1)
+          if (obj->shapes_.size() >= 1)
           {
             obj_pose = obj->shape_poses_[0];
             Eigen::Vector3d xyz = obj_pose.rotation().eulerAngles(0, 1, 2);
@@ -304,7 +304,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
   if (ps)
   {
     collision_detection::CollisionEnv::ObjectConstPtr obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
-    if (obj && obj->shapes_.size() == 1)
+    if (obj && obj->shapes_.size() >= 1)
     {
       Eigen::Isometry3d p;
       p.translation()[0] = ui_->object_x->value();
@@ -316,7 +316,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
            Eigen::AngleAxisd(ui_->object_ry->value(), Eigen::Vector3d::UnitY()) *
            Eigen::AngleAxisd(ui_->object_rz->value(), Eigen::Vector3d::UnitZ()));
 
-      ps->getWorldNonConst()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
+      ps->getWorldNonConst()->moveObjectAbsolute(obj->id_, p);
       planning_display_->queueRenderSceneGeometry();
 
       // Update the interactive marker pose to match the manually introduced one
@@ -710,7 +710,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
 
   const collision_detection::CollisionEnv::ObjectConstPtr& obj =
       ps->getWorld()->getObject(sel[0]->text().toStdString());
-  if (obj && obj->shapes_.size() == 1)
+  if (obj && obj->shapes_.size() >= 1)
   {
     scene_marker_ = std::make_shared<rviz::InteractiveMarker>(planning_display_->getSceneNode(), context_);
     scene_marker_->processMessage(createObjectMarkerMsg(obj));

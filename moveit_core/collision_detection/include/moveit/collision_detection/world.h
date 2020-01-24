@@ -178,8 +178,15 @@ public:
   bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
                          const Eigen::Isometry3d& pose);
 
-  /** \brief Move all shapes in an object according to the given transform specified in world frame */
+  /** \brief Move all shapes and subframes in an object according to the given transform specified in world frame.
+   * The transform is applied all shapes and subframes.
+   */
   bool moveObject(const std::string& object_id, const Eigen::Isometry3d& transform);
+
+  /** \brief Move all shapes and subframes in an object. The first shape is moved to the specified pose, and the
+   * same relative transform is applied to the other shapes and subframes.
+   */
+  bool moveObjectAbsolute(const std::string& object_id, const Eigen::Isometry3d& pose);
 
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
