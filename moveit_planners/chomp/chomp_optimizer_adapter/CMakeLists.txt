@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   chomp_motion_planner
   pluginlib
+  tf
   )
 
 catkin_package()

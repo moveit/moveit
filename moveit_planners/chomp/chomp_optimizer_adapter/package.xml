@@ -14,6 +14,7 @@
 
   <depend>moveit_core</depend>
   <depend>chomp_motion_planner</depend>
+  <depend>tf</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
 
   <export>

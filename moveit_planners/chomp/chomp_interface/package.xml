@@ -17,6 +17,7 @@
   <depend>moveit_core</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
   <depend>chomp_motion_planner</depend>
+  <depend>tf</depend>
 
   <test_depend>moveit_ros_planning_interface</test_depend>
   <test_depend>rostest</test_depend>

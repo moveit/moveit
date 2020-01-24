@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   pluginlib
   chomp_motion_planner
+  tf
   ${CHOMP_TEST_DEPS}
 )
 
