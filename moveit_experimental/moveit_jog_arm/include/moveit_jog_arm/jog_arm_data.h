@@ -81,7 +81,8 @@ struct JogArmShared
   Eigen::Isometry3d tf_moveit_to_cmd_frame;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::vector<bool> drift_dimensions{ false, false, false, false, false, false };
+  std::atomic_bool drift_dimensions [6] =
+    {ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false)};
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

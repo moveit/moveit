@@ -327,7 +327,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // i.e. take advantage of task redundancy.
   // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
-  mutex.lock();
   for (auto dimension = jacobian_.rows(); dimension >= 0; --dimension)
   {
     if (shared_variables.drift_dimensions[dimension] == true && jacobian_.rows() > 1)
@@ -335,7 +334,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
       removeDimension(jacobian_, delta_x, dimension);
     }
   }
-  mutex.unlock();
 
   svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
   matrix_s_ = svd_.singularValues().asDiagonal();

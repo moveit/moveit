@@ -128,8 +128,14 @@ protected:
 
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
-  // Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
-  inline void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, const int row_to_remove);
+  /**
+   * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
+   *
+   * @param matrix The Jacobian matrix.
+   * @param delta_x Vector of Cartesian delta commands, should be 6-long.
+   * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
+   */
+  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, const int row_to_remove);
 
   const robot_state::JointModelGroup* joint_model_group_;
 
