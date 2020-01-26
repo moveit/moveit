@@ -751,8 +751,8 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 
 void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, const int row_to_remove)
 {
-  Eigen::MatrixXd new_matrix(jacobian.rows()-1, jacobian.cols());
-  Eigen::VectorXd new_vector(jacobian.rows()-1);
+  Eigen::MatrixXd new_matrix(jacobian.rows() - 1, jacobian.cols());
+  Eigen::VectorXd new_vector(jacobian.rows() - 1);
   int row_to_fill = 0;
   for (int orig_matrix_row = 0; orig_matrix_row < jacobian.rows(); ++orig_matrix_row)
   {

@@ -201,7 +201,7 @@ void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 }
 
 bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                                              moveit_msgs::ChangeDriftDimensions::Response& res)
+                                             moveit_msgs::ChangeDriftDimensions::Response& res)
 {
   shared_variables_mutex_.lock();
   shared_variables_.drift_dimensions[0] = req.drift_x_translation;

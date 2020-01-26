@@ -62,7 +62,8 @@ public:
 
   // Service callback for changing drift dimensions,
   // e.g. to allow the wrist joint to rotate
-  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req, moveit_msgs::ChangeDriftDimensions::Response& res);
+  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                             moveit_msgs::ChangeDriftDimensions::Response& res);
 
   // Jogging calculation thread
   bool startJogCalcThread();
