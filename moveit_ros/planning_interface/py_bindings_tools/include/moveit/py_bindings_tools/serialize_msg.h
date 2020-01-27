@@ -38,6 +38,10 @@
 #define MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
 
 #include <ros/ros.h>
+#include <Python.h>
+#include <boost/python.hpp>
+#include <string>
+#include <stdexcept>
 
 namespace moveit
 {
@@ -69,7 +73,75 @@ void deserializeMsg(const std::string& data, T& msg)
   ros::serialization::IStream stream_arg(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&data[0])), data.size());
   ros::serialization::deserialize(stream_arg, msg);
 }
+
+#if PY_MAJOR_VERSION >= 3 || defined(DOXYGEN)
+
+/** \brief C++ Wrapper class for Python 3 \c Bytes Object */
+class ByteString : public boost::python::object
+{
+public:
+  // constructors for bp::handle and friends
+  BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS(ByteString, boost::python::object)
+  ByteString() : boost::python::object(boost::python::handle<>(PyBytes_FromString("")))
+  {
+  }
+  explicit ByteString(const char* s) : boost::python::object(boost::python::handle<>(PyBytes_FromString(s)))
+  {
+  }
+  explicit ByteString(const std::string& s)
+    : boost::python::object(boost::python::handle<>(PyBytes_FromStringAndSize(s.c_str(), s.size())))
+  {
+  }
+};
+
+/** \brief Convert a Python 3 Bytestring to a ROS message */
+template <typename T>
+void deserializeMsg(const ByteString& data, T& msg)
+{
+  const std::string s = boost::python::extract<std::string>(data);
+  deserializeMsg(s, msg);
+}
+
+/** \brief Convert a ROS message to a Python 3 ByteString */
+template <typename T>
+ByteString serializeMsgByteString(const T& msg)
+{
+  return ByteString(serializeMsg(msg));
+}
+#endif
+
+// for old Python version
+#if PY_MAJOR_VERSION < 3 || defined(DOXYGEN)
+/** \brief Convenience wrapper replacement for Python 2 */
+using ByteString = std::string;
+
+/** \brief Convenience wrapper replacement for Python 2 */
+template <typename T>
+std::string serializeMsgByteString(const T& msg)
+{
+  return serializeMsg(msg);
+}
+
+#endif
 }
 }
+
+#if PY_MAJOR_VERSION >= 3
+namespace boost
+{
+namespace python
+{
+namespace converter
+{
+// only accept python 3 Bytes instance when used as C++ function parameter
+template <>
+struct object_manager_traits<moveit::py_bindings_tools::ByteString>
+    : pytype_object_manager_traits<&PyBytes_Type, moveit::py_bindings_tools::ByteString>
+{
+};
+}
+}
+}
+#endif
 
 #endif
