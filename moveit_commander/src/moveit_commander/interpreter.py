@@ -103,7 +103,7 @@ class MoveGroupCommandInterpreter(object):
                         clist[1] = self._prev_group_name
                         if len(clist[1]) == 0:
                             return (MoveGroupInfoLevel.DEBUG, "OK")
-                    if self._gdict.has_key(clist[1]):
+                    if clist[1] in self._gdict:
                         self._prev_group_name = self._group_name
                         self._group_name = clist[1]
                         return (MoveGroupInfoLevel.DEBUG, "OK")
@@ -267,7 +267,7 @@ class MoveGroupCommandInterpreter(object):
         assign_match = re.match(r"^(\w+)\s*=\s*(\w+)$", cmd)
         if assign_match:
             known = g.get_remembered_joint_values()
-            if known.has_key(assign_match.group(2)):
+            if assign_match.group(2) in known:
                 g.remember_joint_values(assign_match.group(1), known[assign_match.group(2)])
                 return (MoveGroupInfoLevel.SUCCESS, assign_match.group(1) + " is now the same as " + assign_match.group(2))
             else:
@@ -286,7 +286,7 @@ class MoveGroupCommandInterpreter(object):
         component_match = re.match(r"^(\w+)\s*\[\s*(\d+)\s*\]\s*=\s*([\d\.e\-\+]+)$", cmd)
         if component_match:
             known = g.get_remembered_joint_values()
-            if known.has_key(component_match.group(1)):
+            if component_match.group(1) in known:
                 try:
                     val = known[component_match.group(1)]
                     val[int(component_match.group(2))] = float(component_match.group(3))
@@ -303,7 +303,7 @@ class MoveGroupCommandInterpreter(object):
         # if this is an unknown one-word command, it is probably a variable
         if len(clist) == 1:
             known = g.get_remembered_joint_values()
-            if known.has_key(cmd):
+            if cmd in known:
                 return (MoveGroupInfoLevel.INFO, "[" + " ".join([str(x) for x in known[cmd]]) + "]")
             else:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
@@ -381,7 +381,7 @@ class MoveGroupCommandInterpreter(object):
                 return (MoveGroupInfoLevel.SUCCESS, "Forgot joint values under the name " + clist[1])
             elif clist[0] == "show":
                 known = g.get_remembered_joint_values()
-                if known.has_key(clist[1]):
+                if clist[1] in known:
                     return (MoveGroupInfoLevel.INFO, "[" + " ".join([str(x) for x in known[clist[1]]]) + "]")
                 else:
                     return (MoveGroupInfoLevel.WARN, "Joint values for " + clist[1] + " are not known")
@@ -423,7 +423,7 @@ class MoveGroupCommandInterpreter(object):
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
         if len(clist) == 3:
-            if clist[0] == "go" and self.GO_DIRS.has_key(clist[1]):
+            if clist[0] == "go" and clist[1] in self.GO_DIRS:
                 self._last_plan = None
                 try:
                     offset = float(clist[2])
