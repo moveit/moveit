@@ -124,8 +124,11 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(ros_pytest REQUIRED)
 
-  # jog_server
-  add_rostest(test/launch/jog_arm_integration_test.test)
+  # Python integration test of basic message reception/publication
+  add_rostest(test/launch/jog_arm_msg_reception_test.test)
+
+  # Python integration test that a halt message is published at a singularity
+  add_rostest(test/launch/jog_arm_halt_msg_test.test)
 
   # jog_cpp_interface
   add_rostest_gtest(jog_cpp_interface_test
