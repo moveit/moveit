@@ -96,8 +96,11 @@ protected:
 
   void publishWarning(bool active) const;
 
-  // Scale the delta theta to match joint velocity limits
-  bool enforceSRDFJointBounds(trajectory_msgs::JointTrajectory& new_joint_traj);
+  // Scale the delta theta to match joint velocity/acceleration limits
+  void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
+
+  // Avoid overshooting joint limits
+  bool enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
@@ -157,6 +160,7 @@ protected:
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
+  Eigen::ArrayXd prev_joint_velocity_;
 
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 

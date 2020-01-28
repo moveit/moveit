@@ -58,7 +58,6 @@ def test_jog_arm_cartesian_command(node):
     )
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different thread fills 'received'
@@ -95,7 +94,6 @@ def test_jog_arm_joint_command(node):
 
     joint_cmd = JointJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
 
     received = []
     TEST_DURATION = 1
@@ -113,6 +111,7 @@ def test_jog_arm_joint_command(node):
 
 
 if __name__ == '__main__':
-   node = node()
-   test_jog_arm_cartesian_command(node)
-   test_jog_arm_joint_command(node)
+    node = node()
+    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    test_jog_arm_trajectory_generated_when_jog_command_is_received(node)
+    test_jog_arm_joint_command(node)

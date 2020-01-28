@@ -61,6 +61,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader:
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
+  prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getVariableCount());
 }
 
 void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
@@ -163,6 +164,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     // Get the transform from MoveIt planning frame to jogging command frame
     // We solve (planning_frame -> base -> robot_link_command_frame)
     // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+    kinematic_state_->setVariableValues(incoming_joints_);
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                               kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
     mutex.lock();
@@ -342,9 +344,20 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   delta_theta_ = pseudo_inverse * delta_x;
 
+  enforceSRDFAccelVelLimits(delta_theta_);
+
+  if (!addJointIncrements(joint_state_, delta_theta_))
+    return false;
+
   // If close to a collision or a singularity, decelerate
   if (!applyVelocityScaling(shared_variables, mutex, delta_theta_,
                             velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
+  {
+    has_warning_ = true;
+    suddenHalt(outgoing_command_);
+  }
+  // If a joint limit would be exceeded, halt and publish a warning
+  else if (!enforceSRDFPositionLimits(outgoing_command_))
   {
     has_warning_ = true;
     suddenHalt(outgoing_command_);
@@ -368,6 +381,8 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   // Apply user-defined scaling
   delta_theta_ = scaleJointCommand(cmd);
 
+  enforceSRDFAccelVelLimits(delta);
+
   kinematic_state_->setVariableValues(joint_state_);
 
   return convertDeltasToOutgoingCmd();
@@ -385,7 +400,7 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
 
   outgoing_command_ = composeJointTrajMessage(joint_state_);
 
-  if (!enforceSRDFJointBounds(outgoing_command_))
+  if (!enforceSRDFPositionLimits(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     has_warning_ = true;
@@ -539,40 +554,78 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
   return velocity_scale;
 }
 
-bool JogCalcs::enforceSRDFJointBounds(trajectory_msgs::JointTrajectory& new_joint_traj)
+void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
+{
+  Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
+
+  std::size_t joint_delta_index = 0;
+  for (auto joint : joint_model_group_->getJointModels())
+  {
+    // Some joints do not have bounds defined
+    if (kinematic_state_->getJointModel(joint->getName())->hasVariable(joint->getName()))
+    {
+      auto bounds = kinematic_state_->getJointModel(joint->getName())->getVariableBounds(joint->getName());
+
+      // Apply acceleration bounds
+      // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
+      // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
+      Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
+      if ((bounds.min_acceleration_ != 0) && (acceleration(joint_delta_index) < bounds.min_acceleration_))
+      {
+        double relative_change =
+            ((bounds.min_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
+             parameters_.publish_period) /
+            delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+          delta_theta = relative_change * delta_theta;
+      }
+      else if ((bounds.max_acceleration_ != 0) && (acceleration(joint_delta_index) > bounds.max_acceleration_))
+      {
+        double relative_change =
+            ((bounds.max_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
+             parameters_.publish_period) /
+            delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+          delta_theta = relative_change * delta_theta;
+      }
+
+      velocity = delta_theta / parameters_.publish_period;
+      // Apply velocity bounds
+      // delta_theta = joint_velocity * delta_t
+      if ((bounds.min_velocity_ != 0) && (velocity(joint_delta_index) < bounds.min_velocity_))
+      {
+        double relative_change = (bounds.min_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+        {
+          delta_theta = relative_change * delta_theta;
+          velocity = relative_change * velocity;
+        }
+      }
+      else if ((bounds.max_velocity_ != 0) && (velocity(joint_delta_index) > bounds.max_velocity_))
+      {
+        double relative_change = (bounds.max_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+        {
+          delta_theta = relative_change * delta_theta;
+          velocity = relative_change * velocity;
+        }
+      }
+      ++joint_delta_index;
+    }
+    prev_joint_velocity_ = velocity;
+  }
+}
+
+bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj)
 {
   bool halting = false;
 
-  if (new_joint_traj.points.empty())
-  {
-    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Empty trajectory passed into checkIfJointsWithinURDFBounds().");
-    return true;  // technically an empty trajectory is still within bounds
-  }
-
   for (auto joint : joint_model_group_->getJointModels())
   {
-    if (!kinematic_state_->satisfiesVelocityBounds(joint))
-    {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName() << " "
-                                                                           << " close to a "
-                                                                              " velocity limit. Enforcing limit.");
-      kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_joint_traj.joint_names.size(); ++c)
-      {
-        if (new_joint_traj.joint_names[c] == joint->getName())
-        {
-          // TODO(andyz): This is caused by publishing in position mode -- which does not initialize the velocity
-          // members.
-          // TODO(andyz): Also need to adjust the joint positions that would be published.
-          if (new_joint_traj.points[0].velocities.size() > c + 1)
-          {
-            new_joint_traj.points[0].velocities[c] = *(kinematic_state_->getJointVelocities(joint));
-            break;
-          }
-        }
-      }
-    }
-
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
     for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
