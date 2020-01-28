@@ -94,7 +94,15 @@ protected:
   double decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
                                   const Eigen::JacobiSVD<Eigen::MatrixXd>& svd);
 
-  // Apply velocity scaling for proximity of collisions and singularities
+  /**
+   * Slow motion down if close to singularity or collision.
+   * @param shared_variables data shared between threads, tells how close we are to collision
+   * @param mutex locks shared data
+   * @param new_joint_traj store the motion in the first waypoint of this trajectory
+   * @param delta_theta motion command, used in calculating new_joint_tray
+   * @param singularity_scale tells how close we are to a singularity
+   * @return false if very close to collision or singularity
+   */
   bool applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
                             trajectory_msgs::JointTrajectory& new_joint_traj, const Eigen::VectorXd& delta_theta,
                             double singularity_scale);
