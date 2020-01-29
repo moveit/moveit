@@ -278,14 +278,6 @@ bool JogInterfaceBase::changeControlDimensions(moveit_msgs::ChangeControlDimensi
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {
-  // Set control dimensions to all true
-  shared_variables_.control_dimensions[0] = true;
-  shared_variables_.control_dimensions[1] = true;
-  shared_variables_.control_dimensions[2] = true;
-  shared_variables_.control_dimensions[3] = true;
-  shared_variables_.control_dimensions[4] = true;
-  shared_variables_.control_dimensions[5] = true;
-  
   if (!jog_calcs_)
     jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
 
