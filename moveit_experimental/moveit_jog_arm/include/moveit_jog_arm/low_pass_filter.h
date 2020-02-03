@@ -59,6 +59,9 @@ private:
   // Larger filter_coeff-> more smoothing of jog commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-  double filter_coeff_ = 10.;
+  const double filter_coeff_;
+  // Scale and feedback term are calculated from supplied filter coefficient
+  const double scale_term_;
+  const double feedback_term_;
 };
 }  // namespace moveit_jog_arm

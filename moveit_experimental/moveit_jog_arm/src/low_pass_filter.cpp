@@ -46,17 +46,19 @@ static const std::string LOGNAME = "low_pass_filter";
 namespace moveit_jog_arm
 {
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
+  : filter_coeff_(low_pass_filter_coeff)
+  , scale_term_(1. / (1. + low_pass_filter_coeff))
+  , feedback_term_(-low_pass_filter_coeff + 1.)
 {
-  filter_coeff_ = low_pass_filter_coeff;
-  if (low_pass_filter_coeff == 1.0)
+  if (filter_coeff_ == 1.0)
   {
     ROS_WARN_NAMED(LOGNAME, "LowPassFilter constructed as a 2 tap boxcar FIR");
   }
-  else if (low_pass_filter_coeff == -1.0)
+  else if (filter_coeff_ == -1.0)
   {
-    ROS_FATAL_NAMED(LOGNAME, "LowPassFilter coeff value of -1.0 will result in divide by zero error");
+    ROS_FATAL_NAMED(LOGNAME, "LowPassFilter coeff value of -1.0 will result in nan outputs");
   }
-  else if (low_pass_filter_coeff < 1.0)
+  else if (filter_coeff_ < 1.0)
   {
     ROS_ERROR_NAMED(LOGNAME, "LowPassFilter constructed as an unstable IIR");
   }
@@ -76,8 +78,8 @@ double LowPassFilter::filter(double new_measurement)
   previous_measurements_[1] = previous_measurements_[0];
   previous_measurements_[0] = new_measurement;
 
-  double new_filtered_msrmt = (1. / (1. + filter_coeff_)) * (previous_measurements_[1] + previous_measurements_[0] -
-                                                             (-filter_coeff_ + 1.) * previous_filtered_measurement_);
+  double new_filtered_msrmt = scale_term_ * (previous_measurements_[1] + previous_measurements_[0] -
+                                             feedback_term_ * previous_filtered_measurement_);
 
   // Store the new filtered measurement
   previous_filtered_measurement_ = new_filtered_msrmt;
