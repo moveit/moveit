@@ -38,29 +38,45 @@
  */
 
 #include <moveit_jog_arm/low_pass_filter.h>
+#include <cmath>
 #include <string>
 #include <ros/ros.h>
 
-static const std::string LOGNAME = "low_pass_filter";
+const std::string LOGNAME = "low_pass_filter";
+constexpr double EPSILON = 1e-9;
 
 namespace moveit_jog_arm
 {
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
-  : filter_coeff_(low_pass_filter_coeff)
+  : previous_measurements_{ 0., 0. }
+  , previous_filtered_measurement_(0.)
+  , filter_coeff_(low_pass_filter_coeff)
   , scale_term_(1. / (1. + low_pass_filter_coeff))
   , feedback_term_(-low_pass_filter_coeff + 1.)
 {
-  if (filter_coeff_ == 1.0)
+  // guarentee this doesn't change because the logic depends on this length implicity
+  static_assert(LowPassFilter::FILTER_LENGTH == 2);
+
+  if (std::abs(feedback_term_) < EPSILON)
   {
-    ROS_WARN_NAMED(LOGNAME, "LowPassFilter constructed as a 2 tap boxcar FIR");
+    ROS_WARN_STREAM_NAMED(
+        LOGNAME, "Filter coefficient value of "
+                     << filter_coeff_
+                     << " resulted in feedback term of 0. "
+                        " This results in a window averaging Finite Impulse Response (FIR) filter with a gain of "
+                     << scale_term_ * LowPassFilter::FILTER_LENGTH);
   }
-  else if (filter_coeff_ == -1.0)
+  if (std::isinf(scale_term_))
   {
-    ROS_FATAL_NAMED(LOGNAME, "LowPassFilter coeff value of -1.0 will result in nan outputs");
+    ROS_FATAL_STREAM_NAMED(LOGNAME, "Filter coefficient value of "
+                                        << filter_coeff_
+                                        << ", outputs from filter will be inf because denominator of scale is 0");
   }
-  else if (filter_coeff_ < 1.0)
+  if (filter_coeff_ < 1.)
   {
-    ROS_ERROR_NAMED(LOGNAME, "LowPassFilter constructed as an unstable IIR");
+    ROS_ERROR_STREAM_NAMED(
+        LOGNAME,
+        "Filter coefficient < 1. makes single order Butterworth an unstable Infinite Impulse Response (IIR) filter, ");
   }
 }
 

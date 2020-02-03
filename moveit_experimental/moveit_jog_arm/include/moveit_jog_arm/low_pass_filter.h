@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace moveit_jog_arm
 {
 /**
@@ -54,8 +56,9 @@ public:
   void reset(double data);
 
 private:
-  double previous_measurements_[2] = { 0., 0. };
-  double previous_filtered_measurement_ = 0.;
+  static constexpr std::size_t FILTER_LENGTH = 2;
+  double previous_measurements_[FILTER_LENGTH];
+  double previous_filtered_measurement_;
   // Larger filter_coeff-> more smoothing of jog commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
