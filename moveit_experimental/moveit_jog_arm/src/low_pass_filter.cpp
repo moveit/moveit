@@ -55,7 +55,7 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   , feedback_term_(1. - low_pass_filter_coeff)
 {
   // guarantee this doesn't change because the logic depends on this length implicity
-  static_assert(LowPassFilter::FILTER_LENGTH == 2);
+  static_assert(LowPassFilter::FILTER_LENGTH == 2, "moveit_jog_arm::LowPassFilter::FILTER_LENGTH should be 2");
 
   if (std::abs(feedback_term_) < EPSILON)
   {
