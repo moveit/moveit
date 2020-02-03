@@ -76,7 +76,7 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   {
     ROS_ERROR_STREAM_NAMED(
         LOGNAME,
-        "Filter coefficient < 1. makes single order Butterworth an unstable Infinite Impulse Response (IIR) filter, ");
+        "Filter coefficient < 1. makes single order Butterworth an unstable Infinite Impulse Response (IIR) filter");
   }
 }
 
@@ -94,12 +94,12 @@ double LowPassFilter::filter(double new_measurement)
   previous_measurements_[1] = previous_measurements_[0];
   previous_measurements_[0] = new_measurement;
 
-  double new_filtered_msrmt = scale_term_ * (previous_measurements_[1] + previous_measurements_[0] -
-                                             feedback_term_ * previous_filtered_measurement_);
+  double new_filtered_measurement = scale_term_ * (previous_measurements_[1] + previous_measurements_[0] -
+                                                   feedback_term_ * previous_filtered_measurement_);
 
   // Store the new filtered measurement
-  previous_filtered_measurement_ = new_filtered_msrmt;
+  previous_filtered_measurement_ = new_filtered_measurement;
 
-  return new_filtered_msrmt;
+  return new_filtered_measurement;
 }
 }  // namespace moveit_jog_arm
