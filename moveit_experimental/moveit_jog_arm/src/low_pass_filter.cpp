@@ -74,9 +74,7 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   }
   if (filter_coeff_ < 1.)
   {
-    ROS_ERROR_STREAM_NAMED(
-        LOGNAME,
-        "Filter coefficient < 1. makes single order Butterworth an unstable Infinite Impulse Response (IIR) filter");
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Filter coefficient < 1. makes the lowpass filter unstable");
   }
 }
 
