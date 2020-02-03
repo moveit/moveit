@@ -52,9 +52,9 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   , previous_filtered_measurement_(0.)
   , filter_coeff_(low_pass_filter_coeff)
   , scale_term_(1. / (1. + low_pass_filter_coeff))
-  , feedback_term_(-low_pass_filter_coeff + 1.)
+  , feedback_term_(1. - low_pass_filter_coeff)
 {
-  // guarentee this doesn't change because the logic depends on this length implicity
+  // guarantee this doesn't change because the logic depends on this length implicity
   static_assert(LowPassFilter::FILTER_LENGTH == 2);
 
   if (std::abs(feedback_term_) < EPSILON)
