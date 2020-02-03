@@ -39,6 +39,7 @@
 
 #include <moveit_jog_arm/low_pass_filter.h>
 #include <string>
+#include <ros/ros.h>
 
 static const std::string LOGNAME = "low_pass_filter";
 
@@ -47,6 +48,18 @@ namespace moveit_jog_arm
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
 {
   filter_coeff_ = low_pass_filter_coeff;
+  if (low_pass_filter_coeff == 1.0)
+  {
+    ROS_WARN_NAMED(LOGNAME, "LowPassFilter constructed as a 2 tap boxcar FIR");
+  }
+  else if (low_pass_filter_coeff == -1.0)
+  {
+    ROS_FATAL_NAMED(LOGNAME, "LowPassFilter coeff value of -1.0 will result in divide by zero error");
+  }
+  else if (low_pass_filter_coeff < 1.0)
+  {
+    ROS_ERROR_NAMED(LOGNAME, "LowPassFilter constructed as an unstable IIR");
+  }
 }
 
 void LowPassFilter::reset(double data)
