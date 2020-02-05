@@ -328,7 +328,11 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   delta_theta_ = pseudo_inverse_ * delta_x;
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, mutex, delta_theta_, decelerateForSingularity(delta_x, svd_));
+  if (!applyVelocityScaling(shared_variables, mutex, delta_theta_, decelerateForSingularity(delta_x, svd_)))
+  {
+    has_warning_ = true;
+    suddenHalt(outgoing_command_);
+  }
 
   return convertDeltasToOutgoingCmd();
 }
@@ -368,12 +372,11 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
   if (!enforceSRDFJointBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
-    publishWarning(true);
+    has_warning_ = true;
   }
-  else
-  {
-    publishWarning(false);
-  }
+
+  publishWarning(has_warning_);
+  has_warning_ = false;
 
   // done with calculations
   if (parameters_.use_gazebo)
@@ -442,7 +445,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::
 
 // Apply velocity scaling for proximity of collisions and singularities.
 // Scale for collisions is read from a shared variable.
-void JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex,
+bool JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex,
                                     Eigen::ArrayXd& delta_theta, double singularity_scale)
 {
   mutex.lock();
@@ -450,6 +453,9 @@ void JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::m
   mutex.unlock();
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
+
+  // Heuristic: flag that we are stuck if velocity scaling is < X%
+  return collision_scale * singularity_scale >= 0.1;
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion

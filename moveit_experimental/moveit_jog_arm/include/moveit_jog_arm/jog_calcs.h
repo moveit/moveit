@@ -112,7 +112,7 @@ protected:
    * @param singularity_scale tells how close we are to a singularity
    * @return false if very close to collision or singularity
    */
-  void applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex, Eigen::ArrayXd& delta_theta,
+  bool applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex, Eigen::ArrayXd& delta_theta,
                             double singularity_scale);
 
   trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
@@ -139,6 +139,9 @@ protected:
   std::vector<LowPassFilter> position_filters_;
 
   ros::Publisher warning_pub_;
+
+  // Flag that a warning should be published
+  bool has_warning_ = false;
 
   JogArmParameters parameters_;
 
