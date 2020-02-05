@@ -316,11 +316,15 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   outgoing_command_ = composeOutgoingMessage(joint_state_);
 
-  // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
-                       decelerateForSingularity(delta_x, svd_));
-
-  if (!enforceSRDFJointBounds(outgoing_command_))
+  // If close to a collision or a singularity, decelerate and publish a warning
+  if (!applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
+                            decelerateForSingularity(delta_x, svd_)))
+  {
+    suddenHalt(outgoing_command_);
+    publishWarning(true);
+  }
+  // If a joint limit would be exceeded, halt and publish a warning
+  else if (!enforceSRDFJointBounds(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
     publishWarning(true);
@@ -483,7 +487,8 @@ bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, std::mutex& 
       new_joint_traj.points[0].velocities[i] *= singularity_scale * collision_scale;
   }
 
-  return true;
+  // Heuristic: flag that we are stuck if velocity scaling is < X%
+  return collision_scale * singularity_scale >= 0.1;
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
