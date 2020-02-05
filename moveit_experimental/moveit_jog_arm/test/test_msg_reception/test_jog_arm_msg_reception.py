@@ -8,6 +8,7 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
+# Test that the jogger publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_jog_arm_integration.py
 
@@ -51,7 +52,7 @@ class CartesianJogCmd(object):
         self._pub.publish(ts)
 
 
-def test_jog_arm_trajectory_generated_when_jog_command_is_received(node):
+def test_jog_arm_cartesian_command(node):
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
@@ -108,5 +109,5 @@ def test_jog_arm_joint_command(node):
 
 if __name__ == '__main__':
    node = node()
-   test_jog_arm_trajectory_generated_when_jog_command_is_received(node)
+   test_jog_arm_cartesian_command(node)
    test_jog_arm_joint_command(node)
