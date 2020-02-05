@@ -81,8 +81,8 @@ def test_jog_arm_cartesian_command(node):
         time.sleep(0.1)
     # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
-    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
-    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 5
+    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 20
+    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 20
 
 
 def test_jog_arm_joint_command(node):
