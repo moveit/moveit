@@ -157,17 +157,17 @@ void OcTreeRender::setColor(double z_pos, double min_z, double max_z, double col
 void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& octree,
                                   OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode)
 {
-  VVPoint pointBuf_;
-  pointBuf_.resize(octree_depth_);
+  VVPoint point_buf;
+  point_buf.resize(octree_depth_);
 
   // get dimensions of octree
-  double minX, minY, minZ, maxX, maxY, maxZ;
-  octree->getMetricMin(minX, minY, minZ);
-  octree->getMetricMax(maxX, maxY, maxZ);
+  double min_x, min_y, min_z, max_x, max_y, max_z;
+  octree->getMetricMin(min_x, min_y, min_z);
+  octree->getMetricMax(max_x, max_y, max_z);
 
   unsigned int render_mode_mask = static_cast<unsigned int>(octree_voxel_rendering);
 
-  size_t pointCount = 0;
+  size_t point_count = 0;
   {
     // traverse all leafs in the tree:
     for (octomap::OcTree::iterator it = octree->begin(octree_depth_), end = octree->end(); it != end; ++it)
@@ -178,18 +178,18 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
       if (((int)octree->isNodeOccupied(*it) + 1) & render_mode_mask)
       {
         // check if current voxel has neighbors on all sides -> no need to be displayed
-        bool allNeighborsFound = true;
+        bool all_neighbors_found = true;
 
         octomap::OcTreeKey key;
-        octomap::OcTreeKey nKey = it.getKey();
+        octomap::OcTreeKey n_key = it.getKey();
 
-        for (key[2] = nKey[2] - 1; allNeighborsFound && key[2] <= nKey[2] + 1; ++key[2])
+        for (key[2] = n_key[2] - 1; all_neighbors_found && key[2] <= n_key[2] + 1; ++key[2])
         {
-          for (key[1] = nKey[1] - 1; allNeighborsFound && key[1] <= nKey[1] + 1; ++key[1])
+          for (key[1] = n_key[1] - 1; all_neighbors_found && key[1] <= n_key[1] + 1; ++key[1])
           {
-            for (key[0] = nKey[0] - 1; allNeighborsFound && key[0] <= nKey[0] + 1; ++key[0])
+            for (key[0] = n_key[0] - 1; all_neighbors_found && key[0] <= n_key[0] + 1; ++key[0])
             {
-              if (key != nKey)
+              if (key != n_key)
               {
                 octomap::OcTreeNode* node = octree->search(key);
 
@@ -197,34 +197,34 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
                 if (!(node && (((int)octree->isNodeOccupied(node)) + 1) & render_mode_mask))
                 {
                   // we do not have a neighbor => break!
-                  allNeighborsFound = false;
+                  all_neighbors_found = false;
                 }
               }
             }
           }
         }
 
-        display_voxel |= !allNeighborsFound;
+        display_voxel |= !all_neighbors_found;
       }
 
       if (display_voxel)
       {
-        rviz::PointCloud::Point newPoint;
+        rviz::PointCloud::Point new_point;
 
-        newPoint.position.x = it.getX();
-        newPoint.position.y = it.getY();
-        newPoint.position.z = it.getZ();
+        new_point.position.x = it.getX();
+        new_point.position.y = it.getY();
+        new_point.position.z = it.getZ();
 
         float cell_probability;
 
         switch (octree_color_mode)
         {
           case OCTOMAP_Z_AXIS_COLOR:
-            setColor(newPoint.position.z, minZ, maxZ, colorFactor_, &newPoint);
+            setColor(new_point.position.z, min_z, max_z, colorFactor_, &new_point);
             break;
           case OCTOMAP_PROBABLILTY_COLOR:
             cell_probability = it->getOccupancy();
-            newPoint.setColor((1.0f - cell_probability), cell_probability, 0.0);
+            new_point.setColor((1.0f - cell_probability), cell_probability, 0.0);
             break;
           default:
             break;
@@ -232,9 +232,9 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
 
         // push to point vectors
         unsigned int depth = it.getDepth();
-        pointBuf_[depth - 1].push_back(newPoint);
+        point_buf[depth - 1].push_back(new_point);
 
-        ++pointCount;
+        ++point_count;
       }
     }
   }
@@ -246,8 +246,8 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
     cloud_[i]->clear();
     cloud_[i]->setDimensions(size, size, size);
 
-    cloud_[i]->addPoints(&pointBuf_[i].front(), pointBuf_[i].size());
-    pointBuf_[i].clear();
+    cloud_[i]->addPoints(&point_buf[i].front(), point_buf[i].size());
+    point_buf[i].clear();
   }
 }
 }  // namespace moveit_rviz_plugin
