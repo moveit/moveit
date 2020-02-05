@@ -146,7 +146,6 @@ void JogCppApi::startMainLoop()
     main_rate.sleep();
   }
 
-  ROS_ERROR("Stopping main loop");
   stopJogCalcThread();
   stopCollisionCheckThread();
 }
@@ -213,12 +212,21 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
-Eigen::Isometry3d JogCppApi::getCommandFrameTransform()
+bool JogCppApi::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
-  shared_variables_mutex_.lock();
-  Eigen::Isometry3d tf_moveit_to_cmd_frame = shared_variables_.tf_moveit_to_cmd_frame;
-  shared_variables_mutex_.unlock();
+  if (jog_calcs_->isInitialized())
+  {
+    shared_variables_mutex_.lock();
+    transform = shared_variables_.tf_moveit_to_cmd_frame;
+    shared_variables_mutex_.unlock();
 
-  return tf_moveit_to_cmd_frame;
+    // All zeros means the transform wasn't initialized, so return false
+    if (transform.matrix().isZero(0))
+      return false;
+  }
+  else
+    return false;
+
+  return true;
 }
 }  // namespace moveit_jog_arm

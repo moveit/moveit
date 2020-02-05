@@ -68,7 +68,7 @@ def test_jog_arm_cartesian_command(node):
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
     received = []
     rospy.sleep(1)
-    assert len(received) <= 2 # 2 is 'num_outgoing_halt_msgs_to_publish' in the config file
+    assert len(received) <= 4 # 'num_outgoing_halt_msgs_to_publish' in the config file
 
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
@@ -103,8 +103,8 @@ def test_jog_arm_joint_command(node):
     rospy.sleep(TEST_DURATION)
     # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
-    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
-    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 5
+    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 20
+    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 20
 
 
 if __name__ == '__main__':
