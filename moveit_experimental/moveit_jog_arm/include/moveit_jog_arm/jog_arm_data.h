@@ -48,8 +48,6 @@
 
 namespace moveit_jog_arm
 {
-static const double WHILE_LOOP_WAIT = 0.001;
-
 // Variables to share between threads, and their mutexes
 struct JogArmShared
 {

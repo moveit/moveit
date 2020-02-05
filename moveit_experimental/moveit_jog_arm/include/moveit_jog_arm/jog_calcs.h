@@ -56,11 +56,24 @@ public:
 
   void stopMainLoop();
 
+  void haltOutgoingJogCmds();
+
+  /** \brief Check if the robot state is being updated and the end effector transform is known
+   *  @return true if initialized properly
+   */
+  bool isInitialized();
+
 protected:
   ros::NodeHandle nh_;
 
   // Loop termination flag
-  std::atomic<bool> stop_requested_;
+  std::atomic<bool> stop_jog_loop_requested_;
+
+  // Flag that outgoing commands to the robot should not be published
+  std::atomic<bool> halt_outgoing_jog_cmds_;
+
+  // Flag that robot state is up to date, end effector transform is known
+  std::atomic<bool> is_initialized_;
 
   sensor_msgs::JointState incoming_joints_;
 
@@ -69,16 +82,13 @@ protected:
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
-  bool updateJoints();
+  bool updateJoints(std::mutex& mutex, const JogArmShared& shared_variables);
 
   Eigen::VectorXd scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const;
 
   Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
-
-  // Reset the data stored in low-pass filters so the trajectory won't jump when jogging is resumed.
-  void resetVelocityFilters();
 
   // Suddenly halt for a joint limit or other critical issue.
   // Is handled differently for position vs. velocity control.
@@ -98,20 +108,23 @@ protected:
    * Slow motion down if close to singularity or collision.
    * @param shared_variables data shared between threads, tells how close we are to collision
    * @param mutex locks shared data
-   * @param new_joint_traj store the motion in the first waypoint of this trajectory
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    * @return false if very close to collision or singularity
    */
-  bool applyVelocityScaling(JogArmShared& shared_variables, std::mutex& mutex,
-                            trajectory_msgs::JointTrajectory& new_joint_traj, const Eigen::VectorXd& delta_theta,
+  bool applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex, Eigen::ArrayXd& delta_theta,
                             double singularity_scale);
 
-  trajectory_msgs::JointTrajectory composeOutgoingMessage(sensor_msgs::JointState& joint_state) const;
+  trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
 
-  void lowPassFilterVelocities(const Eigen::VectorXd& joint_vel);
+  void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
 
-  void lowPassFilterPositions();
+  void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
+
+  /** \brief Convert joint deltas to an outgoing JointTrajectory command.
+    * This happens for joint commands and Cartesian commands.
+    */
+  bool convertDeltasToOutgoingCmd();
 
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
@@ -123,10 +136,12 @@ protected:
   std::map<std::string, std::size_t> joint_state_name_map_;
   trajectory_msgs::JointTrajectory outgoing_command_;
 
-  std::vector<LowPassFilter> velocity_filters_;
   std::vector<LowPassFilter> position_filters_;
 
   ros::Publisher warning_pub_;
+
+  // Flag that a warning should be published
+  bool has_warning_ = false;
 
   JogArmParameters parameters_;
 
@@ -141,5 +156,7 @@ protected:
   const int gazebo_redundant_message_count_ = 30;
 
   uint num_joints_;
+
+  ros::Rate default_sleep_rate_;
 };
 }  // namespace moveit_jog_arm
