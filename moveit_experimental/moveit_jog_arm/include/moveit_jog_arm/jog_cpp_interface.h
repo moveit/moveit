@@ -69,9 +69,14 @@ public:
   // May eliminate the need to create your own joint_state subscriber.
   sensor_msgs::JointState getJointState();
 
-  // Get planning link transform.
-  // The transform from the MoveIt planning frame to robot_link_command_frame
-  Eigen::Isometry3d getCommandFrameTransform();
+  /**
+   * Get the MoveIt planning link transform.
+   * The transform from the MoveIt planning frame to robot_link_command_frame
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
 private:
   ros::NodeHandle nh_;
