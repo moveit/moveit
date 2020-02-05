@@ -166,6 +166,8 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
 
   size_t point_count = 0;
   {
+    int step_size = 1 << (octree->getTreeDepth() - octree_depth_);  // for pruning of occluded voxels
+
     // traverse all leafs in the tree:
     for (octomap::OcTree::iterator it = octree->begin(octree_depth_), end = octree->end(); it != end; ++it)
     {
@@ -178,20 +180,35 @@ void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& 
         bool all_neighbors_found = true;
 
         octomap::OcTreeKey key;
-        octomap::OcTreeKey n_key = it.getKey();
+        octomap::OcTreeKey n_key = it.getIndexKey();  // key of the maximum-depth voxel at the current voxel corner
 
-        for (key[2] = n_key[2] - 1; all_neighbors_found && key[2] <= n_key[2] + 1; ++key[2])
+        // determine indices of potentially neighboring voxels for depths < maximum tree depth
+        // +/-1 at maximum depth, -1 and +depth_difference on other depths
+        int diff_base = 1 << (octree->getTreeDepth() - it.getDepth());
+        int diff[2] = { -1, diff_base };
+
+        // cells with adjacent faces can occlude a voxel, iterate over the cases x,y,z (idxCase) and +/- (diff)
+        for (unsigned int idx_case = 0; idx_case < 3; ++idx_case)
         {
-          for (key[1] = n_key[1] - 1; all_neighbors_found && key[1] <= n_key[1] + 1; ++key[1])
+          int idx_0 = idx_case % 3;
+          int idx_1 = (idx_case + 1) % 3;
+          int idx_2 = (idx_case + 2) % 3;
+
+          for (int i = 0; all_neighbors_found && i < 2; ++i)
           {
-            for (key[0] = n_key[0] - 1; all_neighbors_found && key[0] <= n_key[0] + 1; ++key[0])
+            key[idx_0] = n_key[idx_0] + diff[i];
+            // if rendering is restricted to treeDepth < maximum tree depth inner nodes with distance step_size can
+            // already occlude a voxel
+            for (key[idx_1] = n_key[idx_1] + diff[0] + 1; all_neighbors_found && key[idx_1] < n_key[idx_1] + diff[1];
+                 key[idx_1] += step_size)
             {
-              if (key != n_key)
+              for (key[idx_2] = n_key[idx_2] + diff[0] + 1; all_neighbors_found && key[idx_2] < n_key[idx_2] + diff[1];
+                   key[idx_2] += step_size)
               {
-                octomap::OcTreeNode* node = octree->search(key);
+                octomap::OcTreeNode* node = octree->search(key, octree_depth_);
 
                 // the left part evaluates to 1 for free voxels and 2 for occupied voxels
-                if (!(node && (((int)octree->isNodeOccupied(node)) + 1) & render_mode_mask))
+                if (!(node && ((((int)octree->isNodeOccupied(node)) + 1) & render_mode_mask)))
                 {
                   // we do not have a neighbor => break!
                   all_neighbors_found = false;
