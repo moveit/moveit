@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # Warnings
+  # Enable warnings
   add_compile_options(-Wall -Wextra
     -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
     -Wno-unused-parameter -Wno-unused-function)
@@ -24,11 +24,9 @@ endif()
 
 # boost::iostreams on Windows depends on boost::zlib
 if(WIN32)
-  find_package(Boost REQUIRED system filesystem date_time thread iostreams zlib)
-else()
-  #catkin_lint: ignore_once shadowed_find
-  find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+  set(EXTRA_BOOST_COMPONENTS zlib)
 endif()
+find_package(Boost REQUIRED system filesystem date_time thread iostreams ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
