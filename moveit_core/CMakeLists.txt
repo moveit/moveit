@@ -26,6 +26,7 @@ endif()
 if(WIN32)
   find_package(Boost REQUIRED system filesystem date_time thread iostreams zlib)
 else()
+  #catkin_lint: ignore_once shadowed_find
   find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 endif()
 find_package(Eigen3 REQUIRED)
