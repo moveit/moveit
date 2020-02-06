@@ -22,7 +22,12 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED system filesystem date_time thread iostreams zlib)
+# boost::iostreams on Windows depends on boost::zlib
+if(WIN32)
+  find_package(Boost REQUIRED system filesystem date_time thread iostreams zlib)
+else()
+  find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+endif()
 find_package(Eigen3 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
