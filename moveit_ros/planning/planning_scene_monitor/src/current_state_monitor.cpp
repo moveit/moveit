@@ -385,7 +385,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       {
         // update joint velocities
         if (joint_state->name.size() == joint_state->velocity.size() &&
-            robot_state_.getJointVelocities(jm)[0] != joint_state->velocity[i])
+            (!robot_state_.hasVelocities() || robot_state_.getJointVelocities(jm)[0] != joint_state->velocity[i]))
         {
           update = true;
           robot_state_.setJointVelocities(jm, &(joint_state->velocity[i]));
@@ -393,7 +393,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 
         // update joint efforts
         if (joint_state->name.size() == joint_state->effort.size() &&
-            robot_state_.getJointEffort(jm)[0] != joint_state->effort[i])
+            (!robot_state_.hasEffort() || robot_state_.getJointEffort(jm)[0] != joint_state->effort[i]))
         {
           update = true;
           robot_state_.setJointEfforts(jm, &(joint_state->effort[i]));
