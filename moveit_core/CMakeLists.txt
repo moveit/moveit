@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Warnings
-add_compile_options(-Wall -Wextra
-  -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-  -Wno-unused-parameter -Wno-unused-function)
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # Enable warnings
+  add_compile_options(-Wall -Wextra
+    -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
+    -Wno-unused-parameter -Wno-unused-function)
+endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # This too often has false-positives
   add_compile_options(-Wno-maybe-uninitialized)
@@ -20,7 +22,11 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+# boost::iostreams on Windows depends on boost::zlib
+if(WIN32)
+  set(EXTRA_BOOST_COMPONENTS zlib)
+endif()
+find_package(Boost REQUIRED system filesystem date_time thread iostreams ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
