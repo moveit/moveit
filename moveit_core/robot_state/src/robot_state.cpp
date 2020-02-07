@@ -149,9 +149,9 @@ void RobotState::copyFrom(const RobotState& other)
   if (dirty_link_transforms_ == robot_model_->getRootJoint())
   {
     // everything is dirty; no point in copying transforms; copy positions, potentially velocity & acceleration
-    memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) *
-                                           (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
-                                            ((has_acceleration_ || has_effort_) ? 1 : 0)));
+    memcpy(position_, other.position_,
+           robot_model_->getVariableCount() * sizeof(double) *
+               (1 + (has_velocity_ ? 1 : 0) + ((has_acceleration_ || has_effort_) ? 1 : 0)));
     // and just initialize transforms
     initTransforms();
   }
