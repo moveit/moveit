@@ -44,6 +44,7 @@
 #include <std_srvs/Empty.h>
 #include <moveit_msgs/RobotState.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
@@ -123,7 +124,9 @@ bool MotionPlanningFrame::computeCartesianPlan()
     ROS_ERROR_STREAM("Failed to determine unique end-effector link: " << link_name);
     return false;
   }
-  waypoints.push_back(tf2::toMsg(goal.getGlobalLinkTransform(link)));
+  geometry_msgs::Pose tmp_pose;
+  tf2::convert(goal.getGlobalLinkTransform(link), tmp_pose);
+  waypoints.push_back(tmp_pose);
 
   // setup default params
   double cart_step_size = 0.01;

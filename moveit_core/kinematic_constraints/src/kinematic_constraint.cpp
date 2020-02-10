@@ -42,6 +42,7 @@
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <boost/math/constants/constants.hpp>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <boost/bind.hpp>
 #include <limits>
 #include <memory>
@@ -317,7 +318,7 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
       }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
-      tf2::fromMsg(pc.constraint_region.primitive_poses[i], t);
+      tf2::convert(pc.constraint_region.primitive_poses[i], t);
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
         constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -344,7 +345,7 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
       }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
-      tf2::fromMsg(pc.constraint_region.mesh_poses[i], t);
+      tf2::convert(pc.constraint_region.mesh_poses[i], t);
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
         constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -502,7 +503,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
     return false;
   }
   Eigen::Quaterniond q;
-  tf2::fromMsg(oc.orientation, q);
+  tf2::convert(oc.orientation, q);
   if (fabs(q.norm() - 1.0) > 1e-3)
   {
     ROS_WARN_NAMED("kinematic_constraints", "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, "
@@ -695,7 +696,7 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
     points_.push_back(Eigen::Vector3d(x, y, 0.0));
   }
 
-  tf2::fromMsg(vc.target_pose.pose, target_pose_);
+  tf2::convert(vc.target_pose.pose, target_pose_);
 
   if (tf.isFixedFrame(vc.target_pose.header.frame_id))
   {
@@ -712,7 +713,7 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
     mobile_target_frame_ = true;
   }
 
-  tf2::fromMsg(vc.sensor_pose.pose, sensor_pose_);
+  tf2::convert(vc.sensor_pose.pose, sensor_pose_);
 
   if (tf.isFixedFrame(vc.sensor_pose.header.frame_id))
   {

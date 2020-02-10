@@ -43,6 +43,7 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Transform.h>
 #include <boost/lexical_cast.hpp>
@@ -406,7 +407,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handle
   visualization_msgs::MarkerArray marker_array;
   rstate->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
   tf2::Transform tf_root_to_link;
-  tf2::fromMsg(tf2::toMsg(rstate->getGlobalLinkTransform(eef.parent_link)), tf_root_to_link);
+  tf2::convert(rstate->getGlobalLinkTransform(eef.parent_link), tf_root_to_link);
   // Release the ptr count on the kinematic state
   rstate.reset();
 
@@ -416,13 +417,13 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handle
     marker_array.markers[i].mesh_use_embedded_materials = true;
     // - - - - - - Do some math for the offset - - - - - -
     tf2::Transform tf_root_to_im, tf_root_to_mesh, tf_im_to_eef;
-    tf2::fromMsg(im.pose, tf_root_to_im);
-    tf2::fromMsg(marker_array.markers[i].pose, tf_root_to_mesh);
-    tf2::fromMsg(im_to_eef, tf_im_to_eef);
+    tf2::convert(im.pose, tf_root_to_im);
+    tf2::convert(marker_array.markers[i].pose, tf_root_to_mesh);
+    tf2::convert(im_to_eef, tf_im_to_eef);
     tf2::Transform tf_eef_to_mesh = tf_root_to_link.inverse() * tf_root_to_mesh;
     tf2::Transform tf_im_to_mesh = tf_im_to_eef * tf_eef_to_mesh;
     tf2::Transform tf_root_to_mesh_new = tf_root_to_im * tf_im_to_mesh;
-    tf2::toMsg(tf_root_to_mesh_new, marker_array.markers[i].pose);
+    tf2::convert(tf_root_to_mesh_new, marker_array.markers[i].pose);
     // - - - - - - - - - - - - - - - - - - - - - - - - - -
     m_control.markers.push_back(marker_array.markers[i]);
   }
@@ -515,7 +516,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
       geometry_msgs::PoseStamped pose;
       pose.header.frame_id = robot_model_->getModelFrame();
       pose.header.stamp = ros::Time::now();
-      pose.pose = tf2::toMsg(s->getGlobalLinkTransform(active_vj_[i].connecting_link));
+      tf2::convert(s->getGlobalLinkTransform(active_vj_[i].connecting_link), pose.pose);
       std::string marker_name = getMarkerName(handler, active_vj_[i]);
       shown_markers_[marker_name] = i;
 
@@ -593,16 +594,16 @@ void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr& handler, c
 {
   // Need to allow for control pose offsets
   tf2::Transform tf_root_to_link, tf_root_to_control;
-  tf2::fromMsg(tf2::toMsg(robot_state.getGlobalLinkTransform(eef.parent_link)), tf_root_to_link);
+  tf2::convert(robot_state.getGlobalLinkTransform(eef.parent_link), tf_root_to_link);
 
   geometry_msgs::Pose msg_link_to_control;
   if (handler->getPoseOffset(eef, msg_link_to_control))
   {
     tf2::Transform tf_link_to_control;
-    tf2::fromMsg(msg_link_to_control, tf_link_to_control);
+    tf2::convert(msg_link_to_control, tf_link_to_control);
 
     tf_root_to_control = tf_root_to_link * tf_link_to_control;
-    tf2::toMsg(tf_link_to_control.inverse(), control_to_eef_tf);
+    tf2::convert(tf_link_to_control.inverse(), control_to_eef_tf);
   }
   else
   {
@@ -613,7 +614,7 @@ void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr& handler, c
     control_to_eef_tf.orientation.w = 1.0;
   }
 
-  tf2::toMsg(tf_root_to_control, pose);
+  tf2::convert(tf_root_to_control, pose);
 }
 
 void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr& handler)
@@ -636,7 +637,7 @@ void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr& han
     for (std::size_t i = 0; i < active_vj_.size(); ++i)
     {
       std::string marker_name = getMarkerName(handler, active_vj_[i]);
-      pose_updates[marker_name] = tf2::toMsg(s->getGlobalLinkTransform(active_vj_[i].connecting_link));
+      tf2::convert(s->getGlobalLinkTransform(active_vj_[i].connecting_link), pose_updates[marker_name]);
     }
 
     for (std::size_t i = 0; i < active_generic_.size(); ++i)

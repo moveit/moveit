@@ -48,6 +48,7 @@
 #include <rviz/window_manager_interface.h>
 
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <geometric_shapes/shape_operations.h>
 
 #include <QMessageBox>
@@ -361,7 +362,7 @@ void MotionPlanningFrame::imProcessFeedback(visualization_msgs::InteractiveMarke
   ui_->object_z->blockSignals(oldState);
 
   Eigen::Quaterniond q;
-  tf2::fromMsg(feedback.pose.orientation, q);
+  tf2::convert(feedback.pose.orientation, q);
   Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
 
   oldState = ui_->object_rx->blockSignals(true);

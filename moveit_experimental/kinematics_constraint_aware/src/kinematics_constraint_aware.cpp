@@ -41,6 +41,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <Eigen/Geometry.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <boost/bind.hpp>
 
 namespace kinematics_constraint_aware
@@ -345,7 +346,7 @@ EigenSTL::vector_Isometry3d KinematicsConstraintAware::transformPoses(
   for (std::size_t i = 0; i < poses.size(); ++i)
   {
     geometry_msgs::Pose pose = poses[i].pose;
-    tf2::fromMsg(pose, eigen_pose_2);
+    tf2::convert(pose, eigen_pose_2);
     planning_scene->getTransforms()->transformPose(kinematic_state, poses[i].header.frame_id, eigen_pose_2, eigen_pose);
     if (!target_frame_is_root_frame)
     {
@@ -365,11 +366,11 @@ geometry_msgs::Pose KinematicsConstraintAware::getTipFramePose(
   Eigen::Isometry3d eigen_pose_in, eigen_pose_link, eigen_pose_tip;
   std::string tip_name =
       kinematic_model_->getJointModelGroup(sub_groups_names_[sub_group_index])->getSolverInstance()->getTipFrame();
-  tf2::fromMsg(pose, eigen_pose_in);
+  tf2::convert(pose, eigen_pose_in);
   eigen_pose_link = planning_scene->getTransforms()->getTransform(kinematic_state, link_name);
   eigen_pose_tip = planning_scene->getTransforms()->getTransform(kinematic_state, tip_name);
   eigen_pose_in = eigen_pose_in * (eigen_pose_link.inverse() * eigen_pose_tip);
-  result = tf2::toMsg(eigen_pose_in, result);
+  result = tf2::convert(eigen_pose_in, result);
   return result;
 }
 }

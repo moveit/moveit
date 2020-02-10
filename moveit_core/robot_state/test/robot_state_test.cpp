@@ -38,6 +38,7 @@
 #include <moveit/utils/robot_model_test_utils.h>
 #include <urdf_parser/urdf_parser.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <gtest/gtest.h>
 #include <sstream>
 #include <algorithm>
@@ -116,18 +117,18 @@ TEST(LoadingAndFK, SimpleRobot)
 {
   moveit::core::RobotModelBuilder builder("myrobot", "base_link");
   geometry_msgs::Pose pose;
-  tf2::toMsg(tf2::Vector3(-0.1, 0, 0), pose.position);
+  tf2::convert(tf2::Vector3(-0.1, 0, 0), pose.position);
   tf2::Quaternion q;
   q.setRPY(0, 0, -1);
-  pose.orientation = tf2::toMsg(q);
+  tf2::convert(q, pose.orientation);
   builder.addCollisionBox("base_link", { 1, 2, 1 }, pose);
-  tf2::toMsg(tf2::Vector3(0, 0, 0), pose.position);
+  tf2::convert(tf2::Vector3(0, 0, 0), pose.position);
   q.setRPY(0, 0, 0);
-  pose.orientation = tf2::toMsg(q);
+  tf2::convert(q, pose.orientation);
   builder.addVisualBox("base_link", { 1, 2, 1 }, pose);
-  tf2::toMsg(tf2::Vector3(0, 0.099, 0), pose.position);
+  tf2::convert(tf2::Vector3(0, 0.099, 0), pose.position);
   q.setRPY(0, 0, 0);
-  pose.orientation = tf2::toMsg(q);
+  tf2::convert(q, pose.orientation);
   builder.addInertial("base_link", 2.81, pose, 0.1, -0.2, 0.5, -0.09, 1, 0.101);
   builder.addVirtualJoint("odom_combined", "base_link", "planar", "base_joint");
   builder.addGroup({}, { "base_joint" }, "base");

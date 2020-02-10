@@ -17,7 +17,7 @@
  *   * Neither the name of CRI group nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- *
+ *./moveit_kinematics/lma_kinematics_plugin/src/lma_kinematics_plugin.cpp
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -39,6 +39,7 @@
 #include <kdl/chainiksolverpos_lma.hpp>
 
 #include <tf2_kdl/tf2_kdl.h>
+#include <tf2/convert.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
@@ -264,7 +265,7 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
-  tf2::fromMsg(ik_pose, pose_desired);
+  tf2::convert(ik_pose, pose_desired);
 
   ROS_DEBUG_STREAM_NAMED("lma", "searchPositionIK2: Position request pose is "
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
@@ -339,7 +340,7 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   {
     if (fk_solver_->JntToCart(jnt_pos_in, p_out) >= 0)
     {
-      poses[i] = tf2::toMsg(p_out);
+      tf2::convert(p_out, poses[i]);
     }
     else
     {

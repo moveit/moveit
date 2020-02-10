@@ -47,6 +47,7 @@
 #include <Eigen/Geometry>
 #include <tf2_kdl/tf2_kdl.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <eigen_conversions/eigen_kdl.h>
 
 using namespace moveit::core;
@@ -784,7 +785,7 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_
     p_out.M.data[i] = eerot[i];
 
   poses.resize(1);
-  poses[0] = tf2::toMsg(p_out);
+  tf2::convert(p_out, poses[0]);
 
   return valid;
 }
@@ -1351,7 +1352,7 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
   if (tip_transform_required_ || base_transform_required_)
   {
     Eigen::Isometry3d ik_eigen_pose;
-    tf2::fromMsg(ik_pose, ik_eigen_pose);
+    tf2::convert(ik_pose, ik_eigen_pose);
     if (tip_transform_required_)
       ik_eigen_pose = ik_eigen_pose * group_tip_to_chain_tip_;
 
@@ -1362,7 +1363,7 @@ void IKFastKinematicsPlugin::transformToChainFrame(const geometry_msgs::Pose& ik
   }
   else
   {
-    tf2::fromMsg(ik_pose, ik_pose_chain);
+    tf2::convert(ik_pose, ik_pose_chain);
   }
 }
 

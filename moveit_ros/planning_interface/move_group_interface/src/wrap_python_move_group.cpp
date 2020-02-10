@@ -44,6 +44,7 @@
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
@@ -301,7 +302,8 @@ public:
         else
           p = Eigen::Isometry3d(Eigen::Quaterniond(v[6], v[3], v[4], v[5]));
         p.translation() = Eigen::Vector3d(v[0], v[1], v[2]);
-        geometry_msgs::Pose pm = tf2::toMsg(p);
+        geometry_msgs::Pose pm;
+        tf2::convert(p, pm);
         msg.push_back(pm);
       }
       else

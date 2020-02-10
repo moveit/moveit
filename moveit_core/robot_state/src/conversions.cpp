@@ -38,6 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <boost/lexical_cast.hpp>
 
 namespace moveit
@@ -212,7 +213,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
     if (shapes::constructMsgFromShape(ab_shapes[j].get(), sm))
     {
       geometry_msgs::Pose p;
-      p = tf2::toMsg(ab_tf[j]);
+      tf2::convert(ab_tf[j], p);
       sv.addToObject(sm, p);
     }
   }
@@ -255,7 +256,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(aco.object.primitive_poses[i], p);
+            tf2::convert(aco.object.primitive_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -266,7 +267,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(aco.object.mesh_poses[i], p);
+            tf2::convert(aco.object.mesh_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -277,7 +278,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(aco.object.plane_poses[i], p);
+            tf2::convert(aco.object.plane_poses[i], p);
 
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);

@@ -39,6 +39,7 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
@@ -635,7 +636,8 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
   ASSERT_TRUE(oc.getLinkModel());
 
-  geometry_msgs::Pose p = tf2::toMsg(robot_state.getGlobalLinkTransform(oc.getLinkModel()->getName()));
+  geometry_msgs::Pose p;
+  tf2::convert(robot_state.getGlobalLinkTransform(oc.getLinkModel()->getName()), p);
 
   ocm.orientation = p.orientation;
   ocm.header.frame_id = robot_model_->getModelFrame();

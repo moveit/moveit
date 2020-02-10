@@ -41,6 +41,7 @@
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
 // MoveIt!
@@ -321,7 +322,11 @@ TEST_F(KinematicsTest, getFK)
     std::vector<geometry_msgs::Pose> model_poses;
     model_poses.reserve(tip_frames.size());
     for (const auto& tip : tip_frames)
-      model_poses.emplace_back(tf2::toMsg(robot_state.getGlobalLinkTransform(tip)));
+    {
+      geometry_msgs::Pose tmp_pose;
+      tf2::convert(robot_state.getGlobalLinkTransform(tip), tmp_pose);
+      model_poses.emplace_back(tmp_pose);
+    }
     EXPECT_NEAR_POSES(model_poses, fk_poses, tolerance_);
   }
 }
@@ -478,7 +483,7 @@ TEST_F(KinematicsTest, unitIK)
   std::vector<geometry_msgs::Pose> poses;
   ASSERT_TRUE(kinematics_solver_->getPositionFK(tip_frames, seed, poses));
   Eigen::Isometry3d initial, goal;
-  tf2::fromMsg(poses[0], initial);
+  tf2::convert(poses[0], initial);
 
   auto validateIK = [&](const geometry_msgs::Pose& goal, std::vector<double>& truth) {
     // compute IK
@@ -528,7 +533,9 @@ TEST_F(KinematicsTest, unitIK)
     }
     {
       SCOPED_TRACE(desc);
-      validateIK(tf2::toMsg(goal), ground_truth);
+      geometry_msgs::Pose tmp_pose;
+      tf2::convert(goal, tmp_pose);
+      validateIK(tmp_pose, ground_truth);
     }
   }
 }

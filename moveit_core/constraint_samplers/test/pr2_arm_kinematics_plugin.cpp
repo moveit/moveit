@@ -37,6 +37,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf2_kdl/tf2_kdl.h>
+#include <tf2/convert.h>
 #include <algorithm>
 #include <numeric>
 
@@ -339,7 +340,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     return false;
   }
   KDL::Frame pose_desired;
-  tf2::fromMsg(ik_pose, pose_desired);
+  tf2::convert(ik_pose, pose_desired);
 
   // Do the IK
   KDL::JntArray jnt_pos_in;

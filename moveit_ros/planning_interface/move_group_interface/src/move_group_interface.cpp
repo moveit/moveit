@@ -64,6 +64,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2/utils.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <tf2_ros/transform_listener.h>
 #include <ros/console.h>
 #include <ros/ros.h>
@@ -407,7 +408,7 @@ public:
           // transform the pose first if possible, then do IK
           const Eigen::Isometry3d& t = getJointStateTarget().getFrameTransform(frame);
           Eigen::Isometry3d p;
-          tf2::fromMsg(eef_pose, p);
+          tf2::convert(eef_pose, p);
           return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0.0,
                                                  moveit::core::GroupStateValidityCallbackFn(), o);
         }
@@ -1668,7 +1669,8 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const g
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const Eigen::Isometry3d& eef_pose,
                                                                          const std::string& end_effector_link)
 {
-  geometry_msgs::Pose msg = tf2::toMsg(eef_pose);
+  geometry_msgs::Pose msg;
+  tf2::convert(eef_pose, msg);
   return setJointValueTarget(msg, end_effector_link);
 }
 
@@ -1687,7 +1689,8 @@ bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTar
 bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(
     const Eigen::Isometry3d& eef_pose, const std::string& end_effector_link)
 {
-  geometry_msgs::Pose msg = tf2::toMsg(eef_pose);
+  geometry_msgs::Pose msg;
+  tf2::convert(eef_pose, msg);
   return setApproximateJointValueTarget(msg, end_effector_link);
 }
 
@@ -1737,7 +1740,7 @@ bool moveit::planning_interface::MoveGroupInterface::setPoseTarget(const Eigen::
                                                                    const std::string& end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> pose_msg(1);
-  pose_msg[0].pose = tf2::toMsg(pose);
+  tf2::convert(pose, pose_msg[0].pose);
   pose_msg[0].header.frame_id = getPoseReferenceFrame();
   pose_msg[0].header.stamp = ros::Time::now();
   return setPoseTargets(pose_msg, end_effector_link);
@@ -1768,7 +1771,7 @@ bool moveit::planning_interface::MoveGroupInterface::setPoseTargets(const EigenS
   const std::string& frame_id = getPoseReferenceFrame();
   for (std::size_t i = 0; i < target.size(); ++i)
   {
-    pose_out[i].pose = tf2::toMsg(target[i]);
+    tf2::convert(target[i], pose_out[i].pose);
     pose_out[i].header.stamp = tm;
     pose_out[i].header.frame_id = frame_id;
   }
@@ -1876,7 +1879,7 @@ bool moveit::planning_interface::MoveGroupInterface::setRPYTarget(double r, doub
   }
   tf2::Quaternion q;
   q.setRPY(r, p, y);
-  target.pose.orientation = tf2::toMsg(q);
+  tf2::convert(q, target.pose.orientation);
   bool result = setPoseTarget(target, end_effector_link);
   impl_->setTargetType(ORIENTATION);
   return result;
@@ -2003,7 +2006,7 @@ moveit::planning_interface::MoveGroupInterface::getRandomPose(const std::string&
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
-  pose_msg.pose = tf2::toMsg(pose);
+  tf2::convert(pose, pose_msg.pose);
   return pose_msg;
 }
 
@@ -2028,7 +2031,7 @@ moveit::planning_interface::MoveGroupInterface::getCurrentPose(const std::string
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
-  pose_msg.pose = tf2::toMsg(pose);
+  tf2::convert(pose, pose_msg.pose);
   return pose_msg;
 }
 

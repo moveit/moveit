@@ -37,6 +37,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <moveit/utils/xmlrpc_casts.h>
 
 using namespace moveit::core;
@@ -285,7 +286,7 @@ static bool constructPoseStamped(XmlRpc::XmlRpcValue::iterator& it, geometry_msg
   auto& rpy = it->second["orientation"];
   tf2::Quaternion q;
   q.setRPY(parseDouble(rpy[0]), parseDouble(rpy[1]), parseDouble(rpy[2]));
-  pose.pose.orientation = toMsg(q);
+  tf2::convert(q, pose.pose.orientation);
 
   if (!isArray(it->second["position"], 3, "position", "xyz position"))
     return false;
@@ -420,7 +421,7 @@ static bool constructConstraint(XmlRpc::XmlRpcValue& params, moveit_msgs::Orient
 
       tf2::Quaternion q;
       q.setRPY(parseDouble(it->second[0]), parseDouble(it->second[1]), parseDouble(it->second[2]));
-      constraint.orientation = toMsg(q);
+      tf2::convert(q, constraint.orientation);
     }
     else if (it->first == "tolerances")
     {

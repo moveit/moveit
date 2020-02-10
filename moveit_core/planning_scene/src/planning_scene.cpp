@@ -45,6 +45,7 @@
 #include <moveit/robot_state/attached_body.h>
 #include <octomap_msgs/conversions.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <memory>
 #include <set>
 
@@ -830,7 +831,8 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
     shapes::ShapeMsg sm;
     if (constructMsgFromShape(obj->shapes_[j].get(), sm))
     {
-      geometry_msgs::Pose p = tf2::toMsg(obj->shape_poses_[j]);
+      geometry_msgs::Pose p;
+      tf2::convert(obj->shape_poses_[j], p);
       sv.setPoseMessage(&p);
       boost::apply_visitor(sv, sm);
     }
@@ -892,7 +894,7 @@ bool PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
     {
       const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
       octomap_msgs::fullMapToMsg(*o->octree, octomap.octomap);
-      octomap.origin = tf2::toMsg(map->shape_poses_[0]);
+      tf2::convert(map->shape_poses_[0], octomap.origin);
       return true;
     }
     ROS_ERROR_NAMED(LOGNAME, "Unexpected number of shapes in octomap collision object. Not including '%s' object",
@@ -1398,7 +1400,7 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
   std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
   const Eigen::Isometry3d& t = getTransforms().getTransform(map.header.frame_id);
   Eigen::Isometry3d p;
-  tf2::fromMsg(map.origin, p);
+  tf2::convert(map.origin, p);
   p = t * p;
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
 }
@@ -1537,7 +1539,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(object.object.primitive_poses[i], p);
+            tf2::convert(object.object.primitive_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -1548,7 +1550,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(object.object.mesh_poses[i], p);
+            tf2::convert(object.object.mesh_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -1559,7 +1561,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           if (s)
           {
             Eigen::Isometry3d p;
-            tf2::fromMsg(object.object.plane_poses[i], p);
+            tf2::convert(object.object.plane_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }

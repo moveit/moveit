@@ -40,6 +40,7 @@
 #include <moveit/pick_place/plan_stage.h>
 #include <moveit/robot_state/conversions.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -58,10 +59,10 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
     return false;
 
   Eigen::Isometry3d end_effector_transform;
-  tf2::fromMsg(goal_pose.pose, end_effector_transform);
+  tf2::convert(goal_pose.pose, end_effector_transform);
   end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
   place_pose.header = goal_pose.header;
-  place_pose.pose = tf2::toMsg(end_effector_transform);
+  tf2::convert(end_effector_transform, place_pose.pose);
   return true;
 }
 }  // namespace

@@ -39,6 +39,7 @@
 #include <moveit/transforms/transforms.h>
 #include <geometric_shapes/shape_operations.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <moveit/backtrace/backtrace.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit/macros/console_colors.h>
@@ -1095,7 +1096,7 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
               // if the object is invisible (0 volume) we skip it
               if (fabs(att_mark.scale.x * att_mark.scale.y * att_mark.scale.z) < std::numeric_limits<float>::epsilon())
                 continue;
-              att_mark.pose = tf2::toMsg(it->second->getGlobalCollisionBodyTransforms()[j]);
+              tf2::convert(it->second->getGlobalCollisionBodyTransforms()[j], att_mark.pose);
               arr.markers.push_back(att_mark);
             }
           }
@@ -1119,7 +1120,7 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
         // if the object is invisible (0 volume) we skip it
         if (fabs(mark.scale.x * mark.scale.y * mark.scale.z) < std::numeric_limits<float>::epsilon())
           continue;
-        mark.pose = tf2::toMsg(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j]);
+        tf2::convert(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j], mark.pose);
       }
       else
       {
@@ -1131,7 +1132,7 @@ void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std
         mark.scale.x = mesh_scale[0];
         mark.scale.y = mesh_scale[1];
         mark.scale.z = mesh_scale[2];
-        mark.pose = tf2::toMsg(global_link_transforms_[lm->getLinkIndex()] * lm->getVisualMeshOrigin());
+        tf2::convert(global_link_transforms_[lm->getLinkIndex()] * lm->getVisualMeshOrigin(), mark.pose);
       }
 
       arr.markers.push_back(mark);
@@ -1267,7 +1268,7 @@ bool RobotState::setFromDiffIK(const JointModelGroup* jmg, const geometry_msgs::
                                double dt, const GroupStateValidityCallbackFn& constraint)
 {
   Eigen::Matrix<double, 6, 1> t;
-  tf2::fromMsg(twist, t);
+  tf2::convert(twist, t);
   return setFromDiffIK(jmg, t, tip, dt, constraint);
 }
 
@@ -1349,7 +1350,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose
                            const kinematics::KinematicsQueryOptions& options)
 {
   Eigen::Isometry3d mat;
-  tf2::fromMsg(pose, mat);
+  tf2::convert(pose, mat);
   static std::vector<double> consistency_limits;
   return setFromIK(jmg, mat, tip, consistency_limits, timeout, constraint, options);
 }
@@ -1605,7 +1606,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
-    ik_query = tf2::toMsg(pose);
+    tf2::convert(pose, ik_query);
 
     // Save into vectors
     ik_queries[solver_tip_id] = ik_query;
@@ -1635,7 +1636,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
-    ik_query = tf2::toMsg(current_pose);
+    tf2::convert(current_pose, ik_query);
 
     // Save into vectors - but this needs to be ordered in the same order as the IK solver expects its tip frames
     ik_queries[solver_tip_id] = ik_query;

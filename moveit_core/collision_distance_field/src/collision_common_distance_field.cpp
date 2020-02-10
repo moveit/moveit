@@ -38,6 +38,7 @@
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <memory>
 
 namespace collision_detection
@@ -176,7 +177,7 @@ void getBodySphereVisualizationMarkers(const GroupStateRepresentationConstPtr& g
           gsr->link_body_decompositions_[i];
       for (unsigned int j = 0; j < sphere_representation->getCollisionSpheres().size(); j++)
       {
-        sphere_marker.pose.position = tf2::toMsg(sphere_representation->getSphereCenters()[j]);
+        tf2::convert(sphere_representation->getSphereCenters()[j], sphere_marker.pose.position);
         sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
             sphere_representation->getCollisionSpheres()[j].radius_;
         sphere_marker.id = id;
@@ -211,7 +212,7 @@ void getBodySphereVisualizationMarkers(const GroupStateRepresentationConstPtr& g
       PosedBodySphereDecompositionVectorPtr sphere_decp = gsr->attached_body_decompositions_[i];
       sphere_decp->updatePose(j, att->getGlobalCollisionBodyTransforms()[j]);
 
-      sphere_marker.pose.position = tf2::toMsg(sphere_decp->getSphereCenters()[j]);
+      tf2::convert(sphere_decp->getSphereCenters()[j], sphere_marker.pose.position);
       sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
           sphere_decp->getCollisionSpheres()[j].radius_;
       sphere_marker.id = id;

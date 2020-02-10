@@ -38,6 +38,7 @@
 #include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Transform.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -193,7 +194,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     {
       try
       {
-        tf2::fromMsg(
+        tf2::convert(
             tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id, cloud_msg->header.stamp),
             map_H_sensor);
       }

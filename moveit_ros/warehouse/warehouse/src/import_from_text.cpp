@@ -41,6 +41,7 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2/convert.h>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -143,7 +144,7 @@ void parseLinkConstraint(std::istream& in, planning_scene_monitor::PlanningScene
   if (have_position && have_orientation)
   {
     geometry_msgs::PoseStamped pose;
-    pose.pose = tf2::toMsg(pos * rot);
+    tf2::convert(pos * rot, pose.pose);
     pose.header.frame_id = psm->getRobotModel()->getModelFrame();
     moveit_msgs::Constraints constr = kinematic_constraints::constructGoalConstraints(link_name, pose);
     constr.name = name;

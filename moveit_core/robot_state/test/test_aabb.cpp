@@ -42,6 +42,7 @@
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <moveit/utils/robot_model_test_utils.h>
 
@@ -272,15 +273,15 @@ TEST_F(TestAABB, TestSimple)
   // Contains a link with simple geometry and an offset in the collision link
   moveit::core::RobotModelBuilder builder("simple", "base_footprint");
   geometry_msgs::Pose origin;
-  tf2::toMsg(tf2::Vector3(0, 0, 0.051), origin.position);
+  tf2::convert(tf2::Vector3(0, 0, 0.051), origin.position);
   origin.orientation.w = 1.0;
   builder.addChain("base_footprint->base_link", "fixed", { origin });
 
-  tf2::toMsg(tf2::Vector3(0, 0, 0), origin.position);
+  tf2::convert(tf2::Vector3(0, 0, 0), origin.position);
   builder.addCollisionMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl",
                            origin);
 
-  tf2::toMsg(tf2::Vector3(0, 0, 0.071), origin.position);
+  tf2::convert(tf2::Vector3(0, 0, 0.071), origin.position);
   builder.addCollisionBox("base_footprint", { 0.001, 0.001, 0.001 }, origin);
 
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
@@ -305,18 +306,18 @@ TEST_F(TestAABB, TestComplex)
   // Contains a link with simple geometry and an offset and rotation in the collision link
   moveit::core::RobotModelBuilder builder("complex", "base_footprint");
   geometry_msgs::Pose origin;
-  tf2::toMsg(tf2::Vector3(0, 0, 1.0), origin.position);
+  tf2::convert(tf2::Vector3(0, 0, 1.0), origin.position);
   tf2::Quaternion q;
   q.setRPY(0, 0, 1.5708);
-  origin.orientation = tf2::toMsg(q);
+  tf2::convert(q, origin.orientation);
   builder.addChain("base_footprint->base_link", "fixed", { origin });
-  tf2::toMsg(tf2::Vector3(5.0, 0, 1.0), origin.position);
+  tf2::convert(tf2::Vector3(5.0, 0, 1.0), origin.position);
   builder.addCollisionBox("base_link", { 1.0, 0.1, 0.1 }, origin);
-  tf2::toMsg(tf2::Vector3(4.0, 0, 1.0), origin.position);
+  tf2::convert(tf2::Vector3(4.0, 0, 1.0), origin.position);
   builder.addCollisionBox("base_link", { 1.0, 0.1, 0.1 }, origin);
-  tf2::toMsg(tf2::Vector3(-5.0, 0.0, -1.0), origin.position);
+  tf2::convert(tf2::Vector3(-5.0, 0.0, -1.0), origin.position);
   q.setRPY(0, 1.5708, 0);
-  origin.orientation = tf2::toMsg(q);
+  tf2::convert(q, origin.orientation);
   builder.addCollisionBox("base_footprint", { 0.1, 1.0, 0.1 }, origin);
   builder.addVirtualJoint("odom_combined", "base_footprint", "planar", "world_joint");
   builder.addGroup({}, { "world_joint" }, "base");

@@ -37,6 +37,7 @@
 #include <moveit/depth_image_octomap_updater/depth_image_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Transform.h>
 #include <geometric_shapes/shape_operations.h>
@@ -262,7 +263,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       for (int t = 0; t < nt; ++t)
         try
         {
-          tf2::fromMsg(
+          tf2::convert(
               tf_buffer_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp),
               map_H_sensor);
           found = true;

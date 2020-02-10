@@ -45,6 +45,7 @@
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/convert.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
@@ -308,7 +309,7 @@ void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const 
                                           const geometry_msgs::Pose* feedback_pose, StateChangeCallbackFn* callback)
 {
   Eigen::Isometry3d pose;
-  tf2::fromMsg(*feedback_pose, pose);
+  tf2::convert(*feedback_pose, pose);
 
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
     pose = state->getGlobalLinkTransform(vj->parent_frame).inverse() * pose;
@@ -379,9 +380,9 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
         tf_buffer_->transform(tpose, spose, planning_frame_);
         // Apply inverse of offset to bring feedback pose back into the end-effector support link frame
         tf2::Transform tf_offset, tf_tpose;
-        tf2::fromMsg(offset, tf_offset);
-        tf2::fromMsg(spose.pose, tf_tpose);
-        tf2::toMsg(tf_tpose * tf_offset.inverse(), tpose.pose);
+        tf2::convert(offset, tf_offset);
+        tf2::convert(spose.pose, tf_tpose);
+        tf2::convert(tf_tpose * tf_offset.inverse(), tpose.pose);
       }
       catch (tf2::TransformException& e)
       {

@@ -38,6 +38,7 @@
 #include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
 
 #include <tf2_kdl/tf2_kdl.h>
+#include <tf2/convert.h>
 #include <tf2/transform_datatypes.h>
 
 #include <kdl_parser/kdl_parser.hpp>
@@ -378,7 +379,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
-  tf2::fromMsg(ik_pose, pose_desired);
+  tf2::convert(ik_pose, pose_desired);
 
   ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK: Position request pose is "
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
@@ -552,7 +553,7 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   {
     if (fk_solver_->JntToCart(jnt_pos_in, p_out) >= 0)
     {
-      poses[i] = tf2::toMsg(p_out);
+      tf2::convert(p_out, poses[i]);
     }
     else
     {
