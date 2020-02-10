@@ -14,8 +14,8 @@
     version: master
 - git:
     local-name: moveit_visual_tools
-    uri: https://github.com/ros-planning/moveit_visual_tools.git
-    version: melodic-devel
+    uri: https://github.com/gleichdick/moveit_visual_tools.git
+    version: test_geometry2_433
 - git:
     local-name: rviz_visual_tools
     uri: https://github.com/PickNikRobotics/rviz_visual_tools
@@ -31,4 +31,12 @@
 - git:
     local-name: moveit_tutorials
     uri: https://github.com/ros-planning/moveit_tutorials.git
+    version: melodic-devel
+- git:
+    local-name: geometry2
+    uri: https://github.com/gleichdick/geometry2.git
+    version: templated_fromMsg
+- git:
+    local-name: geometry
+    uri: https://github.com/ros/geometry.git
     version: melodic-devel
