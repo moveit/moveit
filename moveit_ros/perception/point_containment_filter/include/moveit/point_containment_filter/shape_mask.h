@@ -106,7 +106,7 @@ protected:
 
   struct SortBodies
   {
-    bool operator()(const SeeShape& b1, const SeeShape& b2)
+    bool operator()(const SeeShape& b1, const SeeShape& b2) const
     {
       if (b1.volume > b2.volume)
         return true;

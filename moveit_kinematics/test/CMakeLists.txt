@@ -8,7 +8,9 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_executable_with_gtest(test_kinematics_plugin test_kinematics_plugin.cpp)
   target_link_libraries(test_kinematics_plugin ${catkin_LIBRARIES} ${moveit_ros_planning_LIBRARIES} ${xmlrpcpp_LIBRARIES})
-  target_compile_options(test_kinematics_plugin PRIVATE -Wno-deprecated-declarations)
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(test_kinematics_plugin PRIVATE -Wno-deprecated-declarations)
+  endif()
 
   set(DEPS DEPENDENCIES test_kinematics_plugin)
   set(ARGS ARGS ik_plugin:=kdl_kinematics_plugin/KDLKinematicsPlugin)
@@ -36,5 +38,6 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(benchmark_ik
       ${catkin_LIBRARIES} ${moveit_ros_planning_LIBRARIES}
       ${Boost_PROGRAM_OPTIONS_LIBRARY})
-  install(TARGETS benchmark_ik DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  install(TARGETS benchmark_ik
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()

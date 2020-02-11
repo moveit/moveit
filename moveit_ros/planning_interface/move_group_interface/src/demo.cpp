@@ -115,7 +115,7 @@ int main(int argc, char** argv)
   moveit::planning_interface::MoveGroupInterface group(argc > 1 ? argv[1] : "right_arm");
   demoPlace(group);
 
-  sleep(2);
+  ros::Duration(2).sleep();
 
   return 0;
 }
