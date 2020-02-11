@@ -329,7 +329,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Work backwards through the 6-vector so indices don't get out of order
   for (auto dimension = jacobian_.rows(); dimension >= 0; --dimension)
   {
-    if (shared_variables.drift_dimensions[dimension] == true && jacobian_.rows() > 1)
+    if (shared_variables.drift_dimensions[dimension] && jacobian_.rows() > 1)
     {
       removeDimension(jacobian_, delta_x, dimension);
     }
