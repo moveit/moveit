@@ -42,39 +42,37 @@
 #include <string>
 #include <ros/ros.h>
 
-const std::string LOGNAME = "low_pass_filter";
-constexpr double EPSILON = 1e-9;
-
 namespace moveit_jog_arm
 {
+namespace
+{
+constexpr char LOGNAME[] = "low_pass_filter";
+constexpr double EPSILON = 1e-9;
+}
+
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   : previous_measurements_{ 0., 0. }
   , previous_filtered_measurement_(0.)
-  , filter_coeff_(low_pass_filter_coeff)
   , scale_term_(1. / (1. + low_pass_filter_coeff))
   , feedback_term_(1. - low_pass_filter_coeff)
 {
-  // guarantee this doesn't change because the logic depends on this length implicity
+  // guarantee this doesn't change because the logic below depends on this length implicity
   static_assert(LowPassFilter::FILTER_LENGTH == 2, "moveit_jog_arm::LowPassFilter::FILTER_LENGTH should be 2");
+
+  ROS_ASSERT_MSG(!std::isinf(feedback_term_), "%s: outputs from filter will be inf because feedback term is inf",
+                 LOGNAME);
+  ROS_ASSERT_MSG(!std::isinf(scale_term_), "%s: outputs from filter will be inf because denominator of scale is 0",
+                 LOGNAME);
+  ROS_ASSERT_MSG(low_pass_filter_coeff >= 1., "%s: Filter coefficient < 1. makes the lowpass filter unstable", LOGNAME);
 
   if (std::abs(feedback_term_) < EPSILON)
   {
     ROS_WARN_STREAM_NAMED(
         LOGNAME, "Filter coefficient value of "
-                     << filter_coeff_
+                     << low_pass_filter_coeff
                      << " resulted in feedback term of 0. "
                         " This results in a window averaging Finite Impulse Response (FIR) filter with a gain of "
                      << scale_term_ * LowPassFilter::FILTER_LENGTH);
-  }
-  if (std::isinf(scale_term_))
-  {
-    ROS_FATAL_STREAM_NAMED(LOGNAME, "Filter coefficient value of "
-                                        << filter_coeff_
-                                        << ", outputs from filter will be inf because denominator of scale is 0");
-  }
-  if (filter_coeff_ < 1.)
-  {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "Filter coefficient < 1. makes the lowpass filter unstable");
   }
 }
 

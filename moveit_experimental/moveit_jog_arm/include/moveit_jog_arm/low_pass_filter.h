@@ -51,6 +51,9 @@ namespace moveit_jog_arm
 class LowPassFilter
 {
 public:
+  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
+  // Rough plot, with cutoff frequency on the y-axis:
+  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
   explicit LowPassFilter(double low_pass_filter_coeff);
   double filter(double new_measurement);
   void reset(double data);
@@ -59,10 +62,6 @@ private:
   static constexpr std::size_t FILTER_LENGTH = 2;
   double previous_measurements_[FILTER_LENGTH];
   double previous_filtered_measurement_;
-  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
-  // Rough plot, with cutoff frequency on the y-axis:
-  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-  const double filter_coeff_;
   // Scale and feedback term are calculated from supplied filter coefficient
   const double scale_term_;
   const double feedback_term_;
