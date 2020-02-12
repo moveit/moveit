@@ -529,6 +529,34 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::EndSeq;
     emitter << YAML::EndMap;
   }
+
+  emitter << YAML::EndSeq;
+
+  // Add an initial pose for each group
+  emitter << YAML::Key << "initial" << YAML::Comment("Default robot poses can be defined here");
+  emitter << YAML::Value << YAML::BeginSeq;
+
+  bool found = false;
+  for (srdf::Model::Group& group : srdf_->groups_)
+  {
+    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
+
+    for (srdf::Model::GroupState& group_state : srdf_->group_states_)
+    {
+      if (group.name_ == group_state.group_)
+      {
+        emitter << YAML::BeginMap;
+        emitter << YAML::Key << "group";
+        emitter << YAML::Value << group.name_;
+        emitter << YAML::Key << "pose";
+        emitter << YAML::Value << group_state.name_;
+        emitter << YAML::EndMap;
+        found = true;
+        break;
+      }
+    }
+  }
+
   emitter << YAML::EndSeq;
   emitter << YAML::EndMap;
 
