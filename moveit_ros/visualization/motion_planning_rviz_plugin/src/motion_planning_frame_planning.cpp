@@ -342,13 +342,13 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state,
     return;
   }
 
-  if (v == "<same as goal>")
+  if (v == "<same as goal>" || "Query Goal State")
   {
     state = *planning_display_->getQueryGoalState();
     return;
   }
 
-  if (v == "<same as start>")
+  if (v == "<same as start>" || "Query Start State")
   {
     state = *planning_display_->getQueryStartState();
     return;

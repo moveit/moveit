@@ -283,12 +283,14 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
+    ui_->start_state_combo_box->addItem(QString("Query Start State"));
     ui_->start_state_combo_box->addItem(QString("<random valid>"));
     ui_->start_state_combo_box->addItem(QString("<random>"));
     ui_->start_state_combo_box->addItem(QString("<current>"));
     ui_->start_state_combo_box->addItem(QString("<same as goal>"));
     ui_->start_state_combo_box->addItem(QString("<previous>"));
 
+    ui_->goal_state_combo_box->addItem(QString("Query Goal State"));
     ui_->goal_state_combo_box->addItem(QString("<random valid>"));
     ui_->goal_state_combo_box->addItem(QString("<random>"));
     ui_->goal_state_combo_box->addItem(QString("<current>"));
@@ -307,8 +309,8 @@ void MotionPlanningFrame::fillStateSelectionOptions()
       }
     }
 
-    ui_->start_state_combo_box->setCurrentIndex(2);  // default to 'current'
-    ui_->goal_state_combo_box->setCurrentIndex(2);   // default to 'current'
+    ui_->start_state_combo_box->setCurrentIndex(0);  // default to 'Query Start State'
+    ui_->goal_state_combo_box->setCurrentIndex(0);   // default to 'Query Goal State'
   }
 }
 
