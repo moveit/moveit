@@ -73,6 +73,15 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(planning_display_, SIGNAL(queryStartStateChanged()), joints_tab_, SLOT(queryStartStateChanged()));
   connect(planning_display_, SIGNAL(queryGoalStateChanged()), joints_tab_, SLOT(queryGoalStateChanged()));
 
+  // Read the initial max velocity and acceleration scaling factors from ROS parameters
+  double default_velocity_scaling_factor_, default_acceleration_scaling_factor_;
+  nh_.param<double>("robot_description_planning/joint_limits/initial_max_velocity_scaling_factor",
+                    default_velocity_scaling_factor_, 0.1);
+  nh_.param<double>("robot_description_planning/joint_limits/initial_max_acceleration_scaling_factor",
+                    default_acceleration_scaling_factor_, 0.1);
+  ui_->velocity_scaling_factor->setValue(default_velocity_scaling_factor_);
+  ui_->acceleration_scaling_factor->setValue(default_acceleration_scaling_factor_);
+
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect(ui_->plan_button, SIGNAL(clicked()), this, SLOT(planButtonClicked()));

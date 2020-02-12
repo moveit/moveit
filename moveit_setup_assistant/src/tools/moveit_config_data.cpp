@@ -1057,6 +1057,12 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   emitter << YAML::Key << "joint_limits";
   emitter << YAML::Value << YAML::BeginMap;
 
+  emitter << YAML::Key << "default_velocity_scaling_factor";
+  emitter << YAML::Value << "0.1";
+
+  emitter << YAML::Key << "default_acceleration_scaling_factor";
+  emitter << YAML::Value << "0.1";
+
   // Union all the joints in groups. Uses a custom comparator to allow the joints to be sorted by name
   std::set<const robot_model::JointModel*, joint_model_compare> joints;
 
