@@ -341,12 +341,46 @@ public:
 
   void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
   {
-    max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+    if (max_velocity_scaling_factor_ > 1.0)
+    {
+      ROS_WARN_NAMED("move_group_interface",
+                     "max_velocity_scaling_factor cannot be greater than 1.0! Limiting to 1.0.");
+      max_velocity_scaling_factor_ = 1.0;
+    }
+    else if (max_velocity_scaling_factor_ <= 0.0)
+    {
+      ROS_WARN_NAMED("move_group_interface",
+                     "max_velocity_scaling_factor cannot be <= 0.0! Setting to default scaling factor.");
+      if (!node_handle_.getParam("robot_description_planning/joint_limits/default_velocity_scaling_factor",
+                                 max_velocity_scaling_factor_))
+        max_velocity_scaling_factor_ = 0.1;
+    }
+    else
+    {
+      max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+    }
   }
 
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
   {
-    max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
+    if (max_acceleration_scaling_factor_ > 1.0)
+    {
+      ROS_WARN_NAMED("move_group_interface",
+                     "max_acceleration_scaling_factor cannot be greater than 1.0! Limiting to 1.0.");
+      max_acceleration_scaling_factor_ = 1.0;
+    }
+    else if (max_acceleration_scaling_factor_ <= 0.0)
+    {
+      ROS_WARN_NAMED("move_group_interface",
+                     "max_acceleration_scaling_factor cannot be <= 0.0! Setting to default scaling factor.");
+      if (!node_handle_.getParam("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
+                                 max_acceleration_scaling_factor_))
+        max_acceleration_scaling_factor_ = 0.1;
+    }
+    else
+    {
+      max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
+    }
   }
 
   robot_state::RobotState& getTargetRobotState()
