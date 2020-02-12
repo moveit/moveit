@@ -1,0 +1,48 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+  <!-- Parametrized test running with and without gripper! -->
+
+  <!-- Load the context with and without the pg70 -->
+  <include file="$(find pilz_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch" />
+  <include file="$(find pilz_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch">
+    <arg name="gripper" value="pg70" />
+  </include>
+
+  <!-- run test -->
+  <test pkg="pilz_trajectory_generation"  time-limit="120.0" test-name="unittest_trajectory_blender_transition_window" type="unittest_trajectory_blender_transition_window">
+    <param name="planning_group" value="manipulator" />
+    <param name="target_link" value="prbt_tcp" />
+    <param name="cartesian_velocity_tolerance" value="1.0e-6" />
+    <param name="cartesian_angular_velocity_tolerance" value="1.0e-6" />
+    <param name="joint_velocity_tolerance" value="1.0e-6" />
+    <param name="joint_acceleration_tolerance" value="1.0e-2" />
+    <param name="sampling_time" value="0.01" />
+    <param name="testdata_file_name" value="$(find pilz_trajectory_generation)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
+    <rosparam command="load" file="$(find prbt_moveit_config)/config/joint_limits.yaml" />
+  </test>
+
+  <arg name="display_plots" default="false" />
+  <node if="$(arg display_plots)"
+        name="plot_trajectory_msg"
+        pkg="pilz_trajectory_generation"
+        type="plot_display_trajectory_msg.py"
+        args="/my_planned_path"
+  />
+
+</launch>

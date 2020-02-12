@@ -1,0 +1,176 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<testdata>
+
+  <!-- See ../../concept_testdata.png for a visualization of the concept behind these points -->
+
+  <poses>
+
+    <pos name="ZeroPose">
+      <joints group_name="manipulator">0.0 0.0 0.0 0.0 0.0 0.0</joints>
+    </pos>
+
+    <pos name="P1">
+      <joints group_name="manipulator">0.0 -0.388074 0.542292 0.0 1.416578 0.0</joints>
+      <xyzQuat group_name="manipulator" link_name="tool0">0.6 0.0 1.2 0. 1. 0. 0.</xyzQuat>
+    </pos>
+
+    <pos name="P2">
+      <joints group_name="manipulator">0.244978 0.0 0.496077 0.0 1.082479 0.244978</joints>
+      <xyzQuat group_name="manipulator" link_name="tool0">0.8 0.2 1.0 0.0 1.0 0.0 0.0</xyzQuat>
+    </pos>
+
+    <pos name="P3">
+      <joints group_name="manipulator">0.588003 -0.0150774 0.794946 0.0 0.790927 0.588003</joints>
+      <xyzQuat group_name="manipulator" link_name="tool0">
+      0.6 0.4 0.8 0.0 1.0 0.0 0.0
+      <seed><joints group_name="manipulator">0.588003 -0.0150774 0.794946 0.0 0.790927 0.588003</joints></seed>
+      </xyzQuat>
+    </pos>
+
+    <!-- Deprecated: Do not use this point anymore -->
+    <!-- Equal to P1 -->
+    <pos name="PTPPose">
+      <joints group_name="manipulator" >0.0 -0.388074 0.542292 0.0 1.416578 0.0</joints>
+      <xyzQuat group_name="manipulator" link_name="tool0">0.6 0.0 1.2 0. 1. 0. 0.</xyzQuat>
+    </pos>
+
+    <!-- Deprecated: Do not use this point anymore -->
+    <!-- Equal to P1 -->
+    <pos name="PTPJointValid">
+      <joints group_name="manipulator">0.0 -0.388074 0.542292 0.0 1.416578 0.0</joints>
+    </pos>
+
+  </poses>
+
+
+  <ptps>
+    <ptp name="FirstPtp">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>ZeroPose</startPos>
+      <endPos>PTPJointValid</endPos>
+      <vel>1.0</vel>
+      <acc>0.3</acc>
+    </ptp>
+
+    <ptp name="Ptp1">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>ZeroPose</startPos>
+      <endPos>P1</endPos>
+      <vel>1.0</vel>
+      <acc>0.3</acc>
+    </ptp>
+
+    <ptp name="Ptp2">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P3</startPos>
+      <endPos>P2</endPos>
+      <vel>1.0</vel>
+      <acc>0.3</acc>
+    </ptp>
+
+    <ptp name="Ptp3">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P2</startPos>
+      <endPos>P3</endPos>
+      <vel>1.0</vel>
+      <acc>0.3</acc>
+    </ptp>
+  </ptps>
+
+  <lins>
+    <lin name="LINCmd1">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P1</startPos>
+      <endPos>P2</endPos>
+      <vel>0.3</vel>
+      <acc>0.3</acc>
+    </lin>
+
+    <lin name="lin3">
+        <planningGroup>manipulator</planningGroup>
+        <targetLink>tool0</targetLink>
+        <startPos>P2</startPos>
+        <endPos>P3</endPos>
+        <vel>0.1</vel>
+        <acc>0.1</acc>
+    </lin>
+
+    <lin name="lin2">
+        <planningGroup>manipulator</planningGroup>
+        <targetLink>tool0</targetLink>
+        <startPos>P1</startPos>
+        <endPos>P2</endPos>
+        <vel>0.1</vel>
+        <acc>0.1</acc>
+    </lin>
+  </lins>
+
+
+  <circs>
+    <circ name="ValidCIRCCmd2">
+      <!-- valid circ cmd-->
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P1</startPos>
+      <centerPos>P2</centerPos>
+      <endPos>P3</endPos>
+      <vel>0.1</vel>
+      <acc>0.1</acc>
+    </circ>
+
+    <circ name="circ3_interim">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P1</startPos>
+      <intermediatePos>P2</intermediatePos>
+      <endPos>P3</endPos>
+      <vel>0.1</vel>
+      <acc>0.2</acc>
+    </circ>
+
+    <circ name="circ1_center_2">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>tool0</targetLink>
+      <startPos>P3</startPos>
+      <centerPos>P2</centerPos>
+      <endPos>P1</endPos>
+      <vel>0.1</vel>
+      <acc>0.2</acc>
+    </circ>
+  </circs>
+
+
+  <sequences>
+    <blend name="ComplexSequence">
+      <sequenceCmd name="Ptp1"            type="ptp_joint_cart"     blend_radius="0.1" />
+      <sequenceCmd name="circ3_interim"   type="circ_interim_cart"  blend_radius="0.1" />
+      <sequenceCmd name="Ptp2"            type="ptp_cart_cart"      blend_radius="0.1" />
+      <sequenceCmd name="lin3"            type="lin_cart"           blend_radius="0.1" />
+      <sequenceCmd name="circ1_center_2"  type="circ_center_cart"   blend_radius="0.1" />
+      <sequenceCmd name="lin2"            type="lin_cart"           blend_radius="0.1" />
+      <sequenceCmd name="Ptp3"            type="ptp_cart_cart"      blend_radius="0.0" />
+    </blend>
+  </sequences>
+
+</testdata>

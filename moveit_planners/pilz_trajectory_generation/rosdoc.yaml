@@ -1,0 +1,6 @@
+- builder: doxygen
+  name: Documentation of pilz_trajectory_generation package
+  output_dir: pilz_trajectory_generation
+  file_patterns: '*.c *.cpp *.h *.cc *.hh *.dox *.md'
+  exclude_patterns: 'test'
+  use_mdfile_as_mainpage: 'README.md'

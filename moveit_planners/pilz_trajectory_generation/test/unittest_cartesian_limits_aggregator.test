@@ -1,0 +1,36 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+
+<include file="$(find prbt_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+</include>
+
+  <!-- run test -->
+  <test pkg="pilz_trajectory_generation"
+        test-name="unittest_cartesian_limits_aggregator"
+        type="unittest_cartesian_limits_aggregator">
+    <rosparam command="load"
+    file="$(find pilz_trajectory_generation)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_only_vel.yaml"
+    ns="vel_only"/>
+
+    <rosparam command="load"
+    file="$(find pilz_trajectory_generation)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_all.yaml"
+    ns="all"/>
+  </test>
+</launch>

@@ -1,0 +1,78 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<testdata>
+
+  <poses>
+    <pos name="ZeroPose">
+      <joints group_name="manipulator">0.0 0.0 0.0 0.0 0.0 0.0</joints>
+    </pos>
+
+    <pos name="P1">
+      <joints group_name="manipulator">0.0 0.005583 -1.323096 0.0 -1.812912 -2.356194</joints>
+      <xyzQuat group_name="manipulator" link_name="prbt_tcp">0.3 0.0 0.5 0.707106 0.707106 0.0 0.0</xyzQuat>
+    </pos>
+
+    <pos name="P2">
+      <joints group_name="manipulator">0.380506 0.752267 -0.595009 0.0 -1.794315 -1.975688</joints>
+      <xyzQuat group_name="manipulator" link_name="prbt_tcp">0.5 0.2 0.4 0.707106 0.707106 0.0 0.0</xyzQuat>
+    </pos>
+
+    <pos name="P3">
+      <joints group_name="manipulator">0.927295 0.607232 -1.173008 0.0 -1.361351 -1.428899</joints>
+      <xyzQuat group_name="manipulator" link_name="prbt_tcp">0.3 0.4 0.3 0.707106 0.707106 0.0 0.0
+      </xyzQuat>
+    </pos>
+
+  </poses>
+
+  <ptps>
+    <ptp name="Ptp1">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>prbt_tcp</targetLink>
+      <startPos>ZeroPose</startPos>
+      <endPos>P1</endPos>
+      <vel>1.0</vel>
+      <acc>0.4</acc>
+    </ptp>
+
+  </ptps>
+
+  <lins>
+    <lin name="lin2">
+        <planningGroup>manipulator</planningGroup>
+        <targetLink>prbt_tcp</targetLink>
+        <startPos>P1</startPos>
+        <endPos>P2</endPos>
+        <vel>0.1</vel>
+        <acc>0.2</acc>
+    </lin>
+  </lins>
+
+  <circs>
+    <circ name="circ1_center_2">
+      <planningGroup>manipulator</planningGroup>
+      <targetLink>prbt_tcp</targetLink>
+      <startPos>P3</startPos>
+      <centerPos>P2</centerPos>
+      <endPos>P1</endPos>
+      <vel>0.1</vel>
+      <acc>0.2</acc>
+    </circ>
+  </circs>
+
+</testdata>

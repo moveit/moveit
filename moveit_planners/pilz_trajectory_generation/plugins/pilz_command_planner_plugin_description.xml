@@ -1,0 +1,5 @@
+<library path="lib/libpilz_command_planner">
+  <class type="pilz::CommandPlanner" base_class_type="planning_interface::PlannerManager">
+    <description>Pilz Motion Command Planner</description>
+  </class>
+</library>

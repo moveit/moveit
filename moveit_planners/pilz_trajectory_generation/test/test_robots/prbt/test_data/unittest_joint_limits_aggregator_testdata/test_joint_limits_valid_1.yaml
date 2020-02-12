@@ -1,0 +1,36 @@
+#
+# Copyright (c) 2018 Pilz GmbH & Co. KG
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+joint_limits:
+  prbt_joint_1:
+    has_position_limits: true
+    min_position: -2
+    max_position: 2
+  prbt_joint_2:
+    has_position_limits: false
+    min_position: -2
+    max_position: 2
+  prbt_joint_3:
+    has_velocity_limits: true
+    max_velocity: 1.1
+    has_acceleration_limits: false
+    max_acceleration: 5.5
+  prbt_joint_4:
+    has_acceleration_limits: true
+    max_acceleration: 5.5
+  prbt_joint_5:
+    has_deceleration_limits: true
+    max_deceleration: -6.6
