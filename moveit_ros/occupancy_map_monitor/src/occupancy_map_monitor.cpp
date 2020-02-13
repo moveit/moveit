@@ -174,6 +174,8 @@ void OccupancyMapMonitor::initialize()
       ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
     }
   }
+  else
+    ROS_ERROR("Failed to find 3D sensor plugin parameters for octomap generation");
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
@@ -189,8 +191,8 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
     if (map_updaters_.size() > 1)
     {
       mesh_handles_.resize(map_updaters_.size());
-      if (map_updaters_.size() ==
-          2)  // when we had one updater only, we passed direcly the transform cache callback to that updater
+      // when we had one updater only, we passed direcly the transform cache callback to that updater
+      if (map_updaters_.size() == 2)
       {
         map_updaters_[0]->setTransformCacheCallback(
             boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0, _1, _2, _3));
