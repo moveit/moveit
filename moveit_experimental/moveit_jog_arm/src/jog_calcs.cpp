@@ -749,23 +749,19 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   return true;
 }
 
-void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, const int row_to_remove)
+void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
 {
-  Eigen::MatrixXd new_matrix(jacobian.rows() - 1, jacobian.cols());
-  Eigen::VectorXd new_vector(jacobian.rows() - 1);
-  int row_to_fill = 0;
-  for (int orig_matrix_row = 0; orig_matrix_row < jacobian.rows(); ++orig_matrix_row)
-  {
-    // Keep elements we want
-    if (orig_matrix_row != row_to_remove)
-    {
-      new_matrix.row(row_to_fill) = jacobian.row(orig_matrix_row);
-      new_vector(row_to_fill) = delta_x(orig_matrix_row);
-      ++row_to_fill;
-    }
-  }
+  unsigned int num_rows = jacobian.rows() - 1;
+  unsigned int num_cols = jacobian.cols();
 
-  jacobian = new_matrix;
-  delta_x = new_vector;
+  if (row_to_remove < num_rows)
+  {
+    jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
+        jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
+    delta_x.segment(row_to_remove, num_rows - row_to_remove) =
+        delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
+  }
+  jacobian.conservativeResize(num_rows, num_cols);
+  delta_x.conservativeResize(num_rows);
 }
 }  // namespace moveit_jog_arm

@@ -135,7 +135,7 @@ protected:
    * @param delta_x Vector of Cartesian delta commands, should be 6-long.
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, const int row_to_remove);
+  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   const robot_state::JointModelGroup* joint_model_group_;
 
