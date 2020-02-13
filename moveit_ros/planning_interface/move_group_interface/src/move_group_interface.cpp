@@ -356,8 +356,7 @@ public:
     }
     else if (target <= 0.0)
     {
-      node_handle_.param<double>(std::string("robot_description_planning/joint_limits/default_") + name, variable,
-                                 fallback);
+      node_handle_.param<double>(std::string("robot_description_planning/default_") + name, variable, fallback);
       ROS_WARN_NAMED("move_group_interface", "max_%s <= 0.0! Setting to default: %.2f.", name, variable);
     }
     else

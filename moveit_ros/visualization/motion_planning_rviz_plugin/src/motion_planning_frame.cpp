@@ -75,9 +75,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
 
   // Set initial velocity and acceleration scaling factors from ROS parameters
   double factor;
-  nh_.param<double>("robot_description_planning/joint_limits/default_velocity_scaling_factor", factor, 0.1);
+  nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
   ui_->velocity_scaling_factor->setValue(factor);
-  nh_.param<double>("robot_description_planning/joint_limits/default_acceleration_scaling_factor", factor, 0.1);
+  nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
   ui_->acceleration_scaling_factor->setValue(factor);
 
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
