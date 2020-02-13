@@ -52,5 +52,5 @@ int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(
 ompl_interface::ModelBasedStateSpacePtr
 ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const
 {
-  return ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec));
+  return std::make_shared<JointModelStateSpace(space_spec);
 }
