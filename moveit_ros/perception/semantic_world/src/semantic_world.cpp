@@ -455,7 +455,7 @@ std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose& pose, doub
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for (it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
-    ROS_DEBUG_NAMED(LOGNAME, "Testing table: %s", it->first.c_str());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Testing table: " << it->first);
     if (isInsideTableContour(pose, it->second, min_distance_from_edge, min_vertical_offset))
       return it->first;
   }

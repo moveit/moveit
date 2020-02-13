@@ -79,19 +79,21 @@ void OccupancyMapMonitor::initialize()
 {
   /* load params from param server */
   if (map_resolution_ <= std::numeric_limits<double>::epsilon())
+  {
     if (!nh_.getParam("octomap_resolution", map_resolution_))
     {
       map_resolution_ = 0.1;
       ROS_WARN_NAMED(LOGNAME, "Resolution not specified for Octomap. Assuming resolution = %g instead",
                      map_resolution_);
     }
+  }
   ROS_DEBUG_NAMED(LOGNAME, "Using resolution = %lf m for building octomap", map_resolution_);
 
   if (map_frame_.empty())
     if (!nh_.getParam("octomap_frame", map_frame_))
       if (tf_buffer_)
-        ROS_WARN_NAMED(LOGNAME,
-                       "No target frame specified for Octomap. No transforms will be applied to received data.");
+        ROS_WARN_NAMED(LOGNAME, "No target frame specified for Octomap. "
+                                "No transforms will be applied to received data.");
 
   if (!tf_buffer_ && !map_frame_.empty())
     ROS_WARN_STREAM_NAMED(LOGNAME, "Target frame \"" << map_frame_
@@ -124,7 +126,7 @@ void OccupancyMapMonitor::initialize()
           std::string sensor_plugin = std::string(sensor_list[i]["sensor_plugin"]);
           if (sensor_plugin.empty() || sensor_plugin[0] == '~')
           {
-            ROS_INFO_NAMED(LOGNAME, "Skipping octomap updater plugin '%s'", sensor_plugin.c_str());
+            ROS_INFO_STREAM_NAMED(LOGNAME, "Skipping octomap updater plugin '" << sensor_plugin << "'");
             continue;
           }
 
@@ -157,7 +159,7 @@ void OccupancyMapMonitor::initialize()
             /* pass the params struct directly in to the updater */
             if (!up->setParams(sensor_list[i]))
             {
-              ROS_ERROR_NAMED(LOGNAME, "Failed to configure updater of type %s", up->getType().c_str());
+              ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to configure updater of type " << up->getType());
               continue;
             }
 
@@ -176,7 +178,7 @@ void OccupancyMapMonitor::initialize()
     }
     catch (XmlRpc::XmlRpcException& ex)
     {
-      ROS_ERROR_NAMED(LOGNAME, "XmlRpc Exception: %s", ex.getMessage().c_str());
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "XmlRpc Exception: " << ex.getMessage());
     }
   }
   else
@@ -306,7 +308,7 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request,
                                           moveit_msgs::SaveMap::Response& response)
 {
-  ROS_INFO_NAMED(LOGNAME, "Writing map to %s", request.filename.c_str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Writing map to " << request.filename);
   tree_->lockRead();
   try
   {
@@ -323,7 +325,7 @@ bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request
 bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request,
                                           moveit_msgs::LoadMap::Response& response)
 {
-  ROS_INFO_NAMED(LOGNAME, "Reading map from %s", request.filename.c_str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Reading map from " << request.filename);
 
   /* load the octree from disk */
   tree_->lockWrite();

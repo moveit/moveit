@@ -85,7 +85,7 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
-    ROS_ERROR_NAMED(LOGNAME, "XmlRpc Exception: %s", ex.getMessage().c_str());
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "XmlRpc Exception: " << ex.getMessage());
     return false;
   }
 
