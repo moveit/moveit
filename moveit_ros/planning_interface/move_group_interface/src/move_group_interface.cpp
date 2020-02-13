@@ -337,47 +337,32 @@ public:
     num_planning_attempts_ = num_planning_attempts;
   }
 
-  void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
+  void setMaxVelocityScalingFactor(double factor)
   {
-    if (max_velocity_scaling_factor_ > 1.0)
-    {
-      ROS_WARN_NAMED("move_group_interface",
-                     "max_velocity_scaling_factor cannot be greater than 1.0! Limiting to 1.0.");
-      max_velocity_scaling_factor_ = 1.0;
-    }
-    else if (max_velocity_scaling_factor_ <= 0.0)
-    {
-      ROS_WARN_NAMED("move_group_interface",
-                     "max_velocity_scaling_factor cannot be <= 0.0! Setting to default scaling factor.");
-      if (!node_handle_.getParam("robot_description_planning/joint_limits/default_velocity_scaling_factor",
-                                 max_velocity_scaling_factor_))
-        max_velocity_scaling_factor_ = 0.1;
-    }
-    else
-    {
-      max_velocity_scaling_factor_ = max_velocity_scaling_factor;
-    }
+    setMaxScalingFactor(max_velocity_scaling_factor_, factor, "velocity_scaling_factor", 0.1);
   }
 
-  void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+  void setMaxAccelerationScalingFactor(double factor)
   {
-    if (max_acceleration_scaling_factor_ > 1.0)
+    setMaxScalingFactor(max_acceleration_scaling_factor_, factor, "acceleration_scaling_factor", 0.1);
+  }
+
+  void setMaxScalingFactor(double& variable, const double target, const char* name, double fallback)
+  {
+    if (target > 1.0)
     {
-      ROS_WARN_NAMED("move_group_interface",
-                     "max_acceleration_scaling_factor cannot be greater than 1.0! Limiting to 1.0.");
-      max_acceleration_scaling_factor_ = 1.0;
+      ROS_WARN_NAMED("move_group_interface", "Limiting max_%s (%.2f) to 1.0.", name, target);
+      variable = 1.0;
     }
-    else if (max_acceleration_scaling_factor_ <= 0.0)
+    else if (target <= 0.0)
     {
-      ROS_WARN_NAMED("move_group_interface",
-                     "max_acceleration_scaling_factor cannot be <= 0.0! Setting to default scaling factor.");
-      if (!node_handle_.getParam("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
-                                 max_acceleration_scaling_factor_))
-        max_acceleration_scaling_factor_ = 0.1;
+      node_handle_.param<double>(std::string("robot_description_planning/joint_limits/default_") + name, variable,
+                                 fallback);
+      ROS_WARN_NAMED("move_group_interface", "max_%s <= 0.0! Setting to default: %.2f.", name, variable);
     }
     else
     {
-      max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
+      variable = target;
     }
   }
 
