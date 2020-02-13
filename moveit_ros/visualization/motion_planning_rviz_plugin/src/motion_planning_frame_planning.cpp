@@ -172,9 +172,6 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  // move_group node uses an empty start state to refer to the most recent current state
-  if (ui_->start_state_combo_box->currentText() == "<current>")
-    move_group_->setStartStateToCurrentState();
   planning_display_->rememberPreviousStartState();
   bool success = (ui_->use_cartesian_path->isEnabled() && ui_->use_cartesian_path->checkState()) ?
                      computeCartesianPlan() :

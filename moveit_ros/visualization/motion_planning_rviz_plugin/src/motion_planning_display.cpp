@@ -1143,7 +1143,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   query_robot_start_->load(*getRobotModel()->getURDF());
   query_robot_goal_->load(*getRobotModel()->getURDF());
 
-  // initialize previous state to current state
+  // initialize previous state, start state, and goal state to current state
   previous_state_ = std::make_shared<robot_state::RobotState>(getPlanningSceneRO()->getCurrentState());
   query_start_state_.reset(new robot_interaction::InteractionHandler(robot_interaction_, "start", *previous_state_,
                                                                      planning_scene_monitor_->getTFClient()));
