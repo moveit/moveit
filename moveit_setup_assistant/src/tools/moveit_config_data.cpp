@@ -1052,13 +1052,25 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
 bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
+  emitter << YAML::Comment("joint_limits.yaml allows the dynamics properties specified in the URDF "
+                           "to be overwritten or augmented as needed");
+  emitter << YAML::Newline;
+
   emitter << YAML::BeginMap;
 
+  emitter << YAML::Comment("For beginners, down-scale velocity and acceleration limits.") << YAML::Newline;
+  emitter << YAML::Comment("Increase those values to 1.0 to exploit the full potential of the robot.");
   emitter << YAML::Key << "default_velocity_scaling_factor";
   emitter << YAML::Value << "0.1";
 
   emitter << YAML::Key << "default_acceleration_scaling_factor";
   emitter << YAML::Value << "0.1";
+
+  emitter << YAML::Newline << YAML::Newline;
+  emitter << YAML::Comment("Specific joint properties can be changed with the keys "
+                           "[max_position, min_position, max_velocity, max_acceleration]")
+          << YAML::Newline;
+  emitter << YAML::Comment("Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]");
 
   emitter << YAML::Key << "joint_limits";
   emitter << YAML::Value << YAML::BeginMap;
@@ -1124,14 +1136,6 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
-  // Add documentation into joint_limits.yaml
-  output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or "
-                   "augmented as needed"
-                << std::endl;
-  output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, "
-                   "max_velocity, max_acceleration]"
-                << std::endl;
-  output_stream << "# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]" << std::endl;
   output_stream << emitter.c_str();
   output_stream.close();
 
