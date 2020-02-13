@@ -48,6 +48,8 @@
 
 namespace occupancy_map_monitor
 {
+static const std::string LOGNAME = "depth_image_octomap_updater";
+
 DepthImageOctomapUpdater::DepthImageOctomapUpdater()
   : OccupancyMapUpdater("DepthImageUpdater")
   , nh_("~")
@@ -106,7 +108,7 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
-    ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "XmlRpc Exception: " << ex.getMessage());
     return false;
   }
 
@@ -171,7 +173,7 @@ mesh_filter::MeshHandle DepthImageOctomapUpdater::excludeShape(const shapes::Sha
     }
   }
   else
-    ROS_ERROR("Mesh filter not yet initialized!");
+    ROS_ERROR_NAMED(LOGNAME, "Mesh filter not yet initialized!");
   return h;
 }
 
@@ -186,7 +188,7 @@ bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eige
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())
   {
-    ROS_ERROR("Internal error. Mesh filter handle %u not found", h);
+    ROS_ERROR_NAMED(LOGNAME, "Internal error. Mesh filter handle %u not found", h);
     return false;
   }
   transform = it->second;
@@ -211,8 +213,8 @@ static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
 void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg,
                                                   const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
-  ROS_DEBUG("Received a new depth image message (frame = '%s', encoding='%s')", depth_msg->header.frame_id.c_str(),
-            depth_msg->encoding.c_str());
+  ROS_DEBUG_NAMED(LOGNAME, "Received a new depth image message (frame = '%s', encoding='%s')",
+                  depth_msg->header.frame_id.c_str(), depth_msg->encoding.c_str());
   ros::WallTime start = ros::WallTime::now();
 
   if (max_update_rate_ > 0)
@@ -289,11 +291,12 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       {
         failed_tf_++;
         if (failed_tf_ > good_tf_)
-          ROS_WARN_THROTTLE(1, "More than half of the image messages discared due to TF being unavailable (%u%%). "
-                               "Transform error of sensor data: %s; quitting callback.",
-                            (100 * failed_tf_) / (good_tf_ + failed_tf_), err.c_str());
+          ROS_WARN_THROTTLE_NAMED(1, LOGNAME,
+                                  "More than half of the image messages discared due to TF being unavailable (%u%%). "
+                                  "Transform error of sensor data: %s; quitting callback.",
+                                  (100 * failed_tf_) / (good_tf_ + failed_tf_), err.c_str());
         else
-          ROS_DEBUG_THROTTLE(1, "Transform error of sensor data: %s; quitting callback", err.c_str());
+          ROS_DEBUG_THROTTLE_NAMED(1, LOGNAME, "Transform error of sensor data: %s; quitting callback", err.c_str());
         if (failed_tf_ > MAX_TF_COUNTER)
         {
           const unsigned int div = MAX_TF_COUNTER / 10;
@@ -309,12 +312,12 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
   if (!updateTransformCache(depth_msg->header.frame_id, depth_msg->header.stamp))
   {
-    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
+    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
     return;
   }
 
   if (depth_msg->is_bigendian && !HOST_IS_BIG_ENDIAN)
-    ROS_ERROR_THROTTLE(1, "endian problem: received image data does not match host");
+    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "endian problem: received image data does not match host");
 
   const int w = depth_msg->width;
   const int h = depth_msg->height;
@@ -331,7 +334,8 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   {
     if (depth_msg->encoding != sensor_msgs::image_encodings::TYPE_32FC1)
     {
-      ROS_ERROR_THROTTLE(1, "Unexpected encoding type: '%s'. Ignoring input.", depth_msg->encoding.c_str());
+      ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Unexpected encoding type: '%s'. Ignoring input.",
+                               depth_msg->encoding.c_str());
       return;
     }
     mesh_filter_->filter(&depth_msg->data[0], GL_FLOAT);
@@ -523,7 +527,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   catch (...)
   {
     tree_->unlockRead();
-    ROS_ERROR("Internal error while parsing depth data");
+    ROS_ERROR_NAMED(LOGNAME, "Internal error while parsing depth data");
     return;
   }
   tree_->unlockRead();
@@ -542,7 +546,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   }
   catch (...)
   {
-    ROS_ERROR("Internal error while updating octree");
+    ROS_ERROR_NAMED(LOGNAME, "Internal error while updating octree");
   }
   tree_->unlockWrite();
   tree_->triggerUpdateCallback();
@@ -550,6 +554,6 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   // at this point we still have not freed the space
   free_space_updater_->pushLazyUpdate(occupied_cells_ptr, model_cells_ptr, sensor_origin);
 
-  ROS_DEBUG("Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  ROS_DEBUG_NAMED(LOGNAME, "Processed depth image in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
 }
 }  // namespace occupancy_map_monitor

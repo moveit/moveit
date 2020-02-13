@@ -43,6 +43,8 @@
 
 namespace occupancy_map_monitor
 {
+static const std::string LOGNAME = "occupancy_map_monitor";
+
 OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution)
   : map_resolution_(map_resolution), debug_info_(false), mesh_handle_count_(0), nh_("~"), active_(false)
 {
@@ -77,21 +79,26 @@ void OccupancyMapMonitor::initialize()
 {
   /* load params from param server */
   if (map_resolution_ <= std::numeric_limits<double>::epsilon())
+  {
     if (!nh_.getParam("octomap_resolution", map_resolution_))
     {
       map_resolution_ = 0.1;
-      ROS_WARN("Resolution not specified for Octomap. Assuming resolution = %g instead", map_resolution_);
+      ROS_WARN_NAMED(LOGNAME, "Resolution not specified for Octomap. Assuming resolution = %g instead",
+                     map_resolution_);
     }
-  ROS_DEBUG("Using resolution = %lf m for building octomap", map_resolution_);
+  }
+  ROS_DEBUG_NAMED(LOGNAME, "Using resolution = %lf m for building octomap", map_resolution_);
 
   if (map_frame_.empty())
     if (!nh_.getParam("octomap_frame", map_frame_))
       if (tf_buffer_)
-        ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
+        ROS_WARN_NAMED(LOGNAME, "No target frame specified for Octomap. "
+                                "No transforms will be applied to received data.");
 
   if (!tf_buffer_ && !map_frame_.empty())
-    ROS_WARN_STREAM("Target frame \"" << map_frame_ << "\" specified but no TF instance (buffer) specified. "
-                                                       "No transforms will be applied to received data.");
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Target frame \"" << map_frame_
+                                                     << "\" specified but no TF instance (buffer) specified. "
+                                                        "No transforms will be applied to received data.");
 
   tree_.reset(new OccMapTree(map_resolution_));
   tree_const_ = tree_;
@@ -106,20 +113,20 @@ void OccupancyMapMonitor::initialize()
         {
           if (sensor_list[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
           {
-            ROS_ERROR("Params for octomap updater %d not a struct; ignoring.", i);
+            ROS_ERROR_NAMED(LOGNAME, "Params for octomap updater %d not a struct; ignoring.", i);
             continue;
           }
 
           if (!sensor_list[i].hasMember("sensor_plugin"))
           {
-            ROS_ERROR("No sensor plugin specified for octomap updater %d; ignoring.", i);
+            ROS_ERROR_NAMED(LOGNAME, "No sensor plugin specified for octomap updater %d; ignoring.", i);
             continue;
           }
 
           std::string sensor_plugin = std::string(sensor_list[i]["sensor_plugin"]);
           if (sensor_plugin.empty() || sensor_plugin[0] == '~')
           {
-            ROS_INFO("Skipping octomap updater plugin '%s'", sensor_plugin.c_str());
+            ROS_INFO_STREAM_NAMED(LOGNAME, "Skipping octomap updater plugin '" << sensor_plugin << "'");
             continue;
           }
 
@@ -132,7 +139,7 @@ void OccupancyMapMonitor::initialize()
             }
             catch (pluginlib::PluginlibException& ex)
             {
-              ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
+              ROS_FATAL_STREAM_NAMED(LOGNAME, "Exception while creating octomap updater plugin loader " << ex.what());
             }
           }
 
@@ -144,22 +151,22 @@ void OccupancyMapMonitor::initialize()
           }
           catch (pluginlib::PluginlibException& ex)
           {
-            ROS_ERROR_STREAM("Exception while loading octomap updater '" << sensor_plugin << "': " << ex.what()
-                                                                         << std::endl);
+            ROS_ERROR_STREAM_NAMED(LOGNAME, "Exception while loading octomap updater '"
+                                                << sensor_plugin << "': " << ex.what() << std::endl);
           }
           if (up)
           {
             /* pass the params struct directly in to the updater */
             if (!up->setParams(sensor_list[i]))
             {
-              ROS_ERROR("Failed to configure updater of type %s", up->getType().c_str());
+              ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to configure updater of type " << up->getType());
               continue;
             }
 
             if (!up->initialize())
             {
-              ROS_ERROR("Unable to initialize map updater of type %s (plugin %s)", up->getType().c_str(),
-                        sensor_plugin.c_str());
+              ROS_ERROR_NAMED(LOGNAME, "Unable to initialize map updater of type %s (plugin %s)", up->getType().c_str(),
+                              sensor_plugin.c_str());
               continue;
             }
 
@@ -167,15 +174,15 @@ void OccupancyMapMonitor::initialize()
           }
         }
       else
-        ROS_ERROR("List of sensors must be an array!");
+        ROS_ERROR_NAMED(LOGNAME, "List of sensors must be an array!");
     }
     catch (XmlRpc::XmlRpcException& ex)
     {
-      ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "XmlRpc Exception: " << ex.getMessage());
     }
   }
   else
-    ROS_ERROR("Failed to find 3D sensor plugin parameters for octomap generation");
+    ROS_ERROR_NAMED(LOGNAME, "Failed to find 3D sensor plugin parameters for octomap generation");
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
@@ -207,7 +214,7 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
       updater->setTransformCacheCallback(transform_cache_callback_);
   }
   else
-    ROS_ERROR("NULL updater was specified");
+    ROS_ERROR_NAMED(LOGNAME, "NULL updater was specified");
 }
 
 void OccupancyMapMonitor::publishDebugInformation(bool flag)
@@ -283,7 +290,7 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
         std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it.first);
         if (jt == mesh_handles_[index].end())
         {
-          ROS_ERROR_THROTTLE(1, "Incorrect mapping of mesh handles");
+          ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Incorrect mapping of mesh handles");
           return false;
         }
         else
@@ -301,7 +308,7 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
 bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request,
                                           moveit_msgs::SaveMap::Response& response)
 {
-  ROS_INFO("Writing map to %s", request.filename.c_str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Writing map to " << request.filename);
   tree_->lockRead();
   try
   {
@@ -318,7 +325,7 @@ bool OccupancyMapMonitor::saveMapCallback(moveit_msgs::SaveMap::Request& request
 bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request,
                                           moveit_msgs::LoadMap::Response& response)
 {
-  ROS_INFO("Reading map from %s", request.filename.c_str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Reading map from " << request.filename);
 
   /* load the octree from disk */
   tree_->lockWrite();
@@ -328,7 +335,7 @@ bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request
   }
   catch (...)
   {
-    ROS_ERROR("Failed to load map from file");
+    ROS_ERROR_NAMED(LOGNAME, "Failed to load map from file");
     response.success = false;
   }
   tree_->unlockWrite();

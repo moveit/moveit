@@ -54,6 +54,8 @@ namespace moveit
 {
 namespace semantic_world
 {
+static const std::string LOGNAME = "semantic_world";
+
 SemanticWorld::SemanticWorld(const planning_scene::PlanningSceneConstPtr& planning_scene)
   : planning_scene_(planning_scene)
 {
@@ -66,7 +68,7 @@ SemanticWorld::SemanticWorld(const planning_scene::PlanningSceneConstPtr& planni
 visualization_msgs::MarkerArray
 SemanticWorld::getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped>& poses) const
 {
-  ROS_DEBUG("Visualizing: %d place poses", (int)poses.size());
+  ROS_DEBUG_NAMED(LOGNAME, "Visualizing: %d place poses", (int)poses.size());
   visualization_msgs::MarkerArray marker;
   for (std::size_t i = 0; i < poses.size(); ++i)
   {
@@ -224,7 +226,7 @@ SemanticWorld::generatePlacePoses(const std::string& table_name, const shapes::S
   }
 
   std::vector<geometry_msgs::PoseStamped> place_poses;
-  ROS_ERROR("Did not find table %s to place on", table_name.c_str());
+  ROS_ERROR_NAMED(LOGNAME, "Did not find table %s to place on", table_name.c_str());
   return place_poses;
 }
 
@@ -347,7 +349,7 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
   unsigned int num_x = fabs(x_max - x_min) / resolution + 1;
   unsigned int num_y = fabs(y_max - y_min) / resolution + 1;
 
-  ROS_DEBUG("Num points for possible place operations: %d %d", num_x, num_y);
+  ROS_DEBUG_NAMED(LOGNAME, "Num points for possible place operations: %d %d", num_x, num_y);
 
   std::vector<std::vector<cv::Point> > contours;
   std::vector<cv::Vec4i> hierarchy;
@@ -434,7 +436,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   // Assuming Z axis points upwards for the table
   if (point.z() < -fabs(min_vertical_offset))
   {
-    ROS_ERROR("Object is not above table");
+    ROS_ERROR_NAMED(LOGNAME, "Object is not above table");
     return false;
   }
 
@@ -442,7 +444,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose& pose, const 
   int point_y = (point.y() - y_min) * scale_factor;
   cv::Point2f point2f(point_x, point_y);
   double result = cv::pointPolygonTest(contours[0], point2f, true);
-  ROS_DEBUG("table distance: %f", result);
+  ROS_DEBUG_NAMED(LOGNAME, "table distance: %f", result);
 
   return (int)result >= (int)(min_distance_from_edge * scale_factor);
 }
@@ -453,7 +455,7 @@ std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose& pose, doub
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for (it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
-    ROS_DEBUG("Testing table: %s", it->first.c_str());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Testing table: " << it->first);
     if (isInsideTableContour(pose, it->second, min_distance_from_edge, min_vertical_offset))
       return it->first;
   }
@@ -463,12 +465,12 @@ std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose& pose, doub
 void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr& msg)
 {
   table_array_ = *msg;
-  ROS_INFO("Table callback with %d tables", (int)table_array_.tables.size());
+  ROS_INFO_NAMED(LOGNAME, "Table callback with %d tables", (int)table_array_.tables.size());
   transformTableArray(table_array_);
   // Callback on an update
   if (table_callback_)
   {
-    ROS_INFO("Calling table callback");
+    ROS_INFO_NAMED(LOGNAME, "Calling table callback");
     table_callback_();
   }
 }
@@ -480,8 +482,8 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
     std::string original_frame = table.header.frame_id;
     if (table.convex_hull.empty())
       continue;
-    ROS_INFO_STREAM("Original pose: " << table.pose.position.x << "," << table.pose.position.y << ","
-                                      << table.pose.position.z);
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Original pose: " << table.pose.position.x << "," << table.pose.position.y << ","
+                                                     << table.pose.position.z);
     std::string error_text;
     const Eigen::Isometry3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
     Eigen::Isometry3d original_pose;
@@ -489,9 +491,10 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
     original_pose = original_transform * original_pose;
     table.pose = tf2::toMsg(original_pose);
     table.header.frame_id = planning_scene_->getTransforms().getTargetFrame();
-    ROS_INFO_STREAM("Successfully transformed table array from " << original_frame << "to " << table.header.frame_id);
-    ROS_INFO_STREAM("Transformed pose: " << table.pose.position.x << "," << table.pose.position.y << ","
-                                         << table.pose.position.z);
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Successfully transformed table array from " << original_frame << "to "
+                                                                                << table.header.frame_id);
+    ROS_INFO_STREAM_NAMED(LOGNAME, "Transformed pose: " << table.pose.position.x << "," << table.pose.position.y << ","
+                                                        << table.pose.position.z);
   }
 }
 
