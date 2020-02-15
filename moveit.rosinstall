@@ -24,3 +24,7 @@
     local-name: moveit_tutorials
     uri: https://github.com/ros-planning/moveit_tutorials.git
     version: master
+- git:
+    local-name: panda_moveit_config
+    uri: https://github.com/ros-planning/panda_moveit_config.git
+    version: melodic-devel
