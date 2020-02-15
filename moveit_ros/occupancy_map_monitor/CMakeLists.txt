@@ -19,7 +19,9 @@ endif(APPLE)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
+  geometric_shapes
   pluginlib
+  tf2_ros
 )
 
 find_package(Eigen3 REQUIRED)
@@ -33,6 +35,8 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     moveit_msgs
+    geometric_shapes
+    tf2_ros
   DEPENDS
     EIGEN3
     OCTOMAP

@@ -23,6 +23,8 @@
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
+  <depend>tf2_ros</depend>
+  <depend>geometric_shapes</depend>
 
   <build_depend>eigen</build_depend>
 
