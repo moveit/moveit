@@ -1,0 +1,15 @@
+<library path="lib/libplanning_context_loader_ptp">
+  <class type="trapezoidal::PlanningContextLoaderPTP" base_class_type="trapezoidal::PlanningContextLoader">
+    <description>Loader for PTP Context</description>
+  </class>
+</library>
+<library path="lib/libplanning_context_loader_lin">
+  <class type="trapezoidal::PlanningContextLoaderLIN" base_class_type="trapezoidal::PlanningContextLoader">
+    <description>Loader for LIN Context</description>
+  </class>
+</library>
+<library path="lib/libplanning_context_loader_circ">
+  <class type="trapezoidal::PlanningContextLoaderCIRC" base_class_type="trapezoidal::PlanningContextLoader">
+    <description>Loader for CIRC Context</description>
+  </class>
+</library>

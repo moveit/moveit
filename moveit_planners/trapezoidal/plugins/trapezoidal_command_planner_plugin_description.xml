@@ -1,0 +1,5 @@
+<library path="lib/libtrapezoidal_command_planner">
+  <class type="trapezoidal::CommandPlanner" base_class_type="planning_interface::PlannerManager">
+    <description>Trapezoidal Motion Command Planner</description>
+  </class>
+</library>
