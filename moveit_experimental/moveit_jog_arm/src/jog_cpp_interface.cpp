@@ -214,19 +214,13 @@ sensor_msgs::JointState JogCppApi::getJointState()
 
 bool JogCppApi::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
-  if (jog_calcs_->isInitialized())
-  {
-    shared_variables_mutex_.lock();
-    transform = shared_variables_.tf_moveit_to_cmd_frame;
-    shared_variables_mutex_.unlock();
-
-    // All zeros means the transform wasn't initialized, so return false
-    if (transform.matrix().isZero(0))
-      return false;
-  }
-  else
+  if (!jog_calcs_ || !jog_calcs_->isInitialized())
     return false;
 
-  return true;
+  const std::lock_guard<std::mutex> lock(shared_variables_mutex_);
+  transform = shared_variables_.tf_moveit_to_cmd_frame;
+
+  // All zeros means the transform wasn't initialized, so return false
+  return !transform.matrix().isZero(0);
 }
 }  // namespace moveit_jog_arm
