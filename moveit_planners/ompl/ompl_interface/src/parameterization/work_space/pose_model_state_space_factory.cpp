@@ -86,5 +86,5 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(
 ompl_interface::ModelBasedStateSpacePtr
 ompl_interface::PoseModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const
 {
-  return ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec));
+  return std::make_shared<PoseModelStateSpace>(space_spec);
 }
