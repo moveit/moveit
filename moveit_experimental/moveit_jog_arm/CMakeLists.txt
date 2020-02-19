@@ -14,6 +14,7 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
+  moveit_msgs
   moveit_ros_planning_interface
   rosparam_shortcuts
   sensor_msgs
@@ -30,6 +31,7 @@ catkin_package(
   CATKIN_DEPENDS
     control_msgs
     geometry_msgs
+    moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
     sensor_msgs
@@ -129,6 +131,9 @@ if(CATKIN_ENABLE_TESTING)
 
   # Python integration test that a halt message is published at a singularity
   add_rostest(test/launch/jog_arm_halt_msg_test.test)
+
+  # Python integration test of a service to enable drift in some dimensions
+  add_rostest(test/launch/jog_arm_drift_dimensions_service_test.test)
 
   # jog_cpp_interface
   add_rostest_gtest(jog_cpp_interface_test

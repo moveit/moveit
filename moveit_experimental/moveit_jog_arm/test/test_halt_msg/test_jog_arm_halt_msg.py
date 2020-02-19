@@ -52,9 +52,11 @@ def test_jog_arm_halt_msg(node):
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
     received = []
-    rospy.sleep(TEST_DURATION)
+    start_time = rospy.get_rostime()
+    while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
+        cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+        time.sleep(0.1)
 
     # Check the received messages
     assert len(received) > 1
