@@ -1059,7 +1059,8 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   emitter << YAML::BeginMap;
 
   emitter << YAML::Comment("For beginners, we downscale velocity and acceleration limits.") << YAML::Newline;
-  emitter << YAML::Comment("Increase those values to 1.0 to exploit the full potential of the robot.");
+  emitter << YAML::Comment("You can always specify higher scaling factors (<= 1.0) in your motion requests.");
+  emitter << YAML::Comment("Increase the values below to 1.0 to always move at maximum speed.");
   emitter << YAML::Key << "default_velocity_scaling_factor";
   emitter << YAML::Value << "0.1";
 
