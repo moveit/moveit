@@ -337,31 +337,32 @@ public:
     num_planning_attempts_ = num_planning_attempts;
   }
 
-  void setMaxVelocityScalingFactor(double factor)
+  void setMaxVelocityScalingFactor(double value)
   {
-    setMaxScalingFactor(max_velocity_scaling_factor_, factor, "velocity_scaling_factor", 0.1);
+    setMaxScalingFactor(max_velocity_scaling_factor_, value, "velocity_scaling_factor", 0.1);
   }
 
-  void setMaxAccelerationScalingFactor(double factor)
+  void setMaxAccelerationScalingFactor(double value)
   {
-    setMaxScalingFactor(max_acceleration_scaling_factor_, factor, "acceleration_scaling_factor", 0.1);
+    setMaxScalingFactor(max_acceleration_scaling_factor_, value, "acceleration_scaling_factor", 0.1);
   }
 
-  void setMaxScalingFactor(double& variable, const double target, const char* name, double fallback)
+  void setMaxScalingFactor(double& variable, const double target_value, const char* factor_name, double fallback_value)
   {
-    if (target > 1.0)
+    if (target_value > 1.0)
     {
-      ROS_WARN_NAMED("move_group_interface", "Limiting max_%s (%.2f) to 1.0.", name, target);
+      ROS_WARN_NAMED("move_group_interface", "Limiting max_%s (%.2f) to 1.0.", factor_name, target_value);
       variable = 1.0;
     }
-    else if (target <= 0.0)
+    else if (target_value <= 0.0)
     {
-      node_handle_.param<double>(std::string("robot_description_planning/default_") + name, variable, fallback);
-      ROS_WARN_NAMED("move_group_interface", "max_%s <= 0.0! Setting to default: %.2f.", name, variable);
+      node_handle_.param<double>(std::string("robot_description_planning/default_") + factor_name, variable,
+                                 fallback_value);
+      ROS_WARN_NAMED("move_group_interface", "max_%s <= 0.0! Setting to default: %.2f.", factor_name, variable);
     }
     else
     {
-      variable = target;
+      variable = target_value;
     }
   }
 
