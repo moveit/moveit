@@ -224,4 +224,6 @@ add_subdirectory(dynamics_solver)
 
 if(BULLET_ENABLE)
   add_subdirectory(collision_detection_bullet)
+else()
+  install(FILES collision_detection_bullet/empty_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} RENAME collision_detector_bullet_description.xml)
 endif()
