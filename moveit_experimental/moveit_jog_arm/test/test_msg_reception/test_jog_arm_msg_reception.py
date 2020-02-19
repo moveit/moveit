@@ -73,10 +73,13 @@ def test_jog_arm_cartesian_command(node):
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
-    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from config file
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     received = []
-    rospy.sleep(TEST_DURATION)
+
+    start_time = rospy.get_rostime()
+    while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
+        cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+        time.sleep(0.1)
     # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
     assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
@@ -96,11 +99,13 @@ def test_jog_arm_joint_command(node):
 
     received = []
     TEST_DURATION = 1
-    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from config file
-    JOINT_VELOCITY_LIMIT = 1
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     velocities = [0.1]
-    joint_cmd.send_joint_velocity_cmd(velocities)
-    rospy.sleep(TEST_DURATION)
+
+    start_time = rospy.get_rostime()
+    while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
+        joint_cmd.send_joint_velocity_cmd(velocities)
+        time.sleep(0.1)
     # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
     assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 20

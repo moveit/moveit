@@ -318,13 +318,27 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     cmd.twist.angular.z = angular_vector(2);
   }
 
-  const Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
+  Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
 
   // Convert from cartesian commands to joint commands
   jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
+
+  // May allow some dimensions to drift, based on shared_variables.drift_dimensions
+  // i.e. take advantage of task redundancy.
+  // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
+  // Work backwards through the 6-vector so indices don't get out of order
+  for (auto dimension = jacobian_.rows(); dimension >= 0; --dimension)
+  {
+    if (shared_variables.drift_dimensions[dimension] && jacobian_.rows() > 1)
+    {
+      removeDimension(jacobian_, delta_x, dimension);
+    }
+  }
+
   svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
   matrix_s_ = svd_.singularValues().asDiagonal();
   pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();
+
   delta_theta_ = pseudo_inverse_ * delta_x;
 
   // If close to a collision or a singularity, decelerate
@@ -733,5 +747,21 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   }
 
   return true;
+}
+
+void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
+{
+  unsigned int num_rows = jacobian.rows() - 1;
+  unsigned int num_cols = jacobian.cols();
+
+  if (row_to_remove < num_rows)
+  {
+    jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
+        jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
+    delta_x.segment(row_to_remove, num_rows - row_to_remove) =
+        delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
+  }
+  jacobian.conservativeResize(num_rows, num_cols);
+  delta_x.conservativeResize(num_rows);
 }
 }  // namespace moveit_jog_arm
