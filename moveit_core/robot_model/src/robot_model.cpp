@@ -55,9 +55,32 @@ const std::string LOGNAME = "robot_model";
 RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
 {
   root_joint_ = nullptr;
-  urdf_ = urdf_model;
+  urdf_.reset(new urdf::ModelInterface(*urdf_model));
   srdf_ = srdf_model;
-  buildModel(*urdf_model, *srdf_model);
+
+  // Override empty collision geometry in stored with visual geometry when only the latter is specified
+  std::vector<urdf::LinkSharedPtr> links;
+  urdf_->getLinks(links);
+  for (const urdf::LinkSharedPtr& link : links)
+  {
+    if (!link->visual_array.empty() && link->collision_array.empty())
+    {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "Link " << link->name << " has visual geometry but no collision geometry "
+                                                              "specified.  Using visual geometry to override "
+                                                              "collision geometry");
+      for (const urdf::VisualSharedPtr& visual : link->visual_array)
+      {
+        urdf::CollisionSharedPtr collision(new urdf::Collision());
+        collision->origin = visual->origin;
+        collision->geometry = visual->geometry;
+        collision->name = visual->name;
+        link->collision_array.push_back(std::move(collision));
+      }
+      link->collision = link->collision_array.front();
+    }
+  }
+
+  buildModel(*urdf_, *srdf_);
 }
 
 RobotModel::~RobotModel()
@@ -988,22 +1011,6 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
         poses.push_back(urdfPose2Isometry3d(col->origin));
       }
     }
-  if (shapes.empty())
-  {
-    const std::vector<urdf::VisualSharedPtr>& vis_array = urdf_link->visual_array.empty() ?
-                                                              std::vector<urdf::VisualSharedPtr>(1, urdf_link->visual) :
-                                                              urdf_link->visual_array;
-    for (const urdf::VisualSharedPtr& vis : vis_array)
-      if (vis && vis->geometry)
-      {
-        shapes::ShapeConstPtr s = constructShape(vis->geometry.get());
-        if (s)
-        {
-          shapes.push_back(s);
-          poses.push_back(urdfPose2Isometry3d(vis->origin));
-        }
-      }
-  }
 
   new_link_model->setGeometry(shapes, poses);
 
