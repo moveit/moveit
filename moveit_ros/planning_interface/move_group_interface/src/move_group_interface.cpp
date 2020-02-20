@@ -358,7 +358,10 @@ public:
     {
       node_handle_.param<double>(std::string("robot_description_planning/default_") + factor_name, variable,
                                  fallback_value);
-      ROS_WARN_NAMED("move_group_interface", "max_%s <= 0.0! Setting to default: %.2f.", factor_name, variable);
+      if (target_value < 0.0)
+      {
+        ROS_WARN_NAMED("move_group_interface", "max_%s < 0.0! Setting to default: %.2f.", factor_name, variable);
+      }
     }
     else
     {
