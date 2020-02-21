@@ -54,8 +54,9 @@ std::vector<robot_trajectory::RobotTrajectoryPtr> PlanComponentsBuilder::build()
 void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory& result,
                                                          const robot_trajectory::RobotTrajectory& source)
 {
-  if (result.empty() || !trapezoidal::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
-                                                        result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON))
+  if (result.empty() ||
+      !trapezoidal::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(), result.getGroupName(),
+                                      ROBOT_STATE_EQUALITY_EPSILON))
   {
     result.append(source, 0.0);
     return;

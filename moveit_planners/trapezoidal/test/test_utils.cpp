@@ -464,10 +464,10 @@ bool testutils::checkJointTrajectory(const trajectory_msgs::JointTrajectory& tra
   {
     if (trajectory->getWayPointDurationFromPrevious(i) <= 0.0)
     {
-      return ::testing::AssertionFailure()
-             << "Waypoint " << (i) << " has " << trajectory->getWayPointDurationFromPrevious(i)
-             << " time between itself and its predecessor."
-             << " Total points in trajectory: " << trajectory->getWayPointCount() << ".";
+      return ::testing::AssertionFailure() << "Waypoint " << (i) << " has "
+                                           << trajectory->getWayPointDurationFromPrevious(i)
+                                           << " time between itself and its predecessor."
+                                           << " Total points in trajectory: " << trajectory->getWayPointCount() << ".";
     }
   }
 
@@ -1188,8 +1188,8 @@ void testutils::checkRobotModel(const moveit::core::RobotModelConstPtr& robot_mo
   ASSERT_FALSE(robot_model->isEmpty()) << "robot model is empty";
   ASSERT_TRUE(robot_model->hasJointModelGroup(group_name)) << group_name << " is not known to robot";
   ASSERT_TRUE(robot_model->hasLinkModel(link_name)) << link_name << " is not known to robot";
-  ASSERT_TRUE(robot_state::RobotState(robot_model).knowsFrameTransform(link_name))
-      << "Transform of " << link_name << " is unknown";
+  ASSERT_TRUE(robot_state::RobotState(robot_model).knowsFrameTransform(link_name)) << "Transform of " << link_name
+                                                                                   << " is unknown";
 }
 
 ::testing::AssertionResult testutils::hasTrapezoidVelocity(std::vector<double> accelerations, const double acc_tol)

@@ -216,8 +216,8 @@ TEST_P(TrajectoryGeneratorPTPTest, missingVelocityLimits)
   joint_limit.has_deceleration_limits = true;
   for (const auto& joint_model : joint_models)
   {
-    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit))
-        << "Failed to add the limits for joint " << joint_model->getName();
+    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit)) << "Failed to add the limits for joint "
+                                                                            << joint_model->getName();
   }
 
   planner_limits.setJointLimits(joint_limits);
@@ -239,8 +239,8 @@ TEST_P(TrajectoryGeneratorPTPTest, missingDecelerationimits)
   joint_limit.has_deceleration_limits = false;
   for (const auto& joint_model : joint_models)
   {
-    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit))
-        << "Failed to add the limits for joint " << joint_model->getName();
+    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit)) << "Failed to add the limits for joint "
+                                                                            << joint_model->getName();
   }
 
   planner_limits.setJointLimits(joint_limits);
@@ -315,8 +315,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
 
     for (auto it = std::next(joint_names.begin()); it != joint_names.end(); ++it)
     {
-      ASSERT_TRUE(sufficient_joint_limits.addLimit((*it), insufficient_limit))
-          << "Failed to add the limits for joint " << (*it);
+      ASSERT_TRUE(sufficient_joint_limits.addLimit((*it), insufficient_limit)) << "Failed to add the limits for joint "
+                                                                               << (*it);
     }
   }
   LimitsContainer sufficient_planner_limits;
