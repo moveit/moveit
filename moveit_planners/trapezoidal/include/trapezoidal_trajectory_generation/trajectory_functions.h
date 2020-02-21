@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_FUNCTIONS_H
-#define TRAJECTORY_FUNCTIONS_H
+#pragma once
 
 #include <Eigen/Geometry>
 #include <kdl/trajectory.hpp>
@@ -206,5 +205,3 @@ bool isStateColliding(const bool test_for_self_collision, const moveit::core::Ro
 }  // namespace trapezoidal
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);
-
-#endif  // TRAJECTORY_FUNCTIONS_H

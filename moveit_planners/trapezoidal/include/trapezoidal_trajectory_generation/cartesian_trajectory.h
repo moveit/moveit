@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef CARTESIAN_TRAJECTORY_H
-#define CARTESIAN_TRAJECTORY_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -50,5 +49,3 @@ struct CartesianTrajectory
 };
 
 }  // namespace trapezoidal
-
-#endif  // CARTESIAN_TRAJECTORY_H

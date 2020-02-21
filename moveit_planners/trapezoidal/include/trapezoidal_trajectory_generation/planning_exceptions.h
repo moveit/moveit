@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNING_EXCEPTIONS_H
-#define PLANNING_EXCEPTIONS_H
+#pragma once
 
 #include <stdexcept>
 
@@ -67,5 +66,3 @@ public:
 };
 
 }  // namespace trapezoidal
-
-#endif  // PLANNING_EXCEPTIONS_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PILZ_COMMAND_PLANNER_H
-#define PILZ_COMMAND_PLANNER_H
+#pragma once
 
 #include <ros/ros.h>
 
@@ -132,5 +131,3 @@ private:
 MOVEIT_CLASS_FORWARD(CommandPlanner)
 
 }  // namespace trapezoidal
-
-#endif  // PILZ_COMMAND_PLANNER_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef CARTESIAN_LIMIT_H
-#define CARTESIAN_LIMIT_H
+#pragma once
 
 namespace trapezoidal
 {
@@ -153,4 +152,3 @@ private:
 };
 
 }  // namespace trapezoidal
-#endif  // CARTESIAN_LIMIT_H

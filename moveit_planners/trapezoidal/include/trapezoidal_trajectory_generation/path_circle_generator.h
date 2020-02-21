@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PATH_CIRCLE_GENERATOR_H
-#define PATH_CIRCLE_GENERATOR_H
+#pragma once
 
 #include <kdl/path.hpp>
 #include <kdl/path_circle.hpp>
@@ -98,5 +97,3 @@ public:
 private:
   static constexpr int ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS{ 3006 };
 };
-
-#endif  // PATH_CIRCLE_GENERATOR_H

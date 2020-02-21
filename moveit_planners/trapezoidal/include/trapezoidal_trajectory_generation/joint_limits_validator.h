@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef JOINT_LIMITS_VALIDATOR_H
-#define JOINT_LIMITS_VALIDATOR_H
+#pragma once
 
 #include "pilz_extensions/joint_limits_extension.h"
 #include "trapezoidal_trajectory_generation/joint_limits_container.h"
@@ -144,5 +143,3 @@ public:
 };
 
 }  // namespace trapezoidal
-
-#endif  // JOINT_LIMITS_VALIDATOR_H

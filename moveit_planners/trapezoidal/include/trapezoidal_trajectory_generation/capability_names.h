@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef CAPABILITY_NAMES_H
-#define CAPABILITY_NAMES_H
+#pragma once
 
 #include <string>
 
@@ -41,5 +40,3 @@ namespace trapezoidal_trajectory_generation
 {
 static const std::string SEQUENCE_SERVICE_NAME = "plan_sequence_path";
 }
-
-#endif  // CAPABILITY_NAMES_H

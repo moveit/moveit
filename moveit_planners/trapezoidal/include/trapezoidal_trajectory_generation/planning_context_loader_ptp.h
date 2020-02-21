@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNING_CONTEXT_LOADER_PTP_H
-#define PLANNING_CONTEXT_LOADER_PTP_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/planning_context_loader.h"
 
@@ -66,5 +65,3 @@ typedef boost::shared_ptr<PlanningContextLoaderPTP> PlanningContextLoaderPTPPtr;
 typedef boost::shared_ptr<const PlanningContextLoaderPTP> PlanningContextLoaderPTPConstPtr;
 
 }  // namespace trapezoidal
-
-#endif  // PLANNING_CONTEXT_LOADER_PTP_H

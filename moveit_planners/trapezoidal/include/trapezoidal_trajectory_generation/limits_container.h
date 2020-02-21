@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef LIMITS_CONTAINER_H
-#define LIMITS_CONTAINER_H
+#pragma once
 
 #include <math.h>
 #include "trapezoidal_trajectory_generation/cartesian_limit.h"
@@ -101,5 +100,3 @@ private:
 };
 
 }  // namespace trapezoidal
-
-#endif  // LIMITS_CONTAINER_H

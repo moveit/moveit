@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef JOINT_LIMITS_CONTAINER_H
-#define JOINT_LIMITS_CONTAINER_H
+#pragma once
 
 #include "pilz_extensions/joint_limits_extension.h"
 
@@ -155,5 +154,3 @@ protected:
   std::map<std::string, pilz_extensions::JointLimit> container_;
 };
 }  // namespace trapezoidal
-
-#endif  // JOINT_LIMITS_CONTAINER_H

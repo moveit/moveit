@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef SEQUENCE_SERVICE_CAPABILITY_H
-#define SEQUENCE_SERVICE_CAPABILITY_H
+#pragma once
 
 #include <moveit/move_group/move_group_capability.h>
 
@@ -64,5 +63,3 @@ private:
 };
 
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // SEQUENCE_SERVICE_CAPABILITY_H

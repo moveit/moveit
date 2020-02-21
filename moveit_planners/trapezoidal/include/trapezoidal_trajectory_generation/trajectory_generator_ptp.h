@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_GENERATOR_PTP_H
-#define TRAJECTORY_GENERATOR_PTP_H
+#pragma once
 
 #include "eigen3/Eigen/Eigen"
 #include "trapezoidal_trajectory_generation/trajectory_generator.h"
@@ -96,5 +95,3 @@ private:
 };
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_GENERATOR_PTP_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_GENERATOR_CIRC_H
-#define TRAJECTORY_GENERATOR_CIRC_H
+#pragma once
 
 #include <eigen3/Eigen/Eigen>
 #include <kdl/path.hpp>
@@ -107,5 +106,3 @@ private:
 };
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_GENERATOR_CIRC_H

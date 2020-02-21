@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef SEQUENCE_ACTION_CAPABILITY_H
-#define SEQUENCE_ACTION_CAPABILITY_H
+#pragma once
 
 #include <memory>
 
@@ -88,5 +87,3 @@ private:
   std::unique_ptr<trapezoidal_trajectory_generation::CommandListManager> command_list_manager_;
 };
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // SEQUENCE_ACTION_CAPABILITY_H

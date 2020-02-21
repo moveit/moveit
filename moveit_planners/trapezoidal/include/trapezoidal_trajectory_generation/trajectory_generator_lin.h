@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_GENERATOR_LIN_H
-#define TRAJECTORY_GENERATOR_LIN_H
+#pragma once
 
 #include <eigen3/Eigen/Eigen>
 #include <kdl/rotational_interpolation_sa.hpp>
@@ -86,5 +85,3 @@ private:
 };
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_GENERATOR_LIN_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNING_CONTEXT_LOADER_H
-#define PLANNING_CONTEXT_LOADER_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/limits_container.h"
 
@@ -140,5 +139,3 @@ bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& 
 }
 
 }  // namespace trapezoidal
-
-#endif  // PLANNING_CONTEXT_LOADER_H

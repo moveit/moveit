@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef VELOCITY_PROFILE_ATRAP_H
-#define VELOCITY_PROFILE_ATRAP_H
+#pragma once
 
 #include "kdl/velocityprofile.hpp"
 #include <iostream>
@@ -209,5 +208,3 @@ private:
 std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
 
 }  // namespace trapezoidal
-
-#endif  // VELOCITY_PROFILE_ATRAP_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TIP_FRAME_GETTER_H
-#define TIP_FRAME_GETTER_H
+#pragma once
 
 #include <string>
 #include <cassert>
@@ -88,5 +87,3 @@ static const std::string& getSolverTipFrame(const JointModelGroup* group)
 }
 
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // TIP_FRAME_GETTER_H

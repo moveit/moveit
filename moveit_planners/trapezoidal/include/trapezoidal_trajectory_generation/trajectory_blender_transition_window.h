@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_BLENDER_TRANSITION_WINDOW_H
-#define TRAJECTORY_BLENDER_TRANSITION_WINDOW_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/trajectory_functions.h"
 #include "trapezoidal_trajectory_generation/trajectory_blender.h"
@@ -153,4 +152,3 @@ private:  // static members
 };
 
 }  // namespace trapezoidal
-#endif  // TRAJECTORY_BLENDER_TRANSITION_WINDOW_H

@@ -32,9 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNINGCONTEXTLIN_H
-#define PLANNINGCONTEXTLIN_H
-
 #include "trapezoidal_trajectory_generation/limits_container.h"
 
 #include <ros/ros.h>
@@ -66,5 +63,3 @@ public:
 };
 
 }  // namespace trapezoidal
-
-#endif  // PlanningContextLIN_H

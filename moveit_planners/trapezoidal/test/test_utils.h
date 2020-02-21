@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TEST_UTILS_H
-#define TEST_UTILS_H
+#pragma once
 
 #include <string>
 #include <math.h>
@@ -474,5 +473,3 @@ inline bool isMonotonouslyDecreasing(const std::vector<double>& vec, const doubl
 }
 
 }  // namespace testutils
-
-#endif  // TEST_UTILS_H

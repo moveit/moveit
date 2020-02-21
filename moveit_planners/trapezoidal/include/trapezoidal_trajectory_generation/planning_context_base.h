@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNING_CONTEXT_BASE_H
-#define PLANNING_CONTEXT_BASE_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/joint_limits_container.h"
 #include "trapezoidal_trajectory_generation/trajectory_generator.h"
@@ -175,5 +174,3 @@ void trapezoidal::PlanningContextBase<GeneratorT>::clear()
 }
 
 }  // namespace trapezoidal
-
-#endif  // PLANNING_CONTEXT_BASE_H

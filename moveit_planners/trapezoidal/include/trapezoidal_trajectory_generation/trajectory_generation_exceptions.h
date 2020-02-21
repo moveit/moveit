@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_GENERATION_EXCEPTIONS_H
-#define TRAJECTORY_GENERATION_EXCEPTIONS_H
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -120,5 +119,3 @@ TemplatedMoveItErrorCodeException<ERROR_CODE>::getErrorCode() const
   }
 
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // TRAJECTORY_GENERATION_EXCEPTIONS_H

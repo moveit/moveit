@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANCOMPONENTSBUILDER_H
-#define PLANCOMPONENTSBUILDER_H
+#pragma once
 
 #include <string>
 #include <memory>
@@ -157,5 +156,3 @@ inline void PlanComponentsBuilder::reset()
 }
 
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // PLANCOMPONENTSBUILDER_H

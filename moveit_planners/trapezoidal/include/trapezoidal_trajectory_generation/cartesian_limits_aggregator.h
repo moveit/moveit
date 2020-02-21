@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef CARTESIAN_LIMITS_AGGREGATOR_H
-#define CARTESIAN_LIMITS_AGGREGATOR_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/cartesian_limit.h"
 
@@ -63,5 +62,3 @@ public:
 };
 
 }  // namespace trapezoidal
-
-#endif  // CARTESIAN_LIMITS_AGGREGATOR_H

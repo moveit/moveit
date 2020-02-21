@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef CARTESIAN_TRAJECTORY_POINT_H
-#define CARTESIAN_TRAJECTORY_POINT_H
+#pragma once
 
 #include <ros/duration.h>
 
@@ -52,5 +51,3 @@ struct CartesianTrajectoryPoint
 };
 
 }  // namespace trapezoidal
-
-#endif  // CARTESIAN_TRAJECTORY_POINT_H

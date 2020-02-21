@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_BLENDER_H
-#define TRAJECTORY_BLENDER_H
+#pragma once
 
 #include <moveit/robot_model/robot_model.h>
 #include "trapezoidal_trajectory_generation/limits_container.h"
@@ -72,5 +71,3 @@ protected:
 typedef std::unique_ptr<TrajectoryBlender> TrajectoryBlenderUniquePtr;
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_BLENDER_H

@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORYGENERATOR_H
-#define TRAJECTORYGENERATOR_H
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -271,4 +270,3 @@ inline bool TrajectoryGenerator::isOnlyOneGoalTypeGiven(const moveit_msgs::Const
 }
 
 }  // namespace trapezoidal
-#endif  // TRAJECTORYGENERATOR_H

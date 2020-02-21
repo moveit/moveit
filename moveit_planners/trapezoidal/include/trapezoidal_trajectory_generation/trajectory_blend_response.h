@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_BLEND_RESPONSE_H
-#define TRAJECTORY_BLEND_RESPONSE_H
+#pragma once
 
 #include <string>
 
@@ -56,5 +55,3 @@ struct TrajectoryBlendResponse
 };
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_BLEND_RESPONSE_H

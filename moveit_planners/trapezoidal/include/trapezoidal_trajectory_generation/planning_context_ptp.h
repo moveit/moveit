@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef PLANNINGCONTEXTPTP_H
-#define PLANNINGCONTEXTPTP_H
+#pragma once
 
 #include "trapezoidal_trajectory_generation/limits_container.h"
 
@@ -66,5 +65,3 @@ public:
 };
 
 }  // namespace trapezoidal
-
-#endif  // PLANNINGCONTEXTPTP_H

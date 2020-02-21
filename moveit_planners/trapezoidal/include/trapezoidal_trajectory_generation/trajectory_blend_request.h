@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef TRAJECTORY_BLEND_REQUEST_H
-#define TRAJECTORY_BLEND_REQUEST_H
+#pragma once
 
 #include <string>
 
@@ -58,5 +57,3 @@ struct TrajectoryBlendRequest
 };
 
 }  // namespace trapezoidal
-
-#endif  // TRAJECTORY_BLEND_REQUEST_H

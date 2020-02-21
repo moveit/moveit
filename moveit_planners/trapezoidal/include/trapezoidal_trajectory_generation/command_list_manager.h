@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef COMMAND_LIST_MANAGER_H
-#define COMMAND_LIST_MANAGER_H
+#pragma once
 
 #include <string>
 
@@ -221,5 +220,3 @@ inline void CommandListManager::checkLastBlendRadiusZero(const pilz_msgs::Motion
 }
 
 }  // namespace trapezoidal_trajectory_generation
-
-#endif  // COMMAND_LIST_MANAGER_H
