@@ -66,7 +66,7 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
-  moveit_jog_arm::JogCppApi jog_interface(planning_scene_monitor);
+  moveit_jog_arm::JogCppInterface jog_interface(planning_scene_monitor);
   std::thread jogging_thread([&]() { jog_interface.startMainLoop(); });
 
   // Make a Cartesian velocity message
