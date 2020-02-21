@@ -35,23 +35,22 @@
 #include <ros/ros.h>
 #include "trapezoidal_trajectory_generation/planning_context_loader.h"
 
-trapezoidal::PlanningContextLoader::PlanningContextLoader():
-  limits_set_(false),
-  model_set_(false)
+trapezoidal::PlanningContextLoader::PlanningContextLoader() : limits_set_(false), model_set_(false)
 {
-
 }
 
-trapezoidal::PlanningContextLoader::~PlanningContextLoader(){}
+trapezoidal::PlanningContextLoader::~PlanningContextLoader()
+{
+}
 
-bool trapezoidal::PlanningContextLoader::setModel(const moveit::core::RobotModelConstPtr &model)
+bool trapezoidal::PlanningContextLoader::setModel(const moveit::core::RobotModelConstPtr& model)
 {
   model_ = model;
   model_set_ = true;
   return true;
 }
 
-bool trapezoidal::PlanningContextLoader::setLimits(const trapezoidal::LimitsContainer &limits)
+bool trapezoidal::PlanningContextLoader::setLimits(const trapezoidal::LimitsContainer& limits)
 {
   limits_ = limits;
   limits_set_ = true;

@@ -39,9 +39,7 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 static const std::string SEQUENCE_SERVICE_NAME = "plan_sequence_path";
-
 }
 
-#endif // CAPABILITY_NAMES_H
+#endif  // CAPABILITY_NAMES_H

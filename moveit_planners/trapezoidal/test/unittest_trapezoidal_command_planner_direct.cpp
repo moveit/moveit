@@ -44,14 +44,15 @@ using namespace trapezoidal;
 
 TEST(CommandPlannerTestDirect, ExceptionCoverage)
 {
-  std::shared_ptr<PlanningException> p_ex {new PlanningException("")};
-  std::shared_ptr<ContextLoaderRegistrationException> clr_ex {new ContextLoaderRegistrationException("")};
+  std::shared_ptr<PlanningException> p_ex{ new PlanningException("") };
+  std::shared_ptr<ContextLoaderRegistrationException> clr_ex{ new ContextLoaderRegistrationException("") };
 }
 
 /**
-  *  This test uses trapezoidal::CommandPlanner directly and is thus seperated from unittest_trapezoidal_command_planner.cpp
-  *  since plugin loading via pluginlib does not allow loading of classes already defined.
-  */
+ *  This test uses trapezoidal::CommandPlanner directly and is thus seperated from
+ * unittest_trapezoidal_command_planner.cpp since plugin loading via pluginlib does not allow loading of classes already
+ * defined.
+ */
 
 /**
  * @brief Check that a exception is thrown if a already loaded PlanningContextLoader is loaded
@@ -61,28 +62,20 @@ TEST(CommandPlannerTestDirect, ExceptionCoverage)
  */
 TEST(CommandPlannerTestDirect, CheckDoubleLoadingException)
 {
-
   /// Registed a found loader
   trapezoidal::CommandPlanner planner;
   trapezoidal::PlanningContextLoaderPtr planning_context_loader(new trapezoidal::PlanningContextLoaderPTP());
 
-
   EXPECT_NO_THROW(planner.registerContextLoader(planning_context_loader));
 
-
-  EXPECT_THROW(
-     planner.registerContextLoader(planning_context_loader),
-     trapezoidal::ContextLoaderRegistrationException
-  );
+  EXPECT_THROW(planner.registerContextLoader(planning_context_loader), trapezoidal::ContextLoaderRegistrationException);
 }
-
 
 /**
  * @brief Check that getPlanningContext() fails if the underlying ContextLoader fails to load the context.
  */
 TEST(CommandPlannerTestDirect, FailOnLoadContext)
 {
-
   trapezoidal::CommandPlanner planner;
 
   // Mock of failing PlanningContextLoader
@@ -94,8 +87,7 @@ TEST(CommandPlannerTestDirect, FailOnLoadContext)
       return "Test_Algorithm";
     }
 
-    bool loadContext(planning_interface::PlanningContextPtr& /* planning_context */,
-                     const std::string& /* name */,
+    bool loadContext(planning_interface::PlanningContextPtr& /* planning_context */, const std::string& /* name */,
                      const std::string& /* group */) const override
     {
       // Mock behaviour: Cannot load planning context.
@@ -115,7 +107,7 @@ TEST(CommandPlannerTestDirect, FailOnLoadContext)
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::PLANNING_FAILED, error_code.val);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

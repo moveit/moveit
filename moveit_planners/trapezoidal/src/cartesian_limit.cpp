@@ -34,17 +34,16 @@
 
 #include "trapezoidal_trajectory_generation/cartesian_limit.h"
 
-trapezoidal::CartesianLimit::CartesianLimit():
-  has_max_trans_vel_(false),
-  max_trans_vel_(0.0),
-  has_max_trans_acc_(false),
-  max_trans_acc_(0.0),
-  has_max_trans_dec_(false),
-  max_trans_dec_(0.0),
-  has_max_rot_vel_(false),
-  max_rot_vel_(0.0)
+trapezoidal::CartesianLimit::CartesianLimit()
+  : has_max_trans_vel_(false)
+  , max_trans_vel_(0.0)
+  , has_max_trans_acc_(false)
+  , max_trans_acc_(0.0)
+  , has_max_trans_dec_(false)
+  , max_trans_dec_(0.0)
+  , has_max_rot_vel_(false)
+  , max_rot_vel_(0.0)
 {
-
 }
 
 // Translational Velocity Limit
@@ -118,4 +117,3 @@ double trapezoidal::CartesianLimit::getMaxRotationalVelocity() const
 {
   return max_rot_vel_;
 }
-

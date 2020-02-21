@@ -37,32 +37,31 @@
 
 #include "trapezoidal_trajectory_generation/cartesian_limit.h"
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Obtains cartesian limits from the parameter server
  */
 class CartesianLimitsAggregator
 {
-  public:
-
-   /**
-     * @brief Loads cartesian limits from the parameter server
-     *
-     * The parameters are expected to be under "~/cartesian_limits" of the given node handle.
-     * The following limits can be specified:
-     * - "max_trans_vel", the maximum translational velocity [m/s]
-     * - "max_trans_acc, the maximum translational acceleration [m/s^2]
-     * - "max_trans_dec", the maximum translational deceleration (<= 0) [m/s^2]
-     * - "max_rot_vel", the maximum rotational velocity [rad/s]
-     * - "max_rot_acc", the maximum rotational acceleration [rad/s^2]
-     * - "max_rot_dec", the maximum rotational deceleration (<= 0)[rad/s^2]
-     * @param nh node handle to access the parameters
-     * @return the obtained cartesian limits
-     */
-    static CartesianLimit getAggregatedLimits(const ros::NodeHandle& nh);
+public:
+  /**
+   * @brief Loads cartesian limits from the parameter server
+   *
+   * The parameters are expected to be under "~/cartesian_limits" of the given node handle.
+   * The following limits can be specified:
+   * - "max_trans_vel", the maximum translational velocity [m/s]
+   * - "max_trans_acc, the maximum translational acceleration [m/s^2]
+   * - "max_trans_dec", the maximum translational deceleration (<= 0) [m/s^2]
+   * - "max_rot_vel", the maximum rotational velocity [rad/s]
+   * - "max_rot_acc", the maximum rotational acceleration [rad/s^2]
+   * - "max_rot_dec", the maximum rotational deceleration (<= 0)[rad/s^2]
+   * @param nh node handle to access the parameters
+   * @return the obtained cartesian limits
+   */
+  static CartesianLimit getAggregatedLimits(const ros::NodeHandle& nh);
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // CARTESIAN_LIMITS_AGGREGATOR_H
+#endif  // CARTESIAN_LIMITS_AGGREGATOR_H

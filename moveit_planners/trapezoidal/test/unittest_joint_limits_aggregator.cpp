@@ -49,8 +49,7 @@ using namespace pilz_extensions;
  */
 class JointLimitsAggregator : public ::testing::Test
 {
- protected:
-
+protected:
   void SetUp() override
   {
     ros::NodeHandle node_handle("~");
@@ -77,8 +76,8 @@ TEST_F(JointLimitsAggregator, ExpectedMapSize)
 {
   ros::NodeHandle nh("~");
 
-  trapezoidal::JointLimitsContainer container
-      = trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+  trapezoidal::JointLimitsContainer container =
+      trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
 
   EXPECT_EQ(robot_model_->getActiveJointModels().size(), container.getCount());
 }
@@ -90,13 +89,13 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterPosition)
 {
   ros::NodeHandle nh("~/valid_1");
 
-  trapezoidal::JointLimitsContainer container
-        = trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+  trapezoidal::JointLimitsContainer container =
+      trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
 
-  for(std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, JointLimit> lim : container)
   {
     // Check for the overwrite
-    if(lim.first == "prbt_joint_1")
+    if (lim.first == "prbt_joint_1")
     {
       EXPECT_EQ(2, container.getLimit(lim.first).max_position);
       EXPECT_EQ(-2, container.getLimit(lim.first).min_position);
@@ -119,13 +118,13 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterVelocity)
 {
   ros::NodeHandle nh("~/valid_1");
 
-  trapezoidal::JointLimitsContainer container
-        = trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+  trapezoidal::JointLimitsContainer container =
+      trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
 
-  for(std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, JointLimit> lim : container)
   {
     // Check that velocity was only changed in joint "prbt_joint_3"
-    if(lim.first == "prbt_joint_3")
+    if (lim.first == "prbt_joint_3")
     {
       EXPECT_EQ(1.1, container.getLimit(lim.first).max_velocity);
     }
@@ -144,17 +143,17 @@ TEST_F(JointLimitsAggregator, CorrectSettingAccelerationAndDeceleration)
 {
   ros::NodeHandle nh("~/valid_1");
 
-    trapezoidal::JointLimitsContainer container
-        = trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+  trapezoidal::JointLimitsContainer container =
+      trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
 
-  for(std::pair<std::string, JointLimit> lim : container)
+  for (std::pair<std::string, JointLimit> lim : container)
   {
-    if(lim.first == "prbt_joint_4")
+    if (lim.first == "prbt_joint_4")
     {
       EXPECT_EQ(5.5, container.getLimit(lim.first).max_acceleration) << lim.first;
       EXPECT_EQ(-5.5, container.getLimit(lim.first).max_deceleration) << lim.first;
     }
-    else if(lim.first == "prbt_joint_5")
+    else if (lim.first == "prbt_joint_5")
     {
       EXPECT_EQ(0, container.getLimit(lim.first).max_acceleration) << lim.first;
       EXPECT_EQ(-6.6, container.getLimit(lim.first).max_deceleration) << lim.first;
@@ -177,7 +176,6 @@ TEST_F(JointLimitsAggregator, LimitsViolationPosition)
   EXPECT_THROW(trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh_min, robot_model_->getActiveJointModels()),
                trapezoidal::AggregationBoundsViolationException);
 
-
   ros::NodeHandle nh_max("~/violate_position_max");
 
   EXPECT_THROW(trapezoidal::JointLimitsAggregator::getAggregatedLimits(nh_max, robot_model_->getActiveJointModels()),
@@ -195,7 +193,7 @@ TEST_F(JointLimitsAggregator, LimitsViolationVelocity)
                trapezoidal::AggregationBoundsViolationException);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_joint_limits_aggregator");
   testing::InitGoogleTest(&argc, argv);

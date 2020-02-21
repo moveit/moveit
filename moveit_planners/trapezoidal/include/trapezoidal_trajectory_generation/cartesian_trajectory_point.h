@@ -43,7 +43,6 @@
 
 namespace trapezoidal
 {
-
 struct CartesianTrajectoryPoint
 {
   geometry_msgs::Pose pose;
@@ -52,6 +51,6 @@ struct CartesianTrajectoryPoint
   ros::Duration time_from_start;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // CARTESIAN_TRAJECTORY_POINT_H
+#endif  // CARTESIAN_TRAJECTORY_POINT_H

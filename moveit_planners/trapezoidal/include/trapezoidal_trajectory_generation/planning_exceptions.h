@@ -37,16 +37,18 @@
 
 #include <stdexcept>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @class PlanningException
  * @brief A base class for all trapezoidal_planners exceptions inheriting from std::runtime_exception
  */
-class PlanningException: public std::runtime_error
+class PlanningException : public std::runtime_error
 {
-  public:
-    PlanningException(const std::string error_desc) : std::runtime_error(error_desc) {}
+public:
+  PlanningException(const std::string error_desc) : std::runtime_error(error_desc)
+  {
+  }
 };
 
 /**
@@ -56,12 +58,14 @@ class PlanningException: public std::runtime_error
  * Loading a PlanningContextFactory can fail if a factory is loaded that
  * would provide a command which was already provided by another factory loaded before.
  */
-class ContextLoaderRegistrationException: public PlanningException
+class ContextLoaderRegistrationException : public PlanningException
 {
-  public:
-    ContextLoaderRegistrationException(const std::string error_desc) : PlanningException(error_desc) {}
+public:
+  ContextLoaderRegistrationException(const std::string error_desc) : PlanningException(error_desc)
+  {
+  }
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // PLANNING_EXCEPTIONS_H
+#endif  // PLANNING_EXCEPTIONS_H

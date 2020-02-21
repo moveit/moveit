@@ -48,8 +48,8 @@
 #include <atomic>
 #include <thread>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief PlanningContext for obtaining trajectories
  */
@@ -57,18 +57,20 @@ template <typename GeneratorT>
 class PlanningContextBase : public planning_interface::PlanningContext
 {
 public:
+  PlanningContextBase<GeneratorT>(const std::string& name, const std::string& group,
+                                  const moveit::core::RobotModelConstPtr& model,
+                                  const trapezoidal::LimitsContainer& limits)
+    : planning_interface::PlanningContext(name, group)
+    , terminated_(false)
+    , model_(model)
+    , limits_(limits)
+    , generator_(model, limits_)
+  {
+  }
 
-  PlanningContextBase<GeneratorT>(const std::string& name,
-                     const std::string& group,
-                     const moveit::core::RobotModelConstPtr& model,
-                     const trapezoidal::LimitsContainer& limits):
-  planning_interface::PlanningContext(name, group),
-  terminated_(false),
-  model_(model),
-  limits_(limits),
-  generator_(model, limits_){}
-
-  virtual ~PlanningContextBase() {}
+  virtual ~PlanningContextBase()
+  {
+  }
 
   /**
    * @brief Calculates a trajectory for the request this context is currently set for
@@ -109,17 +111,15 @@ public:
 
 protected:
   GeneratorT generator_;
-
 };
 
-
 template <typename GeneratorT>
-bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::MotionPlanResponse &res)
+bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::MotionPlanResponse& res)
 {
-  if(!terminated_)
+  if (!terminated_)
   {
     // Use current state as start state if not set
-    if(request_.start_state.joint_state.name.size() == 0)
+    if (request_.start_state.joint_state.name.size() == 0)
     {
       moveit_msgs::RobotState currentState;
       moveit::core::robotStateToRobotStateMsg(getPlanningScene()->getCurrentState(), currentState);
@@ -127,8 +127,8 @@ bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::Mot
     }
     bool result = generator_.generate(request_, res);
     return result;
-    //res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-    //return false; // TODO
+    // res.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+    // return false; // TODO
   }
 
   ROS_ERROR("Using solve on a terminated planning context!");
@@ -136,30 +136,28 @@ bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::Mot
   return false;
 }
 
-
 template <typename GeneratorT>
-bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::MotionPlanDetailedResponse &res)
+bool trapezoidal::PlanningContextBase<GeneratorT>::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
-   // delegate to regular response
-   planning_interface::MotionPlanResponse undetailed_response;
-   bool result = solve(undetailed_response);
+  // delegate to regular response
+  planning_interface::MotionPlanResponse undetailed_response;
+  bool result = solve(undetailed_response);
 
-   res.description_.push_back("plan");
-   res.trajectory_.push_back(undetailed_response.trajectory_);
-   res.processing_time_.push_back(undetailed_response.planning_time_);
+  res.description_.push_back("plan");
+  res.trajectory_.push_back(undetailed_response.trajectory_);
+  res.processing_time_.push_back(undetailed_response.planning_time_);
 
-   res.description_.push_back("simplify");
-   res.trajectory_.push_back(undetailed_response.trajectory_);
-   res.processing_time_.push_back(0);
+  res.description_.push_back("simplify");
+  res.trajectory_.push_back(undetailed_response.trajectory_);
+  res.processing_time_.push_back(0);
 
-   res.description_.push_back("interpolate");
-   res.trajectory_.push_back(undetailed_response.trajectory_);
-   res.processing_time_.push_back(0);
+  res.description_.push_back("interpolate");
+  res.trajectory_.push_back(undetailed_response.trajectory_);
+  res.processing_time_.push_back(0);
 
-   res.error_code_ = undetailed_response.error_code_;
-   return result;
+  res.error_code_ = undetailed_response.error_code_;
+  return result;
 }
-
 
 template <typename GeneratorT>
 bool trapezoidal::PlanningContextBase<GeneratorT>::terminate()
@@ -169,7 +167,6 @@ bool trapezoidal::PlanningContextBase<GeneratorT>::terminate()
   return true;
 }
 
-
 template <typename GeneratorT>
 void trapezoidal::PlanningContextBase<GeneratorT>::clear()
 {
@@ -177,8 +174,6 @@ void trapezoidal::PlanningContextBase<GeneratorT>::clear()
   return;
 }
 
+}  // namespace trapezoidal
 
-} // namespace
-
-
-#endif // PLANNING_CONTEXT_BASE_H
+#endif  // PLANNING_CONTEXT_BASE_H

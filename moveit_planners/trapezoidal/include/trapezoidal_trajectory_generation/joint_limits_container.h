@@ -94,7 +94,7 @@ public:
    * @return joint limit
    * @throws std::out_of_range if a joint limit with this name does not exist
    */
-  pilz_extensions::JointLimit getCommonLimit(const std::vector<std::string> &joint_names) const;
+  pilz_extensions::JointLimit getCommonLimit(const std::vector<std::string>& joint_names) const;
 
   /**
    * @brief getLimit get the limit for the given joint name
@@ -110,7 +110,6 @@ public:
    */
   std::map<std::string, pilz_extensions::JointLimit>::const_iterator begin() const;
 
-
   /**
    * @brief ConstIterator to the underlying data structure
    * @return
@@ -123,8 +122,7 @@ public:
    * @param joint_position
    * @return
    */
-  bool verifyVelocityLimit(const std::string& joint_name,
-                           const double& joint_velocity) const;
+  bool verifyVelocityLimit(const std::string& joint_name, const double& joint_velocity) const;
 
   /**
    * @brief verify position limit of single joint
@@ -132,8 +130,7 @@ public:
    * @param joint_position
    * @return
    */
-  bool verifyPositionLimit(const std::string& joint_name,
-                           const double& joint_position) const;
+  bool verifyPositionLimit(const std::string& joint_name, const double& joint_position) const;
 
   /**
    * @brief verify position limits of multiple joints
@@ -141,8 +138,8 @@ public:
    * @param joint_positions
    * @return
    */
-  bool verifyPositionLimits(const std::vector<std::string> &joint_names,
-                            const std::vector<double> &joint_positions) const;
+  bool verifyPositionLimits(const std::vector<std::string>& joint_names,
+                            const std::vector<double>& joint_positions) const;
 
 private:
   /**
@@ -157,6 +154,6 @@ protected:
   /// Actual container object containing the data
   std::map<std::string, pilz_extensions::JointLimit> container_;
 };
-}
+}  // namespace trapezoidal
 
-#endif // JOINT_LIMITS_CONTAINER_H
+#endif  // JOINT_LIMITS_CONTAINER_H

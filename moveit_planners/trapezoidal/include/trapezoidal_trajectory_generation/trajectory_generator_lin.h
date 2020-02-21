@@ -45,8 +45,7 @@ using namespace trapezoidal_trajectory_generation;
 
 namespace trapezoidal
 {
-
-//TODO date type of units
+// TODO date type of units
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(LinTrajectoryConversionFailure, moveit_msgs::MoveItErrorCodes::FAILURE);
 
@@ -73,25 +72,19 @@ public:
   virtual ~TrajectoryGeneratorLIN() = default;
 
 private:
-
   virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
                                      MotionPlanInfo& info) const final override;
 
-  virtual void plan(const planning_interface::MotionPlanRequest &req,
-                    const MotionPlanInfo& plan_info,
-                    const double& sampling_time,
-                    trajectory_msgs::JointTrajectory& joint_trajectory) override;
+  virtual void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief construct a KDL::Path object for a Cartesian straight line
    * @return a unique pointer of the path object. null_ptr in case of an error.
    */
-  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Affine3d& start_pose,
-                                        const Eigen::Affine3d& goal_pose) const;
-
-
+  std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Affine3d& start_pose, const Eigen::Affine3d& goal_pose) const;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // TRAJECTORY_GENERATOR_LIN_H
+#endif  // TRAJECTORY_GENERATOR_LIN_H

@@ -41,7 +41,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 // Forward declarations
 class CommandListManager;
 
@@ -51,24 +50,19 @@ class CommandListManager;
 class MoveGroupSequenceService : public move_group::MoveGroupCapability
 {
 public:
-
   MoveGroupSequenceService();
   ~MoveGroupSequenceService();
 
   virtual void initialize() override;
 
 private:
-  bool plan(pilz_msgs::GetMotionSequence::Request &req,
-            pilz_msgs::GetMotionSequence::Response &res);
+  bool plan(pilz_msgs::GetMotionSequence::Request& req, pilz_msgs::GetMotionSequence::Response& res);
 
 private:
   ros::ServiceServer sequence_service_;
-  std::unique_ptr<CommandListManager> command_list_manager_ ;
-
+  std::unique_ptr<CommandListManager> command_list_manager_;
 };
 
-}
+}  // namespace trapezoidal_trajectory_generation
 
-
-
-#endif // SEQUENCE_SERVICE_CAPABILITY_H
+#endif  // SEQUENCE_SERVICE_CAPABILITY_H

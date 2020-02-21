@@ -41,7 +41,6 @@
 
 namespace trapezoidal
 {
-
 struct TrajectoryBlendResponse
 {
   // The name of the group of joints on which this blender is operating
@@ -56,6 +55,6 @@ struct TrajectoryBlendResponse
   moveit_msgs::MoveItErrorCodes error_code;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // TRAJECTORY_BLEND_RESPONSE_H
+#endif  // TRAJECTORY_BLEND_RESPONSE_H

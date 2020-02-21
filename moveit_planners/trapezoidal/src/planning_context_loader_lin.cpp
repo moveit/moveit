@@ -46,24 +46,23 @@ trapezoidal::PlanningContextLoaderLIN::PlanningContextLoaderLIN()
 
 trapezoidal::PlanningContextLoaderLIN::~PlanningContextLoaderLIN()
 {
-
 }
 
 bool trapezoidal::PlanningContextLoaderLIN::loadContext(planning_interface::PlanningContextPtr& planning_context,
-                                                 const std::string& name,
-                                                 const std::string& group) const
+                                                        const std::string& name, const std::string& group) const
 {
-  if(limits_set_ && model_set_) {
+  if (limits_set_ && model_set_)
+  {
     planning_context.reset(new PlanningContextLIN(name, group, model_, limits_));
     return true;
   }
   else
   {
-    if(!limits_set_)
+    if (!limits_set_)
     {
       ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. Call setLimits loadContext");
     }
-    if(!model_set_)
+    if (!model_set_)
     {
       ROS_ERROR_STREAM("Robot model was not set");
     }

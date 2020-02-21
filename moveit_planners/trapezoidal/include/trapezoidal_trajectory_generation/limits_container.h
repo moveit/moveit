@@ -39,70 +39,67 @@
 #include "trapezoidal_trajectory_generation/cartesian_limit.h"
 #include "trapezoidal_trajectory_generation/joint_limits_container.h"
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief This class combines CartesianLimit and JointLimits into on single class.
  */
 class LimitsContainer
 {
-  public:
-    LimitsContainer();
+public:
+  LimitsContainer();
 
-    /**
-     * @brief Return if this LimitsContainer has defined joint limits
-     * @return True if container contains joint limits
-     */
-    bool hasJointLimits() const;
+  /**
+   * @brief Return if this LimitsContainer has defined joint limits
+   * @return True if container contains joint limits
+   */
+  bool hasJointLimits() const;
 
-    /**
-     * @brief Set joint limits
-     * @param joint_limits
-     */
-    void setJointLimits(JointLimitsContainer& joint_limits);
+  /**
+   * @brief Set joint limits
+   * @param joint_limits
+   */
+  void setJointLimits(JointLimitsContainer& joint_limits);
 
-    /**
-     * @brief Obtain the Joint Limits from the container
-     * @return the joint limits
-     */
-    const JointLimitsContainer& getJointLimitContainer() const;
+  /**
+   * @brief Obtain the Joint Limits from the container
+   * @return the joint limits
+   */
+  const JointLimitsContainer& getJointLimitContainer() const;
 
-    /**
-     * @brief Return if this LimitsContainer has defined cartesian limits
-     *
-     * @return True if container contains cartesian limits including maximum velocity/acceleration/deceleration
-     */
-    bool hasFullCartesianLimits() const;
+  /**
+   * @brief Return if this LimitsContainer has defined cartesian limits
+   *
+   * @return True if container contains cartesian limits including maximum velocity/acceleration/deceleration
+   */
+  bool hasFullCartesianLimits() const;
 
-    /**
-     * @brief Set cartesian limits
-     * @param cartesian_limit
-     */
-    void setCartesianLimits(CartesianLimit& cartesian_limit);
+  /**
+   * @brief Set cartesian limits
+   * @param cartesian_limit
+   */
+  void setCartesianLimits(CartesianLimit& cartesian_limit);
 
-    /**
-     * @brief Return the cartesian limits
-     * @return the cartesian limits
-     */
-    const CartesianLimit& getCartesianLimits() const;
+  /**
+   * @brief Return the cartesian limits
+   * @return the cartesian limits
+   */
+  const CartesianLimit& getCartesianLimits() const;
 
-  private:
-    /// Flag if joint limits where set
-    bool has_joint_limits_;
+private:
+  /// Flag if joint limits where set
+  bool has_joint_limits_;
 
-    /// The joint limits
-    JointLimitsContainer joint_limits_;
+  /// The joint limits
+  JointLimitsContainer joint_limits_;
 
-    /// Flag if cartesian limits have been set
-    bool has_cartesian_limits_;
+  /// Flag if cartesian limits have been set
+  bool has_cartesian_limits_;
 
-    /// The cartesian limits
-    CartesianLimit cartesian_limit_;
-
-
-
+  /// The cartesian limits
+  CartesianLimit cartesian_limit_;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // LIMITS_CONTAINER_H
+#endif  // LIMITS_CONTAINER_H

@@ -35,119 +35,125 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
-
 #include "pilz_extensions/joint_limits_extension.h"
 #include "pilz_extensions/joint_limits_interface_extension.h"
 
 #include "trapezoidal_trajectory_generation/joint_limits_validator.h"
 
-bool trapezoidal::JointLimitsValidator::validateAllPositionLimitsEqual(const trapezoidal::JointLimitsContainer& joint_limits)
+bool trapezoidal::JointLimitsValidator::validateAllPositionLimitsEqual(
+    const trapezoidal::JointLimitsContainer& joint_limits)
 {
   return validateWithEqualFunc(&trapezoidal::JointLimitsValidator::positionEqual, joint_limits);
 }
 
-bool trapezoidal::JointLimitsValidator::validateAllVelocityLimitsEqual(const trapezoidal::JointLimitsContainer& joint_limits)
+bool trapezoidal::JointLimitsValidator::validateAllVelocityLimitsEqual(
+    const trapezoidal::JointLimitsContainer& joint_limits)
 {
   return validateWithEqualFunc(&trapezoidal::JointLimitsValidator::velocityEqual, joint_limits);
 }
 
-bool trapezoidal::JointLimitsValidator::validateAllAccelerationLimitsEqual(const trapezoidal::JointLimitsContainer &joint_limits)
+bool trapezoidal::JointLimitsValidator::validateAllAccelerationLimitsEqual(
+    const trapezoidal::JointLimitsContainer& joint_limits)
 {
   return validateWithEqualFunc(&trapezoidal::JointLimitsValidator::accelerationEqual, joint_limits);
 }
 
-bool trapezoidal::JointLimitsValidator::validateAllDecelerationLimitsEqual(const trapezoidal::JointLimitsContainer &joint_limits)
+bool trapezoidal::JointLimitsValidator::validateAllDecelerationLimitsEqual(
+    const trapezoidal::JointLimitsContainer& joint_limits)
 {
   return validateWithEqualFunc(&trapezoidal::JointLimitsValidator::decelerationEqual, joint_limits);
 }
 
-bool trapezoidal::JointLimitsValidator::validateWithEqualFunc
-  (bool (*eq_func)(const pilz_extensions::JointLimit&, const pilz_extensions::JointLimit&),
-   const trapezoidal::JointLimitsContainer& joint_limits)
+bool trapezoidal::JointLimitsValidator::validateWithEqualFunc(bool (*eq_func)(const pilz_extensions::JointLimit&,
+                                                                              const pilz_extensions::JointLimit&),
+                                                              const trapezoidal::JointLimitsContainer& joint_limits)
 {
   // If there are no joint_limits it is considered equal
-  if(joint_limits.empty())
+  if (joint_limits.empty())
   {
     return true;
   }
 
   pilz_extensions::JointLimit reference = joint_limits.begin()->second;
 
-  for(auto it = std::next(joint_limits.begin()); it != joint_limits.end(); ++it)
+  for (auto it = std::next(joint_limits.begin()); it != joint_limits.end(); ++it)
   {
-      if(!eq_func(reference, it->second))
-      {
-        return false;
-      }
+    if (!eq_func(reference, it->second))
+    {
+      return false;
+    }
   }
 
   return true;
 }
 
-bool trapezoidal::JointLimitsValidator::positionEqual(const pilz_extensions::JointLimit &lhs,
-                                               const pilz_extensions::JointLimit &rhs)
+bool trapezoidal::JointLimitsValidator::positionEqual(const pilz_extensions::JointLimit& lhs,
+                                                      const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
-  if(lhs.has_position_limits != rhs.has_position_limits)
+  if (lhs.has_position_limits != rhs.has_position_limits)
   {
     return false;
   }
 
   // If velocity limits are the same make sure they are equal
-  if(lhs.has_position_limits && ((lhs.max_position != rhs.max_position) || (lhs.min_position != rhs.min_position))){
+  if (lhs.has_position_limits && ((lhs.max_position != rhs.max_position) || (lhs.min_position != rhs.min_position)))
+  {
     return false;
   }
   return true;
 }
 
-bool trapezoidal::JointLimitsValidator::velocityEqual(const pilz_extensions::JointLimit &lhs,
-                                               const pilz_extensions::JointLimit &rhs)
+bool trapezoidal::JointLimitsValidator::velocityEqual(const pilz_extensions::JointLimit& lhs,
+                                                      const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
-  if(lhs.has_velocity_limits != rhs.has_velocity_limits)
+  if (lhs.has_velocity_limits != rhs.has_velocity_limits)
   {
     return false;
   }
 
   // If velocity limits are the same make sure they are equal
-  if(lhs.has_velocity_limits && (lhs.max_velocity != rhs.max_velocity)){
+  if (lhs.has_velocity_limits && (lhs.max_velocity != rhs.max_velocity))
+  {
     return false;
   }
 
   return true;
 }
 
-bool trapezoidal::JointLimitsValidator::accelerationEqual(const pilz_extensions::JointLimit &lhs,
-                                                   const pilz_extensions::JointLimit &rhs)
+bool trapezoidal::JointLimitsValidator::accelerationEqual(const pilz_extensions::JointLimit& lhs,
+                                                          const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_acceleration_limits differs
-  if(lhs.has_acceleration_limits != rhs.has_acceleration_limits)
+  if (lhs.has_acceleration_limits != rhs.has_acceleration_limits)
   {
     return false;
   }
 
   // If velocity limits are the same make sure they are equal
-  if(lhs.has_acceleration_limits && (lhs.max_acceleration != rhs.max_acceleration)){
+  if (lhs.has_acceleration_limits && (lhs.max_acceleration != rhs.max_acceleration))
+  {
     return false;
   }
 
   return true;
 }
 
-bool trapezoidal::JointLimitsValidator::decelerationEqual(const pilz_extensions::JointLimit &lhs,
-                                                   const pilz_extensions::JointLimit &rhs)
+bool trapezoidal::JointLimitsValidator::decelerationEqual(const pilz_extensions::JointLimit& lhs,
+                                                          const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_acceleration_limits differs
-  if(lhs.has_deceleration_limits != rhs.has_deceleration_limits)
+  if (lhs.has_deceleration_limits != rhs.has_deceleration_limits)
   {
     return false;
   }
 
   // If velocity limits are the same make sure they are equal
-  if(lhs.has_deceleration_limits && (lhs.max_deceleration != rhs.max_deceleration)){
+  if (lhs.has_deceleration_limits && (lhs.max_deceleration != rhs.max_deceleration))
+  {
     return false;
   }
 
   return true;
 }
-

@@ -40,10 +40,9 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 std::vector<robot_trajectory::RobotTrajectoryPtr> PlanComponentsBuilder::build() const
 {
-  std::vector<robot_trajectory::RobotTrajectoryPtr> res_vec {traj_cont_};
+  std::vector<robot_trajectory::RobotTrajectoryPtr> res_vec{ traj_cont_ };
   if (traj_tail_)
   {
     assert(!res_vec.empty());
@@ -52,11 +51,11 @@ std::vector<robot_trajectory::RobotTrajectoryPtr> PlanComponentsBuilder::build()
   return res_vec;
 }
 
-void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory &result, const robot_trajectory::RobotTrajectory &source)
+void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory& result,
+                                                         const robot_trajectory::RobotTrajectory& source)
 {
-  if (result.empty() ||
-      !trapezoidal::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
-                               result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON) )
+  if (result.empty() || !trapezoidal::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
+                                                        result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON))
   {
     result.append(source, 0.0);
     return;
@@ -68,8 +67,7 @@ void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::Robot
   }
 }
 
-void PlanComponentsBuilder::blend(const robot_trajectory::RobotTrajectoryPtr& other,
-                                  const double blend_radius)
+void PlanComponentsBuilder::blend(const robot_trajectory::RobotTrajectoryPtr& other, const double blend_radius)
 {
   if (!blender_)
   {
@@ -93,14 +91,13 @@ void PlanComponentsBuilder::blend(const robot_trajectory::RobotTrajectoryPtr& ot
   }
 
   // Append the new trajectory elements
-  appendWithStrictTimeIncrease(*(traj_cont_.back()),*blend_response.first_trajectory);
+  appendWithStrictTimeIncrease(*(traj_cont_.back()), *blend_response.first_trajectory);
   traj_cont_.back()->append(*blend_response.blend_trajectory, 0.0);
   // Store the last new trajectory element for future processing
-  traj_tail_ = blend_response.second_trajectory; // first for next blending segment
+  traj_tail_ = blend_response.second_trajectory;  // first for next blending segment
 }
 
-void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& other,
-                                   const double blend_radius)
+void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& other, const double blend_radius)
 {
   if (!model_)
   {
@@ -111,7 +108,7 @@ void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& o
   {
     traj_tail_ = other;
     // Reserve space in container for new trajectory
-    traj_cont_.emplace_back( new robot_trajectory::RobotTrajectory(model_, other->getGroupName()) );
+    traj_cont_.emplace_back(new robot_trajectory::RobotTrajectory(model_, other->getGroupName()));
     return;
   }
 
@@ -121,7 +118,7 @@ void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& o
     appendWithStrictTimeIncrease(*(traj_cont_.back()), *traj_tail_);
     traj_tail_ = other;
     // Create new container element
-    traj_cont_.emplace_back( new robot_trajectory::RobotTrajectory(model_, other->getGroupName()) );
+    traj_cont_.emplace_back(new robot_trajectory::RobotTrajectory(model_, other->getGroupName()));
     return;
   }
 
@@ -136,4 +133,4 @@ void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& o
   blend(other, blend_radius);
 }
 
-} // namespace trapezoidal_trajectory_generation
+}  // namespace trapezoidal_trajectory_generation

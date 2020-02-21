@@ -44,8 +44,7 @@ using namespace trapezoidal_trajectory_generation;
 
 namespace trapezoidal
 {
-
-//TODO date type of units
+// TODO date type of units
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PtpVelocityProfileSyncFailed, moveit_msgs::MoveItErrorCodes::FAILURE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PtpNoIkSolutionForGoalPose, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
@@ -68,7 +67,6 @@ public:
   virtual ~TrajectoryGeneratorPTP() = default;
 
 private:
-
   virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
                                      MotionPlanInfo& info) const override;
 
@@ -82,18 +80,13 @@ private:
    * @param acceleration_scaling_factor
    * @param sampling_time
    */
-  void planPTP(const std::map<std::string, double>& start_pos,
-               const std::map<std::string, double>& goal_pos,
-               trajectory_msgs::JointTrajectory& joint_trajectory,
-               const std::string &group_name,
-               const double& velocity_scaling_factor,
-               const double& acceleration_scaling_factor,
+  void planPTP(const std::map<std::string, double>& start_pos, const std::map<std::string, double>& goal_pos,
+               trajectory_msgs::JointTrajectory& joint_trajectory, const std::string& group_name,
+               const double& velocity_scaling_factor, const double& acceleration_scaling_factor,
                const double& sampling_time);
 
-  virtual void plan(const planning_interface::MotionPlanRequest &req,
-                    const MotionPlanInfo& plan_info,
-                    const double& sampling_time,
-                    trajectory_msgs::JointTrajectory& joint_trajectory) override;
+  virtual void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
 private:
   const double MIN_MOVEMENT = 0.001;
@@ -102,6 +95,6 @@ private:
   std::map<std::string, pilz_extensions::JointLimit> most_strict_limits_;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // TRAJECTORY_GENERATOR_PTP_H
+#endif  // TRAJECTORY_GENERATOR_PTP_H

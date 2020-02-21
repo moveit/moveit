@@ -54,10 +54,10 @@
 #include "trapezoidal_trajectory_generation/trajectory_blend_response.h"
 #include "test_utils.h"
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
-//parameters from parameter server
+// parameters from parameter server
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
 const std::string PARAM_TARGET_LINK_NAME("target_link");
 const std::string CARTESIAN_VELOCITY_TOLERANCE("cartesian_velocity_tolerance");
@@ -71,10 +71,9 @@ const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 using namespace trapezoidal;
 using namespace pilz_industrial_motion_testutils;
 
-class TrajectoryBlenderTransitionWindowTest: public testing::TestWithParam<std::string>
+class TrajectoryBlenderTransitionWindowTest : public testing::TestWithParam<std::string>
 {
 protected:
-
   /**
    * @brief Create test scenario for trajectory blender
    *
@@ -88,22 +87,20 @@ protected:
 
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(GetParam()).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
 
   std::unique_ptr<TrajectoryGenerator> lin_generator_;
   std::unique_ptr<TrajectoryBlenderTransitionWindow> blender_;
 
   // test parameters from parameter server
   std::string planning_group_, target_link_;
-  double cartesian_velocity_tolerance_, cartesian_angular_velocity_tolerance_,
-  joint_velocity_tolerance_, joint_acceleration_tolerance_, sampling_time_;
+  double cartesian_velocity_tolerance_, cartesian_angular_velocity_tolerance_, joint_velocity_tolerance_,
+      joint_acceleration_tolerance_, sampling_time_;
   LimitsContainer planner_limits_;
 
   std::string test_data_file_name_;
   XmlTestDataLoaderUPtr data_loader_;
-
 };
 
 void TrajectoryBlenderTransitionWindowTest::SetUp()
@@ -129,7 +126,7 @@ void TrajectoryBlenderTransitionWindowTest::SetUp()
   trapezoidal::JointLimitsContainer joint_limits =
       trapezoidal::JointLimitsAggregator::getAggregatedLimits(ph_, robot_model_->getActiveJointModels());
   CartesianLimit cart_limits;
-  cart_limits.setMaxRotationalVelocity(1*M_PI);
+  cart_limits.setMaxRotationalVelocity(1 * M_PI);
   cart_limits.setMaxTranslationalAcceleration(2);
   cart_limits.setMaxTranslationalDeceleration(2);
   cart_limits.setMaxTranslationalVelocity(1);
@@ -143,22 +140,22 @@ void TrajectoryBlenderTransitionWindowTest::SetUp()
   ASSERT_NE(nullptr, blender_) << "failed to create trajectory blender";
 }
 
-std::vector<planning_interface::MotionPlanResponse> TrajectoryBlenderTransitionWindowTest::generateLinTrajs(
-  const Sequence &seq, size_t num_cmds)
+std::vector<planning_interface::MotionPlanResponse>
+TrajectoryBlenderTransitionWindowTest::generateLinTrajs(const Sequence& seq, size_t num_cmds)
 {
   std::vector<planning_interface::MotionPlanResponse> responses(num_cmds);
 
-  for (size_t index=0; index < num_cmds; ++index)
+  for (size_t index = 0; index < num_cmds; ++index)
   {
-    planning_interface::MotionPlanRequest req {seq.getCmd<LinCart>(index).toRequest()};
+    planning_interface::MotionPlanRequest req{ seq.getCmd<LinCart>(index).toRequest() };
     // Set start state of request to end state of previous trajectory (except for first)
     if (index > 0)
     {
-      moveit::core::robotStateToRobotStateMsg(responses[index-1].trajectory_->getLastWayPoint(), req.start_state);
+      moveit::core::robotStateToRobotStateMsg(responses[index - 1].trajectory_->getLastWayPoint(), req.start_state);
     }
     // generate trajectory
     planning_interface::MotionPlanResponse resp;
-    if(!lin_generator_->generate(req, resp, sampling_time_))
+    if (!lin_generator_->generate(req, resp, sampling_time_))
     {
       std::runtime_error("Failed to generate trajectory.");
     }
@@ -168,11 +165,8 @@ std::vector<planning_interface::MotionPlanResponse> TrajectoryBlenderTransitionW
 }
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryBlenderTransitionWindowTest, ::testing::Values(
-                          PARAM_MODEL_NO_GRIPPER_NAME,
-                          PARAM_MODEL_WITH_GRIPPER_NAME
-                          ));
-
+INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryBlenderTransitionWindowTest,
+                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
  * @brief  Tests the blending of two trajectories with an invalid group name.
@@ -187,9 +181,9 @@ INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryBlenderTransitionWindowTest
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testInvalidGroupName)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -216,9 +210,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testInvalidGroupName)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testInvalidTargetLink)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -245,9 +239,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testInvalidTargetLink)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testNegativeRadius)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -274,9 +268,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNegativeRadius)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testZeroRadius)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -303,24 +297,24 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testZeroRadius)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testDifferentSamplingTimes)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
   // perform lin trajectory generation and modify sampling time
-  std::size_t num_cmds {2};
+  std::size_t num_cmds{ 2 };
   std::vector<planning_interface::MotionPlanResponse> responses(num_cmds);
 
-  for (size_t index=0; index < num_cmds; ++index)
+  for (size_t index = 0; index < num_cmds; ++index)
   {
-    planning_interface::MotionPlanRequest req {seq.getCmd<LinCart>(index).toRequest()};
+    planning_interface::MotionPlanRequest req{ seq.getCmd<LinCart>(index).toRequest() };
     // Set start state of request to end state of previous trajectory (except for first)
     if (index > 0)
     {
-      moveit::core::robotStateToRobotStateMsg(responses[index-1].trajectory_->getLastWayPoint(), req.start_state);
+      moveit::core::robotStateToRobotStateMsg(responses[index - 1].trajectory_->getLastWayPoint(), req.start_state);
       sampling_time_ *= 2;
     }
     // generate trajectory
     planning_interface::MotionPlanResponse resp;
-    if(!lin_generator_->generate(req, resp, sampling_time_))
+    if (!lin_generator_->generate(req, resp, sampling_time_))
     {
       std::runtime_error("Failed to generate trajectory.");
     }
@@ -353,13 +347,13 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testDifferentSamplingTimes)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testNonUniformSamplingTime)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   // Modify first time interval
   EXPECT_GT(res[0].trajectory_->getWayPointCount(), 2u);
-  res[0].trajectory_->setWayPointDurationFromPrevious(1, 2*sampling_time_);
+  res[0].trajectory_->setWayPointDurationFromPrevious(1, 2 * sampling_time_);
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -387,9 +381,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonUniformSamplingTime)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testNotIntersectingTrajectories)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -417,9 +411,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNotIntersectingTrajectories)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testNonStationaryPoint)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -453,13 +447,14 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonStationaryPoint)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testTraj1InsideBlendRadius)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   double lin1_distance;
-  lin1_distance = (res[0].trajectory_->getFirstWayPoint().getFrameTransform(target_link_).translation()
-                   - res[0].trajectory_->getLastWayPoint().getFrameTransform(target_link_).translation()).norm();
+  lin1_distance = (res[0].trajectory_->getFirstWayPoint().getFrameTransform(target_link_).translation() -
+                   res[0].trajectory_->getLastWayPoint().getFrameTransform(target_link_).translation())
+                      .norm();
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -489,9 +484,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testTraj1InsideBlendRadius)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testTraj2InsideBlendRadius)
 {
-  Sequence seq {data_loader_->getSequence("NoIntersectionTraj2")};
+  Sequence seq{ data_loader_->getSequence("NoIntersectionTraj2") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -525,9 +520,9 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testTraj2InsideBlendRadius)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testLinLinBlending)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -541,12 +536,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testLinLinBlending)
 
   EXPECT_TRUE(blender_->blend(blend_req, blend_res));
 
-  EXPECT_TRUE(testutils::checkBlendResult(blend_req,
-                                          blend_res,
-                                          planner_limits_,
-                                          joint_velocity_tolerance_,
-                                          joint_acceleration_tolerance_,
-                                          cartesian_velocity_tolerance_,
+  EXPECT_TRUE(testutils::checkBlendResult(blend_req, blend_res, planner_limits_, joint_velocity_tolerance_,
+                                          joint_acceleration_tolerance_, cartesian_velocity_tolerance_,
                                           cartesian_angular_velocity_tolerance_));
 }
 
@@ -571,11 +562,11 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testLinLinBlending)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testOverlappingBlendTrajectories)
 {
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
   // Set goal of second traj to start of first traj.
   seq.getCmd<LinCart>(1).setGoalConfiguration(seq.getCmd<LinCart>(0).getStartConfiguration());
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   trapezoidal::TrajectoryBlendRequest blend_req;
   trapezoidal::TrajectoryBlendResponse blend_res;
@@ -587,12 +578,8 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testOverlappingBlendTrajectories)
   blend_req.blend_radius = seq.getBlendRadius(0);
   EXPECT_TRUE(blender_->blend(blend_req, blend_res));
 
-  EXPECT_TRUE(testutils::checkBlendResult(blend_req,
-                                          blend_res,
-                                          planner_limits_,
-                                          joint_velocity_tolerance_,
-                                          joint_acceleration_tolerance_,
-                                          cartesian_velocity_tolerance_,
+  EXPECT_TRUE(testutils::checkBlendResult(blend_req, blend_res, planner_limits_, joint_velocity_tolerance_,
+                                          joint_acceleration_tolerance_, cartesian_velocity_tolerance_,
                                           cartesian_angular_velocity_tolerance_));
 }
 
@@ -621,54 +608,54 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testOverlappingBlendTrajectories)
  */
 TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
 {
-  const double sine_scaling_factor {0.01};
-  const double time_scaling_factor {10};
+  const double sine_scaling_factor{ 0.01 };
+  const double time_scaling_factor{ 10 };
 
-  Sequence seq {data_loader_->getSequence("SimpleSequence")};
+  Sequence seq{ data_loader_->getSequence("SimpleSequence") };
 
-  std::vector<planning_interface::MotionPlanResponse> res {generateLinTrajs(seq, 2)};
+  std::vector<planning_interface::MotionPlanResponse> res{ generateLinTrajs(seq, 2) };
 
   // prepare looping over trajectories
   std::vector<robot_trajectory::RobotTrajectoryPtr> sine_trajs(2);
 
   for (size_t traj_index = 0; traj_index < 2; ++traj_index)
   {
-    auto lin_traj {res.at(traj_index).trajectory_};
+    auto lin_traj{ res.at(traj_index).trajectory_ };
 
     CartesianTrajectory cart_traj;
     trajectory_msgs::JointTrajectory joint_traj;
-    const double duration {lin_traj->getWayPointDurationFromStart(lin_traj->getWayPointCount())};
+    const double duration{ lin_traj->getWayPointDurationFromStart(lin_traj->getWayPointCount()) };
     // time from start zero does not work
-    const double time_from_start_offset {time_scaling_factor*lin_traj->getWayPointDurations().back()};
+    const double time_from_start_offset{ time_scaling_factor * lin_traj->getWayPointDurations().back() };
 
     // generate modified cartesian trajectory
     for (size_t i = 0; i < lin_traj->getWayPointCount(); ++i)
     {
       // transform time to interval [0, 4*pi]
-      const double sine_arg { 4*M_PI*lin_traj->getWayPointDurationFromStart(i)/duration };
+      const double sine_arg{ 4 * M_PI * lin_traj->getWayPointDurationFromStart(i) / duration };
 
       // get pose
       CartesianTrajectoryPoint waypoint;
       geometry_msgs::Pose waypoint_pose;
-      Eigen::Isometry3d eigen_pose {lin_traj->getWayPointPtr(i)->getFrameTransform(target_link_)};
+      Eigen::Isometry3d eigen_pose{ lin_traj->getWayPointPtr(i)->getFrameTransform(target_link_) };
       tf::poseEigenToMsg(eigen_pose, waypoint_pose);
 
       // add scaled sine function
-      waypoint_pose.position.x += sine_scaling_factor*sin(sine_arg);
-      waypoint_pose.position.y += sine_scaling_factor*sin(sine_arg);
-      waypoint_pose.position.z += sine_scaling_factor*sin(sine_arg);
+      waypoint_pose.position.x += sine_scaling_factor * sin(sine_arg);
+      waypoint_pose.position.y += sine_scaling_factor * sin(sine_arg);
+      waypoint_pose.position.z += sine_scaling_factor * sin(sine_arg);
 
       // add to trajectory
       waypoint.pose = waypoint_pose;
-      waypoint.time_from_start = ros::Duration(time_from_start_offset
-                                               + time_scaling_factor*lin_traj->getWayPointDurationFromStart(i));
+      waypoint.time_from_start =
+          ros::Duration(time_from_start_offset + time_scaling_factor * lin_traj->getWayPointDurationFromStart(i));
       cart_traj.points.push_back(waypoint);
     }
 
     // prepare ik
     std::map<std::string, double> initial_joint_position, initial_joint_velocity;
-    for(const std::string& joint_name :
-        lin_traj->getFirstWayPointPtr()->getJointModelGroup(planning_group_)->getActiveJointModelNames())
+    for (const std::string& joint_name :
+         lin_traj->getFirstWayPointPtr()->getJointModelGroup(planning_group_)->getActiveJointModelNames())
     {
       if (traj_index == 0)
       {
@@ -677,21 +664,16 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
       }
       else
       {
-        initial_joint_position[joint_name] = sine_trajs[traj_index-1]->getLastWayPoint().getVariablePosition(joint_name);
-        initial_joint_velocity[joint_name] = sine_trajs[traj_index-1]->getLastWayPoint().getVariableVelocity(joint_name);
+        initial_joint_position[joint_name] =
+            sine_trajs[traj_index - 1]->getLastWayPoint().getVariablePosition(joint_name);
+        initial_joint_velocity[joint_name] =
+            sine_trajs[traj_index - 1]->getLastWayPoint().getVariableVelocity(joint_name);
       }
     }
 
     moveit_msgs::MoveItErrorCodes error_code;
-    if (!generateJointTrajectory(robot_model_,
-                                 planner_limits_.getJointLimitContainer(),
-                                 cart_traj,
-                                 planning_group_,
-                                 target_link_,
-                                 initial_joint_position,
-                                 initial_joint_velocity,
-                                 joint_traj,
-                                 error_code,
+    if (!generateJointTrajectory(robot_model_, planner_limits_.getJointLimitContainer(), cart_traj, planning_group_,
+                                 target_link_, initial_joint_position, initial_joint_velocity, joint_traj, error_code,
                                  true))
     {
       std::runtime_error("Failed to generate trajectory.");
@@ -717,16 +699,12 @@ TEST_P(TrajectoryBlenderTransitionWindowTest, testNonLinearBlending)
 
   EXPECT_TRUE(blender_->blend(blend_req, blend_res));
 
-  EXPECT_TRUE(testutils::checkBlendResult(blend_req,
-                                          blend_res,
-                                          planner_limits_,
-                                          joint_velocity_tolerance_,
-                                          joint_acceleration_tolerance_,
-                                          cartesian_velocity_tolerance_,
+  EXPECT_TRUE(testutils::checkBlendResult(blend_req, blend_res, planner_limits_, joint_velocity_tolerance_,
+                                          joint_acceleration_tolerance_, cartesian_velocity_tolerance_,
                                           cartesian_angular_velocity_tolerance_));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_trajectory_blender_transition_window");
   ros::NodeHandle nh;

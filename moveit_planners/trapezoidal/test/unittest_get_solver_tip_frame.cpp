@@ -46,7 +46,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 using ::testing::AtLeast;
 using ::testing::Return;
 using ::testing::ReturnRef;
@@ -75,13 +74,12 @@ protected:
 protected:
   SolverMock solver_mock_;
   JointModelGroupMock jmg_mock_;
-  const std::string group_name_ {"fake_group"};
+  const std::string group_name_{ "fake_group" };
 };
 
 void GetSolverTipFrameTest::SetUp()
 {
-  EXPECT_CALL(jmg_mock_, getName())
-    .WillRepeatedly(ReturnRef(group_name_));
+  EXPECT_CALL(jmg_mock_, getName()).WillRepeatedly(ReturnRef(group_name_));
 }
 
 /**
@@ -91,12 +89,12 @@ void GetSolverTipFrameTest::SetUp()
 TEST_F(GetSolverTipFrameTest, TestExceptionErrorCodeMapping)
 {
   {
-    std::shared_ptr<NoSolverException> nse_ex {new NoSolverException("")};
+    std::shared_ptr<NoSolverException> nse_ex{ new NoSolverException("") };
     EXPECT_EQ(nse_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
   }
 
   {
-    std::shared_ptr<MoreThanOneTipFrameException> ex {new MoreThanOneTipFrameException("")};
+    std::shared_ptr<MoreThanOneTipFrameException> ex{ new MoreThanOneTipFrameException("") };
     EXPECT_EQ(ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
   }
 }
@@ -107,15 +105,11 @@ TEST_F(GetSolverTipFrameTest, TestExceptionErrorCodeMapping)
  */
 TEST_F(GetSolverTipFrameTest, TestExceptionMoreThanOneTipFrame)
 {
-  std::vector<std::string> tip_frames {"fake_tip_frame1", "fake_tip_frame2"};
+  std::vector<std::string> tip_frames{ "fake_tip_frame1", "fake_tip_frame2" };
 
-  EXPECT_CALL(jmg_mock_, getSolverInstance())
-    .Times(AtLeast(1))
-    .WillRepeatedly(Return(&solver_mock_));
+  EXPECT_CALL(jmg_mock_, getSolverInstance()).Times(AtLeast(1)).WillRepeatedly(Return(&solver_mock_));
 
-  EXPECT_CALL(solver_mock_, getTipFrames())
-    .Times(AtLeast(1))
-    .WillRepeatedly(ReturnRef(tip_frames));
+  EXPECT_CALL(solver_mock_, getTipFrames()).Times(AtLeast(1)).WillRepeatedly(ReturnRef(tip_frames));
 
   EXPECT_THROW(getSolverTipFrame(&jmg_mock_), MoreThanOneTipFrameException);
 }
@@ -126,8 +120,7 @@ TEST_F(GetSolverTipFrameTest, TestExceptionMoreThanOneTipFrame)
  */
 TEST_F(GetSolverTipFrameTest, TestExceptionNoSolver)
 {
-  EXPECT_CALL(jmg_mock_, getSolverInstance())
-    .WillOnce(Return(nullptr));
+  EXPECT_CALL(jmg_mock_, getSolverInstance()).WillOnce(Return(nullptr));
 
   EXPECT_THROW(getSolverTipFrame(&jmg_mock_), NoSolverException);
 }
@@ -144,7 +137,7 @@ TEST_F(GetSolverTipFrameTest, NullptrJointGroup)
 
 }  // namespace trapezoidal_trajectory_generation
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

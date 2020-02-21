@@ -39,8 +39,7 @@
 
 class JointLimitsContainerTest : public ::testing::Test
 {
- protected:
-
+protected:
   void SetUp() override
   {
     pilz_extensions::JointLimit lim1;
@@ -48,14 +47,14 @@ class JointLimitsContainerTest : public ::testing::Test
     lim1.min_position = -2;
     lim1.max_position = 2;
     lim1.has_acceleration_limits = true;
-    lim1.max_acceleration = 3;            //<- Expected for common_limit_.max_acceleration
+    lim1.max_acceleration = 3;  //<- Expected for common_limit_.max_acceleration
 
     pilz_extensions::JointLimit lim2;
     lim2.has_position_limits = true;
-    lim2.min_position = -1;               //<- Expected for common_limit_.min_position
-    lim2.max_position = 1;                //<- Expected for common_limit_.max_position
+    lim2.min_position = -1;  //<- Expected for common_limit_.min_position
+    lim2.max_position = 1;   //<- Expected for common_limit_.max_position
     lim2.has_deceleration_limits = true;
-    lim2.max_deceleration = -5;           //<- Expected for common_limit_.max_deceleration
+    lim2.max_deceleration = -5;  //<- Expected for common_limit_.max_deceleration
 
     pilz_extensions::JointLimit lim3;
     lim3.has_velocity_limits = true;
@@ -79,10 +78,9 @@ class JointLimitsContainerTest : public ::testing::Test
 
     pilz_extensions::JointLimit lim6;
     lim6.has_velocity_limits = true;
-    lim6.max_velocity = 2;                //<- Expected for common_limit_.max_velocity
+    lim6.max_velocity = 2;  //<- Expected for common_limit_.max_velocity
     lim6.has_deceleration_limits = true;
     lim6.max_deceleration = -100;
-
 
     container_.addLimit("joint1", lim1);
     container_.addLimit("joint2", lim2);
@@ -92,12 +90,10 @@ class JointLimitsContainerTest : public ::testing::Test
     container_.addLimit("joint6", lim6);
 
     common_limit_ = container_.getCommonLimit();
-
   }
 
   trapezoidal::JointLimitsContainer container_;
   pilz_extensions::JointLimit common_limit_;
-
 };
 
 /**
@@ -116,7 +112,6 @@ TEST_F(JointLimitsContainerTest, CheckVelocityUnification)
 {
   EXPECT_EQ(2, common_limit_.max_velocity);
 }
-
 
 /**
  * @brief Check acceleration
@@ -139,7 +134,6 @@ TEST_F(JointLimitsContainerTest, CheckDecelerationUnification)
  */
 TEST_F(JointLimitsContainerTest, CheckAddLimitDeceleration)
 {
-
   pilz_extensions::JointLimit lim_invalid1;
   lim_invalid1.has_deceleration_limits = true;
   lim_invalid1.max_deceleration = 0;
@@ -194,8 +188,8 @@ TEST_F(JointLimitsContainerTest, FirstPositionEmpty)
 
   pilz_extensions::JointLimit lim2;
   lim2.has_position_limits = true;
-  lim2.min_position = -1;               //<- Expected for common_limit_.min_position
-  lim2.max_position = 1;                //<- Expected for common_limit_.max_position
+  lim2.min_position = -1;  //<- Expected for common_limit_.min_position
+  lim2.max_position = 1;   //<- Expected for common_limit_.max_position
 
   trapezoidal::JointLimitsContainer container;
   container.addLimit("joint1", lim1);
@@ -213,8 +207,8 @@ TEST_F(JointLimitsContainerTest, FirstPositionEmpty)
 TEST_F(JointLimitsContainerTest, CheckVerifyPositionLimits)
 {
   // positive check: inside limits
-  std::vector<std::string> joint_names {"joint1", "joint2"};
-  std::vector<double> joint_positions {0.5, 0.5};
+  std::vector<std::string> joint_names{ "joint1", "joint2" };
+  std::vector<double> joint_positions{ 0.5, 0.5 };
   EXPECT_TRUE(container_.verifyPositionLimits(joint_names, joint_positions));
 
   // outside limit2
@@ -222,12 +216,11 @@ TEST_F(JointLimitsContainerTest, CheckVerifyPositionLimits)
   EXPECT_FALSE(container_.verifyPositionLimits(joint_names, joint_positions));
 
   // invalid size
-  std::vector<double> joint_positions1 {0.};
-  EXPECT_THROW(container_.verifyPositionLimits(joint_names, joint_positions1),
-               std::out_of_range);
+  std::vector<double> joint_positions1{ 0. };
+  EXPECT_THROW(container_.verifyPositionLimits(joint_names, joint_positions1), std::out_of_range);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

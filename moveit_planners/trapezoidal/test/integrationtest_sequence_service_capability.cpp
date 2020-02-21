@@ -63,7 +63,7 @@ using namespace pilz_industrial_motion_testutils;
 
 static std::string createJointName(const size_t& joint_number)
 {
- return std::string("prbt_joint_") + std::to_string(joint_number + 1);
+  return std::string("prbt_joint_") + std::to_string(joint_number + 1);
 }
 
 class IntegrationTestSequenceService : public ::testing::Test
@@ -72,7 +72,7 @@ protected:
   void SetUp() override;
 
 protected:
-  ros::NodeHandle ph_ {"~"};
+  ros::NodeHandle ph_{ "~" };
   ros::ServiceClient client_;
   robot_model::RobotModelPtr robot_model_;
 
@@ -91,8 +91,9 @@ void IntegrationTestSequenceService::SetUp()
   data_loader_.reset(new XmlTestdataLoader(test_data_file_name_, robot_model_));
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
-  ASSERT_TRUE(ros::service::waitForService(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME, ros::Duration(10))) << "Service not available.";
-  ros::NodeHandle nh; // connect to service in global namespace, not in ph_
+  ASSERT_TRUE(ros::service::waitForService(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME, ros::Duration(10)))
+      << "Service not available.";
+  ros::NodeHandle nh;  // connect to service in global namespace, not in ph_
   client_ = nh.serviceClient<pilz_msgs::GetMotionSequence>(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME);
 }
 
@@ -133,8 +134,8 @@ TEST_F(IntegrationTestSequenceService, TestSendingOfEmptySequence)
  */
 TEST_F(IntegrationTestSequenceService, TestDifferingGroupNames)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  MotionCmd& cmd {seq.getCmd(1)};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  MotionCmd& cmd{ seq.getCmd(1) };
   cmd.setPlanningGroup("WrongGroupName");
 
   pilz_msgs::GetMotionSequence srv;
@@ -142,7 +143,8 @@ TEST_F(IntegrationTestSequenceService, TestDifferingGroupNames)
 
   ASSERT_TRUE(client_.call(srv));
 
-  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME, srv.response.error_code.val) << "Planning should have failed but did not.";
+  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME, srv.response.error_code.val)
+      << "Planning should have failed but did not.";
   EXPECT_TRUE(srv.response.planned_trajectory.empty());
 }
 
@@ -159,7 +161,7 @@ TEST_F(IntegrationTestSequenceService, TestDifferingGroupNames)
  */
 TEST_F(IntegrationTestSequenceService, TestNegativeBlendRadius)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
   pilz_msgs::GetMotionSequence srv;
@@ -167,7 +169,8 @@ TEST_F(IntegrationTestSequenceService, TestNegativeBlendRadius)
 
   ASSERT_TRUE(client_.call(srv));
 
-  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN, srv.response.error_code.val) << "Planning should have failed but did not.";
+  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN, srv.response.error_code.val)
+      << "Planning should have failed but did not.";
   EXPECT_TRUE(srv.response.planned_trajectory.empty());
 }
 
@@ -184,8 +187,8 @@ TEST_F(IntegrationTestSequenceService, TestNegativeBlendRadius)
  */
 TEST_F(IntegrationTestSequenceService, TestOverlappingBlendRadii)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  seq.setBlendRadius(0, 10*seq.getBlendRadius(0));
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  seq.setBlendRadius(0, 10 * seq.getBlendRadius(0));
 
   pilz_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
@@ -209,9 +212,9 @@ TEST_F(IntegrationTestSequenceService, TestOverlappingBlendRadii)
  */
 TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.erase(2, seq.size());
-  seq.setBlendRadius(0, 10*seq.getBlendRadius(seq.size()-2));
+  seq.setBlendRadius(0, 10 * seq.getBlendRadius(seq.size() - 2));
 
   pilz_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
@@ -236,13 +239,12 @@ TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
  */
 TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  pilz_msgs::MotionSequenceRequest req_list {seq.toRequest()};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  pilz_msgs::MotionSequenceRequest req_list{ seq.toRequest() };
 
   // Set start state
   using std::placeholders::_1;
-  JointConfiguration config {"MyGroupName", {-1., 2., -3., 4., -5., 0.},
-                            std::bind(&createJointName, _1)};
+  JointConfiguration config{ "MyGroupName", { -1., 2., -3., 4., -5., 0. }, std::bind(&createJointName, _1) };
   req_list.items[1].req.start_state.joint_state = config.toSensorMsg();
 
   pilz_msgs::GetMotionSequence srv;
@@ -268,8 +270,8 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
  */
 TEST_F(IntegrationTestSequenceService, TestFirstGoalNotReachable)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  PtpJointCart& cmd {seq.getCmd<PtpJointCart>(0)};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  PtpJointCart& cmd{ seq.getCmd<PtpJointCart>(0) };
   cmd.getGoalConfiguration().getPose().position.y = 27;
 
   pilz_msgs::GetMotionSequence srv;
@@ -294,11 +296,11 @@ TEST_F(IntegrationTestSequenceService, TestFirstGoalNotReachable)
  */
 TEST_F(IntegrationTestSequenceService, TestInvalidLinkName)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setAllBlendRadiiToZero();
 
   // Invalidate link name
-  CircInterimCart& circ {seq.getCmd<CircInterimCart>(1)};
+  CircInterimCart& circ{ seq.getCmd<CircInterimCart>(1) };
   circ.getGoalConfiguration().setLinkName("InvalidLinkName");
 
   pilz_msgs::GetMotionSequence srv;
@@ -323,15 +325,15 @@ TEST_F(IntegrationTestSequenceService, TestInvalidLinkName)
  */
 TEST_F(IntegrationTestSequenceService, TestLargeRequest)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  pilz_msgs::MotionSequenceRequest req {seq.toRequest()};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  pilz_msgs::MotionSequenceRequest req{ seq.toRequest() };
   // Make copy of sequence commands and add them to the end of sequence.
   // Create large request by making copies of the original sequence commands
   // and adding them to the end of the original sequence.
-  size_t n {req.items.size()};
-  for(size_t i = 0; i<n; ++i)
+  size_t n{ req.items.size() };
+  for (size_t i = 0; i < n; ++i)
   {
-    pilz_msgs::MotionSequenceItem item {req.items.at(i)};
+    pilz_msgs::MotionSequenceItem item{ req.items.at(i) };
     if (i == 0)
     {
       // Remove start state because only the first request
@@ -348,7 +350,8 @@ TEST_F(IntegrationTestSequenceService, TestLargeRequest)
 
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, srv.response.error_code.val) << "Incorrect error code.";
   EXPECT_EQ(srv.response.planned_trajectory.size(), 1u);
-  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u) << "Trajectory should contain points.";
+  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u)
+      << "Trajectory should contain points.";
 }
 
 /**
@@ -365,7 +368,7 @@ TEST_F(IntegrationTestSequenceService, TestLargeRequest)
  */
 TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithoutBlending)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   seq.setAllBlendRadiiToZero();
 
@@ -376,7 +379,8 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithoutBlending)
 
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, srv.response.error_code.val) << "Incorrect error code.";
   EXPECT_EQ(srv.response.planned_trajectory.size(), 1u);
-  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u) << "Trajectory should contain points.";
+  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u)
+      << "Trajectory should contain points.";
 }
 
 /**
@@ -393,7 +397,7 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithoutBlending)
  */
 TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithBlending)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   pilz_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
@@ -402,10 +406,11 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithBlending)
 
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, srv.response.error_code.val) << "Incorrect error code.";
   EXPECT_EQ(srv.response.planned_trajectory.size(), 1u);
-  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u) << "Trajectory should contain points.";
+  EXPECT_GT(srv.response.planned_trajectory.front().joint_trajectory.points.size(), 0u)
+      << "Trajectory should contain points.";
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "integrationtest_sequence_service_capability");
   ros::NodeHandle nh;

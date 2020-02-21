@@ -46,8 +46,8 @@
 #include <trapezoidal_trajectory_generation/plan_components_builder.h>
 
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
-const std::string ROBOT_DESCRIPTION_STR {"robot_description"};
-const std::string EMPTY_VALUE {""};
+const std::string ROBOT_DESCRIPTION_STR{ "robot_description" };
+const std::string EMPTY_VALUE{ "" };
 
 using namespace trapezoidal;
 using namespace trapezoidal_trajectory_generation;
@@ -58,16 +58,17 @@ protected:
   void SetUp() override;
 
 protected:
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel() };
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{
+    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel()
+  };
 
   std::string planning_group_;
 };
 
 void IntegrationTestPlanComponentBuilder::SetUp()
 {
-  if(!robot_model_)
+  if (!robot_model_)
   {
     FAIL() << "Robot model could not be loaded.";
   }
@@ -82,16 +83,16 @@ void IntegrationTestPlanComponentBuilder::SetUp()
  */
 TEST_F(IntegrationTestPlanComponentBuilder, TestExceptionErrorCodeMapping)
 {
-  std::shared_ptr<NoBlenderSetException> nbs_ex {new NoBlenderSetException("")};
+  std::shared_ptr<NoBlenderSetException> nbs_ex{ new NoBlenderSetException("") };
   EXPECT_EQ(nbs_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
 
-  std::shared_ptr<NoTipFrameFunctionSetException> ntffse_ex {new NoTipFrameFunctionSetException("")};
+  std::shared_ptr<NoTipFrameFunctionSetException> ntffse_ex{ new NoTipFrameFunctionSetException("") };
   EXPECT_EQ(ntffse_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
 
-  std::shared_ptr<NoRobotModelSetException> nrms_ex {new NoRobotModelSetException ("")};
+  std::shared_ptr<NoRobotModelSetException> nrms_ex{ new NoRobotModelSetException("") };
   EXPECT_EQ(nrms_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
 
-  std::shared_ptr<BlendingFailedException> bf_ex {new BlendingFailedException("")};
+  std::shared_ptr<BlendingFailedException> bf_ex{ new BlendingFailedException("") };
   EXPECT_EQ(bf_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
 }
 
@@ -101,7 +102,7 @@ TEST_F(IntegrationTestPlanComponentBuilder, TestExceptionErrorCodeMapping)
  */
 TEST_F(IntegrationTestPlanComponentBuilder, TestModelSet)
 {
-  robot_trajectory::RobotTrajectoryPtr traj {new robot_trajectory::RobotTrajectory(robot_model_, planning_group_)};
+  robot_trajectory::RobotTrajectoryPtr traj{ new robot_trajectory::RobotTrajectory(robot_model_, planning_group_) };
   PlanComponentsBuilder builder;
 
   EXPECT_THROW(builder.append(traj, 1.0), NoRobotModelSetException);
@@ -113,7 +114,7 @@ TEST_F(IntegrationTestPlanComponentBuilder, TestModelSet)
  */
 TEST_F(IntegrationTestPlanComponentBuilder, TestNoBlenderSet)
 {
-  robot_trajectory::RobotTrajectoryPtr traj {new robot_trajectory::RobotTrajectory(robot_model_, planning_group_)};
+  robot_trajectory::RobotTrajectoryPtr traj{ new robot_trajectory::RobotTrajectory(robot_model_, planning_group_) };
   PlanComponentsBuilder builder;
   builder.setModel(robot_model_);
 
@@ -122,7 +123,7 @@ TEST_F(IntegrationTestPlanComponentBuilder, TestNoBlenderSet)
   EXPECT_THROW(builder.append(traj, 1.0), NoBlenderSetException);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "integrationtest_plan_components_builder");
   testing::InitGoogleTest(&argc, argv);

@@ -40,7 +40,8 @@
 #include <kdl/utilities/error.h>
 #include <kdl/rotational_interpolation_sa.hpp>
 
-namespace trapezoidal {
+namespace trapezoidal
+{
 /**
  * @brief Generator class for KDL::Path_Circle from different circle representations
  */
@@ -54,25 +55,19 @@ public:
    * by circle center since start/goal/center points are colinear.
    * @throws KDL::Error_MotionPlanning in case start and goal have different radii to the center point.
    */
-  static std::unique_ptr<KDL::Path> circleFromCenter(
-      const KDL::Frame& start_pose,
-      const KDL::Frame& goal_pose,
-      const KDL::Vector& center_point,
-      double eqradius);
+  static std::unique_ptr<KDL::Path> circleFromCenter(const KDL::Frame& start_pose, const KDL::Frame& goal_pose,
+                                                     const KDL::Vector& center_point, double eqradius);
 
   /**
    * @brief set circle from start, goal and interim point
 
    * @throws KDL::Error_MotionPlanning if the given points are colinear.
    */
-  static std::unique_ptr<KDL::Path> circleFromInterim(
-      const KDL::Frame& start_pose,
-      const KDL::Frame& goal_pose,
-      const KDL::Vector& interim_point,
-      double eqradius);
+  static std::unique_ptr<KDL::Path> circleFromInterim(const KDL::Frame& start_pose, const KDL::Frame& goal_pose,
+                                                      const KDL::Vector& interim_point, double eqradius);
 
 private:
-  PathCircleGenerator() {}; // no instantiation of this helper class!
+  PathCircleGenerator(){};  // no instantiation of this helper class!
 
   /**
    * @brief law of cosines: returns angle gamma in c² = a²+b²-2ab cos(gamma)
@@ -81,20 +76,27 @@ private:
    */
   static double cosines(const double a, const double b, const double c);
 
-  static constexpr double MAX_RADIUS_DIFF {1e-2};
-  static constexpr double MAX_COLINEAR_NORM {1e-5};
+  static constexpr double MAX_RADIUS_DIFF{ 1e-2 };
+  static constexpr double MAX_COLINEAR_NORM{ 1e-5 };
 };
 
-}
+}  // namespace trapezoidal
 
-class Error_MotionPlanning_CenterPointDifferentRadius: public KDL::Error_MotionPlanning {
+class Error_MotionPlanning_CenterPointDifferentRadius : public KDL::Error_MotionPlanning
+{
 public:
-  virtual const char* Description() const { return "Distances between start-center and goal-center are different."
-                                                   " A circle cannot be created.";}
-  virtual int GetType() const {return ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS;} // LCOV_EXCL_LINE
+  virtual const char* Description() const
+  {
+    return "Distances between start-center and goal-center are different."
+           " A circle cannot be created.";
+  }
+  virtual int GetType() const
+  {
+    return ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS;
+  }  // LCOV_EXCL_LINE
 
 private:
-  static constexpr int ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS {3006};
+  static constexpr int ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS{ 3006 };
 };
 
-#endif // PATH_CIRCLE_GENERATOR_H
+#endif  // PATH_CIRCLE_GENERATOR_H

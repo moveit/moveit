@@ -45,7 +45,6 @@ using namespace trapezoidal_trajectory_generation;
 
 namespace trapezoidal
 {
-
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircleNoPlane, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircleToSmall, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CenterPointDifferentRadius, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
@@ -55,7 +54,8 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoPositionConstraints, moveit_msgs::MoveItErr
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoPrimitivePose, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(UnknownLinkNameOfAuxiliaryPoint, moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NumberOfConstraintsMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NumberOfConstraintsMismatch,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircJointMissingInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(CircInverseForGoalIncalculable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 
@@ -82,15 +82,13 @@ public:
   virtual ~TrajectoryGeneratorCIRC() = default;
 
 private:
-  virtual void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest &req) const override;
+  virtual void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest& req) const override;
 
-  virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest &req,
-                                     MotionPlanInfo &info) const final override;
+  virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
+                                     MotionPlanInfo& info) const final override;
 
-  virtual void plan(const planning_interface::MotionPlanRequest &req,
-                    const MotionPlanInfo& plan_info,
-                    const double& sampling_time,
-                    trajectory_msgs::JointTrajectory& joint_trajectory) override;
+  virtual void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief Construct a KDL::Path object for a Cartesian path of an arc.
@@ -105,11 +103,9 @@ private:
    * @throws CenterPointDifferentRadius if the distances between start-center
    * and goal-center are different.
    */
-  std::unique_ptr<KDL::Path> setPathCIRC(const MotionPlanInfo &info) const;
-
-
+  std::unique_ptr<KDL::Path> setPathCIRC(const MotionPlanInfo& info) const;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // TRAJECTORY_GENERATOR_CIRC_H
+#endif  // TRAJECTORY_GENERATOR_CIRC_H

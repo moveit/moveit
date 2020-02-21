@@ -42,7 +42,6 @@
 
 namespace trapezoidal
 {
-
 struct CartesianTrajectory
 {
   std::string group_name;
@@ -50,6 +49,6 @@ struct CartesianTrajectory
   std::vector<CartesianTrajectoryPoint> points;
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // CARTESIAN_TRAJECTORY_H
+#endif  // CARTESIAN_TRAJECTORY_H

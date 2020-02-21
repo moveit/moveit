@@ -48,7 +48,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 using TipFrameFunc_t = std::function<const std::string&(const std::string&)>;
 
 // List of exceptions which can be thrown by the PlanComponentsBuilder class.
@@ -72,7 +71,7 @@ public:
   /**
    * @brief Sets the robot model needed to create new trajectory elements.
    */
-  void setModel(const moveit::core::RobotModelConstPtr &model);
+  void setModel(const moveit::core::RobotModelConstPtr& model);
 
   /**
    * @brief Appends the specified trajectory to the trajectory container
@@ -108,8 +107,7 @@ public:
   std::vector<robot_trajectory::RobotTrajectoryPtr> build() const;
 
 private:
-  void blend(const robot_trajectory::RobotTrajectoryPtr& other,
-             const double blend_radius);
+  void blend(const robot_trajectory::RobotTrajectoryPtr& other, const double blend_radius);
 
 private:
   /**
@@ -121,8 +119,8 @@ private:
    * increasing trajectory. If through appending the last point of the
    * original trajectory gets repeated, it is removed here.
    */
-  static void appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory &result,
-                                           const robot_trajectory::RobotTrajectory &source);
+  static void appendWithStrictTimeIncrease(robot_trajectory::RobotTrajectory& result,
+                                           const robot_trajectory::RobotTrajectory& source);
 
 private:
   //! Blender used to blend two trajectories.
@@ -147,7 +145,7 @@ inline void PlanComponentsBuilder::setBlender(std::unique_ptr<trapezoidal::Traje
   blender_ = std::move(blender);
 }
 
-inline void PlanComponentsBuilder::setModel(const moveit::core::RobotModelConstPtr &model)
+inline void PlanComponentsBuilder::setModel(const moveit::core::RobotModelConstPtr& model)
 {
   model_ = model;
 }
@@ -158,7 +156,6 @@ inline void PlanComponentsBuilder::reset()
   traj_cont_.clear();
 }
 
+}  // namespace trapezoidal_trajectory_generation
 
-}
-
-#endif // PLANCOMPONENTSBUILDER_H
+#endif  // PLANCOMPONENTSBUILDER_H

@@ -48,8 +48,8 @@
 // Boost includes
 #include <boost/scoped_ptr.hpp>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Moveit Plugin for Planning with Standart Robot Commands
  * This planner is dedicated to return a instance of PlanningContext that corresponds to the requested motion command
@@ -59,7 +59,9 @@ namespace trapezoidal {
 class CommandPlanner : public planning_interface::PlannerManager
 {
 public:
-  virtual ~CommandPlanner(){}
+  virtual ~CommandPlanner()
+  {
+  }
 
   /**
    * @brief Initializes the planner
@@ -88,10 +90,10 @@ public:
    * @param error_code
    * @return
    */
-  virtual planning_interface::PlanningContextPtr getPlanningContext(
-                                                        const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                        const planning_interface::MotionPlanRequest& req,
-                                                        moveit_msgs::MoveItErrorCodes& error_code) const override;
+  virtual planning_interface::PlanningContextPtr
+  getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                     const planning_interface::MotionPlanRequest& req,
+                     moveit_msgs::MoveItErrorCodes& error_code) const override;
 
   /**
    * @brief Checks if the request can be handled
@@ -108,7 +110,6 @@ public:
   void registerContextLoader(const trapezoidal::PlanningContextLoaderPtr& planning_context_loader);
 
 private:
-
   /// Plugin loader
   boost::scoped_ptr<pluginlib::ClassLoader<PlanningContextLoader> > planner_context_loader;
 
@@ -130,6 +131,6 @@ private:
 
 MOVEIT_CLASS_FORWARD(CommandPlanner)
 
-} // namespace
+}  // namespace trapezoidal
 
-#endif // PILZ_COMMAND_PLANNER_H
+#endif  // PILZ_COMMAND_PLANNER_H

@@ -46,13 +46,12 @@
 
 #include "test_utils.h"
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
 class PlanningContextLoadersTest : public ::testing::TestWithParam<std::vector<std::string> >
 {
 protected:
-
   /**
    * @brief To initialize the planning context loader
    * The planning context loader is loaded using the pluginlib.
@@ -66,11 +65,10 @@ protected:
     // Load the plugin
     try
     {
-      planning_context_loader_class_loader_.reset(
-            new pluginlib::ClassLoader<trapezoidal::PlanningContextLoader>(
-              "trapezoidal_trajectory_generation", "trapezoidal::PlanningContextLoader"));
+      planning_context_loader_class_loader_.reset(new pluginlib::ClassLoader<trapezoidal::PlanningContextLoader>(
+          "trapezoidal_trajectory_generation", "trapezoidal::PlanningContextLoader"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_FATAL_STREAM("Exception while creating planning context loader " << ex.what());
       FAIL();
@@ -80,25 +78,26 @@ protected:
     try
     {
       planning_context_loader_.reset(
-            planning_context_loader_class_loader_->createUnmanagedInstance(GetParam().front()));
+          planning_context_loader_class_loader_->createUnmanagedInstance(GetParam().front()));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       FAIL() << ex.what();
     }
     return;
   }
 
-  void TearDown() override {
-    if(planning_context_loader_class_loader_) {
+  void TearDown() override
+  {
+    if (planning_context_loader_class_loader_)
+    {
       planning_context_loader_class_loader_->unloadLibraryForClass(GetParam().front());
     }
   }
 
 protected:
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(GetParam().back()).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam().back()).getModel() };
 
   // Load the plugin
   boost::scoped_ptr<pluginlib::ClassLoader<trapezoidal::PlanningContextLoader> > planning_context_loader_class_loader_;
@@ -107,14 +106,20 @@ protected:
 };
 
 // Instantiate the test cases for all loaders, extend here if you added a new ContextLoader you want to test
-INSTANTIATE_TEST_CASE_P(InstantiationName, PlanningContextLoadersTest, ::testing::Values(
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderPTP", "PTP", PARAM_MODEL_NO_GRIPPER_NAME}, // Test for PTP
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderPTP", "PTP", PARAM_MODEL_WITH_GRIPPER_NAME}, // Test for PTP
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderLIN", "LIN", PARAM_MODEL_NO_GRIPPER_NAME}, // Test for LIN
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderLIN", "LIN", PARAM_MODEL_WITH_GRIPPER_NAME}, // Test for LIN
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderCIRC", "CIRC", PARAM_MODEL_NO_GRIPPER_NAME}, // Test for CIRC
-                          std::vector<std::string>{"trapezoidal::PlanningContextLoaderCIRC", "CIRC", PARAM_MODEL_WITH_GRIPPER_NAME} // Test for CIRC
-                          ));
+INSTANTIATE_TEST_CASE_P(InstantiationName, PlanningContextLoadersTest,
+                        ::testing::Values(std::vector<std::string>{ "trapezoidal::PlanningContextLoaderPTP", "PTP",
+                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for PTP
+                                          std::vector<std::string>{ "trapezoidal::PlanningContextLoaderPTP", "PTP",
+                                                                    PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for PTP
+                                          std::vector<std::string>{ "trapezoidal::PlanningContextLoaderLIN", "LIN",
+                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for LIN
+                                          std::vector<std::string>{ "trapezoidal::PlanningContextLoaderLIN", "LIN",
+                                                                    PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for LIN
+                                          std::vector<std::string>{ "trapezoidal::PlanningContextLoaderCIRC", "CIRC",
+                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for CIRC
+                                          std::vector<std::string>{ "trapezoidal::PlanningContextLoaderCIRC", "CIRC",
+                                                                    PARAM_MODEL_WITH_GRIPPER_NAME }  // Test for CIRC
+                                          ));
 
 /**
  * @brief Test getAlgorithm returns PTP
@@ -141,7 +146,7 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
   trapezoidal::LimitsContainer limits;
   limits.setJointLimits(joint_limits);
   trapezoidal::CartesianLimit cart_limits;
-  cart_limits.setMaxRotationalVelocity(1*M_PI);
+  cart_limits.setMaxRotationalVelocity(1 * M_PI);
   cart_limits.setMaxTranslationalAcceleration(2);
   cart_limits.setMaxTranslationalDeceleration(2);
   cart_limits.setMaxTranslationalVelocity(1);
@@ -154,7 +159,7 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
   {
     res = planning_context_loader_->loadContext(planning_context, "test", "test");
   }
-  catch(std::exception& ex)
+  catch (std::exception& ex)
   {
     FAIL() << "Exception!" << ex.what() << " " << typeid(ex).name();
   }
@@ -162,7 +167,7 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
   EXPECT_EQ(true, res) << "Context could not be loaded!";
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_planning_context_loaders");
   testing::InitGoogleTest(&argc, argv);

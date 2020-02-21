@@ -38,8 +38,8 @@
 #include "kdl/velocityprofile.hpp"
 #include <iostream>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief A PTP Trajectory Generator of Asymmetric Trapezoidal Velocity Profile.
  * Differences to VelocityProfile_Trap:
@@ -100,7 +100,6 @@ public:
    */
   bool setProfileAllDurations(double pos1, double pos2, double duration1, double duration2, double duration3);
 
-
   /**
    * @brief Profile with start velocity
    * Note: This function is not general and is currently only used for live control (vel1*(pos2-pos1)>0).
@@ -115,17 +114,26 @@ public:
    * @brief get the time of first phase
    * @return
    */
-  double FirstPhaseDuration() const {return t_a_;}
+  double FirstPhaseDuration() const
+  {
+    return t_a_;
+  }
   /**
    * @brief get the time of second phase
    * @return
    */
-  double SecondPhaseDuration() const {return t_b_;}
+  double SecondPhaseDuration() const
+  {
+    return t_b_;
+  }
   /**
    * @brief get the time of third phase
    * @return
    */
-  double ThirdPhaseDuration() const  {return t_c_;}
+  double ThirdPhaseDuration() const
+  {
+    return t_c_;
+  }
 
   /**
    * @brief Compares two Asymmetric Trapezoidal Velocity Profiles.
@@ -134,7 +142,7 @@ public:
    */
   bool operator==(const VelocityProfile_ATrap& other) const;
 
-   /**
+  /**
    * @brief Duration
    * @return total duration of the trajectory
    */
@@ -168,17 +176,15 @@ public:
    */
   virtual KDL::VelocityProfile* Clone() const override;
 
-  friend std::ostream &operator<<(std::ostream& os, const VelocityProfile_ATrap& p); //LCOV_EXCL_LINE
+  friend std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
 
   virtual ~VelocityProfile_ATrap();
 
 private:
-
   /// helper functions
   void setEmptyProfile();
 
 private:
-
   /// specification of the motion profile :
   const double max_vel_;
   const double max_acc_;
@@ -190,18 +196,18 @@ private:
   double start_vel_;
 
   /// three phases of trapezoid
-  double a1_,a2_,a3_; /// coef. from ^0 -> ^2 of first phase
-  double b1_,b2_,b3_; /// of second phase
-  double c1_,c2_,c3_; /// of third phase
+  double a1_, a2_, a3_;  /// coef. from ^0 -> ^2 of first phase
+  double b1_, b2_, b3_;  /// of second phase
+  double c1_, c2_, c3_;  /// of third phase
 
   /// time of three phases
-  double t_a_; /// the duration of first phase
-  double t_b_; /// the duration of second phase
-  double t_c_; /// the duration of third phase
+  double t_a_;  /// the duration of first phase
+  double t_b_;  /// the duration of second phase
+  double t_c_;  /// the duration of third phase
 };
 
-std::ostream &operator<<(std::ostream& os, const VelocityProfile_ATrap& p);//LCOV_EXCL_LINE
+std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
 
-}
+}  // namespace trapezoidal
 
-#endif // VELOCITY_PROFILE_ATRAP_H
+#endif  // VELOCITY_PROFILE_ATRAP_H

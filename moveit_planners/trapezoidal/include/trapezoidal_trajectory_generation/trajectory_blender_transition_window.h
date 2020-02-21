@@ -41,8 +41,8 @@
 #include "trapezoidal_trajectory_generation/cartesian_trajectory.h"
 #include "trapezoidal_trajectory_generation/cartesian_trajectory_point.h"
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Trajectory blender implementing transition window algorithm
  *
@@ -52,12 +52,13 @@ class TrajectoryBlenderTransitionWindow : public TrajectoryBlender
 {
 public:
   TrajectoryBlenderTransitionWindow(const LimitsContainer& planner_limits)
-    :TrajectoryBlender::TrajectoryBlender(planner_limits)
+    : TrajectoryBlender::TrajectoryBlender(planner_limits)
   {
   }
 
-  virtual ~TrajectoryBlenderTransitionWindow(){}
-
+  virtual ~TrajectoryBlenderTransitionWindow()
+  {
+  }
 
   /**
    * @brief Blend two trajectories using transition window. The trajectories have to be equally and uniformly
@@ -92,8 +93,7 @@ private:
    * @param error_code
    * @return
    */
-  bool validateRequest(const trapezoidal::TrajectoryBlendRequest& req,
-                       double &sampling_time,
+  bool validateRequest(const trapezoidal::TrajectoryBlendRequest& req, double& sampling_time,
                        moveit_msgs::MoveItErrorCodes& error_code) const;
   /**
    * @brief searchBlendPoint
@@ -101,8 +101,7 @@ private:
    * @param first_interse_index: index of the first point of the first trajectory that is inside the blend sphere
    * @param second_interse_index: index of the last point of the second trajectory that is still inside the blend sphere
    */
-  bool searchIntersectionPoints(const trapezoidal::TrajectoryBlendRequest& req,
-                                std::size_t& first_interse_index,
+  bool searchIntersectionPoints(const trapezoidal::TrajectoryBlendRequest& req, std::size_t& first_interse_index,
                                 std::size_t& second_interse_index) const;
 
   /**
@@ -131,10 +130,8 @@ private:
    * be aligned to for motion blend. It is now always same as first_interse_index
    * @param blend_time: time of the motion blend period
    */
-  void determineTrajectoryAlignment(const trapezoidal::TrajectoryBlendRequest& req,
-                                    std::size_t first_interse_index,
-                                    std::size_t second_interse_index,
-                                    std::size_t& blend_align_index) const;
+  void determineTrajectoryAlignment(const trapezoidal::TrajectoryBlendRequest& req, std::size_t first_interse_index,
+                                    std::size_t second_interse_index, std::size_t& blend_align_index) const;
 
   /**
    * @brief blend two trajectories in Cartesian space, result in a MultiDOFJointTrajectory which consists
@@ -146,17 +143,14 @@ private:
    * @param sampling_time
    * @param trajectory: the resulting blend trajectory inside the blending sphere
    */
-  void blendTrajectoryCartesian(const trapezoidal::TrajectoryBlendRequest& req,
-                                const std::size_t first_interse_index,
-                                const std::size_t second_interse_index,
-                                const std::size_t blend_align_index,
-                                double sampling_time,
-                                trapezoidal::CartesianTrajectory &trajectory) const;
+  void blendTrajectoryCartesian(const trapezoidal::TrajectoryBlendRequest& req, const std::size_t first_interse_index,
+                                const std::size_t second_interse_index, const std::size_t blend_align_index,
+                                double sampling_time, trapezoidal::CartesianTrajectory& trajectory) const;
 
-private: // static members
+private:  // static members
   // Constant to check for equality of values.
   static constexpr double epsilon = 1e-4;
 };
 
-}
-#endif // TRAJECTORY_BLENDER_TRANSITION_WINDOW_H
+}  // namespace trapezoidal
+#endif  // TRAJECTORY_BLENDER_TRANSITION_WINDOW_H

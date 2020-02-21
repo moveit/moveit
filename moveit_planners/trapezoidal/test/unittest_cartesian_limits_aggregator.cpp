@@ -82,8 +82,7 @@ TEST_F(CartesianLimitsAggregator, AllValues)
   EXPECT_EQ(limit.getMaxRotationalVelocity(), 4);
 }
 
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_cartesian_limits_aggregator");
   testing::InitGoogleTest(&argc, argv);

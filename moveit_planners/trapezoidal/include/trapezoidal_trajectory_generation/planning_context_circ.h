@@ -48,9 +48,8 @@
 #include "trapezoidal_trajectory_generation/planning_context_base.h"
 #include "trapezoidal_trajectory_generation/trajectory_generator_circ.h"
 
-
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 MOVEIT_CLASS_FORWARD(PlanningContext)
 
 /**
@@ -58,14 +57,14 @@ MOVEIT_CLASS_FORWARD(PlanningContext)
  */
 class PlanningContextCIRC : public trapezoidal::PlanningContextBase<TrajectoryGeneratorCIRC>
 {
-  public:
-    PlanningContextCIRC(const std::string& name,
-                       const std::string& group,
-                       const moveit::core::RobotModelConstPtr& model,
-                       const trapezoidal::LimitsContainer& limits):
-    trapezoidal::PlanningContextBase<TrajectoryGeneratorCIRC>(name, group, model, limits){}
+public:
+  PlanningContextCIRC(const std::string& name, const std::string& group, const moveit::core::RobotModelConstPtr& model,
+                      const trapezoidal::LimitsContainer& limits)
+    : trapezoidal::PlanningContextBase<TrajectoryGeneratorCIRC>(name, group, model, limits)
+  {
+  }
 };
 
-} // namespace
+}  // namespace trapezoidal
 
-#endif // PlanningContextCIRC_H
+#endif  // PlanningContextCIRC_H

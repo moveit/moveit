@@ -100,22 +100,17 @@ currentpoint
 /X22 load /Y22 load curveto
 } bd
 /SSPD {
-dup length /d exch dict def
-{
-/v exch def
-/k exch def
-currentpagedevice k known {
-/cpdv currentpagedevice k get def
-v cpdv ne {
-/upd false def
-/nullv v type /nulltype eq def
-/nullcpdv cpdv type /nulltype eq def
-nullv nullcpdv or
-{
-/upd true def
-} {
-/sametype v type cpdv type eq def
-sametype {
+  dup length / d exch dict def
+  {
+    / v exch def / k exch def currentpagedevice k known
+    {
+      / cpdv currentpagedevice k get def v cpdv ne
+      {
+        / upd false def / nullv v type / nulltype eq def / nullcpdv cpdv type / nulltype eq def nullv nullcpdv or
+            { / upd true def }
+        {
+          / sametype v type cpdv type eq def sametype
+          {
 v type /arraytype eq {
 /vlen v length def
 /cpdvlen cpdv length def
@@ -147,17 +142,24 @@ exit
 /upd true def
 } ifelse
 } ifelse
-} if
-} ifelse
-upd true eq {
-d k v put
-} if
-} if
-} if
-} forall
-d length 0 gt {
-d setpagedevice
-} if
+          }
+          if
+        }
+        ifelse upd true eq
+        {
+          d k v put
+        }
+        if
+      }
+      if
+    }
+    if
+  }
+  forall d length 0 gt
+  {
+    d setpagedevice
+  }
+  if
 } bd
 /RE { % /NewFontName [NewEncodingArray] /FontName RE -
   findfont dup length dict begin
@@ -179,16 +181,21 @@ d setpagedevice
 /dict_count countdictstack def % Count objects on dict stack
 /op_count count 1 sub def      % Count objects on operand stack
 userdict begin                 % Push userdict on dict stack
-/showpage { } def              % Redefine showpage, { } = null proc
-0 setgray 0 setlinecap         % Prepare graphics state
-1 setlinewidth 0 setlinejoin
-10 setmiterlimit [ ] 0 setdash newpath
-/languagelevel where           % If level not equal to 1 then
-{pop languagelevel             % set strokeadjust and
-1 ne                           % overprint to their defaults.
-{false setstrokeadjust false setoverprint
-} if
-} if
+/showpage
+  {
+  }
+  def % Redefine showpage,
+      {} = null proc 0 setgray 0 setlinecap %
+           Prepare graphics state 1 setlinewidth 0 setlinejoin 10 setmiterlimit[] 0 setdash newpath /
+           languagelevel where % If level not equal to 1 then
+  {
+    pop languagelevel % set strokeadjust and 1 ne % overprint to their defaults.
+    {
+      false setstrokeadjust false setoverprint
+    }
+    if
+  }
+  if
 } bd
 /EndEPSF { %def
 count op_count sub {pop} repeat            % Clean up stacks
@@ -224,21 +231,16 @@ GS
 0 0 translate
 1920 940 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 1920
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [1920 0 0 940 0 0]
-  /Height 940
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 1920 / ImageType 1 / DataSource Data /
+               ImageMatrix[1920 0 0 940 0 0] / Height 940 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"-Q5m[ZK&4Jl8OV0*_(+G@Y.C0eEKu^JqF`*XtIa8)r!'`0W\G*^"53L-Mh`kI`mCg8:"TSN&!5Q@u
 T)eol!!"G2cN!qF!!!`*B)ho3!!!B&1B7CT!!!3$)#sX:!.]\#$ig8-!'ii""onW'!2,uL!rr<$!)V%7
@@ -935,7 +937,7 @@ cBTn]Y$\s3nR'pBeHT?XiBAOAr/GQ*08!CgPr"r2$<6\YU^C($YY^V$XC1#.`eUQ$bu_%AFW,/i2S>HI
 bR,,GCj`1]i4\EWYL=o6.\hR>gt6"P_.taIE3:ZeeN8pD:fY=u<<fd]Kd.NYW[`h)<e$Z0nPpGE2m$ln
 f@E$N><eB/S>uuroo>gT<)p/!Q,0P0iQ0#oWX@1SQ!UBI7di]O=6!nqI5'hAPr"r2$<6\YU^C($YY^V$
 XC1#.`eUQ$Xf5Lt3fUFHARsR\Sb:l=j'_T[7O7Zd>ZIGsG9g1]We,r)$t]YN7lEP1<G5sodar1m%;b00
-#BRUT//N</.T"YWOt':._*V-+Z\!lU)]u(0[(^9p2UA>uB!*nVND/FBkGeS`]d'KX<>@&aAM>W:33r(J
+#BRUT  // N</.T"YWOt':._*V-+Z\!lU)]u(0[(^9p2UA>uB!*nVND/FBkGeS`]d'KX<>@&aAM>W:33r(J
 W^;WEB!9IX[$HW>g"gMb&"dhqS!qJ;c;b%JH:Lj:W[_,Lb$\8SE+Iur<J?`=h7@apN%`)ICGS17Qudbf
 nr,P0'r^C<8JS2(@%f'&=i%t;N=T#(e5`Qa!2JDq>WS5]5-\A2\Z.npmmsHD<<Z7M"Uc*iq7>%Q:KP+`
 K3<ck7=hHGd]0-^lK;_7B7nn.<6fHc.T"YWOt':.5uI<]cTZChGl.4%+-^_'<k:MJ=b5m-JZ9(*Wc$U0
@@ -1056,7 +1058,7 @@ lK$g)i-qa)t)#8O\bLC\TOF_*;>]=U<,puB"/;:s0a3AY:pRl5-+qk413a,V1Z!O-%PMUp*cGHnYBqS7
 XamRtapkKgd+A]'63/Ue,5\oQnilfmsqR(__LlZ6E]*'\o-SZBZG_hCFnrU&j`,g#q'Kl,SQD(aka^ju
 =Td*RmOX4(qJ]H:*8go"3I)1]Qi`Fkfkk$i5c^AWZsm`)m]=25"F#IC5dj5[Udh/],e4$#Ft:SQ*Q)*d
 mWpG\Fsr8EDQk5EZDp@d6Z]8Qt**cqM"NN;66HZ%NBAM&?>0>-ekg9k^S^NITH4etk<rNsNS,;PIHPIl
-#*Edp`b>e-$6m"J*t^9l\%B2A%5pK?=[FVdo8O",6M;c@c#cJ?$PBCV;erdNIes"`oZ[;4CLr93P8AMA
+#* Edp`b> e - $6m "J*t^9l\%B2A%5pK?=[FVdo8O", 6M; c @c #cJ ? $PBCV; erdNIes "`oZ[;4CLr93P8AMA
 Ji5*<ELSqZOYlIDq^H?tI`]mfqV_M&ACdb^bXiF/)F[F\a.qgemrI3Nf@ckV&r^(PFX%9iSeb__/_pF#
 Cd^V>#ORjIKgIJ``GlnLomp?gW&)L:M:GMFhgb[-6gNZL3$`-q2*hVuPHCKijnciA:3hn=BGpflA!9kX
 `Po3B15X&a)jZGh5QAMAJ9CY,`7cHa'E76JT1a5*Z?UIUC-rBOi#B$HcWSpA=mXh5`HnCF^Gk<>XVJ,A
@@ -1704,21 +1706,16 @@ GS
 0 0 translate
 239 311 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 311 0 0]
-  /Height 311
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 311 0 0] / Height 311 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0T_1u%j+33pNR\;"TCqc<+m5%qQ*4_5'ZmdFqdB6J;RS@N/0smlj,dh>@M^7gEM5X.3OcmrPGC50#
 VOoVU?G2ftGW81e\7Rq]o=XgFcJ3mH=9fWp>Zd&*_dDBkq/).ONW&Yp\n0'N5Q=(Wq0RR[XdId8rd7'4
@@ -1772,21 +1769,16 @@ GS
 0 0 translate
 955 77 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 955
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [955 0 0 77 0 0]
-  /Height 77
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 955 / ImageType 1 / DataSource Data /
+               ImageMatrix[955 0 0 77 0 0] / Height 77 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0WIq4iC+33n+a^d.Q8Wp"lQ"9o:B7D1hR7rd,aYAWGJ#%mL8WlX;7oEjn0f=ek8WpHMrlETrdN?Tt
 T;c<uZ29nkC\E26I<<$fZ^nF$qn0Z+e(+'KE]`GFT6$Rh]WUSEX6[LFFiME$zzzzzzzzzzzzz!!!#7+(
@@ -1852,21 +1844,16 @@ GS
 0 0 translate
 239 77 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 77 0 0]
-  /Height 77
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 77 0 0] / Height 77 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"/k?USsb*60-VR3[nIP%<pGUl0,R,Y9q#,g#6oR:Kik,a$=;,*D,iMjPQK,a'dk80kg78L0KF,=s6<
 9Tg[u^%M'qrm%jPZ_#IfF2#uoI`^X:I)"ik^40JPF$AcgSlCRY63n`f&4-XGKFgHU+bUCn#U+j463n`f
@@ -1923,21 +1910,16 @@ GS
 0 0 translate
 955 309 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 955
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [955 0 0 309 0 0]
-  /Height 309
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 955 / ImageType 1 / DataSource Data /
+               ImageMatrix[955 0 0 309 0 0] / Height 309 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;0`_7S!5bE.WFlQ&TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
@@ -1961,24 +1943,19 @@ GS
 0 0 translate
 239 309 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 309 0 0]
-  /Height 309
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 309 0 0] / Height 309 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;!=]#/!5bE.WG`8*TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!!!
-#WfDo,d64s~>
+#WfDo, d64s ~ >
 
 %AXGEndBitmap
 GR
@@ -1997,21 +1974,16 @@ GS
 0 0 translate
 955 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 955
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [955 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 955 / ImageType 1 / DataSource Data /
+               ImageMatrix[955 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;JH,ZM!5fq/l<W?K<<3("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!5
 N@_.C]9~>
@@ -2033,21 +2005,16 @@ GS
 0 0 translate
 239 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;!=]#/!5bE.WG`:P'EA+5zzzzzzzzzzzz!!'fe!EZk263~>
 
@@ -2110,21 +2077,16 @@ GS
 0 0 translate
 955 310 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 955
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [955 0 0 310 0 0]
-  /Height 310
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 955 / ImageType 1 / DataSource Data /
+               ImageMatrix[955 0 0 310 0 0] / Height 310 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0WIq[C,q=jDF.AMhW`le:B1&B]JK$l(kL!:4JXW9cF43Q>ph4t/[5m_EC2tr*nB"K6uK6AOh$Dhn$
 *+<RK&!9`+CsY2JrijtaYuRSgW^o3%IRS&$"Rl*P\aRFMC=9'41[">BkCZ.lS=CiH?J"j1H(FRQ3HqV8
@@ -2400,21 +2362,16 @@ GS
 0 0 translate
 955 77 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 955
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [955 0 0 77 0 0]
-  /Height 77
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 955 / ImageType 1 / DataSource Data /
+               ImageMatrix[955 0 0 77 0 0] / Height 77 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0WEF`)L+33nk:%lhB^,*kVYpPa[1B"IB-BX]A(!1!L81)e-OX->_dN;'#oUVCAA29R07?[T^P9ar7
 jf2#*Z<pXIB&C(GIZDmjm<&7)5-O@[e+;PtER21fHdClhcFri'EHX6!#64`(zzzzzzzzzzzz!;N2>g"D
@@ -2943,21 +2900,16 @@ GS
 0 0 translate
 238 311 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 238
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [238 0 0 311 0 0]
-  /Height 311
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 238 / ImageType 1 / DataSource Data /
+               ImageMatrix[238 0 0 311 0 0] / Height 311 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0TIqVjT+33of&<W%[_EVL##Yc'YN"$pBRF4<Nc%6(\Md/XS1/Obt.t:D-OagJdl2HMg.RR($njUP`
 6t,GCJQe1<KHW4I/<NflO)]O,iHr,l?*CkWYLi<9Sdu=:ST?oBp:8LrmcWG0-p0e=mFmj!&@>KA?9N)T
@@ -3025,21 +2977,16 @@ GS
 0 0 translate
 954 76 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 954
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [954 0 0 76 0 0]
-  /Height 76
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 954 / ImageType 1 / DataSource Data /
+               ImageMatrix[954 0 0 76 0 0] / Height 76 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0W?"apb)i&EA&IIG_BTODrP_+ek:kDS3aaluK8e_`B+;.9P,)D&"TRrbg,,J*u#XRhc@[B?<+BE:i
 &Ku(,HOu(-[#.6`O"@!CQ69l\f-S,P_`M[Y2m_!*rkE_6\UKd+R@TD`2&,J5g"GV(zzzzzzzzzzzzz=9
@@ -3103,21 +3050,16 @@ GS
 0 0 translate
 238 76 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 238
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [238 0 0 76 0 0]
-  /Height 76
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 238 / ImageType 1 / DataSource Data /
+               ImageMatrix[238 0 0 76 0 0] / Height 76 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0S0kpbe(kp@f>HkOE\0DBDl!;\Q`Zg[0&3&MOXK9Wr9cu``n\:hPk>]=>j*CG'_<Vg9zzzzz!!&['
 TCB^prdOc,2QpN=4I]EVC7`[#4LAkL1CTaKI>.FEFe.F3YK#]>XI<en$<GEXGm182ft;o:o5%aLWd-M+
@@ -3157,21 +3099,16 @@ GS
 0 0 translate
 953 310 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 953
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [953 0 0 310 0 0]
-  /Height 310
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 953 / ImageType 1 / DataSource Data /
+               ImageMatrix[953 0 0 310 0 0] / Height 310 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;0`_7S!5bE.WFlHSTE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
@@ -3195,21 +3132,16 @@ GS
 0 0 translate
 239 310 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 310 0 0]
-  /Height 310
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 310 0 0] / Height 310 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;0`_7S!5bE.WFlV]TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzp_
 u9P$uu~>
@@ -3231,24 +3163,19 @@ GS
 0 0 translate
 953 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 953
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [953 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 953 / ImageType 1 / DataSource Data /
+               ImageMatrix[953 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;0`_7S!5bE.WFlQ&TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!+
-#lt)s+F~>
+#lt) s + F ~ >
 
 %AXGEndBitmap
 GR
@@ -3267,21 +3194,16 @@ GS
 0 0 translate
 239 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;!=]#/!5bE.WG`:P'EA+5zzzzzzzzzzzz!!'fe!EZk263~>
 
@@ -3344,21 +3266,16 @@ GS
 0 0 translate
 954 311 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 954
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [954 0 0 311 0 0]
-  /Height 311
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 954 / ImageType 1 / DataSource Data /
+               ImageMatrix[954 0 0 311 0 0] / Height 311 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0Ws(bSHg;iaHJ++P)IM*j@&0`Z.,e0*;5qF;cWK[iI'Tkq*Td]k.A1>-Hm"0<c&Hul!71`?b>%Ccf
 )H$W>g]f3*qC'0(,`!b"<$Gb<E1U:3SW7]%11.313S1gfqaFW2A@-",pGjVQ9I=D8,QkZ&n,DEET7*%'
@@ -3575,21 +3492,16 @@ GS
 0 0 translate
 238 311 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 238
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [238 0 0 311 0 0]
-  /Height 311
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 238 / ImageType 1 / DataSource Data /
+               ImageMatrix[238 0 0 311 0 0] / Height 311 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0WH\bY_"30jQKSW#a&H*aa,.M%t6';d^_P2O3ZD*#.72?J$QAX&;DC,Q"78u\&Jr!!P,UFB.&V>gi
 /@!PrP*3cqPGKdff[XP[kjU[(AoFh6cZ=9Lmg#!21M:=W3W#@khD8Zda9\6-^V@PO+gdr'NfL]+E7*q;
@@ -3634,7 +3546,7 @@ G+dnY8p6lg4A'dij?-%XT]A4-G+dnY8p6lg4A'dij?-%XT]A4-G+dnY8p6lg4A'dij?-%XT]A4-G+dnY
 8p6lg4A'dij?-%XT]A4-G+dnY8p6lg4A'dij?-%XT]A4-G2UhuoD#]M$c&\=c9T(eaTe!"8')7*S4C[2
 Pak7c%[<JRaUXQ*8')7*S4C[2Pak7c%[<JRaUXQ*8')7*S4C[2Pak7c%[<JRaUXQ*8')7*S4C[2Pak7c
 %[<JRaUXQ*8')7*S4C[2Pak7c%[<L8h;)B2&D@[AkAe]d33%6DEsI_?*lm&eURK4XGMoF^EQfF_Wd,S*
-#EEO?a4u6@R`@.,i2GdXbT/[CGoUm\.36r1rs,ttNI26MzzzTIJ0X4knT?GNR,;\d-Y1^A[c[T7?jN@H
+#EEO ? a4u6 @R`@., i2GdXbT / [CGoUm\.36r1rs, ttNI26MzzzTIJ0X4knT ? GNR, ;\d - Y1 ^ A[c[T7 ? jN @H
 4n>kB)eUDb!b(n])`@2JlX-E+)7,L]1VpIf7X?:u-b=D;TjCrCo6,FPsrclGg<iHL&0.Xt0Kch!3Fj3Q
 Oqhpu@Dci8)"h%hB0]$k04>Z!u7`<HShPKcNC,]X+qC\Q2B&kbF3GV)ZOdNulg]4Ztqc%^Q'2pu@Dr_Q
 U]MC:Qc/MqXmQ_&>hoUAk#TYLd-2rIu8/\GuR*)bRj9c9'X\?!DciDr3bGE8nfm)FiDW%NRU+6`Ro%)t
@@ -3662,21 +3574,16 @@ GS
 0 0 translate
 954 77 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 954
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [954 0 0 77 0 0]
-  /Height 77
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 954 / ImageType 1 / DataSource Data /
+               ImageMatrix[954 0 0 77 0 0] / Height 77 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0WIq4lB+33n+PFYD09JW.acH/[)O\YU?'$8G#reP**Rm^k/6rD&OM'SL<N7jW`9Vc8pP1W?gqjU]Y
 '?M4Ka\9[fPI9!.qei%;^=Tp)qqc([Q[R00o-)0Blb;e&f:KI@pUP\>q]6[Yzzzzzzzzzzzz!!!"Ld#F
@@ -3744,21 +3651,16 @@ GS
 0 0 translate
 238 77 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 238
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [238 0 0 77 0 0]
-  /Height 77
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 238 / ImageType 1 / DataSource Data /
+               ImageMatrix[238 0 0 77 0 0] / Height 77 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0R!K"\o'L]d;3=g6G>EsAHH5aZ*0.!1J$OFo`KY61Bzzzzz!!!#7Vu)#UG4kb&F_nd"eXk#%XP1#V
 JlR.U?a+:kjpP5WfmLW94e"*,[:f(7X7gAD@+Cjn(Tc=PNoTCp\030m?E_u2O)RHYmO<EIaZUq'.(Q8:
@@ -3797,21 +3699,16 @@ GS
 0 0 translate
 953 309 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 953
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [953 0 0 309 0 0]
-  /Height 309
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 953 / ImageType 1 / DataSource Data /
+               ImageMatrix[953 0 0 309 0 0] / Height 309 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;JH,ZM!5fq/l<W?K<<3("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
@@ -3835,24 +3732,19 @@ GS
 0 0 translate
 239 309 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 309 0 0]
-  /Height 309
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 309 0 0] / Height 309 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;!=]#/!5bE.WG`8*TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!!!
-#WfDo,d64s~>
+#WfDo, d64s ~ >
 
 %AXGEndBitmap
 GR
@@ -3871,24 +3763,19 @@ GS
 0 0 translate
 953 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 953
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [953 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 953 / ImageType 1 / DataSource Data /
+               ImageMatrix[953 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;0`_7S!5bE.WFlQ&TE"rlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!+
-#lt)s+F~>
+#lt) s + F ~ >
 
 %AXGEndBitmap
 GR
@@ -3907,21 +3794,16 @@ GS
 0 0 translate
 239 78 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 239
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [239 0 0 78 0 0]
-  /Height 78
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 239 / ImageType 1 / DataSource Data /
+               ImageMatrix[239 0 0 78 0 0] / Height 78 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0;!=]#/!5bE.WG`:P'EA+5zzzzzzzzzzzz!!'fe!EZk263~>
 
@@ -3984,21 +3866,16 @@ GS
 0 0 translate
 954 310 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{{
-/RawData currentfile /ASCII85Decode filter def
-/Data RawData /FlateDecode filter def
-/DeviceRGB setcolorspace
-<<
-  /Decode [0 1 0 1 0 1]
-  /BitsPerComponent 8
-  /Width 954
-  /ImageType 1
-  /DataSource Data
-  /ImageMatrix [954 0 0 310 0 0]
-  /Height 310
->> image
-} stopped {handleerror} if
-  RawData flushfile
+{
+  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
+        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 954 / ImageType 1 / DataSource Data /
+               ImageMatrix[954 0 0 310 0 0] / Height 310 >>
+    image } stopped
+  {
+    handleerror
+  }
+  if
+    RawData flushfile
 } exec
 Gb"0W@;+3SrV,j^j$3QVHglNr4p`Kj&gE9n&1hB'MRK<'/[?KbJjb3Cip_eh[;:Y8:c<nk@9?1m7S&Z9
 a;CU/."Me2&IG9iLdd,U,m8-X#_s)+YBfQ,SjjBQq7cI4Ep`hb0UeB^_u"ZVi[8G6Siiu;>?b;Hs4Y><

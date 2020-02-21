@@ -39,8 +39,8 @@
 
 #include <moveit/planning_interface/planning_interface.h>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Plugin that can generate instances of PlanningContextLIN.
  * Generates instances of PlanningContextLIN.
@@ -58,14 +58,13 @@ public:
    * @param group
    * @return true on success, false otherwise
    */
-  virtual bool loadContext(planning_interface::PlanningContextPtr& planning_context,
-                           const std::string& name,
+  virtual bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
                            const std::string& group) const override;
 };
 
-typedef boost::shared_ptr<PlanningContextLoaderLIN> PlanningContextLoaderLINPtr;                                                                             \
+typedef boost::shared_ptr<PlanningContextLoaderLIN> PlanningContextLoaderLINPtr;
 typedef boost::shared_ptr<const PlanningContextLoaderLIN> PlanningContextLoaderLINConstPtr;
 
-} // namespace
+}  // namespace trapezoidal
 
-#endif // PLANNING_CONTEXT_LOADER_LIN_H
+#endif  // PLANNING_CONTEXT_LOADER_LIN_H

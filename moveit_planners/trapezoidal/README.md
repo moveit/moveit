@@ -1,13 +1,13 @@
-# Overview
+#Overview
 This package provides a trajectory generator to plan standard robot motions like PTP, LIN, CIRC
 in the form of a MoveIt! PlannerManager plugin.
 
-# MoveIt!
+#MoveIt !
 MoveIt! is state of the art software for mobile manipulation, incorporating the latest advances in motion planning,
 manipulation, 3D perception, kinematics, control and navigation. For detailed information,
 please refer to the [MoveIt! website](http://moveit.ros.org/).
 
-# ROS API
+#ROS API
 ## User Interface MoveGroup
 This package implements the `planning_interface::PlannerManager` interface of MoveIt!. By loading the corresponding
 planning pipeline (`trapezoidal_command_planner_planning_pipeline.launch.xml` in `prbt_moveit_config` package), the trajectory
@@ -192,7 +192,7 @@ E.g. if the urdf was loaded into `/robot_description` the cartesian limits have 
 An example showing the cartesian limits which have to be defined can be found
 ![here](https://github.com/PilzDE/trapezoidal_robots/blob/melodic-devel/prbt_moveit_config/config/cartesian_limits.yaml).
 
-# Sequence of multiple segments
+#Sequence of multiple segments
 To concatenate multiple trajectories and plan the trajectory at once, you can use the sequence capability.
 This reduces the planning overhead and allows to follow a pre-desribed path without stopping at intermediate points.
 

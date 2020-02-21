@@ -41,7 +41,7 @@
 
 TEST(ATrapTest, Test_SetProfile1)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
   // can reach the maximal velocity
   vp.SetProfile(3, 35);
@@ -83,12 +83,11 @@ TEST(ATrapTest, Test_SetProfile1)
   EXPECT_NEAR(vp.Pos(12), 35.0, EPSILON);
   EXPECT_NEAR(vp.Vel(12), 0.0, EPSILON);
   EXPECT_NEAR(vp.Acc(12), 0.0, EPSILON);
-
 }
 
 TEST(ATrapTest, Test_SetProfile2)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6,2,1.5);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6, 2, 1.5);
 
   // just arrive the maximal velocity
   vp.SetProfile(5, 26);
@@ -124,10 +123,9 @@ TEST(ATrapTest, Test_SetProfile2)
   EXPECT_NEAR(vp.Acc(8), 0.0, EPSILON);
 }
 
-
 TEST(ATrapTest, Test_SetProfile3)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6, 2, 1);
 
   // cannot reach the maximal velocity
   vp.SetProfile(5, 17);
@@ -159,10 +157,9 @@ TEST(ATrapTest, Test_SetProfile3)
   EXPECT_NEAR(vp.Acc(7), 0.0, EPSILON);
 }
 
-
 TEST(ATrapTest, Test_SetProfile4)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(6, 2, 1);
 
   // empty profile
   vp.SetProfile(5, 5);
@@ -193,7 +190,7 @@ TEST(ATrapTest, Test_SetProfile4)
  */
 TEST(ATrapTest, Test_SetProfileToLowDuration)
 {
-  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
   trapezoidal::VelocityProfile_ATrap vp2 = vp1;
 
   vp1.SetProfileDuration(3, 35, std::numeric_limits<double>::epsilon());
@@ -217,14 +214,14 @@ TEST(ATrapTest, Test_SetProfileToLowDuration)
  */
 TEST(ATrapTest, Test_setProfileAllDurationsToLowDuration)
 {
-  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
   trapezoidal::VelocityProfile_ATrap vp2 = vp1;
 
-  vp1.SetProfile(3,35);
+  vp1.SetProfile(3, 35);
   double fastest_duration = vp1.Duration();
 
   // Trigger Duration()>(3*fastest_duration/4)
-  vp2.setProfileAllDurations(3, 35, fastest_duration/4, fastest_duration/4, fastest_duration/4);
+  vp2.setProfileAllDurations(3, 35, fastest_duration / 4, fastest_duration / 4, fastest_duration / 4);
 
   EXPECT_TRUE(vp1 == vp2) << "Not equal! Profile 1: \n" << vp1 << "\n Profile 2: " << vp2;
 }
@@ -242,18 +239,18 @@ TEST(ATrapTest, Test_setProfileAllDurationsToLowDuration)
  */
 TEST(ATrapTest, Test_SetProfileZeroStartVelocity)
 {
-  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp1 = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
   trapezoidal::VelocityProfile_ATrap vp2 = vp1;
 
   vp1.SetProfile(1, 2);
 
-  vp2.setProfileStartVelocity(1, 2, 0); // <-- Set zero velocity
+  vp2.setProfileStartVelocity(1, 2, 0);  // <-- Set zero velocity
   EXPECT_TRUE(vp1 == vp2) << "Not equal! Profile 1: \n" << vp1 << "\n Profile 2: " << vp2;
 }
 
 TEST(ATrapTest, Test_SetProfileDuration)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
   // set the duration as twice as the fastest profile
   vp.SetProfileDuration(3, 35, 22.0);
@@ -295,12 +292,11 @@ TEST(ATrapTest, Test_SetProfileDuration)
   EXPECT_NEAR(vp.Pos(23), 35.0, EPSILON);
   EXPECT_NEAR(vp.Vel(23), 0.0, EPSILON);
   EXPECT_NEAR(vp.Acc(23), 0.0, EPSILON);
-
 }
 
 TEST(ATrapTest, Test_setProfileAllDurations1)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
   // set durations
   EXPECT_TRUE(vp.setProfileAllDurations(3, 35, 3.0, 4.0, 5.0));
@@ -315,13 +311,13 @@ TEST(ATrapTest, Test_setProfileAllDurations1)
   EXPECT_NEAR(vp.Vel(0), 0.0, EPSILON);
   EXPECT_NEAR(vp.Acc(0), 0, EPSILON);
 
-  EXPECT_NEAR(vp.Pos(2), 3.0+8.0/3.0, EPSILON);
-  EXPECT_NEAR(vp.Vel(2), 8.0/3.0, EPSILON);
-  EXPECT_NEAR(vp.Acc(2), 4.0/3.0, EPSILON);
+  EXPECT_NEAR(vp.Pos(2), 3.0 + 8.0 / 3.0, EPSILON);
+  EXPECT_NEAR(vp.Vel(2), 8.0 / 3.0, EPSILON);
+  EXPECT_NEAR(vp.Acc(2), 4.0 / 3.0, EPSILON);
 
   EXPECT_NEAR(vp.Pos(3), 9.0, EPSILON);
   EXPECT_NEAR(vp.Vel(3), 4.0, EPSILON);
-  EXPECT_NEAR(vp.Acc(3), 4.0/3.0, EPSILON);
+  EXPECT_NEAR(vp.Acc(3), 4.0 / 3.0, EPSILON);
 
   EXPECT_NEAR(vp.Pos(5), 17.0, EPSILON);
   EXPECT_NEAR(vp.Vel(5), 4.0, EPSILON);
@@ -346,7 +342,7 @@ TEST(ATrapTest, Test_setProfileAllDurations1)
 
 TEST(ATrapTest, Test_setProfileAllDurations2)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
   // invalid maximal velocity
   EXPECT_FALSE(vp.setProfileAllDurations(3, 35, 3.0, 3.0, 5.0));
@@ -358,13 +354,13 @@ TEST(ATrapTest, Test_setProfileAllDurations2)
 
 TEST(ATrapTest, Test_setProfileStartVelocity1)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //invalide cases
-  EXPECT_FALSE(vp.setProfileStartVelocity(3.0,5.0,-1.0));
+  // invalide cases
+  EXPECT_FALSE(vp.setProfileStartVelocity(3.0, 5.0, -1.0));
 
-  //only deceleration
-  vp.setProfileStartVelocity(3.0,5.0,2.0);
+  // only deceleration
+  vp.setProfileStartVelocity(3.0, 5.0, 2.0);
 
   EXPECT_NEAR(vp.Duration(), 2.0, EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 2.0, EPSILON);
@@ -394,14 +390,14 @@ TEST(ATrapTest, Test_setProfileStartVelocity1)
 
 TEST(ATrapTest, Test_setProfileStartVelocity2)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //deceleration, acceleration and deceleration
-  vp.setProfileStartVelocity(3.0,4.0,2.0);
-  EXPECT_NEAR(vp.Duration(), 2.0 + 3*sqrt(1.0/3.0), EPSILON);
+  // deceleration, acceleration and deceleration
+  vp.setProfileStartVelocity(3.0, 4.0, 2.0);
+  EXPECT_NEAR(vp.Duration(), 2.0 + 3 * sqrt(1.0 / 3.0), EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 2.0, EPSILON);
-  EXPECT_NEAR(vp.SecondPhaseDuration(), sqrt(1.0/3.0), EPSILON);
-  EXPECT_NEAR(vp.ThirdPhaseDuration(), 2*sqrt(1.0/3.0), EPSILON);
+  EXPECT_NEAR(vp.SecondPhaseDuration(), sqrt(1.0 / 3.0), EPSILON);
+  EXPECT_NEAR(vp.ThirdPhaseDuration(), 2 * sqrt(1.0 / 3.0), EPSILON);
 
   EXPECT_NEAR(vp.Pos(-1), 3.0, EPSILON);
   EXPECT_NEAR(vp.Vel(-1), 2.0, EPSILON);
@@ -423,17 +419,17 @@ TEST(ATrapTest, Test_setProfileStartVelocity2)
   EXPECT_NEAR(vp.Vel(2.1), -0.2, EPSILON);
   EXPECT_NEAR(vp.Acc(2.1), -2.0, EPSILON);
 
-  EXPECT_NEAR(vp.Pos(2+sqrt(1.0/3.0)), 5.0-1.0/3.0, EPSILON);
-  EXPECT_NEAR(vp.Vel(2+sqrt(1.0/3.0)), -2*sqrt(1.0/3.0), EPSILON);
-  EXPECT_NEAR(vp.Acc(2+sqrt(1.0/3.0)), -2.0, EPSILON);
+  EXPECT_NEAR(vp.Pos(2 + sqrt(1.0 / 3.0)), 5.0 - 1.0 / 3.0, EPSILON);
+  EXPECT_NEAR(vp.Vel(2 + sqrt(1.0 / 3.0)), -2 * sqrt(1.0 / 3.0), EPSILON);
+  EXPECT_NEAR(vp.Acc(2 + sqrt(1.0 / 3.0)), -2.0, EPSILON);
 
-  EXPECT_NEAR(vp.Pos(2+3*sqrt(1.0/3.0) - 0.2), 4.02, EPSILON);
-  EXPECT_NEAR(vp.Vel(2+3*sqrt(1.0/3.0) - 0.2), -0.2, EPSILON);
-  EXPECT_NEAR(vp.Acc(2+3*sqrt(1.0/3.0) - 0.2), 1.0, EPSILON);
+  EXPECT_NEAR(vp.Pos(2 + 3 * sqrt(1.0 / 3.0) - 0.2), 4.02, EPSILON);
+  EXPECT_NEAR(vp.Vel(2 + 3 * sqrt(1.0 / 3.0) - 0.2), -0.2, EPSILON);
+  EXPECT_NEAR(vp.Acc(2 + 3 * sqrt(1.0 / 3.0) - 0.2), 1.0, EPSILON);
 
-  EXPECT_NEAR(vp.Pos(2+3*sqrt(1.0/3.0)), 4.0, EPSILON);
-  EXPECT_NEAR(vp.Vel(2+3*sqrt(1.0/3.0)), 0, EPSILON);
-  EXPECT_NEAR(vp.Acc(2+3*sqrt(1.0/3.0)), 1.0, EPSILON);
+  EXPECT_NEAR(vp.Pos(2 + 3 * sqrt(1.0 / 3.0)), 4.0, EPSILON);
+  EXPECT_NEAR(vp.Vel(2 + 3 * sqrt(1.0 / 3.0)), 0, EPSILON);
+  EXPECT_NEAR(vp.Acc(2 + 3 * sqrt(1.0 / 3.0)), 1.0, EPSILON);
 
   EXPECT_NEAR(vp.Pos(5), 4.0, EPSILON);
   EXPECT_NEAR(vp.Vel(5), 0.0, EPSILON);
@@ -442,9 +438,9 @@ TEST(ATrapTest, Test_setProfileStartVelocity2)
 
 TEST(ATrapTest, Test_setProfileStartVelocity3)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //acceleration, deceleration
+  // acceleration, deceleration
   vp.setProfileStartVelocity(3, 14, 2);
   EXPECT_NEAR(vp.Duration(), 5.0, EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 1.0, EPSILON);
@@ -482,9 +478,9 @@ TEST(ATrapTest, Test_setProfileStartVelocity3)
 
 TEST(ATrapTest, Test_setProfileStartVelocity4)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //acceleration, constant, deceleration
+  // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 14, 2);
   EXPECT_NEAR(vp.Duration(), 5.0, EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 1.0, EPSILON);
@@ -522,9 +518,9 @@ TEST(ATrapTest, Test_setProfileStartVelocity4)
 
 TEST(ATrapTest, Test_setProfileStartVelocity5)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //acceleration, constant, deceleration
+  // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 18, 2);
   EXPECT_NEAR(vp.Duration(), 6.0, EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 1.0, EPSILON);
@@ -564,12 +560,11 @@ TEST(ATrapTest, Test_setProfileStartVelocity5)
   EXPECT_NEAR(vp.Acc(7), 0, EPSILON);
 }
 
-
 TEST(ATrapTest, Test_setProfileStartVelocity6)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,2,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 2, 1);
 
-  //acceleration, constant, deceleration
+  // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 15, 4);
   EXPECT_NEAR(vp.Duration(), 5.0, EPSILON);
   EXPECT_NEAR(vp.FirstPhaseDuration(), 0.0, EPSILON);
@@ -600,16 +595,14 @@ TEST(ATrapTest, Test_setProfileStartVelocity6)
  */
 TEST(ATrapTest, Test_Clone)
 {
-  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4,1,1);
+  trapezoidal::VelocityProfile_ATrap vp = trapezoidal::VelocityProfile_ATrap(4, 1, 1);
   vp.setProfileAllDurations(0, 10, 10, 10, 10);
   trapezoidal::VelocityProfile_ATrap* vp_clone = static_cast<trapezoidal::VelocityProfile_ATrap*>(vp.Clone());
   EXPECT_EQ(vp, *vp_clone);
   delete vp_clone;
 }
 
-
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

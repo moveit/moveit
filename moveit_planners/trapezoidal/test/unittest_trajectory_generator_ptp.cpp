@@ -46,8 +46,8 @@
 #include <moveit/kinematic_constraints/utils.h>
 
 // parameters for parameterized tests
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
 // parameters from parameter server
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
@@ -59,10 +59,9 @@ const std::string POSE_TRANSFORM_MATRIX_NORM_TOLERANCE("pose_norm_tolerance");
 
 using namespace trapezoidal;
 
-class TrajectoryGeneratorPTPTest: public testing::TestWithParam<std::string>
+class TrajectoryGeneratorPTPTest : public testing::TestWithParam<std::string>
 {
 protected:
-
   /**
    * @brief Create test fixture for ptp trajectory generator
    *
@@ -82,9 +81,8 @@ protected:
 
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(GetParam()).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
 
   // trajectory generator
   std::unique_ptr<TrajectoryGenerator> ptp_;
@@ -94,7 +92,6 @@ protected:
   std::string planning_group_, target_link_;
   double joint_position_tolerance_, joint_velocity_tolerance_, joint_acceleration_tolerance_, pose_norm_tolerance_;
 };
-
 
 void TrajectoryGeneratorPTPTest::SetUp()
 {
@@ -110,7 +107,7 @@ void TrajectoryGeneratorPTPTest::SetUp()
 
   // create the limits container
   trapezoidal::JointLimitsContainer joint_limits;
-  for(const auto& jmg : robot_model_->getJointModelGroups())
+  for (const auto& jmg : robot_model_->getJointModelGroups())
   {
     std::vector<std::string> joint_names = jmg->getActiveJointModelNames();
     pilz_extensions::joint_limits_interface::JointLimits joint_limit;
@@ -122,7 +119,7 @@ void TrajectoryGeneratorPTPTest::SetUp()
     joint_limit.max_acceleration = 0.5;
     joint_limit.has_deceleration_limits = true;
     joint_limit.max_deceleration = -1;
-    for(const auto& joint_name : joint_names)
+    for (const auto& joint_name : joint_names)
     {
       joint_limits.addLimit(joint_name, joint_limit);
     }
@@ -139,13 +136,11 @@ bool TrajectoryGeneratorPTPTest::checkTrajectory(const trajectory_msgs::JointTra
                                                  const trapezoidal::JointLimitsContainer& joint_limits)
 {
   return (testutils::isTrajectoryConsistent(trajectory) &&
-          testutils::isGoalReached(trajectory,
-                                   req.goal_constraints.front().joint_constraints,
-                                   joint_position_tolerance_,
-                                   joint_velocity_tolerance_) &&
-          testutils::isPositionBounded(trajectory,joint_limits) &&
-          testutils::isVelocityBounded(trajectory,joint_limits) &&
-          testutils::isAccelerationBounded(trajectory,joint_limits));
+          testutils::isGoalReached(trajectory, req.goal_constraints.front().joint_constraints,
+                                   joint_position_tolerance_, joint_velocity_tolerance_) &&
+          testutils::isPositionBounded(trajectory, joint_limits) &&
+          testutils::isVelocityBounded(trajectory, joint_limits) &&
+          testutils::isAccelerationBounded(trajectory, joint_limits));
 }
 
 /**
@@ -155,21 +150,19 @@ bool TrajectoryGeneratorPTPTest::checkTrajectory(const trajectory_msgs::JointTra
 TEST(TrajectoryGeneratorPTPTest, TestExceptionErrorCodeMapping)
 {
   {
-    std::shared_ptr<PtpVelocityProfileSyncFailed> pvpsf_ex {new PtpVelocityProfileSyncFailed("")};
+    std::shared_ptr<PtpVelocityProfileSyncFailed> pvpsf_ex{ new PtpVelocityProfileSyncFailed("") };
     EXPECT_EQ(pvpsf_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::FAILURE);
   }
 
   {
-    std::shared_ptr<PtpNoIkSolutionForGoalPose> pnisfgp_ex {new PtpNoIkSolutionForGoalPose("")};
+    std::shared_ptr<PtpNoIkSolutionForGoalPose> pnisfgp_ex{ new PtpNoIkSolutionForGoalPose("") };
     EXPECT_EQ(pnisfgp_ex->getErrorCode(), moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   }
 }
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryGeneratorPTPTest, ::testing::Values(
-                          PARAM_MODEL_NO_GRIPPER_NAME,
-                          PARAM_MODEL_WITH_GRIPPER_NAME
-                          ));
+INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryGeneratorPTPTest,
+                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 /**
  * @brief Construct a TrajectoryGeneratorPTP with no limits given
  */
@@ -191,23 +184,21 @@ TEST_P(TrajectoryGeneratorPTPTest, noLimits)
  */
 TEST_P(TrajectoryGeneratorPTPTest, emptyRequest)
 {
-
   planning_interface::MotionPlanResponse res;
   planning_interface::MotionPlanRequest req;
 
-  robot_trajectory::RobotTrajectoryPtr trajectory(new robot_trajectory::RobotTrajectory(this->robot_model_, planning_group_));
+  robot_trajectory::RobotTrajectoryPtr trajectory(
+      new robot_trajectory::RobotTrajectory(this->robot_model_, planning_group_));
   robot_state::RobotState state(this->robot_model_);
-  trajectory->addPrefixWayPoint(state,0);
+  trajectory->addPrefixWayPoint(state, 0);
   res.trajectory_ = trajectory;
 
   EXPECT_FALSE(res.trajectory_->empty());
 
-  EXPECT_FALSE(ptp_->generate(req,res));
+  EXPECT_FALSE(ptp_->generate(req, res));
 
   EXPECT_TRUE(res.trajectory_->empty());
-
 }
-
 
 /**
  * @brief Construct a TrajectoryGeneratorPTP with missing velocity limits
@@ -223,16 +214,15 @@ TEST_P(TrajectoryGeneratorPTPTest, missingVelocityLimits)
   joint_limit.has_acceleration_limits = true;
   joint_limit.max_deceleration = -1;
   joint_limit.has_deceleration_limits = true;
-  for(const auto& joint_model : joint_models)
+  for (const auto& joint_model : joint_models)
   {
-    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit)) << "Failed to add the limits for joint "
-                                                                            << joint_model->getName();
+    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit))
+        << "Failed to add the limits for joint " << joint_model->getName();
   }
 
   planner_limits.setJointLimits(joint_limits);
   EXPECT_THROW(TrajectoryGeneratorPTP(this->robot_model_, planner_limits), TrajectoryGeneratorInvalidLimitsException);
 }
-
 
 /**
  * @brief Construct a TrajectoryGeneratorPTP missing deceleration limits
@@ -247,10 +237,10 @@ TEST_P(TrajectoryGeneratorPTPTest, missingDecelerationimits)
   joint_limit.has_velocity_limits = true;
   joint_limit.has_acceleration_limits = true;
   joint_limit.has_deceleration_limits = false;
-  for(const auto& joint_model : joint_models)
+  for (const auto& joint_model : joint_models)
   {
-    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit)) << "Failed to add the limits for joint "
-                                                                            << joint_model->getName();
+    ASSERT_TRUE(joint_limits.addLimit(joint_model->getName(), joint_limit))
+        << "Failed to add the limits for joint " << joint_model->getName();
   }
 
   planner_limits.setJointLimits(joint_limits);
@@ -285,7 +275,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
   insufficient_limit.has_acceleration_limits = false;
   insufficient_limit.has_deceleration_limits = false;
   JointLimitsContainer insufficient_joint_limits;
-  for(const auto& joint_model : joint_models)
+  for (const auto& joint_model : joint_models)
   {
     ASSERT_TRUE(insufficient_joint_limits.addLimit(joint_model->getName(), insufficient_limit))
         << "Failed to add the limits for joint " << joint_model->getName();
@@ -293,11 +283,12 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
   LimitsContainer insufficient_planner_limits;
   insufficient_planner_limits.setJointLimits(insufficient_joint_limits);
 
-  EXPECT_THROW({
-                 std::unique_ptr<TrajectoryGeneratorPTP> ptp_error(
-                 new TrajectoryGeneratorPTP(robot_model_, insufficient_planner_limits));
-               },
-               TrajectoryGeneratorInvalidLimitsException);
+  EXPECT_THROW(
+      {
+        std::unique_ptr<TrajectoryGeneratorPTP> ptp_error(
+            new TrajectoryGeneratorPTP(robot_model_, insufficient_planner_limits));
+      },
+      TrajectoryGeneratorInvalidLimitsException);
 
   /**********/
   /* Step 2 */
@@ -315,14 +306,14 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
   sufficient_limit.max_deceleration = -1;
   JointLimitsContainer sufficient_joint_limits;
   // fill joint limits container, such that it contains one sufficient limit and all others are insufficient
-  for(const auto& jmg : robot_model_->getJointModelGroups())
+  for (const auto& jmg : robot_model_->getJointModelGroups())
   {
-    const auto& joint_names {jmg->getActiveJointModelNames()};
+    const auto& joint_names{ jmg->getActiveJointModelNames() };
     ASSERT_FALSE(joint_names.empty());
     ASSERT_TRUE(sufficient_joint_limits.addLimit(joint_names.front(), sufficient_limit))
         << "Failed to add the limits for joint " << joint_names.front();
 
-    for(auto it = std::next(joint_names.begin()); it != joint_names.end(); ++it)
+    for (auto it = std::next(joint_names.begin()); it != joint_names.end(); ++it)
     {
       ASSERT_TRUE(sufficient_joint_limits.addLimit((*it), insufficient_limit))
           << "Failed to add the limits for joint " << (*it);
@@ -332,9 +323,9 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
   sufficient_planner_limits.setJointLimits(sufficient_joint_limits);
 
   EXPECT_NO_THROW({
-                    std::unique_ptr<TrajectoryGeneratorPTP> ptp_no_error(
-                    new TrajectoryGeneratorPTP(robot_model_, sufficient_planner_limits));
-                  });
+    std::unique_ptr<TrajectoryGeneratorPTP> ptp_no_error(
+        new TrajectoryGeneratorPTP(robot_model_, sufficient_planner_limits));
+  });
 }
 
 /**
@@ -342,7 +333,6 @@ TEST_P(TrajectoryGeneratorPTPTest, testInsufficientLimit)
  */
 TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
 {
-
   //***************************************
   //*** prepare the motion plan request ***
   //***************************************
@@ -362,21 +352,18 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
   std::vector<double> tolerance_pose(3, 0.01);
   std::vector<double> tolerance_angle(3, 0.01);
   moveit_msgs::Constraints pose_goal =
-      kinematic_constraints::constructGoalConstraints(target_link_,
-                                                      pose,
-                                                      tolerance_pose,
-                                                      tolerance_angle);
+      kinematic_constraints::constructGoalConstraints(target_link_, pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
 
   //****************************************
   //*** test robot model without gripper ***
   //****************************************
-  ASSERT_TRUE(ptp_->generate(req,res));
+  ASSERT_TRUE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
   res.getMessage(res_msg);
-  if(!res_msg.trajectory.joint_trajectory.points.empty())
+  if (!res_msg.trajectory.joint_trajectory.points.empty())
   {
     EXPECT_TRUE(checkTrajectory(res_msg.trajectory.joint_trajectory, req, planner_limits_.getJointLimitContainer()));
   }
@@ -386,10 +373,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
   }
 
   // check goal pose
-  EXPECT_TRUE(testutils::isGoalReached(robot_model_,
-                                       res_msg.trajectory.joint_trajectory,
-                                       req,
-                                       pose_norm_tolerance_));
+  EXPECT_TRUE(testutils::isGoalReached(robot_model_, res_msg.trajectory.joint_trajectory, req, pose_norm_tolerance_));
 }
 
 /**
@@ -397,7 +381,6 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoal)
  */
 TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoalMissingLinkNameConstraints)
 {
-
   //***************************************
   //*** prepare the motion plan request ***
   //***************************************
@@ -417,23 +400,19 @@ TEST_P(TrajectoryGeneratorPTPTest, testCartesianGoalMissingLinkNameConstraints)
   std::vector<double> tolerance_pose(3, 0.01);
   std::vector<double> tolerance_angle(3, 0.01);
   moveit_msgs::Constraints pose_goal =
-      kinematic_constraints::constructGoalConstraints(target_link_,
-                                                      pose,
-                                                      tolerance_pose,
-                                                      tolerance_angle);
+      kinematic_constraints::constructGoalConstraints(target_link_, pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
 
   planning_interface::MotionPlanRequest req_no_position_constaint_link_name = req;
   req_no_position_constaint_link_name.goal_constraints.front().position_constraints.front().link_name = "";
-  ASSERT_FALSE(ptp_->generate(req_no_position_constaint_link_name,res));
+  ASSERT_FALSE(ptp_->generate(req_no_position_constaint_link_name, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   planning_interface::MotionPlanRequest req_no_orientation_constaint_link_name = req;
   req_no_orientation_constaint_link_name.goal_constraints.front().orientation_constraints.front().link_name = "";
-  ASSERT_FALSE(ptp_->generate(req_no_orientation_constaint_link_name,res));
+  ASSERT_FALSE(ptp_->generate(req_no_orientation_constaint_link_name, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
-
 
 /**
  * @brief test the ptp trajectory generator of invalid Cartesian space goal
@@ -455,13 +434,10 @@ TEST_P(TrajectoryGeneratorPTPTest, testInvalidCartesianGoal)
   std::vector<double> tolerance_pose(3, 0.01);
   std::vector<double> tolerance_angle(3, 0.01);
   moveit_msgs::Constraints pose_goal =
-      kinematic_constraints::constructGoalConstraints(target_link_,
-                                                      pose,
-                                                      tolerance_pose,
-                                                      tolerance_angle);
+      kinematic_constraints::constructGoalConstraints(target_link_, pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
 
-  ASSERT_FALSE(ptp_->generate(req,res));
+  ASSERT_FALSE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
   EXPECT_EQ(res.trajectory_, nullptr);
 }
@@ -485,13 +461,13 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAlreadyReached)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
 
-  //TODO lin and circ has different settings
-  ASSERT_TRUE(ptp_->generate(req,res));
+  // TODO lin and circ has different settings
+  ASSERT_TRUE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
   res.getMessage(res_msg);
-  EXPECT_EQ(1u,res_msg.trajectory.joint_trajectory.points.size());
+  EXPECT_EQ(1u, res_msg.trajectory.joint_trajectory.points.size());
 }
 
 /**
@@ -556,9 +532,9 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
   req.max_velocity_scaling_factor = 0.5;
-  req.max_acceleration_scaling_factor = 1.0/3.0;
+  req.max_acceleration_scaling_factor = 1.0 / 3.0;
 
-  ASSERT_TRUE(ptp_->generate(req,res));
+  ASSERT_TRUE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -566,7 +542,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   EXPECT_TRUE(checkTrajectory(res_msg.trajectory.joint_trajectory, req, planner_limits_.getJointLimitContainer()));
 
   // trajectory duration
-  EXPECT_NEAR(4.5, res.trajectory_->getWayPointDurationFromStart(res.trajectory_->getWayPointCount()),joint_acceleration_tolerance_);
+  EXPECT_NEAR(4.5, res.trajectory_->getWayPointDurationFromStart(res.trajectory_->getWayPointCount()),
+              joint_acceleration_tolerance_);
 
   // way point at 1s
   int index;
@@ -576,9 +553,11 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(1.0/6.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(1.0 / 6.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -588,15 +567,15 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].velocities[4], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[4], joint_acceleration_tolerance_);
 
-
   // way point at 2s
   index = testutils::getWayPointIndex(res.trajectory_, 2.0);
   // joint_1
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   // joint_3
-  EXPECT_NEAR(2.0/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   // joint_6
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -612,8 +591,9 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(4.0/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(4.0 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
@@ -627,13 +607,15 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   // way point at 4s
   index = testutils::getWayPointIndex(res.trajectory_, 4.0);
   // joint_1
-  EXPECT_NEAR(2.875/2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
+  EXPECT_NEAR(2.875 / 2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(5.75/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(5.75 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.875, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -651,7 +633,6 @@ TEST_P(TrajectoryGeneratorPTPTest, testScalingFactor)
   EXPECT_NEAR(3.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
 }
-
 
 /**
  * @brief test the ptp trajectory generator of joint space goal
@@ -680,7 +661,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
 
-  ASSERT_TRUE(ptp_->generate(req,res));
+  ASSERT_TRUE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -688,7 +669,8 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   EXPECT_TRUE(checkTrajectory(res_msg.trajectory.joint_trajectory, req, planner_limits_.getJointLimitContainer()));
 
   // trajectory duration
-  EXPECT_NEAR(4.5, res.trajectory_->getWayPointDurationFromStart(res.trajectory_->getWayPointCount()),joint_acceleration_tolerance_);
+  EXPECT_NEAR(4.5, res.trajectory_->getWayPointDurationFromStart(res.trajectory_->getWayPointCount()),
+              joint_acceleration_tolerance_);
 
   // way point at 1s
   int index;
@@ -698,9 +680,11 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(1.0/6.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(1.0 / 6.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -710,15 +694,15 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].velocities[4], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[4], joint_acceleration_tolerance_);
 
-
   // way point at 2s
   index = testutils::getWayPointIndex(res.trajectory_, 2.0);
   // joint_1
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   // joint_3
-  EXPECT_NEAR(2.0/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   // joint_6
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -734,8 +718,9 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(4.0/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(4.0 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
@@ -749,13 +734,15 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   // way point at 4s
   index = testutils::getWayPointIndex(res.trajectory_, 4.0);
   // joint_1
-  EXPECT_NEAR(2.875/2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
+  EXPECT_NEAR(2.875 / 2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(5.75/3.0+0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(5.75 / 3.0 + 0.1, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.875, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -776,12 +763,12 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalAndAlmostZeroStartVelocity)
   // Check that velocity at the end is all zero
   EXPECT_TRUE(std::all_of(res_msg.trajectory.joint_trajectory.points.back().velocities.cbegin(),
                           res_msg.trajectory.joint_trajectory.points.back().velocities.cend(),
-                          [this]( double v){ return std::fabs(v) < this->joint_velocity_tolerance_; }));
+                          [this](double v) { return std::fabs(v) < this->joint_velocity_tolerance_; }));
 
   // Check that acceleration at the end is all zero
   EXPECT_TRUE(std::all_of(res_msg.trajectory.joint_trajectory.points.back().accelerations.cbegin(),
                           res_msg.trajectory.joint_trajectory.points.back().accelerations.cend(),
-                          [this]( double v){ return std::fabs(v) < this->joint_acceleration_tolerance_; }));
+                          [this](double v) { return std::fabs(v) < this->joint_acceleration_tolerance_; }));
 }
 
 /**
@@ -816,7 +803,7 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   gc.joint_constraints.push_back(jc);
   req.goal_constraints.push_back(gc);
 
-  ASSERT_TRUE(ptp_->generate(req,res));
+  ASSERT_TRUE(ptp_->generate(req, res));
   EXPECT_EQ(res.error_code_.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
 
   moveit_msgs::MotionPlanResponse res_msg;
@@ -856,13 +843,16 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   EXPECT_NEAR(-0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[1], joint_velocity_tolerance_);
   EXPECT_NEAR(-0.25, res_msg.trajectory.joint_trajectory.points[index].accelerations[1], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(1.0/6.0+0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(1.0 / 6.0 + 0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_4
-  EXPECT_NEAR(-1.0/6.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
-  EXPECT_NEAR(-1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
-  EXPECT_NEAR(-1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[3], joint_acceleration_tolerance_);
+  EXPECT_NEAR(-1.0 / 6.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
+  EXPECT_NEAR(-1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
+  EXPECT_NEAR(-1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[3],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -877,11 +867,12 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].positions[1], joint_position_tolerance_);
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[1], joint_velocity_tolerance_);
   // joint_3
-  EXPECT_NEAR(2.0/3.0+0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0 + 0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   // joint_4
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
   // joint_6
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(1.0, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -897,12 +888,13 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[1], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[1], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(4.0/3.0+0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(4.0 / 3.0 + 0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
   // joint_4
-  EXPECT_NEAR(-4.0/3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
+  EXPECT_NEAR(-4.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
   EXPECT_NEAR(0.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[3], joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.0, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
@@ -912,21 +904,24 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   // way point at 4s
   index = testutils::getWayPointIndex(res.trajectory_, 4.0);
   // joint_1
-  EXPECT_NEAR(2.875/2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
+  EXPECT_NEAR(2.875 / 2.0, res_msg.trajectory.joint_trajectory.points[index].positions[0], joint_position_tolerance_);
   EXPECT_NEAR(0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[0], joint_velocity_tolerance_);
   EXPECT_NEAR(-0.5, res_msg.trajectory.joint_trajectory.points[index].accelerations[0], joint_acceleration_tolerance_);
   // joint_2
-  EXPECT_NEAR(-2.875/2.0, res_msg.trajectory.joint_trajectory.points[index].positions[1], joint_position_tolerance_);
+  EXPECT_NEAR(-2.875 / 2.0, res_msg.trajectory.joint_trajectory.points[index].positions[1], joint_position_tolerance_);
   EXPECT_NEAR(-0.25, res_msg.trajectory.joint_trajectory.points[index].velocities[1], joint_velocity_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].accelerations[1], joint_acceleration_tolerance_);
   // joint_3
-  EXPECT_NEAR(5.75/3.0+0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2], joint_position_tolerance_);
-  EXPECT_NEAR(1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
-  EXPECT_NEAR(-2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2], joint_acceleration_tolerance_);
+  EXPECT_NEAR(5.75 / 3.0 + 0.11, res_msg.trajectory.joint_trajectory.points[index].positions[2],
+              joint_position_tolerance_);
+  EXPECT_NEAR(1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[2], joint_velocity_tolerance_);
+  EXPECT_NEAR(-2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[2],
+              joint_acceleration_tolerance_);
   // joint_4
-  EXPECT_NEAR(-5.75/3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
-  EXPECT_NEAR(-1.0/3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
-  EXPECT_NEAR(2.0/3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[3], joint_acceleration_tolerance_);
+  EXPECT_NEAR(-5.75 / 3.0, res_msg.trajectory.joint_trajectory.points[index].positions[3], joint_position_tolerance_);
+  EXPECT_NEAR(-1.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].velocities[3], joint_velocity_tolerance_);
+  EXPECT_NEAR(2.0 / 3.0, res_msg.trajectory.joint_trajectory.points[index].accelerations[3],
+              joint_acceleration_tolerance_);
   // joint_6
   EXPECT_NEAR(2.875, res_msg.trajectory.joint_trajectory.points[index].positions[5], joint_position_tolerance_);
   EXPECT_NEAR(0.5, res_msg.trajectory.joint_trajectory.points[index].velocities[5], joint_velocity_tolerance_);
@@ -956,15 +951,15 @@ TEST_P(TrajectoryGeneratorPTPTest, testJointGoalNoStartVel)
   // Check that velocity at the end is all zero
   EXPECT_TRUE(std::all_of(res_msg.trajectory.joint_trajectory.points.back().velocities.cbegin(),
                           res_msg.trajectory.joint_trajectory.points.back().velocities.cend(),
-                          [this]( double v){ return std::fabs(v) < this->joint_velocity_tolerance_; }));
+                          [this](double v) { return std::fabs(v) < this->joint_velocity_tolerance_; }));
 
   // Check that acceleration at the end is all zero
   EXPECT_TRUE(std::all_of(res_msg.trajectory.joint_trajectory.points.back().accelerations.cbegin(),
                           res_msg.trajectory.joint_trajectory.points.back().accelerations.cend(),
-                          [this]( double v){ return std::fabs(v) < this->joint_acceleration_tolerance_; }));
+                          [this](double v) { return std::fabs(v) < this->joint_acceleration_tolerance_; }));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_trajectory_generator_ptp");
   ros::NodeHandle nh;

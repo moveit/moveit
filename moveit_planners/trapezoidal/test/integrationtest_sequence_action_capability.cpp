@@ -60,9 +60,9 @@
 
 #include "pilz_msgs/MoveGroupSequenceAction.h"
 
-static constexpr int WAIT_FOR_RESULT_TIME_OUT {5}; //seconds
-static constexpr int TIME_BEFORE_CANCEL_GOAL {2}; //seconds
-static constexpr int WAIT_FOR_ACTION_SERVER_TIME_OUT {10}; //seconds
+static constexpr int WAIT_FOR_RESULT_TIME_OUT{ 5 };          // seconds
+static constexpr int TIME_BEFORE_CANCEL_GOAL{ 2 };           // seconds
+static constexpr int WAIT_FOR_ACTION_SERVER_TIME_OUT{ 10 };  // seconds
 
 const std::string SEQUENCE_ACTION_NAME("/sequence_move_group");
 
@@ -90,8 +90,8 @@ public:
                                    const pilz_msgs::MoveGroupSequenceResultConstPtr& result));
 
 protected:
-  ros::NodeHandle ph_ {"~"};
-  actionlib::SimpleActionClient<pilz_msgs::MoveGroupSequenceAction> ac_{ph_, SEQUENCE_ACTION_NAME, true};
+  ros::NodeHandle ph_{ "~" };
+  actionlib::SimpleActionClient<pilz_msgs::MoveGroupSequenceAction> ac_{ ph_, SEQUENCE_ACTION_NAME, true };
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
 
   robot_model_loader::RobotModelLoader model_loader_;
@@ -113,7 +113,7 @@ void IntegrationTestSequenceAction::SetUp()
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name_));
   ph_.param<std::string>(GROUP_NAME, group_name_, "manipulator");
 
-  robot_model_  = model_loader_.getModel();
+  robot_model_ = model_loader_.getModel();
 
   data_loader_.reset(new XmlTestdataLoader(test_data_file_name_, robot_model_));
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
@@ -123,7 +123,7 @@ void IntegrationTestSequenceAction::SetUp()
 
   // move to default position
   start_config = data_loader_->getJoints("ZeroPose", group_name_);
-  robot_state::RobotState robot_state {start_config.toRobotState()};
+  robot_state::RobotState robot_state{ start_config.toRobotState() };
 
   move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(start_config.getGroupName());
   move_group_->setPlannerId("PTP");
@@ -169,8 +169,8 @@ TEST_F(IntegrationTestSequenceAction, TestSendingOfEmptySequence)
  */
 TEST_F(IntegrationTestSequenceAction, TestDifferingGroupNames)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  MotionCmd& cmd {seq.getCmd(1)};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  MotionCmd& cmd{ seq.getCmd(1) };
   cmd.setPlanningGroup("WrongGroupName");
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
@@ -196,7 +196,7 @@ TEST_F(IntegrationTestSequenceAction, TestDifferingGroupNames)
  */
 TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
@@ -225,8 +225,8 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
  */
 TEST_F(IntegrationTestSequenceAction, TestOverlappingBlendRadii)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  seq.setBlendRadius(0, 10*seq.getBlendRadius(0));
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  seq.setBlendRadius(0, 10 * seq.getBlendRadius(0));
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
@@ -254,9 +254,9 @@ TEST_F(IntegrationTestSequenceAction, TestOverlappingBlendRadii)
  */
 TEST_F(IntegrationTestSequenceAction, TestTooLargeBlendRadii)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.erase(2, seq.size());
-  seq.setBlendRadius(0, 10*seq.getBlendRadius(seq.size()-2));
+  seq.setBlendRadius(0, 10 * seq.getBlendRadius(seq.size() - 2));
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
@@ -285,7 +285,7 @@ TEST_F(IntegrationTestSequenceAction, TestTooLargeBlendRadii)
  */
 TEST_F(IntegrationTestSequenceAction, TestInvalidCmd)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   // Erase certain command to invalid command following the command in sequence.
   seq.erase(3, 4);
 
@@ -312,11 +312,11 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidCmd)
  */
 TEST_F(IntegrationTestSequenceAction, TestInvalidLinkName)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setAllBlendRadiiToZero();
 
   // Invalidate link name
-  CircInterimCart& circ {seq.getCmd<CircInterimCart>(1)};
+  CircInterimCart& circ{ seq.getCmd<CircInterimCart>(1) };
   circ.getGoalConfiguration().setLinkName("InvalidLinkName");
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
@@ -332,9 +332,18 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidLinkName)
 //*******************************************************
 //*** matcher for callback functions of action server ***
 //*******************************************************
-MATCHER_P(FeedbackStateEq, state, "") { return arg->state == state; }
-MATCHER(IsResultSuccess, "") { return arg->error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
-MATCHER(IsResultNotEmpty, "") { return !arg->planned_trajectory.empty() || !arg->trajectory_start.empty(); }
+MATCHER_P(FeedbackStateEq, state, "")
+{
+  return arg->state == state;
+}
+MATCHER(IsResultSuccess, "")
+{
+  return arg->error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+}
+MATCHER(IsResultNotEmpty, "")
+{
+  return !arg->planned_trajectory.empty() || !arg->trajectory_start.empty();
+}
 
 /**
  * @brief Tests that action server callbacks are called correctly.
@@ -356,7 +365,7 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
 
   namespace ph = std::placeholders;
 
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
@@ -364,9 +373,7 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   seq_goal.request = seq.toRequest();
 
   // set expectations (no guarantee, that done callback is called before idle feedback)
-  EXPECT_CALL(*this, active_callback())
-      .Times(1)
-      .RetiresOnSaturation();
+  EXPECT_CALL(*this, active_callback()).Times(1).RetiresOnSaturation();
 
   EXPECT_CALL(*this, done_callback(_, AllOf(IsResultSuccess(), IsResultNotEmpty())))
       .Times(1)
@@ -377,10 +384,8 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   {
     InSequence dummy;
 
-    EXPECT_CALL(*this, feedback_callback(FeedbackStateEq("PLANNING")))
-        .Times(AtLeast(1));
-    EXPECT_CALL(*this, feedback_callback(FeedbackStateEq("MONITOR")))
-        .Times(AtLeast(1));
+    EXPECT_CALL(*this, feedback_callback(FeedbackStateEq("PLANNING"))).Times(AtLeast(1));
+    EXPECT_CALL(*this, feedback_callback(FeedbackStateEq("MONITOR"))).Times(AtLeast(1));
     EXPECT_CALL(*this, feedback_callback(FeedbackStateEq("IDLE")))
         .Times(AtLeast(1))
         .WillOnce(ACTION_OPEN_BARRIER_VOID(SERVER_IDLE_EVENT))
@@ -393,7 +398,7 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
                std::bind(&IntegrationTestSequenceAction::feedback_callback, this, ph::_1));
 
   // wait for the ecpected events
-  BARRIER({GOAL_SUCCEEDED_EVENT, SERVER_IDLE_EVENT});
+  BARRIER({ GOAL_SUCCEEDED_EVENT, SERVER_IDLE_EVENT });
 }
 
 /**
@@ -409,7 +414,7 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
  */
 TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
@@ -438,7 +443,7 @@ TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
  */
 TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
@@ -452,9 +457,10 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
 
-  ASSERT_TRUE(isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_)) << "Robot did move although \"PlanOnly\" flag set.";
+  ASSERT_TRUE(
+      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
+      << "Robot did move although \"PlanOnly\" flag set.";
 }
-
 
 /**
  * @brief  Tests that robot state in planning_scene_diff is
@@ -470,7 +476,7 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
  */
 TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
@@ -487,7 +493,9 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
 
-  ASSERT_TRUE(isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_)) << "Robot did move although \"PlanOnly\" flag set.";
+  ASSERT_TRUE(
+      isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
+      << "Robot did move although \"PlanOnly\" flag set.";
 }
 
 /**
@@ -504,7 +512,7 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
  */
 TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
@@ -533,7 +541,7 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
  */
 TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotState)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
@@ -563,14 +571,14 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotState)
  */
 TEST_F(IntegrationTestSequenceAction, TestLargeRequest)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
-  pilz_msgs::MotionSequenceRequest req {seq.toRequest()};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
+  pilz_msgs::MotionSequenceRequest req{ seq.toRequest() };
   // Create large request by making copies of the original sequence commands
   // and adding them to the end of the original sequence.
-  size_t n {req.items.size()};
-  for(size_t i = 0; i<n; ++i)
+  size_t n{ req.items.size() };
+  for (size_t i = 0; i < n; ++i)
   {
-    pilz_msgs::MotionSequenceItem item {req.items.at(i)};
+    pilz_msgs::MotionSequenceItem item{ req.items.at(i) };
     if (i == 0)
     {
       // Remove start state because only the first request
@@ -604,7 +612,7 @@ TEST_F(IntegrationTestSequenceAction, TestLargeRequest)
  */
 TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithoutBlending)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   seq.setAllBlendRadiiToZero();
 
@@ -616,7 +624,6 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithoutBlending)
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
-
 }
 
 /**
@@ -633,7 +640,7 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithoutBlending)
  */
 TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithBlending)
 {
-  Sequence seq {data_loader_->getSequence("ComplexSequence")};
+  Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   pilz_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
@@ -645,12 +652,12 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithBlending)
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "integrationtest_sequence_action_capability");
   ros::NodeHandle nh;
 
-  ros::AsyncSpinner spinner {1};
+  ros::AsyncSpinner spinner{ 1 };
   spinner.start();
 
   testing::InitGoogleTest(&argc, argv);

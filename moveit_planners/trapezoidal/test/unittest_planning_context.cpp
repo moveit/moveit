@@ -51,13 +51,12 @@
 
 #include "test_utils.h"
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
-//parameters from parameter server
+// parameters from parameter server
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
 const std::string PARAM_TARGET_LINK_NAME("target_link");
-
 
 /**
  * A value type container to combine type and value
@@ -65,14 +64,14 @@ const std::string PARAM_TARGET_LINK_NAME("target_link");
  * value = 0 refers to robot model without gripper
  * value = 1 refers to robot model with gripper
  */
-template<typename T, int N>
+template <typename T, int N>
 class ValueTypeContainer
 {
 public:
   typedef T Type_;
   static const int VALUE = N;
 };
-template<typename T, int N>
+template <typename T, int N>
 const int ValueTypeContainer<T, N>::VALUE;
 
 typedef ValueTypeContainer<trapezoidal::PlanningContextPTP, 0> PTP_NO_GRIPPER;
@@ -82,8 +81,9 @@ typedef ValueTypeContainer<trapezoidal::PlanningContextLIN, 1> LIN_WITH_GRIPPER;
 typedef ValueTypeContainer<trapezoidal::PlanningContextCIRC, 0> CIRC_NO_GRIPPER;
 typedef ValueTypeContainer<trapezoidal::PlanningContextCIRC, 1> CIRC_WITH_GRIPPER;
 
-typedef ::testing::Types<PTP_NO_GRIPPER, PTP_WITH_GRIPPER, LIN_NO_GRIPPER, LIN_WITH_GRIPPER,
-CIRC_NO_GRIPPER, CIRC_WITH_GRIPPER> PlanningContextTestTypes;
+typedef ::testing::Types<PTP_NO_GRIPPER, PTP_WITH_GRIPPER, LIN_NO_GRIPPER, LIN_WITH_GRIPPER, CIRC_NO_GRIPPER,
+                         CIRC_WITH_GRIPPER>
+    PlanningContextTestTypes;
 
 /**
  * type parameterized test fixture
@@ -92,7 +92,6 @@ template <typename T>
 class PlanningContextTest : public ::testing::Test
 {
 protected:
-
   void SetUp() override
   {
     ASSERT_FALSE(robot_model_ == nullptr) << "There is no robot model!";
@@ -103,24 +102,25 @@ protected:
 
     trapezoidal::JointLimitsContainer joint_limits = testutils::createFakeLimits(robot_model_->getVariableNames());
     trapezoidal::CartesianLimit cartesian_limit;
-    cartesian_limit.setMaxRotationalVelocity(1.0*M_PI);
-    cartesian_limit.setMaxTranslationalAcceleration(1.0*M_PI);
-    cartesian_limit.setMaxTranslationalDeceleration(1.0*M_PI);
-    cartesian_limit.setMaxTranslationalVelocity(1.0*M_PI);
+    cartesian_limit.setMaxRotationalVelocity(1.0 * M_PI);
+    cartesian_limit.setMaxTranslationalAcceleration(1.0 * M_PI);
+    cartesian_limit.setMaxTranslationalDeceleration(1.0 * M_PI);
+    cartesian_limit.setMaxTranslationalVelocity(1.0 * M_PI);
 
     trapezoidal::LimitsContainer limits;
     limits.setJointLimits(joint_limits);
     limits.setCartesianLimits(cartesian_limit);
 
-    planning_context_ = std::unique_ptr<typename T::Type_>(new typename T::Type_("TestPlanningContext", "TestGroup", robot_model_, limits));
+    planning_context_ = std::unique_ptr<typename T::Type_>(
+        new typename T::Type_("TestPlanningContext", "TestGroup", robot_model_, limits));
 
     // Define and set the current scene
     planning_scene::PlanningScenePtr scene(new planning_scene::PlanningScene(robot_model_));
     robot_state::RobotState current_state(robot_model_);
     current_state.setToDefaultValues();
-    current_state.setJointGroupPositions(planning_group_, {0, 1.57, 1.57, 0, 0.2, 0});
+    current_state.setJointGroupPositions(planning_group_, { 0, 1.57, 1.57, 0, 0.2, 0 });
     scene->setCurrentState(current_state);
-    planning_context_->setPlanningScene(scene); // TODO Check what happens if this is missing
+    planning_context_->setPlanningScene(scene);  // TODO Check what happens if this is missing
   }
 
   /**
@@ -139,24 +139,23 @@ protected:
     robot_state::RobotState rstate(this->robot_model_);
     rstate.setToDefaultValues();
     // state state in joint space, used as initial positions, since IK does not work at zero positions
-    rstate.setJointGroupPositions(this->planning_group_, {4.430233957464225e-12, 0.007881892504574495, -1.8157263253868452,
-                                 1.1801525390026025e-11, 1.8236082178909834, 8.591793942969161e-12});
+    rstate.setJointGroupPositions(this->planning_group_,
+                                  { 4.430233957464225e-12, 0.007881892504574495, -1.8157263253868452,
+                                    1.1801525390026025e-11, 1.8236082178909834, 8.591793942969161e-12 });
     Eigen::Isometry3d start_pose(Eigen::Isometry3d::Identity());
     start_pose.translation() = Eigen::Vector3d(0.3, 0, 0.65);
-    rstate.setFromIK(this->robot_model_->getJointModelGroup(this->planning_group_),
-                     start_pose);
-    moveit::core::robotStateToRobotStateMsg(rstate,req.start_state,false);
+    rstate.setFromIK(this->robot_model_->getJointModelGroup(this->planning_group_), start_pose);
+    moveit::core::robotStateToRobotStateMsg(rstate, req.start_state, false);
 
     // goal constraint
     Eigen::Isometry3d goal_pose(Eigen::Isometry3d::Identity());
     goal_pose.translation() = Eigen::Vector3d(0, 0.3, 0.65);
     Eigen::Matrix3d goal_rotation;
-    goal_rotation = Eigen::AngleAxisd(0*M_PI, Eigen::Vector3d::UnitZ());
+    goal_rotation = Eigen::AngleAxisd(0 * M_PI, Eigen::Vector3d::UnitZ());
     goal_pose.linear() = goal_rotation;
     rstate.setFromIK(this->robot_model_->getJointModelGroup(this->planning_group_), goal_pose);
-    req.goal_constraints.push_back(
-          kinematic_constraints::constructGoalConstraints(rstate,
-                                                          this->robot_model_->getJointModelGroup(this->planning_group_)));
+    req.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(
+        rstate, this->robot_model_->getJointModelGroup(this->planning_group_)));
 
     // path constraint
     req.path_constraints.name = "center";
@@ -174,9 +173,11 @@ protected:
 
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME: PARAM_MODEL_WITH_GRIPPER_NAME).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{
+    robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME)
+        .getModel()
+  };
 
   std::unique_ptr<planning_interface::PlanningContext> planning_context_;
 
@@ -205,7 +206,7 @@ TYPED_TEST(PlanningContextTest, NoRequest)
 TYPED_TEST(PlanningContextTest, SolveValidRequest)
 {
   planning_interface::MotionPlanResponse res;
-  planning_interface::MotionPlanRequest req  = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
 
@@ -222,7 +223,6 @@ TYPED_TEST(PlanningContextTest, SolveValidRequest)
   EXPECT_TRUE(result_detailed) << testutils::demangel(typeid(TypeParam).name());
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, res.error_code_.val)
       << testutils::demangel(typeid(TypeParam).name());
-
 }
 
 /**
@@ -230,8 +230,8 @@ TYPED_TEST(PlanningContextTest, SolveValidRequest)
  */
 TYPED_TEST(PlanningContextTest, SolveValidRequestDetailedResponse)
 {
-  planning_interface::MotionPlanDetailedResponse res; //<-- Detailed!
-  planning_interface::MotionPlanRequest req  = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanDetailedResponse res;  //<-- Detailed!
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
   bool result = this->planning_context_->solve(res);
@@ -247,7 +247,7 @@ TYPED_TEST(PlanningContextTest, SolveValidRequestDetailedResponse)
 TYPED_TEST(PlanningContextTest, SolveOnTerminated)
 {
   planning_interface::MotionPlanResponse res;
-  planning_interface::MotionPlanRequest req  = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
+  planning_interface::MotionPlanRequest req = this->getValidRequest(testutils::demangel(typeid(TypeParam).name()));
 
   this->planning_context_->setMotionPlanRequest(req);
 
@@ -259,7 +259,6 @@ TYPED_TEST(PlanningContextTest, SolveOnTerminated)
 
   EXPECT_EQ(moveit_msgs::MoveItErrorCodes::PLANNING_FAILED, res.error_code_.val)
       << testutils::demangel(typeid(TypeParam).name());
-
 }
 
 /**
@@ -270,10 +269,10 @@ TYPED_TEST(PlanningContextTest, Clear)
   EXPECT_NO_THROW(this->planning_context_->clear()) << testutils::demangel(typeid(TypeParam).name());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_planning_context");
-  //ros::NodeHandle nh;
+  // ros::NodeHandle nh;
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

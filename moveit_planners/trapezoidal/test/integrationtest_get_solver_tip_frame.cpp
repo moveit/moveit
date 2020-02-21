@@ -46,24 +46,24 @@
 
 #include "trapezoidal_trajectory_generation/tip_frame_getter.h"
 
-static const std::string ROBOT_DESCRIPTION_PARAM {"robot_description"};
+static const std::string ROBOT_DESCRIPTION_PARAM{ "robot_description" };
 
 namespace trapezoidal_trajectory_generation
 {
-
 class GetSolverTipFrameIntegrationTest : public testing::Test
 {
 protected:
   void SetUp() override;
 
 protected:
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_PARAM).getModel() };
+  robot_model::RobotModelConstPtr robot_model_{
+    robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_PARAM).getModel()
+  };
 };
 
 void GetSolverTipFrameIntegrationTest::SetUp()
 {
-  if(!robot_model_)
+  if (!robot_model_)
   {
     FAIL() << "Robot model could not be loaded.";
   }
@@ -103,7 +103,7 @@ TEST_F(GetSolverTipFrameIntegrationTest, TestGetTipSolverFrameGripper)
 
 }  // namespace trapezoidal_trajectory_generation
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "integrationtest_get_solver_tip_frame");
   testing::InitGoogleTest(&argc, argv);

@@ -41,7 +41,6 @@
 
 namespace trapezoidal
 {
-
 struct TrajectoryBlendRequest
 {
   // The name of the group of joints on which this blender is operating
@@ -58,7 +57,6 @@ struct TrajectoryBlendRequest
   double blend_radius;
 };
 
+}  // namespace trapezoidal
 
-}
-
-#endif // TRAJECTORY_BLEND_REQUEST_H
+#endif  // TRAJECTORY_BLEND_REQUEST_H

@@ -34,11 +34,8 @@
 
 #include "trapezoidal_trajectory_generation/limits_container.h"
 
-trapezoidal::LimitsContainer::LimitsContainer():
-  has_joint_limits_(false),
-  has_cartesian_limits_(false)
+trapezoidal::LimitsContainer::LimitsContainer() : has_joint_limits_(false), has_cartesian_limits_(false)
 {
-
 }
 
 bool trapezoidal::LimitsContainer::hasJointLimits() const
@@ -46,10 +43,10 @@ bool trapezoidal::LimitsContainer::hasJointLimits() const
   return has_joint_limits_;
 }
 
-void trapezoidal::LimitsContainer::setJointLimits(trapezoidal::JointLimitsContainer &joint_limits)
+void trapezoidal::LimitsContainer::setJointLimits(trapezoidal::JointLimitsContainer& joint_limits)
 {
   has_joint_limits_ = true;
-  joint_limits_  = joint_limits;
+  joint_limits_ = joint_limits;
 }
 
 const trapezoidal::JointLimitsContainer& trapezoidal::LimitsContainer::getJointLimitContainer() const
@@ -59,14 +56,12 @@ const trapezoidal::JointLimitsContainer& trapezoidal::LimitsContainer::getJointL
 
 bool trapezoidal::LimitsContainer::hasFullCartesianLimits() const
 {
-  return (has_cartesian_limits_ &&
-          cartesian_limit_.hasMaxTranslationalVelocity() &&
-          cartesian_limit_.hasMaxTranslationalAcceleration() &&
-          cartesian_limit_.hasMaxTranslationalDeceleration() &&
-          cartesian_limit_.hasMaxRotationalVelocity() );
+  return (has_cartesian_limits_ && cartesian_limit_.hasMaxTranslationalVelocity() &&
+          cartesian_limit_.hasMaxTranslationalAcceleration() && cartesian_limit_.hasMaxTranslationalDeceleration() &&
+          cartesian_limit_.hasMaxRotationalVelocity());
 }
 
-void trapezoidal::LimitsContainer::setCartesianLimits(trapezoidal::CartesianLimit &cartesian_limit)
+void trapezoidal::LimitsContainer::setCartesianLimits(trapezoidal::CartesianLimit& cartesian_limit)
 {
   has_cartesian_limits_ = true;
   cartesian_limit_ = cartesian_limit;

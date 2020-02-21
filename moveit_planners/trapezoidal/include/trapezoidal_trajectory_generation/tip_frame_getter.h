@@ -44,7 +44,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoSolverException, moveit_msgs::MoveItErrorCodes::FAILURE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(MoreThanOneTipFrameException, moveit_msgs::MoveItErrorCodes::FAILURE);
 
@@ -54,7 +53,7 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(MoreThanOneTipFrameException, moveit_msgs::Mo
  * @tparam JointModelGroup aims at moveit::core::JointModelGroup
  * @throws exception in case group is null.
  */
-template<class JointModelGroup>
+template <class JointModelGroup>
 static bool hasSolver(const JointModelGroup* group)
 {
   if (group == nullptr)
@@ -72,23 +71,22 @@ static bool hasSolver(const JointModelGroup* group)
  * @throws exception in case the group has no solver.
  * @throws exception in case the solver for the group has more than one tip frame.
  */
-template<class JointModelGroup>
+template <class JointModelGroup>
 static const std::string& getSolverTipFrame(const JointModelGroup* group)
 {
-  if( !hasSolver(group) )
+  if (!hasSolver(group))
   {
     throw NoSolverException("No solver for group " + group->getName());
   }
 
-  const std::vector<std::string>& tipFrames {group->getSolverInstance()->getTipFrames()};
+  const std::vector<std::string>& tipFrames{ group->getSolverInstance()->getTipFrames() };
   if (tipFrames.size() > 1)
   {
-    throw MoreThanOneTipFrameException("Solver for group \"" + group->getName() +
-                                       "\" has more than one tip frame");
+    throw MoreThanOneTipFrameException("Solver for group \"" + group->getName() + "\" has more than one tip frame");
   }
   return tipFrames.front();
 }
 
-}
+}  // namespace trapezoidal_trajectory_generation
 
-#endif // TIP_FRAME_GETTER_H
+#endif  // TIP_FRAME_GETTER_H

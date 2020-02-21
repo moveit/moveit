@@ -44,7 +44,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 class CommandListManager;
 
 /**
@@ -65,31 +64,29 @@ private:
   using PlannedTrajMsgs = pilz_msgs::MoveGroupSequenceResult::_planned_trajectory_type;
 
 private:
-  void executeSequenceCallback(const pilz_msgs::MoveGroupSequenceGoalConstPtr &goal);
+  void executeSequenceCallback(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal);
   void executeSequenceCallbackPlanAndExecute(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                              pilz_msgs::MoveGroupSequenceResult& action_res);
+                                             pilz_msgs::MoveGroupSequenceResult& action_res);
   void executeMoveCallbackPlanOnly(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                    pilz_msgs::MoveGroupSequenceResult& res);
+                                   pilz_msgs::MoveGroupSequenceResult& res);
   void startMoveExecutionCallback();
   void startMoveLookCallback();
   void preemptMoveCallback();
   void setMoveState(move_group::MoveGroupState state);
-  bool planUsingSequenceManager(const pilz_msgs::MotionSequenceRequest &req,
+  bool planUsingSequenceManager(const pilz_msgs::MotionSequenceRequest& req,
                                 plan_execution::ExecutableMotionPlan& plan);
 
 private:
-  static void convertToMsg(const ExecutableTrajs& trajs,
-                           StartStateMsgs& startStatesMsgs,
+  static void convertToMsg(const ExecutableTrajs& trajs, StartStateMsgs& startStatesMsgs,
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:
   std::unique_ptr<actionlib::SimpleActionServer<pilz_msgs::MoveGroupSequenceAction> > move_action_server_;
   pilz_msgs::MoveGroupSequenceFeedback move_feedback_;
 
-  move_group::MoveGroupState move_state_ {move_group::IDLE};
+  move_group::MoveGroupState move_state_{ move_group::IDLE };
   std::unique_ptr<trapezoidal_trajectory_generation::CommandListManager> command_list_manager_;
-
 };
-}
+}  // namespace trapezoidal_trajectory_generation
 
-#endif // SEQUENCE_ACTION_CAPABILITY_H
+#endif  // SEQUENCE_ACTION_CAPABILITY_H

@@ -69,7 +69,7 @@ include_directories(
   include
 )
 
-# To avoid Warnings from clang-tidy declare system
+#To avoid Warnings from clang - tidy declare system
 include_directories(
   SYSTEM
   ${Boost_INCLUDE_DIRS}
@@ -190,16 +190,16 @@ install(TARGETS
    planning_context_loader_circ
    command_list_manager
    sequence_capability
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#ARCHIVE DESTINATION ${ CATKIN_PACKAGE_LIB_DESTINATION }
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation
-#install(DIRECTORY include/${PROJECT_NAME}/
-#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#  FILES_MATCHING PATTERN "*.h"
-#  PATTERN ".svn" EXCLUDE
+#install(DIRECTORY include / ${ PROJECT_NAME } /
+#DESTINATION ${ CATKIN_PACKAGE_INCLUDE_DESTINATION }
+#FILES_MATCHING PATTERN "*.h"
+#PATTERN ".svn" EXCLUDE
 #)
 
 #############
@@ -230,7 +230,7 @@ if(CATKIN_ENABLE_TESTING)
     planning_context_loader_circ
   )
 
-  # Planning Integration tests
+#Planning Integration tests
   add_rostest_gmock(integrationtest_sequence_action_capability
     test/integrationtest_sequence_action_capability.test
     test/integrationtest_sequence_action_capability.cpp
@@ -246,15 +246,15 @@ if(CATKIN_ENABLE_TESTING)
     DEPENDENCIES integrationtest_sequence_action_capability
   )
 
-  # Tests with other robots only for kinetic (for now)
+#Tests with other robots only for kinetic(for now)
 
-  #add_rostest(test/integrationtest_sequence_action_capability_abb_irb2400.test
-  #  DEPENDENCIES integrationtest_sequence_action_capability
-  #)
+#add_rostest(test / integrationtest_sequence_action_capability_abb_irb2400.test
+#DEPENDENCIES integrationtest_sequence_action_capability
+#)
 
-  #add_rostest(test/integrationtest_sequence_action_capability_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_sequence_action_capability
-  #)
+#add_rostest(test / integrationtest_sequence_action_capability_frankaemika_panda.test
+#DEPENDENCIES integrationtest_sequence_action_capability
+#)
 
   add_rostest_gtest(integrationtest_sequence_service_capability
     test/integrationtest_sequence_service_capability.test
@@ -266,19 +266,19 @@ if(CATKIN_ENABLE_TESTING)
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
-  # Tests with other robots only for kinetic (for now)
+#Tests with other robots only for kinetic(for now)
 
-  #add_rostest(test/integrationtest_sequence_service_capability_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_sequence_service_capability )
+#add_rostest(test / integrationtest_sequence_service_capability_frankaemika_panda.test
+#DEPENDENCIES integrationtest_sequence_service_capability)
 
-  #add_rostest(test/integrationtest_sequence_service_capability_abb_irb2400.test
-  #  DEPENDENCIES integrationtest_sequence_service_capability )
+#add_rostest(test / integrationtest_sequence_service_capability_abb_irb2400.test
+#DEPENDENCIES integrationtest_sequence_service_capability)
 
   add_rostest(test/integrationtest_sequence_service_capability_with_gripper.test
     DEPENDENCIES integrationtest_sequence_service_capability
   )
 
-  # Planning Integration tests
+#Planning Integration tests
   add_rostest_gtest(integrationtest_command_planning
     test/integrationtest_command_planning.test
     test/integrationtest_command_planning.cpp
@@ -294,15 +294,15 @@ if(CATKIN_ENABLE_TESTING)
     DEPENDENCIES integrationtest_command_planning
   )
 
-  # Tests with other robots only for kinetic (for now)
+#Tests with other robots only for kinetic(for now)
 
-  #add_rostest(test/integrationtest_command_planning_abb_irb2400.test
-  #  DEPENDENCIES integrationtest_command_planning )
+#add_rostest(test / integrationtest_command_planning_abb_irb2400.test
+#DEPENDENCIES integrationtest_command_planning)
 
-  #add_rostest(test/integrationtest_command_planning_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_command_planning )
+#add_rostest(test / integrationtest_command_planning_frankaemika_panda.test
+#DEPENDENCIES integrationtest_command_planning)
 
-  # Blending Integration tests
+#Blending Integration tests
   add_rostest_gtest(integrationtest_command_list_manager
     test/integrationtest_command_list_manager.test
     test/integrationtest_command_list_manager.cpp
@@ -381,7 +381,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-  # Trajectory Generator Unit Test
+#Trajectory Generator Unit Test
   add_rostest_gtest(unittest_trajectory_functions
     test/unittest_trajectory_functions.test
     test/unittest_trajectory_functions.cpp
@@ -392,7 +392,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # unittest for trajectory blender transition window
+#unittest for trajectory blender transition window
   add_rostest_gtest(unittest_trajectory_blender_transition_window
     test/unittest_trajectory_blender_transition_window.test
     test/unittest_trajectory_blender_transition_window.cpp
@@ -404,7 +404,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # trajectory generator Unit Test
+#trajectory generator Unit Test
   add_rostest_gtest(unittest_trajectory_generator_common
     test/unittest_trajectory_generator_common.test
     test/unittest_trajectory_generator_common.cpp
@@ -415,8 +415,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-
-  # trajectory generator circ Unit Test
+#trajectory generator circ Unit Test
   add_rostest_gtest(unittest_trajectory_generator_circ
     test/unittest_trajectory_generator_circ.test
     test/unittest_trajectory_generator_circ.cpp
@@ -427,7 +426,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # trajectory generator lin Unit Test
+#trajectory generator lin Unit Test
   add_rostest_gtest(unittest_trajectory_generator_lin
     test/unittest_trajectory_generator_lin.test
     test/unittest_trajectory_generator_lin.cpp
@@ -438,7 +437,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # trajectory generator ptp Unit Test
+#trajectory generator ptp Unit Test
   add_rostest_gtest(unittest_trajectory_generator_ptp
     test/unittest_trajectory_generator_ptp.test
     test/unittest_trajectory_generator_ptp.cpp
@@ -449,7 +448,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # Command Planner Unit Test
+#Command Planner Unit Test
   add_rostest_gtest(unittest_trapezoidal_command_planner
     test/unittest_trapezoidal_command_planner.test
     test/unittest_trapezoidal_command_planner.cpp
@@ -460,7 +459,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-  # JointLimitsAggregator Unit Test
+#JointLimitsAggregator Unit Test
   add_rostest_gtest(unittest_joint_limits_aggregator
     test/unittest_joint_limits_aggregator.test
     test/unittest_joint_limits_aggregator.cpp
@@ -471,7 +470,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-  # JointLimitsContainer Unit Test
+#JointLimitsContainer Unit Test
   catkin_add_gtest(unittest_joint_limits_container
     test/unittest_joint_limits_container.cpp
   )
@@ -481,7 +480,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-  # JointLimitsValidator Unit Test
+#JointLimitsValidator Unit Test
   catkin_add_gtest(unittest_joint_limits_validator
     test/unittest_joint_limits_validator.cpp
   )
@@ -491,7 +490,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-   # Cartesian Limits Aggregator Unit Test
+#Cartesian Limits Aggregator Unit Test
   add_rostest_gtest(unittest_cartesian_limits_aggregator
     test/unittest_cartesian_limits_aggregator.test
     test/unittest_cartesian_limits_aggregator.cpp
@@ -502,7 +501,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
   )
 
-  # PlanningContextLoaderPTP Unit Test
+#PlanningContextLoaderPTP Unit Test
   add_rostest_gtest(unittest_planning_context_loaders
     test/unittest_planning_context_loaders.test
     test/unittest_planning_context_loaders.cpp
@@ -513,7 +512,7 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # PlanningContext Unit Test (Typed test)
+#PlanningContext Unit Test(Typed test)
   add_rostest_gtest(unittest_planning_context
     test/unittest_planning_context.test
     test/unittest_planning_context.cpp
@@ -527,21 +526,21 @@ if(CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}_testutils
   )
 
-  # GetTipFrames Unit Test
+#GetTipFrames Unit Test
   catkin_add_gmock(unittest_get_solver_tip_frame
     test/unittest_get_solver_tip_frame.cpp
   )
 
   target_link_libraries(unittest_get_solver_tip_frame ${catkin_LIBRARIES})
 
-  # to run: catkin_make -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON package_name_coverage
+#to run : catkin_make - DCMAKE_BUILD_TYPE = Debug - DENABLE_COVERAGE_TESTING = ON package_name_coverage
   if(ENABLE_COVERAGE_TESTING)
     set(COVERAGE_EXCLUDES "*/${PROJECT_NAME}/test*")
     add_code_coverage(
       NAME ${PROJECT_NAME}_coverage
-      # specifying dependencies in a reliable way is on open issue
-      # see https://github.com/mikeferguson/code_coverage/pull/14
-      #DEPENDENCIES tests
+#specifying dependencies in a reliable way is on open issue
+#see https:  // github.com/mikeferguson/code_coverage/pull/14
+#DEPENDENCIES tests
     )
   endif()
 endif()

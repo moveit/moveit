@@ -51,13 +51,12 @@
 
 #include "test_utils.h"
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
-//parameters from parameter server
+// parameters from parameter server
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
 const std::string PARAM_TARGET_LINK_NAME("target_link");
-
 
 /**
  * A value type container to combine type and value
@@ -65,14 +64,14 @@ const std::string PARAM_TARGET_LINK_NAME("target_link");
  * value = 0 refers to robot model without gripper
  * value = 1 refers to robot model with gripper
  */
-template<typename T, int N>
+template <typename T, int N>
 class ValueTypeContainer
 {
 public:
   typedef T Type_;
   static const int VALUE = N;
 };
-template<typename T, int N>
+template <typename T, int N>
 const int ValueTypeContainer<T, N>::VALUE;
 
 typedef ValueTypeContainer<trapezoidal::TrajectoryGeneratorPTP, 0> PTP_NO_GRIPPER;
@@ -82,22 +81,22 @@ typedef ValueTypeContainer<trapezoidal::TrajectoryGeneratorLIN, 1> LIN_WITH_GRIP
 typedef ValueTypeContainer<trapezoidal::TrajectoryGeneratorCIRC, 0> CIRC_NO_GRIPPER;
 typedef ValueTypeContainer<trapezoidal::TrajectoryGeneratorCIRC, 1> CIRC_WITH_GRIPPER;
 
-typedef ::testing::Types<PTP_NO_GRIPPER, PTP_WITH_GRIPPER, LIN_NO_GRIPPER, LIN_WITH_GRIPPER,
-CIRC_NO_GRIPPER, CIRC_WITH_GRIPPER> TrajectoryGeneratorCommonTestTypes;
+typedef ::testing::Types<PTP_NO_GRIPPER, PTP_WITH_GRIPPER, LIN_NO_GRIPPER, LIN_WITH_GRIPPER, CIRC_NO_GRIPPER,
+                         CIRC_WITH_GRIPPER>
+    TrajectoryGeneratorCommonTestTypes;
 
-typedef ::testing::Types<PTP_NO_GRIPPER, LIN_NO_GRIPPER, CIRC_NO_GRIPPER>
-TrajectoryGeneratorCommonTestTypesNoGripper;
+typedef ::testing::Types<PTP_NO_GRIPPER, LIN_NO_GRIPPER, CIRC_NO_GRIPPER> TrajectoryGeneratorCommonTestTypesNoGripper;
 
 typedef ::testing::Types<PTP_WITH_GRIPPER, LIN_WITH_GRIPPER, CIRC_WITH_GRIPPER>
-TrajectoryGeneratorCommonTestTypesWithGripper;
+    TrajectoryGeneratorCommonTestTypesWithGripper;
 
 /**
  * type parameterized test fixture
  */
 template <typename T>
-class TrajectoryGeneratorCommonTest : public ::testing::Test {
+class TrajectoryGeneratorCommonTest : public ::testing::Test
+{
 protected:
-
   void SetUp() override
   {
     ASSERT_TRUE(ph_.getParam(PARAM_PLANNING_GROUP_NAME, planning_group_));
@@ -106,12 +105,11 @@ protected:
     testutils::checkRobotModel(robot_model_, planning_group_, target_link_);
 
     // create the limits container
-    std::string robot_description_param = (!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME: PARAM_MODEL_WITH_GRIPPER_NAME);
-    trapezoidal::JointLimitsContainer joint_limits =
-        trapezoidal::JointLimitsAggregator::getAggregatedLimits(ros::NodeHandle(robot_description_param + "_planning"),
-                                                         robot_model_->getActiveJointModels());
+    std::string robot_description_param = (!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME);
+    trapezoidal::JointLimitsContainer joint_limits = trapezoidal::JointLimitsAggregator::getAggregatedLimits(
+        ros::NodeHandle(robot_description_param + "_planning"), robot_model_->getActiveJointModels());
     trapezoidal::CartesianLimit cart_limits;
-    cart_limits.setMaxRotationalVelocity(0.5*M_PI);
+    cart_limits.setMaxRotationalVelocity(0.5 * M_PI);
     cart_limits.setMaxTranslationalAcceleration(2);
     cart_limits.setMaxTranslationalDeceleration(2);
     cart_limits.setMaxTranslationalVelocity(1);
@@ -119,7 +117,7 @@ protected:
     planner_limits.setJointLimits(joint_limits);
     planner_limits.setCartesianLimits(cart_limits);
 
-    //create planner instance
+    // create planner instance
     trajectory_generator_ = std::unique_ptr<typename T::Type_>(new typename T::Type_(robot_model_, planner_limits));
     ASSERT_NE(nullptr, trajectory_generator_) << "failed to create trajectory generator";
 
@@ -129,9 +127,9 @@ protected:
     req_.max_acceleration_scaling_factor = 1.0;
     robot_state::RobotState rstate(robot_model_);
     rstate.setToDefaultValues();
-    rstate.setJointGroupPositions(planning_group_, {0,M_PI/2,0,M_PI/2,0,0});
+    rstate.setJointGroupPositions(planning_group_, { 0, M_PI / 2, 0, M_PI / 2, 0, 0 });
     rstate.setVariableVelocities(std::vector<double>(rstate.getVariableCount(), 0.0));
-    moveit::core::robotStateToRobotStateMsg(rstate,req_.start_state,false);
+    moveit::core::robotStateToRobotStateMsg(rstate, req_.start_state, false);
     moveit_msgs::Constraints goal_constraint;
     moveit_msgs::JointConstraint joint_constraint;
     joint_constraint.joint_name = this->robot_model_->getActiveJointModels().front()->getName();
@@ -142,9 +140,11 @@ protected:
 
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME: PARAM_MODEL_WITH_GRIPPER_NAME).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{
+    robot_model_loader::RobotModelLoader(!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME)
+        .getModel()
+  };
 
   // trajectory generator
   std::unique_ptr<trapezoidal::TrajectoryGenerator> trajectory_generator_;
@@ -157,14 +157,16 @@ protected:
 TYPED_TEST_CASE(TrajectoryGeneratorCommonTest, TrajectoryGeneratorCommonTestTypes);
 
 template <typename T>
-class TrajectoryGeneratorCommonTestNoGripper : public TrajectoryGeneratorCommonTest<T> {};
+class TrajectoryGeneratorCommonTestNoGripper : public TrajectoryGeneratorCommonTest<T>
+{
+};
 TYPED_TEST_CASE(TrajectoryGeneratorCommonTestNoGripper, TrajectoryGeneratorCommonTestTypesNoGripper);
 
 template <typename T>
-class TrajectoryGeneratorCommonTestWithGripper : public TrajectoryGeneratorCommonTest<T> {};
+class TrajectoryGeneratorCommonTestWithGripper : public TrajectoryGeneratorCommonTest<T>
+{
+};
 TYPED_TEST_CASE(TrajectoryGeneratorCommonTestWithGripper, TrajectoryGeneratorCommonTestTypesWithGripper);
-
-
 
 /**
  * @brief test invalid scaling factor. The scaling factor must be in the range of [0.0001, 1]
@@ -226,7 +228,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTestWithGripper, GripperGroup)
  * You can only test this case by commenting the planning_context.launch in the .test file
  * //TODO create a separate robot model without ik solver and use it to create a trajectory generator
  */
-//TYPED_TEST(TrajectoryGeneratorCommonTest, NoIKSolver)
+// TYPED_TEST(TrajectoryGeneratorCommonTest, NoIKSolver)
 //{
 //  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
 //  EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME);
@@ -238,7 +240,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTestWithGripper, GripperGroup)
 TYPED_TEST(TrajectoryGeneratorCommonTest, EmptyJointNamesInStartState)
 {
   this->req_.start_state.joint_state.name.clear();
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -248,7 +250,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, EmptyJointNamesInStartState)
 TYPED_TEST(TrajectoryGeneratorCommonTest, InconsistentStartState)
 {
   this->req_.start_state.joint_state.name.push_back("joint_7");
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -258,7 +260,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, InconsistentStartState)
 TYPED_TEST(TrajectoryGeneratorCommonTest, StartPostionOutOfLimit)
 {
   this->req_.start_state.joint_state.position[0] = 100;
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -271,7 +273,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, StartPostionOutOfLimit)
 TYPED_TEST(TrajectoryGeneratorCommonTest, StartPositionVelocityNoneZero)
 {
   this->req_.start_state.joint_state.velocity[0] = 100;
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 }
 
@@ -281,7 +283,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, StartPositionVelocityNoneZero)
 TYPED_TEST(TrajectoryGeneratorCommonTest, EmptyGoalConstraints)
 {
   this->req_.goal_constraints.clear();
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -298,16 +300,15 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, MultipleGoals)
   // two goal constraints
   this->req_.goal_constraints.push_back(goal_constraint);
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-
 
   // one joint constraint and one orientation constraint
   goal_constraint.joint_constraints.push_back(joint_constraint);
   goal_constraint.orientation_constraints.push_back(orientation_constraint);
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   // one joint constraint and one Cartesian constraint
@@ -315,7 +316,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, MultipleGoals)
   goal_constraint.orientation_constraints.push_back(orientation_constraint);
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   // two Cartesian constraints
@@ -326,7 +327,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, MultipleGoals)
   goal_constraint.orientation_constraints.push_back(orientation_constraint);
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -338,7 +339,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, InvalideJointNameInGoal)
   moveit_msgs::JointConstraint joint_constraint;
   joint_constraint.joint_name = "test_joint_2";
   this->req_.goal_constraints.front().joint_constraints[0] = joint_constraint;
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -349,8 +350,8 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, MissingJointConstraint)
 {
   moveit_msgs::JointConstraint joint_constraint;
   joint_constraint.joint_name = "test_joint_2";
-  this->req_.goal_constraints.front().joint_constraints.pop_back(); //<-- Missing joint constraint
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  this->req_.goal_constraints.front().joint_constraints.pop_back();  //<-- Missing joint constraint
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -360,7 +361,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, MissingJointConstraint)
 TYPED_TEST(TrajectoryGeneratorCommonTest, InvalideJointPositionInGoal)
 {
   this->req_.goal_constraints.front().joint_constraints[0].position = 100;
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -377,7 +378,7 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, InvalidLinkNameInCartesianGoal)
   goal_constraint.orientation_constraints.push_back(orientation_constraint);
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   // different link names in position and orientation goals
@@ -385,14 +386,14 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, InvalidLinkNameInCartesianGoal)
   goal_constraint.orientation_constraints.front().link_name = "test_link_2";
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
   // no solver for the link
   goal_constraint.orientation_constraints.front().link_name = "test_link_1";
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 }
 
@@ -412,14 +413,14 @@ TYPED_TEST(TrajectoryGeneratorCommonTest, EmptyPrimitivePoses)
   goal_constraint.orientation_constraints.push_back(orientation_constraint);
   this->req_.goal_constraints.clear();
   this->req_.goal_constraints.push_back(goal_constraint);
-  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_,this->res_));
+  EXPECT_FALSE(this->trajectory_generator_->generate(this->req_, this->res_));
   EXPECT_EQ(this->res_.error_code_.val, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_trajectory_generator_common");
-  //ros::NodeHandle nh;
+  // ros::NodeHandle nh;
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

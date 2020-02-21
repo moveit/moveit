@@ -41,13 +41,12 @@
 
 #include "trapezoidal_trajectory_generation/trapezoidal_command_planner.h"
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
 class CommandPlannerTest : public testing::TestWithParam<std::string>
 {
 protected:
-
   void SetUp() override
   {
     createPlannerInstance();
@@ -72,11 +71,10 @@ protected:
     // Load the plugin
     try
     {
-      planner_plugin_loader_.reset(
-            new pluginlib::ClassLoader<planning_interface::PlannerManager>(
-              "moveit_core", "planning_interface::PlannerManager"));
+      planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
+          "moveit_core", "planning_interface::PlannerManager"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
       FAIL();
@@ -86,11 +84,12 @@ protected:
     try
     {
       planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
-      ASSERT_TRUE(planner_instance_->initialize(robot_model_, ph_.getNamespace())) << "Initialzing the planner instance failed.";
+      ASSERT_TRUE(planner_instance_->initialize(robot_model_, ph_.getNamespace()))
+          << "Initialzing the planner instance failed.";
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
-      FAIL()  << "Could not create planner " << ex.what() << "\n";
+      FAIL() << "Could not create planner " << ex.what() << "\n";
     }
   }
 
@@ -101,23 +100,19 @@ protected:
 
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(GetParam()).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
 
   std::string planner_plugin_name_;
 
   std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
 
   planning_interface::PlannerManagerPtr planner_instance_;
-
 };
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, CommandPlannerTest, ::testing::Values(
-                          PARAM_MODEL_NO_GRIPPER_NAME,
-                          PARAM_MODEL_WITH_GRIPPER_NAME
-                          ));
+INSTANTIATE_TEST_CASE_P(InstantiationName, CommandPlannerTest,
+                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
  * @brief Test that PTP can be loaded
@@ -130,12 +125,11 @@ TEST_P(CommandPlannerTest, ObtainLoadedPlanningAlgorithms)
 
   planner_instance_->getPlanningAlgorithms(algs);
   ASSERT_EQ(3u, algs.size()) << "Found more or less planning algorithms as expected! Found:"
-                            << ::testing::PrintToString(algs);
-
+                             << ::testing::PrintToString(algs);
 
   // Collect the algorithms, check for uniqueness
   std::set<std::string> algs_set;
-  for(const auto& alg : algs)
+  for (const auto& alg : algs)
   {
     algs_set.insert(alg);
   }
@@ -144,7 +138,6 @@ TEST_P(CommandPlannerTest, ObtainLoadedPlanningAlgorithms)
   ASSERT_TRUE(algs_set.find("PTP") != algs_set.end());
   ASSERT_TRUE(algs_set.find("CIRC") != algs_set.end());
 }
-
 
 /**
  * @brief Check that all announced planning algorithms can perform the service request if the planner_id is set.
@@ -155,7 +148,7 @@ TEST_P(CommandPlannerTest, CheckValidAlgorithmsForServiceRequest)
   std::vector<std::string> algs;
   planner_instance_->getPlanningAlgorithms(algs);
 
-  for(auto alg : algs)
+  for (auto alg : algs)
   {
     planning_interface::MotionPlanRequest req;
     req.planner_id = alg;
@@ -163,7 +156,6 @@ TEST_P(CommandPlannerTest, CheckValidAlgorithmsForServiceRequest)
     EXPECT_TRUE(planner_instance_->canServiceRequest(req));
   }
 }
-
 
 /**
  * @brief Check that canServiceRequest(req) returns false if planner_id is not supported
@@ -187,7 +179,6 @@ TEST_P(CommandPlannerTest, CheckEmptyPlannerIdForServiceRequest)
   EXPECT_FALSE(planner_instance_->canServiceRequest(req));
 }
 
-
 /**
  * @brief Check integrety against empty input
  */
@@ -210,13 +201,12 @@ TEST_P(CommandPlannerTest, CheckPlanningContextRequest)
   std::vector<std::string> algs;
   planner_instance_->getPlanningAlgorithms(algs);
 
-  for(auto alg : algs)
+  for (auto alg : algs)
   {
     req.planner_id = alg;
 
     EXPECT_NE(nullptr, planner_instance_->getPlanningContext(nullptr, req, error_code));
   }
-
 }
 
 /**
@@ -228,7 +218,7 @@ TEST_P(CommandPlannerTest, CheckPlanningContextDescriptionNotEmptyAndStable)
   EXPECT_GT(desc.length(), 0u);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_trapezoidal_command_planner");
   testing::InitGoogleTest(&argc, argv);

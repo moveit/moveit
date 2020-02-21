@@ -43,22 +43,22 @@
 
 using namespace pilz_extensions;
 
-trapezoidal::JointLimitsContainer trapezoidal::JointLimitsAggregator::getAggregatedLimits(const ros::NodeHandle& nh,
-                                                             const std::vector<const moveit::core::JointModel*>& joint_models)
+trapezoidal::JointLimitsContainer trapezoidal::JointLimitsAggregator::getAggregatedLimits(
+    const ros::NodeHandle& nh, const std::vector<const moveit::core::JointModel*>& joint_models)
 {
   JointLimitsContainer container;
 
   ROS_INFO_STREAM("Reading limits from namespace " << nh.getNamespace());
 
   // Iterate over all joint models and generate the map
-  for(auto joint_model : joint_models)
+  for (auto joint_model : joint_models)
   {
     JointLimit joint_limit;
 
     // If there is something defined for the joint on the parameter server
-    if(pilz_extensions::joint_limits_interface::getJointLimits(joint_model->getName(), nh, joint_limit))
+    if (pilz_extensions::joint_limits_interface::getJointLimits(joint_model->getName(), nh, joint_limit))
     {
-      if(joint_limit.has_position_limits)
+      if (joint_limit.has_position_limits)
       {
         checkPositionBoundsThrowing(joint_model, joint_limit);
       }
@@ -67,8 +67,7 @@ trapezoidal::JointLimitsContainer trapezoidal::JointLimitsAggregator::getAggrega
         updatePositionLimitFromJointModel(joint_model, joint_limit);
       }
 
-
-      if(joint_limit.has_velocity_limits)
+      if (joint_limit.has_velocity_limits)
       {
         checkVelocityBoundsThrowing(joint_model, joint_limit);
       }
@@ -87,7 +86,8 @@ trapezoidal::JointLimitsContainer trapezoidal::JointLimitsAggregator::getAggrega
     }
 
     // Update max_deceleration if no max_acceleration has been set
-    if(joint_limit.has_acceleration_limits && !joint_limit.has_deceleration_limits){
+    if (joint_limit.has_acceleration_limits && !joint_limit.has_deceleration_limits)
+    {
       joint_limit.max_deceleration = -joint_limit.max_acceleration;
       joint_limit.has_deceleration_limits = true;
     }
@@ -100,82 +100,83 @@ trapezoidal::JointLimitsContainer trapezoidal::JointLimitsAggregator::getAggrega
 }
 
 void trapezoidal::JointLimitsAggregator::updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                                    JointLimit& joint_limit)
+                                                                           JointLimit& joint_limit)
 {
-  switch(joint_model->getVariableBounds().size())
+  switch (joint_model->getVariableBounds().size())
   {
-  // LCOV_EXCL_START
-  case 0:  
-    ROS_ERROR_STREAM("no bounds set for joint " << joint_model->getName());
-    break;
-  // LCOV_EXCL_STOP
-  case 1:
-    joint_limit.has_position_limits = joint_model->getVariableBounds()[0].position_bounded_;
-    joint_limit.min_position = joint_model->getVariableBounds()[0].min_position_;
-    joint_limit.max_position = joint_model->getVariableBounds()[0].max_position_;
-    break;
-  // LCOV_EXCL_START
-  default:
-    ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move.");
-    joint_limit.has_position_limits = true;
-    joint_limit.min_position = 0;
-    joint_limit.max_position = 0;
-    break;
-  // LCOV_EXCL_STOP
+    // LCOV_EXCL_START
+    case 0:
+      ROS_ERROR_STREAM("no bounds set for joint " << joint_model->getName());
+      break;
+    // LCOV_EXCL_STOP
+    case 1:
+      joint_limit.has_position_limits = joint_model->getVariableBounds()[0].position_bounded_;
+      joint_limit.min_position = joint_model->getVariableBounds()[0].min_position_;
+      joint_limit.max_position = joint_model->getVariableBounds()[0].max_position_;
+      break;
+    // LCOV_EXCL_START
+    default:
+      ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move.");
+      joint_limit.has_position_limits = true;
+      joint_limit.min_position = 0;
+      joint_limit.max_position = 0;
+      break;
+      // LCOV_EXCL_STOP
   }
 
-  ROS_DEBUG_STREAM("Limit(" << joint_model->getName() << " min:" << joint_limit.min_position << " max:" << joint_limit.max_position);
+  ROS_DEBUG_STREAM("Limit(" << joint_model->getName() << " min:" << joint_limit.min_position
+                            << " max:" << joint_limit.max_position);
 }
 
 void trapezoidal::JointLimitsAggregator::updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                                    JointLimit& joint_limit)
+                                                                           JointLimit& joint_limit)
 {
-  switch(joint_model->getVariableBounds().size())
+  switch (joint_model->getVariableBounds().size())
   {
-  // LCOV_EXCL_START
-  case 0:
-    ROS_ERROR_STREAM("no bounds set for joint " << joint_model->getName());
-    break;
-  // LCOV_EXCL_STOP
-  case 1:
-    joint_limit.has_velocity_limits = joint_model->getVariableBounds()[0].velocity_bounded_;
-    joint_limit.max_velocity = joint_model->getVariableBounds()[0].max_velocity_;
-    break;
-  // LCOV_EXCL_START
-  default:
-    ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move.");
-    joint_limit.has_velocity_limits = true;
-    joint_limit.max_velocity = 0;
-    break;
-  // LCOV_EXCL_STOP
+    // LCOV_EXCL_START
+    case 0:
+      ROS_ERROR_STREAM("no bounds set for joint " << joint_model->getName());
+      break;
+    // LCOV_EXCL_STOP
+    case 1:
+      joint_limit.has_velocity_limits = joint_model->getVariableBounds()[0].velocity_bounded_;
+      joint_limit.max_velocity = joint_model->getVariableBounds()[0].max_velocity_;
+      break;
+    // LCOV_EXCL_START
+    default:
+      ROS_ERROR_STREAM("Multi-DOF-Joints not supported. The robot won't move.");
+      joint_limit.has_velocity_limits = true;
+      joint_limit.max_velocity = 0;
+      break;
+      // LCOV_EXCL_STOP
   }
 }
 
 void trapezoidal::JointLimitsAggregator::checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                                              const pilz_extensions::JointLimit& joint_limit)
+                                                                     const pilz_extensions::JointLimit& joint_limit)
 {
   // Check min position
-  if(!joint_model->satisfiesPositionBounds(&joint_limit.min_position))
+  if (!joint_model->satisfiesPositionBounds(&joint_limit.min_position))
   {
-    throw AggregationBoundsViolationException("min_position of " + joint_model->getName()
-                                              + " violates min limit from URDF");
+    throw AggregationBoundsViolationException("min_position of " + joint_model->getName() +
+                                              " violates min limit from URDF");
   }
 
   // Check max position
-  if(!joint_model->satisfiesPositionBounds(&joint_limit.max_position))
+  if (!joint_model->satisfiesPositionBounds(&joint_limit.max_position))
   {
-    throw AggregationBoundsViolationException("max_position of " + joint_model->getName()
-                                              + " violates max limit from URDF");
+    throw AggregationBoundsViolationException("max_position of " + joint_model->getName() +
+                                              " violates max limit from URDF");
   }
 }
 
 void trapezoidal::JointLimitsAggregator::checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                                              const JointLimit &joint_limit)
+                                                                     const JointLimit& joint_limit)
 {
   // Check min position
-  if(!joint_model->satisfiesVelocityBounds(&joint_limit.max_velocity))
+  if (!joint_model->satisfiesVelocityBounds(&joint_limit.max_velocity))
   {
-    throw AggregationBoundsViolationException("max_velocity of " + joint_model->getName()
-                                              + " violates velocity limit from URDF");
+    throw AggregationBoundsViolationException("max_velocity of " + joint_model->getName() +
+                                              " violates velocity limit from URDF");
   }
 }

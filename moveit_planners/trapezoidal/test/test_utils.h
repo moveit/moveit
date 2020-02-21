@@ -56,19 +56,18 @@
 
 namespace testutils
 {
-
 const std::string JOINT_NAME_PREFIX("prbt_joint_");
 
 static constexpr int32_t DEFAULT_SERVICE_TIMEOUT(10);
-static constexpr double DEFAULT_ACCELERATION_EQUALITY_TOLERANCE {1e-6};
-static constexpr double DEFAULT_ROTATION_AXIS_EQUALITY_TOLERANCE {1e-8};
+static constexpr double DEFAULT_ACCELERATION_EQUALITY_TOLERANCE{ 1e-6 };
+static constexpr double DEFAULT_ROTATION_AXIS_EQUALITY_TOLERANCE{ 1e-8 };
 
 /**
-   * @brief Convert degree to rad.
-   */
+ * @brief Convert degree to rad.
+ */
 inline static constexpr double deg2Rad(double angle)
 {
-  return (angle/180.0)*M_PI;
+  return (angle / 180.0) * M_PI;
 }
 
 inline std::string getJointName(size_t joint_number, std::string joint_prefix)
@@ -77,12 +76,11 @@ inline std::string getJointName(size_t joint_number, std::string joint_prefix)
 }
 
 /**
-   * @brief Create limits for tests to avoid the need to get the limits from the parameter server
-   */
+ * @brief Create limits for tests to avoid the need to get the limits from the parameter server
+ */
 trapezoidal::JointLimitsContainer createFakeLimits(const std::vector<std::string>& joint_names);
 
-
-inline std::string demangel(char const * name)
+inline std::string demangel(char const* name)
 {
   return boost::core::demangle(name);
 }
@@ -91,23 +89,22 @@ inline std::string demangel(char const * name)
 // Motion plan requests
 //********************************************
 
-inline sensor_msgs::JointState generateJointState(std::vector<double> pos,
-                                                  std::vector<double> vel,
+inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::vector<double> vel,
                                                   std::string joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
   sensor_msgs::JointState state;
   auto posit = pos.begin();
   size_t i = 0;
 
-  while(posit != pos.end())
+  while (posit != pos.end())
   {
-    state.name.push_back(testutils::getJointName(i+1, joint_prefix));
+    state.name.push_back(testutils::getJointName(i + 1, joint_prefix));
     state.position.push_back(*posit);
 
     i++;
     posit++;
   }
-  for(auto vel_ : vel)
+  for (auto vel_ : vel)
   {
     state.velocity.push_back(vel_);
   }
@@ -127,10 +124,10 @@ inline moveit_msgs::Constraints generateJointConstraint(const std::vector<double
 
   auto pos_it = pos_list.begin();
 
-  for(size_t i = 0; i < pos_list.size(); ++i)
+  for (size_t i = 0; i < pos_list.size(); ++i)
   {
     moveit_msgs::JointConstraint jc;
-    jc.joint_name = testutils::getJointName(i+1, joint_prefix);
+    jc.joint_name = testutils::getJointName(i + 1, joint_prefix);
     jc.position = *pos_it;
     gc.joint_constraints.push_back(jc);
 
@@ -144,10 +141,9 @@ inline moveit_msgs::Constraints generateJointConstraint(const std::vector<double
  * @brief Determines the goal position from the given request.
  * TRUE if successful, FALSE otherwise.
  */
-bool getExpectedGoalPose(const moveit::core::RobotModelConstPtr &robot_model,
-                         const planning_interface::MotionPlanRequest &req,
-                         std::string& link_name,
-                         Eigen::Isometry3d &goal_pose_expect);
+bool getExpectedGoalPose(const moveit::core::RobotModelConstPtr& robot_model,
+                         const planning_interface::MotionPlanRequest& req, std::string& link_name,
+                         Eigen::Isometry3d& goal_pose_expect);
 
 /**
  * @brief create a dummy motion plan request with zero start state
@@ -156,14 +152,11 @@ bool getExpectedGoalPose(const moveit::core::RobotModelConstPtr &robot_model,
  * @param planning_group
  * @param req
  */
-void createDummyRequest(const moveit::core::RobotModelConstPtr &robot_model,
-                        const std::string& planning_group,
+void createDummyRequest(const moveit::core::RobotModelConstPtr& robot_model, const std::string& planning_group,
                         planning_interface::MotionPlanRequest& req);
 
-void createPTPRequest(const std::string& planning_group,
-                      const moveit::core::RobotState &start_state,
-                      const moveit::core::RobotState &goal_state,
-                      planning_interface::MotionPlanRequest& req);
+void createPTPRequest(const std::string& planning_group, const moveit::core::RobotState& start_state,
+                      const moveit::core::RobotState& goal_state, planning_interface::MotionPlanRequest& req);
 
 /**
  * @brief check if the goal given in joint space is reached
@@ -175,8 +168,7 @@ void createPTPRequest(const std::string& planning_group,
  * @return true if satisfied
  */
 bool isGoalReached(const trajectory_msgs::JointTrajectory& trajectory,
-                   const std::vector<moveit_msgs::JointConstraint>& goal,
-                   const double joint_position_tolerance,
+                   const std::vector<moveit_msgs::JointConstraint>& goal, const double joint_position_tolerance,
                    const double joint_velocity_tolerance = 1.0e-6);
 
 /**
@@ -190,14 +182,11 @@ bool isGoalReached(const trajectory_msgs::JointTrajectory& trajectory,
  * @return
  */
 bool isGoalReached(const robot_model::RobotModelConstPtr& robot_model,
-                   const trajectory_msgs::JointTrajectory& trajectory,
-                   const planning_interface::MotionPlanRequest &req,
-                   const double pos_tolerance,
-                   const double orientation_tolerance);
+                   const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
+                   const double pos_tolerance, const double orientation_tolerance);
 
-bool isGoalReached(const moveit::core::RobotModelConstPtr &robot_model,
-                   const trajectory_msgs::JointTrajectory &trajectory,
-                   const planning_interface::MotionPlanRequest &req,
+bool isGoalReached(const moveit::core::RobotModelConstPtr& robot_model,
+                   const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
                    const double tolerance);
 
 /**
@@ -205,10 +194,8 @@ bool isGoalReached(const moveit::core::RobotModelConstPtr &robot_model,
  */
 bool checkCartesianLinearity(const robot_model::RobotModelConstPtr& robot_model,
                              const trajectory_msgs::JointTrajectory& trajectory,
-                             const planning_interface::MotionPlanRequest &req,
-                             const double translation_norm_tolerance,
-                             const double rot_axis_norm_tolerance,
-                             const double rot_angle_tolerance=10e-5);
+                             const planning_interface::MotionPlanRequest& req, const double translation_norm_tolerance,
+                             const double rot_axis_norm_tolerance, const double rot_angle_tolerance = 10e-5);
 
 /**
  * @brief check SLERP. The orientation should rotate around the same axis linearly.
@@ -218,11 +205,9 @@ bool checkCartesianLinearity(const robot_model::RobotModelConstPtr& robot_model,
  * @param rot_axis_norm_tolerance
  * @return
  */
-bool checkSLERP(const Eigen::Isometry3d& start_pose,
-                const Eigen::Isometry3d& goal_pose,
-                const Eigen::Isometry3d& wp_pose,
-                const double rot_axis_norm_tolerance,
-                const double rot_angle_tolerance=10e-5);
+bool checkSLERP(const Eigen::Isometry3d& start_pose, const Eigen::Isometry3d& goal_pose,
+                const Eigen::Isometry3d& wp_pose, const double rot_axis_norm_tolerance,
+                const double rot_angle_tolerance = 10e-5);
 
 /**
  * @brief get the waypoint index from time from start
@@ -230,12 +215,11 @@ bool checkSLERP(const Eigen::Isometry3d& start_pose,
  * @param time_from_start
  * @return
  */
-inline int getWayPointIndex(const robot_trajectory::RobotTrajectoryPtr& trajectory,
-                            const double time_from_start)
+inline int getWayPointIndex(const robot_trajectory::RobotTrajectoryPtr& trajectory, const double time_from_start)
 {
   int index_before, index_after;
   double blend;
-  trajectory->findWayPointIndicesForDurationAfterStart(time_from_start,index_before,index_after,blend);
+  trajectory->findWayPointIndicesForDurationAfterStart(time_from_start, index_before, index_after, blend);
   return blend > 0.5 ? index_after : index_before;
 }
 
@@ -256,7 +240,7 @@ bool checkJointTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
  *    EXPECT_TRUE(HasStrictlyIncreasingTime(trajectory));
  * @endcode
  */
-::testing::AssertionResult hasStrictlyIncreasingTime(const robot_trajectory::RobotTrajectoryPtr &trajectory);
+::testing::AssertionResult hasStrictlyIncreasingTime(const robot_trajectory::RobotTrajectoryPtr& trajectory);
 
 /**
  * @brief check if the sizes of the joint position/veloicty/acceleration are correct
@@ -301,10 +285,8 @@ bool isAccelerationBounded(const trajectory_msgs::JointTrajectory& trajectory,
  * @param joint_prefix Prefix of the joint names
  * @return false if forward kinematics failed
  */
-bool toTCPPose(const moveit::core::RobotModelConstPtr& robot_model,
-               const std::string &link_name,
-               const std::vector<double> &joint_values,
-               geometry_msgs::Pose &pose,
+bool toTCPPose(const moveit::core::RobotModelConstPtr& robot_model, const std::string& link_name,
+               const std::vector<double>& joint_values, geometry_msgs::Pose& pose,
                const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX);
 
 /**
@@ -315,12 +297,8 @@ bool toTCPPose(const moveit::core::RobotModelConstPtr& robot_model,
  * @param pose
  * @return
  */
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model,
-                   const std::string &link_name,
-                   const std::map<std::string, double> &joint_state,
-                   Eigen::Isometry3d &pose);
-
-
+bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+                   const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
 /**
  * @brief checkOriginalTrajectoryAfterBlending
@@ -331,8 +309,7 @@ bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model,
  * @return
  */
 bool checkOriginalTrajectoryAfterBlending(const trapezoidal::TrajectoryBlendRequest& req,
-                                          const trapezoidal::TrajectoryBlendResponse& res,
-                                          const double time_tolerance);
+                                          const trapezoidal::TrajectoryBlendResponse& res, const double time_tolerance);
 
 /**
  * @brief check the blending result, if the joint space continuity is fulfilled
@@ -340,8 +317,7 @@ bool checkOriginalTrajectoryAfterBlending(const trapezoidal::TrajectoryBlendRequ
  * Between these three trajectories should be continuous.
  * @return true if joint position/velocity is continuous. joint acceleration can have jumps.
  */
-bool checkBlendingJointSpaceContinuity(const trapezoidal::TrajectoryBlendResponse& res,
-                                       double joint_velocity_tolerance,
+bool checkBlendingJointSpaceContinuity(const trapezoidal::TrajectoryBlendResponse& res, double joint_velocity_tolerance,
                                        double joint_accleration_tolerance);
 
 bool checkBlendingCartSpaceContinuity(const trapezoidal::TrajectoryBlendRequest& req,
@@ -351,9 +327,7 @@ bool checkBlendingCartSpaceContinuity(const trapezoidal::TrajectoryBlendRequest&
 /**
  * @brief Checks if all points of the blending trajectory lie within the blending radius.
  */
-bool checkThatPointsInRadius(const std::string &link_name,
-                             const double& r,
-                             Eigen::Isometry3d &circ_pose,
+bool checkThatPointsInRadius(const std::string& link_name, const double& r, Eigen::Isometry3d& circ_pose,
                              const trapezoidal::TrajectoryBlendResponse& res);
 
 /**
@@ -364,14 +338,10 @@ bool checkThatPointsInRadius(const std::string &link_name,
  * @param v
  * @param w
  */
-void computeCartVelocity(const Eigen::Isometry3d& pose_1,
-                         const Eigen::Isometry3d& pose_2,
-                         double duration,
-                         Eigen::Vector3d& v,
-                         Eigen::Vector3d& w);
+void computeCartVelocity(const Eigen::Isometry3d& pose_1, const Eigen::Isometry3d& pose_2, double duration,
+                         Eigen::Vector3d& v, Eigen::Vector3d& w);
 
-void createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& traj,
-                        const std::string &link_name,
+void createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& traj, const std::string& link_name,
                         moveit_msgs::RobotTrajectory& fake_traj);
 
 /**
@@ -383,22 +353,19 @@ void createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& traj,
  * @param p1 (0.05, 0, 0.65, 0, 0, 0)
  * @param p2 (0.05, 0.4, 0.65, 0, 0, 0)
  */
-void getLinLinPosesWithoutOriChange(const std::string& frame_id,
-                                    sensor_msgs::JointState& initialJointState,
-                                    geometry_msgs::PoseStamped& p1,
-                                    geometry_msgs::PoseStamped& p2);
+void getLinLinPosesWithoutOriChange(const std::string& frame_id, sensor_msgs::JointState& initialJointState,
+                                    geometry_msgs::PoseStamped& p1, geometry_msgs::PoseStamped& p2);
 
 void getOriChange(Eigen::Matrix3d& ori1, Eigen::Matrix3d& ori2);
 
 inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
 {
-  tf2::Vector3 qvz(0.,0.,1.);
-  tf2::Vector3 qvy(0.,1.,0.);
-  tf2::Quaternion q1 ( qvz, a);
+  tf2::Vector3 qvz(0., 0., 1.);
+  tf2::Vector3 qvy(0., 1., 0.);
+  tf2::Quaternion q1(qvz, a);
 
-  q1 = q1 * tf2::Quaternion( qvy, b );
-  q1 = q1 * tf2::Quaternion( qvz, c );
-
+  q1 = q1 * tf2::Quaternion(qvy, b);
+  q1 = q1 * tf2::Quaternion(qvz, c);
 
   geometry_msgs::Quaternion msg;
   tf2::convert(q1, msg);
@@ -414,11 +381,8 @@ inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
  * @param p1 (0.05, 0, 0.65, 0, 0, 0)
  * @param p2 (0.05, 0.4, 0.65, 0, 0, 0)
  */
-void getLinLinPosesWithoutOriChange(const std::string& frame_id,
-                                    sensor_msgs::JointState& initialJointState,
-                                    geometry_msgs::PoseStamped& p1,
-                                    geometry_msgs::PoseStamped& p2);
-
+void getLinLinPosesWithoutOriChange(const std::string& frame_id, sensor_msgs::JointState& initialJointState,
+                                    geometry_msgs::PoseStamped& p1, geometry_msgs::PoseStamped& p2);
 
 /**
  * @brief Test data for blending, which contains three joint position vectors of three robot state.
@@ -435,11 +399,8 @@ struct blend_test_data
  * @param nh
  * @return
  */
-bool getBlendTestData(const ros::NodeHandle &nh,
-                      const size_t& dataset_num,
-                      const std::string& name_prefix,
+bool getBlendTestData(const ros::NodeHandle& nh, const size_t& dataset_num, const std::string& name_prefix,
                       std::vector<blend_test_data>& datasets);
-
 
 /**
  * @brief check the blending result of lin-lin
@@ -450,12 +411,9 @@ bool getBlendTestData(const ros::NodeHandle &nh,
  * @param checkAcceleration
  */
 bool checkBlendResult(const trapezoidal::TrajectoryBlendRequest& blend_req,
-                      const trapezoidal::TrajectoryBlendResponse& blend_res,
-                      const trapezoidal::LimitsContainer& limits,
-                      double joint_velocity_tolerance,
-                      double joint_acceleration_tolerance,
-                      double cartesian_velocity_tolerance,
-                      double cartesian_angular_velocity_tolerance);
+                      const trapezoidal::TrajectoryBlendResponse& blend_res, const trapezoidal::LimitsContainer& limits,
+                      double joint_velocity_tolerance, double joint_acceleration_tolerance,
+                      double cartesian_velocity_tolerance, double cartesian_angular_velocity_tolerance);
 
 /**
  * @brief generate two LIN trajectories from test data set
@@ -468,26 +426,20 @@ bool checkBlendResult(const trapezoidal::TrajectoryBlendRequest& blend_req,
  * @param[out] dis_lin_2: translational distance of the second LIN
  * @return true if succeed
  */
-bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr &robot_model,
+bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
                                    const std::shared_ptr<trapezoidal::TrajectoryGenerator>& tg,
-                                   const std::string &group_name,
-                                   const std::string &link_name,
-                                   const blend_test_data& data,
-                                   const double &sampling_time_1,
-                                   const double &sampling_time_2,
-                                   planning_interface::MotionPlanResponse& res_lin_1,
-                                   planning_interface::MotionPlanResponse& res_lin_2,
-                                   double &dis_lin_1, double &dis_lin_2);
+                                   const std::string& group_name, const std::string& link_name,
+                                   const blend_test_data& data, const double& sampling_time_1,
+                                   const double& sampling_time_2, planning_interface::MotionPlanResponse& res_lin_1,
+                                   planning_interface::MotionPlanResponse& res_lin_2, double& dis_lin_1,
+                                   double& dis_lin_2);
 
-void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr &robot_model,
-                                         const blend_test_data& data,
-                                         const std::string &planner_id,
-                                         const std::string &group_name,
-                                         const std::string &link_name,
+void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
+                                         const blend_test_data& data, const std::string& planner_id,
+                                         const std::string& group_name, const std::string& link_name,
                                          pilz_msgs::MotionSequenceRequest& req_list);
 
-void checkRobotModel(const moveit::core::RobotModelConstPtr &robot_model,
-                     const std::string& group_name,
+void checkRobotModel(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                      const std::string& link_name);
 
 /** @brief Check that a given vector of accelerations represents a trapezoid velocity profile
@@ -499,29 +451,28 @@ void checkRobotModel(const moveit::core::RobotModelConstPtr &robot_model,
  * @brief Check that the translational path of a given trajectory has a trapezoid velocity profile
  * @param acc_tol: tolerance for comparing acceleration values
  */
-::testing::AssertionResult checkCartesianTranslationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory,
-                                                           const std::string &link_name,
-                                                           const double acc_tol = DEFAULT_ACCELERATION_EQUALITY_TOLERANCE);
+::testing::AssertionResult
+checkCartesianTranslationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory,
+                                const std::string& link_name,
+                                const double acc_tol = DEFAULT_ACCELERATION_EQUALITY_TOLERANCE);
 
 /**
  * @brief Check that the rotational path of a given trajectory is a quaternion slerp.
  * @param rot_axis_tol: tolerance for comparing rotation axes (in the L2 norm)
  * @param acc_tol: tolerance for comparing angular acceleration values
  */
-::testing::AssertionResult checkCartesianRotationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory,
-                                                        const std::string &link_name,
-                                                        const double rot_axis_tol = DEFAULT_ROTATION_AXIS_EQUALITY_TOLERANCE,
-                                                        const double acc_tol = DEFAULT_ACCELERATION_EQUALITY_TOLERANCE);
+::testing::AssertionResult
+checkCartesianRotationalPath(const robot_trajectory::RobotTrajectoryConstPtr& trajectory, const std::string& link_name,
+                             const double rot_axis_tol = DEFAULT_ROTATION_AXIS_EQUALITY_TOLERANCE,
+                             const double acc_tol = DEFAULT_ACCELERATION_EQUALITY_TOLERANCE);
 
-inline bool isMonotonouslyDecreasing(const std::vector<double> &vec, const double &tol)
+inline bool isMonotonouslyDecreasing(const std::vector<double>& vec, const double& tol)
 {
-  return std::is_sorted(vec.begin(),
-                        vec.end(),
-                        [tol](double a, double b){
-                        return !(std::abs(a - b) < tol || a < b); // true -> a is ordered before b -> list is not sorted
-                        });
+  return std::is_sorted(vec.begin(), vec.end(), [tol](double a, double b) {
+    return !(std::abs(a - b) < tol || a < b);  // true -> a is ordered before b -> list is not sorted
+  });
 }
 
-} // namespace testutils
+}  // namespace testutils
 
-#endif // TEST_UTILS_H
+#endif  // TEST_UTILS_H

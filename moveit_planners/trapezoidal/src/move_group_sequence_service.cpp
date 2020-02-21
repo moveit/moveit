@@ -44,7 +44,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 MoveGroupSequenceService::MoveGroupSequenceService() : MoveGroupCapability("SequenceService")
 {
 }
@@ -55,12 +54,10 @@ MoveGroupSequenceService::~MoveGroupSequenceService()
 
 void MoveGroupSequenceService::initialize()
 {
-  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager(ros::NodeHandle("~"),
-                                                                             context_->planning_scene_monitor_->getRobotModel()));
+  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager(
+      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
 
-  sequence_service_ = root_node_handle_.advertiseService(SEQUENCE_SERVICE_NAME,
-                                                         &MoveGroupSequenceService::plan,
-                                                         this);
+  sequence_service_ = root_node_handle_.advertiseService(SEQUENCE_SERVICE_NAME, &MoveGroupSequenceService::plan, this);
 }
 
 bool MoveGroupSequenceService::plan(pilz_msgs::GetMotionSequence::Request& req,
@@ -71,11 +68,13 @@ bool MoveGroupSequenceService::plan(pilz_msgs::GetMotionSequence::Request& req,
 
   ros::Time planning_start = ros::Time::now();
   RobotTrajCont traj_vec;
-  try { traj_vec = command_list_manager_->solve(ps, context_->planning_pipeline_, req.commands); }
-  catch(const MoveItErrorCodeException& ex)
+  try
   {
-    ROS_ERROR_STREAM("Planner threw an exception (error code: "
-                     << ex.getErrorCode() << "): " << ex.what());
+    traj_vec = command_list_manager_->solve(ps, context_->planning_pipeline_, req.commands);
+  }
+  catch (const MoveItErrorCodeException& ex)
+  {
+    ROS_ERROR_STREAM("Planner threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
     res.error_code.val = ex.getErrorCode();
     return true;
   }
@@ -92,8 +91,7 @@ bool MoveGroupSequenceService::plan(pilz_msgs::GetMotionSequence::Request& req,
   res.planned_trajectory.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i),
-                                                  res.trajectory_start.at(i),
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.trajectory_start.at(i),
                                                   res.planned_trajectory.at(i));
   }
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -101,7 +99,7 @@ bool MoveGroupSequenceService::plan(pilz_msgs::GetMotionSequence::Request& req,
   return true;
 }
 
-} // namespace trapezoidal_trajectory_generation
+}  // namespace trapezoidal_trajectory_generation
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(trapezoidal_trajectory_generation::MoveGroupSequenceService, move_group::MoveGroupCapability)

@@ -56,7 +56,7 @@
 
 #include "test_utils.h"
 
-const double EPSILON=1.0e-6;
+const double EPSILON = 1.0e-6;
 const std::string PLAN_SERVICE_NAME = "/plan_kinematic_path";
 
 // Parameters from parameter server
@@ -80,7 +80,7 @@ protected:
   void SetUp() override;
 
 protected:
-  ros::NodeHandle ph_ {"~"};
+  ros::NodeHandle ph_{ "~" };
 
   robot_model::RobotModelPtr robot_model_;
 
@@ -89,7 +89,7 @@ protected:
 
   std::unique_ptr<pilz_industrial_motion_testutils::TestdataLoader> test_data_;
 
-  unsigned int num_joints_ {0};
+  unsigned int num_joints_{ 0 };
 };
 
 void IntegrationTestCommandPlanning::SetUp()
@@ -106,7 +106,7 @@ void IntegrationTestCommandPlanning::SetUp()
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name_));
 
   // load the test data provider
-  test_data_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{test_data_file_name_, robot_model_});
+  test_data_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{ test_data_file_name_, robot_model_ });
   ASSERT_NE(nullptr, test_data_) << "Failed to load test data by provider.";
 
   num_joints_ = robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames().size();
@@ -125,7 +125,7 @@ void IntegrationTestCommandPlanning::SetUp()
 TEST_F(IntegrationTestCommandPlanning, PtpJoint)
 {
   ros::NodeHandle node_handle("~");
-  auto ptp {test_data_->getPtpJoint("Ptp1")};
+  auto ptp{ test_data_->getPtpJoint("Ptp1") };
 
   moveit_msgs::GetMotionPlan srv;
   moveit_msgs::MotionPlanRequest req = ptp.toRequest();
@@ -135,7 +135,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJoint)
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
-  const moveit_msgs::MotionPlanResponse& response {srv.response.motion_plan_response};
+  const moveit_msgs::MotionPlanResponse& response{ srv.response.motion_plan_response };
 
   // Check the result
   ASSERT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, response.error_code.val) << "Planning failed!";
@@ -145,16 +145,17 @@ TEST_F(IntegrationTestCommandPlanning, PtpJoint)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for(trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
     EXPECT_EQ(point.accelerations.size(), num_joints_);
   }
 
-  for(size_t i = 0; i < num_joints_; ++i)
+  for (size_t i = 0; i < num_joints_; ++i)
   {
-    EXPECT_NEAR(trajectory.points.back().positions.at(i), req.goal_constraints.back().joint_constraints.at(i).position, 10e-10);
+    EXPECT_NEAR(trajectory.points.back().positions.at(i), req.goal_constraints.back().joint_constraints.at(i).position,
+                10e-10);
     EXPECT_NEAR(trajectory.points.back().velocities.at(i), 0, 10e-10);
     // EXPECT_NEAR(trajectory.points.back().accelerations.at(i), 0, 10e-10); // TODO what is expected
   }
@@ -174,7 +175,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
 {
   ros::NodeHandle node_handle("~");
 
-  PtpJointCart ptp {test_data_->getPtpJointCart("Ptp1")};
+  PtpJointCart ptp{ test_data_->getPtpJointCart("Ptp1") };
   ptp.getGoalConfiguration().setPoseTolerance(0.01);
   ptp.getGoalConfiguration().setAngleTolerance(0.01);
 
@@ -185,7 +186,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
-  const moveit_msgs::MotionPlanResponse& response {srv.response.motion_plan_response};
+  const moveit_msgs::MotionPlanResponse& response{ srv.response.motion_plan_response };
 
   // Make sure the planning succeeded
   ASSERT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, response.error_code.val) << "Planning failed!";
@@ -197,7 +198,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for(trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -206,14 +207,14 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
 
   // TODO check that at right position
   robot_state::RobotState rstate(robot_model_);
-  rstate.setJointGroupPositions(planning_group_,response.trajectory.joint_trajectory.points.back().positions);
+  rstate.setJointGroupPositions(planning_group_, response.trajectory.joint_trajectory.points.back().positions);
   rstate.update();
   Eigen::Isometry3d tf = rstate.getFrameTransform(target_link_);
 
-  const geometry_msgs::Pose& expected_pose {ptp.getGoalConfiguration().getPose()};
-  EXPECT_NEAR(tf(0,3), expected_pose.position.x, EPSILON);
-  EXPECT_NEAR(tf(1,3), expected_pose.position.y, EPSILON);
-  EXPECT_NEAR(tf(2,3), expected_pose.position.z, EPSILON);
+  const geometry_msgs::Pose& expected_pose{ ptp.getGoalConfiguration().getPose() };
+  EXPECT_NEAR(tf(0, 3), expected_pose.position.x, EPSILON);
+  EXPECT_NEAR(tf(1, 3), expected_pose.position.y, EPSILON);
+  EXPECT_NEAR(tf(2, 3), expected_pose.position.z, EPSILON);
 
   Eigen::Isometry3d exp_iso3d_pose;
   tf::poseMsgToEigen(expected_pose, exp_iso3d_pose);
@@ -237,7 +238,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
  */
 TEST_F(IntegrationTestCommandPlanning, LinJoint)
 {
-  planning_interface::MotionPlanRequest req {test_data_->getLinJoint("lin2").toRequest()};
+  planning_interface::MotionPlanRequest req{ test_data_->getLinJoint("lin2").toRequest() };
 
   std::cout << "++++++++++" << std::endl;
   std::cout << "+ Step 1 +" << std::endl;
@@ -251,7 +252,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
-  const moveit_msgs::MotionPlanResponse& response {srv.response.motion_plan_response};
+  const moveit_msgs::MotionPlanResponse& response{ srv.response.motion_plan_response };
 
   ASSERT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, response.error_code.val) << "Planning failed!";
 
@@ -259,22 +260,17 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
   std::cout << "+ Step 2 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_,
-                                       response.trajectory.joint_trajectory,
-                                       req,
-                                       pose_norm_tolerance_,
-                                       orientation_norm_tolerance_)) << "Goal not reached.";
+  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+                                       orientation_norm_tolerance_))
+      << "Goal not reached.";
 
   std::cout << "++++++++++" << std::endl;
   std::cout << "+ Step 3 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::checkCartesianLinearity(
-                robot_model_,
-                response.trajectory.joint_trajectory,
-                req,
-                pose_norm_tolerance_,
-                orientation_norm_tolerance_)) << "Trajectory violates cartesian linearity.";
+  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_model_, response.trajectory.joint_trajectory, req,
+                                                 pose_norm_tolerance_, orientation_norm_tolerance_))
+      << "Trajectory violates cartesian linearity.";
 }
 
 /**
@@ -295,7 +291,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJoint)
 TEST_F(IntegrationTestCommandPlanning, LinJointCart)
 {
   ros::NodeHandle node_handle("~");
-  planning_interface::MotionPlanRequest req {test_data_->getLinJointCart("lin2").toRequest()};
+  planning_interface::MotionPlanRequest req{ test_data_->getLinJointCart("lin2").toRequest() };
 
   std::cout << "++++++++++" << std::endl;
   std::cout << "+ Step 1 +" << std::endl;
@@ -308,7 +304,7 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
-  const moveit_msgs::MotionPlanResponse& response {srv.response.motion_plan_response};
+  const moveit_msgs::MotionPlanResponse& response{ srv.response.motion_plan_response };
 
   ASSERT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, response.error_code.val) << "Planning failed!";
 
@@ -316,23 +312,17 @@ TEST_F(IntegrationTestCommandPlanning, LinJointCart)
   std::cout << "+ Step 2 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_,
-                                       response.trajectory.joint_trajectory,
-                                       req,
-                                       pose_norm_tolerance_,
-                                       orientation_norm_tolerance_)) << "Goal not reached.";
+  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+                                       orientation_norm_tolerance_))
+      << "Goal not reached.";
 
   std::cout << "++++++++++" << std::endl;
   std::cout << "+ Step 3 +" << std::endl;
   std::cout << "++++++++++" << std::endl;
 
-  ASSERT_TRUE(testutils::checkCartesianLinearity(
-                robot_model_,
-                response.trajectory.joint_trajectory,
-                req,
-                pose_norm_tolerance_,
-                orientation_norm_tolerance_)) << "Trajectory violates cartesian linearity.";
-
+  ASSERT_TRUE(testutils::checkCartesianLinearity(robot_model_, response.trajectory.joint_trajectory, req,
+                                                 pose_norm_tolerance_, orientation_norm_tolerance_))
+      << "Trajectory violates cartesian linearity.";
 }
 
 /**
@@ -351,9 +341,9 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
 {
   ros::NodeHandle node_handle("~");
 
-  CircJointCenterCart circ {test_data_->getCircJointCenterCart("circ1_center_2")};
+  CircJointCenterCart circ{ test_data_->getCircJointCenterCart("circ1_center_2") };
 
-  moveit_msgs::MotionPlanRequest req {circ.toRequest()};
+  moveit_msgs::MotionPlanRequest req{ circ.toRequest() };
 
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
@@ -362,7 +352,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   ros::ServiceClient client = node_handle.serviceClient<moveit_msgs::GetMotionPlan>(PLAN_SERVICE_NAME);
 
   ASSERT_TRUE(client.call(srv));
-  const moveit_msgs::MotionPlanResponse& response {srv.response.motion_plan_response};
+  const moveit_msgs::MotionPlanResponse& response{ srv.response.motion_plan_response };
 
   // Check the result
   ASSERT_EQ(moveit_msgs::MoveItErrorCodes::SUCCESS, response.error_code.val) << "Planning failed!";
@@ -372,7 +362,7 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for(trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -380,44 +370,42 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
   }
 
   // check goal is reached
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_,
-                                       response.trajectory.joint_trajectory,
-                                       req,
-                                       pose_norm_tolerance_,
-                                       orientation_norm_tolerance_)) << "Goal not reached.";
+  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+                                       orientation_norm_tolerance_))
+      << "Goal not reached.";
 
   // check all waypoints are on the circle and SLERP
   robot_state::RobotState waypoint_state(robot_model_);
   Eigen::Isometry3d waypoint_pose;
   double x_dist, y_dist, z_dist;
 
-  const geometry_msgs::Pose& aux_pose {circ.getAuxiliaryConfiguration().getConfiguration().getPose()};
+  const geometry_msgs::Pose& aux_pose{ circ.getAuxiliaryConfiguration().getConfiguration().getPose() };
 
-  CircCenterCart circ_cart {test_data_->getCircCartCenterCart("circ1_center_2")};
-  const geometry_msgs::Pose& start_pose {circ_cart.getStartConfiguration().getPose()};
-  const geometry_msgs::Pose& goal_pose {circ_cart.getGoalConfiguration().getPose()};
+  CircCenterCart circ_cart{ test_data_->getCircCartCenterCart("circ1_center_2") };
+  const geometry_msgs::Pose& start_pose{ circ_cart.getStartConfiguration().getPose() };
+  const geometry_msgs::Pose& goal_pose{ circ_cart.getGoalConfiguration().getPose() };
 
   x_dist = aux_pose.position.x - start_pose.position.x;
   y_dist = aux_pose.position.y - start_pose.position.y;
   z_dist = aux_pose.position.z - start_pose.position.z;
-  double expected_radius = sqrt( x_dist*x_dist + y_dist*y_dist +  z_dist*z_dist );
-  for(const auto & waypoint : trajectory.points)
+  double expected_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
+  for (const auto& waypoint : trajectory.points)
   {
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 
     // Calculate (and check) distance of current trajectory waypoint from circ center
-    x_dist = aux_pose.position.x - waypoint_pose(0,3);
-    y_dist = aux_pose.position.y - waypoint_pose(1,3);
-    z_dist = aux_pose.position.z - waypoint_pose(2,3);
-    double actual_radius = sqrt( x_dist*x_dist + y_dist*y_dist +  z_dist*z_dist );
+    x_dist = aux_pose.position.x - waypoint_pose(0, 3);
+    y_dist = aux_pose.position.y - waypoint_pose(1, 3);
+    z_dist = aux_pose.position.z - waypoint_pose(2, 3);
+    double actual_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
     EXPECT_NEAR(actual_radius, expected_radius, pose_norm_tolerance_) << "Trajectory way point is not on the circle.";
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
     tf::poseMsgToEigen(start_pose, start_pose_iso3d);
     tf::poseMsgToEigen(goal_pose, goal_pose_iso3d);
-    EXPECT_TRUE( testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_) );
+    EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
 }
 
@@ -437,8 +425,8 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
 {
   ros::NodeHandle node_handle("~");
 
-  CircCenterCart circ {test_data_->getCircCartCenterCart("circ1_center_2")};
-  moveit_msgs::MotionPlanRequest req {circ.toRequest()};
+  CircCenterCart circ{ test_data_->getCircCartCenterCart("circ1_center_2") };
+  moveit_msgs::MotionPlanRequest req{ circ.toRequest() };
   moveit_msgs::GetMotionPlan srv;
   srv.request.motion_plan_request = req;
 
@@ -456,7 +444,7 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   EXPECT_GT(trajectory.points.size(), 0u) << "There are no points in the trajectory";
 
   // Check that every point has position, velocity, acceleration
-  for(trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
+  for (trajectory_msgs::JointTrajectoryPoint point : trajectory.points)
   {
     EXPECT_EQ(point.positions.size(), num_joints_);
     EXPECT_EQ(point.velocities.size(), num_joints_);
@@ -464,54 +452,47 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
   }
 
   // check goal is reached
-  ASSERT_TRUE(testutils::isGoalReached(robot_model_,
-                                       response.trajectory.joint_trajectory,
-                                       req,
-                                       pose_norm_tolerance_,
-                                       orientation_norm_tolerance_)) << "Goal not reached.";
+  ASSERT_TRUE(testutils::isGoalReached(robot_model_, response.trajectory.joint_trajectory, req, pose_norm_tolerance_,
+                                       orientation_norm_tolerance_))
+      << "Goal not reached.";
 
   // check all waypoints are on the cricle and SLERP
   robot_state::RobotState waypoint_state(robot_model_);
   Eigen::Isometry3d waypoint_pose;
   double x_dist, y_dist, z_dist;
 
-  const geometry_msgs::Pose& start_pose {circ.getStartConfiguration().getPose()};
-  const geometry_msgs::Pose& aux_pose {circ.getAuxiliaryConfiguration().getConfiguration().getPose()};
-  const geometry_msgs::Pose& goal_pose {circ.getGoalConfiguration().getPose()};
+  const geometry_msgs::Pose& start_pose{ circ.getStartConfiguration().getPose() };
+  const geometry_msgs::Pose& aux_pose{ circ.getAuxiliaryConfiguration().getConfiguration().getPose() };
+  const geometry_msgs::Pose& goal_pose{ circ.getGoalConfiguration().getPose() };
 
   x_dist = aux_pose.position.x - start_pose.position.x;
   y_dist = aux_pose.position.y - start_pose.position.y;
   z_dist = aux_pose.position.z - start_pose.position.z;
-  double expected_radius = sqrt( x_dist*x_dist + y_dist*y_dist +  z_dist*z_dist );
-  for(const auto & waypoint : trajectory.points)
+  double expected_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
+  for (const auto& waypoint : trajectory.points)
   {
     waypoint_state.setJointGroupPositions(planning_group_, waypoint.positions);
     waypoint_pose = waypoint_state.getFrameTransform(target_link_);
 
     // Calculate (and check) distance of current trajectory waypoint from circ center
-    x_dist = aux_pose.position.x - waypoint_pose(0,3);
-    y_dist = aux_pose.position.y - waypoint_pose(1,3);
-    z_dist = aux_pose.position.z - waypoint_pose(2,3);
-    double actual_radius = sqrt( x_dist*x_dist + y_dist*y_dist +  z_dist*z_dist );
+    x_dist = aux_pose.position.x - waypoint_pose(0, 3);
+    y_dist = aux_pose.position.y - waypoint_pose(1, 3);
+    z_dist = aux_pose.position.z - waypoint_pose(2, 3);
+    double actual_radius = sqrt(x_dist * x_dist + y_dist * y_dist + z_dist * z_dist);
     EXPECT_NEAR(actual_radius, expected_radius, pose_norm_tolerance_) << "Trajectory way point is not on the circle.";
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
     tf::poseMsgToEigen(start_pose, start_pose_iso3d);
     tf::poseMsgToEigen(goal_pose, goal_pose_iso3d);
-    EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d,
-                                      goal_pose_iso3d,
-                                      waypoint_pose,
-                                      orientation_norm_tolerance_));
+    EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
-
 }
 
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "integrationtest_command_planning");
-  ros::NodeHandle nh; // For output via ROS_ERROR etc during test
+  ros::NodeHandle nh;  // For output via ROS_ERROR etc during test
 
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

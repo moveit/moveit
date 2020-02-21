@@ -128,29 +128,29 @@ public:
 
 private:
   ///    Flag if a maximum translational velocity was set
-  bool   has_max_trans_vel_;
+  bool has_max_trans_vel_;
 
   ///    Maximum translational velocity [m/s]
   double max_trans_vel_;
 
   ///    Flag if a maximum translational acceleration was set
-  bool   has_max_trans_acc_;
+  bool has_max_trans_acc_;
 
   ///    Maximum translational acceleration [m/s^2]
   double max_trans_acc_;
 
   ///    Flag if a maximum translational deceleration was set
-  bool   has_max_trans_dec_;
+  bool has_max_trans_dec_;
 
   ///    Maximum translational deceleration, always <=0 [m/s^2]
   double max_trans_dec_;
 
   ///    Flag if a maximum rotational velocity was set
-  bool   has_max_rot_vel_;
+  bool has_max_rot_vel_;
 
   ///    Maximum rotational velocity [rad/s]
   double max_rot_vel_;
 };
 
-}
-#endif // CARTESIAN_LIMIT_H
+}  // namespace trapezoidal
+#endif  // CARTESIAN_LIMIT_H

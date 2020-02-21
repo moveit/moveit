@@ -41,21 +41,21 @@
 #include "trapezoidal_trajectory_generation/trajectory_blend_request.h"
 #include "trapezoidal_trajectory_generation/trajectory_blend_response.h"
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Base class of trajectory blenders
  */
 class TrajectoryBlender
 {
 public:
-
-  TrajectoryBlender(const trapezoidal::LimitsContainer& planner_limits)
-    :limits_(planner_limits)
+  TrajectoryBlender(const trapezoidal::LimitsContainer& planner_limits) : limits_(planner_limits)
   {
   }
 
-  virtual ~TrajectoryBlender(){}
+  virtual ~TrajectoryBlender()
+  {
+  }
 
   /**
    * @brief Blend two robot trajectories with the given blending radius
@@ -63,8 +63,7 @@ public:
    * @param res: trajectroy blend response
    * @return true if blend succeed
    */
-  virtual bool blend(const trapezoidal::TrajectoryBlendRequest& req,
-                     trapezoidal::TrajectoryBlendResponse& res) = 0;
+  virtual bool blend(const trapezoidal::TrajectoryBlendRequest& req, trapezoidal::TrajectoryBlendResponse& res) = 0;
 
 protected:
   const trapezoidal::LimitsContainer limits_;
@@ -72,6 +71,6 @@ protected:
 
 typedef std::unique_ptr<TrajectoryBlender> TrajectoryBlenderUniquePtr;
 
-}
+}  // namespace trapezoidal
 
-#endif // TRAJECTORY_BLENDER_H
+#endif  // TRAJECTORY_BLENDER_H

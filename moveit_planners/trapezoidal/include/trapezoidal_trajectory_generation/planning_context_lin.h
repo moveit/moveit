@@ -48,9 +48,8 @@
 #include "trapezoidal_trajectory_generation/planning_context_base.h"
 #include "trapezoidal_trajectory_generation/trajectory_generator_lin.h"
 
-
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 MOVEIT_CLASS_FORWARD(PlanningContext)
 
 /**
@@ -58,14 +57,14 @@ MOVEIT_CLASS_FORWARD(PlanningContext)
  */
 class PlanningContextLIN : public trapezoidal::PlanningContextBase<TrajectoryGeneratorLIN>
 {
-  public:
-    PlanningContextLIN(const std::string& name,
-                       const std::string& group,
-                       const moveit::core::RobotModelConstPtr& model,
-                       const trapezoidal::LimitsContainer& limits):
-    trapezoidal::PlanningContextBase<TrajectoryGeneratorLIN>(name, group, model, limits){}
+public:
+  PlanningContextLIN(const std::string& name, const std::string& group, const moveit::core::RobotModelConstPtr& model,
+                     const trapezoidal::LimitsContainer& limits)
+    : trapezoidal::PlanningContextBase<TrajectoryGeneratorLIN>(name, group, model, limits)
+  {
+  }
 };
 
-} // namespace
+}  // namespace trapezoidal
 
-#endif // PlanningContextLIN_H
+#endif  // PlanningContextLIN_H

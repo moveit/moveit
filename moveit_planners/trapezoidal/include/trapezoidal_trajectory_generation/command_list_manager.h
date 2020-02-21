@@ -50,7 +50,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 using RobotTrajCont = std::vector<robot_trajectory::RobotTrajectoryPtr>;
 
 // List of exceptions which can be thrown by the CommandListManager class.
@@ -105,7 +104,7 @@ public:
 
 private:
   using MotionResponseCont = std::vector<planning_interface::MotionPlanResponse>;
-  using RobotState_OptRef = boost::optional<const robot_state::RobotState& >;
+  using RobotState_OptRef = boost::optional<const robot_state::RobotState&>;
   using RadiiCont = std::vector<double>;
   using GroupNamesCont = std::vector<std::string>;
 
@@ -116,8 +115,7 @@ private:
    * @param motion_plan_responses Container of calculated/generated trajectories.
    * @param radii Container stating the blend radii.
    */
-  void checkForOverlappingRadii(const MotionResponseCont& resp_cont,
-                                const RadiiCont &radii) const;
+  void checkForOverlappingRadii(const MotionResponseCont& resp_cont, const RadiiCont& radii) const;
 
   /**
    * @brief Solve each sequence item individually.
@@ -129,32 +127,29 @@ private:
    */
   MotionResponseCont solveSequenceItems(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                         const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                                        const pilz_msgs::MotionSequenceRequest &req_list) const;
+                                        const pilz_msgs::MotionSequenceRequest& req_list) const;
 
   /**
    * @return TRUE if the blending radii of specified trajectories overlap,
    * otherwise FALSE. The functions returns FALSE if both trajectories are from
    * different groups or if both trajectories are end-effector groups.
    */
-  bool checkRadiiForOverlap(const robot_trajectory::RobotTrajectory& traj_A,
-                            const double radii_A,
-                            const robot_trajectory::RobotTrajectory& traj_B,
-                            const double radii_B) const;
+  bool checkRadiiForOverlap(const robot_trajectory::RobotTrajectory& traj_A, const double radii_A,
+                            const robot_trajectory::RobotTrajectory& traj_B, const double radii_B) const;
 
 private:
   /**
    * @return The last RobotState of the specified group which can
    * be found in the specified vector.
    */
-  static RobotState_OptRef getPreviousEndState(const MotionResponseCont &motion_plan_responses,
-                                               const std::string &group_name);
+  static RobotState_OptRef getPreviousEndState(const MotionResponseCont& motion_plan_responses,
+                                               const std::string& group_name);
 
   /**
    * @brief Set start state to end state of previous calculated trajectory
    * from group.
    */
-  static void setStartState(const MotionResponseCont &motion_plan_responses,
-                            const std::string &group_name,
+  static void setStartState(const MotionResponseCont& motion_plan_responses, const std::string& group_name,
                             moveit_msgs::RobotState& start_state);
 
   /**
@@ -165,8 +160,8 @@ private:
    * - blend radii between end-effectors and
    * - blend raddi between different groups.
    */
-  static RadiiCont extractBlendRadii(const moveit::core::RobotModel &model,
-                                     const pilz_msgs::MotionSequenceRequest &req_list);
+  static RadiiCont extractBlendRadii(const moveit::core::RobotModel& model,
+                                     const pilz_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @return True in case of an invalid blend radii between specified
@@ -174,38 +169,36 @@ private:
    * - blend radii between end-effectors and
    * - blend raddi between different groups.
    */
-  static bool isInvalidBlendRadii(const moveit::core::RobotModel &model,
-                                  const pilz_msgs::MotionSequenceItem& item_A,
+  static bool isInvalidBlendRadii(const moveit::core::RobotModel& model, const pilz_msgs::MotionSequenceItem& item_A,
                                   const pilz_msgs::MotionSequenceItem& item_B);
 
   /**
    * @brief Checks that all blend radii are greater or equal to zero.
    */
-  static void checkForNegativeRadii(const pilz_msgs::MotionSequenceRequest &req_list);
+  static void checkForNegativeRadii(const pilz_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @brief Checks that last blend radius is zero.
    */
-  static void checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest &req_list);
+  static void checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @brief Checks that only the first request of the specified group has
    * a start state in the specified request list.
    */
-  static void checkStartStatesOfGroup(const pilz_msgs::MotionSequenceRequest &req_list,
-                                      const std::string& group_name);
+  static void checkStartStatesOfGroup(const pilz_msgs::MotionSequenceRequest& req_list, const std::string& group_name);
 
   /**
    * @brief Checks that each group in the specified request list has only
    * one start state.
    */
-  static void checkStartStates(const pilz_msgs::MotionSequenceRequest &req_list);
+  static void checkStartStates(const pilz_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @return Returns all group names which are present in the specified
    * request.
    */
-  static GroupNamesCont getGroupNames(const pilz_msgs::MotionSequenceRequest &req_list);
+  static GroupNamesCont getGroupNames(const pilz_msgs::MotionSequenceRequest& req_list);
 
 private:
   //! Node handle
@@ -219,14 +212,14 @@ private:
   PlanComponentsBuilder plan_comp_builder_;
 };
 
-inline void CommandListManager::checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest &req_list)
+inline void CommandListManager::checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest& req_list)
 {
-  if(req_list.items.back().blend_radius != 0.0)
+  if (req_list.items.back().blend_radius != 0.0)
   {
     throw LastBlendRadiusNotZeroException("The last blending radius must be zero");
   }
 }
 
-}
+}  // namespace trapezoidal_trajectory_generation
 
-#endif // COMMAND_LIST_MANAGER_H
+#endif  // COMMAND_LIST_MANAGER_H

@@ -46,8 +46,8 @@
 
 #include <map>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief  Unifies the joint limits from the given joint models with joint limits from the parameter server.
  *
@@ -55,8 +55,7 @@ namespace trapezoidal {
  */
 class JointLimitsAggregator
 {
-  public:
-
+public:
   /**
    * @brief  Aggregates(combines) the joint limits from joint model and parameter server.
    * The rules for the combination are:
@@ -71,52 +70,49 @@ class JointLimitsAggregator
    * @param joint_models The joint models
    * @return Container containing the limits
    */
-    static JointLimitsContainer getAggregatedLimits(const ros::NodeHandle& nh,
-                                           const std::vector<const moveit::core::JointModel*>& joint_models);
+  static JointLimitsContainer getAggregatedLimits(const ros::NodeHandle& nh,
+                                                  const std::vector<const moveit::core::JointModel*>& joint_models);
 
-  protected:
-    /**
-     * @brief Update the position limits with the ones from the joint_model.
-     *
-     * If the joint model has no position limit, the value is unchanged.
-     *
-     * @param joint_model The joint model
-     * @param joint_limit The joint_limit to be filled with new values.
-     */
-    static void updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                  pilz_extensions::JointLimit& joint_limit);
+protected:
+  /**
+   * @brief Update the position limits with the ones from the joint_model.
+   *
+   * If the joint model has no position limit, the value is unchanged.
+   *
+   * @param joint_model The joint model
+   * @param joint_limit The joint_limit to be filled with new values.
+   */
+  static void updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
+                                                pilz_extensions::JointLimit& joint_limit);
 
-    /**
-     * @brief Update the velocity limit with the one from the joint_model.
-     *
-     * If the joint model has no velocity limit, the value is unchanged.
-     *
-     * @param joint_model The joint model
-     * @param joint_limit The joint_limit to be filled with new values.
-     */
-    static void updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                  pilz_extensions::JointLimit& joint_limit);
+  /**
+   * @brief Update the velocity limit with the one from the joint_model.
+   *
+   * If the joint model has no velocity limit, the value is unchanged.
+   *
+   * @param joint_model The joint model
+   * @param joint_limit The joint_limit to be filled with new values.
+   */
+  static void updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
+                                                pilz_extensions::JointLimit& joint_limit);
 
-    /**
-     * @brief Checks if the position limits from the given joint_limit are stricter than the limits of the joint_model.
-     * Throws AggregationBoundsViolationException on violation
-     * @param joint_model The joint_model
-     * @param joint_limit The joint_limit
-     */
-    static void checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                            const pilz_extensions::JointLimit& joint_limit);
+  /**
+   * @brief Checks if the position limits from the given joint_limit are stricter than the limits of the joint_model.
+   * Throws AggregationBoundsViolationException on violation
+   * @param joint_model The joint_model
+   * @param joint_limit The joint_limit
+   */
+  static void checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
+                                          const pilz_extensions::JointLimit& joint_limit);
 
-
-    /**
-     * @brief Checks if the velocity limit from the given joint_limit are stricter than the limit of the joint_model.
-     * Throws AggregationBoundsViolationException on violation
-     * @param joint_model The joint_model
-     * @param joint_limit The joint_limit
-     */
-    static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                            const pilz_extensions::JointLimit& joint_limit);
-
-
+  /**
+   * @brief Checks if the velocity limit from the given joint_limit are stricter than the limit of the joint_model.
+   * Throws AggregationBoundsViolationException on violation
+   * @param joint_model The joint_model
+   * @param joint_limit The joint_limit
+   */
+  static void checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
+                                          const pilz_extensions::JointLimit& joint_limit);
 };
 
 /**
@@ -125,8 +121,10 @@ class JointLimitsAggregator
  */
 class AggregationException : public std::runtime_error
 {
-  public:
-    AggregationException(const std::string error_desc) : std::runtime_error(error_desc) {}
+public:
+  AggregationException(const std::string error_desc) : std::runtime_error(error_desc)
+  {
+  }
 };
 
 /**
@@ -134,12 +132,14 @@ class AggregationException : public std::runtime_error
  * @brief Thrown the limits from the parameter server are weaker(forbidden) than the ones defined in the urdf
  *
  */
-class AggregationBoundsViolationException: public AggregationException
+class AggregationBoundsViolationException : public AggregationException
 {
-  public:
-    AggregationBoundsViolationException(const std::string error_desc) : AggregationException(error_desc) {}
+public:
+  AggregationBoundsViolationException(const std::string error_desc) : AggregationException(error_desc)
+  {
+  }
 };
 
-}
+}  // namespace trapezoidal
 
-#endif // JOINT_LIMITS_UNIFIER_H
+#endif  // JOINT_LIMITS_UNIFIER_H

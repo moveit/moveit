@@ -53,7 +53,6 @@ using namespace trapezoidal_trajectory_generation;
 
 namespace trapezoidal
 {
-
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(TrajectoryGeneratorInvalidLimitsException, moveit_msgs::MoveItErrorCodes::FAILURE);
 
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(VelocityScalingIncorrect, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN);
@@ -65,16 +64,22 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(SizeMismatchInStartState, moveit_msgs::MoveIt
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointsOfStartStateOutOfRange, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NonZeroVelocityInStartState, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE);
 
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NotExactlyOneGoalConstraintGiven, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NotExactlyOneGoalConstraintGiven,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(OnlyOneGoalTypeAllowed, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(StartStateGoalStateMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointConstraintDoesNotBelongToGroup, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(StartStateGoalStateMismatch,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointConstraintDoesNotBelongToGroup,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(JointsOfGoalOutOfRange, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PositionConstraintNameMissing, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(OrientationConstraintNameMissing, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
-CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PositionOrientationConstraintNameMismatch, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PositionConstraintNameMissing,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(OrientationConstraintNameMissing,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
+CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PositionOrientationConstraintNameMismatch,
+                                   moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoIKSolverAvailable, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoPrimitivePoseGiven, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS);
 
@@ -86,11 +91,9 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoPrimitivePoseGiven, moveit_msgs::MoveItErro
 class TrajectoryGenerator
 {
 public:
-
   TrajectoryGenerator(const robot_model::RobotModelConstPtr& robot_model,
                       const trapezoidal::LimitsContainer& planner_limits)
-    :robot_model_(robot_model),
-      planner_limits_(planner_limits)
+    : robot_model_(robot_model), planner_limits_(planner_limits)
   {
   }
 
@@ -103,9 +106,8 @@ public:
    * @param sampling_time: sampling time of the generate trajectory
    * @return motion plan succeed/fail, detailed information in motion plan responce
    */
-  bool generate(const planning_interface::MotionPlanRequest& req,
-                planning_interface::MotionPlanResponse&  res,
-                double sampling_time=0.1);
+  bool generate(const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                double sampling_time = 0.1);
 
 protected:
   /**
@@ -129,13 +131,12 @@ protected:
    * Uses the path to get the cartesian length and the angular distance from start to goal.
    * The trap profile returns uses the longer distance of translational and rotational motion.
    */
-  std::unique_ptr<KDL::VelocityProfile> cartesianTrapVelocityProfile(
-      const double& max_velocity_scaling_factor,
-      const double& max_acceleration_scaling_factor,
-      const std::unique_ptr<KDL::Path> &path) const;
+  std::unique_ptr<KDL::VelocityProfile> cartesianTrapVelocityProfile(const double& max_velocity_scaling_factor,
+                                                                     const double& max_acceleration_scaling_factor,
+                                                                     const std::unique_ptr<KDL::Path>& path) const;
 
 private:
-  virtual void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest &req) const;
+  virtual void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest& req) const;
 
   /**
    * @brief Extract needed information from a motion plan request in order to simplify
@@ -143,35 +144,39 @@ private:
    * @param req: motion plan request
    * @param info: information extracted from motion plan request which is necessary for the planning
    */
-  virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
-                                     MotionPlanInfo& info) const = 0;
+  virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const = 0;
 
-  virtual void plan(const planning_interface::MotionPlanRequest &req,
-                    const MotionPlanInfo& plan_info,
-                    const double& sampling_time,
-                    trajectory_msgs::JointTrajectory& joint_trajectory) = 0;
+  virtual void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) = 0;
 
 private:
   /**
    * @brief Validate the motion plan request based on the common requirements of trajectroy generator
    * Checks that:
    *    - req.max_velocity_scaling_factor [0.0001, 1], moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN on failure
-   *    - req.max_acceleration_scaling_factor [0.0001, 1] , moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN on failure
-   *    - req.group_name is a JointModelGroup of the Robotmodel, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME on failure
+   *    - req.max_acceleration_scaling_factor [0.0001, 1] , moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN on
+   * failure
+   *    - req.group_name is a JointModelGroup of the Robotmodel, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME on
+   * failure
    *    - req.start_state.joint_state is not empty, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE on failure
-   *    - req.start_state.joint_state is within the limits, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE on failure
+   *    - req.start_state.joint_state is within the limits, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE on
+   * failure
    *    - req.start_state.joint_state is all zero, moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE on failure
    *    - req.goal_constraints must have exactly 1 defined cartesian oder joint constraint
    *      moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
    * A joint goal is checked for:
-   *    - StartState joint-names matching goal joint-names, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
+   *    - StartState joint-names matching goal joint-names, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on
+   * failure
    *    - Beeing defined in the req.group_name JointModelGroup
    *    - Beeing with the defined limits
    * A cartesian goal is checked for:
    *    - A defined link_name for the constraint, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
-   *    - Matching link_name for position and orientation constraints, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
-   *    - A IK solver exists for the given req.group_name and constraint link_name, moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION on failure
-   *    - A goal pose define in position_constraints[0].constraint_region.primitive_poses, moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
+   *    - Matching link_name for position and orientation constraints,
+   * moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
+   *    - A IK solver exists for the given req.group_name and constraint link_name,
+   * moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION on failure
+   *    - A goal pose define in position_constraints[0].constraint_region.primitive_poses,
+   * moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS on failure
    * @param req: motion plan request
    */
   void validateRequest(const planning_interface::MotionPlanRequest& req) const;
@@ -179,14 +184,11 @@ private:
   /**
    * @brief set MotionPlanResponse from joint trajectory
    */
-  void setSuccessResponse(const std::string& group_name,
-                          const moveit_msgs::RobotState& start_state,
-                          const trajectory_msgs::JointTrajectory& joint_trajectory,
-                          const ros::Time &planning_start,
+  void setSuccessResponse(const std::string& group_name, const moveit_msgs::RobotState& start_state,
+                          const trajectory_msgs::JointTrajectory& joint_trajectory, const ros::Time& planning_start,
                           planning_interface::MotionPlanResponse& res) const;
 
-  void setFailureResponse(const ros::Time &planning_start,
-                          planning_interface::MotionPlanResponse& res) const;
+  void setFailureResponse(const ros::Time& planning_start, planning_interface::MotionPlanResponse& res) const;
 
   void checkForValidGroupName(const std::string& group_name) const;
 
@@ -199,21 +201,19 @@ private:
    *     - The start state is withing the position limits
    *     - The start state velocity is below TrajectoryGenerator::VELOCITY_TOLERANCE
    */
-  void checkStartState(const moveit_msgs::RobotState &start_state) const;
+  void checkStartState(const moveit_msgs::RobotState& start_state) const;
 
-  void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type &goal_constraints,
-                            const std::vector<std::string> &expected_joint_names,
-                            const std::string &group_name) const;
+  void checkGoalConstraints(const moveit_msgs::MotionPlanRequest::_goal_constraints_type& goal_constraints,
+                            const std::vector<std::string>& expected_joint_names, const std::string& group_name) const;
 
   void checkJointGoalConstraint(const moveit_msgs::Constraints& constraint,
                                 const std::vector<std::string>& expected_joint_names,
-                                const std::string &group_name) const;
+                                const std::string& group_name) const;
 
-  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint,
-                                    const std::string &group_name) const;
+  void checkCartesianGoalConstraint(const moveit_msgs::Constraints& constraint, const std::string& group_name) const;
 
   void convertToRobotTrajectory(const trajectory_msgs::JointTrajectory& joint_trajectory,
-                                const moveit_msgs::RobotState &start_state,
+                                const moveit_msgs::RobotState& start_state,
                                 robot_trajectory::RobotTrajectory& robot_trajectory) const;
 
 private:
@@ -244,9 +244,9 @@ private:
 protected:
   const robot_model::RobotModelConstPtr robot_model_;
   const trapezoidal::LimitsContainer planner_limits_;
-  static constexpr double MIN_SCALING_FACTOR {0.0001};
-  static constexpr double MAX_SCALING_FACTOR {1.};
-  static constexpr double VELOCITY_TOLERANCE {1e-8};
+  static constexpr double MIN_SCALING_FACTOR{ 0.0001 };
+  static constexpr double MAX_SCALING_FACTOR{ 1. };
+  static constexpr double VELOCITY_TOLERANCE{ 1e-8 };
 };
 
 inline bool TrajectoryGenerator::isScalingFactorValid(const double& scaling_factor)
@@ -254,7 +254,7 @@ inline bool TrajectoryGenerator::isScalingFactorValid(const double& scaling_fact
   return (scaling_factor > MIN_SCALING_FACTOR && scaling_factor <= MAX_SCALING_FACTOR);
 }
 
-inline bool TrajectoryGenerator::isCartesianGoalGiven(const moveit_msgs::Constraints &constraint)
+inline bool TrajectoryGenerator::isCartesianGoalGiven(const moveit_msgs::Constraints& constraint)
 {
   return constraint.position_constraints.size() == 1 && constraint.orientation_constraints.size() == 1;
 }
@@ -266,9 +266,9 @@ inline bool TrajectoryGenerator::isJointGoalGiven(const moveit_msgs::Constraints
 
 inline bool TrajectoryGenerator::isOnlyOneGoalTypeGiven(const moveit_msgs::Constraints& constraint)
 {
-  return (isJointGoalGiven(constraint) && !isCartesianGoalGiven(constraint))
-      || (!isJointGoalGiven(constraint) && isCartesianGoalGiven(constraint));
+  return (isJointGoalGiven(constraint) && !isCartesianGoalGiven(constraint)) ||
+         (!isJointGoalGiven(constraint) && isCartesianGoalGiven(constraint));
 }
 
-}
-#endif // TRAJECTORYGENERATOR_H
+}  // namespace trapezoidal
+#endif  // TRAJECTORYGENERATOR_H

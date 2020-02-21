@@ -48,9 +48,8 @@
 #include "trapezoidal_trajectory_generation/limits_container.h"
 #include "trapezoidal_trajectory_generation/cartesian_trajectory.h"
 
-
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief compute the inverse kinematics of a given pose, also check robot self collision
  * @param robot_model: kinematic model of the robot
@@ -64,25 +63,15 @@ namespace trapezoidal {
  * @param max_attempt: maximal attempts of IK
  * @return true if succeed
  */
-bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model,
-                   const std::string& group_name,
-                   const std::string& link_name,
-                   const Eigen::Isometry3d& pose,
-                   const std::string& frame_id,
-                   const std::map<std::string, double>& seed,
-                   std::map<std::string, double>& solution,
-                   bool check_self_collision = true,
-                   const double timeout = 0.1);
+bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+                   const std::string& link_name, const Eigen::Isometry3d& pose, const std::string& frame_id,
+                   const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
+                   bool check_self_collision = true, const double timeout = 0.1);
 
-bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model,
-                   const std::string& group_name,
-                   const std::string& link_name,
-                   const geometry_msgs::Pose& pose,
-                   const std::string& frame_id,
-                   const std::map<std::string, double>& seed,
-                   std::map<std::string, double>& solution,
-                   bool check_self_collision = true,
-                   const double timeout = 0.1);
+bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+                   const std::string& link_name, const geometry_msgs::Pose& pose, const std::string& frame_id,
+                   const std::map<std::string, double>& seed, std::map<std::string, double>& solution,
+                   bool check_self_collision = true, const double timeout = 0.1);
 
 /**
  * @brief compute the pose of a link at give robot state
@@ -92,15 +81,11 @@ bool computePoseIK(const robot_model::RobotModelConstPtr& robot_model,
  * @param pose: pose of the link in base frame of robot model
  * @return true if succeed
  */
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model,
-                   const std::string& link_name,
-                   const std::map<std::string, double>& joint_state,
-                   Eigen::Isometry3d& pose);
+bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+                   const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose);
 
-bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model,
-                   const std::string& link_name,
-                   const std::vector<std::string>& joint_names,
-                   const std::vector<double>& joint_positions,
+bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std::string& link_name,
+                   const std::vector<std::string>& joint_names, const std::vector<double>& joint_positions,
                    Eigen::Isometry3d& pose);
 
 /**
@@ -117,11 +102,8 @@ bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model,
  */
 bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
                              const std::map<std::string, double>& velocity_last,
-                             const std::map<std::string, double>& position_current,
-                             double duration_last,
-                             double duration_current,
-                             const JointLimitsContainer &joint_limits);
-
+                             const std::map<std::string, double>& position_current, double duration_last,
+                             double duration_current, const JointLimitsContainer& joint_limits);
 
 /**
  * @brief Generate joint trajectory from a KDL Cartesian trajectory
@@ -139,15 +121,11 @@ bool verifySampleJointLimits(const std::map<std::string, double>& position_last,
  * @return true if succeed
  */
 bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
-                             const JointLimitsContainer& joint_limits,
-                             const KDL::Trajectory& trajectory,
-                             const std::string& group_name,
-                             const std::string& link_name,
-                             const std::map<std::string, double>& initial_joint_position,
-                             const double& sampling_time,
+                             const JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
+                             const std::string& group_name, const std::string& link_name,
+                             const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
-                             moveit_msgs::MoveItErrorCodes& error_code,
-                             bool check_self_collision = false);
+                             moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);
 
 /**
  * @brief Generate joint trajectory from a MultiDOFJointTrajectory
@@ -160,15 +138,11 @@ bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
  */
 bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
                              const JointLimitsContainer& joint_limits,
-                             const trapezoidal::CartesianTrajectory& trajectory,
-                             const std::string& group_name,
-                             const std::string& link_name,
-                             const std::map<std::string, double>& initial_joint_position,
+                             const trapezoidal::CartesianTrajectory& trajectory, const std::string& group_name,
+                             const std::string& link_name, const std::map<std::string, double>& initial_joint_position,
                              const std::map<std::string, double>& initial_joint_velocity,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
-                             moveit_msgs::MoveItErrorCodes& error_code,
-                             bool check_self_collision = false);
-
+                             moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);
 
 /**
  * @brief Determines the sampling time and checks that both trajectroies use the
@@ -177,8 +151,7 @@ bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
  * of each trajectory), otherwise FALSE.
  */
 bool determineAndCheckSamplingTime(const robot_trajectory::RobotTrajectoryPtr& first_trajectory,
-                                   const robot_trajectory::RobotTrajectoryPtr& second_trajectory,
-                                   double EPSILON,
+                                   const robot_trajectory::RobotTrajectoryPtr& second_trajectory, double EPSILON,
                                    double& sampling_time);
 
 /**
@@ -190,10 +163,8 @@ bool determineAndCheckSamplingTime(const robot_trajectory::RobotTrajectoryPtr& f
  *
  * @return True if joint positions, joint velocities and joint accelerations are equal, otherwise false.
  */
-bool isRobotStateEqual(const robot_state::RobotState& state1,
-                       const robot_state::RobotState& state2,
-                       const std::string& joint_group_name,
-                       double epsilon);
+bool isRobotStateEqual(const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                       const std::string& joint_group_name, double epsilon);
 
 /**
  * @brief check if the robot state have zero velocity/acceleartion
@@ -202,10 +173,7 @@ bool isRobotStateEqual(const robot_state::RobotState& state1,
  * @param EPSILON
  * @return
  */
-bool isRobotStateStationary(const robot_state::RobotState& state,
-                            const std::string& group,
-                            double EPSILON);
-
+bool isRobotStateStationary(const robot_state::RobotState& state, const std::string& group, double EPSILON);
 
 /**
  * @brief Performs a linear search for the intersection point of the trajectory with the blending radius.
@@ -216,17 +184,11 @@ bool isRobotStateStationary(const robot_state::RobotState& state,
  * smallest index of trajectroy.
  * @param index The intersection index which has to be determined.
  */
-bool linearSearchIntersectionPoint(const std::string &link_name,
-                                   const Eigen::Vector3d &center_position,
-                                   const double &r,
-                                   const robot_trajectory::RobotTrajectoryPtr& traj,
-                                   bool inverseOrder,
-                                   std::size_t &index);
+bool linearSearchIntersectionPoint(const std::string& link_name, const Eigen::Vector3d& center_position,
+                                   const double& r, const robot_trajectory::RobotTrajectoryPtr& traj, bool inverseOrder,
+                                   std::size_t& index);
 
-
-bool intersectionFound(const Eigen::Vector3d &p_center,
-                       const Eigen::Vector3d &p_current,
-                       const Eigen::Vector3d &p_next,
+bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p_current, const Eigen::Vector3d& p_next,
                        const double& r);
 
 /**
@@ -238,13 +200,11 @@ bool intersectionFound(const Eigen::Vector3d &p_center,
  * @param ik_solution
  * @return
  */
-bool isStateColliding(const bool test_for_self_collision,
-                      const moveit::core::RobotModelConstPtr &robot_model,
-                      robot_state::RobotState* state,
-                      const robot_state::JointModelGroup * const group,
-                      const double * const ik_solution);
-}
+bool isStateColliding(const bool test_for_self_collision, const moveit::core::RobotModelConstPtr& robot_model,
+                      robot_state::RobotState* state, const robot_state::JointModelGroup* const group,
+                      const double* const ik_solution);
+}  // namespace trapezoidal
 
-void normalizeQuaternion(geometry_msgs::Quaternion & quat);
+void normalizeQuaternion(geometry_msgs::Quaternion& quat);
 
-#endif // TRAJECTORY_FUNCTIONS_H
+#endif  // TRAJECTORY_FUNCTIONS_H

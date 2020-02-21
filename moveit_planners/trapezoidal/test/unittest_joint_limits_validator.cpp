@@ -47,7 +47,6 @@ class JointLimitsValidatorTest : public ::testing::Test
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionEquality)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -69,7 +68,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMinPosition)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -96,7 +94,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMinPosition)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition1)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -123,7 +120,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -141,7 +137,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
   lim3.min_position = -1;
   lim3.max_position = 1;
 
-
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
   container.addLimit("joint3", lim3);
@@ -152,13 +147,11 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxPosition2)
   EXPECT_EQ(true, trapezoidal::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
-
 /**
  * @brief Check postion inequality in has_position_limits false detection
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasPositionLimits)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -186,13 +179,11 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasPositionLimits)
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-
 /**
  * @brief Check velocity equality
  */
 TEST_F(JointLimitsValidatorTest, CheckVelocityEquality)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -213,7 +204,6 @@ TEST_F(JointLimitsValidatorTest, CheckVelocityEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity1)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -238,7 +228,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity2)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -268,7 +257,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxVelocity2)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasVelocityLimits)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -286,21 +274,17 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasVelocityLimits)
   EXPECT_EQ(true, trapezoidal::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
-
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 // ACCELERATION
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-
-
 /**
  * @brief Check acceleration equality
  */
 TEST_F(JointLimitsValidatorTest, CheckAccelerationEquality)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -321,7 +305,6 @@ TEST_F(JointLimitsValidatorTest, CheckAccelerationEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration1)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -346,7 +329,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration1)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -376,7 +358,6 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityMaxAcceleration2)
  */
 TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasAccelerationLimits)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -400,13 +381,11 @@ TEST_F(JointLimitsValidatorTest, CheckPositionInEqualityHasAccelerationLimits)
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-
 /**
  * @brief Check deceleration equality
  */
 TEST_F(JointLimitsValidatorTest, CheckDecelerationEquality)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -427,7 +406,6 @@ TEST_F(JointLimitsValidatorTest, CheckDecelerationEquality)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration1)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -452,7 +430,6 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration1)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -466,7 +443,6 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
   pilz_extensions::JointLimit lim3;
   lim3.has_deceleration_limits = true;
   lim3.max_deceleration = -2;
-
 
   container.addLimit("joint1", lim1);
   container.addLimit("joint2", lim2);
@@ -483,7 +459,6 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityMaxDeceleration2)
  */
 TEST_F(JointLimitsValidatorTest, CheckInEqualityHasDecelerationLimits)
 {
-
   trapezoidal::JointLimitsContainer container;
 
   pilz_extensions::JointLimit lim1;
@@ -504,7 +479,7 @@ TEST_F(JointLimitsValidatorTest, CheckInEqualityHasDecelerationLimits)
   EXPECT_EQ(false, trapezoidal::JointLimitsValidator::validateAllDecelerationLimitsEqual(container));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

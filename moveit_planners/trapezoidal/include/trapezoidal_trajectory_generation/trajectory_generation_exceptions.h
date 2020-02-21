@@ -42,7 +42,6 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
 /**
  * @brief Exception storing an moveit_msgs::MoveItErrorCodes value.
  */
@@ -68,35 +67,36 @@ class TemplatedMoveItErrorCodeException : public MoveItErrorCodeException
 {
 public:
   TemplatedMoveItErrorCodeException(const std::string& msg);
-  TemplatedMoveItErrorCodeException(const std::string& msg,
-                                    const moveit_msgs::MoveItErrorCodes::_val_type& error_code);
+  TemplatedMoveItErrorCodeException(const std::string& msg, const moveit_msgs::MoveItErrorCodes::_val_type& error_code);
 
 public:
   virtual const moveit_msgs::MoveItErrorCodes::_val_type& getErrorCode() const override;
 
 private:
-  const moveit_msgs::MoveItErrorCodes::_val_type error_code_ {ERROR_CODE};
+  const moveit_msgs::MoveItErrorCodes::_val_type error_code_{ ERROR_CODE };
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-inline MoveItErrorCodeException::MoveItErrorCodeException(const std::string& msg)
-  : std::runtime_error(msg)
-{}
+inline MoveItErrorCodeException::MoveItErrorCodeException(const std::string& msg) : std::runtime_error(msg)
+{
+}
 
 template <moveit_msgs::MoveItErrorCodes::_val_type ERROR_CODE>
 inline TemplatedMoveItErrorCodeException<ERROR_CODE>::TemplatedMoveItErrorCodeException(const std::string& msg)
   : MoveItErrorCodeException(msg)
-{}
+{
+}
 
 template <moveit_msgs::MoveItErrorCodes::_val_type ERROR_CODE>
-inline TemplatedMoveItErrorCodeException<ERROR_CODE>::TemplatedMoveItErrorCodeException(const std::string& msg,
-                                                                                        const moveit_msgs::MoveItErrorCodes::_val_type& error_code)
-  : MoveItErrorCodeException(msg)
-  , error_code_(error_code)
-{}
+inline TemplatedMoveItErrorCodeException<ERROR_CODE>::TemplatedMoveItErrorCodeException(
+    const std::string& msg, const moveit_msgs::MoveItErrorCodes::_val_type& error_code)
+  : MoveItErrorCodeException(msg), error_code_(error_code)
+{
+}
 
 template <moveit_msgs::MoveItErrorCodes::_val_type ERROR_CODE>
-inline const moveit_msgs::MoveItErrorCodes::_val_type& TemplatedMoveItErrorCodeException<ERROR_CODE>::getErrorCode() const
+inline const moveit_msgs::MoveItErrorCodes::_val_type&
+TemplatedMoveItErrorCodeException<ERROR_CODE>::getErrorCode() const
 {
   return error_code_;
 }
@@ -105,19 +105,20 @@ inline const moveit_msgs::MoveItErrorCodes::_val_type& TemplatedMoveItErrorCodeE
  * @brief Macro to automatically generate a derived class of
  * the MoveItErrorCodeException class.
  */
-#define CREATE_MOVEIT_ERROR_CODE_EXCEPTION(EXCEPTION_CLASS_NAME, ERROR_CODE) \
-class EXCEPTION_CLASS_NAME : public TemplatedMoveItErrorCodeException<ERROR_CODE> \
-{ \
-public: \
-  EXCEPTION_CLASS_NAME(const std::string& msg) \
-    : TemplatedMoveItErrorCodeException(msg) \
-  {} \
-\
-  EXCEPTION_CLASS_NAME(const std::string& msg, const moveit_msgs::MoveItErrorCodes::_val_type& error_code) \
-    : TemplatedMoveItErrorCodeException(msg, error_code) \
-  {} \
-}
+#define CREATE_MOVEIT_ERROR_CODE_EXCEPTION(EXCEPTION_CLASS_NAME, ERROR_CODE)                                           \
+  class EXCEPTION_CLASS_NAME : public TemplatedMoveItErrorCodeException<ERROR_CODE>                                    \
+  {                                                                                                                    \
+  public:                                                                                                              \
+    EXCEPTION_CLASS_NAME(const std::string& msg) : TemplatedMoveItErrorCodeException(msg)                              \
+    {                                                                                                                  \
+    }                                                                                                                  \
+                                                                                                                       \
+    EXCEPTION_CLASS_NAME(const std::string& msg, const moveit_msgs::MoveItErrorCodes::_val_type& error_code)           \
+      : TemplatedMoveItErrorCodeException(msg, error_code)                                                             \
+    {                                                                                                                  \
+    }                                                                                                                  \
+  }
 
-}
+}  // namespace trapezoidal_trajectory_generation
 
-#endif // TRAJECTORY_GENERATION_EXCEPTIONS_H
+#endif  // TRAJECTORY_GENERATION_EXCEPTIONS_H

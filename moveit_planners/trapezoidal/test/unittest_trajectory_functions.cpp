@@ -63,17 +63,17 @@
 
 #define _USE_MATH_DEFINES
 
-static constexpr double EPSILON {1.0e-6};
-static constexpr double IK_SEED_OFFSET {0.1};
-static constexpr double L0 {0.2604}; // Height of foot
-static constexpr double L1 {0.3500}; // Height of first connector
-static constexpr double L2 {0.3070}; // Height of second connector
-static constexpr double L3 {0.0840}; // Distance last joint to flange
+static constexpr double EPSILON{ 1.0e-6 };
+static constexpr double IK_SEED_OFFSET{ 0.1 };
+static constexpr double L0{ 0.2604 };  // Height of foot
+static constexpr double L1{ 0.3500 };  // Height of first connector
+static constexpr double L2{ 0.3070 };  // Height of second connector
+static constexpr double L3{ 0.0840 };  // Distance last joint to flange
 
-const std::string PARAM_MODEL_NO_GRIPPER_NAME {"robot_description"};
-const std::string PARAM_MODEL_WITH_GRIPPER_NAME {"robot_description_pg70"};
+const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
+const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
 
-//parameters from parameter server
+// parameters from parameter server
 const std::string PARAM_PLANNING_GROUP_NAME("planning_group");
 const std::string GROUP_TIP_LINK_NAME("group_tip_link");
 const std::string ROBOT_TCP_LINK_NAME("tcp_link");
@@ -83,10 +83,9 @@ const std::string RANDOM_TEST_NUMBER("random_test_number");
 /**
  * @brief test fixtures base class
  */
-class TrajectoryFunctionsTestBase: public testing::TestWithParam<std::string>
+class TrajectoryFunctionsTestBase : public testing::TestWithParam<std::string>
 {
 protected:
-
   /**
    * @brief Create test scenario for trajectory functions
    *
@@ -102,12 +101,10 @@ protected:
    */
   bool tfNear(const Eigen::Isometry3d& pose1, const Eigen::Isometry3d& pose2, const double& epsilon);
 
-
 protected:
   // ros stuff
-  ros::NodeHandle ph_ {"~"};
-  robot_model::RobotModelConstPtr robot_model_ {
-    robot_model_loader::RobotModelLoader(GetParam()).getModel()};
+  ros::NodeHandle ph_{ "~" };
+  robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
 
   // test parameters from parameter server
   std::string planning_group_, group_tip_link_, tcp_link_, ik_fast_link_;
@@ -116,8 +113,8 @@ protected:
   std::map<std::string, double> zero_state_;
 
   // random seed
-  boost::uint32_t random_seed_ {100};
-  random_numbers::RandomNumberGenerator rng_{random_seed_};
+  boost::uint32_t random_seed_{ 100 };
+  random_numbers::RandomNumberGenerator rng_{ random_seed_ };
 };
 
 void TrajectoryFunctionsTestBase::SetUp()
@@ -134,18 +131,19 @@ void TrajectoryFunctionsTestBase::SetUp()
 
   // initialize the zero state configurationg and test joint state
   joint_names_ = robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames();
-  for(const auto& joint_name : joint_names_)
+  for (const auto& joint_name : joint_names_)
   {
     zero_state_[joint_name] = 0.0;
   }
 }
 
-bool TrajectoryFunctionsTestBase::tfNear(const Eigen::Isometry3d& pose1, const Eigen::Isometry3d& pose2, const double& epsilon)
+bool TrajectoryFunctionsTestBase::tfNear(const Eigen::Isometry3d& pose1, const Eigen::Isometry3d& pose2,
+                                         const double& epsilon)
 {
-  for(std::size_t i=0; i<3; ++i)
-    for(std::size_t j=0; j<4; ++j)
+  for (std::size_t i = 0; i < 3; ++i)
+    for (std::size_t j = 0; j < 4; ++j)
     {
-      if(fabs(pose1(i,j) - pose2(i,j))>fabs(epsilon))
+      if (fabs(pose1(i, j) - pose2(i, j)) > fabs(epsilon))
         return false;
     }
   return true;
@@ -154,23 +152,24 @@ bool TrajectoryFunctionsTestBase::tfNear(const Eigen::Isometry3d& pose1, const E
 /**
  * @brief Parametrized class for tests with and without gripper.
  */
-class TrajectoryFunctionsTestFlangeAndGripper: public TrajectoryFunctionsTestBase {};
+class TrajectoryFunctionsTestFlangeAndGripper : public TrajectoryFunctionsTestBase
+{
+};
 
 /**
  * @brief Parametrized class for tests, that only run with a gripper
  */
-class TrajectoryFunctionsTestOnlyGripper: public TrajectoryFunctionsTestBase {};
+class TrajectoryFunctionsTestOnlyGripper : public TrajectoryFunctionsTestBase
+{
+};
 
 // Instantiate the test cases for robot model with and without gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryFunctionsTestFlangeAndGripper, ::testing::Values(
-                          PARAM_MODEL_NO_GRIPPER_NAME,
-                          PARAM_MODEL_WITH_GRIPPER_NAME
-                          ));
+INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryFunctionsTestFlangeAndGripper,
+                        ::testing::Values(PARAM_MODEL_NO_GRIPPER_NAME, PARAM_MODEL_WITH_GRIPPER_NAME));
 
 // Instantiate the test cases for robot model with a gripper
-INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryFunctionsTestOnlyGripper, ::testing::Values(
-                          PARAM_MODEL_WITH_GRIPPER_NAME
-                          ));
+INSTANTIATE_TEST_CASE_P(InstantiationName, TrajectoryFunctionsTestOnlyGripper,
+                        ::testing::Values(PARAM_MODEL_WITH_GRIPPER_NAME));
 
 /**
  * @brief Test the forward kinematics function with simple robot poses for robot tip link
@@ -181,28 +180,27 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, TipLinkFK)
   Eigen::Isometry3d tip_pose;
   std::map<std::string, double> test_state = zero_state_;
   EXPECT_TRUE(trapezoidal::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
-  EXPECT_NEAR(tip_pose(0,3),0,EPSILON);
-  EXPECT_NEAR(tip_pose(1,3),0,EPSILON);
-  EXPECT_NEAR(tip_pose(2,3),L0+L1+L2+L3,EPSILON);
+  EXPECT_NEAR(tip_pose(0, 3), 0, EPSILON);
+  EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
+  EXPECT_NEAR(tip_pose(2, 3), L0 + L1 + L2 + L3, EPSILON);
 
   test_state[joint_names_.at(1)] = M_PI_2;
   EXPECT_TRUE(trapezoidal::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
-  EXPECT_NEAR(tip_pose(0,3),L1+L2+L3,EPSILON);
-  EXPECT_NEAR(tip_pose(1,3),0,EPSILON);
-  EXPECT_NEAR(tip_pose(2,3),L0,EPSILON);
+  EXPECT_NEAR(tip_pose(0, 3), L1 + L2 + L3, EPSILON);
+  EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
+  EXPECT_NEAR(tip_pose(2, 3), L0, EPSILON);
 
   test_state[joint_names_.at(1)] = -M_PI_2;
   test_state[joint_names_.at(2)] = M_PI_2;
   EXPECT_TRUE(trapezoidal::computeLinkFK(robot_model_, group_tip_link_, test_state, tip_pose));
-  EXPECT_NEAR(tip_pose(0,3),-L1,EPSILON);
-  EXPECT_NEAR(tip_pose(1,3),0,EPSILON);
-  EXPECT_NEAR(tip_pose(2,3),L0-L2-L3,EPSILON);
+  EXPECT_NEAR(tip_pose(0, 3), -L1, EPSILON);
+  EXPECT_NEAR(tip_pose(1, 3), 0, EPSILON);
+  EXPECT_NEAR(tip_pose(2, 3), L0 - L2 - L3, EPSILON);
 
   // wrong link name
   std::string link_name = "wrong_link_name";
   EXPECT_FALSE(trapezoidal::computeLinkFK(robot_model_, link_name, test_state, tip_pose));
 }
-
 
 /**
  * @brief Test the inverse kinematics directly through ikfast solver
@@ -216,22 +214,22 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKSolver)
   // robot state
   robot_state::RobotState rstate(robot_model_);
 
-  while(random_test_number_>0)
+  while (random_test_number_ > 0)
   {
     // sample random robot state
     rstate.setToRandomPositions(jmg, rng_);
     rstate.update();
     geometry_msgs::Pose pose_expect;
-    tf::poseEigenToMsg(rstate.getFrameTransform(ik_fast_link_),pose_expect);
+    tf::poseEigenToMsg(rstate.getFrameTransform(ik_fast_link_), pose_expect);
 
     // prepare inverse kinematics
     std::vector<geometry_msgs::Pose> ik_poses;
     ik_poses.push_back(pose_expect);
     std::vector<double> ik_seed, ik_expect, ik_actual;
-    for(const auto& joint_name : jmg->getActiveJointModelNames())
+    for (const auto& joint_name : jmg->getActiveJointModelNames())
     {
       ik_expect.push_back(rstate.getVariablePosition(joint_name));
-      if(rstate.getVariablePosition(joint_name)>0)
+      if (rstate.getVariablePosition(joint_name) > 0)
         ik_seed.push_back(rstate.getVariablePosition(joint_name) - IK_SEED_OFFSET);
       else
         ik_seed.push_back(rstate.getVariablePosition(joint_name) + IK_SEED_OFFSET);
@@ -243,20 +241,16 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKSolver)
     kinematics::KinematicsQueryOptions options = kinematics::KinematicsQueryOptions();
 
     // compute all ik solutions
-    EXPECT_TRUE(solver->getPositionIK(ik_poses,
-                                      ik_seed,
-                                      ik_solutions,
-                                      ik_result,
-                                      options));
+    EXPECT_TRUE(solver->getPositionIK(ik_poses, ik_seed, ik_solutions, ik_result, options));
 
     // compute one ik solution
     EXPECT_TRUE(solver->getPositionIK(pose_expect, ik_seed, ik_actual, err_code));
 
     ASSERT_EQ(ik_expect.size(), ik_actual.size());
 
-    for(std::size_t i=0; i<ik_expect.size(); ++i)
+    for (std::size_t i = 0; i < ik_expect.size(); ++i)
     {
-      EXPECT_NEAR(ik_actual.at(i),ik_expect.at(i), 4*IK_SEED_OFFSET);
+      EXPECT_NEAR(ik_actual.at(i), ik_expect.at(i), 4 * IK_SEED_OFFSET);
     }
 
     --random_test_number_;
@@ -272,7 +266,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
   robot_state::RobotState rstate(robot_model_);
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(planning_group_);
 
-  while(random_test_number_>0)
+  while (random_test_number_ > 0)
   {
     // sample random robot state
     rstate.setToRandomPositions(jmg, rng_);
@@ -281,10 +275,10 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
 
     // copy the random state and set ik seed
     std::map<std::string, double> ik_seed, ik_expect;
-    for(const auto& joint_name : joint_names_)
+    for (const auto& joint_name : joint_names_)
     {
       ik_expect[joint_name] = rstate.getVariablePosition(joint_name);
-      if(rstate.getVariablePosition(joint_name)>0)
+      if (rstate.getVariablePosition(joint_name) > 0)
         ik_seed[joint_name] = rstate.getVariablePosition(joint_name) - IK_SEED_OFFSET;
       else
         ik_seed[joint_name] = rstate.getVariablePosition(joint_name) + IK_SEED_OFFSET;
@@ -296,18 +290,17 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
     // compute the ik
     std::map<std::string, double> ik_actual;
 
-    EXPECT_TRUE(rstate.setFromIK(robot_model_->getJointModelGroup(planning_group_), pose_expect,
-                                 tcp_link_));
+    EXPECT_TRUE(rstate.setFromIK(robot_model_->getJointModelGroup(planning_group_), pose_expect, tcp_link_));
 
-    for(const auto& joint_name : joint_names_)
+    for (const auto& joint_name : joint_names_)
     {
       ik_actual[joint_name] = rstate.getVariablePosition(joint_name);
     }
 
     // compare ik solution and expected value
-    for(auto joint_pair : ik_actual)
+    for (auto joint_pair : ik_actual)
     {
-      EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4*IK_SEED_OFFSET);
+      EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4 * IK_SEED_OFFSET);
     }
 
     // compute the pose from ik_solution
@@ -315,7 +308,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIKRobotState)
     rstate.update();
     Eigen::Isometry3d pose_actual = rstate.getFrameTransform(tcp_link_);
 
-    EXPECT_TRUE(tfNear(pose_expect,pose_actual,EPSILON));
+    EXPECT_TRUE(tfNear(pose_expect, pose_actual, EPSILON));
 
     --random_test_number_;
   }
@@ -332,7 +325,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
   const std::string frame_id = robot_model_->getModelFrame();
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(planning_group_);
 
-  while(random_test_number_>0)
+  while (random_test_number_ > 0)
   {
     // sample random robot state
     rstate.setToRandomPositions(jmg, rng_);
@@ -341,10 +334,10 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
 
     // copy the random state and set ik seed
     std::map<std::string, double> ik_seed, ik_expect;
-    for(const auto& joint_name : robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames())
+    for (const auto& joint_name : robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames())
     {
       ik_expect[joint_name] = rstate.getVariablePosition(joint_name);
-      if(rstate.getVariablePosition(joint_name)>0)
+      if (rstate.getVariablePosition(joint_name) > 0)
       {
         ik_seed[joint_name] = rstate.getVariablePosition(joint_name) - IK_SEED_OFFSET;
       }
@@ -356,19 +349,13 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
 
     // compute the ik
     std::map<std::string, double> ik_actual;
-    EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_,
-                                    planning_group_,
-                                    tcp_link_,
-                                    pose_expect,
-                                    frame_id,
-                                    ik_seed,
-                                    ik_actual,
-                                    false));
+    EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
+                                           ik_actual, false));
 
     // compare ik solution and expected value
-    for(auto joint_pair : ik_actual)
+    for (auto joint_pair : ik_actual)
     {
-      EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4*IK_SEED_OFFSET);
+      EXPECT_NEAR(joint_pair.second, ik_expect.at(joint_pair.first), 4 * IK_SEED_OFFSET);
     }
 
     --random_test_number_;
@@ -387,14 +374,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidGroupNam
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_,
-                                   "InvalidGroupName",
-                                   tcp_link_,
-                                   pose_expect,
-                                   frame_id,
-                                   ik_seed,
-                                   ik_actual,
-                                   false));
+  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_, "InvalidGroupName", tcp_link_, pose_expect, frame_id, ik_seed,
+                                          ik_actual, false));
 }
 
 /**
@@ -409,14 +390,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidLinkName
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_,
-                                   planning_group_,
-                                   "WrongLink",
-                                   pose_expect,
-                                   frame_id,
-                                   ik_seed,
-                                   ik_actual,
-                                   false));
+  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_, planning_group_, "WrongLink", pose_expect, frame_id, ik_seed,
+                                          ik_actual, false));
 }
 
 /**
@@ -432,18 +407,13 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidFrameId)
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_,
-                                   planning_group_,
-                                   tcp_link_,
-                                   pose_expect,
-                                   "InvalidFrameId",
-                                   ik_seed,
-                                   ik_actual,
-                                   false));
+  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, "InvalidFrameId",
+                                          ik_seed, ik_actual, false));
 }
 
 /**
- * @brief Test if activated self collision for a pose that would be in self collision without the check results in a valid ik solution.
+ * @brief Test if activated self collision for a pose that would be in self collision without the check results in a
+ * valid ik solution.
  */
 TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForValidPosition)
 {
@@ -451,15 +421,14 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(planning_group_);
 
   // create seed
-  std::vector<double> ik_seed_states = {-0.553, 0.956, 1.758, 0.146, -1.059, 1.247};
+  std::vector<double> ik_seed_states = { -0.553, 0.956, 1.758, 0.146, -1.059, 1.247 };
   auto joint_names = jmg->getActiveJointModelNames();
 
   std::map<std::string, double> ik_seed;
-  for (unsigned int i=0; i < ik_seed_states.size(); ++i)
+  for (unsigned int i = 0; i < ik_seed_states.size(); ++i)
   {
     ik_seed[joint_names[i]] = ik_seed_states[i];
   }
-
 
   // create expected pose
   geometry_msgs::Pose pose;
@@ -474,23 +443,15 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 
   // compute the ik without self collision check and expect the resulting pose to be in self collission.
   std::map<std::string, double> ik_actual1;
-  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_,
-                                  planning_group_,
-                                  tcp_link_,
-                                  pose_expect,
-                                  frame_id,
-                                  ik_seed,
-                                  ik_actual1,
-                                  false));
+  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
+                                         ik_actual1, false));
 
   robot_state::RobotState rstate(robot_model_);
   planning_scene::PlanningScene rscene(robot_model_);
 
   std::vector<double> ik_state;
-  std::transform(ik_actual1.begin(),
-                 ik_actual1.end(),
-                 std::back_inserter(ik_state),
-                 boost::bind(&std::map<std::string, double>::value_type::second,_1));
+  std::transform(ik_actual1.begin(), ik_actual1.end(), std::back_inserter(ik_state),
+                 boost::bind(&std::map<std::string, double>::value_type::second, _1));
 
   rstate.setJointGroupPositions(jmg, ik_state);
   rstate.update();
@@ -505,20 +466,12 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 
   // compute the ik with collision detection activated and expect the resulting pose to be without self collision.
   std::map<std::string, double> ik_actual2;
-  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_,
-                                  planning_group_,
-                                  tcp_link_,
-                                  pose_expect,
-                                  frame_id,
-                                  ik_seed,
-                                  ik_actual2,
-                                  true));
+  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
+                                         ik_actual2, true));
 
   std::vector<double> ik_state2;
-  std::transform(ik_actual2.begin(),
-                 ik_actual2.end(),
-                 std::back_inserter(ik_state2),
-                 boost::bind(&std::map<std::string, double>::value_type::second,_1));
+  std::transform(ik_actual2.begin(), ik_actual2.end(), std::back_inserter(ik_state2),
+                 boost::bind(&std::map<std::string, double>::value_type::second, _1));
   rstate.setJointGroupPositions(jmg, ik_state2);
   rstate.update();
 
@@ -541,13 +494,13 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKSelfCollisionFo
 
   // create seed
   std::map<std::string, double> ik_seed;
-  for (const auto& joint_name: jmg->getActiveJointModelNames())
+  for (const auto& joint_name : jmg->getActiveJointModelNames())
   {
     ik_seed[joint_name] = 0;
   }
 
   // create goal
-  std::vector<double> ik_goal = {0, 2.3, -2.3, 0, 0, 0};
+  std::vector<double> ik_goal = { 0, 2.3, -2.3, 0, 0, 0 };
 
   rstate.setJointGroupPositions(jmg, ik_goal);
 
@@ -555,24 +508,12 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKSelfCollisionFo
 
   // compute the ik with disabled collision check
   std::map<std::string, double> ik_actual;
-  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_,
-                                  planning_group_,
-                                  tcp_link_,
-                                  pose_expect,
-                                  frame_id,
-                                  ik_seed,
-                                  ik_actual,
-                                  false));
+  EXPECT_TRUE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
+                                         ik_actual, false));
 
   // compute the ik with enabled collision check
-  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_,
-                                  planning_group_,
-                                  tcp_link_,
-                                  pose_expect,
-                                  frame_id,
-                                  ik_seed,
-                                  ik_actual,
-                                  true));
+  EXPECT_FALSE(trapezoidal::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
+                                          ik_actual, true));
 }
 
 /**
@@ -588,13 +529,13 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKSelfCollisionFo
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsWithSmallDuration)
 {
   const std::map<std::string, double> position_last, velocity_last, position_current;
-  double duration_last{0.0};
+  double duration_last{ 0.0 };
   const trapezoidal::JointLimitsContainer joint_limits;
 
   double duration_current = 10e-7;
 
-  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current,
-                                             duration_last, duration_current, joint_limits));
+  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
+                                                    duration_current, joint_limits));
 }
 
 /**
@@ -609,24 +550,24 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsWithS
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsVelocityViolation)
 {
-  const std::string test_joint_name {"joint"};
+  const std::string test_joint_name{ "joint" };
 
-  std::map<std::string, double> position_last { {test_joint_name, 2.0} };
-  std::map<std::string, double> position_current { {test_joint_name, 10.0} };
+  std::map<std::string, double> position_last{ { test_joint_name, 2.0 } };
+  std::map<std::string, double> position_current{ { test_joint_name, 10.0 } };
   std::map<std::string, double> velocity_last;
-  double duration_current {1.0};
-  double duration_last {0.0};
+  double duration_current{ 1.0 };
+  double duration_last{ 0.0 };
   trapezoidal::JointLimitsContainer joint_limits;
 
   pilz_extensions::JointLimit test_joint_limits;
   // Calculate the max allowed velocity in such a way that it is always smaller than the current velocity.
-  test_joint_limits.max_velocity = ((position_current.at(test_joint_name) -
-                                     position_last.at(test_joint_name))/duration_current) - 1.0;
+  test_joint_limits.max_velocity =
+      ((position_current.at(test_joint_name) - position_last.at(test_joint_name)) / duration_current) - 1.0;
   test_joint_limits.has_velocity_limits = true;
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current,
-                                             duration_last, duration_current, joint_limits));
+  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
+                                                    duration_current, joint_limits));
 }
 
 /**
@@ -641,15 +582,16 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsVeloc
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsAccelerationViolation)
 {
-  const std::string test_joint_name {"joint"};
+  const std::string test_joint_name{ "joint" };
 
   double duration_current = 1.0;
   double duration_last = 1.0;
 
-  std::map<std::string, double> position_last { {test_joint_name, 2.0} };
-  std::map<std::string, double> position_current { {test_joint_name, 20.0} };
-  double velocity_current = ((position_current.at(test_joint_name) - position_last.at(test_joint_name))/duration_current);
-  std::map<std::string, double> velocity_last { {test_joint_name, 9.0 } };
+  std::map<std::string, double> position_last{ { test_joint_name, 2.0 } };
+  std::map<std::string, double> position_current{ { test_joint_name, 20.0 } };
+  double velocity_current =
+      ((position_current.at(test_joint_name) - position_last.at(test_joint_name)) / duration_current);
+  std::map<std::string, double> velocity_last{ { test_joint_name, 9.0 } };
   trapezoidal::JointLimitsContainer joint_limits;
 
   pilz_extensions::JointLimit test_joint_limits;
@@ -657,15 +599,16 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsAccel
   test_joint_limits.max_velocity = velocity_current + 1.0;
   test_joint_limits.has_velocity_limits = true;
 
-  double acceleration_current = (velocity_current - velocity_last.at(test_joint_name))/(duration_last + duration_current)*2;
+  double acceleration_current =
+      (velocity_current - velocity_last.at(test_joint_name)) / (duration_last + duration_current) * 2;
   // Calculate the max allowed acceleration in such a way that it is always smaller than the current acceleration.
   test_joint_limits.max_acceleration = acceleration_current - 1.0;
   test_joint_limits.has_acceleration_limits = true;
 
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current,
-                                             duration_last, duration_current, joint_limits));
+  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
+                                                    duration_current, joint_limits));
 }
 
 /**
@@ -680,15 +623,16 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsAccel
  */
 TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsDecelerationViolation)
 {
-  const std::string test_joint_name {"joint"};
+  const std::string test_joint_name{ "joint" };
 
   double duration_current = 1.0;
   double duration_last = 1.0;
 
-  std::map<std::string, double> position_last { {test_joint_name, 20.0} };
-  std::map<std::string, double> position_current { {test_joint_name, 2.0} };
-  double velocity_current = ((position_current.at(test_joint_name) - position_last.at(test_joint_name))/duration_current);
-  std::map<std::string, double> velocity_last { {test_joint_name, 19.0 } };
+  std::map<std::string, double> position_last{ { test_joint_name, 20.0 } };
+  std::map<std::string, double> position_current{ { test_joint_name, 2.0 } };
+  double velocity_current =
+      ((position_current.at(test_joint_name) - position_last.at(test_joint_name)) / duration_current);
+  std::map<std::string, double> velocity_last{ { test_joint_name, 19.0 } };
   trapezoidal::JointLimitsContainer joint_limits;
 
   pilz_extensions::JointLimit test_joint_limits;
@@ -696,15 +640,16 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsDecel
   test_joint_limits.max_velocity = fabs(velocity_current) + 1.0;
   test_joint_limits.has_velocity_limits = true;
 
-  double acceleration_current = (velocity_current - velocity_last.at(test_joint_name))/(duration_last + duration_current)*2;
+  double acceleration_current =
+      (velocity_current - velocity_last.at(test_joint_name)) / (duration_last + duration_current) * 2;
   // Calculate the max allowed deceleration in such a way that it is always bigger than the current acceleration.
   test_joint_limits.max_deceleration = acceleration_current + 1.0;
   test_joint_limits.has_deceleration_limits = true;
 
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current,
-                                             duration_last, duration_current, joint_limits));
+  EXPECT_FALSE(trapezoidal::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
+                                                    duration_current, joint_limits));
 }
 
 /**
@@ -724,26 +669,26 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
 {
   // Create random test trajectory
   // Note: 'path' is deleted by KDL::Trajectory_Segment
-  KDL::Path_RoundedComposite* path = new KDL::Path_RoundedComposite(
-        0.2,0.01, new KDL::RotationalInterpolation_SingleAxis() );
-  path->Add(KDL::Frame(KDL::Rotation::RPY(0,0,0), KDL::Vector(-1,0,0)));
+  KDL::Path_RoundedComposite* path =
+      new KDL::Path_RoundedComposite(0.2, 0.01, new KDL::RotationalInterpolation_SingleAxis());
+  path->Add(KDL::Frame(KDL::Rotation::RPY(0, 0, 0), KDL::Vector(-1, 0, 0)));
   path->Finish();
   // Note: 'velprof' is deleted by KDL::Trajectory_Segment
-  KDL::VelocityProfile* vel_prof = new KDL::VelocityProfile_Trap(0.5,0.1);
-  vel_prof->SetProfile(0,path->PathLength());
+  KDL::VelocityProfile* vel_prof = new KDL::VelocityProfile_Trap(0.5, 0.1);
+  vel_prof->SetProfile(0, path->PathLength());
   KDL::Trajectory_Segment kdl_trajectory(path, vel_prof);
 
   trapezoidal::JointLimitsContainer joint_limits;
-  std::string group_name {"invalid_group_name"};
+  std::string group_name{ "invalid_group_name" };
   std::map<std::string, double> initial_joint_position;
-  double sampling_time {0.1};
+  double sampling_time{ 0.1 };
   trajectory_msgs::JointTrajectory joint_trajectory;
   moveit_msgs::MoveItErrorCodes error_code;
-  bool check_self_collision {false};
+  bool check_self_collision{ false };
 
-  EXPECT_FALSE( trapezoidal::generateJointTrajectory(robot_model_, joint_limits, kdl_trajectory, group_name, tcp_link_,
-                                              initial_joint_position, sampling_time, joint_trajectory,
-                                              error_code, check_self_collision) );
+  EXPECT_FALSE(trapezoidal::generateJointTrajectory(robot_model_, joint_limits, kdl_trajectory, group_name, tcp_link_,
+                                                    initial_joint_position, sampling_time, joint_trajectory, error_code,
+                                                    check_self_collision));
 
   std::map<std::string, double> initial_joint_velocity;
 
@@ -753,10 +698,9 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
   trapezoidal::CartesianTrajectoryPoint cart_traj_point;
   cart_traj.points.push_back(cart_traj_point);
 
-  EXPECT_FALSE( trapezoidal::generateJointTrajectory(robot_model_, joint_limits, cart_traj, group_name, tcp_link_,
-                                              initial_joint_position, initial_joint_velocity, joint_trajectory,
-                                              error_code, check_self_collision) );
-
+  EXPECT_FALSE(trapezoidal::generateJointTrajectory(robot_model_, joint_limits, cart_traj, group_name, tcp_link_,
+                                                    initial_joint_position, initial_joint_velocity, joint_trajectory,
+                                                    error_code, check_self_collision));
 }
 
 /**
@@ -776,14 +720,14 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
   robot_trajectory::RobotTrajectoryPtr second_trajectory =
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
-  double epsilon {0.0};
-  double sampling_time {0.0};
+  double epsilon{ 0.0 };
+  double sampling_time{ 0.0 };
 
   robot_state::RobotState rstate(robot_model_);
   first_trajectory->insertWayPoint(0, rstate, 0.1);
   second_trajectory->insertWayPoint(0, rstate, 0.1);
 
-  EXPECT_FALSE( trapezoidal::determineAndCheckSamplingTime(first_trajectory,  second_trajectory, epsilon, sampling_time) );
+  EXPECT_FALSE(trapezoidal::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
 }
 
 /**
@@ -803,9 +747,9 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
   robot_trajectory::RobotTrajectoryPtr second_trajectory =
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
-  double epsilon {0.0001};
-  double sampling_time {0.0};
-  double expected_sampling_time {0.1};
+  double epsilon{ 0.0001 };
+  double sampling_time{ 0.0 };
+  double expected_sampling_time{ 0.1 };
 
   robot_state::RobotState rstate(robot_model_);
   first_trajectory->insertWayPoint(0, rstate, expected_sampling_time);
@@ -815,7 +759,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
   second_trajectory->insertWayPoint(1, rstate, expected_sampling_time);
   second_trajectory->insertWayPoint(2, rstate, expected_sampling_time);
 
-  EXPECT_TRUE( trapezoidal::determineAndCheckSamplingTime(first_trajectory,  second_trajectory, epsilon, sampling_time) );
+  EXPECT_TRUE(trapezoidal::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
   EXPECT_EQ(expected_sampling_time, sampling_time);
 }
 
@@ -836,9 +780,9 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
   robot_trajectory::RobotTrajectoryPtr second_trajectory =
       std::make_shared<robot_trajectory::RobotTrajectory>(robot_model_, planning_group_);
-  double epsilon {0.0001};
-  double sampling_time {0.0};
-  double expected_sampling_time {0.1};
+  double epsilon{ 0.0001 };
+  double sampling_time{ 0.0 };
+  double expected_sampling_time{ 0.1 };
 
   robot_state::RobotState rstate(robot_model_);
   first_trajectory->insertWayPoint(0, rstate, expected_sampling_time);
@@ -853,7 +797,7 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
   second_trajectory->insertWayPoint(2, rstate, expected_sampling_time);
   second_trajectory->insertWayPoint(3, rstate, expected_sampling_time);
 
-  EXPECT_FALSE( trapezoidal::determineAndCheckSamplingTime(first_trajectory,  second_trajectory, epsilon, sampling_time) );
+  EXPECT_FALSE(trapezoidal::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
   EXPECT_EQ(expected_sampling_time, sampling_time);
 }
 
@@ -873,14 +817,14 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIsRobotStateEqualPositionUne
   robot_state::RobotState rstate_1 = robot_state::RobotState(robot_model_);
   robot_state::RobotState rstate_2 = robot_state::RobotState(robot_model_);
 
-  double default_joint_position [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_position[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupPositions(planning_group_, default_joint_position);
   // Ensure that the joint positions of both robot states are different
   default_joint_position[0] = default_joint_position[0] + 70.0;
   rstate_2.setJointGroupPositions(planning_group_, default_joint_position);
 
-  double epsilon {0.0001};
-  EXPECT_FALSE( trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon) );
+  double epsilon{ 0.0001 };
+  EXPECT_FALSE(trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon));
 }
 
 /**
@@ -900,18 +844,18 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIsRobotStateEqualVelocityUne
   robot_state::RobotState rstate_2 = robot_state::RobotState(robot_model_);
 
   // Ensure that the joint positions of both robot state are equal
-  double default_joint_position [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_position[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupPositions(planning_group_, default_joint_position);
   rstate_2.setJointGroupPositions(planning_group_, default_joint_position);
 
-  double default_joint_velocity [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_velocity[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupVelocities(planning_group_, default_joint_velocity);
   // Ensure that the joint velocites of both robot states are different
-  default_joint_velocity[1]  = default_joint_velocity[1] + 10.0;
+  default_joint_velocity[1] = default_joint_velocity[1] + 10.0;
   rstate_2.setJointGroupVelocities(planning_group_, default_joint_velocity);
 
-  double epsilon {0.0001};
-  EXPECT_FALSE( trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon) );
+  double epsilon{ 0.0001 };
+  EXPECT_FALSE(trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon));
 }
 
 /**
@@ -931,23 +875,23 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIsRobotStateEqualAcceleratio
   robot_state::RobotState rstate_2 = robot_state::RobotState(robot_model_);
 
   // Ensure that the joint positions of both robot state are equal
-  double default_joint_position [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_position[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupPositions(planning_group_, default_joint_position);
   rstate_2.setJointGroupPositions(planning_group_, default_joint_position);
 
   // Ensure that the joint velocities of both robot state are equal
-  double default_joint_velocity [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_velocity[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupVelocities(planning_group_, default_joint_velocity);
   rstate_2.setJointGroupVelocities(planning_group_, default_joint_velocity);
 
-  double default_joint_acceleration[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_acceleration[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupAccelerations(planning_group_, default_joint_acceleration);
   // Ensure that the joint accelerations of both robot states are different
-  default_joint_acceleration[1]  = default_joint_acceleration[1] + 10.0;
+  default_joint_acceleration[1] = default_joint_acceleration[1] + 10.0;
   rstate_2.setJointGroupAccelerations(planning_group_, default_joint_acceleration);
 
-  double epsilon {0.0001};
-  EXPECT_FALSE( trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon) );
+  double epsilon{ 0.0001 };
+  EXPECT_FALSE(trapezoidal::isRobotStateEqual(rstate_1, rstate_2, planning_group_, epsilon));
 }
 
 /**
@@ -966,11 +910,11 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIsRobotStateStationaryVeloci
   robot_state::RobotState rstate_1 = robot_state::RobotState(robot_model_);
 
   // Ensure that the joint velocities are NOT zero
-  double default_joint_velocity [6] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_velocity[6] = { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupVelocities(planning_group_, default_joint_velocity);
 
-  double epsilon {0.0001};
-  EXPECT_FALSE( trapezoidal::isRobotStateStationary(rstate_1, planning_group_, epsilon) );
+  double epsilon{ 0.0001 };
+  EXPECT_FALSE(trapezoidal::isRobotStateStationary(rstate_1, planning_group_, epsilon));
 }
 
 /**
@@ -989,18 +933,18 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testIsRobotStateStationaryAccele
   robot_state::RobotState rstate_1 = robot_state::RobotState(robot_model_);
 
   // Ensure that the joint velocities are zero
-  double default_joint_velocity [6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_velocity[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupVelocities(planning_group_, default_joint_velocity);
 
   // Ensure that the joint acceleration are NOT zero
-  double default_joint_acceleration [6] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double default_joint_acceleration[6] = { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   rstate_1.setJointGroupAccelerations(planning_group_, default_joint_acceleration);
 
-  double epsilon {0.0001};
-  EXPECT_FALSE( trapezoidal::isRobotStateStationary(rstate_1, planning_group_, epsilon) );
+  double epsilon{ 0.0001 };
+  EXPECT_FALSE(trapezoidal::isRobotStateStationary(rstate_1, planning_group_, epsilon));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "unittest_trajectory_functions");
   ros::NodeHandle nh;

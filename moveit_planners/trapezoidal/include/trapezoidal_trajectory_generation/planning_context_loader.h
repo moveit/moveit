@@ -44,8 +44,8 @@
 
 #include "trapezoidal_trajectory_generation/limits_container.h"
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 /**
  * @brief Base class for all PlanningContextLoaders.
  * Since planning_interface::PlanningContext has a non empty ctor classes derived from it can not be plugins.
@@ -81,10 +81,8 @@ public:
    * @param group name of the planning group
    * @return true on success, false otherwise
    */
-  virtual bool loadContext(planning_interface::PlanningContextPtr& planning_context,
-                   const std::string& name,
-                   const std::string& group) const = 0;
-
+  virtual bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
+                           const std::string& group) const = 0;
 
 protected:
   /**
@@ -95,12 +93,10 @@ protected:
    * @return true on success, false otherwise
    */
   template <typename T>
-  bool loadContext(planning_interface::PlanningContextPtr& planning_context,
-                   const std::string& name,
+  bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
                    const std::string& group) const;
 
 protected:
-
   /// Name of the algorithm
   std::string alg_;
 
@@ -117,27 +113,25 @@ protected:
   moveit::core::RobotModelConstPtr model_;
 };
 
-
-typedef boost::shared_ptr<PlanningContextLoader> PlanningContextLoaderPtr;                                                                             \
+typedef boost::shared_ptr<PlanningContextLoader> PlanningContextLoaderPtr;
 typedef boost::shared_ptr<const PlanningContextLoader> PlanningContextLoaderConstPtr;
-
 
 template <typename T>
 bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& planning_context,
-                                                         const std::string& name,
-                                                         const std::string& group) const
+                                        const std::string& name, const std::string& group) const
 {
-  if(limits_set_ && model_set_) {
+  if (limits_set_ && model_set_)
+  {
     planning_context.reset(new T(name, group, model_, limits_));
     return true;
   }
   else
   {
-    if(!limits_set_)
+    if (!limits_set_)
     {
       ROS_ERROR_STREAM("Limits are not defined. Cannot load planning context. Call setLimits loadContext");
     }
-    if(!model_set_)
+    if (!model_set_)
     {
       ROS_ERROR_STREAM("Robot model was not set");
     }
@@ -145,8 +139,6 @@ bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& 
   }
 }
 
-} // namespace
+}  // namespace trapezoidal
 
-
-
-#endif // PLANNING_CONTEXT_LOADER_H
+#endif  // PLANNING_CONTEXT_LOADER_H

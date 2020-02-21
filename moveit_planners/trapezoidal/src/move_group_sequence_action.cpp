@@ -53,9 +53,7 @@
 
 namespace trapezoidal_trajectory_generation
 {
-
-MoveGroupSequenceAction::MoveGroupSequenceAction()
-  : MoveGroupCapability("SequenceAction")
+MoveGroupSequenceAction::MoveGroupSequenceAction() : MoveGroupCapability("SequenceAction")
 {
 }
 
@@ -63,15 +61,14 @@ void MoveGroupSequenceAction::initialize()
 {
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
-  move_action_server_.reset( new actionlib::SimpleActionServer<pilz_msgs::MoveGroupSequenceAction>(
-                               root_node_handle_, "sequence_move_group",
-                               boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false) );
+  move_action_server_.reset(new actionlib::SimpleActionServer<pilz_msgs::MoveGroupSequenceAction>(
+      root_node_handle_, "sequence_move_group",
+      boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false));
   move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
   move_action_server_->start();
 
-  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager (
-                            ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
-
+  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager(
+      ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
 }
 
 void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal)
@@ -79,7 +76,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
   setMoveState(move_group::PLANNING);
 
   // Handle empty requests
-  if(goal->request.items.empty())
+  if (goal->request.items.empty())
   {
     ROS_WARN("Received empty request. That's ok but maybe not what you intended.");
     setMoveState(move_group::IDLE);
@@ -98,7 +95,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
   {
     if (!goal->planning_options.plan_only)
     {
-      ROS_WARN("Only plan will be calculated, although plan_only == false."); //LCOV_EXCL_LINE
+      ROS_WARN("Only plan will be calculated, although plan_only == false.");  // LCOV_EXCL_LINE
     }
     executeMoveCallbackPlanOnly(goal, action_res);
   }
@@ -107,24 +104,24 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
     executeSequenceCallbackPlanAndExecute(goal, action_res);
   }
 
-  switch(action_res.error_code.val)
+  switch (action_res.error_code.val)
   {
-  case moveit_msgs::MoveItErrorCodes::SUCCESS:
-    move_action_server_->setSucceeded(action_res, "Success");
-    break;
-  case moveit_msgs::MoveItErrorCodes::PREEMPTED:
-    move_action_server_->setPreempted(action_res, "Preempted");
-    break;
-  default:
-    move_action_server_->setAborted(action_res, "See error code for more information");
-    break;
+    case moveit_msgs::MoveItErrorCodes::SUCCESS:
+      move_action_server_->setSucceeded(action_res, "Success");
+      break;
+    case moveit_msgs::MoveItErrorCodes::PREEMPTED:
+      move_action_server_->setPreempted(action_res, "Preempted");
+      break;
+    default:
+      move_action_server_->setAborted(action_res, "See error code for more information");
+      break;
   }
 
   setMoveState(move_group::IDLE);
 }
 
-void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                                                     pilz_msgs::MoveGroupSequenceResult& action_res)
+void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
+    const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal, pilz_msgs::MoveGroupSequenceResult& action_res)
 {
   ROS_INFO("Combined planning and execution request received for MoveGroupSequenceAction.");
 
@@ -132,8 +129,8 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(const pilz_m
 
   const moveit_msgs::PlanningScene& planning_scene_diff =
       moveit::core::isEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
-        goal->planning_options.planning_scene_diff :
-        clearSceneRobotState(goal->planning_options.planning_scene_diff);
+          goal->planning_options.planning_scene_diff :
+          clearSceneRobotState(goal->planning_options.planning_scene_diff);
 
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
@@ -145,7 +142,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(const pilz_m
 
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
-    ROS_WARN("Plan with sensing not yet implemented/tested. This option is ignored."); //LCOV_EXCL_LINE
+    ROS_WARN("Plan with sensing not yet implemented/tested. This option is ignored.");  // LCOV_EXCL_LINE
   }
 
   plan_execution::ExecutableMotionPlan plan;
@@ -155,13 +152,12 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(const pilz_m
   action_res.error_code = plan.error_code_;
 }
 
-void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs,
-                                           StartStateMsgs& startStatesMsgs,
+void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsgs& startStatesMsgs,
                                            PlannedTrajMsgs& plannedTrajsMsgs)
 {
   startStatesMsgs.resize(trajs.size());
   plannedTrajsMsgs.resize(trajs.size());
-  for(size_t i = 0; i < trajs.size(); ++i)
+  for (size_t i = 0; i < trajs.size(); ++i)
   {
     robot_state::robotStateToRobotStateMsg(trajs.at(i).trajectory_->getFirstWayPoint(), startStatesMsgs.at(i));
     trajs.at(i).trajectory_->getRobotTrajectoryMsg(plannedTrajsMsgs.at(i));
@@ -169,7 +165,7 @@ void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs,
 }
 
 void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                                           pilz_msgs::MoveGroupSequenceResult& res)
+                                                          pilz_msgs::MoveGroupSequenceResult& res)
 {
   ROS_INFO("Planning request received for MoveGroupSequenceAction action.");
 
@@ -178,8 +174,8 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveG
 
   const planning_scene::PlanningSceneConstPtr& the_scene =
       (moveit::core::isEmpty(goal->planning_options.planning_scene_diff)) ?
-        static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
-        lscene->diff(goal->planning_options.planning_scene_diff);
+          static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
+          lscene->diff(goal->planning_options.planning_scene_diff);
 
   ros::Time planning_start = ros::Time::now();
   RobotTrajCont traj_vec;
@@ -187,10 +183,9 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveG
   {
     traj_vec = command_list_manager_->solve(the_scene, context_->planning_pipeline_, goal->request);
   }
-  catch(const MoveItErrorCodeException& ex)
+  catch (const MoveItErrorCodeException& ex)
   {
-    ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: "
-                     << ex.getErrorCode() << "): " << ex.what());
+    ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
     res.error_code.val = ex.getErrorCode();
     return;
   }
@@ -205,10 +200,9 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveG
 
   res.trajectory_start.resize(traj_vec.size());
   res.planned_trajectory.resize(traj_vec.size());
-  for(RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
+  for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i),
-                                                  res.trajectory_start.at(i),
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.trajectory_start.at(i),
                                                   res.planned_trajectory.at(i));
   }
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -222,11 +216,13 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const pilz_msgs::MotionSe
 
   planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   RobotTrajCont traj_vec;
-  try { traj_vec = command_list_manager_->solve(plan.planning_scene_, context_->planning_pipeline_, req); }
-  catch(const MoveItErrorCodeException& ex)
+  try
   {
-    ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: "
-                     << ex.getErrorCode() << "): " << ex.what());
+    traj_vec = command_list_manager_->solve(plan.planning_scene_, context_->planning_pipeline_, req);
+  }
+  catch (const MoveItErrorCodeException& ex)
+  {
+    ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
     plan.error_code_.val = ex.getErrorCode();
     return false;
   }
@@ -242,7 +238,7 @@ bool MoveGroupSequenceAction::planUsingSequenceManager(const pilz_msgs::MotionSe
   if (!traj_vec.empty())
   {
     plan.plan_components_.resize(traj_vec.size());
-    for (size_t i = 0; i<traj_vec.size(); ++i)
+    for (size_t i = 0; i < traj_vec.size(); ++i)
     {
       plan.plan_components_.at(i).trajectory_ = traj_vec.at(i);
       plan.plan_components_.at(i).description_ = "plan";
@@ -269,9 +265,7 @@ void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
   move_action_server_->publishFeedback(move_feedback_);
 }
 
-
-} // namespace trapezoidal_trajectory_generation
+}  // namespace trapezoidal_trajectory_generation
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(trapezoidal_trajectory_generation::MoveGroupSequenceAction, move_group::MoveGroupCapability)
-

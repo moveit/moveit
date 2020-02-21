@@ -48,11 +48,11 @@
 
 #include <pluginlib/class_loader.h>
 
-namespace trapezoidal {
-
+namespace trapezoidal
+{
 static const std::string PARAM_NAMESPACE_LIMTS = "robot_description_planning";
 
-bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr &model, const std::string &ns)
+bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, const std::string& ns)
 {
   // Call parent class initialize
   planning_interface::PlannerManager::initialize(model, ns);
@@ -63,17 +63,18 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr &model, c
 
   // Obtain the aggregated joint limits
   aggregated_limit_active_joints_ = trapezoidal::JointLimitsAggregator::getAggregatedLimits(
-        ros::NodeHandle(PARAM_NAMESPACE_LIMTS),model->getActiveJointModels());
+      ros::NodeHandle(PARAM_NAMESPACE_LIMTS), model->getActiveJointModels());
 
   // Obtain cartesian limits
-  cartesian_limit_ = trapezoidal::CartesianLimitsAggregator::getAggregatedLimits(ros::NodeHandle(PARAM_NAMESPACE_LIMTS));
+  cartesian_limit_ =
+      trapezoidal::CartesianLimitsAggregator::getAggregatedLimits(ros::NodeHandle(PARAM_NAMESPACE_LIMTS));
 
   // Load the planning context loader
   planner_context_loader.reset(new pluginlib::ClassLoader<PlanningContextLoader>("trapezoidal_trajectory_generation",
-                                                                                    "trapezoidal::PlanningContextLoader"));
+                                                                                 "trapezoidal::PlanningContextLoader"));
 
   // List available plugins
-  const std::vector<std::string> &factories = planner_context_loader->getDeclaredClasses();
+  const std::vector<std::string>& factories = planner_context_loader->getDeclaredClasses();
   std::stringstream ss;
   for (const auto& factory : factories)
   {
@@ -85,7 +86,6 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr &model, c
   // Load each factory
   for (const auto& factory : factories)
   {
-
     ROS_INFO_STREAM("About to load: " << factory);
     PlanningContextLoaderPtr loader_pointer(planner_context_loader->createInstance(factory));
 
@@ -97,7 +97,6 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr &model, c
     loader_pointer->setModel(model_);
 
     registerContextLoader(loader_pointer);
-
   }
 
   return true;
@@ -108,25 +107,25 @@ std::string CommandPlanner::getDescription() const
   return "Simple Command Planner";
 }
 
-void CommandPlanner::getPlanningAlgorithms(std::vector<std::string> &algs) const
+void CommandPlanner::getPlanningAlgorithms(std::vector<std::string>& algs) const
 {
   algs.clear();
 
-  for(const auto& context_loader : context_loader_map_)
+  for (const auto& context_loader : context_loader_map_)
   {
     algs.push_back(context_loader.first);
   }
 }
 
-planning_interface::PlanningContextPtr CommandPlanner::getPlanningContext(
-                                                      const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                      const moveit_msgs::MotionPlanRequest& req,
-                                                      moveit_msgs::MoveItErrorCodes& error_code) const
+planning_interface::PlanningContextPtr
+CommandPlanner::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                   const moveit_msgs::MotionPlanRequest& req,
+                                   moveit_msgs::MoveItErrorCodes& error_code) const
 {
   ROS_DEBUG_STREAM("Loading PlanningContext for request\n<request>\n" << req << "\n</request>");
 
   // Check that a loaded for this request exists
-  if(!canServiceRequest(req))
+  if (!canServiceRequest(req))
   {
     ROS_ERROR_STREAM("No ContextLoader for planner_id " << req.planner_id.c_str() << " found. Planning not possible.");
     return nullptr;
@@ -134,18 +133,18 @@ planning_interface::PlanningContextPtr CommandPlanner::getPlanningContext(
 
   planning_interface::PlanningContextPtr planning_context;
 
-  if(context_loader_map_.at(req.planner_id)->loadContext(planning_context, req.planner_id, req.group_name))
+  if (context_loader_map_.at(req.planner_id)->loadContext(planning_context, req.planner_id, req.group_name))
   {
     ROS_DEBUG_STREAM("Found planning context loader for " << req.planner_id << " group:" << req.group_name);
     planning_context->setMotionPlanRequest(req);
     planning_context->setPlanningScene(planning_scene);
     return planning_context;
   }
-  else {
+  else
+  {
     error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return nullptr;
   }
-
 }
 
 bool CommandPlanner::canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
@@ -156,18 +155,18 @@ bool CommandPlanner::canServiceRequest(const moveit_msgs::MotionPlanRequest& req
 void CommandPlanner::registerContextLoader(const trapezoidal::PlanningContextLoaderPtr& planning_context_loader)
 {
   // Only add if command is not already in list, throw exception if not
-  if(context_loader_map_.find(planning_context_loader->getAlgorithm()) == context_loader_map_.end())
+  if (context_loader_map_.find(planning_context_loader->getAlgorithm()) == context_loader_map_.end())
   {
     context_loader_map_[planning_context_loader->getAlgorithm()] = planning_context_loader;
     ROS_INFO_STREAM("Registered Algorithm [" << planning_context_loader->getAlgorithm() << "]");
   }
   else
   {
-    throw ContextLoaderRegistrationException("The command [" + planning_context_loader->getAlgorithm()
-                                                      + "] is already registered");
+    throw ContextLoaderRegistrationException("The command [" + planning_context_loader->getAlgorithm() +
+                                             "] is already registered");
   }
 }
 
-} // namespace trapezoidal
+}  // namespace trapezoidal
 
 PLUGINLIB_EXPORT_CLASS(trapezoidal::CommandPlanner, planning_interface::PlannerManager)
