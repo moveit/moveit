@@ -535,18 +535,19 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   // Add an initial pose for each group
   emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses.");
 
-  bool pose_found = false;
-  for (srdf::Model::Group& group : srdf_->groups_)
+  bool poses_found = false;
+  std::string default_group_name;
+  for (const srdf::Model::Group& group : srdf_->groups_)
   {
-    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group.name_);
-
-    for (srdf::Model::GroupState& group_state : srdf_->group_states_)
+    if (default_group_name.empty())
+      default_group_name = group.name_;
+    for (const srdf::Model::GroupState& group_state : srdf_->group_states_)
     {
       if (group.name_ == group_state.group_)
       {
-        if (!pose_found)
+        if (!poses_found)
         {
-          pose_found = true;
+          poses_found = true;
           emitter << YAML::Value << YAML::BeginSeq;
         }
         emitter << YAML::BeginMap;
@@ -559,11 +560,17 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
       }
     }
   }
-  if (pose_found)
+  if (poses_found)
     emitter << YAML::EndSeq;
   else
+  {
     // Add commented lines to show how the feature can be used
-    emitter << YAML::Comment(" - group: panda_arm \n   pose: ready");
+    if (default_group_name.empty())
+      default_group_name = "group";
+    emitter << YAML::Newline;
+    emitter << YAML::Comment(" - group: " + default_group_name) << YAML::Newline;
+    emitter << YAML::Comment("   pose: home") << YAML::Newline;
+  }
 
   emitter << YAML::EndMap;
 
