@@ -102,8 +102,7 @@ protected:
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
   double decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                  const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                  const Eigen::MatrixXd& jacobian);
+                                  const Eigen::JacobiSVD<Eigen::MatrixXd>& svd, const Eigen::MatrixXd& jacobian);
 
   /**
    * Slow motion down if close to singularity or collision.

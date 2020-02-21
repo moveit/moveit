@@ -474,8 +474,7 @@ bool JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::m
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
 double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                          const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                          const Eigen::MatrixXd& jacobian)
+                                          const Eigen::JacobiSVD<Eigen::MatrixXd>& svd, const Eigen::MatrixXd& jacobian)
 {
   double velocity_scale = 1;
 
@@ -751,19 +750,19 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 
 void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
 {
-/*
-  unsigned int num_rows = jacobian.rows() - 1;
-  unsigned int num_cols = jacobian.cols();
+  /*
+    unsigned int num_rows = jacobian.rows() - 1;
+    unsigned int num_cols = jacobian.cols();
 
-  if (row_to_remove < num_rows)
-  {
-    jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
-        jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
-    delta_x.segment(row_to_remove, num_rows - row_to_remove) =
-        delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
-  }
-  jacobian.conservativeResize(num_rows, num_cols);
-  delta_x.conservativeResize(num_rows);
-*/
+    if (row_to_remove < num_rows)
+    {
+      jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
+          jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
+      delta_x.segment(row_to_remove, num_rows - row_to_remove) =
+          delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
+    }
+    jacobian.conservativeResize(num_rows, num_cols);
+    delta_x.conservativeResize(num_rows);
+  */
 }
 }  // namespace moveit_jog_arm
