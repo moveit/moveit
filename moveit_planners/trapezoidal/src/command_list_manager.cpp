@@ -76,7 +76,7 @@ CommandListManager::CommandListManager(const ros::NodeHandle& nh, const moveit::
 
 RobotTrajCont CommandListManager::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                         const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                                        const pilz_msgs::MotionSequenceRequest& req_list)
+                                        const moveit_msgs::MotionSequenceRequest& req_list)
 {
   if (req_list.items.empty())
   {
@@ -176,8 +176,8 @@ void CommandListManager::setStartState(const MotionResponseCont& motion_plan_res
 }
 
 bool CommandListManager::isInvalidBlendRadii(const moveit::core::RobotModel& model,
-                                             const pilz_msgs::MotionSequenceItem& item_A,
-                                             const pilz_msgs::MotionSequenceItem& item_B)
+                                             const moveit_msgs::MotionSequenceItem& item_A,
+                                             const moveit_msgs::MotionSequenceItem& item_B)
 {
   // Zero blend radius is always valid
   if (item_A.blend_radius == 0.)
@@ -204,7 +204,7 @@ bool CommandListManager::isInvalidBlendRadii(const moveit::core::RobotModel& mod
 }
 
 CommandListManager::RadiiCont CommandListManager::extractBlendRadii(const moveit::core::RobotModel& model,
-                                                                    const pilz_msgs::MotionSequenceRequest& req_list)
+                                                                    const moveit_msgs::MotionSequenceRequest& req_list)
 {
   RadiiCont radii(req_list.items.size(), 0.);
   for (RadiiCont::size_type i = 0; i < (radii.size() - 1); ++i)
@@ -223,7 +223,7 @@ CommandListManager::RadiiCont CommandListManager::extractBlendRadii(const moveit
 CommandListManager::MotionResponseCont
 CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                        const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                                       const pilz_msgs::MotionSequenceRequest& req_list) const
+                                       const moveit_msgs::MotionSequenceRequest& req_list) const
 {
   MotionResponseCont motion_plan_responses;
   size_t curr_req_index{ 0 };
@@ -247,20 +247,20 @@ CommandListManager::solveSequenceItems(const planning_scene::PlanningSceneConstP
   return motion_plan_responses;
 }
 
-void CommandListManager::checkForNegativeRadii(const pilz_msgs::MotionSequenceRequest& req_list)
+void CommandListManager::checkForNegativeRadii(const moveit_msgs::MotionSequenceRequest& req_list)
 {
   if (!std::all_of(req_list.items.begin(), req_list.items.end(),
-                   [](const pilz_msgs::MotionSequenceItem& req) { return (req.blend_radius >= 0.); }))
+                   [](const moveit_msgs::MotionSequenceItem& req) { return (req.blend_radius >= 0.); }))
   {
     throw NegativeBlendRadiusException("All blending radii MUST be non negative");
   }
 }
 
-void CommandListManager::checkStartStatesOfGroup(const pilz_msgs::MotionSequenceRequest& req_list,
+void CommandListManager::checkStartStatesOfGroup(const moveit_msgs::MotionSequenceRequest& req_list,
                                                  const std::string& group_name)
 {
   bool first_elem{ true };
-  for (const pilz_msgs::MotionSequenceItem& item : req_list.items)
+  for (const moveit_msgs::MotionSequenceItem& item : req_list.items)
   {
     if (item.req.group_name != group_name)
     {
@@ -284,7 +284,7 @@ void CommandListManager::checkStartStatesOfGroup(const pilz_msgs::MotionSequence
   }
 }
 
-void CommandListManager::checkStartStates(const pilz_msgs::MotionSequenceRequest& req_list)
+void CommandListManager::checkStartStates(const moveit_msgs::MotionSequenceRequest& req_list)
 {
   if (req_list.items.size() <= 1)
   {
@@ -298,11 +298,11 @@ void CommandListManager::checkStartStates(const pilz_msgs::MotionSequenceRequest
   }
 }
 
-CommandListManager::GroupNamesCont CommandListManager::getGroupNames(const pilz_msgs::MotionSequenceRequest& req_list)
+CommandListManager::GroupNamesCont CommandListManager::getGroupNames(const moveit_msgs::MotionSequenceRequest& req_list)
 {
   GroupNamesCont group_names;
   std::for_each(req_list.items.cbegin(), req_list.items.cend(),
-                [&group_names](const pilz_msgs::MotionSequenceItem& item) {
+                [&group_names](const moveit_msgs::MotionSequenceItem& item) {
                   if (std::find(group_names.cbegin(), group_names.cend(), item.req.group_name) == group_names.cend())
                   {
                     group_names.emplace_back(item.req.group_name);

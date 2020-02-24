@@ -26,7 +26,6 @@
   <depend>moveit_ros_move_group</depend> <!-- move_group capability -->
   <depend>tf2</depend>
   <depend>tf2_geometry_msgs</depend>
-  <depend>pilz_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>eigen_conversions</depend>
   <depend>pilz_extensions</depend>

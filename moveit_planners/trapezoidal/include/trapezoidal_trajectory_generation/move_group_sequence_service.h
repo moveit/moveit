@@ -36,7 +36,7 @@
 
 #include <moveit/move_group/move_group_capability.h>
 
-#include <pilz_msgs/GetMotionSequence.h>
+#include <moveit_msgs/GetMotionSequence.h>
 
 namespace trapezoidal_trajectory_generation
 {
@@ -55,7 +55,7 @@ public:
   virtual void initialize() override;
 
 private:
-  bool plan(pilz_msgs::GetMotionSequence::Request& req, pilz_msgs::GetMotionSequence::Response& res);
+  bool plan(moveit_msgs::GetMotionSequence::Request& req, moveit_msgs::GetMotionSequence::Response& res);
 
 private:
   ros::ServiceServer sequence_service_;

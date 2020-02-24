@@ -61,7 +61,7 @@ void MoveGroupSequenceAction::initialize()
 {
   // start the move action server
   ROS_INFO_STREAM("initialize move group sequence action");
-  move_action_server_.reset(new actionlib::SimpleActionServer<pilz_msgs::MoveGroupSequenceAction>(
+  move_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction>(
       root_node_handle_, "sequence_move_group",
       boost::bind(&MoveGroupSequenceAction::executeSequenceCallback, this, _1), false));
   move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
@@ -71,7 +71,7 @@ void MoveGroupSequenceAction::initialize()
       ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
 }
 
-void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal)
+void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal)
 {
   setMoveState(move_group::PLANNING);
 
@@ -80,7 +80,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
   {
     ROS_WARN("Received empty request. That's ok but maybe not what you intended.");
     setMoveState(move_group::IDLE);
-    pilz_msgs::MoveGroupSequenceResult action_res;
+    moveit_msgs::MoveGroupSequenceResult action_res;
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     move_action_server_->setSucceeded(action_res, "Received empty request.");
     return;
@@ -90,7 +90,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
   context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
 
-  pilz_msgs::MoveGroupSequenceResult action_res;
+  moveit_msgs::MoveGroupSequenceResult action_res;
   if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
@@ -121,7 +121,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const pilz_msgs::MoveGroup
 }
 
 void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
-    const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal, pilz_msgs::MoveGroupSequenceResult& action_res)
+    const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal, moveit_msgs::MoveGroupSequenceResult& action_res)
 {
   ROS_INFO("Combined planning and execution request received for MoveGroupSequenceAction.");
 
@@ -164,8 +164,8 @@ void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartSt
   }
 }
 
-void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                                          pilz_msgs::MoveGroupSequenceResult& res)
+void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
+                                                          moveit_msgs::MoveGroupSequenceResult& res)
 {
   ROS_INFO("Planning request received for MoveGroupSequenceAction action.");
 
@@ -209,7 +209,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const pilz_msgs::MoveG
   res.planning_time = (ros::Time::now() - planning_start).toSec();
 }
 
-bool MoveGroupSequenceAction::planUsingSequenceManager(const pilz_msgs::MotionSequenceRequest& req,
+bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::MotionSequenceRequest& req,
                                                        plan_execution::ExecutableMotionPlan& plan)
 {
   setMoveState(move_group::PLANNING);

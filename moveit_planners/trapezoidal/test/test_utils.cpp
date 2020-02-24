@@ -1124,7 +1124,7 @@ void testutils::generateRequestMsgFromBlendTestData(const moveit::core::RobotMod
                                                     const testutils::blend_test_data& data,
                                                     const std::string& planner_id, const std::string& group_name,
                                                     const std::string& link_name,
-                                                    pilz_msgs::MotionSequenceRequest& req_list)
+                                                    moveit_msgs::MotionSequenceRequest& req_list)
 {
   // motion plan request of first trajectory
   planning_interface::MotionPlanRequest req_1;
@@ -1171,7 +1171,7 @@ void testutils::generateRequestMsgFromBlendTestData(const moveit::core::RobotMod
 
   double blend_radius = 0.5 * std::min(dis_1, dis_2);
 
-  pilz_msgs::MotionSequenceItem blend_req_1, blend_req_2;
+  moveit_msgs::MotionSequenceItem blend_req_1, blend_req_2;
   blend_req_1.req = req_1;
   blend_req_1.blend_radius = blend_radius;
   blend_req_2.req = req_2;

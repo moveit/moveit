@@ -51,7 +51,7 @@
 #include "trapezoidal_trajectory_generation/trajectory_blend_response.h"
 #include "trapezoidal_trajectory_generation/trajectory_blend_request.h"
 #include "trapezoidal_trajectory_generation/trajectory_generator.h"
-#include "pilz_msgs/MotionSequenceRequest.h"
+#include "moveit_msgs/MotionSequenceRequest.h"
 
 namespace testutils
 {
@@ -436,7 +436,7 @@ bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr& robot
 void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
                                          const blend_test_data& data, const std::string& planner_id,
                                          const std::string& group_name, const std::string& link_name,
-                                         pilz_msgs::MotionSequenceRequest& req_list);
+                                         moveit_msgs::MotionSequenceRequest& req_list);
 
 void checkRobotModel(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                      const std::string& link_name);

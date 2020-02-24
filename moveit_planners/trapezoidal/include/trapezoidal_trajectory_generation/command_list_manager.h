@@ -42,7 +42,7 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 
-#include "pilz_msgs/MotionSequenceRequest.h"
+#include "moveit_msgs/MotionSequenceRequest.h"
 #include "trapezoidal_trajectory_generation/trajectory_blender.h"
 #include "trapezoidal_trajectory_generation/plan_components_builder.h"
 #include "trapezoidal_trajectory_generation/trajectory_generation_exceptions.h"
@@ -99,7 +99,7 @@ public:
    */
   RobotTrajCont solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                       const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                      const pilz_msgs::MotionSequenceRequest& req_list);
+                      const moveit_msgs::MotionSequenceRequest& req_list);
 
 private:
   using MotionResponseCont = std::vector<planning_interface::MotionPlanResponse>;
@@ -126,7 +126,7 @@ private:
    */
   MotionResponseCont solveSequenceItems(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                         const planning_pipeline::PlanningPipelinePtr& planning_pipeline,
-                                        const pilz_msgs::MotionSequenceRequest& req_list) const;
+                                        const moveit_msgs::MotionSequenceRequest& req_list) const;
 
   /**
    * @return TRUE if the blending radii of specified trajectories overlap,
@@ -160,7 +160,7 @@ private:
    * - blend raddi between different groups.
    */
   static RadiiCont extractBlendRadii(const moveit::core::RobotModel& model,
-                                     const pilz_msgs::MotionSequenceRequest& req_list);
+                                     const moveit_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @return True in case of an invalid blend radii between specified
@@ -168,36 +168,36 @@ private:
    * - blend radii between end-effectors and
    * - blend raddi between different groups.
    */
-  static bool isInvalidBlendRadii(const moveit::core::RobotModel& model, const pilz_msgs::MotionSequenceItem& item_A,
-                                  const pilz_msgs::MotionSequenceItem& item_B);
+  static bool isInvalidBlendRadii(const moveit::core::RobotModel& model, const moveit_msgs::MotionSequenceItem& item_A,
+                                  const moveit_msgs::MotionSequenceItem& item_B);
 
   /**
    * @brief Checks that all blend radii are greater or equal to zero.
    */
-  static void checkForNegativeRadii(const pilz_msgs::MotionSequenceRequest& req_list);
+  static void checkForNegativeRadii(const moveit_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @brief Checks that last blend radius is zero.
    */
-  static void checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest& req_list);
+  static void checkLastBlendRadiusZero(const moveit_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @brief Checks that only the first request of the specified group has
    * a start state in the specified request list.
    */
-  static void checkStartStatesOfGroup(const pilz_msgs::MotionSequenceRequest& req_list, const std::string& group_name);
+  static void checkStartStatesOfGroup(const moveit_msgs::MotionSequenceRequest& req_list, const std::string& group_name);
 
   /**
    * @brief Checks that each group in the specified request list has only
    * one start state.
    */
-  static void checkStartStates(const pilz_msgs::MotionSequenceRequest& req_list);
+  static void checkStartStates(const moveit_msgs::MotionSequenceRequest& req_list);
 
   /**
    * @return Returns all group names which are present in the specified
    * request.
    */
-  static GroupNamesCont getGroupNames(const pilz_msgs::MotionSequenceRequest& req_list);
+  static GroupNamesCont getGroupNames(const moveit_msgs::MotionSequenceRequest& req_list);
 
 private:
   //! Node handle
@@ -211,7 +211,7 @@ private:
   PlanComponentsBuilder plan_comp_builder_;
 };
 
-inline void CommandListManager::checkLastBlendRadiusZero(const pilz_msgs::MotionSequenceRequest& req_list)
+inline void CommandListManager::checkLastBlendRadiusZero(const moveit_msgs::MotionSequenceRequest& req_list)
 {
   if (req_list.items.back().blend_radius != 0.0)
   {

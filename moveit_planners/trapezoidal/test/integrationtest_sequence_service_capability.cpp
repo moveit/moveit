@@ -52,8 +52,8 @@
 #include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
 #include <pilz_industrial_motion_testutils/sequence.h>
 
-#include "pilz_msgs/GetMotionSequence.h"
-#include "pilz_msgs/MotionSequenceRequest.h"
+#include "moveit_msgs/GetMotionSequence.h"
+#include "moveit_msgs/MotionSequenceRequest.h"
 #include "trapezoidal_trajectory_generation/capability_names.h"
 
 // Parameters from parameter server
@@ -94,7 +94,7 @@ void IntegrationTestSequenceService::SetUp()
   ASSERT_TRUE(ros::service::waitForService(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME, ros::Duration(10)))
       << "Service not available.";
   ros::NodeHandle nh;  // connect to service in global namespace, not in ph_
-  client_ = nh.serviceClient<pilz_msgs::GetMotionSequence>(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME);
+  client_ = nh.serviceClient<moveit_msgs::GetMotionSequence>(trapezoidal_trajectory_generation::SEQUENCE_SERVICE_NAME);
 }
 
 /**
@@ -110,9 +110,9 @@ void IntegrationTestSequenceService::SetUp()
  */
 TEST_F(IntegrationTestSequenceService, TestSendingOfEmptySequence)
 {
-  pilz_msgs::MotionSequenceRequest empty_list;
+  moveit_msgs::MotionSequenceRequest empty_list;
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = empty_list;
 
   ASSERT_TRUE(client_.call(srv));
@@ -138,7 +138,7 @@ TEST_F(IntegrationTestSequenceService, TestDifferingGroupNames)
   MotionCmd& cmd{ seq.getCmd(1) };
   cmd.setPlanningGroup("WrongGroupName");
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -164,7 +164,7 @@ TEST_F(IntegrationTestSequenceService, TestNegativeBlendRadius)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -190,7 +190,7 @@ TEST_F(IntegrationTestSequenceService, TestOverlappingBlendRadii)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(0));
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -216,7 +216,7 @@ TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
   seq.erase(2, seq.size());
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(seq.size() - 2));
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -240,14 +240,14 @@ TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
 TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
-  pilz_msgs::MotionSequenceRequest req_list{ seq.toRequest() };
+  moveit_msgs::MotionSequenceRequest req_list{ seq.toRequest() };
 
   // Set start state
   using std::placeholders::_1;
   JointConfiguration config{ "MyGroupName", { -1., 2., -3., 4., -5., 0. }, std::bind(&createJointName, _1) };
   req_list.items[1].req.start_state.joint_state = config.toSensorMsg();
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = req_list;
 
   ASSERT_TRUE(client_.call(srv));
@@ -274,7 +274,7 @@ TEST_F(IntegrationTestSequenceService, TestFirstGoalNotReachable)
   PtpJointCart& cmd{ seq.getCmd<PtpJointCart>(0) };
   cmd.getGoalConfiguration().getPose().position.y = 27;
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -303,7 +303,7 @@ TEST_F(IntegrationTestSequenceService, TestInvalidLinkName)
   CircInterimCart& circ{ seq.getCmd<CircInterimCart>(1) };
   circ.getGoalConfiguration().setLinkName("InvalidLinkName");
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -326,14 +326,14 @@ TEST_F(IntegrationTestSequenceService, TestInvalidLinkName)
 TEST_F(IntegrationTestSequenceService, TestLargeRequest)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
-  pilz_msgs::MotionSequenceRequest req{ seq.toRequest() };
+  moveit_msgs::MotionSequenceRequest req{ seq.toRequest() };
   // Make copy of sequence commands and add them to the end of sequence.
   // Create large request by making copies of the original sequence commands
   // and adding them to the end of the original sequence.
   size_t n{ req.items.size() };
   for (size_t i = 0; i < n; ++i)
   {
-    pilz_msgs::MotionSequenceItem item{ req.items.at(i) };
+    moveit_msgs::MotionSequenceItem item{ req.items.at(i) };
     if (i == 0)
     {
       // Remove start state because only the first request
@@ -343,7 +343,7 @@ TEST_F(IntegrationTestSequenceService, TestLargeRequest)
     req.items.push_back(item);
   }
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = req;
 
   ASSERT_TRUE(client_.call(srv));
@@ -372,7 +372,7 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithoutBlending)
 
   seq.setAllBlendRadiiToZero();
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
@@ -399,7 +399,7 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithBlending)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
-  pilz_msgs::GetMotionSequence srv;
+  moveit_msgs::GetMotionSequence srv;
   srv.request.commands = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));

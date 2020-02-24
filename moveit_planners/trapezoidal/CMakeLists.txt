@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
   moveit_ros_planning
-  pilz_msgs
   pilz_extensions
   pluginlib
   roscpp
@@ -57,7 +56,6 @@ endif()
 catkin_package(
   CATKIN_DEPENDS
   moveit_msgs
-  pilz_msgs
   tf2_geometry_msgs
 )
 

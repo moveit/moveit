@@ -39,7 +39,7 @@
 #include <moveit/move_group/move_group_capability.h>
 #include <actionlib/server/simple_action_server.h>
 
-#include <pilz_msgs/MoveGroupSequenceAction.h>
+#include <moveit_msgs/MoveGroupSequenceAction.h>
 
 namespace trapezoidal_trajectory_generation
 {
@@ -59,20 +59,20 @@ public:
 private:
   using ExecutableTrajs = std::vector<plan_execution::ExecutableTrajectory>;
 
-  using StartStateMsgs = pilz_msgs::MoveGroupSequenceResult::_trajectory_start_type;
-  using PlannedTrajMsgs = pilz_msgs::MoveGroupSequenceResult::_planned_trajectory_type;
+  using StartStateMsgs = moveit_msgs::MoveGroupSequenceResult::_trajectory_start_type;
+  using PlannedTrajMsgs = moveit_msgs::MoveGroupSequenceResult::_planned_trajectory_type;
 
 private:
-  void executeSequenceCallback(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal);
-  void executeSequenceCallbackPlanAndExecute(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                             pilz_msgs::MoveGroupSequenceResult& action_res);
-  void executeMoveCallbackPlanOnly(const pilz_msgs::MoveGroupSequenceGoalConstPtr& goal,
-                                   pilz_msgs::MoveGroupSequenceResult& res);
+  void executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal);
+  void executeSequenceCallbackPlanAndExecute(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
+                                             moveit_msgs::MoveGroupSequenceResult& action_res);
+  void executeMoveCallbackPlanOnly(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal,
+                                   moveit_msgs::MoveGroupSequenceResult& res);
   void startMoveExecutionCallback();
   void startMoveLookCallback();
   void preemptMoveCallback();
   void setMoveState(move_group::MoveGroupState state);
-  bool planUsingSequenceManager(const pilz_msgs::MotionSequenceRequest& req,
+  bool planUsingSequenceManager(const moveit_msgs::MotionSequenceRequest& req,
                                 plan_execution::ExecutableMotionPlan& plan);
 
 private:
@@ -80,8 +80,8 @@ private:
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:
-  std::unique_ptr<actionlib::SimpleActionServer<pilz_msgs::MoveGroupSequenceAction> > move_action_server_;
-  pilz_msgs::MoveGroupSequenceFeedback move_feedback_;
+  std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupSequenceAction> > move_action_server_;
+  moveit_msgs::MoveGroupSequenceFeedback move_feedback_;
 
   move_group::MoveGroupState move_state_{ move_group::IDLE };
   std::unique_ptr<trapezoidal_trajectory_generation::CommandListManager> command_list_manager_;

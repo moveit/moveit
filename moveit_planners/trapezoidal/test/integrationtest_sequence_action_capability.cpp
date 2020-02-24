@@ -58,7 +58,7 @@
 #include <pilz_industrial_motion_testutils/sequence.h>
 #include <pilz_industrial_motion_testutils/checks.h>
 
-#include "pilz_msgs/MoveGroupSequenceAction.h"
+#include "moveit_msgs/MoveGroupSequenceAction.h"
 
 static constexpr int WAIT_FOR_RESULT_TIME_OUT{ 5 };          // seconds
 static constexpr int TIME_BEFORE_CANCEL_GOAL{ 2 };           // seconds
@@ -85,13 +85,13 @@ protected:
 
 public:
   MOCK_METHOD0(active_callback, void());
-  MOCK_METHOD1(feedback_callback, void(const pilz_msgs::MoveGroupSequenceFeedbackConstPtr& feedback));
+  MOCK_METHOD1(feedback_callback, void(const moveit_msgs::MoveGroupSequenceFeedbackConstPtr& feedback));
   MOCK_METHOD2(done_callback, void(const actionlib::SimpleClientGoalState& state,
-                                   const pilz_msgs::MoveGroupSequenceResultConstPtr& result));
+                                   const moveit_msgs::MoveGroupSequenceResultConstPtr& result));
 
 protected:
   ros::NodeHandle ph_{ "~" };
-  actionlib::SimpleActionClient<pilz_msgs::MoveGroupSequenceAction> ac_{ ph_, SEQUENCE_ACTION_NAME, true };
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupSequenceAction> ac_{ ph_, SEQUENCE_ACTION_NAME, true };
   std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
 
   robot_model_loader::RobotModelLoader model_loader_;
@@ -147,10 +147,10 @@ void IntegrationTestSequenceAction::SetUp()
  */
 TEST_F(IntegrationTestSequenceAction, TestSendingOfEmptySequence)
 {
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -173,11 +173,11 @@ TEST_F(IntegrationTestSequenceAction, TestDifferingGroupNames)
   MotionCmd& cmd{ seq.getCmd(1) };
   cmd.setPlanningGroup("WrongGroupName");
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME) << "Incorrect error code.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -199,12 +199,12 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
 
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -228,12 +228,12 @@ TEST_F(IntegrationTestSequenceAction, TestOverlappingBlendRadii)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(0));
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
 
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -258,12 +258,12 @@ TEST_F(IntegrationTestSequenceAction, TestTooLargeBlendRadii)
   seq.erase(2, seq.size());
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(seq.size() - 2));
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
 
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::FAILURE) << "Incorrect error code";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -289,11 +289,11 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidCmd)
   // Erase certain command to invalid command following the command in sequence.
   seq.erase(3, 4);
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_NE(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -319,11 +319,11 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidLinkName)
   CircInterimCart& circ{ seq.getCmd<CircInterimCart>(1) };
   circ.getGoalConfiguration().setLinkName("InvalidLinkName");
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_NE(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -369,7 +369,7 @@ TEST_F(IntegrationTestSequenceAction, TestActionServerCallbacks)
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   // set expectations (no guarantee, that done callback is called before idle feedback)
@@ -416,7 +416,7 @@ TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoal(seq_goal);
@@ -426,7 +426,7 @@ TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
   ac_.cancelGoal();
   ac_.waitForResult(ros::Duration(WAIT_FOR_RESULT_TIME_OUT));
 
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED) << "Error code should be preempted.";
 }
 
@@ -447,12 +447,12 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
   // We do not need the complete sequence, just two commands.
   seq.erase(2, seq.size());
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.planning_options.plan_only = true;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Sequence execution failed.";
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
@@ -481,14 +481,14 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
   seq.erase(2, seq.size());
 
   // create request
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.planning_options.plan_only = true;
   seq_goal.request = seq.toRequest();
 
   seq_goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
@@ -515,13 +515,13 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
   seq.setBlendRadius(0, -1.0);
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
   seq_goal.planning_options.plan_only = true;
 
   ac_.sendGoalAndWait(seq_goal);
 
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code.";
   EXPECT_TRUE(res->planned_trajectory.empty());
   EXPECT_TRUE(res->trajectory_start.empty());
@@ -546,13 +546,13 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotState)
   seq.erase(2, seq.size());
 
   // create request
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   seq_goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
@@ -572,13 +572,13 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotState)
 TEST_F(IntegrationTestSequenceAction, TestLargeRequest)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
-  pilz_msgs::MotionSequenceRequest req{ seq.toRequest() };
+  moveit_msgs::MotionSequenceRequest req{ seq.toRequest() };
   // Create large request by making copies of the original sequence commands
   // and adding them to the end of the original sequence.
   size_t n{ req.items.size() };
   for (size_t i = 0; i < n; ++i)
   {
-    pilz_msgs::MotionSequenceItem item{ req.items.at(i) };
+    moveit_msgs::MotionSequenceItem item{ req.items.at(i) };
     if (i == 0)
     {
       // Remove start state because only the first request
@@ -588,11 +588,11 @@ TEST_F(IntegrationTestSequenceAction, TestLargeRequest)
     req.items.push_back(item);
   }
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = req;
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
@@ -616,11 +616,11 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithoutBlending)
 
   seq.setAllBlendRadiiToZero();
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";
@@ -642,11 +642,11 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithBlending)
 {
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
-  pilz_msgs::MoveGroupSequenceGoal seq_goal;
+  moveit_msgs::MoveGroupSequenceGoal seq_goal;
   seq_goal.request = seq.toRequest();
 
   ac_.sendGoalAndWait(seq_goal);
-  pilz_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
+  moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
   EXPECT_FALSE(res->planned_trajectory.empty()) << "Planned trajectory is empty";
   EXPECT_FALSE(res->trajectory_start.empty()) << "No start states returned";

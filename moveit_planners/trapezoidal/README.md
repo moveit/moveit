@@ -203,7 +203,7 @@ non of the commands in the sequence are executed.
 
 ## User interface sequence capability
 A specialized MoveIt! capability takes a
-`pilz_msgs::MotionSequenceRequest` as input. The request contains a list of subsequent goals as described above and an additional
+`moveit_msgs::MotionSequenceRequest` as input. The request contains a list of subsequent goals as described above and an additional
 `blend_radius` parameter. If the given `blend_radius` in meter is greater than zero, the corresponding trajectory is merged together
 with the following goal in a way, that the robot does not stop at the current goal. When the tcp comes closer to the goal than the
 given `blend_radius`, it is allowed to travel towards the next goal already. When leaving a sphere around the current goal, the robot
@@ -221,7 +221,7 @@ For details about the blend algorithm please refer to
   the distance between the goals.
 
 ### Action interface
-In analogy to the `MoveGroup` action interface the user can plan and execute a `pilz_msgs::MotionSequenceRequest`
+In analogy to the `MoveGroup` action interface the user can plan and execute a `moveit_msgs::MotionSequenceRequest`
 through the action server at `/sequence_move_group`.
 
 In one point the `MoveGroupSequenceAction` differs from the standard MoveGroup capability: If the robot is already at the goal
@@ -232,5 +232,5 @@ check to allow moving on a circular or comparable path.
 See the `trapezoidal_robot_programming` package for an example python script that shows how to use the capability.
 
 ### Service interface
-The service `plan_sequence_path` allows the user to generate a joint trajectory for a `pilz_msgs::MotionSequenceRequest`.
+The service `plan_sequence_path` allows the user to generate a joint trajectory for a `moveit_msgs::MotionSequenceRequest`.
 The trajectory is returned and not executed.
