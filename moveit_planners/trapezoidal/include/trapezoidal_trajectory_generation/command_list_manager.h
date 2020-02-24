@@ -185,7 +185,8 @@ private:
    * @brief Checks that only the first request of the specified group has
    * a start state in the specified request list.
    */
-  static void checkStartStatesOfGroup(const moveit_msgs::MotionSequenceRequest& req_list, const std::string& group_name);
+  static void checkStartStatesOfGroup(const moveit_msgs::MotionSequenceRequest& req_list,
+                                      const std::string& group_name);
 
   /**
    * @brief Checks that each group in the specified request list has only
