@@ -100,17 +100,22 @@ currentpoint
 /X22 load /Y22 load curveto
 } bd
 /SSPD {
-  dup length / d exch dict def
-  {
-    / v exch def / k exch def currentpagedevice k known
-    {
-      / cpdv currentpagedevice k get def v cpdv ne
-      {
-        / upd false def / nullv v type / nulltype eq def / nullcpdv cpdv type / nulltype eq def nullv nullcpdv or
-            { / upd true def }
-        {
-          / sametype v type cpdv type eq def sametype
-          {
+dup length /d exch dict def
+{
+/v exch def
+/k exch def
+currentpagedevice k known {
+/cpdv currentpagedevice k get def
+v cpdv ne {
+/upd false def
+/nullv v type /nulltype eq def
+/nullcpdv cpdv type /nulltype eq def
+nullv nullcpdv or
+{
+/upd true def
+} {
+/sametype v type cpdv type eq def
+sametype {
 v type /arraytype eq {
 /vlen v length def
 /cpdvlen cpdv length def
@@ -142,24 +147,17 @@ exit
 /upd true def
 } ifelse
 } ifelse
-          }
-          if
-        }
-        ifelse upd true eq
-        {
-          d k v put
-        }
-        if
-      }
-      if
-    }
-    if
-  }
-  forall d length 0 gt
-  {
-    d setpagedevice
-  }
-  if
+} if
+} ifelse
+upd true eq {
+d k v put
+} if
+} if
+} if
+} forall
+d length 0 gt {
+d setpagedevice
+} if
 } bd
 /RE { % /NewFontName [NewEncodingArray] /FontName RE -
   findfont dup length dict begin
@@ -181,21 +179,16 @@ exit
 /dict_count countdictstack def % Count objects on dict stack
 /op_count count 1 sub def      % Count objects on operand stack
 userdict begin                 % Push userdict on dict stack
-/showpage
-  {
-  }
-  def % Redefine showpage,
-      {} = null proc 0 setgray 0 setlinecap %
-           Prepare graphics state 1 setlinewidth 0 setlinejoin 10 setmiterlimit[] 0 setdash newpath /
-           languagelevel where % If level not equal to 1 then
-  {
-    pop languagelevel % set strokeadjust and 1 ne % overprint to their defaults.
-    {
-      false setstrokeadjust false setoverprint
-    }
-    if
-  }
-  if
+/showpage { } def              % Redefine showpage, { } = null proc
+0 setgray 0 setlinecap         % Prepare graphics state
+1 setlinewidth 0 setlinejoin
+10 setmiterlimit [ ] 0 setdash newpath
+/languagelevel where           % If level not equal to 1 then
+{pop languagelevel             % set strokeadjust and
+1 ne                           % overprint to their defaults.
+{false setstrokeadjust false setoverprint
+} if
+} if
 } bd
 /EndEPSF { %def
 count op_count sub {pop} repeat            % Clean up stacks
@@ -300,19 +293,24 @@ GS
 0 0 translate
 1284 287 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{
-  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
-        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 1284 / ImageType 1 / DataSource Data /
-               ImageMatrix[1284 0 0 287 0 0] / Height 287 >>
-    image } stopped
-  {
-    handleerror
-  }
-  if
-    RawData flushfile
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /Decode [0 1 0 1 0 1]
+  /BitsPerComponent 8
+  /Width 1284
+  /ImageType 1
+  /DataSource Data
+  /ImageMatrix [1284 0 0 287 0 0]
+  /Height 287
+>> image
+} stopped {handleerror} if
+  RawData flushfile
 } exec
 Gb"0WnVbokS]C9tCIARD']Ju+5d/rRV'JS<V<!;qJ:\AZ'QX!urT-!mE(Aju(5/FoBRU4h&gI:J8.cGc
-#Gh_m % Z1As_* A8l0VF) 1Qe_ > jlZTSZbg + GurL* J1B - % T] 6 + < ?.AGc : PG @'_(bdZI^_iZ06QLaKQSR&pT
+#Gh_m%Z1As_*A8l0VF)1Qe_>jlZTSZbg+GurL*J1B-%T]6+<?.AGc:PG@'_(bdZI^_iZ06QLaKQSR&pT
 Fk&F%U&)C9qY$>=]!kE1[E8DcJlU^2^2Q*,KTO9SLn'?+Z\?L]V_$cZ27FCMPR2.6s.@&T((P4jT:Mlb
 N[Q%rE[i92U=O-hEm?,?S+LRB"+/</T'3eYMeSfqNT>+J#pGF0&NLT6AdafD:-$hR$#C!qA+i^I7XhXJ
 N[Q%rE[i92U=O-hEm?+4/A-S&O&>h>b7Q%R6r$23<7I?g9[5Y0//*7c2L?.M*)T$njA\NB7BP7[jIB/g
@@ -357,7 +355,7 @@ c<j5UZfIWS6:g1gYbJ+Xoi^sI>?bk[&kf,HE[khK(@J(lO)$rOf1J$#PRnJ<[B4+F5P)a`[1.s=;@to(
 3>Jr6$STc;cgs8lq_l_K-%n[(UFI2M=,m46W/t[\7H@FtRP!=9!mgI#gq,;d.4'X8D?DDXpdM!N%jW'L
 %1J)6.O(dbenj=#ZZeS/p6nLR3N&)Q'"O"(B]9f9L_mA%+]1d!jAaWt/Ng6$hohShf/dnH.3TsW.QZXk
 &[N&^3>IZT;/<W0'[n/A4RX7rA'QMLKLAR(J$YPMOGX=#S;PCeW&7e(cXK,e4(Se<'^(\n66`>%K.Q#9
-#`5(/ aJl, GNS; 8 @5) aci /\LBK\5dQE.3TsW.N35HIV> X8ON = DWS; J) gZa4`9cCM / QqWcH %> e_l'n7.hu
+#`5(/aJl,GNS;8@5)aci/\LBK\5dQE.3TsW.N35HIV>X8ON=DWS;J)gZa4`9cCM/QqWcH%>e_l'n7.hu
 hnlGn:[B+bPS-;,VkQOPrDL,i)qQ<$,,ZW*.U#+38NV+^fTE(<IJ),\Nuh#@k94a%P/f7pi%nWGj.'"6
 8E<`,PGs'!]BU?e$UQ&8,'#0%fCeI]]6Sbjg9obmh7In"SiLlSd\TT8hS3,r\E`t"$Z'5ac7(&m6r$0l
 R/1rIeMhBbKLAR(jA[t>(LMR[_M&BpJ,J5W&%]/qs8Msgn)&!j0B`5@F+89ME)%i*,]YA<J?PHg&e[2>
@@ -520,7 +518,7 @@ L^oHm&u'_ak]!C(nb[GW\*EjMQCfip5-BTXg9djDg)W2JIPZ_Y;u3B6GJK-??0<Af@EZ@YhRd[]]$u;q
 Lp,[Q=h9XgH5p4C,g^K/N.K2ng)Hg)B^j(fO+\N2l8RKH;Q%>_f6dGca.n?ahWlND+Z=d:='\6qhf%Kj
 bP0nDYI!#'YM*3!]lh;O($5C+$oRr<8R6IJmF0qE2DHo!.5e0lANaA+AkdAgh/`.W^P;29IS)'4Q7Y`L
 J$\nI;WW?p9kVbAM'dqW`>S<K,FZVns8D]X3^)8-3ZMlJrFQHq5(B5Hh<7*A?i.2h[OqM]?B[4S&G!Yi
-# : jX> qTWBbpT$G5H9 +) JW]`% @Ak)`RlbRQ7\NkpL * G + 6 ^ ^ T % 13Ni) .2 & 6nDjkL + JNL3)'f[2ZdSk*tK2
+#:jX>qTWBbpT$G5H9+)JW]`%@Ak)`RlbRQ7\NkpL*G+6^^T%13Ni).2&6nDjkL+JNL3)'f[2ZdSk*tK2
 Adig&E`/*Em+;nE$J4P"IJ7#VmF0qE[_1L:0s1mpD7#9!JC/<7)SY++WB3K4FRf;)o,ShlXf\_ami1;Z
 5DQj=WWMRXC.'H%H9*f:&hTp-]cqTaWo`H;=Y(>L*BSHAmC-0^\,8.jnP"[lL@g+eV`7,c31WD%'nqhg
 5fQXnj7DH[f<56-iUlB`iFCru[:eCL[_,tl[V4&4/Ko*hP<cnYC\W@dYNhW<Hka#2l-ee.1#B*;#lbMO
@@ -1132,7 +1130,7 @@ $O[Id4>?PWEH.,1Rg\Jl]=[b-L>);CS!of8-O+&0"e@.n.e<3&eV^c0UE_EF&+ak<If9+#(5p<3D*<.)
 61%KQI7T%8"U,&hl'\A-Jc8gaH%46/0kZg>d7R#'e.bk`"6.BL6'A@SYY^sM)Z7R.:fon>6@ft^bu8W3
 L^]lY1`L2]K>]!*9UBS*.K+B)$A"cu[CWqQ4rr4,a"p"Ed+!d?c?sJGmA=_>3:tgSB`"i\1B78a!X9kd
 Z+n&'e&#PEqYIeLq<'VN7kLZ4s*Df[;[)j)[a<RT<ErdVdqI22rO!b8r$=qN(le@_d*Rm?5lO#u/YKkH
-#tAZ 'c7s$7?V#5JrO%1TAh<oZrOonXa2c6' "8O&8CB=A[+bBVr5^u?rTYD8h?P4" 8Y6FQbKEV - e !W = ; f
+#tAZ'c7s$7?V#5JrO%1TAh<oZrOonXa2c6'"8O&8CB=A[+bBVr5^u?rTYD8h?P4"8Y6FQbKEV-e!W=;f
 iHG,>M&,`MKEV,$1O+:g>fZ8kB`!/.pQ)^,*Ok/S*S]"_rbOm-rOqOof@c:H>>&5XIb)lMf$Ib3k\ku>
 gL'pBL\eHd5s]uPTYCMj3W>lXqJ/B[7WZ;#<H&mbKk159`8BH#TnHN!L7HrMg#_>WbKJ(TL8;Gr)U9:2
 ^?2QV^1M"jCMIUG,es@:"R4Tg<c(J[(cJf[\)-4q7t60,\V#J0)i"<$6$%*'Xr85u6Rp5-/hTUps6&gR

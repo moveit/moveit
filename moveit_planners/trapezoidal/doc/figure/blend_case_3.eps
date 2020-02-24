@@ -100,17 +100,22 @@ currentpoint
 /X22 load /Y22 load curveto
 } bd
 /SSPD {
-  dup length / d exch dict def
-  {
-    / v exch def / k exch def currentpagedevice k known
-    {
-      / cpdv currentpagedevice k get def v cpdv ne
-      {
-        / upd false def / nullv v type / nulltype eq def / nullcpdv cpdv type / nulltype eq def nullv nullcpdv or
-            { / upd true def }
-        {
-          / sametype v type cpdv type eq def sametype
-          {
+dup length /d exch dict def
+{
+/v exch def
+/k exch def
+currentpagedevice k known {
+/cpdv currentpagedevice k get def
+v cpdv ne {
+/upd false def
+/nullv v type /nulltype eq def
+/nullcpdv cpdv type /nulltype eq def
+nullv nullcpdv or
+{
+/upd true def
+} {
+/sametype v type cpdv type eq def
+sametype {
 v type /arraytype eq {
 /vlen v length def
 /cpdvlen cpdv length def
@@ -142,24 +147,17 @@ exit
 /upd true def
 } ifelse
 } ifelse
-          }
-          if
-        }
-        ifelse upd true eq
-        {
-          d k v put
-        }
-        if
-      }
-      if
-    }
-    if
-  }
-  forall d length 0 gt
-  {
-    d setpagedevice
-  }
-  if
+} if
+} ifelse
+upd true eq {
+d k v put
+} if
+} if
+} if
+} forall
+d length 0 gt {
+d setpagedevice
+} if
 } bd
 /RE { % /NewFontName [NewEncodingArray] /FontName RE -
   findfont dup length dict begin
@@ -181,21 +179,16 @@ exit
 /dict_count countdictstack def % Count objects on dict stack
 /op_count count 1 sub def      % Count objects on operand stack
 userdict begin                 % Push userdict on dict stack
-/showpage
-  {
-  }
-  def % Redefine showpage,
-      {} = null proc 0 setgray 0 setlinecap %
-           Prepare graphics state 1 setlinewidth 0 setlinejoin 10 setmiterlimit[] 0 setdash newpath /
-           languagelevel where % If level not equal to 1 then
-  {
-    pop languagelevel % set strokeadjust and 1 ne % overprint to their defaults.
-    {
-      false setstrokeadjust false setoverprint
-    }
-    if
-  }
-  if
+/showpage { } def              % Redefine showpage, { } = null proc
+0 setgray 0 setlinecap         % Prepare graphics state
+1 setlinewidth 0 setlinejoin
+10 setmiterlimit [ ] 0 setdash newpath
+/languagelevel where           % If level not equal to 1 then
+{pop languagelevel             % set strokeadjust and
+1 ne                           % overprint to their defaults.
+{false setstrokeadjust false setoverprint
+} if
+} if
 } bd
 /EndEPSF { %def
 count op_count sub {pop} repeat            % Clean up stacks
@@ -300,16 +293,21 @@ GS
 0 0 translate
 1284 287 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{
-  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
-        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 1284 / ImageType 1 / DataSource Data /
-               ImageMatrix[1284 0 0 287 0 0] / Height 287 >>
-    image } stopped
-  {
-    handleerror
-  }
-  if
-    RawData flushfile
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /Decode [0 1 0 1 0 1]
+  /BitsPerComponent 8
+  /Width 1284
+  /ImageType 1
+  /DataSource Data
+  /ImageMatrix [1284 0 0 287 0 0]
+  /Height 287
+>> image
+} stopped {handleerror} if
+  RawData flushfile
 } exec
 Gb"0Wd>M9(IE(7D2+#@i,9a!<A4T'@6Eh'<K]!28$kgX5P^r'MkGAr(BF,B(^eb)epqi\3A!)ZlJe/!Y
 6AUU5Kcl<U7L!@]5R%P$m,FU_S'?2c1HRD]pG_9*RHMC&dUp1a/>(hQo1HVNhgDa;7ueQlaa](gp?%i_
@@ -381,7 +379,7 @@ AdafD:+7>3E[mg%7Y`g3%XSY^7;[-8'N%_C[P0`)PS-;,V]n_=l2Ma1KtT21r)?'Z7BP7[jIB.@#`5(/
 -m>D$3G8\&`:He;3>Jr6$^5X,.3TsW.\_TXp6iXL/`Na/6r$1Qftug?;b@=PS;J^<U]\kJ`('8\.O(db
 enec8c7(&m6r$18&CPA1nN9c=:.;;<_W74c8dL9DMC9XDH-D_p(9raqTVC"R@<0XB-%nZ]7?eA3r2+Aj
 NF0UR,,_0dCghA0.4'X8:.:BYdLm$,_OE]G<CBSNXkCSPS5W#cM4BGO+f(r/h85YjLfHi<7BP7[jIB.@
-#`5(/ - m> Af) o % 2 / 6r $1Qftug ?; b @ = PS; J ^ <UbWn % LfHi <7BP7 [jIB.@ #`5(/ - m> C4Rl ? 4) 6r $1Qftug ?
+#`5(/-m>Af)o%2/6r$1Qftug?;b@=PS;J^<UbWn%LfHi<7BP7[jIB.@#`5(/-m>C4Rl?4)6r$1Qftug?
 ;b@=PS;J^<UfO'*_JB(d`$ut/U=O-hEm?*[KLAR(PRp_s;mu1a/RfHW;c.>=0KJ<\&jde?,"`,T'rGg+
 [2Hq5,,_0dCghA0.4'X8:.:BYd`Td=_rG(A.O(dbenec8c7(&m6r$18&CTjGh]c)53>Jr6$^5X,.3TsW
 .\_TXqQ`kG9roOZ.Vd3D-Kgms6:g0:6jY%0C[)HPeS?k<Ln'?+Z\?L]Vj%`*3>GCX8-<l$(*:RG<Y7>,
@@ -480,16 +478,21 @@ GS
 0 0 translate
 320 287 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{
-  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
-        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 320 / ImageType 1 / DataSource Data /
-               ImageMatrix[320 0 0 287 0 0] / Height 287 >>
-    image } stopped
-  {
-    handleerror
-  }
-  if
-    RawData flushfile
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /Decode [0 1 0 1 0 1]
+  /BitsPerComponent 8
+  /Width 320
+  /ImageType 1
+  /DataSource Data
+  /ImageMatrix [320 0 0 287 0 0]
+  /Height 287
+>> image
+} stopped {handleerror} if
+  RawData flushfile
 } exec
 Gb"0VDeN2Es2XXaA;!JZ+VDU26&]7/YR=r48hIXuO^_l1)%fc!)A3VtLkuP>5Y=EWKTI)f.nW3FR+\+(
 _&*b16R:-V(e]V)@"h&#`V"Ya&"_\K>j"/[Y.ZL7Hb4Yhkf.aNkNn_bFZRj>F"V[-;@3B,WN"!d#WGR]
@@ -515,7 +518,7 @@ L^oHm&u'_ak]!C(nb[GW\*EjMQCfip5-BTXg9djDg)W2JIPZ_Y;u3B6GJK-??0<Af@EZ@YhRd[]]$u;q
 Lp,[Q=h9XgH5p4C,g^K/N.K2ng)Hg)B^j(fO+\N2l8RKH;Q%>_f6dGca.n?ahWlND+Z=d:='\6qhf%Kj
 bP0nDYI!#'YM*3!]lh;O($5C+$oRr<8R6IJmF0qE2DHo!.5e0lANaA+AkdAgh/`.W^P;29IS)'4Q7Y`L
 J$\nI;WW?p9kVbAM'dqW`>S<K,FZVns8D]X3^)8-3ZMlJrFQHq5(B5Hh<7*A?i.2h[OqM]?B[4S&G!Yi
-# : jX> qTWBbpT$G5H9 +) JW]`% @Ak)`RlbRQ7\NkpL * G + 6 ^ ^ T % 13Ni) .2 & 6nDjkL + JNL3)'f[2ZdSk*tK2
+#:jX>qTWBbpT$G5H9+)JW]`%@Ak)`RlbRQ7\NkpL*G+6^^T%13Ni).2&6nDjkL+JNL3)'f[2ZdSk*tK2
 Adig&E`/*Em+;nE$J4P"IJ7#VmF0qE[_1L:0s1mpD7#9!JC/<7)SY++WB3K4FRf;)o,ShlXf\_ami1;Z
 5DQj=WWMRXC.'H%H9*f:&hTp-]cqTaWo`H;=Y(>L*BSHAmC-0^\,8.jnP"[lL@g+eV`7,c31WD%'nqhg
 5fQXnj7DH[f<56-iUlB`iFCru[:eCL[_,tl[V4&4/Ko*hP<cnYC\W@dYNhW<Hka#2l-ee.1#B*;#lbMO
@@ -806,7 +809,7 @@ ff@b37Fa!]E81i`&>IOS4O7<)1MMEfRNpEq"3hH(ic:m:cI!sfWpX:+BDN5/HQ2s]bBYfTH(MW1B@7%f
 s3SY)cG:I9mKGCF47e%/UjD#uSP2*RfKm&#)ebN[&XP":p=V>qd0_4QG4b"G7t:*q?iTujh7N8BqS:!g
 0::il8Y]0HEN)^1*QIH=>aGmV99=tQPp6*AS"s_#++3RoU]Oo:H?FR]qbM_<e*5>Z?[1O`H%4eNLGSmr
 g^%LP/^+S4Om7crFY`><C^9(5CnOp_6sQl/feD,*7EbPh07S98gpt*_ro"B;QrN+\r8fRfs2%_OFsEAS
-#Yg5_4_r`rV] A6ET3R] l1eWpdbEX9`7 @U) d.JN; gT / > GLhgK_; 4e % q1PP8 = mEb4Cj3UFI6 / 7I, 1l5cuH
+#Yg5_4_r`rV]A6ET3R]l1eWpdbEX9`7@U)d.JN;gT/>GLhgK_;4e%q1PP8=mEb4Cj3UFI6/7I,1l5cuH
 ).Yh$VAQs[\LnhEXH3pI,MtdKEc#RUK6lq=[7TugjHEB:htaUNrTr'9?_.4iG/)t1Mn&s$)Lb\1XEk;G
 S\IgB8e%2;8r#TsiLMuMB'<0<^u0:hiG^dM*CI#g/0W-42P$N6AT`9jIer<)X%jT'oK/*U5Q8eUYKZhn
 PE0)89>Qjd=*;P57k/4KX:`Hjc_W@G$f0c\39D2;.*8@[5`QI)G-rs8_A@e/%)0A9<]EuKHXc@rKY*CP
@@ -1528,16 +1531,21 @@ GS
 0 0 translate
 320 71 scale
 %AXGBeginBitmap: java.awt.image.BufferedImage
-{
-  { / RawData currentfile / ASCII85Decode filter def / Data RawData / FlateDecode filter def / DeviceRGB setcolorspace
-        << / Decode[0 1 0 1 0 1] / BitsPerComponent 8 / Width 320 / ImageType 1 / DataSource Data /
-               ImageMatrix[320 0 0 71 0 0] / Height 71 >>
-    image } stopped
-  {
-    handleerror
-  }
-  if
-    RawData flushfile
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /Decode [0 1 0 1 0 1]
+  /BitsPerComponent 8
+  /Width 320
+  /ImageType 1
+  /DataSource Data
+  /ImageMatrix [320 0 0 71 0 0]
+  /Height 71
+>> image
+} stopped {handleerror} if
+  RawData flushfile
 } exec
 Gb"0RYt?6<'F%qWfg8(0$S)gY74`;ob!N>bb0E=)`7?m:,uRhNiWE:bLffIhL]e*X5\qu&ln'bVAhOKY
 2SnaiGKn7fpJjfQj<XKDq/nG]!<<*"zzzzzzz!<;I7ctB*Q.XY/U:Hh\k7H_d*MPB;sq+OX"SL:$YMPB

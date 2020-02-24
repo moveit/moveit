@@ -1,4 +1,4 @@
-#Trajectory generation
+# Trajectory generation
 
 ## Overview sequence processing
 The following diagram shows the steps to process and execute
