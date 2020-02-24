@@ -477,12 +477,13 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
                                           const Eigen::JacobiSVD<Eigen::MatrixXd>& svd, const Eigen::MatrixXd& jacobian)
 {
   double velocity_scale = 1;
+  std::size_t num_dimensions = jacobian.rows();
 
   // Find the direction away from nearest singularity.
   // The last column of U from the SVD of the Jacobian points directly toward or away from the singularity.
   // The sign can flip at any time, so we have to do some extra checking.
   // Look ahead to see if the Jacobian's condition will decrease.
-  Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(5);
+  Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(num_dimensions - 1);
 
   double ini_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
 
@@ -490,7 +491,7 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   // "Resolving the Sign Ambiguity in the Singular Value Decomposition".
   // Look ahead to see if the Jacobian's condition will decrease in this
   // direction. Start with a scaled version of the singular vector
-  Eigen::VectorXd delta_x(6);
+  Eigen::VectorXd delta_x(num_dimensions);
   double scale = 100;
   delta_x = vector_toward_singularity / scale;
 
@@ -500,18 +501,13 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   new_theta += pseudo_inverse_ * delta_x;
   kinematic_state_->setJointGroupPositions(joint_model_group_, new_theta);
 
-  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian);
+  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(jacobian);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
   // If new_condition < ini_condition, the singular vector does point towards a
   // singularity. Otherwise, flip its direction.
   if (ini_condition >= new_condition)
   {
-    vector_toward_singularity[0] *= -1;
-    vector_toward_singularity[1] *= -1;
-    vector_toward_singularity[2] *= -1;
-    vector_toward_singularity[3] *= -1;
-    vector_toward_singularity[4] *= -1;
-    vector_toward_singularity[5] *= -1;
+    vector_toward_singularity *= -1;
   }
 
   // If this dot product is positive, we're moving toward singularity ==> decelerate
@@ -750,19 +746,17 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 
 void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
 {
-  /*
-    unsigned int num_rows = jacobian.rows() - 1;
-    unsigned int num_cols = jacobian.cols();
+  unsigned int num_rows = jacobian.rows() - 1;
+  unsigned int num_cols = jacobian.cols();
 
-    if (row_to_remove < num_rows)
-    {
-      jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
-          jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
-      delta_x.segment(row_to_remove, num_rows - row_to_remove) =
-          delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
-    }
-    jacobian.conservativeResize(num_rows, num_cols);
-    delta_x.conservativeResize(num_rows);
-  */
+  if (row_to_remove < num_rows)
+  {
+    jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
+        jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
+    delta_x.segment(row_to_remove, num_rows - row_to_remove) =
+        delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
+  }
+  jacobian.conservativeResize(num_rows, num_cols);
+  delta_x.conservativeResize(num_rows);
 }
 }  // namespace moveit_jog_arm
