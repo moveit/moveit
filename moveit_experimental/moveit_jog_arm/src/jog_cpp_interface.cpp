@@ -39,8 +39,6 @@
 
 #include "moveit_jog_arm/jog_cpp_interface.h"
 
-// TODO(davetcoleman): rename JogCppInterface to JogCppInterface to match file name
-
 static const std::string LOGNAME = "jog_cpp_interface";
 
 namespace moveit_jog_arm

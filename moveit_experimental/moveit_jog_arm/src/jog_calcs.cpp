@@ -335,14 +335,16 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
-  svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  matrix_s_ = svd_.singularValues().asDiagonal();
-  pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();
+  static Eigen::JacobiSVD<Eigen::MatrixXd> svd =
+      Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  static Eigen::MatrixXd matrix_s = svd.singularValues().asDiagonal();
+  static Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse() * svd.matrixU().transpose();
 
-  delta_theta_ = pseudo_inverse_ * delta_x;
+  delta_theta_ = pseudo_inverse * delta_x;
 
   // If close to a collision or a singularity, decelerate
-  if (!applyVelocityScaling(shared_variables, mutex, delta_theta_, decelerateForSingularity(delta_x, svd_, jacobian)))
+  if (!applyVelocityScaling(shared_variables, mutex, delta_theta_,
+                            velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
   {
     has_warning_ = true;
     suddenHalt(outgoing_command_);
@@ -473,8 +475,10 @@ bool JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::m
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                          const Eigen::JacobiSVD<Eigen::MatrixXd>& svd, const Eigen::MatrixXd& jacobian)
+double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
+                                                     const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+                                                     const Eigen::MatrixXd& jacobian,
+                                                     const Eigen::MatrixXd& pseudo_inverse)
 {
   double velocity_scale = 1;
   std::size_t num_dimensions = jacobian.rows();
@@ -498,7 +502,7 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   // Calculate a small change in joints
   Eigen::VectorXd new_theta;
   kinematic_state_->copyJointGroupPositions(joint_model_group_, new_theta);
-  new_theta += pseudo_inverse_ * delta_x;
+  new_theta += pseudo_inverse * delta_x;
   kinematic_state_->setJointGroupPositions(joint_model_group_, new_theta);
 
   Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(jacobian);
