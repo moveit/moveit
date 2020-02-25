@@ -34,6 +34,8 @@
 
 #include "trapezoidal_trajectory_generation/trajectory_blender_transition_window.h"
 
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <algorithm>
 #include <math.h>
 
@@ -206,7 +208,6 @@ void trapezoidal::TrajectoryBlenderTransitionWindow::blendTrajectoryCartesian(
   // blend the trajectory
   double blend_sample_num = second_interse_index + blend_align_index - first_interse_index + 1;
   trapezoidal::CartesianTrajectoryPoint waypoint;
-  geometry_msgs::Pose waypoint_pose;
   blend_sample_pose2 = req.second_trajectory->getFirstWayPoint().getFrameTransform(req.link_name);
 
   // Pose on blending trajectory
@@ -239,8 +240,7 @@ void trapezoidal::TrajectoryBlenderTransitionWindow::blendTrajectoryCartesian(
     blend_sample_pose.linear() = start_quat.slerp(alpha, end_quat).toRotationMatrix();
 
     // push to the trajectory
-    tf::poseEigenToMsg(blend_sample_pose, waypoint_pose);
-    waypoint.pose = waypoint_pose;
+    waypoint.pose = tf2::toMsg(blend_sample_pose);
     waypoint.time_from_start = ros::Duration((i + 1.0) * sampling_time);
     trajectory.points.push_back(waypoint);
   }

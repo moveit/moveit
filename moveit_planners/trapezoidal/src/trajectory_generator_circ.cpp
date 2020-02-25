@@ -40,13 +40,16 @@
 
 #include <ros/ros.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_kdl.h>
+#include <moveit/robot_state/conversions.h>
 #include <kdl_conversions/kdl_msg.h>
 #include <kdl/utilities/error.h>
 #include <kdl/utilities/utility.h>
 #include <kdl/trajectory_segment.hpp>
 #include <kdl/rotational_interpolation_sa.hpp>
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace trapezoidal
 {
@@ -137,7 +140,7 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
         req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
     goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
     normalizeQuaternion(goal_pose_msg.orientation);
-    tf::poseMsgToEigen(goal_pose_msg, info.goal_pose);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose_msg, info.goal_pose);
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());
@@ -171,9 +174,8 @@ void TrajectoryGeneratorCIRC::extractMotionPlanInfo(const planning_interface::Mo
   }
 
   Eigen::Vector3d circ_path_point;
-  tf::pointMsgToEigen(
-      req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
-      circ_path_point);
+  tf2::convert(req.path_constraints.position_constraints.front().constraint_region.primitive_poses.front().position,
+               circ_path_point);
 
   info.circ_path_point.first = req.path_constraints.name;
   info.circ_path_point.second = circ_path_point;

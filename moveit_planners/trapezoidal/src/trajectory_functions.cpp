@@ -35,6 +35,10 @@
 #include "trapezoidal_trajectory_generation/trajectory_functions.h"
 
 #include <moveit/planning_scene/planning_scene.h>
+#include <tf2/convert.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 bool trapezoidal::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                                 const std::string& link_name, const Eigen::Isometry3d& pose,
@@ -94,7 +98,7 @@ bool trapezoidal::computePoseIK(const moveit::core::RobotModelConstPtr& robot_mo
                                 const double timeout)
 {
   Eigen::Isometry3d pose_eigen;
-  tf::poseMsgToEigen(pose, pose_eigen);
+  tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_eigen);
   return computePoseIK(robot_model, group_name, link_name, pose_eigen, frame_id, seed, solution, check_self_collision,
                        timeout);
 }
@@ -560,7 +564,7 @@ bool trapezoidal::isStateColliding(const bool test_for_self_collision,
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat)
 {
-  tf::Quaternion q;
-  quaternionMsgToTF(quat, q);
-  quaternionTFToMsg(q.normalize(), quat);
+  tf2::Quaternion q;
+  tf2::convert<geometry_msgs::Quaternion, tf2::Quaternion>(quat, q);
+  quat = tf2::toMsg(q.normalize());
 }

@@ -39,10 +39,7 @@
 #include <memory>
 #include <vector>
 
-#include <ros/ros.h>
-
 #include <eigen_conversions/eigen_msg.h>
-
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/JointConstraint.h>
 #include <moveit_msgs/GetMotionPlan.h>
@@ -50,9 +47,12 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-
 #include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
 #include <pilz_industrial_motion_testutils/command_types_typedef.h>
+#include <ros/ros.h>
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "test_utils.h"
 
@@ -217,7 +217,7 @@ TEST_F(IntegrationTestCommandPlanning, PtpJointCart)
   EXPECT_NEAR(tf(2, 3), expected_pose.position.z, EPSILON);
 
   Eigen::Isometry3d exp_iso3d_pose;
-  tf::poseMsgToEigen(expected_pose, exp_iso3d_pose);
+  tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(expected_pose, exp_iso3d_pose);
 
   EXPECT_TRUE(Eigen::Quaterniond(tf.rotation()).isApprox(Eigen::Quaterniond(exp_iso3d_pose.rotation()), EPSILON));
 }
@@ -403,8 +403,8 @@ TEST_F(IntegrationTestCommandPlanning, CircJointCenterCart)
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
-    tf::poseMsgToEigen(start_pose, start_pose_iso3d);
-    tf::poseMsgToEigen(goal_pose, goal_pose_iso3d);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(start_pose, start_pose_iso3d);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose, goal_pose_iso3d);
     EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
 }
@@ -483,8 +483,8 @@ TEST_F(IntegrationTestCommandPlanning, CircCartCenterCart)
 
     // Check orientation
     Eigen::Isometry3d start_pose_iso3d, goal_pose_iso3d;
-    tf::poseMsgToEigen(start_pose, start_pose_iso3d);
-    tf::poseMsgToEigen(goal_pose, goal_pose_iso3d);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(start_pose, start_pose_iso3d);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose, goal_pose_iso3d);
     EXPECT_TRUE(testutils::checkSLERP(start_pose_iso3d, goal_pose_iso3d, waypoint_pose, orientation_norm_tolerance_));
   }
 }

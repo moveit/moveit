@@ -36,17 +36,20 @@
 
 #include <gtest/gtest.h>
 
-#include "trapezoidal_trajectory_generation/trajectory_generator_circ.h"
-#include "trapezoidal_trajectory_generation/joint_limits_aggregator.h"
-#include "test_utils.h"
-#include "pilz_industrial_motion_testutils/xml_testdata_loader.h"
-#include "pilz_industrial_motion_testutils/command_types_typedef.h"
-
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include "trapezoidal_trajectory_generation/trajectory_generator_circ.h"
+#include "trapezoidal_trajectory_generation/joint_limits_aggregator.h"
+#include "test_utils.h"
+#include "pilz_industrial_motion_testutils/xml_testdata_loader.h"
+#include "pilz_industrial_motion_testutils/command_types_typedef.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
@@ -185,13 +188,13 @@ void TrajectoryGeneratorCIRCTest::getCircCenter(const planning_interface::Motion
 {
   if (req.path_constraints.name == "center")
   {
-    tf::pointMsgToEigen(
+    tf2::convert<geometry_msgs::Point, Eigen::Vector3d>(
         req.path_constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position, circ_center);
   }
   else if (req.path_constraints.name == "interim")
   {
     Eigen::Vector3d interim;
-    tf::pointMsgToEigen(
+    tf2::convert<geometry_msgs::Point, Eigen::Vector3d>(
         req.path_constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position, interim);
     Eigen::Vector3d start = res.trajectory_->getFirstWayPointPtr()->getFrameTransform(target_link_).translation();
     Eigen::Vector3d goal = res.trajectory_->getLastWayPointPtr()->getFrameTransform(target_link_).translation();

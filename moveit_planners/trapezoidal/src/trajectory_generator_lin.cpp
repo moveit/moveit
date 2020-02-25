@@ -48,6 +48,10 @@
 #include <kdl/utilities/error.h>
 #include <kdl/trajectory_segment.hpp>
 
+#include <tf2/convert.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 namespace trapezoidal
 {
 TrajectoryGeneratorLIN::TrajectoryGeneratorLIN(const moveit::core::RobotModelConstPtr& robot_model,
@@ -111,7 +115,7 @@ void TrajectoryGeneratorLIN::extractMotionPlanInfo(const planning_interface::Mot
         req.goal_constraints.front().position_constraints.front().constraint_region.primitive_poses.front().position;
     goal_pose_msg.orientation = req.goal_constraints.front().orientation_constraints.front().orientation;
     normalizeQuaternion(goal_pose_msg.orientation);
-    tf::poseMsgToEigen(goal_pose_msg, info.goal_pose);
+    tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(goal_pose_msg, info.goal_pose);
   }
 
   assert(req.start_state.joint_state.name.size() == req.start_state.joint_state.position.size());

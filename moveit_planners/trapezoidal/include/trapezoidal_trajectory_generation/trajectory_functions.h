@@ -42,7 +42,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
-#include <tf/transform_datatypes.h>
+#include <tf2/transform_datatypes.h>
 
 #include "trapezoidal_trajectory_generation/limits_container.h"
 #include "trapezoidal_trajectory_generation/cartesian_trajectory.h"
