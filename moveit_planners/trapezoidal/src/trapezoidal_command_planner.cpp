@@ -104,7 +104,7 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
 
 std::string CommandPlanner::getDescription() const
 {
-  return "Simple Command Planner";
+  return "Trapezoidal Command Planner";
 }
 
 void CommandPlanner::getPlanningAlgorithms(std::vector<std::string>& algs) const

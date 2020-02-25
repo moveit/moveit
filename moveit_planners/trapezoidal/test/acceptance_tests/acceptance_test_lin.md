@@ -42,11 +42,11 @@ to be moved out of singularities.
 ## Test Sequence:
   1. Bringup can: `sudo ip link set can0 up type can bitrate 1000000`
   2. Run `roslaunch prbt_moveit_config moveit_planning_execution.launch sim:=False pipeline:=trapezoidal_command_planner`
-  3. In the motion planing widget (lower left part of moveit) choose PTP in the dropdown below "Simple Command Planner" (see image)
+  3. In the motion planing widget (lower left part of moveit) choose PTP in the dropdown below "Trapezoidal Command Planner" (see image)
 ![moveit_1](img/acceptance_test_lin_img1.png)
   4. Switch to the tab "Planning" in the moveit planning plugin. Move the ball handle to select a singularity free position. Click on "plan and execute".
 ![moveit_2](img/acceptance_test_lin_img2.png)
-  5. The motion planning widget (lower left part of moveit) choose LIN in the dropdown below "Simple Command Planner" (see image)
+  5. The motion planning widget (lower left part of moveit) choose LIN in the dropdown below "Trapezoidal Command Planner" (see image)
 ![moveit_1](img/acceptance_test_lin_img3.png)
   6. Switch to the tab "Planning" in the moveit planning plugin. Move the ball handle the select goal pose.
      Move the robot about 10-20cm choose a goal where the configuration has no jumps. Set velocity and acceleration scaling to 0.1. Click on "plan and execute".
