@@ -340,9 +340,6 @@ bool checkThatPointsInRadius(const std::string& link_name, const double& r, Eige
 void computeCartVelocity(const Eigen::Isometry3d& pose_1, const Eigen::Isometry3d& pose_2, double duration,
                          Eigen::Vector3d& v, Eigen::Vector3d& w);
 
-void createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& traj, const std::string& link_name,
-                        moveit_msgs::RobotTrajectory& fake_traj);
-
 /**
  * @brief Returns an initial joint state and two poses which
  * can be used to perform a Lin-Lin movement.
@@ -357,6 +354,9 @@ void getLinLinPosesWithoutOriChange(const std::string& frame_id, sensor_msgs::Jo
 
 void getOriChange(Eigen::Matrix3d& ori1, Eigen::Matrix3d& ori2);
 
+void createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& traj, const std::string& link_name,
+                        moveit_msgs::RobotTrajectory& fake_traj);
+
 inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
 {
   tf2::Vector3 qvz(0., 0., 1.);
@@ -370,18 +370,6 @@ inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
   tf2::convert(q1, msg);
   return msg;
 }
-
-/**
- * @brief Returns an initial joint state and two poses which
- * can be used to perform a Lin-Lin movement.
- *
- * @param frame_id
- * @param initialJointState As cartesian position: (0.3, 0, 0.65, 0, 0, 0)
- * @param p1 (0.05, 0, 0.65, 0, 0, 0)
- * @param p2 (0.05, 0.4, 0.65, 0, 0, 0)
- */
-void getLinLinPosesWithoutOriChange(const std::string& frame_id, sensor_msgs::JointState& initialJointState,
-                                    geometry_msgs::PoseStamped& p1, geometry_msgs::PoseStamped& p2);
 
 /**
  * @brief Test data for blending, which contains three joint position vectors of three robot state.
