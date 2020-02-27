@@ -51,13 +51,14 @@
 
 // MoveIt
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-constexpr double kEpsilon = 1e-3;
-constexpr double kZOffset = 0.01;
+constexpr double EPSILON = 1e-3;
+constexpr double Z_OFFSET = 0.01;
 
 // Function copied from tutorial
 // a small helper function to create our planning requests and move the robot.
@@ -266,7 +267,7 @@ bool getTargetInWorld(Eigen::Affine3d& target_in_world, const Eigen::Affine3d& b
 {
   // Calculate the target location relative to the subframe (z offset)
   geometry_msgs::Pose target_in_subframe_msg;
-  target_in_subframe_msg.position.z = kZOffset;
+  target_in_subframe_msg.position.z = Z_OFFSET;
   Eigen::Affine3d target_in_subframe;
   poseMsgToEigen(target_in_subframe, target_in_subframe_msg);
   target_in_world = box_subframe_in_world * target_in_subframe;
@@ -277,15 +278,29 @@ bool getTargetInWorld(Eigen::Affine3d& target_in_world, const Eigen::Affine3d& b
 // Test method to check if the cylinder tip is close to the subframe "subframe_name" of the box object
 void testIsCylinderTipAtTarget(const std::string& subframe_name,
                                moveit::planning_interface::PlanningSceneInterface* planning_scene_interface,
-                               moveit::planning_interface::MoveGroupInterface* group)
+                               moveit::planning_interface::MoveGroupInterface* group,
+                               planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor)
 {
-  ROS_INFO_STREAM("Testing if cylinder/tip is at target location relative to box/" << subframe_name);
+  const std::string log_name = "test_is_cylinder_tip_at_target";
+  ROS_ERROR_STREAM_NAMED(log_name, "Testing if cylinder/tip is at target location relative to box/" << subframe_name);
+
+  // lock planning scene
+  planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+  std::vector< moveit_msgs::AttachedCollisionObject > attached_collision_objs;
+  planning_scene->getAttachedCollisionObjectMsgs(attached_collision_objs);
+  for (const auto object_msg : attached_collision_objs)
+  {
+    ROS_ERROR_STREAM_NAMED(log_name, "" << object_msg);
+  }
 
   // get the tip location in world
-  Eigen::Affine3d tip_in_world;
-  ASSERT_TRUE(getCylinderTipInWorld(tip_in_world, planning_scene_interface, group));
+  Eigen::Affine3d tip_in_world = planning_scene->getFrameTransform("cylinder");
+  // Eigen::Affine3d tip_in_world;
+  // ASSERT_TRUE(getCylinderTipInWorld(tip_in_world, planning_scene_interface, group));
 
   // get the box subframe location
+  // Isometry3d box_subframe_in_world = planning_scene->getFrameTransform("box/" + subframe_name);
   Eigen::Affine3d box_subframe_in_world;
   ASSERT_TRUE(getBoxSubframeInWorld(box_subframe_in_world, subframe_name, planning_scene_interface));
 
@@ -294,9 +309,9 @@ void testIsCylinderTipAtTarget(const std::string& subframe_name,
   ASSERT_TRUE(getTargetInWorld(target_in_world, box_subframe_in_world));
 
   // test that the cylinder tip and target are in the same position
-  ASSERT_LT(std::abs(target_in_world.translation()[0] - tip_in_world.translation()[0]), kEpsilon);
-  ASSERT_LT(std::abs(target_in_world.translation()[1] - tip_in_world.translation()[1]), kEpsilon);
-  ASSERT_LT(std::abs(target_in_world.translation()[2] - tip_in_world.translation()[2]), kEpsilon);
+  ASSERT_LT(std::abs(target_in_world.translation()[0] - tip_in_world.translation()[0]), EPSILON);
+  ASSERT_LT(std::abs(target_in_world.translation()[1] - tip_in_world.translation()[1]), EPSILON);
+  ASSERT_LT(std::abs(target_in_world.translation()[2] - tip_in_world.translation()[2]), EPSILON);
 }
 
 TEST(TestPlanUsingSubframes, SubframesTests)
@@ -310,6 +325,13 @@ TEST(TestPlanUsingSubframes, SubframesTests)
 
   geometry_msgs::Pose tip_in_hand_msg, hand_in_world_msg, tip_in_world_msg;
   Eigen::Affine3d tip_in_hand, tip_in_world, hand_in_world;
+
+  auto tf_buffer = std::make_shared<tf2_ros::Buffer>();
+  auto planning_scene_monitor 
+    = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description", tf_buffer);
+  planning_scene_monitor->startWorldGeometryMonitor();
+  std::string service_name = planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE;
+  service_name = ros::names::append("/move_group/", service_name);
 
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
   moveit::planning_interface::MoveGroupInterface group("panda_arm");
@@ -328,39 +350,51 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   target_orientation.setRPY(-(90.0 / 180.0 * M_PI), (180.0 / 180.0 * M_PI), 0);
   geometry_msgs::PoseStamped target_pose_stamped;
   target_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
-  target_pose_stamped.pose.position.z = kZOffset;
+  target_pose_stamped.pose.position.z = Z_OFFSET;
 
   // When constructing the target pose for the robot, we multiply the quaternions to get the
   // target orientation and convert the result to a ``geometry_msgs/orientation`` message.
   ROS_INFO_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip");
   target_pose_stamped.header.frame_id = "box/bottom";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  testIsCylinderTipAtTarget("bottom", &planning_scene_interface, &group);
+  planning_scene_monitor->requestPlanningSceneState(service_name);
+  testIsCylinderTipAtTarget("bottom", &planning_scene_interface, &group, planning_scene_monitor);
 
   ROS_INFO_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
   target_pose_stamped.header.frame_id = "box/top";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  testIsCylinderTipAtTarget("top", &planning_scene_interface, &group);
+  planning_scene_monitor->requestPlanningSceneState(service_name);
+  testIsCylinderTipAtTarget("top", &planning_scene_interface, &group, planning_scene_monitor);
 
   ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 1 with cylinder tip");
   target_pose_stamped.header.frame_id = "box/corner_1";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  testIsCylinderTipAtTarget("corner_1", &planning_scene_interface, &group);
+  planning_scene_monitor->requestPlanningSceneState(service_name);
+  testIsCylinderTipAtTarget("corner_1", &planning_scene_interface, &group, planning_scene_monitor);
 
   ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 2 with cylinder tip");
   target_pose_stamped.header.frame_id = "box/corner_2";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  testIsCylinderTipAtTarget("corner_2", &planning_scene_interface, &group);
+  planning_scene_monitor->requestPlanningSceneState(service_name);
+  testIsCylinderTipAtTarget("corner_2", &planning_scene_interface, &group, planning_scene_monitor);
 
   ROS_INFO_STREAM_NAMED(log_name, "Moving to side of box with cylinder tip");
   target_pose_stamped.header.frame_id = "box/side";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  testIsCylinderTipAtTarget("side", &planning_scene_interface, &group);
+  planning_scene_monitor->requestPlanningSceneState(service_name);
+  testIsCylinderTipAtTarget("side", &planning_scene_interface, &group, planning_scene_monitor);
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "moveit_test_plan_using_subframes");
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  ros::AsyncSpinner spinner(4);
+  spinner.start();
+
+  int result = RUN_ALL_TESTS();
+
+  return result;
 }
+
