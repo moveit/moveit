@@ -493,7 +493,7 @@ bool JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::m
   if (collision_scale < 1)
   {
     status_ = kCollision;
-    ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a collision. Halting.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, kStatusCodeMap.at(status_));
   }
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
@@ -554,14 +554,16 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
       velocity_scale = 1. -
                        (ini_condition - parameters_.lower_singularity_threshold) /
                            (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
+      status_ = kSingularityDecelerate;
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, kStatusCodeMap.at(status_));
     }
 
     // Very close to singularity, so halt.
     else if (ini_condition > parameters_.hard_stop_singularity_threshold)
     {
       velocity_scale = 0;
-      status_ = kSingularity;
-      ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a singularity. Halting.");
+      status_ = kSingularityHalt;
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, kStatusCodeMap.at(status_));
     }
   }
 
