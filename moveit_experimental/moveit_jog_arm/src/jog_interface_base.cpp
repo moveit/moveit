@@ -94,7 +94,6 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/check_collisions", ros_parameters_.check_collisions);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/status_topic", ros_parameters_.status_topic);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/joint_limit_margin", ros_parameters_.joint_limit_margin);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/command_out_topic", ros_parameters_.command_out_topic);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/command_out_type", ros_parameters_.command_out_type);
@@ -104,6 +103,23 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.publish_joint_velocities);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_joint_accelerations",
                                     ros_parameters_.publish_joint_accelerations);
+
+  // This parameter name was changed recently. Give a deprecation warning.
+  if (n.hasParam(parameter_ns + "/status_topic"))
+  {
+    error += !rosparam_shortcuts::get("", n, parameter_ns + "/status_topic", ros_parameters_.status_topic);
+  }
+  else if (n.hasParam(parameter_ns + "/warning_topic"))
+  {
+    error += !rosparam_shortcuts::get("", n, parameter_ns + "/warning_topic", ros_parameters_.status_topic);
+    ROS_WARN_NAMED(LOGNAME,
+                   "Topic 'warning_topic' was renamed to 'status_topic'. Please update the jogging yaml file.");
+  }
+  else
+  {
+    ROS_WARN_NAMED(LOGNAME,
+                   "Topic 'warning_topic' was renamed to 'status_topic'. Please update the jogging yaml file.");
+  }
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
