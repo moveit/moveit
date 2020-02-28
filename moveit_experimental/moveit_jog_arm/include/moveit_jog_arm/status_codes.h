@@ -43,7 +43,7 @@
 
 namespace moveit_jog_arm
 {
-enum StatusCode: int8_t
+enum StatusCode : int8_t
 {
   kNoWarning = 0,
   kSingularityDecelerate = 1,
@@ -53,9 +53,9 @@ enum StatusCode: int8_t
 };
 
 const std::unordered_map<uint, std::string>
-    kStatusCodeMap({ {kNoWarning, "No warnings" },
-					 { kSingularityDecelerate, "Close to a singularity, decelerating" },
-					 { kSingularityHalt, "Very close to a singularity, halting" },
+    kStatusCodeMap({ { kNoWarning, "No warnings" },
+                     { kSingularityDecelerate, "Close to a singularity, decelerating" },
+                     { kSingularityHalt, "Very close to a singularity, halting" },
                      { kCollision, "Close to a collision, halting." },
                      { kJointBound, "Close to a joint bound (position or velocity), halting" } });
 }  // end namespace trackjoint

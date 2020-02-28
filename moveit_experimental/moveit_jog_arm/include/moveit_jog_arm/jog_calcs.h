@@ -152,9 +152,9 @@ protected:
     */
   bool convertDeltasToOutgoingCmd();
 
-    /** \brief Gazebo simulations have very strict message timestamp requirements.
-     * Satisfy Gazebo by stuffing multiple messages into one.
-     */
+  /** \brief Gazebo simulations have very strict message timestamp requirements.
+   * Satisfy Gazebo by stuffing multiple messages into one.
+   */
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
   /**
