@@ -221,4 +221,13 @@ bool JogCppInterface::getCommandFrameTransform(Eigen::Isometry3d& transform)
   // All zeros means the transform wasn't initialized, so return false
   return !transform.matrix().isZero(0);
 }
+
+StatusCode JogCppInterface::getJoggerStatus()
+{
+  shared_variables_mutex_.lock();
+  StatusCode status = shared_variables_.status;
+  shared_variables_mutex_.unlock();
+
+  return status;
+}
 }  // namespace moveit_jog_arm

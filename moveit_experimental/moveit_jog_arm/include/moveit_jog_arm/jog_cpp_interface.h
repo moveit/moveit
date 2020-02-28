@@ -40,6 +40,7 @@
 
 #include <atomic>
 #include "jog_interface_base.h"
+#include <std_msgs/Int8.h>
 
 namespace moveit_jog_arm
 {
@@ -82,6 +83,13 @@ public:
    * @return true if a valid transform was available
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+
+  /**
+   * Get the status of the jogger.
+   *
+   * @return 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
+   */
+  StatusCode getJoggerStatus();
 
 private:
   ros::NodeHandle nh_;
