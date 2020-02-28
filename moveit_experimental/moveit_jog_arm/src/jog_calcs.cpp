@@ -47,8 +47,8 @@ namespace moveit_jog_arm
 JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
   : parameters_(parameters), default_sleep_rate_(1000)
 {
-  // Publish collision status
-  warning_pub_ = nh_.advertise<std_msgs::Bool>(parameters_.warning_topic, 1);
+  // Publish jogger status
+  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
 
   // MoveIt Setup
   while (ros::ok() && !model_loader_ptr)
@@ -352,11 +352,14 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   if (!applyVelocityScaling(shared_variables, mutex, delta_theta_,
                             velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
   {
-    has_warning_ = true;
-    suddenHalt(delta_theta_);
+    suddenHalt(outgoing_command_);
   }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
+
+  publishStatus(status_);
+  // Update the cached status so it can be retrieved asynchronously
+  updateCachedStatus();
 
   return convertDeltasToOutgoingCmd();
 }
@@ -382,7 +385,17 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
+  publishStatus(status_);
+  // Update the cached status so it can be retrieved asynchronously
+  updateCachedStatus();
+
   return convertDeltasToOutgoingCmd();
+}
+
+void JogCalcs::updateCachedStatus()
+{
+  prev_status_ = status_;
+  status_ = kNoWarning;
 }
 
 bool JogCalcs::convertDeltasToOutgoingCmd()
@@ -400,11 +413,8 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
   if (!enforceSRDFPositionLimits(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
-    has_warning_ = true;
+    status_ = kJointBound;
   }
-
-  publishWarning(has_warning_);
-  has_warning_ = false;
 
   // done with calculations
   if (parameters_.use_gazebo)
@@ -480,6 +490,12 @@ bool JogCalcs::applyVelocityScaling(const JogArmShared& shared_variables, std::m
   double collision_scale = shared_variables.collision_velocity_scale;
   mutex.unlock();
 
+  if (collision_scale < 1)
+  {
+    status_ = kCollision;
+    ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a collision. Halting.");
+  }
+
   delta_theta = collision_scale * singularity_scale * delta_theta;
 
   // Heuristic: flag that we are stuck if velocity scaling is < X%
@@ -544,6 +560,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
     else if (ini_condition > parameters_.hard_stop_singularity_threshold)
     {
       velocity_scale = 0;
+      status_ = kSingularity;
       ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a singularity. Halting.");
     }
   }
@@ -655,11 +672,11 @@ bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_j
   return !halting;
 }
 
-void JogCalcs::publishWarning(bool active) const
+void JogCalcs::publishStatus(StatusCode status) const
 {
-  std_msgs::Bool status;
-  status.data = static_cast<std_msgs::Bool::_data_type>(active);
-  warning_pub_.publish(status);
+  std_msgs::Int8 status_msg;
+  status_msg.data = status;
+  status_pub_.publish(status_msg);
 }
 
 // Suddenly halt for a joint limit or other critical issue.

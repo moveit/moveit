@@ -38,12 +38,18 @@
 
 #pragma once
 
+// System
 #include <atomic>
-#include "jog_arm_data.h"
-#include "low_pass_filter.h"
+
+// ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
+
+// moveit_jog_arm
+#include "jog_arm_data.h"
+#include "low_pass_filter.h"
+#include "status_codes.h"
 
 namespace moveit_jog_arm
 {
@@ -79,6 +85,9 @@ protected:
 
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
+  /** \brief Update the stashed status so it can be retrieved asynchronously */
+  void updateCachedStatus();
+
   // Parse the incoming joint msg for the joints of our MoveGroup
   bool updateJoints(std::mutex& mutex, const JogArmShared& shared_variables);
 
@@ -93,7 +102,7 @@ protected:
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
   void suddenHalt(Eigen::ArrayXd& delta_theta);
 
-  void publishWarning(bool active) const;
+  void publishStatus(StatusCode status) const;
 
   // Scale the delta theta to match joint velocity/acceleration limits
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
@@ -153,10 +162,11 @@ protected:
 
   std::vector<LowPassFilter> position_filters_;
 
-  ros::Publisher warning_pub_;
+  ros::Publisher status_pub_;
 
-  // Flag that a warning should be published
-  bool has_warning_ = false;
+  StatusCode status_ = kNoWarning;
+  // Cache the previous status, for retrieval at any time
+  StatusCode prev_status_ = kNoWarning;
 
   JogArmParameters parameters_;
 

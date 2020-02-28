@@ -47,7 +47,7 @@ joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving
 cartesian_command_in_topic: jog_server/delta_jog_cmds  # Topic for incoming Cartesian twist commands
 joint_command_in_topic: jog_server/joint_delta_jog_cmds # Topic for incoming joint angle commands
 joint_topic:  joint_states
-warning_topic: jog_server/halted # Publish boolean warnings to this topic
+status_topic: jog_server/status # Publish status to this topic
 command_out_topic: joint_group_position_controller/command # Publish outgoing commands here
 
 ## Collision checking for the entire robot body
