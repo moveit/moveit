@@ -75,7 +75,7 @@ protected:
 
 TEST_F(TestJogCppInterface, InitTest)
 {
-  moveit_jog_arm::JogCppApi jog_cpp_interface(planning_scene_monitor_);
+  moveit_jog_arm::JogCppInterface jog_cpp_interface(planning_scene_monitor_);
   ros::Duration(1).sleep();  // Give the started thread some time to run
 }
 

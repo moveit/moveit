@@ -39,13 +39,11 @@
 
 #include "moveit_jog_arm/jog_cpp_interface.h"
 
-// TODO(davetcoleman): rename JogCppApi to JogCppInterface to match file name
-
 static const std::string LOGNAME = "jog_cpp_interface";
 
 namespace moveit_jog_arm
 {
-JogCppApi::JogCppApi(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+JogCppInterface::JogCppInterface(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
 {
   planning_scene_monitor_ = planning_scene_monitor;
 
@@ -54,12 +52,12 @@ JogCppApi::JogCppApi(const planning_scene_monitor::PlanningSceneMonitorPtr& plan
     exit(EXIT_FAILURE);
 }
 
-JogCppApi::~JogCppApi()
+JogCppInterface::~JogCppInterface()
 {
   stopMainLoop();
 }
 
-void JogCppApi::startMainLoop()
+void JogCppInterface::startMainLoop()
 {
   // Reset loop termination flag
   stop_requested_ = false;
@@ -150,12 +148,12 @@ void JogCppApi::startMainLoop()
   stopCollisionCheckThread();
 }
 
-void JogCppApi::stopMainLoop()
+void JogCppInterface::stopMainLoop()
 {
   stop_requested_ = true;
 }
 
-void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
+void JogCppInterface::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
 {
   shared_variables_mutex_.lock();
 
@@ -183,7 +181,7 @@ void JogCppApi::provideTwistStampedCommand(const geometry_msgs::TwistStamped& ve
   shared_variables_mutex_.unlock();
 };
 
-void JogCppApi::provideJointCommand(const control_msgs::JointJog& joint_command)
+void JogCppInterface::provideJointCommand(const control_msgs::JointJog& joint_command)
 {
   shared_variables_mutex_.lock();
   shared_variables_.joint_command_deltas = joint_command;
@@ -203,7 +201,7 @@ void JogCppApi::provideJointCommand(const control_msgs::JointJog& joint_command)
   shared_variables_mutex_.unlock();
 }
 
-sensor_msgs::JointState JogCppApi::getJointState()
+sensor_msgs::JointState JogCppInterface::getJointState()
 {
   shared_variables_mutex_.lock();
   sensor_msgs::JointState current_joints = shared_variables_.joints;
@@ -212,7 +210,7 @@ sensor_msgs::JointState JogCppApi::getJointState()
   return current_joints;
 }
 
-bool JogCppApi::getCommandFrameTransform(Eigen::Isometry3d& transform)
+bool JogCppInterface::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   if (!jog_calcs_ || !jog_calcs_->isInitialized())
     return false;

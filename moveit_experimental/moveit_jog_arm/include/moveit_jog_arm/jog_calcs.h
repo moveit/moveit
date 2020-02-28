@@ -101,8 +101,9 @@ protected:
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
-  double decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                  const Eigen::JacobiSVD<Eigen::MatrixXd>& svd);
+  double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
+                                             const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+                                             const Eigen::MatrixXd& jacobian, const Eigen::MatrixXd& pseudo_inverse);
 
   /**
    * Slow motion down if close to singularity or collision.
@@ -154,9 +155,6 @@ protected:
 
   JogArmParameters parameters_;
 
-  // For jacobian calculations
-  Eigen::MatrixXd jacobian_, pseudo_inverse_, matrix_s_;
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd_;
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
 
