@@ -38,13 +38,21 @@
 
 #pragma once
 
-#include <control_msgs/JointJog.h>
-#include <Eigen/Geometry>
-#include <geometry_msgs/TwistStamped.h>
+// System
 #include <mutex>
-#include <sensor_msgs/JointState.h>
 #include <thread>
+
+// Eigen
+#include <Eigen/Geometry>
+
+// ROS
+#include <control_msgs/JointJog.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
+
+// moveit_jog_arm
+#include "status_codes.h"
 
 namespace moveit_jog_arm
 {
@@ -83,6 +91,9 @@ struct JogArmShared
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
   std::atomic_bool drift_dimensions[6] = { ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false),
                                            ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false) };
+
+  // Current status of the jogger. In collision, etc.
+  StatusCode status;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

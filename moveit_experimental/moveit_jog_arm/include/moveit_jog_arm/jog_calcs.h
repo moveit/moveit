@@ -85,10 +85,10 @@ protected:
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
 
   /** \brief Do jogging calculations for direct commands to a joint. */
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, std::mutex& mutex);
 
   /** \brief Update the stashed status so it can be retrieved asynchronously */
-  void updateCachedStatus();
+  void updateCachedStatus(JogArmShared& shared_variables, std::mutex& mutex);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
   bool updateJoints(std::mutex& mutex, const JogArmShared& shared_variables);
@@ -182,8 +182,6 @@ protected:
   ros::Publisher status_pub_;
 
   StatusCode status_ = kNoWarning;
-  // Cache the previous status, for retrieval at any time
-  StatusCode prev_status_ = kNoWarning;
 
   JogArmParameters parameters_;
 

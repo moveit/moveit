@@ -58,15 +58,20 @@ public:
 
   void stopMainLoop();
 
-  // Provide a Cartesian velocity command to the jogger.
-  // The units are determined by settings in the yaml file.
+  /** \brief Provide a Cartesian velocity command to the jogger.
+   * The units are determined by settings in the yaml file.
+   */
   void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
 
-  // Send joint position(s) commands
+  /** \brief Send joint position(s) commands */
   void provideJointCommand(const control_msgs::JointJog& joint_command);
 
-  // Returns the most recent JointState that the jogger has received.
-  // May eliminate the need to create your own joint_state subscriber.
+  /**
+   * Returns the most recent JointState that the jogger has received.
+   * May eliminate the need to create your own joint_state subscriber.
+   *
+   * @return the most recent joints known to the jogger
+   */
   sensor_msgs::JointState getJointState();
 
   /**

@@ -202,7 +202,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
         joint_deltas = shared_variables.joint_command_deltas;
         mutex.unlock();
 
-        if (!jointJogCalcs(joint_deltas, shared_variables))
+        if (!jointJogCalcs(joint_deltas, shared_variables, mutex))
           continue;
       }
       else
@@ -358,13 +358,13 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
   publishStatus(status_);
-  // Update the cached status so it can be retrieved asynchronously
-  updateCachedStatus();
+  // Cache the status so it can be retrieved asynchronously
+  updateCachedStatus(shared_variables, mutex);
 
   return convertDeltasToOutgoingCmd();
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*shared_variables*/)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables, std::mutex& mutex)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
@@ -386,15 +386,17 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
   publishStatus(status_);
-  // Update the cached status so it can be retrieved asynchronously
-  updateCachedStatus();
+  // Cache the status so it can be retrieved asynchronously
+  updateCachedStatus(shared_variables, mutex);
 
   return convertDeltasToOutgoingCmd();
 }
 
-void JogCalcs::updateCachedStatus()
+void JogCalcs::updateCachedStatus(JogArmShared& shared_variables, std::mutex& mutex)
 {
-  prev_status_ = status_;
+  mutex.lock();
+  shared_variables.status = status_;
+  mutex.unlock();
   status_ = kNoWarning;
 }
 
