@@ -491,27 +491,29 @@ public:
    *  @{
    */
 
-  /** \brief Sets position for 1 joint only. Check setVariablePositions() to set position values to multiple joints. */
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints. */
   void setJointPositions(const std::string& joint_name, const double* position)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), position);
   }
 
-  /** \brief Sets positions for 1 joint only (joint with more than 1 DOF). Check setVariablePositions() to set position
-   * values to multiple joints. */
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints. */
   void setJointPositions(const std::string& joint_name, const std::vector<double>& position)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), &position[0]);
   }
 
-  /** \brief Sets positions for 1 joint only (joint with more than 1 DOF). Check setVariablePositions() to set position
-   * values to multiple joints. */
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints. */
   void setJointPositions(const JointModel* joint, const std::vector<double>& position)
   {
     setJointPositions(joint, &position[0]);
   }
 
-  /** \brief Set positions for 1 joint only. Check setVariablePositions() to set position values to multiple joints. */
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints. */
   void setJointPositions(const JointModel* joint, const double* position)
   {
     memcpy(position_ + joint->getFirstVariableIndex(), position, joint->getVariableCount() * sizeof(double));
@@ -519,15 +521,15 @@ public:
     updateMimicJoint(joint);
   }
 
-  /** \brief Sets positions for 1 joint only (joint with more than 1 DOF). Check setVariablePositions() to set position
-   * values to multiple joints.*/
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints.*/
   void setJointPositions(const std::string& joint_name, const Eigen::Isometry3d& transform)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), transform);
   }
 
-  /** \brief Sets positions for 1 joint only (joint with more than 1 DOF). Check setVariablePositions() to set position
-   * values to multiple joints. */
+  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
+   * joints. */
   void setJointPositions(const JointModel* joint, const Eigen::Isometry3d& transform)
   {
     joint->computeVariablePositions(transform, position_ + joint->getFirstVariableIndex());
