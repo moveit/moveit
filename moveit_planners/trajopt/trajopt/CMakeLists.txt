@@ -22,6 +22,7 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
+    moveit_core
     trajopt_sco
     trajopt_utils
     roscpp
