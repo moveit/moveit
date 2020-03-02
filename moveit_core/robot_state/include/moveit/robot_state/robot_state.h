@@ -487,7 +487,7 @@ public:
 
   /** @} */
 
-  /** \name Getting and setting group positions
+  /** \name Getting and setting joint positions, velocities, accelerations and effort
    *  @{
    */
 
