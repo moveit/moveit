@@ -4,6 +4,7 @@ project(trajopt)
 add_compile_options(-std=c++11 -Wall -Wextra)
 
 find_package(catkin REQUIRED COMPONENTS
+  moveit_core
   trajopt_sco
   trajopt_utils
   roscpp
