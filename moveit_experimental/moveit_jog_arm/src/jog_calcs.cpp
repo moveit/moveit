@@ -381,7 +381,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   // Apply user-defined scaling
   delta_theta_ = scaleJointCommand(cmd);
 
-  enforceSRDFAccelVelLimits(delta);
+  enforceSRDFAccelVelLimits(delta_theta_);
 
   kinematic_state_->setVariableValues(joint_state_);
 
