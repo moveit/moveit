@@ -487,11 +487,11 @@ public:
 
   /** @} */
 
-  /** \name Getting and setting joint positions, velocities, accelerations and effort for a single, potentially multiple-dof, joint
-   * \brief See setVariablePositions(), setVariableVelocities(), setVariableEffort() to handle multiple joints.
+  /** \name Getting and setting joint positions, velocities, accelerations and effort for a single joint
+   *  The joint might be multi-dof, i.e. have more than one variables involved.
+   *  See setVariablePositions(), setVariableVelocities(), setVariableEffort() to handle multiple joints.
    *  @{
    */
-
   void setJointPositions(const std::string& joint_name, const double* position)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), position);
