@@ -176,8 +176,8 @@ void mesh_filter::DepthSelfFiltering::filter(const sensor_msgs::ImageConstPtr& d
 void mesh_filter::DepthSelfFiltering::addMeshes(MeshFilter<StereoCameraModel>& mesh_filter)
 {
   robot_model_loader::RobotModelLoader robotModelLoader("robot_description");
-  robot_model::RobotModelConstPtr robotModel = robotModelLoader.getModel();
-  const vector<robot_model::LinkModel*>& links = robotModel->getLinkModelsWithCollisionGeometry();
+  moveit::core::RobotModelConstPtr robotModel = robotModelLoader.getModel();
+  const vector<moveit::core::LinkModel*>& links = robotModel->getLinkModelsWithCollisionGeometry();
   for (size_t i = 0; i < links.size(); ++i)
   {
     shapes::ShapeConstPtr shape = links[i]->getShape();

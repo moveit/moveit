@@ -78,7 +78,7 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm)
   : robot_model_(robot_model), csm_(csm), node_handle_("~")
 {
@@ -88,7 +88,7 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& robot_model,
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& robot_model,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm,
                                                        bool manage_controllers)
   : robot_model_(robot_model), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
@@ -806,10 +806,10 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
   std::set<std::string> actuated_joints_single;
   for (const std::string& joint_name : trajectory.joint_trajectory.joint_names)
   {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    const moveit::core::JointModel* jm = robot_model_->getJointModel(joint_name);
     if (jm)
     {
-      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == robot_model::JointModel::FIXED)
+      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == moveit::core::JointModel::FIXED)
         continue;
       actuated_joints_single.insert(jm->getName());
     }
@@ -936,7 +936,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
 
   ROS_DEBUG_NAMED(name_, "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
 
-  robot_state::RobotStatePtr current_state;
+  moveit::core::RobotStatePtr current_state;
   if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
   {
     ROS_WARN_NAMED(name_, "Failed to validate trajectory: couldn't receive full current joint state within 1s");
@@ -959,7 +959,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
 
       for (std::size_t i = 0, end = joint_names.size(); i < end; ++i)
       {
-        const robot_model::JointModel* jm = current_state->getJointModel(joint_names[i]);
+        const moveit::core::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
         {
           ROS_ERROR_STREAM_NAMED(name_, "Unknown joint in trajectory: " << joint_names[i]);
@@ -995,7 +995,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
 
       for (std::size_t i = 0, end = joint_names.size(); i < end; ++i)
       {
-        const robot_model::JointModel* jm = current_state->getJointModel(joint_names[i]);
+        const moveit::core::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
         {
           ROS_ERROR_STREAM_NAMED(name_, "Unknown joint in trajectory: " << joint_names[i]);
@@ -1036,8 +1036,8 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   std::set<std::string> actuated_joints;
 
   auto is_actuated = [this](const std::string& joint_name) -> bool {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
-    return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != robot_model::JointModel::FIXED);
+    const moveit::core::JointModel* jm = robot_model_->getJointModel(joint_name);
+    return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != moveit::core::JointModel::FIXED);
   };
   for (const std::string& joint_name : trajectory.multi_dof_joint_trajectory.joint_names)
     if (is_actuated(joint_name))
@@ -1538,7 +1538,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
   ros::WallTime start = ros::WallTime::now();
   double time_remaining = wait_time;
 
-  robot_state::RobotStatePtr prev_state, cur_state;
+  moveit::core::RobotStatePtr prev_state, cur_state;
   prev_state = csm_->getCurrentState();
   prev_state->enforceBounds();
 
@@ -1563,7 +1563,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
 
       for (std::size_t i = 0; i < n && !moved; ++i)
       {
-        const robot_model::JointModel* jm = cur_state->getJointModel(joint_names[i]);
+        const moveit::core::JointModel* jm = cur_state->getJointModel(joint_names[i]);
         if (!jm)
           continue;  // joint vanished from robot state (shouldn't happen), but we don't care
 
@@ -1611,7 +1611,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastEx
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string& group)
 {
-  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group);
   if (joint_model_group)
     return ensureActiveControllersForJoints(joint_model_group->getJointModelNames());
   else
@@ -1628,10 +1628,10 @@ bool TrajectoryExecutionManager::ensureActiveControllersForJoints(const std::vec
   std::set<std::string> jset;
   for (const std::string& joint : joints)
   {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(joint);
+    const moveit::core::JointModel* jm = robot_model_->getJointModel(joint);
     if (jm)
     {
-      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == robot_model::JointModel::FIXED)
+      if (jm->isPassive() || jm->getMimic() != nullptr || jm->getType() == moveit::core::JointModel::FIXED)
         continue;
       jset.insert(joint);
     }

@@ -256,7 +256,7 @@ struct DistanceRequest
   }
 
   /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr& robot_model)
+  void enableGroup(const moveit::core::RobotModelConstPtr& robot_model)
   {
     if (robot_model->hasJointModelGroup(group_name))
       active_components_only = &robot_model->getJointModelGroup(group_name)->getUpdatedLinkModelsSet();
@@ -282,7 +282,7 @@ struct DistanceRequest
   std::string group_name;
 
   /// The set of active components to check
-  const std::set<const robot_model::LinkModel*>* active_components_only;
+  const std::set<const moveit::core::LinkModel*>* active_components_only;
 
   /// The allowed collision matrix used to filter checks
   const AllowedCollisionMatrix* acm;

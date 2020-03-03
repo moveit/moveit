@@ -214,7 +214,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
+    const moveit::core::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     // first check whether it belongs to the set of active joints in the group
     if (jm->getMimic() == nullptr && jm->getVariableCount() > 0)
@@ -244,7 +244,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   {
     if (!mimic_joint.active)
     {
-      const robot_model::JointModel* joint_model =
+      const moveit::core::JointModel* joint_model =
           joint_model_group_->getJointModel(mimic_joint.joint_name)->getMimic();
       for (JointMimic& mimic_joint_recal : mimic_joints_)
       {
@@ -257,7 +257,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   }
 
   // Setup the joint state groups that we need
-  state_.reset(new robot_state::RobotState(robot_model_));
+  state_.reset(new moveit::core::RobotState(robot_model_));
 
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 

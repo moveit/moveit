@@ -261,7 +261,7 @@ void MotionPlanningFrame::fillPlanningGroupOptions()
   const QSignalBlocker planning_group_blocker(ui_->planning_group_combo_box);
   ui_->planning_group_combo_box->clear();
 
-  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
   for (const std::string& group_name : kmodel->getJointModelGroupNames())
     ui_->planning_group_combo_box->addItem(QString::fromStdString(group_name));
 }
@@ -276,11 +276,11 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
-  const robot_model::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (group.empty())
     return;
-  const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
     ui_->start_state_combo_box->addItem(QString("<random valid>"));
@@ -321,7 +321,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
-  const robot_model::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& robot_model = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));

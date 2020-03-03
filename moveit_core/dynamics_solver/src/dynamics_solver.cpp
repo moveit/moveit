@@ -64,7 +64,7 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Isometry3d& transform
 }
 }  // namespace
 
-DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+DynamicsSolver::DynamicsSolver(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                                const geometry_msgs::Vector3& gravity_vector)
 {
   robot_model_ = robot_model;
@@ -88,7 +88,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
     return;
   }
 
-  const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];
+  const moveit::core::JointModel* joint = joint_model_group_->getJointRoots()[0];
   if (!joint->getParentLinkModel())
   {
     ROS_ERROR_NAMED("dynamics_solver", "Group '%s' does not have a parent link", group_name.c_str());
@@ -120,7 +120,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   num_joints_ = kdl_chain_.getNrOfJoints();
   num_segments_ = kdl_chain_.getNrOfSegments();
 
-  state_.reset(new robot_state::RobotState(robot_model_));
+  state_.reset(new moveit::core::RobotState(robot_model_));
   state_->setToDefaultValues();
 
   const std::vector<std::string>& joint_model_names = joint_model_group_->getJointModelNames();

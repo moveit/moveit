@@ -143,7 +143,7 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
     }
 
   traj.clear();
-  traj.push_back(RobotStatePtr(new robot_state::RobotState(*start_state)));
+  traj.push_back(RobotStatePtr(new moveit::core::RobotState(*start_state)));
 
   double last_valid_percentage = 0.0;
   for (std::size_t i = 1; i <= steps; ++i)
@@ -156,7 +156,7 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
     // Explicitly use a single IK attempt only: We want a smooth trajectory.
     // Random seeding (of additional attempts) would probably create IK jumps.
     if (start_state->setFromIK(group, pose, link->getName(), consistency_limits, 0.0, validCallback, options))
-      traj.push_back(RobotStatePtr(new robot_state::RobotState(*start_state)));
+      traj.push_back(RobotStatePtr(new moveit::core::RobotState(*start_state)));
     else
       break;
 

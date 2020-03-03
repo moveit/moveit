@@ -44,10 +44,10 @@ robot_interaction::KinematicOptions::KinematicOptions() : timeout_seconds_(0.0) 
 
 // This is intended to be called as a ModifyStateFunction to modify the state
 // maintained by a LockedRobotState in place.
-bool robot_interaction::KinematicOptions::setStateFromIK(robot_state::RobotState& state, const std::string& group,
+bool robot_interaction::KinematicOptions::setStateFromIK(moveit::core::RobotState& state, const std::string& group,
                                                          const std::string& tip, const geometry_msgs::Pose& pose) const
 {
-  const robot_model::JointModelGroup* jmg = state.getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = state.getJointModelGroup(group);
   if (!jmg)
   {
     ROS_ERROR("No getJointModelGroup('%s') found", group.c_str());
@@ -72,7 +72,7 @@ void robot_interaction::KinematicOptions::setOptions(const KinematicOptions& sou
 // robot_interaction::KinematicOptions except options_
 #define O_FIELDS(F)                                                                                                    \
   F(double, timeout_seconds_, TIMEOUT)                                                                                 \
-  F(robot_state::GroupStateValidityCallbackFn, state_validity_callback_, STATE_VALIDITY_CALLBACK)
+  F(moveit::core::GroupStateValidityCallbackFn, state_validity_callback_, STATE_VALIDITY_CALLBACK)
 
 // This needs to represent all the fields in
 // kinematics::KinematicsQueryOptions

@@ -55,9 +55,9 @@ class CollisionEnvFCL : public CollisionEnv
 public:
   CollisionEnvFCL() = delete;
 
-  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
-  CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+  CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
                   double scale = 1.0);
 
   CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr& world);
@@ -65,32 +65,32 @@ public:
   ~CollisionEnvFCL() override;
 
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const robot_state::RobotState& state) const override;
+                                  const moveit::core::RobotState& state) const override;
 
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const robot_state::RobotState& state,
+                                  const moveit::core::RobotState& state,
                                   const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state) const override;
+                                   const moveit::core::RobotState& state) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state,
+                                   const moveit::core::RobotState& state,
                                    const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                   const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
                                    const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state1,
-                                   const robot_state::RobotState& state2) const override;
+                                   const moveit::core::RobotState& state1,
+                                   const moveit::core::RobotState& state2) const override;
 
   virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                            const robot_state::RobotState& state) const override;
+                            const moveit::core::RobotState& state) const override;
 
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                             const robot_state::RobotState& state) const override;
+                             const moveit::core::RobotState& state) const override;
 
   void setWorld(const WorldPtr& world) override;
 
@@ -105,12 +105,12 @@ protected:
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
   /** \brief Bundles the different checkSelfCollision functions into a single function */
-  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
-                                const AllowedCollisionMatrix* acm) const;
+  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Bundles the different checkRobotCollision functions into a single function */
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                 const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
+                                 const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construct an FCL collision object from MoveIt's World::Object. */
   void constructFCLObjectWorld(const World::Object* obj, FCLObject& fcl_obj) const;
@@ -128,11 +128,11 @@ protected:
   *
   *   \param state The current robot state
   *   \param fcl_obj The newly filled object */
-  void constructFCLObjectRobot(const robot_state::RobotState& state, FCLObject& fcl_obj) const;
+  void constructFCLObjectRobot(const moveit::core::RobotState& state, FCLObject& fcl_obj) const;
 
   /** \brief Prepares for the collision check through constructing an FCL collision object out of the current robot
   *   state and specifying a broadphase collision manager of FCL where the constructed object is registered to. */
-  void allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const;
+  void allocSelfCollisionBroadPhase(const moveit::core::RobotState& state, FCLManager& manager) const;
 
   /** \brief Converts all shapes which make up an atttached body into a vector of FCLGeometryConstPtr.
   *
@@ -141,7 +141,7 @@ protected:
   *   \param ab Pointer to the attached body
   *   \param geoms Output vector of geometries
   */
-  void getAttachedBodyObjects(const robot_state::AttachedBody* ab, std::vector<FCLGeometryConstPtr>& geoms) const;
+  void getAttachedBodyObjects(const moveit::core::AttachedBody* ab, std::vector<FCLGeometryConstPtr>& geoms) const;
 
   /** \brief Vector of shared pointers to the FCL geometry for the objects in fcl_objs_. */
   std::vector<FCLGeometryConstPtr> robot_geoms_;

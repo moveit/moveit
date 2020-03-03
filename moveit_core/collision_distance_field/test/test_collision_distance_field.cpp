@@ -80,7 +80,7 @@ protected:
     srdf_ok_ = srdf_model_->initFile(*urdf_model_,
                                      ros::package::getPath("moveit_resources") + "/pr2_description/srdf/robot.xml");
 
-    robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
+    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
@@ -99,10 +99,10 @@ protected:
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
 
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
-  robot_state::TransformsPtr ftf_;
-  robot_state::TransformsConstPtr ftf_const_;
+  moveit::core::TransformsPtr ftf_;
+  moveit::core::TransformsConstPtr ftf_const_;
 
   collision_detection::CollisionEnvPtr cenv_;
 
@@ -111,7 +111,7 @@ protected:
 
 TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 {
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -126,7 +126,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, DefaultNotInCollision)
 
 TEST_F(DistanceFieldCollisionDetectionTester, ChangeTorsoPosition)
 {
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -154,7 +154,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, LinksInCollision)
   // req.max_contacts = 100;
   req.group_name = "whole_body";
 
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
   Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
@@ -186,7 +186,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactReporting)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
   Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
@@ -235,7 +235,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, ContactPositions)
   req.max_contacts = 1;
   req.group_name = "whole_body";
 
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
   Eigen::Isometry3d pos1 = Eigen::Isometry3d::Identity();
@@ -299,7 +299,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
 
   acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -326,7 +326,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   poses.push_back(Eigen::Isometry3d::Identity());
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
-  robot_state::AttachedBody* attached_body = new robot_state::AttachedBody(
+  moveit::core::AttachedBody* attached_body = new moveit::core::AttachedBody(
       robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
 
   robot_state.attachBody(attached_body);
@@ -341,7 +341,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   touch_links.insert("r_gripper_palm_link");
   shapes[0].reset(new shapes::Box(.1, .1, .1));
 
-  robot_state::AttachedBody* attached_body_1 = new robot_state::AttachedBody(
+  moveit::core::AttachedBody* attached_body_1 = new moveit::core::AttachedBody(
       robot_state.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
   robot_state.attachBody(attached_body_1);
 

@@ -68,9 +68,9 @@ public:
   /// Set the link field with previous value
   void setSelected(const std::string& base_link, const std::string& tip_link);
 
-  void addLinktoTreeRecursive(const robot_model::LinkModel* link, const robot_model::LinkModel* parent);
+  void addLinktoTreeRecursive(const moveit::core::LinkModel* link, const moveit::core::LinkModel* parent);
 
-  bool addLinkChildRecursive(QTreeWidgetItem* parent, const robot_model::LinkModel* link,
+  bool addLinkChildRecursive(QTreeWidgetItem* parent, const moveit::core::LinkModel* link,
                              const std::string& parent_name);
 
   // ******************************************************************************************

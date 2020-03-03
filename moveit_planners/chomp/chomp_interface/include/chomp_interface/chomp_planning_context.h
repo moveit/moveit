@@ -52,7 +52,8 @@ public:
   void clear() override;
   bool terminate() override;
 
-  CHOMPPlanningContext(const std::string& name, const std::string& group, const robot_model::RobotModelConstPtr& model);
+  CHOMPPlanningContext(const std::string& name, const std::string& group,
+                       const moveit::core::RobotModelConstPtr& model);
 
   ~CHOMPPlanningContext() override = default;
 

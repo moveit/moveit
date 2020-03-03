@@ -80,7 +80,7 @@ private:
 class PlanningContextManager
 {
 public:
-  PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
+  PlanningContextManager(moveit::core::RobotModelConstPtr robot_model,
                          constraint_samplers::ConstraintSamplerManagerPtr csm);
   ~PlanningContextManager();
 
@@ -165,7 +165,7 @@ public:
     minimum_waypoint_count_ = mwc;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
@@ -219,7 +219,7 @@ protected:
                                                               const moveit_msgs::MotionPlanRequest& req) const;
 
   /** \brief The kinematic model for which motion plans are computed */
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 

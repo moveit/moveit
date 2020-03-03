@@ -44,7 +44,7 @@ bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::strin
                                                                 Ogre::Vector3& collision_position,
                                                                 Ogre::Quaternion& collision_orientation) const
 {
-  const robot_model::LinkModel* link_model = kinematic_state_->getLinkModel(link_name);
+  const moveit::core::LinkModel* link_model = kinematic_state_->getLinkModel(link_name);
 
   if (!link_model)
   {

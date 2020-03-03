@@ -102,10 +102,10 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
                                                                       std::vector<double>& time_diff,
                                                                       const double max_velocity_scaling_factor) const
 {
-  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = rob_trajectory.getGroup();
   const std::vector<std::string>& vars = group->getVariableNames();
   const std::vector<int>& idx = group->getVariableIndexList();
-  const robot_model::RobotModel& rmodel = group->getParentModel();
+  const moveit::core::RobotModel& rmodel = group->getParentModel();
   const int num_points = rob_trajectory.getWayPointCount();
 
   double velocity_scaling_factor = 1.0;
@@ -123,13 +123,13 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 
   for (int i = 0; i < num_points - 1; ++i)
   {
-    const robot_state::RobotStatePtr& curr_waypoint = rob_trajectory.getWayPointPtr(i);
-    const robot_state::RobotStatePtr& next_waypoint = rob_trajectory.getWayPointPtr(i + 1);
+    const moveit::core::RobotStatePtr& curr_waypoint = rob_trajectory.getWayPointPtr(i);
+    const moveit::core::RobotStatePtr& next_waypoint = rob_trajectory.getWayPointPtr(i + 1);
 
     for (std::size_t j = 0; j < vars.size(); ++j)
     {
       double v_max = DEFAULT_VEL_MAX;
-      const robot_model::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
+      const moveit::core::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
         v_max =
             std::min(fabs(b.max_velocity_ * velocity_scaling_factor), fabs(b.min_velocity_ * velocity_scaling_factor));
@@ -195,11 +195,11 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, const s
 
   double time_sum = 0.0;
 
-  robot_state::RobotStatePtr prev_waypoint;
-  robot_state::RobotStatePtr curr_waypoint;
-  robot_state::RobotStatePtr next_waypoint;
+  moveit::core::RobotStatePtr prev_waypoint;
+  moveit::core::RobotStatePtr curr_waypoint;
+  moveit::core::RobotStatePtr next_waypoint;
 
-  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = rob_trajectory.getGroup();
   const std::vector<std::string>& vars = group->getVariableNames();
   const std::vector<int>& idx = group->getVariableIndexList();
 
@@ -301,14 +301,14 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
     robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double>& time_diff,
     const double max_acceleration_scaling_factor) const
 {
-  robot_state::RobotStatePtr prev_waypoint;
-  robot_state::RobotStatePtr curr_waypoint;
-  robot_state::RobotStatePtr next_waypoint;
+  moveit::core::RobotStatePtr prev_waypoint;
+  moveit::core::RobotStatePtr curr_waypoint;
+  moveit::core::RobotStatePtr next_waypoint;
 
-  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = rob_trajectory.getGroup();
   const std::vector<std::string>& vars = group->getVariableNames();
   const std::vector<int>& idx = group->getVariableIndexList();
-  const robot_model::RobotModel& rmodel = group->getParentModel();
+  const moveit::core::RobotModel& rmodel = group->getParentModel();
 
   const int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
@@ -363,7 +363,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
 
           // Get acceleration limits
           double a_max = DEFAULT_ACCEL_MAX;
-          const robot_model::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
+          const moveit::core::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
           if (b.acceleration_bounded_)
             a_max = std::min(fabs(b.max_acceleration_ * acceleration_scaling_factor),
                              fabs(b.min_acceleration_ * acceleration_scaling_factor));
@@ -464,7 +464,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   if (trajectory.empty())
     return true;
 
-  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
     ROS_ERROR_NAMED("trajectory_processing.iterative_time_parameterization", "It looks like the planner did not set "

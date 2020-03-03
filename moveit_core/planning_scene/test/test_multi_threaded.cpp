@@ -49,7 +49,7 @@ const int TRIALS = 1000;
 const int THREADS = 2;
 
 bool runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                           const robot_state::RobotState* state)
+                           const moveit::core::RobotState* state)
 {
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
@@ -62,7 +62,7 @@ bool runCollisionDetection(unsigned int id, unsigned int trials, const planning_
 }
 
 void runCollisionDetectionAssert(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                                 const robot_state::RobotState* state, bool expected_result)
+                                 const moveit::core::RobotState* state, bool expected_result)
 {
   ASSERT_EQ(expected_result, runCollisionDetection(id, trials, scene, state));
 }
@@ -75,7 +75,7 @@ protected:
     robot_model_ = moveit::core::loadTestingRobotModel("panda");
     ASSERT_TRUE(static_cast<bool>(robot_model_));
 
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
+    robot_state_.reset(new moveit::core::RobotState(robot_model_));
     planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
   }
 
@@ -85,13 +85,13 @@ protected:
 
   bool robot_model_ok_;
 
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   collision_detection::CollisionEnvPtr cenv_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 
   planning_scene::PlanningScenePtr planning_scene_;
 };
@@ -99,17 +99,17 @@ protected:
 /** \brief Tests the FCL collision detector in multiple threads. */
 TEST_F(CollisionDetectorThreadedTest, FCLThreaded)
 {
-  std::vector<robot_state::RobotStatePtr> states;
+  std::vector<moveit::core::RobotStatePtr> states;
   std::vector<std::thread*> threads;
   std::vector<bool> collisions;
 
   for (unsigned int i = 0; i < THREADS; ++i)
   {
-    robot_state::RobotState* state = new robot_state::RobotState(planning_scene_->getRobotModel());
+    moveit::core::RobotState* state = new moveit::core::RobotState(planning_scene_->getRobotModel());
     collision_detection::CollisionRequest req;
     state->setToRandomPositions();
     state->update();
-    states.push_back(robot_state::RobotStatePtr(state));
+    states.push_back(moveit::core::RobotStatePtr(state));
     collisions.push_back(runCollisionDetection(0, 1, planning_scene_.get(), state));
   }
 

@@ -283,7 +283,7 @@ void ROSControllersWidget::focusGiven()
 void ROSControllersWidget::loadJointsScreen(moveit_setup_assistant::ROSControlConfig* this_controller)
 {
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
@@ -473,7 +473,7 @@ void ROSControllersWidget::previewSelectedJoints(std::vector<std::string> joints
 
   for (const std::string& joint : joints)
   {
-    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
+    const moveit::core::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
 
     // Check that a joint model was found
     if (!joint_model)
@@ -608,14 +608,14 @@ void ROSControllersWidget::saveJointsGroupsScreen()
   for (int i = 0; i < joint_groups_widget_->selected_data_table_->rowCount(); ++i)
   {
     // Get list of associated joints
-    const robot_model::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(
+    const moveit::core::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(
         joint_groups_widget_->selected_data_table_->item(i, 0)->text().toStdString());
-    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
+    const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
 
     // Iterate through the joints
-    for (const robot_model::JointModel* joint : joint_models)
+    for (const moveit::core::JointModel* joint : joint_models)
     {
-      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == robot_model::JointModel::FIXED)
+      if (joint->isPassive() || joint->getMimic() != nullptr || joint->getType() == moveit::core::JointModel::FIXED)
         continue;
       searched_controller->joints_.push_back(joint->getName());
     }

@@ -101,14 +101,14 @@ int main(int argc, char** argv)
   ROS_INFO("Added default scene: '%s'", psmsg.name.c_str());
 
   moveit_msgs::RobotState rsmsg;
-  robot_state::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
+  moveit::core::robotStateToRobotStateMsg(psm.getPlanningScene()->getCurrentState(), rsmsg);
   rs.addRobotState(rsmsg, "default");
   ROS_INFO("Added default state");
 
   const std::vector<std::string>& gnames = psm.getRobotModel()->getJointModelGroupNames();
   for (const std::string& gname : gnames)
   {
-    const robot_model::JointModelGroup* jmg = psm.getRobotModel()->getJointModelGroup(gname);
+    const moveit::core::JointModelGroup* jmg = psm.getRobotModel()->getJointModelGroup(gname);
     if (!jmg->isChain())
       continue;
     const std::vector<std::string>& lnames = jmg->getLinkModelNames();

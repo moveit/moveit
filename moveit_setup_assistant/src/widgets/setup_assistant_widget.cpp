@@ -420,7 +420,7 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 void SetupAssistantWidget::highlightLink(const std::string& link_name, const QColor& color)
 {
-  const robot_model::LinkModel* lm = config_data_->getRobotModel()->getLinkModel(link_name);
+  const moveit::core::LinkModel* lm = config_data_->getRobotModel()->getLinkModel(link_name);
   if (!lm->getShapes().empty())  // skip links with no geometry
     robot_state_display_->setLinkColor(link_name, color);
 }
@@ -434,12 +434,13 @@ void SetupAssistantWidget::highlightGroup(const std::string& group_name)
   if (!config_data_->getRobotModel()->hasJointModelGroup(group_name))
     return;
 
-  const robot_model::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(group_name);
+  const moveit::core::JointModelGroup* joint_model_group =
+      config_data_->getRobotModel()->getJointModelGroup(group_name);
   if (joint_model_group)
   {
-    const std::vector<const robot_model::LinkModel*>& link_models = joint_model_group->getLinkModels();
+    const std::vector<const moveit::core::LinkModel*>& link_models = joint_model_group->getLinkModels();
     // Iterate through the links
-    for (std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
+    for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
          link_it < link_models.end(); ++link_it)
       highlightLink((*link_it)->getName(), QColor(255, 0, 0));
   }

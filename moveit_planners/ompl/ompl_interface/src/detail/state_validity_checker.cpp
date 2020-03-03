@@ -86,7 +86,7 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State* state
 {
   double cost = 0.0;
 
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // Calculates cost from a summation of distance to obstacles times the size of the obstacle
@@ -101,7 +101,7 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State* state
 
 double ompl_interface::StateValidityChecker::clearance(const ompl::base::State* state) const
 {
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   collision_detection::CollisionResult res;
@@ -120,7 +120,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   }
 
   // convert ompl state to MoveIt robot state
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints
@@ -149,7 +149,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     return false;
   }
 
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints
@@ -192,7 +192,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     return false;
   }
 
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints
@@ -243,7 +243,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     return false;
   }
 
-  robot_state::RobotState* robot_state = tss_.getStateStorage();
+  moveit::core::RobotState* robot_state = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints

@@ -58,8 +58,8 @@ namespace
 {
 bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
                           const collision_detection::AllowedCollisionMatrix* collision_matrix, bool verbose,
-                          const trajectory_msgs::JointTrajectory* grasp_posture, robot_state::RobotState* state,
-                          const robot_state::JointModelGroup* group, const double* joint_group_variable_values)
+                          const trajectory_msgs::JointTrajectory* grasp_posture, moveit::core::RobotState* state,
+                          const moveit::core::JointModelGroup* group, const double* joint_group_variable_values)
 {
   state->setJointGroupPositions(group, joint_group_variable_values);
 
@@ -90,11 +90,11 @@ bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
   return planning_scene->isStateFeasible(*state);
 }
 
-bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const robot_state::RobotState& reference_state,
+bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const moveit::core::RobotState& reference_state,
                               double min_distance, unsigned int attempts)
 {
   // initialize with scene state
-  robot_state::RobotStatePtr token_state(new robot_state::RobotState(reference_state));
+  moveit::core::RobotStatePtr token_state(new moveit::core::RobotState(reference_state));
   for (unsigned int j = 0; j < attempts; ++j)
   {
     double min_d = std::numeric_limits<double>::infinity();
@@ -157,8 +157,8 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
   // Check if a "closed" end effector configuration was specified
   if (!plan->retreat_posture_.joint_names.empty())
   {
-    robot_state::RobotStatePtr ee_closed_state(
-        new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
+    moveit::core::RobotStatePtr ee_closed_state(
+        new moveit::core::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
 
     robot_trajectory::RobotTrajectoryPtr ee_closed_traj(new robot_trajectory::RobotTrajectory(
         ee_closed_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
@@ -195,7 +195,7 @@ void addGripperTrajectory(const ManipulationPlanPtr& plan,
 
 bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 {
-  const robot_model::JointModelGroup* jmg = plan->shared_data_->planning_group_;
+  const moveit::core::JointModelGroup* jmg = plan->shared_data_->planning_group_;
   // compute what the maximum distance reported between any two states in the planning group could be, and keep 1% of
   // that;
   // this is the minimum distance between sampled goal states
@@ -208,10 +208,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local;
   // otherwise, the frame is global
-  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(
+  bool approach_direction_is_global_frame = !moveit::core::Transforms::sameFrame(
       plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
-  bool retreat_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,
-                                                                               plan->shared_data_->ik_link_->getName());
+  bool retreat_direction_is_global_frame = !moveit::core::Transforms::sameFrame(
+      plan->retreat_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
 
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)
@@ -222,7 +222,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
-  robot_state::GroupStateValidityCallbackFn approach_valid_callback =
+  moveit::core::GroupStateValidityCallbackFn approach_valid_callback =
       boost::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(), verbose_,
                   &plan->approach_posture_, _1, _2, _3);
   plan->goal_sampler_->setVerbose(verbose_);
@@ -236,8 +236,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
       if (plan->shared_data_->minimize_object_distance_)
       {
         static const double MAX_CLOSE_UP_DIST = 1.0;
-        robot_state::RobotStatePtr close_up_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
-        std::vector<robot_state::RobotStatePtr> close_up_states;
+        moveit::core::RobotStatePtr close_up_state(new moveit::core::RobotState(*plan->possible_goal_states_[i]));
+        std::vector<moveit::core::RobotStatePtr> close_up_states;
         double d_close_up = moveit::core::CartesianInterpolator::computeCartesianPath(
             close_up_state.get(), plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_,
             approach_direction, approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
@@ -248,9 +248,9 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
       }
 
       // try to compute a straight line path that arrives at the goal using the specified approach direction
-      robot_state::RobotStatePtr first_approach_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
+      moveit::core::RobotStatePtr first_approach_state(new moveit::core::RobotState(*plan->possible_goal_states_[i]));
 
-      std::vector<robot_state::RobotStatePtr> approach_states;
+      std::vector<moveit::core::RobotStatePtr> approach_states;
       double d_approach = moveit::core::CartesianInterpolator::computeCartesianPath(
           first_approach_state.get(), plan->shared_data_->planning_group_, approach_states,
           plan->shared_data_->ik_link_, -approach_direction, approach_direction_is_global_frame,
@@ -273,14 +273,14 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
           // state validity checking during the retreat after the grasp must ensure the gripper posture is that of the
           // actual grasp
-          robot_state::GroupStateValidityCallbackFn retreat_valid_callback =
+          moveit::core::GroupStateValidityCallbackFn retreat_valid_callback =
               boost::bind(&isStateCollisionFree, planning_scene_after_approach.get(), collision_matrix_.get(), verbose_,
                           &plan->retreat_posture_, _1, _2, _3);
 
           // try to compute a straight line path that moves from the goal in a desired direction
-          robot_state::RobotStatePtr last_retreat_state(
-              new robot_state::RobotState(planning_scene_after_approach->getCurrentState()));
-          std::vector<robot_state::RobotStatePtr> retreat_states;
+          moveit::core::RobotStatePtr last_retreat_state(
+              new moveit::core::RobotState(planning_scene_after_approach->getCurrentState()));
+          std::vector<moveit::core::RobotStatePtr> retreat_states;
           double d_retreat = moveit::core::CartesianInterpolator::computeCartesianPath(
               last_retreat_state.get(), plan->shared_data_->planning_group_, retreat_states,
               plan->shared_data_->ik_link_, retreat_direction, retreat_direction_is_global_frame,

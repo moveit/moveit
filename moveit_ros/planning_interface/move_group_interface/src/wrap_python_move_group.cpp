@@ -130,7 +130,7 @@ public:
   py_bindings_tools::ByteString getJointValueTarget()
   {
     moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
+    const moveit::core::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
     moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
@@ -306,10 +306,10 @@ public:
 
   bp::dict getCurrentStateBoundedPython()
   {
-    robot_state::RobotStatePtr current = getCurrentState();
+    moveit::core::RobotStatePtr current = getCurrentState();
     current->enforceBounds();
     moveit_msgs::RobotState rsmv;
-    robot_state::robotStateToRobotStateMsg(*current, rsmv);
+    moveit::core::robotStateToRobotStateMsg(*current, rsmv);
     bp::dict output;
     for (size_t x = 0; x < rsmv.joint_state.name.size(); ++x)
       output[rsmv.joint_state.name[x]] = rsmv.joint_state.position[x];
@@ -549,7 +549,7 @@ public:
     if (ref.size() != 3)
       throw std::invalid_argument("reference point needs to have 3 elements, got " + std::to_string(ref.size()));
 
-    robot_state::RobotState state(getRobotModel());
+    moveit::core::RobotState state(getRobotModel());
     state.setToDefaultValues();
     auto group = state.getJointModelGroup(getName());
     state.setJointGroupPositions(group, v);

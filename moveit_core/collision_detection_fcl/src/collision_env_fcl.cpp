@@ -48,10 +48,10 @@ namespace collision_detection
 {
 const std::string CollisionDetectorAllocatorFCL::NAME("FCL");
 
-CollisionEnvFCL::CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, double padding, double scale)
+CollisionEnvFCL::CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
 {
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+  const std::vector<const moveit::core::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
   std::size_t index;
   robot_geoms_.resize(robot_model_->getLinkGeometryCount());
   robot_fcl_objs_.resize(robot_model_->getLinkGeometryCount());
@@ -86,11 +86,11 @@ CollisionEnvFCL::CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, d
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvFCL::notifyObjectChange, this, _1, _2));
 }
 
-CollisionEnvFCL::CollisionEnvFCL(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding,
+CollisionEnvFCL::CollisionEnvFCL(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding,
                                  double scale)
   : CollisionEnv(model, world, padding, scale)
 {
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+  const std::vector<const moveit::core::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
   std::size_t index;
   robot_geoms_.resize(robot_model_->getLinkGeometryCount());
   robot_fcl_objs_.resize(robot_model_->getLinkGeometryCount());
@@ -148,7 +148,7 @@ CollisionEnvFCL::CollisionEnvFCL(const CollisionEnvFCL& other, const WorldPtr& w
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionEnvFCL::notifyObjectChange, this, _1, _2));
 }
 
-void CollisionEnvFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
+void CollisionEnvFCL::getAttachedBodyObjects(const moveit::core::AttachedBody* ab,
                                              std::vector<FCLGeometryConstPtr>& geoms) const
 {
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
@@ -174,7 +174,7 @@ void CollisionEnvFCL::constructFCLObjectWorld(const World::Object* obj, FCLObjec
   }
 }
 
-void CollisionEnvFCL::constructFCLObjectRobot(const robot_state::RobotState& state, FCLObject& fcl_obj) const
+void CollisionEnvFCL::constructFCLObjectRobot(const moveit::core::RobotState& state, FCLObject& fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(robot_geoms_.size());
   fcl::Transform3d fcl_tf;
@@ -191,8 +191,8 @@ void CollisionEnvFCL::constructFCLObjectRobot(const robot_state::RobotState& sta
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(coll_obj));
     }
 
-  // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
-  std::vector<const robot_state::AttachedBody*> ab;
+  // TODO: Implement a method for caching fcl::CollisionObject's for moveit::core::AttachedBody's
+  std::vector<const moveit::core::AttachedBody*> ab;
   state.getAttachedBodies(ab);
   for (auto& body : ab)
   {
@@ -212,7 +212,7 @@ void CollisionEnvFCL::constructFCLObjectRobot(const robot_state::RobotState& sta
   }
 }
 
-void CollisionEnvFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const
+void CollisionEnvFCL::allocSelfCollisionBroadPhase(const moveit::core::RobotState& state, FCLManager& manager) const
 {
   auto m = new fcl::DynamicAABBTreeCollisionManagerd();
   // m->tree_init_level = 2;
@@ -223,19 +223,19 @@ void CollisionEnvFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState
 }
 
 void CollisionEnvFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                         const robot_state::RobotState& state) const
+                                         const moveit::core::RobotState& state) const
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionEnvFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                         const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+                                         const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionEnvFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                               const robot_state::RobotState& state,
+                                               const moveit::core::RobotState& state,
                                                const AllowedCollisionMatrix* acm) const
 {
   FCLManager manager;
@@ -257,33 +257,35 @@ void CollisionEnvFCL::checkSelfCollisionHelper(const CollisionRequest& req, Coll
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state) const
+                                          const moveit::core::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+                                          const moveit::core::RobotState& state,
+                                          const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state1,
-                                          const robot_state::RobotState& state2) const
+                                          const moveit::core::RobotState& state1,
+                                          const moveit::core::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.bullet", "Continuous collision not implemented");
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                          const moveit::core::RobotState& state1,
+                                          const moveit::core::RobotState& state2,
                                           const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "Not implemented");
 }
 
 void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                const robot_state::RobotState& state,
+                                                const moveit::core::RobotState& state,
                                                 const AllowedCollisionMatrix* acm) const
 {
   FCLObject fcl_obj;
@@ -308,7 +310,7 @@ void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, Col
 }
 
 void CollisionEnvFCL::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                   const robot_state::RobotState& state) const
+                                   const moveit::core::RobotState& state) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -318,7 +320,7 @@ void CollisionEnvFCL::distanceSelf(const DistanceRequest& req, DistanceResult& r
 }
 
 void CollisionEnvFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                    const robot_state::RobotState& state) const
+                                    const moveit::core::RobotState& state) const
 {
   FCLObject fcl_obj;
   constructFCLObjectRobot(state, fcl_obj);
@@ -411,7 +413,7 @@ void CollisionEnvFCL::updatedPaddingOrScaling(const std::vector<std::string>& li
   std::size_t index;
   for (const auto& link : links)
   {
-    const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(link);
+    const moveit::core::LinkModel* lmodel = robot_model_->getLinkModel(link);
     if (lmodel)
     {
       for (std::size_t j = 0; j < lmodel->getShapes().size(); ++j)

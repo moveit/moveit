@@ -54,7 +54,7 @@
 namespace cb = collision_detection_bullet;
 
 /** \brief Brings the panda robot in user defined home position */
-inline void setToHome(robot_state::RobotState& panda_state)
+inline void setToHome(moveit::core::RobotState& panda_state)
 {
   panda_state.setToDefaultValues();
   double joint2 = -0.785;
@@ -88,7 +88,7 @@ protected:
 
     cenv_.reset(new collision_detection::CollisionEnvBullet(robot_model_));
 
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
+    robot_state_.reset(new moveit::core::RobotState(robot_model_));
 
     setToHome(*robot_state_);
   }
@@ -100,13 +100,13 @@ protected:
 protected:
   bool robot_model_ok_;
 
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   collision_detection::CollisionEnvPtr cenv_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 };
 
 void addCollisionObjects(cb::BulletCastBVHManager& checker)
@@ -231,8 +231,8 @@ TEST_F(BulletCollisionDetectionTester, DISABLED_ContinuousCollisionSelf)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  robot_state::RobotState state1(robot_model_);
-  robot_state::RobotState state2(robot_model_);
+  moveit::core::RobotState state1(robot_model_);
+  moveit::core::RobotState state2(robot_model_);
 
   setToHome(state1);
   double joint2 = 0.15;
@@ -274,8 +274,8 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
   req.max_contacts = 10;
   collision_detection::CollisionResult res;
 
-  robot_state::RobotState state1(robot_model_);
-  robot_state::RobotState state2(robot_model_);
+  moveit::core::RobotState state1(robot_model_);
+  moveit::core::RobotState state2(robot_model_);
 
   setToHome(state1);
   state1.update();

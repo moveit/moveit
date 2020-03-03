@@ -1200,8 +1200,8 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     return false;
   }
 
-  const robot_model::JointModel* root_joint_model = group->getJointModels()[0];  // group->getJointRoots()[0];
-  const robot_model::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
+  const moveit::core::JointModel* root_joint_model = group->getJointModels()[0];  // group->getJointRoots()[0];
+  const moveit::core::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
   Eigen::Isometry3d reference_transform =
       root_link_model ? getGlobalLinkTransform(root_link_model).inverse() : Eigen::Isometry3d::Identity();
   int rows = use_quaternion_representation ? 7 : 6;
@@ -1239,21 +1239,21 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
         continue;
       }
       unsigned int joint_index = group->getVariableGroupIndex(pjm->getName());
-      if (pjm->getType() == robot_model::JointModel::REVOLUTE)
+      if (pjm->getType() == moveit::core::JointModel::REVOLUTE)
       {
         joint_transform = reference_transform * getGlobalLinkTransform(link);
-        joint_axis = joint_transform.rotation() * static_cast<const robot_model::RevoluteJointModel*>(pjm)->getAxis();
+        joint_axis = joint_transform.rotation() * static_cast<const moveit::core::RevoluteJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) =
             jacobian.block<3, 1>(0, joint_index) + joint_axis.cross(point_transform - joint_transform.translation());
         jacobian.block<3, 1>(3, joint_index) = jacobian.block<3, 1>(3, joint_index) + joint_axis;
       }
-      else if (pjm->getType() == robot_model::JointModel::PRISMATIC)
+      else if (pjm->getType() == moveit::core::JointModel::PRISMATIC)
       {
         joint_transform = reference_transform * getGlobalLinkTransform(link);
-        joint_axis = joint_transform.rotation() * static_cast<const robot_model::PrismaticJointModel*>(pjm)->getAxis();
+        joint_axis = joint_transform.rotation() * static_cast<const moveit::core::PrismaticJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) = jacobian.block<3, 1>(0, joint_index) + joint_axis;
       }
-      else if (pjm->getType() == robot_model::JointModel::PLANAR)
+      else if (pjm->getType() == moveit::core::JointModel::PLANAR)
       {
         joint_transform = reference_transform * getGlobalLinkTransform(link);
         joint_axis = joint_transform * Eigen::Vector3d(1.0, 0.0, 0.0);
@@ -1595,13 +1595,13 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
         }
         if (pose_frame != solver_tip_frame)
         {
-          const robot_model::LinkModel* link_model = getLinkModel(pose_frame);
+          const moveit::core::LinkModel* link_model = getLinkModel(pose_frame);
           if (!link_model)
           {
             ROS_ERROR_STREAM_NAMED(LOGNAME, "Pose frame '" << pose_frame << "' does not exist.");
             return false;
           }
-          const robot_model::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
+          const moveit::core::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
           for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
             if (Transforms::sameFrame(fixed_link.first->getName(), solver_tip_frame))
             {
@@ -1806,10 +1806,10 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
       }
       if (pose_frame != solver_tip_frame)
       {
-        const robot_model::LinkModel* link_model = getLinkModel(pose_frame);
+        const moveit::core::LinkModel* link_model = getLinkModel(pose_frame);
         if (!link_model)
           return false;
-        const robot_model::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
+        const moveit::core::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
         for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
           if (fixed_link.first->getName() == solver_tip_frame)
           {

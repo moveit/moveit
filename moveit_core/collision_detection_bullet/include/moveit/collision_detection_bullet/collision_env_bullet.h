@@ -48,9 +48,9 @@ class CollisionEnvBullet : public CollisionEnv
 public:
   CollisionEnvBullet() = delete;
 
-  CollisionEnvBullet(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+  CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
 
-  CollisionEnvBullet(const robot_model::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
+  CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world, double padding = 0.0,
                      double scale = 1.0);
 
   CollisionEnvBullet(const CollisionEnvBullet& other, const WorldPtr& world);
@@ -60,38 +60,38 @@ public:
   CollisionEnvBullet(CollisionEnvBullet&) = delete;
 
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const robot_state::RobotState& state) const override;
+                                  const moveit::core::RobotState& state) const override;
 
   virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const robot_state::RobotState& state,
+                                  const moveit::core::RobotState& state,
                                   const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state) const override;
+                                   const moveit::core::RobotState& state) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state,
+                                   const moveit::core::RobotState& state,
                                    const AllowedCollisionMatrix& acm) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state1,
-                                   const robot_state::RobotState& state2) const override;
+                                   const moveit::core::RobotState& state1,
+                                   const moveit::core::RobotState& state2) const override;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                   const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
                                    const AllowedCollisionMatrix& acm) const override;
 
   virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                            const robot_state::RobotState& state) const override;
+                            const moveit::core::RobotState& state) const override;
 
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                             const robot_state::RobotState& state) const override;
+                             const moveit::core::RobotState& state) const override;
 
   void setWorld(const WorldPtr& world) override;
 
 protected:
   /** \brief Updates the poses of the objects in the manager according to given robot state */
-  void updateTransformsFromState(const robot_state::RobotState& state,
+  void updateTransformsFromState(const moveit::core::RobotState& state,
                                  const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const;
 
   /** \brief Updates the collision objects saved in the manager to reflect a new padding or scaling of the robot links
@@ -99,19 +99,19 @@ protected:
   void updatedPaddingOrScaling(const std::vector<std::string>& links) override;
 
   /** \brief All of the attached objects in the robot state are wrapped into bullet collision objects */
-  void addAttachedOjects(const robot_state::RobotState& state,
+  void addAttachedOjects(const moveit::core::RobotState& state,
                          std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const;
 
   /** \brief Bundles the different checkSelfCollision functions into a single function */
-  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
-                                const AllowedCollisionMatrix* acm) const;
+  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   void checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
-                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                    const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
                                     const AllowedCollisionMatrix* acm) const;
 
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                 const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
+                                 const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   /** \brief Construts a bullet collision object out of a robot link */
   void addLinkAsCollisionObject(const urdf::LinkSharedPtr& link);

@@ -51,7 +51,7 @@
 #include <fstream>
 
 /** \brief Brings the panda robot in user defined home position */
-inline void setToHome(robot_state::RobotState& panda_state)
+inline void setToHome(moveit::core::RobotState& panda_state)
 {
   panda_state.setToDefaultValues();
   double joint2 = -0.785;
@@ -90,7 +90,7 @@ protected:
 
     cenv_ = value_->allocateEnv(robot_model_);
 
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
+    robot_state_.reset(new moveit::core::RobotState(robot_model_));
     setToHome(*robot_state_);
   }
 
@@ -100,13 +100,13 @@ protected:
 
   bool robot_model_ok_;
 
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   collision_detection::CollisionEnvPtr cenv_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 };
 
 TYPED_TEST_CASE_P(CollisionDetectorPandaTest);

@@ -62,13 +62,14 @@ MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 struct CollisionGeometryData
 {
   /** \brief Constructor for a robot link collision geometry object. */
-  CollisionGeometryData(const robot_model::LinkModel* link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
+  CollisionGeometryData(const moveit::core::LinkModel* link, int index)
+    : type(BodyTypes::ROBOT_LINK), shape_index(index)
   {
     ptr.link = link;
   }
 
   /** \brief Constructor for a new collision geometry object which is attached to the robot. */
-  CollisionGeometryData(const robot_state::AttachedBody* ab, int index)
+  CollisionGeometryData(const moveit::core::AttachedBody* ab, int index)
     : type(BodyTypes::ROBOT_ATTACHED), shape_index(index)
   {
     ptr.ab = ab;
@@ -128,8 +129,8 @@ struct CollisionGeometryData
   /** \brief Points to the type of body which contains the geometry. */
   union
   {
-    const robot_model::LinkModel* link;
-    const robot_state::AttachedBody* ab;
+    const moveit::core::LinkModel* link;
+    const moveit::core::AttachedBody* ab;
     const World::Object* obj;
     const void* raw;
   } ptr;
@@ -152,7 +153,7 @@ struct CollisionData
   }
 
   /** \brief Compute \e active_components_only_ based on the joint group specified in \e req_ */
-  void enableGroup(const robot_model::RobotModelConstPtr& robot_model);
+  void enableGroup(const moveit::core::RobotModelConstPtr& robot_model);
 
   /** \brief The collision request passed by the user */
   const CollisionRequest* req_;
@@ -161,7 +162,7 @@ struct CollisionData
    *  are considered for collision.
    *
    *  If the pointer is NULL, all collisions are considered. */
-  const std::set<const robot_model::LinkModel*>* active_components_only_;
+  const std::set<const moveit::core::LinkModel*>* active_components_only_;
 
   /** \brief The user-specified response location. */
   CollisionResult* res_;
@@ -203,14 +204,14 @@ struct FCLGeometry
   }
 
   /** \brief Constructor for a robot link. */
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_model::LinkModel* link, int shape_index)
+  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const moveit::core::LinkModel* link, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   /** \brief Constructor for an attached body. */
-  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const robot_state::AttachedBody* ab, int shape_index)
+  FCLGeometry(fcl::CollisionGeometryd* collision_geometry, const moveit::core::AttachedBody* ab, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -285,11 +286,11 @@ bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, voi
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
 /** \brief Create new FCLGeometry object out of robot link model. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::LinkModel* link,
                                             int shape_index);
 
 /** \brief Create new FCLGeometry object out of attached body. */
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_state::AttachedBody* ab,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const moveit::core::AttachedBody* ab,
                                             int shape_index);
 
 /** \brief Create new FCLGeometry object out of a world object.
@@ -299,11 +300,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of robot link model. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const robot_model::LinkModel* link, int shape_index);
+                                            const moveit::core::LinkModel* link, int shape_index);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of an attached body. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
-                                            const robot_state::AttachedBody* ab, int shape_index);
+                                            const moveit::core::AttachedBody* ab, int shape_index);
 
 /** \brief Create new scaled and / or padded FCLGeometry object out of an world object. */
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,

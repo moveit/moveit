@@ -74,7 +74,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
 
   if (scene_robot_)
   {
-    robot_state::RobotState* rs = new robot_state::RobotState(scene->getCurrentState());
+    moveit::core::RobotState* rs = new moveit::core::RobotState(scene->getCurrentState());
     rs->update();
 
     std_msgs::ColorRGBA color;
@@ -84,7 +84,7 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     color.a = 1.0f;
     planning_scene::ObjectColorMap color_map;
     scene->getKnownObjectColors(color_map);
-    scene_robot_->update(robot_state::RobotStateConstPtr(rs), color, color_map);
+    scene_robot_->update(moveit::core::RobotStateConstPtr(rs), color, color_map);
   }
 
   const std::vector<std::string>& ids = scene->getWorld()->getObjectIds();

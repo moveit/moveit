@@ -57,7 +57,7 @@ constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(const planni
                                                                     const std::string& group_name,
                                                                     const moveit_msgs::Constraints& constr)
 {
-  const robot_model::JointModelGroup* jmg = scene->getRobotModel()->getJointModelGroup(group_name);
+  const moveit::core::JointModelGroup* jmg = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
   std::stringstream ss;
@@ -135,8 +135,8 @@ constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(const planni
     samplers.push_back(joint_sampler);
 
   // read the ik allocators, if any
-  const robot_model::JointModelGroup::KinematicsSolver& ik_alloc = jmg->getGroupKinematics().first;
-  const robot_model::JointModelGroup::KinematicsSolverMap& ik_subgroup_alloc = jmg->getGroupKinematics().second;
+  const moveit::core::JointModelGroup::KinematicsSolver& ik_alloc = jmg->getGroupKinematics().first;
+  const moveit::core::JointModelGroup::KinematicsSolverMap& ik_subgroup_alloc = jmg->getGroupKinematics().second;
 
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints
   // should be used
@@ -297,7 +297,7 @@ constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(const planni
     bool some_sampler_valid = false;
 
     std::set<std::size_t> used_p, used_o;
-    for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = ik_subgroup_alloc.begin();
+    for (moveit::core::JointModelGroup::KinematicsSolverMap::const_iterator it = ik_subgroup_alloc.begin();
          it != ik_subgroup_alloc.end(); ++it)
     {
       // construct a sub-set of constraints that operate on the sub-group for which we have an IK allocator

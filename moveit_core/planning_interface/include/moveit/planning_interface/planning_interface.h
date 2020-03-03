@@ -163,7 +163,7 @@ public:
   /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed ROS
   /// functionality
   /// or required ROS parameters are namespaced by \e ns
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns);
+  virtual bool initialize(const moveit::core::RobotModelConstPtr& model, const std::string& ns);
 
   /// Get \brief a short string that identifies the planning interface
   virtual std::string getDescription() const;

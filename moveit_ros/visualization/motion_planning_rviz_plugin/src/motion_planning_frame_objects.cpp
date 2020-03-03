@@ -179,7 +179,7 @@ static QString decideStatusText(const collision_detection::CollisionEnv::ObjectC
   return status_text;
 }
 
-static QString decideStatusText(const robot_state::AttachedBody* attached_body)
+static QString decideStatusText(const moveit::core::AttachedBody* attached_body)
 {
   QString status_text = "'" + QString::fromStdString(attached_body->getName()) + "' is attached to '" +
                         QString::fromStdString(attached_body->getAttachedLinkName()) + "'";
@@ -280,7 +280,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
       // if it is an attached object
       scene_marker_.reset();
       const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-      const robot_state::AttachedBody* attached_body =
+      const moveit::core::AttachedBody* attached_body =
           ps->getCurrentState().getAttachedBody(sel[0]->text().toStdString());
       if (attached_body)
         ui_->object_status->setText(decideStatusText(attached_body));
@@ -641,12 +641,13 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
 
         if (got_q)
         {
-          robot_state::RobotStatePtr start_state(new robot_state::RobotState(*planning_display_->getQueryStartState()));
-          robot_state::robotStateMsgToRobotState(planning_display_->getPlanningSceneRO()->getTransforms(),
-                                                 mp->start_state, *start_state);
+          moveit::core::RobotStatePtr start_state(
+              new moveit::core::RobotState(*planning_display_->getQueryStartState()));
+          moveit::core::robotStateMsgToRobotState(planning_display_->getPlanningSceneRO()->getTransforms(),
+                                                  mp->start_state, *start_state);
           planning_display_->setQueryStartState(*start_state);
 
-          robot_state::RobotStatePtr goal_state(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
+          moveit::core::RobotStatePtr goal_state(new moveit::core::RobotState(*planning_display_->getQueryGoalState()));
           for (const moveit_msgs::Constraints& goal_constraint : mp->goal_constraints)
             if (!goal_constraint.joint_constraints.empty())
             {
@@ -775,12 +776,12 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
   {
     // rename attached body
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-    robot_state::RobotState& cs = ps->getCurrentStateNonConst();
-    const robot_state::AttachedBody* ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
+    moveit::core::RobotState& cs = ps->getCurrentStateNonConst();
+    const moveit::core::AttachedBody* ab = cs.getAttachedBody(known_collision_objects_[item->type()].first);
     if (ab)
     {
       known_collision_objects_[item->type()].first = item_text;
-      robot_state::AttachedBody* new_ab = new robot_state::AttachedBody(
+      moveit::core::AttachedBody* new_ab = new moveit::core::AttachedBody(
           ab->getAttachedLink(), known_collision_objects_[item->type()].first, ab->getShapes(),
           ab->getFixedTransforms(), ab->getTouchLinks(), ab->getDetachPosture(), ab->getSubframeTransforms());
       cs.clearAttachedBody(ab->getName());
@@ -818,7 +819,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
   else  // we need to detach an attached object
   {
     const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-    const robot_state::AttachedBody* attached_body = ps->getCurrentState().getAttachedBody(data.first);
+    const moveit::core::AttachedBody* attached_body = ps->getCurrentState().getAttachedBody(data.first);
     if (attached_body)
     {
       aco.link_name = attached_body->getAttachedLinkName();
@@ -876,8 +877,8 @@ void MotionPlanningFrame::populateCollisionObjectsList()
         known_collision_objects_.push_back(std::make_pair(collision_object_names[i], false));
       }
 
-      const robot_state::RobotState& cs = ps->getCurrentState();
-      std::vector<const robot_state::AttachedBody*> attached_bodies;
+      const moveit::core::RobotState& cs = ps->getCurrentState();
+      std::vector<const moveit::core::AttachedBody*> attached_bodies;
       cs.getAttachedBodies(attached_bodies);
       for (std::size_t i = 0; i < attached_bodies.size(); ++i)
       {

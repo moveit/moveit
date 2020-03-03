@@ -56,8 +56,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   // get the specified start state
-  robot_state::RobotState start_state = planning_scene->getCurrentState();
-  robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
+  moveit::core::RobotState start_state = planning_scene->getCurrentState();
+  moveit::core::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
   if (!start_state.satisfiesBounds())
   {
@@ -85,7 +85,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   const size_t goal_index = trajectory.getNumPoints() - 1;
-  robot_state::RobotState goal_state(start_state);
+  moveit::core::RobotState goal_state(start_state);
   for (const moveit_msgs::JointConstraint& joint_constraint : req.goal_constraints[0].joint_constraints)
     goal_state.setVariablePosition(joint_constraint.joint_name, joint_constraint.position);
   if (!goal_state.satisfiesBounds())
@@ -223,9 +223,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   for (size_t i = 0; i < trajectory.getNumPoints(); i++)
   {
     const Eigen::MatrixXd::RowXpr source = trajectory.getTrajectoryPoint(i);
-    auto state = std::make_shared<robot_state::RobotState>(start_state);
+    auto state = std::make_shared<moveit::core::RobotState>(start_state);
     size_t joint_index = 0;
-    for (const robot_state::JointModel* jm : result->getGroup()->getActiveJointModels())
+    for (const moveit::core::JointModel* jm : result->getGroup()->getActiveJointModels())
     {
       assert(jm->getVariableCount() == 1);
       state->setVariablePosition(jm->getFirstVariableIndex(), source[joint_index++]);
@@ -254,7 +254,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   // check that final state is within goal tolerances
   kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
-  const robot_state::RobotState& last_state = result->getLastWayPoint();
+  const moveit::core::RobotState& last_state = result->getLastWayPoint();
   for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
   {
     if (!jc.configure(constraint) || !jc.decide(last_state).satisfied)

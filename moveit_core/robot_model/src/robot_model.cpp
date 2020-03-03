@@ -1149,10 +1149,10 @@ const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel*
 {
   if (!link)
     return link;
-  const robot_model::LinkModel* parent_link = link->getParentLinkModel();
-  const robot_model::JointModel* joint = link->getParentJointModel();
+  const moveit::core::LinkModel* parent_link = link->getParentLinkModel();
+  const moveit::core::JointModel* joint = link->getParentJointModel();
 
-  while (parent_link && joint->getType() == robot_model::JointModel::FIXED)
+  while (parent_link && joint->getType() == moveit::core::JointModel::FIXED)
   {
     link = parent_link;
     joint = link->getParentJointModel();

@@ -119,7 +119,7 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
   populateRobotStatesList();
 }
 
-void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotState& state)
+void MotionPlanningFrame::saveRobotStateButtonClicked(const moveit::core::RobotState& state)
 {
   bool ok = false;
 
@@ -144,7 +144,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
       {
         // Store the current start state
         moveit_msgs::RobotState msg;
-        robot_state::robotStateToRobotStateMsg(state, msg);
+        moveit::core::robotStateToRobotStateMsg(state, msg);
         robot_states_.insert(RobotStatePair(name, msg));
 
         // Save to the database if connected
@@ -188,8 +188,8 @@ void MotionPlanningFrame::setAsStartStateButtonClicked()
 
   if (item)
   {
-    robot_state::RobotState robot_state(*planning_display_->getQueryStartState());
-    robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
+    moveit::core::RobotState robot_state(*planning_display_->getQueryStartState());
+    moveit::core::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
     planning_display_->setQueryStartState(robot_state);
   }
 }
@@ -200,8 +200,8 @@ void MotionPlanningFrame::setAsGoalStateButtonClicked()
 
   if (item)
   {
-    robot_state::RobotState robot_state(*planning_display_->getQueryGoalState());
-    robot_state::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
+    moveit::core::RobotState robot_state(*planning_display_->getQueryGoalState());
+    moveit::core::robotStateMsgToRobotState(robot_states_[item->text().toStdString()], robot_state);
     planning_display_->setQueryGoalState(robot_state);
   }
 }

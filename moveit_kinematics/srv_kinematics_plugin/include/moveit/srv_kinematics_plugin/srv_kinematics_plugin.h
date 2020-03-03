@@ -143,9 +143,9 @@ private:
 
   unsigned int dimension_; /** Dimension of the group */
 
-  const robot_model::JointModelGroup* joint_model_group_;
+  const moveit::core::JointModelGroup* joint_model_group_;
 
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 
   int num_possible_redundant_joints_;
 

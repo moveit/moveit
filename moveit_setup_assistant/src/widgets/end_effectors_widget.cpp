@@ -381,10 +381,10 @@ void EndEffectorsWidget::loadParentComboBox()
   parent_name_field_->clear();
 
   // Get all links in robot model
-  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
+  std::vector<const moveit::core::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
 
   // Add all links to combo box
-  for (std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
+  for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it)
   {
     parent_name_field_->addItem((*link_it)->getName().c_str());
@@ -515,7 +515,7 @@ void EndEffectorsWidget::doneEditing()
     return;
   }
 
-  const robot_model::JointModelGroup* jmg =
+  const moveit::core::JointModelGroup* jmg =
       config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   /*
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))

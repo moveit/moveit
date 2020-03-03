@@ -420,7 +420,7 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
 void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric& pg,
                                                             robot_trajectory::RobotTrajectory& traj) const
 {
-  robot_state::RobotState ks = complete_initial_robot_state_;
+  moveit::core::RobotState ks = complete_initial_robot_state_;
   for (std::size_t i = 0; i < pg.getStateCount(); ++i)
   {
     spec_.state_space_->copyToRobotState(ks, pg.getState(i));
@@ -528,7 +528,7 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
 }
 
 void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
-    const robot_state::RobotState& complete_initial_robot_state)
+    const moveit::core::RobotState& complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
   complete_initial_robot_state_.update();

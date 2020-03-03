@@ -102,7 +102,7 @@ public:
   void clearJobs();
 
   const std::string getMoveGroupNS() const;
-  const robot_model::RobotModelConstPtr& getRobotModel() const;
+  const moveit::core::RobotModelConstPtr& getRobotModel() const;
 
   /// wait for robot state more recent than t
   bool waitForCurrentRobotState(const ros::Time& t = ros::Time::now());

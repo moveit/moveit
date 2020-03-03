@@ -99,8 +99,8 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
-    robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
+    moveit::core::RobotState start_state = planning_scene->getCurrentState();
+    moveit::core::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
     collision_detection::CollisionRequest creq;
     creq.group_name = req.group_name;
@@ -119,10 +119,10 @@ public:
       else
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
 
-      robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
+      moveit::core::RobotStatePtr prefix_state(new moveit::core::RobotState(start_state));
       random_numbers::RandomNumberGenerator& rng = prefix_state->getRandomNumberGenerator();
 
-      const std::vector<const robot_model::JointModel*>& jmodels =
+      const std::vector<const moveit::core::JointModel*>& jmodels =
           planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
               planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
               planning_scene->getRobotModel()->getJointModels();
@@ -151,7 +151,7 @@ public:
       if (found)
       {
         planning_interface::MotionPlanRequest req2 = req;
-        robot_state::robotStateToRobotStateMsg(start_state, req2.start_state);
+        moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state);
         bool solved = planner(planning_scene, req2, res);
         if (solved && !res.trajectory_->empty())
         {

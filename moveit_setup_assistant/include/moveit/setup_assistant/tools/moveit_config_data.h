@@ -280,7 +280,7 @@ public:
   void setRobotModel(const moveit::core::RobotModelPtr& robot_model);
 
   /// Provide a shared kinematic model loader
-  robot_model::RobotModelConstPtr getRobotModel();
+  moveit::core::RobotModelConstPtr getRobotModel();
 
   /// Update the Kinematic Model with latest SRDF modifications
   void updateRobotModel();
@@ -499,7 +499,7 @@ public:
    */
   struct joint_model_compare
   {
-    bool operator()(const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
+    bool operator()(const moveit::core::JointModel* jm1, const moveit::core::JointModel* jm2) const
     {
       return jm1->getName() < jm2->getName();
     }
@@ -514,7 +514,7 @@ private:
   std::vector<std::map<std::string, GenericParameter> > sensors_plugin_config_parameter_list_;
 
   /// Shared kinematic model
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   /// ROS Controllers config data
   std::vector<ROSControlConfig> ros_controllers_config_;

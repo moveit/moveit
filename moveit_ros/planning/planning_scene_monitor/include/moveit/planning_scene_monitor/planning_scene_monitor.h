@@ -170,7 +170,7 @@ public:
     return rm_loader_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
@@ -437,7 +437,7 @@ protected:
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr& obj);
 
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
-  void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody* attached_body, bool just_attached);
+  void currentStateAttachedBodyUpdateCallback(moveit::core::AttachedBody* attached_body, bool just_attached);
 
   /** @brief Callback for a change in the world maintained by the planning scene */
   void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& object,
@@ -453,8 +453,8 @@ protected:
 
   void excludeAttachedBodiesFromOctree();
   void includeAttachedBodiesInOctree();
-  void excludeAttachedBodyFromOctree(const robot_state::AttachedBody* attached_body);
-  void includeAttachedBodyInOctree(const robot_state::AttachedBody* attached_body);
+  void excludeAttachedBodyFromOctree(const moveit::core::AttachedBody* attached_body);
+  void includeAttachedBodyInOctree(const moveit::core::AttachedBody* attached_body);
 
   bool getShapeTransformCache(const std::string& target_frame, const ros::Time& target_time,
                               occupancy_map_monitor::ShapeTransformCache& cache) const;
@@ -516,10 +516,10 @@ protected:
   // include a current state monitor
   CurrentStateMonitorPtr current_state_monitor_;
 
-  typedef std::map<const robot_model::LinkModel*,
+  typedef std::map<const moveit::core::LinkModel*,
                    std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > >
       LinkShapeHandles;
-  typedef std::map<const robot_state::AttachedBody*,
+  typedef std::map<const moveit::core::AttachedBody*,
                    std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > >
       AttachedBodyShapeHandles;
   typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, const Eigen::Isometry3d*> > >
@@ -580,7 +580,7 @@ private:
   ros::WallTime last_robot_state_update_wall_time_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 
   collision_detection::CollisionPluginLoader collision_loader_;
 
@@ -596,7 +596,7 @@ private:
  * "operator->" functions.  Therefore you will often see code like this:
  * @code
  *   planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor);
- *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ *   moveit::core::RobotModelConstPtr model = ls->getRobotModel();
  * @endcode
 
  * The function "getRobotModel()" is a member of PlanningScene and not
@@ -688,7 +688,7 @@ protected:
  * "operator->" functions.  Therefore you will often see code like this:
  * @code
  *   planning_scene_monitor::LockedPlanningSceneRW ls(planning_scene_monitor);
- *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ *   moveit::core::RobotModelConstPtr model = ls->getRobotModel();
  * @endcode
 
  * The function "getRobotModel()" is a member of PlanningScene and not

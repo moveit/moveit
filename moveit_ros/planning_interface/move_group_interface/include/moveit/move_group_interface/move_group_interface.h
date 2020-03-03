@@ -118,7 +118,7 @@ public:
     std::string robot_description_;
 
     /// Optionally, an instance of the RobotModel to use can be also specified
-    robot_model::RobotModelConstPtr robot_model_;
+    moveit::core::RobotModelConstPtr robot_model_;
 
     ros::NodeHandle node_handle_;
   };
@@ -187,7 +187,7 @@ public:
   const std::vector<std::string>& getNamedTargets() const;
 
   /** \brief Get the RobotModel object. */
-  robot_model::RobotModelConstPtr getRobotModel() const;
+  moveit::core::RobotModelConstPtr getRobotModel() const;
 
   /** \brief Get the ROS node handle of this instance operates on */
   const ros::NodeHandle& getNodeHandle() const;
@@ -303,7 +303,7 @@ public:
 
   /** \brief If a different start state should be considered instead of the current state of the robot, this function
    * sets that state */
-  void setStartState(const robot_state::RobotState& start_state);
+  void setStartState(const moveit::core::RobotState& start_state);
 
   /** \brief Set the starting state for planning to be that reported by the robot's joint state publication */
   void setStartStateToCurrentState();
@@ -386,7 +386,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  bool setJointValueTarget(const robot_state::RobotState& robot_state);
+  bool setJointValueTarget(const moveit::core::RobotState& robot_state);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
@@ -516,7 +516,7 @@ public:
   void getJointValueTarget(std::vector<double>& group_variable_values) const;
 
   /// Get the currently set joint state goal, replaced by private getTargetRobotState()
-  [[deprecated]] const robot_state::RobotState& getJointValueTarget() const;
+  [[deprecated]] const moveit::core::RobotState& getJointValueTarget() const;
 
   /**@}*/
 
@@ -906,7 +906,7 @@ public:
   std::vector<double> getCurrentJointValues() const;
 
   /** \brief Get the current state of the robot within the duration specified by wait. */
-  robot_state::RobotStatePtr getCurrentState(double wait = 1) const;
+  moveit::core::RobotStatePtr getCurrentState(double wait = 1) const;
 
   /** \brief Get the pose for the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is
@@ -994,7 +994,7 @@ public:
 
 protected:
   /** return the full RobotState of the joint-space target, only for internal use */
-  const robot_state::RobotState& getTargetRobotState() const;
+  const moveit::core::RobotState& getTargetRobotState() const;
 
 private:
   std::map<std::string, std::vector<double> > remembered_joint_values_;

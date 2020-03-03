@@ -880,7 +880,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   if (trajectory.empty())
     return true;
 
-  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
     ROS_ERROR_NAMED(LOGNAME, "It looks like the planner did not set the group the plan was computed for");
@@ -926,7 +926,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   // This is pretty much copied from IterativeParabolicTimeParameterization::applyVelocityConstraints
   const std::vector<std::string>& vars = group->getVariableNames();
   const std::vector<int>& idx = group->getVariableIndexList();
-  const robot_model::RobotModel& rmodel = group->getParentModel();
+  const moveit::core::RobotModel& rmodel = group->getParentModel();
   const unsigned num_joints = group->getVariableCount();
   const unsigned num_points = trajectory.getWayPointCount();
 
@@ -935,7 +935,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   Eigen::VectorXd max_acceleration(num_joints);
   for (size_t j = 0; j < num_joints; ++j)
   {
-    const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
+    const moveit::core::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
 
     // Limits need to be non-zero, otherwise we never exit
     max_velocity[j] = 1.0;
@@ -959,7 +959,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   std::list<Eigen::VectorXd> points;
   for (size_t p = 0; p < num_points; ++p)
   {
-    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
+    moveit::core::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
     Eigen::VectorXd new_point(num_joints);
     bool diverse_point = (p == 0);
 
@@ -978,7 +978,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   if (points.size() == 1)
   {
     ROS_WARN_NAMED(LOGNAME, "Trajectory is not being parameterized since it only contains a single distinct waypoint.");
-    robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
+    moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
     trajectory.clear();
     trajectory.addSuffixWayPoint(waypoint, 0.0);
     return true;
@@ -996,7 +996,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   size_t sample_count = std::ceil(parameterized.getDuration() / resample_dt_);
 
   // Resample and fill in trajectory
-  robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
+  moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
   trajectory.clear();
   double last_t = 0;
   for (size_t sample = 0; sample <= sample_count; ++sample)

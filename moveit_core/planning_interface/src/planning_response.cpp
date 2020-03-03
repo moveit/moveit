@@ -43,7 +43,7 @@ void planning_interface::MotionPlanResponse::getMessage(moveit_msgs::MotionPlanR
   msg.planning_time = planning_time_;
   if (trajectory_ && !trajectory_->empty())
   {
-    robot_state::robotStateToRobotStateMsg(trajectory_->getFirstWayPoint(), msg.trajectory_start);
+    moveit::core::robotStateToRobotStateMsg(trajectory_->getFirstWayPoint(), msg.trajectory_start);
     trajectory_->getRobotTrajectoryMsg(msg.trajectory);
     msg.group_name = trajectory_->getGroupName();
   }
@@ -66,7 +66,7 @@ void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::Mot
     if (first)
     {
       first = false;
-      robot_state::robotStateToRobotStateMsg(trajectory_[i]->getFirstWayPoint(), msg.trajectory_start);
+      moveit::core::robotStateToRobotStateMsg(trajectory_[i]->getFirstWayPoint(), msg.trajectory_start);
       msg.group_name = trajectory_[i]->getGroupName();
     }
     msg.trajectory.resize(msg.trajectory.size() + 1);

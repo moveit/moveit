@@ -62,7 +62,7 @@ static const float END_EFFECTOR_REACHABLE_COLOR[4] = { 0.2, 1.0, 0.2, 1.0 };
 
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
-RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr& robot_model, const std::string& ns)
+RobotInteraction::RobotInteraction(const moveit::core::RobotModelConstPtr& robot_model, const std::string& ns)
   : robot_model_(robot_model), kinematic_options_map_(new KinematicOptionsMap)
 {
   topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
@@ -115,7 +115,7 @@ void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn& 
 static const double DEFAULT_SCALE = 0.25;
 double RobotInteraction::computeLinkMarkerSize(const std::string& link)
 {
-  const robot_model::LinkModel* lm = robot_model_->getLinkModel(link);
+  const moveit::core::LinkModel* lm = robot_model_->getLinkModel(link);
   double size = 0;
 
   while (lm)
@@ -131,7 +131,7 @@ double RobotInteraction::computeLinkMarkerSize(const std::string& link)
 
     // process kinematic chain upwards (but only following fixed joints)
     // to find a link with some non-empty shape (to ignore virtual links)
-    if (lm->getParentJointModel()->getType() == robot_model::JointModel::FIXED)
+    if (lm->getParentJointModel()->getType() == moveit::core::JointModel::FIXED)
       lm = lm->getParentLinkModel();
     else
       lm = nullptr;
@@ -147,7 +147,7 @@ double RobotInteraction::computeGroupMarkerSize(const std::string& group)
 {
   if (group.empty())
     return DEFAULT_SCALE;
-  const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
   if (!jmg)
     return 0.0;
 
@@ -159,7 +159,7 @@ double RobotInteraction::computeGroupMarkerSize(const std::string& group)
   double size = 0;
   for (const std::string& link : links)
   {
-    const robot_model::LinkModel* lm = robot_model_->getLinkModel(link);
+    const moveit::core::LinkModel* lm = robot_model_->getLinkModel(link);
     if (!lm)
       continue;
     Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
@@ -191,7 +191,7 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active joints for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
-  const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
     return;
@@ -199,7 +199,7 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
   std::set<std::string> used;
   if (jmg->hasJointModel(robot_model_->getRootJointName()))
   {
-    robot_state::RobotState default_state(robot_model_);
+    moveit::core::RobotState default_state(robot_model_);
     default_state.setToDefaultValues();
     std::vector<double> aabb;
     default_state.computeAABB(aabb);
@@ -228,11 +228,11 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
       }
   }
 
-  const std::vector<const robot_model::JointModel*>& joints = jmg->getJointModels();
-  for (const robot_model::JointModel* joint : joints)
+  const std::vector<const moveit::core::JointModel*>& joints = jmg->getJointModels();
+  for (const moveit::core::JointModel* joint : joints)
   {
-    if ((joint->getType() == robot_model::JointModel::PLANAR ||
-         joint->getType() == robot_model::JointModel::FLOATING) &&
+    if ((joint->getType() == moveit::core::JointModel::PLANAR ||
+         joint->getType() == moveit::core::JointModel::FLOATING) &&
         used.find(joint->getName()) == used.end())
     {
       JointInteraction v;
@@ -240,7 +240,7 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
       if (joint->getParentLinkModel())
         v.parent_frame = joint->getParentLinkModel()->getName();
       v.joint_name = joint->getName();
-      if (joint->getType() == robot_model::JointModel::PLANAR)
+      if (joint->getType() == moveit::core::JointModel::PLANAR)
         v.dof = 3;
       else
         v.dof = 6;
@@ -267,7 +267,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
-  const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
   {
@@ -276,7 +276,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   }
 
   const std::vector<srdf::Model::EndEffector>& eefs = srdf->getEndEffectors();
-  const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>&
+  const std::pair<moveit::core::JointModelGroup::KinematicsSolver, moveit::core::JointModelGroup::KinematicsSolverMap>&
       smap = jmg->getGroupKinematics();
 
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
@@ -400,7 +400,7 @@ void RobotInteraction::addEndEffectorMarkers(const InteractionHandlerPtr& handle
   marker_color.b = color[2];
   marker_color.a = color[3];
 
-  robot_state::RobotStateConstPtr rstate = handler->getState();
+  moveit::core::RobotStateConstPtr rstate = handler->getState();
   const std::vector<std::string>& link_names = rstate->getJointModelGroup(eef.eef_group)->getLinkModelNames();
   visualization_msgs::MarkerArray marker_array;
   rstate->getRobotMarkers(marker_array, link_names, marker_color, eef.eef_group, ros::Duration());
@@ -450,7 +450,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
   std::vector<visualization_msgs::InteractiveMarker> ims;
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-    robot_state::RobotStateConstPtr s = handler->getState();
+    moveit::core::RobotStateConstPtr s = handler->getState();
 
     for (std::size_t i = 0; i < active_generic_.size(); ++i)
     {
@@ -584,7 +584,7 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
 }
 
 void RobotInteraction::computeMarkerPose(const InteractionHandlerPtr& handler, const EndEffectorInteraction& eef,
-                                         const robot_state::RobotState& robot_state, geometry_msgs::Pose& pose,
+                                         const moveit::core::RobotState& robot_state, geometry_msgs::Pose& pose,
                                          geometry_msgs::Pose& control_to_eef_tf) const
 {
   // Need to allow for control pose offsets
@@ -619,7 +619,7 @@ void RobotInteraction::updateInteractiveMarkers(const InteractionHandlerPtr& han
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
-    robot_state::RobotStateConstPtr s = handler->getState();
+    moveit::core::RobotStateConstPtr s = handler->getState();
     root_link = s->getRobotModel()->getModelFrame();
 
     for (const EndEffectorInteraction& eef : active_eef_)

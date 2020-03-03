@@ -104,7 +104,7 @@ public:
    *
    * @return The joint model group
    */
-  const robot_model::JointModelGroup* getJointModelGroup() const
+  const moveit::core::JointModelGroup* getJointModelGroup() const
   {
     return jmg_;
   }
@@ -140,7 +140,7 @@ public:
    * \brief Gets the callback used to determine state validity during sampling. The sampler will attempt
    *        to satisfy this constraint if possible, but there is no guarantee.
    */
-  const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
+  const moveit::core::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
   {
     return group_state_validity_callback_;
   }
@@ -151,7 +151,7 @@ public:
    *
    * @param callback The callback to set
    */
-  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback)
+  void setGroupStateValidityCallback(const moveit::core::GroupStateValidityCallbackFn& callback)
   {
     group_state_validity_callback_ = callback;
   }
@@ -166,7 +166,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState& state)
+  bool sample(moveit::core::RobotState& state)
   {
     return sample(state, state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -182,7 +182,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState& state, unsigned int max_attempts)
+  bool sample(moveit::core::RobotState& state, unsigned int max_attempts)
   {
     return sample(state, state, max_attempts);
   }
@@ -197,7 +197,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state)
+  bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state)
   {
     return sample(state, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -212,7 +212,7 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  bool project(robot_state::RobotState& state)
+  bool project(moveit::core::RobotState& state)
   {
     return project(state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -228,7 +228,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  virtual bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+  virtual bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
                       unsigned int max_attempts) = 0;
 
   /**
@@ -242,7 +242,7 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  virtual bool project(robot_state::RobotState& state, unsigned int max_attempts) = 0;
+  virtual bool project(moveit::core::RobotState& state, unsigned int max_attempts) = 0;
 
   /**
    * \brief Returns whether or not the constraint sampler is valid or not.
@@ -287,11 +287,11 @@ protected:
   /// Holds the planning scene
   planning_scene::PlanningSceneConstPtr scene_;
   /// Holds the joint model group associated with this constraint
-  const robot_model::JointModelGroup* const jmg_;
+  const moveit::core::JointModelGroup* const jmg_;
   /// Holds the set of frames that must exist in the reference state to allow samples to be drawn
   std::vector<std::string> frame_depends_;
   /// Holds the callback for state validity
-  robot_state::GroupStateValidityCallbackFn group_state_validity_callback_;
+  moveit::core::GroupStateValidityCallbackFn group_state_validity_callback_;
   bool verbose_;  ///< True if verbosity is on
 };
 }

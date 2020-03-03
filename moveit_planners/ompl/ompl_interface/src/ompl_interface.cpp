@@ -42,7 +42,7 @@
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
+ompl_interface::OMPLInterface::OMPLInterface(const moveit::core::RobotModelConstPtr& robot_model,
                                              const ros::NodeHandle& nh)
   : nh_(nh)
   , robot_model_(robot_model)
@@ -56,7 +56,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   loadConstraintSamplers();
 }
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
+ompl_interface::OMPLInterface::OMPLInterface(const moveit::core::RobotModelConstPtr& robot_model,
                                              const planning_interface::PlannerConfigurationMap& pconfig,
                                              const ros::NodeHandle& nh)
   : nh_(nh)
@@ -78,7 +78,7 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
 
   // construct default configurations for planning groups that don't have configs already passed in
-  for (const robot_model::JointModelGroup* group : robot_model_->getJointModelGroups())
+  for (const moveit::core::JointModelGroup* group : robot_model_->getJointModelGroups())
   {
     if (pconfig.find(group->getName()) == pconfig.end())
     {
