@@ -49,8 +49,8 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(
   const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
-    const std::pair<moveit::core::JointModelGroup::KinematicsSolver, moveit::core::JointModelGroup::KinematicsSolverMap>&
-        slv = jmg->getGroupKinematics();
+    const std::pair<moveit::core::JointModelGroup::KinematicsSolver,
+                    moveit::core::JointModelGroup::KinematicsSolverMap>& slv = jmg->getGroupKinematics();
     bool ik = false;
     // check that we have a direct means to compute IK
     if (slv.first)

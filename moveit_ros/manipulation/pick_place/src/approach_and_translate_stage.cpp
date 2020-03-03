@@ -210,8 +210,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
   // otherwise, the frame is global
   bool approach_direction_is_global_frame = !moveit::core::Transforms::sameFrame(
       plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
-  bool retreat_direction_is_global_frame = !moveit::core::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,
-                                                                               plan->shared_data_->ik_link_->getName());
+  bool retreat_direction_is_global_frame = !moveit::core::Transforms::sameFrame(
+      plan->retreat_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
 
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)

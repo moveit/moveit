@@ -165,7 +165,7 @@ void PlanningScene::initialize()
 
 /* return NULL on failure */
 moveit::core::RobotModelPtr PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
-                                                           const srdf::ModelConstSharedPtr& srdf_model)
+                                                            const srdf::ModelConstSharedPtr& srdf_model)
 {
   moveit::core::RobotModelPtr robot_model(new moveit::core::RobotModel(urdf_model, srdf_model));
   if (!robot_model || !robot_model->getRootJoint())
@@ -2016,7 +2016,8 @@ bool PlanningScene::isStateColliding(const std::string& group, bool verbose)
     return isStateColliding(getCurrentState(), group, verbose);
 }
 
-bool PlanningScene::isStateColliding(const moveit::core::RobotState& state, const std::string& group, bool verbose) const
+bool PlanningScene::isStateColliding(const moveit::core::RobotState& state, const std::string& group,
+                                     bool verbose) const
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;

@@ -508,7 +508,8 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   joint_list_widget_->setMinimumSize(50, 50);  // w, h
 
   // Get list of associated joints
-  const moveit::core::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(group_name);
+  const moveit::core::JointModelGroup* joint_model_group =
+      config_data_->getRobotModel()->getJointModelGroup(group_name);
   joint_models_ = joint_model_group->getJointModels();
 
   // Iterate through the joints

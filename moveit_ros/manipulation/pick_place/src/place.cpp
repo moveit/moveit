@@ -179,7 +179,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr& planning_scene
       // get the robot model link this attached body is associated to
       const moveit::core::LinkModel* link = attached_body->getAttachedLink();
       // check to see if there is a unique end effector containing the link
-      const std::vector<const moveit::core::JointModelGroup*>& eefs = planning_scene->getRobotModel()->getEndEffectors();
+      const std::vector<const moveit::core::JointModelGroup*>& eefs =
+          planning_scene->getRobotModel()->getEndEffectors();
       for (const moveit::core::JointModelGroup* end_effector : eefs)
         if (end_effector->hasLinkModel(link->getName()))
         {

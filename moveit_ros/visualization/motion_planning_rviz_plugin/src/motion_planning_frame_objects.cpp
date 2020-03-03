@@ -641,9 +641,10 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
 
         if (got_q)
         {
-          moveit::core::RobotStatePtr start_state(new moveit::core::RobotState(*planning_display_->getQueryStartState()));
+          moveit::core::RobotStatePtr start_state(
+              new moveit::core::RobotState(*planning_display_->getQueryStartState()));
           moveit::core::robotStateMsgToRobotState(planning_display_->getPlanningSceneRO()->getTransforms(),
-                                                 mp->start_state, *start_state);
+                                                  mp->start_state, *start_state);
           planning_display_->setQueryStartState(*start_state);
 
           moveit::core::RobotStatePtr goal_state(new moveit::core::RobotState(*planning_display_->getQueryGoalState()));

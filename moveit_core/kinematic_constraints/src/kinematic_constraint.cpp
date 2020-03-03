@@ -142,7 +142,8 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
     joint_is_continuous_ = false;
     if (joint_model_->getType() == moveit::core::JointModel::REVOLUTE)
     {
-      const moveit::core::RevoluteJointModel* rjoint = static_cast<const moveit::core::RevoluteJointModel*>(joint_model_);
+      const moveit::core::RevoluteJointModel* rjoint =
+          static_cast<const moveit::core::RevoluteJointModel*>(joint_model_);
       if (rjoint->isContinuous())
         joint_is_continuous_ = true;
     }

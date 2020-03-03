@@ -103,8 +103,8 @@ protected:
                          std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const;
 
   /** \brief Bundles the different checkSelfCollision functions into a single function */
-  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state,
-                                const AllowedCollisionMatrix* acm) const;
+  void checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                const moveit::core::RobotState& state, const AllowedCollisionMatrix* acm) const;
 
   void checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
                                     const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,

@@ -98,8 +98,8 @@ public:
    * @return False if the group was not found
    */
   bool getManipulabilityEllipsoid(const moveit::core::RobotState& state,
-                                  const moveit::core::JointModelGroup* joint_model_group, Eigen::MatrixXcd& eigen_values,
-                                  Eigen::MatrixXcd& eigen_vectors) const;
+                                  const moveit::core::JointModelGroup* joint_model_group,
+                                  Eigen::MatrixXcd& eigen_values, Eigen::MatrixXcd& eigen_vectors) const;
 
   /**
    * @brief Get the manipulability = sigma_min/sigma_max

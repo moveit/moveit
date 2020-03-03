@@ -203,8 +203,8 @@ bool KinematicsMetrics::getManipulability(const moveit::core::RobotState& state,
 }
 
 bool KinematicsMetrics::getManipulability(const moveit::core::RobotState& state,
-                                          const moveit::core::JointModelGroup* joint_model_group, double& manipulability,
-                                          bool translation) const
+                                          const moveit::core::JointModelGroup* joint_model_group,
+                                          double& manipulability, bool translation) const
 {
   // state.getJacobian() only works for chain groups.
   if (!joint_model_group->isChain())

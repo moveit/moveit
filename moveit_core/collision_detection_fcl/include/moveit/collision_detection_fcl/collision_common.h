@@ -62,7 +62,8 @@ MOVEIT_STRUCT_FORWARD(CollisionGeometryData);
 struct CollisionGeometryData
 {
   /** \brief Constructor for a robot link collision geometry object. */
-  CollisionGeometryData(const moveit::core::LinkModel* link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
+  CollisionGeometryData(const moveit::core::LinkModel* link, int index)
+    : type(BodyTypes::ROBOT_LINK), shape_index(index)
   {
     ptr.link = link;
   }

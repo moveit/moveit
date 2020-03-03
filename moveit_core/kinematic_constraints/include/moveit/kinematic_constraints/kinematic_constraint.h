@@ -172,7 +172,7 @@ public:
   }
 
 protected:
-  ConstraintType type_;                         /**< \brief The type of the constraint */
+  ConstraintType type_;                          /**< \brief The type of the constraint */
   moveit::core::RobotModelConstPtr robot_model_; /**< \brief The kinematic model associated with this constraint */
   double constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the
                                 distance computed by the decide() function  */
@@ -324,9 +324,9 @@ public:
 
 protected:
   const moveit::core::JointModel* joint_model_; /**< \brief The joint from the kinematic model for this constraint */
-  bool joint_is_continuous_;                   /**< \brief Whether or not the joint is continuous */
-  std::string local_variable_name_;            /**< \brief The local variable name for a multi DOF joint, if any */
-  std::string joint_variable_name_;            /**< \brief The joint variable name */
+  bool joint_is_continuous_;                    /**< \brief Whether or not the joint is continuous */
+  std::string local_variable_name_;             /**< \brief The local variable name for a multi DOF joint, if any */
+  std::string joint_variable_name_;             /**< \brief The joint variable name */
   int joint_variable_index_; /**< \brief The index of the joint variable name in the full robot state */
   double joint_position_, joint_tolerance_above_, joint_tolerance_below_; /**< \brief Position and tolerance values*/
 };
@@ -475,7 +475,7 @@ public:
   }
 
 protected:
-  const moveit::core::LinkModel* link_model_;    /**< \brief The target link model */
+  const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame */
   Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
                                                  * efficiency
@@ -644,7 +644,7 @@ protected:
   EigenSTL::vector_Isometry3d constraint_region_pose_; /**< \brief The constraint region pose vector */
   bool mobile_frame_;                                  /**< \brief Whether or not a mobile frame is employed*/
   std::string constraint_frame_id_;                    /**< \brief The constraint frame id */
-  const moveit::core::LinkModel* link_model_;           /**< \brief The link model constraint subject */
+  const moveit::core::LinkModel* link_model_;          /**< \brief The link model constraint subject */
 };
 
 MOVEIT_CLASS_FORWARD(VisibilityConstraint);

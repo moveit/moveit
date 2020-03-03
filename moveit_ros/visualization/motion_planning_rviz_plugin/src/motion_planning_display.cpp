@@ -1188,7 +1188,8 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
 }
 
-void MotionPlanningDisplay::updateStateExceptModified(moveit::core::RobotState& dest, const moveit::core::RobotState& src)
+void MotionPlanningDisplay::updateStateExceptModified(moveit::core::RobotState& dest,
+                                                      const moveit::core::RobotState& src)
 {
   moveit::core::RobotState src_copy = src;
   for (const std::string& modified_group : modified_groups_)

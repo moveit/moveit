@@ -177,7 +177,8 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     else
       kinematics_loader_.reset(
           new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
-    moveit::core::SolverAllocatorFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
+    moveit::core::SolverAllocatorFn kinematics_allocator =
+        kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
     const std::vector<std::string>& groups = kinematics_loader_->getKnownGroups();
     std::stringstream ss;
     std::copy(groups.begin(), groups.end(), std::ostream_iterator<std::string>(ss, " "));

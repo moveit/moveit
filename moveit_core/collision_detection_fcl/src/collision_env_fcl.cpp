@@ -263,7 +263,8 @@ void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, Collision
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const
+                                          const moveit::core::RobotState& state,
+                                          const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, state, &acm);
 }
@@ -276,7 +277,8 @@ void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, Collision
 }
 
 void CollisionEnvFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                          const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
+                                          const moveit::core::RobotState& state1,
+                                          const moveit::core::RobotState& state2,
                                           const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "Not implemented");
