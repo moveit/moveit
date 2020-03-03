@@ -68,7 +68,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
   collision_detection::CollisionResult collision_result;
 
   // Copy the planning scene's version of current state into new memory
-  robot_state::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
+  moveit::core::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
 
   double velocity_scale_coefficient = -log(0.001) / parameters_.collision_proximity_threshold;
   ros::Rate collision_rate(parameters_.collision_check_rate);

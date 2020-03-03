@@ -138,9 +138,9 @@ protected:
    */
   void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
-  const robot_state::JointModelGroup* joint_model_group_;
+  const moveit::core::JointModelGroup* joint_model_group_;
 
-  robot_state::RobotStatePtr kinematic_state_;
+  moveit::core::RobotStatePtr kinematic_state_;
 
   sensor_msgs::JointState joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
