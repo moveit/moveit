@@ -78,7 +78,7 @@ protected:
 
   bool robot_model_ok_;
 
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 
   collision_detection::CollisionEnvPtr cenv_;
 
@@ -96,7 +96,7 @@ TYPED_TEST_P(CollisionDetectorTest, InitOK)
 
 TYPED_TEST_P(CollisionDetectorTest, DefaultNotInCollision)
 {
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -115,7 +115,7 @@ TYPED_TEST_P(CollisionDetectorTest, LinksInCollision)
   // req.contacts = true;
   // req.max_contacts = 100;
 
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -154,7 +154,7 @@ TYPED_TEST_P(CollisionDetectorTest, ContactReporting)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -208,7 +208,7 @@ TYPED_TEST_P(CollisionDetectorTest, ContactPositions)
   req.contacts = true;
   req.max_contacts = 1;
 
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -278,7 +278,7 @@ TYPED_TEST_P(CollisionDetectorTest, AttachedBodyTester)
 
   this->acm_.reset(new collision_detection::AllowedCollisionMatrix(this->robot_model_->getLinkModelNames(), true));
 
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -341,7 +341,7 @@ TYPED_TEST_P(CollisionDetectorTest, AttachedBodyTester)
 
 TYPED_TEST_P(CollisionDetectorTest, DiffSceneTester)
 {
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -403,7 +403,7 @@ TYPED_TEST_P(CollisionDetectorTest, ConvertObjectToAttached)
 
   this->cenv_->getWorld()->addToObject("kinect", shape, pos1);
 
-  robot_state::RobotState robot_state(this->robot_model_);
+  moveit::core::RobotState robot_state(this->robot_model_);
   robot_state.setToDefaultValues();
   robot_state.update();
 
@@ -419,8 +419,8 @@ TYPED_TEST_P(CollisionDetectorTest, ConvertObjectToAttached)
   collision_detection::CollisionEnv::ObjectConstPtr object = this->cenv_->getWorld()->getObject("kinect");
   this->cenv_->getWorld()->removeObject("kinect");
 
-  robot_state::RobotState robot_state1(this->robot_model_);
-  robot_state::RobotState robot_state2(this->robot_model_);
+  moveit::core::RobotState robot_state1(this->robot_model_);
+  moveit::core::RobotState robot_state2(this->robot_model_);
   robot_state1.setToDefaultValues();
   robot_state2.setToDefaultValues();
   robot_state1.update();
@@ -475,7 +475,7 @@ TYPED_TEST_P(CollisionDetectorTest, TestCollisionMapAdditionSpeed)
 
 TYPED_TEST_P(CollisionDetectorTest, MoveMesh)
 {
-  robot_state::RobotState robot_state1(this->robot_model_);
+  moveit::core::RobotState robot_state1(this->robot_model_);
   robot_state1.setToDefaultValues();
   robot_state1.update();
 
@@ -499,7 +499,7 @@ TYPED_TEST_P(CollisionDetectorTest, MoveMesh)
 
 TYPED_TEST_P(CollisionDetectorTest, TestChangingShapeSize)
 {
-  robot_state::RobotState robot_state1(this->robot_model_);
+  moveit::core::RobotState robot_state1(this->robot_model_);
   robot_state1.setToDefaultValues();
   robot_state1.update();
 

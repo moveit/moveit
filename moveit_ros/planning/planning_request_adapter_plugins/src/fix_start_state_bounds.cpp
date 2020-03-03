@@ -84,10 +84,10 @@ public:
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
     // get the specified start state
-    robot_state::RobotState start_state = planning_scene->getCurrentState();
-    robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
+    moveit::core::RobotState start_state = planning_scene->getCurrentState();
+    moveit::core::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
-    const std::vector<const robot_model::JointModel*>& jmodels =
+    const std::vector<const moveit::core::JointModel*>& jmodels =
         planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
             planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
             planning_scene->getRobotModel()->getJointModels();
@@ -101,9 +101,9 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
 
-      if (jm->getType() == robot_model::JointModel::REVOLUTE)
+      if (jm->getType() == moveit::core::JointModel::REVOLUTE)
       {
-        if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
+        if (static_cast<const moveit::core::RevoluteJointModel*>(jm)->isContinuous())
         {
           double initial = start_state.getJointPositions(jm)[0];
           start_state.enforceBounds(jm);
@@ -114,11 +114,11 @@ public:
       }
       else
           // Normalize yaw; no offset needs to be remembered
-          if (jm->getType() == robot_model::JointModel::PLANAR)
+          if (jm->getType() == moveit::core::JointModel::PLANAR)
       {
         const double* p = start_state.getJointPositions(jm);
         double copy[3] = { p[0], p[1], p[2] };
-        if (static_cast<const robot_model::PlanarJointModel*>(jm)->normalizeRotation(copy))
+        if (static_cast<const moveit::core::PlanarJointModel*>(jm)->normalizeRotation(copy))
         {
           start_state.setJointPositions(jm, copy);
           change_req = true;
@@ -126,11 +126,11 @@ public:
       }
       else
           // Normalize quaternions
-          if (jm->getType() == robot_model::JointModel::FLOATING)
+          if (jm->getType() == moveit::core::JointModel::FLOATING)
       {
         const double* p = start_state.getJointPositions(jm);
         double copy[7] = { p[0], p[1], p[2], p[3], p[4], p[5], p[6] };
-        if (static_cast<const robot_model::FloatingJointModel*>(jm)->normalizeRotation(copy))
+        if (static_cast<const moveit::core::FloatingJointModel*>(jm)->normalizeRotation(copy))
         {
           start_state.setJointPositions(jm, copy);
           change_req = true;
@@ -139,7 +139,7 @@ public:
     }
 
     // pointer to a prefix state we could possibly add, if we detect we have to make changes
-    robot_state::RobotStatePtr prefix_state;
+    moveit::core::RobotStatePtr prefix_state;
     for (const moveit::core::JointModel* jmodel : jmodels)
     {
       if (!start_state.satisfiesBounds(jmodel))
@@ -147,7 +147,7 @@ public:
         if (start_state.satisfiesBounds(jmodel, bounds_dist_))
         {
           if (!prefix_state)
-            prefix_state.reset(new robot_state::RobotState(start_state));
+            prefix_state.reset(new moveit::core::RobotState(start_state));
           start_state.enforceBounds(jmodel);
           change_req = true;
           ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.",
@@ -161,7 +161,7 @@ public:
           const double* p = start_state.getJointPositions(jmodel);
           for (std::size_t k = 0; k < jmodel->getVariableCount(); ++k)
             joint_values << p[k] << " ";
-          const robot_model::JointModel::Bounds& b = jmodel->getVariableBounds();
+          const moveit::core::JointModel::Bounds& b = jmodel->getVariableBounds();
           for (const moveit::core::VariableBounds& variable_bounds : b)
           {
             joint_bounds_low << variable_bounds.min_position_ << " ";
@@ -181,7 +181,7 @@ public:
     if (change_req)
     {
       planning_interface::MotionPlanRequest req2 = req;
-      robot_state::robotStateToRobotStateMsg(start_state, req2.start_state, false);
+      moveit::core::robotStateToRobotStateMsg(start_state, req2.start_state, false);
       solved = planner(planning_scene, req2, res);
     }
     else

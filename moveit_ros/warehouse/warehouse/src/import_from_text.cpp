@@ -83,10 +83,10 @@ void parseStart(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* 
       }
       if (!v.empty())
       {
-        robot_state::RobotState st = psm->getPlanningScene()->getCurrentState();
+        moveit::core::RobotState st = psm->getPlanningScene()->getCurrentState();
         st.setVariablePositions(v);
         moveit_msgs::RobotState msg;
-        robot_state::robotStateToRobotStateMsg(st, msg);
+        moveit::core::robotStateToRobotStateMsg(st, msg);
         ROS_INFO("Parsed start state '%s'", name.c_str());
         rs->addRobotState(msg, name);
       }

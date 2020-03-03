@@ -77,7 +77,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
       // We have a valid motion plan, now apply pre-approach end effector posture (open gripper) if applicable
       if (!plan->approach_posture_.joint_names.empty())
       {
-        robot_state::RobotStatePtr pre_approach_state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
+        moveit::core::RobotStatePtr pre_approach_state(new moveit::core::RobotState(res.trajectory_->getLastWayPoint()));
         robot_trajectory::RobotTrajectoryPtr pre_approach_traj(new robot_trajectory::RobotTrajectory(
             pre_approach_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
         pre_approach_traj->setRobotTrajectoryMsg(*pre_approach_state, plan->approach_posture_);

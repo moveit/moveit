@@ -86,8 +86,8 @@ protected:
 
   // Load robot model
   rdf_loader::RDFLoaderPtr rdf_loader_;
-  robot_model::RobotModelConstPtr robot_model_;
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotModelConstPtr robot_model_;
+  moveit::core::RobotStatePtr robot_state_;
   bool load_robot_model_;  // for delayed robot initialization
 
   // Properties

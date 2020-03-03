@@ -56,7 +56,7 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
   std::vector<std::string> group_joint_names_;
   const std::string PLANNING_GROUP = "panda_arm";
   const double GOAL_TOLERANCE = 0.1;
@@ -91,10 +91,10 @@ TEST_F(TrajectoryTest, goalTolerance)
   const std::string NODE_NAME = "trajectory_test";
 
   // Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group
-  robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model_));
+  moveit::core::RobotStatePtr current_state(new moveit::core::RobotState(robot_model_));
   current_state->setToDefaultValues();
 
-  const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
+  const moveit::core::JointModelGroup* joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
   EXPECT_NE(joint_model_group, nullptr);
   const std::vector<std::string>& joint_names = joint_model_group->getActiveJointModelNames();
   EXPECT_EQ(joint_names.size(), 7);
@@ -108,7 +108,7 @@ TEST_F(TrajectoryTest, goalTolerance)
   // Set start state
   // ======================================================================================
   std::vector<double> start_joint_values = { 0.4, 0.3, 0.5, -0.55, 0.88, 1.0, -0.075 };
-  robot_state::RobotStatePtr start_state(new robot_state::RobotState(robot_model_));
+  moveit::core::RobotStatePtr start_state(new moveit::core::RobotState(robot_model_));
   start_state->setJointGroupPositions(joint_model_group, start_joint_values);
   start_state->update();
 
@@ -119,7 +119,7 @@ TEST_F(TrajectoryTest, goalTolerance)
 
   // Set the goal state and joints tolerance
   // ========================================================================================
-  robot_state::RobotStatePtr goal_state(new robot_state::RobotState(robot_model_));
+  moveit::core::RobotStatePtr goal_state(new moveit::core::RobotState(robot_model_));
   std::vector<double> goal_joint_values = { 0.8, 0.7, 1, -1.3, 1.9, 2.2, -0.1 };
   goal_state->setJointGroupPositions(joint_model_group, goal_joint_values);
   goal_state->update();

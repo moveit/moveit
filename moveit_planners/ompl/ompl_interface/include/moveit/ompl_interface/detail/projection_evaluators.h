@@ -64,7 +64,7 @@ public:
 
 private:
   const ModelBasedPlanningContext* planning_context_;
-  const robot_model::LinkModel* link_;
+  const moveit::core::LinkModel* link_;
   TSStateStorage tss_;
 };
 

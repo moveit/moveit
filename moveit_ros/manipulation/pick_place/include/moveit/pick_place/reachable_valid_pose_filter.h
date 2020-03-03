@@ -52,7 +52,7 @@ public:
   bool evaluate(const ManipulationPlanPtr& plan) const override;
 
 private:
-  bool isEndEffectorFree(const ManipulationPlanPtr& plan, robot_state::RobotState& token_state) const;
+  bool isEndEffectorFree(const ManipulationPlanPtr& plan, moveit::core::RobotState& token_state) const;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;

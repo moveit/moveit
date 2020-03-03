@@ -63,7 +63,7 @@ public:
   /// @param tip link that will be posed
   /// @param pose desired pose of tip link
   /// @param result true if IK succeeded.
-  bool setStateFromIK(robot_state::RobotState& state, const std::string& key, const std::string& group,
+  bool setStateFromIK(moveit::core::RobotState& state, const std::string& key, const std::string& group,
                       const std::string& tip, const geometry_msgs::Pose& pose) const;
 
   /// Get the options to use for a particular key.

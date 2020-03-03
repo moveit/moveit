@@ -47,8 +47,8 @@ TEST(AllValid, Instantiate)
   urdf_model.reset(new urdf::ModelInterface());
   srdf::ModelConstSharedPtr srdf_model;
   srdf_model.reset(new srdf::Model());
-  robot_model::RobotModelConstPtr robot_model;
-  robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+  moveit::core::RobotModelConstPtr robot_model;
+  robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   CollisionEnvAllValid env(robot_model);
 }
 

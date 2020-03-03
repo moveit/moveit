@@ -162,7 +162,7 @@ TEST(PlanningScene, isStateValid)
   loadRobotModels(urdf_model, srdf_model);
 
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
-  robot_state::RobotState current_state = ps->getCurrentState();
+  moveit::core::RobotState current_state = ps->getCurrentState();
   if (ps->isStateColliding(current_state, "left_arm"))
   {
     EXPECT_FALSE(ps->isStateValid(current_state, "left_arm"));

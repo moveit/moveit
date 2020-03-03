@@ -56,13 +56,13 @@ class OMPLInterface
 public:
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
    * NodeHandle */
-  OMPLInterface(const robot_model::RobotModelConstPtr& robot_model, const ros::NodeHandle& nh = ros::NodeHandle("~"));
+  OMPLInterface(const moveit::core::RobotModelConstPtr& robot_model, const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
      NodeHandle. However,
       planner configurations are used as specified in \e pconfig instead of reading them from the ROS parameter server
      */
-  OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
+  OMPLInterface(const moveit::core::RobotModelConstPtr& robot_model,
                 const planning_interface::PlannerConfigurationMap& pconfig,
                 const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
@@ -150,7 +150,7 @@ protected:
   ros::NodeHandle nh_;  /// The ROS node handle
 
   /** \brief The kinematic model for which motion plans are computed */
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 

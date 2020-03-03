@@ -56,8 +56,8 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader:
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
     default_sleep_rate_.sleep();
   }
-  const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
-  kinematic_state_ = std::make_shared<robot_state::RobotState>(kinematic_model);
+  const moveit::core::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
+  kinematic_state_ = std::make_shared<moveit::core::RobotState>(kinematic_model);
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);

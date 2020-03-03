@@ -267,7 +267,7 @@ private:
   ros::ServiceClient planning_scene_service_;
   ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 
 PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)

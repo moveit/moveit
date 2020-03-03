@@ -113,7 +113,7 @@ void planning_scene_monitor::TrajectoryMonitor::recordStates()
   while (record_states_thread_)
   {
     rate.sleep();
-    std::pair<robot_state::RobotStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
+    std::pair<moveit::core::RobotStatePtr, ros::Time> state = current_state_monitor_->getCurrentStateAndTime();
     if (trajectory_.empty())
     {
       trajectory_.addSuffixWayPoint(state.first, 0.0);

@@ -77,7 +77,7 @@ class InteractionHandler : public LockedRobotState
 public:
   // Use this constructor if you have an initial RobotState already.
   InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
-                     const robot_state::RobotState& initial_robot_state,
+                     const moveit::core::RobotState& initial_robot_state,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   // Use this constructor to start with a default state.
@@ -85,10 +85,10 @@ public:
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   // DEPRECATED.
-  InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
+  InteractionHandler(const std::string& name, const moveit::core::RobotState& initial_robot_state,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
   // DEPRECATED.
-  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& model,
+  InteractionHandler(const std::string& name, const moveit::core::RobotModelConstPtr& model,
                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>());
 
   ~InteractionHandler() override
@@ -230,18 +230,18 @@ private:
 
   // Update RobotState using a generic interaction feedback message.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateGeneric(robot_state::RobotState* state, const GenericInteraction* g,
+  void updateStateGeneric(moveit::core::RobotState* state, const GenericInteraction* g,
                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr* feedback,
                           StateChangeCallbackFn* callback);
 
   // Update RobotState for a new pose of an eef.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateEndEffector(robot_state::RobotState* state, const EndEffectorInteraction* eef,
+  void updateStateEndEffector(moveit::core::RobotState* state, const EndEffectorInteraction* eef,
                               const geometry_msgs::Pose* pose, StateChangeCallbackFn* callback);
 
   // Update RobotState for a new joint position.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* pose,
+  void updateStateJoint(moveit::core::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* pose,
                         StateChangeCallbackFn* callback);
 
   // Set the error state for \e name.

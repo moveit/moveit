@@ -71,7 +71,7 @@ private:
   const ModelBasedPlanningContext* planning_context_;
   ompl::base::StateSamplerPtr default_;
   constraint_samplers::ConstraintSamplerPtr constraint_sampler_;
-  robot_state::RobotState work_state_;
+  moveit::core::RobotState work_state_;
   unsigned int constrained_success_;
   unsigned int constrained_failure_;
   double inv_dim_;

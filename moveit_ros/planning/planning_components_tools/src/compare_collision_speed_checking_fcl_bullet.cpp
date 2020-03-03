@@ -92,7 +92,7 @@ void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const 
       planning_scene->getRobotModel()->getLinkModelNames(), true) };
 
   // set the robot state to home position
-  robot_state::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
+  moveit::core::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
   collision_detection::CollisionRequest req;
   current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
   current_state.update();
@@ -170,7 +170,7 @@ void clutterWorld(const planning_scene::PlanningScenePtr& planning_scene, const 
 *   \param CollisionDetector The type of collision detector
 *   \param only_self Flag for only self collision check performed */
 void runCollisionDetection(unsigned int trials, const planning_scene::PlanningScenePtr& scene,
-                           const std::vector<robot_state::RobotState>& states, const CollisionDetector col_detector,
+                           const std::vector<moveit::core::RobotState>& states, const CollisionDetector col_detector,
                            bool only_self, bool distance = false)
 {
   collision_detection::AllowedCollisionMatrix acm{ collision_detection::AllowedCollisionMatrix(
@@ -247,9 +247,9 @@ void runCollisionDetection(unsigned int trials, const planning_scene::PlanningSc
  *  \param scene The planning scene
  *  \param robot_states Result vector */
 void findStates(const RobotStateSelector desired_states, unsigned int num_states,
-                const planning_scene::PlanningScenePtr& scene, std::vector<robot_state::RobotState>& robot_states)
+                const planning_scene::PlanningScenePtr& scene, std::vector<moveit::core::RobotState>& robot_states)
 {
-  robot_state::RobotState& current_state{ scene->getCurrentStateNonConst() };
+  moveit::core::RobotState& current_state{ scene->getCurrentStateNonConst() };
   collision_detection::CollisionRequest req;
 
   size_t i{ 0 };
@@ -290,7 +290,7 @@ void findStates(const RobotStateSelector desired_states, unsigned int num_states
 
 int main(int argc, char** argv)
 {
-  robot_model::RobotModelPtr robot_model;
+  moveit::core::RobotModelPtr robot_model;
   ros::init(argc, argv, "compare_collision_checking_speed");
   ros::NodeHandle node_handle;
 
@@ -322,11 +322,11 @@ int main(int argc, char** argv)
   {
     ros::Duration(0.5).sleep();
 
-    robot_state::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
+    moveit::core::RobotState& current_state{ planning_scene->getCurrentStateNonConst() };
     current_state.setToDefaultValues(current_state.getJointModelGroup("panda_arm"), "home");
     current_state.update();
 
-    std::vector<robot_state::RobotState> sampled_states;
+    std::vector<moveit::core::RobotState> sampled_states;
     sampled_states.push_back(current_state);
 
     ROS_INFO("Starting benchmark: Robot in empty world, only self collision check");
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
     current_state.setJointPositions("panda_joint2", &joint_2);
     current_state.update();
 
-    std::vector<robot_state::RobotState> sampled_states_2;
+    std::vector<moveit::core::RobotState> sampled_states_2;
     sampled_states_2.push_back(current_state);
 
     ROS_INFO("Starting benchmark: Robot in cluttered world, in collision with world");

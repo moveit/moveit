@@ -46,7 +46,7 @@ namespace collision_detection
 const std::string CollisionDetectorAllocatorBullet::NAME("Bullet");
 const double MAX_DISTANCE_MARGIN = 99;
 
-CollisionEnvBullet::CollisionEnvBullet(const robot_model::RobotModelConstPtr& model, double padding, double scale)
+CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, double padding, double scale)
   : CollisionEnv(model, padding, scale)
 {
   // request notifications about changes to new world
@@ -58,7 +58,7 @@ CollisionEnvBullet::CollisionEnvBullet(const robot_model::RobotModelConstPtr& mo
   }
 }
 
-CollisionEnvBullet::CollisionEnvBullet(const robot_model::RobotModelConstPtr& model, const WorldPtr& world,
+CollisionEnvBullet::CollisionEnvBullet(const moveit::core::RobotModelConstPtr& model, const WorldPtr& world,
                                        double padding, double scale)
   : CollisionEnv(model, world, padding, scale)
 {
@@ -93,20 +93,20 @@ CollisionEnvBullet::~CollisionEnvBullet()
 }
 
 void CollisionEnvBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state) const
+                                            const moveit::core::RobotState& state) const
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionEnvBullet::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                            const robot_state::RobotState& state,
+                                            const moveit::core::RobotState& state,
                                             const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionEnvBullet::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                  const robot_state::RobotState& state,
+                                                  const moveit::core::RobotState& state,
                                                   const AllowedCollisionMatrix* acm) const
 {
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> cows;
@@ -139,35 +139,35 @@ void CollisionEnvBullet::checkSelfCollisionHelper(const CollisionRequest& req, C
 }
 
 void CollisionEnvBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                             const robot_state::RobotState& state) const
+                                             const moveit::core::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, state, nullptr);
 }
 
 void CollisionEnvBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                             const robot_state::RobotState& state,
+                                             const moveit::core::RobotState& state,
                                              const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, state, &acm);
 }
 
 void CollisionEnvBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                             const robot_state::RobotState& state1,
-                                             const robot_state::RobotState& state2) const
+                                             const moveit::core::RobotState& state1,
+                                             const moveit::core::RobotState& state2) const
 {
   checkRobotCollisionHelperCCD(req, res, state1, state2, nullptr);
 }
 
 void CollisionEnvBullet::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                             const robot_state::RobotState& state1,
-                                             const robot_state::RobotState& state2,
+                                             const moveit::core::RobotState& state1,
+                                             const moveit::core::RobotState& state2,
                                              const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelperCCD(req, res, state1, state2, &acm);
 }
 
 void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                   const robot_state::RobotState& state,
+                                                   const moveit::core::RobotState& state,
                                                    const AllowedCollisionMatrix* acm) const
 {
   if (req.distance)
@@ -195,8 +195,8 @@ void CollisionEnvBullet::checkRobotCollisionHelper(const CollisionRequest& req, 
 }
 
 void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& req, CollisionResult& res,
-                                                      const robot_state::RobotState& state1,
-                                                      const robot_state::RobotState& state2,
+                                                      const moveit::core::RobotState& state1,
+                                                      const moveit::core::RobotState& state2,
                                                       const AllowedCollisionMatrix* acm) const
 {
   std::vector<collision_detection_bullet::CollisionObjectWrapperPtr> attached_cows;
@@ -225,13 +225,13 @@ void CollisionEnvBullet::checkRobotCollisionHelperCCD(const CollisionRequest& re
 }
 
 void CollisionEnvBullet::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                      const robot_state::RobotState& state) const
+                                      const moveit::core::RobotState& state) const
 {
   ROS_INFO_NAMED("collision_detection.bullet", "Distance to self not implemented yet.");
 }
 
 void CollisionEnvBullet::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                       const robot_state::RobotState& state) const
+                                       const moveit::core::RobotState& state) const
 {
   ROS_INFO_NAMED("collision_detection.bullet", "Distance to self not implemented yet.");
 }
@@ -313,13 +313,13 @@ void CollisionEnvBullet::notifyObjectChange(const ObjectConstPtr& obj, World::Ac
 }
 
 void CollisionEnvBullet::addAttachedOjects(
-    const robot_state::RobotState& state,
+    const moveit::core::RobotState& state,
     std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const
 {
-  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  std::vector<const moveit::core::AttachedBody*> attached_bodies;
   state.getAttachedBodies(attached_bodies);
 
-  for (const robot_state::AttachedBody*& body : attached_bodies)
+  for (const moveit::core::AttachedBody*& body : attached_bodies)
   {
     const EigenSTL::vector_Isometry3d& attached_body_transform = body->getGlobalCollisionBodyTransforms();
 
@@ -357,7 +357,7 @@ void CollisionEnvBullet::updatedPaddingOrScaling(const std::vector<std::string>&
 }
 
 void CollisionEnvBullet::updateTransformsFromState(
-    const robot_state::RobotState& state, const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const
+    const moveit::core::RobotState& state, const collision_detection_bullet::BulletDiscreteBVHManagerPtr& manager) const
 {
   // updating link positions with the current robot state
   for (const std::string& link : active_)

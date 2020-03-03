@@ -235,7 +235,7 @@ private:
   void populateConstraintsList(const std::vector<std::string>& constr);
   void configureForPlanning();
   void configureWorkspace();
-  void updateQueryStateHelper(robot_state::RobotState& state, const std::string& v);
+  void updateQueryStateHelper(moveit::core::RobotState& state, const std::string& v);
   void fillStateSelectionOptions();
   void fillPlanningGroupOptions();
   void startStateTextChangedExec(const std::string& start_state);
@@ -266,7 +266,7 @@ private:
   void checkPlanningSceneTreeEnabledButtons();
 
   // States tab
-  void saveRobotStateButtonClicked(const robot_state::RobotState& state);
+  void saveRobotStateButtonClicked(const moveit::core::RobotState& state);
   void populateRobotStatesList();
 
   // Pick and place

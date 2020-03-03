@@ -84,7 +84,7 @@ public:
    * \param jmg - joint model group pointer
    * \return tips - list of valid links in a planning group to plan for
    */
-  std::vector<std::string> chooseTipFrames(const robot_model::JointModelGroup* jmg)
+  std::vector<std::string> chooseTipFrames(const moveit::core::JointModelGroup* jmg)
   {
     std::vector<std::string> tips;
     std::map<std::string, std::vector<std::string> >::const_iterator ik_it =
@@ -124,7 +124,7 @@ public:
     return tips;
   }
 
-  kinematics::KinematicsBasePtr allocKinematicsSolver(const robot_model::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolver(const moveit::core::JointModelGroup* jmg)
   {
     kinematics::KinematicsBasePtr result;
     if (!kinematics_loader_)
@@ -137,7 +137,7 @@ public:
       ROS_ERROR_NAMED(LOGNAME, "Specified group is NULL. Cannot allocate kinematics solver.");
       return result;
     }
-    const std::vector<const robot_model::LinkModel*>& links = jmg->getLinkModels();
+    const std::vector<const moveit::core::LinkModel*>& links = jmg->getLinkModels();
     if (links.empty())
     {
       ROS_ERROR_NAMED(LOGNAME, "No links specified for group '%s'. Cannot allocate kinematics solver.",
@@ -211,7 +211,7 @@ public:
   // cache solver between two consecutive calls
   // first call in RobotModelLoader::loadKinematicsSolvers() is just to check suitability for jmg
   // second call in JointModelGroup::setSolverAllocators() is to actually retrieve the instance for use
-  kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const robot_model::JointModelGroup* jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const moveit::core::JointModelGroup* jmg)
   {
     boost::mutex::scoped_lock slock(cache_lock_);
     kinematics::KinematicsBasePtr& cached = instances_[jmg];
@@ -239,7 +239,7 @@ private:
   std::map<std::string, std::vector<std::string> > iksolver_to_tip_links_;  // a map between each ik solver and a vector
                                                                             // of custom-specified tip link(s)
   std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-  std::map<const robot_model::JointModelGroup*, kinematics::KinematicsBasePtr> instances_;
+  std::map<const moveit::core::JointModelGroup*, kinematics::KinematicsBasePtr> instances_;
   boost::mutex lock_;
   boost::mutex cache_lock_;
 };
@@ -252,7 +252,7 @@ void KinematicsPluginLoader::status() const
     ROS_INFO_NAMED(LOGNAME, "Loader function was never required");
 }
 
-robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
+moveit::core::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction");
@@ -265,7 +265,7 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction()
   return getLoaderFunction(rml.getSRDF());
 }
 
-robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
+moveit::core::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");

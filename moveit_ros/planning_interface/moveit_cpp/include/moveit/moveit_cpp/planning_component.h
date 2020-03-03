@@ -151,10 +151,10 @@ public:
   void unsetWorkspace();
 
   /** \brief Get the considered start state if defined, otherwise get the current state */
-  robot_state::RobotStatePtr getStartState();
+  moveit::core::RobotStatePtr getStartState();
 
   /** \brief Set the robot state that should be considered as start state for planning */
-  bool setStartState(const robot_state::RobotState& start_state);
+  bool setStartState(const moveit::core::RobotState& start_state);
   /** \brief Set the named robot state that should be considered as start state for planning */
   bool setStartState(const std::string& named_state);
 
@@ -164,7 +164,7 @@ public:
   /** \brief Set the goal constraints used for planning */
   bool setGoal(const std::vector<moveit_msgs::Constraints>& goal_constraints);
   /** \brief Set the goal constraints generated from a target state */
-  bool setGoal(const robot_state::RobotState& goal_state);
+  bool setGoal(const moveit::core::RobotState& goal_state);
   /** \brief Set the goal constraints generated from target pose and robot link */
   bool setGoal(const geometry_msgs::PoseStamped& goal_pose, const std::string& link_name);
   /** \brief Set the goal constraints generated from a named target state */
@@ -195,7 +195,7 @@ private:
   // Planning
   std::set<std::string> planning_pipeline_names_;
   // The start state used in the planning motion request
-  robot_state::RobotStatePtr considered_start_state_;
+  moveit::core::RobotStatePtr considered_start_state_;
   std::vector<moveit_msgs::Constraints> current_goal_constraints_;
   PlanRequestParameters plan_request_parameters_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;

@@ -44,7 +44,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const robot_state::RobotStateConstPtr& state, const ros::Time& stamp)>
+typedef boost::function<void(const moveit::core::RobotStateConstPtr& state, const ros::Time& stamp)>
     TrajectoryStateAddedCallback;
 
 MOVEIT_CLASS_FORWARD(TrajectoryMonitor);

@@ -87,14 +87,14 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   if (trajectory.empty())
     return true;
 
-  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  const moveit::core::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
     ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization", "It looks like the planner did not set "
                                                                                "the group the plan was computed for");
     return false;
   }
-  const robot_model::RobotModel& rmodel = group->getParentModel();
+  const moveit::core::RobotModel& rmodel = group->getParentModel();
   const std::vector<int>& idx = group->getVariableIndexList();
   const std::vector<std::string>& vars = group->getVariableNames();
   double velocity_scaling_factor = 1.0;
@@ -134,8 +134,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     // (required to force acceleration to specified values at endpoints)
     if (trajectory.getWayPointCount() >= 2)
     {
-      robot_state::RobotState point = trajectory.getWayPoint(1);
-      robot_state::RobotStatePtr p0, p1;
+      moveit::core::RobotState point = trajectory.getWayPoint(1);
+      moveit::core::RobotStatePtr p0, p1;
 
       // 2nd point is 90% of p0, and 10% of p1
       p0 = trajectory.getWayPointPtr(0);
@@ -197,7 +197,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     t2[j].accelerations_[num_points - 1] = t2[j].final_acceleration_;
 
     // Set bounds based on model, or default limits
-    const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
+    const moveit::core::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
     t2[j].max_velocity_ = VLIMIT;
     t2[j].min_velocity_ = -VLIMIT;
     if (bounds.velocity_bounded_)

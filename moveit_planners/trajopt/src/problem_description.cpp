@@ -82,9 +82,9 @@ TrajOptProblem::TrajOptProblem(const ProblemInfo& problem_info)
   , planning_scene_(problem_info.planning_scene)
   , planning_group_(problem_info.planning_group_name)
 {
-  robot_model::RobotModelConstPtr robot_model = planning_scene_->getRobotModel();
-  robot_state::RobotState current_state = planning_scene_->getCurrentState();
-  const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(planning_group_);
+  moveit::core::RobotModelConstPtr robot_model = planning_scene_->getRobotModel();
+  moveit::core::RobotState current_state = planning_scene_->getCurrentState();
+  const moveit::core::JointModelGroup* joint_model_group = current_state.getJointModelGroup(planning_group_);
 
   moveit::core::JointBoundsVector bounds = joint_model_group->getActiveJointModelsBounds();
   dof_ = joint_model_group->getActiveJointModelNames().size();  // or bounds.size();
@@ -181,10 +181,10 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
   TrajOptProblemPtr prob(new TrajOptProblem(pci));
 
   // Generate initial trajectory and check its size
-  robot_model::RobotModelConstPtr robot_model = pci.planning_scene->getRobotModel();
-  robot_state::RobotState current_state = pci.planning_scene->getCurrentState();
+  moveit::core::RobotModelConstPtr robot_model = pci.planning_scene->getRobotModel();
+  moveit::core::RobotState current_state = pci.planning_scene->getCurrentState();
 
-  const robot_state::JointModelGroup* joint_model_group = current_state.getJointModelGroup(pci.planning_group_name);
+  const moveit::core::JointModelGroup* joint_model_group = current_state.getJointModelGroup(pci.planning_group_name);
   int n_dof = prob->GetNumDOF();
 
   std::vector<double> current_joint_values;

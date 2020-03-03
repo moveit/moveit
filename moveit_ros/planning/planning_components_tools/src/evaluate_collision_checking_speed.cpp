@@ -41,7 +41,7 @@
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene* scene,
-                           const robot_state::RobotState* state)
+                           const moveit::core::RobotState* state)
 {
   ROS_INFO("Starting thread %u", id);
   collision_detection::CollisionRequest req;
@@ -95,12 +95,12 @@ int main(int argc, char** argv)
     else
       ros::Duration(0.5).sleep();
 
-    std::vector<robot_state::RobotStatePtr> states;
+    std::vector<moveit::core::RobotStatePtr> states;
     ROS_INFO("Sampling %u valid states...", nthreads);
     for (unsigned int i = 0; i < nthreads; ++i)
     {
       // sample a valid state
-      robot_state::RobotState* state = new robot_state::RobotState(psm.getPlanningScene()->getRobotModel());
+      moveit::core::RobotState* state = new moveit::core::RobotState(psm.getPlanningScene()->getRobotModel());
       collision_detection::CollisionRequest req;
       do
       {
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
         if (!res.collision)
           break;
       } while (true);
-      states.push_back(robot_state::RobotStatePtr(state));
+      states.push_back(moveit::core::RobotStatePtr(state));
     }
 
     std::vector<boost::thread*> threads;

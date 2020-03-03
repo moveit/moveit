@@ -86,34 +86,34 @@ void RobotStateVisualization::updateAttachedObjectColors(const std_msgs::ColorRG
                                     robot_.getAlpha());
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state)
+void RobotStateVisualization::update(const moveit::core::RobotStateConstPtr& kinematic_state)
 {
   updateHelper(kinematic_state, default_attached_object_color_, nullptr);
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
+void RobotStateVisualization::update(const moveit::core::RobotStateConstPtr& kinematic_state,
                                      const std_msgs::ColorRGBA& default_attached_object_color)
 {
   updateHelper(kinematic_state, default_attached_object_color, nullptr);
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
+void RobotStateVisualization::update(const moveit::core::RobotStateConstPtr& kinematic_state,
                                      const std_msgs::ColorRGBA& default_attached_object_color,
                                      const std::map<std::string, std_msgs::ColorRGBA>& color_map)
 {
   updateHelper(kinematic_state, default_attached_object_color, &color_map);
 }
 
-void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr& kinematic_state,
+void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPtr& kinematic_state,
                                            const std_msgs::ColorRGBA& default_attached_object_color,
                                            const std::map<std::string, std_msgs::ColorRGBA>* color_map)
 {
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
 
-  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  std::vector<const moveit::core::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
-  for (const robot_state::AttachedBody* attached_body : attached_bodies)
+  for (const moveit::core::AttachedBody* attached_body : attached_bodies)
   {
     std_msgs::ColorRGBA color = default_attached_object_color;
     float alpha = robot_.getAlpha();

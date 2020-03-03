@@ -76,7 +76,7 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
   bool urdf_ok_;
@@ -146,13 +146,13 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   EXPECT_TRUE(passed);
 
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToRandomPositions();
   EXPECT_TRUE(robot_state.distance(robot_state) < 1e-12);
   ompl::base::State* state = ss.allocState();
   for (int i = 0; i < 10; ++i)
   {
-    robot_state::RobotState robot_state2(robot_state);
+    moveit::core::RobotState robot_state2(robot_state);
     EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
     ss.copyToOMPLState(state, robot_state);
     robot_state.setToRandomPositions(robot_state.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));

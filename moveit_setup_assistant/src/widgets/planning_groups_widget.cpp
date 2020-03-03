@@ -318,7 +318,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
   group->addChild(joints);
 
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Loop through all aval. joints
   for (std::vector<std::string>::const_iterator joint_it = group_it.joints_.begin(); joint_it != group_it.joints_.end();
@@ -329,7 +329,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
     std::string joint_name;
 
     // Get the type of joint this is
-    const robot_model::JointModel* jm = model->getJointModel(*joint_it);
+    const moveit::core::JointModel* jm = model->getJointModel(*joint_it);
     if (jm)  // check if joint model was found
     {
       joint_name = *joint_it + " - " + jm->getTypeName();
@@ -520,7 +520,7 @@ void PlanningGroupsWidget::editSelected()
 void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
 {
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all joints
   const std::vector<std::string>& joints = model->getJointModelNames();
@@ -552,7 +552,7 @@ void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
 void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group* this_group)
 {
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
+  const moveit::core::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all links
   const std::vector<std::string>& links = model->getLinkModelNames();
@@ -1428,7 +1428,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
 
   for (const std::string& joint : joints)
   {
-    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
+    const moveit::core::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joint);
 
     // Check that a joint model was found
     if (!joint_model)

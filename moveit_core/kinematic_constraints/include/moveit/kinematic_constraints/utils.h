@@ -83,8 +83,8 @@ std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr);
  *
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
-                                                  const robot_model::JointModelGroup* jmg, double tolerance_below,
+moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState& state,
+                                                  const moveit::core::JointModelGroup* jmg, double tolerance_below,
                                                   double tolerance_above);
 
 /**
@@ -98,8 +98,8 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState&
  *
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
-                                                  const robot_model::JointModelGroup* jmg,
+moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState& state,
+                                                  const moveit::core::JointModelGroup* jmg,
                                                   double tolerance = std::numeric_limits<double>::epsilon());
 
 /**
@@ -213,5 +213,5 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
  * @param [in] state The RobotState used to resolve frames.
  * @param [in] constraints The constraint to resolve.
  */
-bool resolveConstraintFrames(const robot_state::RobotState& state, moveit_msgs::Constraints& constraints);
+bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs::Constraints& constraints);
 }

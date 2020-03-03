@@ -106,7 +106,7 @@ void MoveGroupMoveAction::executeMoveCallbackPlanAndExecute(const moveit_msgs::M
   if (moveit::core::isEmpty(goal->planning_options.planning_scene_diff))
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-    const robot_state::RobotState& current_state = lscene->getCurrentState();
+    const moveit::core::RobotState& current_state = lscene->getCurrentState();
 
     // check to see if the desired constraints are already met
     for (std::size_t i = 0; i < goal->request.goal_constraints.size(); ++i)

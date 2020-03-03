@@ -51,11 +51,11 @@ int main(int argc, char** argv)
   robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
   ros::Duration(0.5).sleep();
 
-  robot_model::RobotModelConstPtr robot_model = rml.getModel();
+  moveit::core::RobotModelConstPtr robot_model = rml.getModel();
   if (robot_model)
   {
     static const int N = 10000;
-    robot_state::RobotState state(robot_model);
+    moveit::core::RobotState state(robot_model);
 
     printf("Evaluating model '%s' using %d trials for each test\n", robot_model->getName().c_str(), N);
 
@@ -80,12 +80,12 @@ int main(int argc, char** argv)
       moveit::tools::Profiler::End("FK Random");
     }
 
-    std::vector<robot_state::RobotState*> copies(N, (robot_state::RobotState*)nullptr);
+    std::vector<moveit::core::RobotState*> copies(N, (moveit::core::RobotState*)nullptr);
     printf("Evaluating Copy State ...\n");
     for (int i = 0; i < N; ++i)
     {
       moveit::tools::Profiler::Begin("Copy State");
-      copies[i] = new robot_state::RobotState(state);
+      copies[i] = new moveit::core::RobotState(state);
       moveit::tools::Profiler::End("Copy State");
     }
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     for (const std::string& group : groups)
     {
       printf("\n");
-      const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
+      const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
 
       printf("%s: Evaluating FK Random ...\n", group.c_str());
       std::string pname = group + ":FK Random";

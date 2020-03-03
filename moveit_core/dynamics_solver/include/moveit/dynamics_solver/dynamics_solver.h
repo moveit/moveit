@@ -66,7 +66,7 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  DynamicsSolver(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+  DynamicsSolver(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                  const geometry_msgs::Vector3& gravity_vector);
 
   /**
@@ -124,12 +124,12 @@ public:
    * @brief Get the kinematic model
    * @return kinematic model
    */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
 
-  const robot_model::JointModelGroup* getGroup() const
+  const moveit::core::JointModelGroup* getGroup() const
   {
     return joint_model_group_;
   }
@@ -138,10 +138,10 @@ private:
   std::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_;  // KDL chain inverse dynamics
   KDL::Chain kdl_chain_;                                     // KDL chain
 
-  robot_model::RobotModelConstPtr robot_model_;
-  const robot_model::JointModelGroup* joint_model_group_;
+  moveit::core::RobotModelConstPtr robot_model_;
+  const moveit::core::JointModelGroup* joint_model_group_;
 
-  robot_state::RobotStatePtr state_;  // robot state
+  moveit::core::RobotStatePtr state_;  // robot state
 
   std::string base_name_, tip_name_;        // base name, tip name
   unsigned int num_joints_, num_segments_;  // number of joints in group, number of segments in group

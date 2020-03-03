@@ -51,22 +51,22 @@ typedef std::function<double(const ompl::base::State* state1, const ompl::base::
 
 struct ModelBasedStateSpaceSpecification
 {
-  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr& robot_model,
-                                    const robot_model::JointModelGroup* jmg)
+  ModelBasedStateSpaceSpecification(const moveit::core::RobotModelConstPtr& robot_model,
+                                    const moveit::core::JointModelGroup* jmg)
     : robot_model_(robot_model), joint_model_group_(jmg)
   {
   }
 
-  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name)
+  ModelBasedStateSpaceSpecification(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name)
     : robot_model_(robot_model), joint_model_group_(robot_model_->getJointModelGroup(group_name))
   {
     if (!joint_model_group_)
       throw std::runtime_error("Group '" + group_name + "'  was not found");
   }
 
-  robot_model::RobotModelConstPtr robot_model_;
-  const robot_model::JointModelGroup* joint_model_group_;
-  robot_model::JointBoundsVector joint_bounds_;
+  moveit::core::RobotModelConstPtr robot_model_;
+  const moveit::core::JointModelGroup* joint_model_group_;
+  moveit::core::JointBoundsVector joint_bounds_;
 };
 
 OMPL_CLASS_FORWARD(ModelBasedStateSpace);
@@ -202,12 +202,12 @@ public:
 
   virtual const std::string& getParameterizationType() const = 0;
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return spec_.robot_model_;
   }
 
-  const robot_model::JointModelGroup* getJointModelGroup() const
+  const moveit::core::JointModelGroup* getJointModelGroup() const
   {
     return spec_.joint_model_group_;
   }
@@ -228,18 +228,18 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const robot_model::JointBoundsVector& getJointsBounds() const
+  const moveit::core::JointBoundsVector& getJointsBounds() const
   {
     return spec_.joint_bounds_;
   }
 
   /// Copy the data from an OMPL state to a set of joint states.
   // The joint states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToRobotState(robot_state::RobotState& rstate, const ompl::base::State* state) const;
+  virtual void copyToRobotState(moveit::core::RobotState& rstate, const ompl::base::State* state) const;
 
   /// Copy the data from a set of joint states to an OMPL state.
   //  The joint states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
+  virtual void copyToOMPLState(ompl::base::State* state, const moveit::core::RobotState& rstate) const;
 
   /**
    * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt robot_state to an OMPL
@@ -251,7 +251,7 @@ public:
    * cache this index)
    *        e.g. ompl_state_joint_index = joint_model_group_->getVariableGroupIndex("virtual_joint");
    */
-  virtual void copyJointToOMPLState(ompl::base::State* state, const robot_state::RobotState& robot_state,
+  virtual void copyJointToOMPLState(ompl::base::State* state, const moveit::core::RobotState& robot_state,
                                     const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const;
 
   double getTagSnapToSegment() const;
@@ -259,8 +259,8 @@ public:
 
 protected:
   ModelBasedStateSpaceSpecification spec_;
-  std::vector<robot_model::JointModel::Bounds> joint_bounds_storage_;
-  std::vector<const robot_model::JointModel*> joint_model_vector_;
+  std::vector<moveit::core::JointModel::Bounds> joint_bounds_storage_;
+  std::vector<const moveit::core::JointModel*> joint_model_vector_;
   unsigned int variable_count_;
   size_t state_values_size_;
 

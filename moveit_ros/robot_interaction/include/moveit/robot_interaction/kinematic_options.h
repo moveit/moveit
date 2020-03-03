@@ -70,7 +70,7 @@ struct KinematicOptions
   /// @param tip link that will be posed
   /// @param pose desired pose of tip link
   /// @param result true if IK succeeded.
-  bool setStateFromIK(robot_state::RobotState& state, const std::string& group, const std::string& tip,
+  bool setStateFromIK(moveit::core::RobotState& state, const std::string& group, const std::string& tip,
                       const geometry_msgs::Pose& pose) const;
 
   /// Copy a subset of source to this.
@@ -82,7 +82,7 @@ struct KinematicOptions
   double timeout_seconds_;
 
   /// This is called to determine if the state is valid
-  robot_state::GroupStateValidityCallbackFn state_validity_callback_;
+  moveit::core::GroupStateValidityCallbackFn state_validity_callback_;
 
   /// other options
   kinematics::KinematicsQueryOptions options_;

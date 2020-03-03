@@ -61,15 +61,15 @@ class TestAABB : public testing::Test
 protected:
   void SetUp() override{};
 
-  robot_state::RobotState loadModel(const std::string& robot_name)
+  moveit::core::RobotState loadModel(const std::string& robot_name)
   {
-    robot_model::RobotModelPtr model = moveit::core::loadTestingRobotModel(robot_name);
+    moveit::core::RobotModelPtr model = moveit::core::loadTestingRobotModel(robot_name);
     return loadModel(model);
   }
 
-  robot_state::RobotState loadModel(const robot_model::RobotModelPtr& model)
+  moveit::core::RobotState loadModel(const moveit::core::RobotModelPtr& model)
   {
-    robot_state::RobotState robot_state = robot_state::RobotState(model);
+    moveit::core::RobotState robot_state = moveit::core::RobotState(model);
     robot_state.setToDefaultValues();
     robot_state.update(true);
 
@@ -85,7 +85,7 @@ TEST_F(TestAABB, TestPR2)
 {
   // Contains a link with mesh geometry that is not centered
 
-  robot_state::RobotState pr2_state = this->loadModel("pr2");
+  moveit::core::RobotState pr2_state = this->loadModel("pr2");
 
   const Eigen::Vector3d& extents_base_footprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
   // values taken from moveit_resources/pr2_description/urdf/robot.xml
@@ -288,7 +288,7 @@ TEST_F(TestAABB, TestSimple)
   builder.addGroup({}, { "world_joint" }, "base");
 
   ASSERT_TRUE(builder.isValid());
-  robot_state::RobotState simple_state = loadModel(builder.build());
+  moveit::core::RobotState simple_state = loadModel(builder.build());
   std::vector<double> simple_aabb;
   simple_state.computeAABB(simple_aabb);
 
@@ -323,7 +323,7 @@ TEST_F(TestAABB, TestComplex)
   builder.addGroup({}, { "world_joint" }, "base");
 
   ASSERT_TRUE(builder.isValid());
-  robot_state::RobotState complex_state = this->loadModel(builder.build());
+  moveit::core::RobotState complex_state = this->loadModel(builder.build());
 
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[0], 0.1, 1e-4);
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[1], 1.0, 1e-4);

@@ -51,7 +51,7 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
     poses_.emplace_back(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first);
   else if (!spec.joint_model_group_->getGroupKinematics().second.empty())
   {
-    const robot_model::JointModelGroup::KinematicsSolverMap& m = spec.joint_model_group_->getGroupKinematics().second;
+    const moveit::core::JointModelGroup::KinematicsSolverMap& m = spec.joint_model_group_->getGroupKinematics().second;
     for (const auto& it : m)
       poses_.emplace_back(it.first, it.second);
   }
@@ -177,7 +177,7 @@ void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double 
 }
 
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(
-    const robot_model::JointModelGroup* subgroup, const robot_model::JointModelGroup::KinematicsSolver& k)
+    const moveit::core::JointModelGroup* subgroup, const moveit::core::JointModelGroup::KinematicsSolver& k)
   : subgroup_(subgroup), kinematics_solver_(k.allocator_(subgroup)), bijection_(k.bijection_)
 {
   state_space_.reset(new ompl::base::SE3StateSpace());
@@ -338,7 +338,7 @@ ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocDefaultSta
 }
 
 void ompl_interface::PoseModelStateSpace::copyToOMPLState(ompl::base::State* state,
-                                                          const robot_state::RobotState& rstate) const
+                                                          const moveit::core::RobotState& rstate) const
 {
   ModelBasedStateSpace::copyToOMPLState(state, rstate);
   state->as<StateType>()->setJointsComputed(true);

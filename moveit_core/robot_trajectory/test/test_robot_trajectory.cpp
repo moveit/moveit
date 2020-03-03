@@ -44,7 +44,7 @@ class RobotTrajectoryTestFixture : public testing::Test
 {
 protected:
   moveit::core::RobotModelConstPtr robot_model_;
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
   const std::string robot_model_name_ = "panda";
   const std::string arm_jmg_name_ = "panda_arm";
 
@@ -52,7 +52,7 @@ protected:
   void SetUp() override
   {
     robot_model_ = moveit::core::loadTestingRobotModel(robot_model_name_);
-    robot_state_ = std::make_shared<robot_state::RobotState>(robot_model_);
+    robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
     robot_state_->setToDefaultValues();
     robot_state_->update();
   }
@@ -99,7 +99,7 @@ protected:
     // Get the first waypoint by POINTER, modify it, and check that the value WAS updated in trajectory
     ///////////////////////////
     // Get the first waypoint by shared pointer
-    robot_state::RobotStatePtr trajectory_first_waypoint = trajectory->getWayPointPtr(0);
+    moveit::core::RobotStatePtr trajectory_first_waypoint = trajectory->getWayPointPtr(0);
     // Get the first waypoint joint values
     std::vector<double> trajectory_first_state;
     trajectory_first_waypoint->copyJointGroupPositions(arm_jmg_name_, trajectory_first_state);
@@ -109,7 +109,7 @@ protected:
     trajectory_first_waypoint->setJointGroupPositions(arm_jmg_name_, trajectory_first_state);
 
     // Check that the trajectory's first waypoint was updated
-    robot_state::RobotStatePtr trajectory_first_waypoint_after_update = trajectory->getWayPointPtr(0);
+    moveit::core::RobotStatePtr trajectory_first_waypoint_after_update = trajectory->getWayPointPtr(0);
     std::vector<double> trajectory_first_state_after_update;
     trajectory_first_waypoint_after_update->copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
     EXPECT_EQ(trajectory_first_state[0], trajectory_first_state_after_update[0]);
@@ -121,7 +121,7 @@ protected:
     // Get the first waypoint by VALUE, modify it, and check that the value WAS NOT updated in trajectory
     ///////////////////////////
     // Get the first waypoint by shared pointer
-    robot_state::RobotState trajectory_first_waypoint = trajectory->getWayPoint(0);
+    moveit::core::RobotState trajectory_first_waypoint = trajectory->getWayPoint(0);
     // Get the first waypoint joint values
     std::vector<double> trajectory_first_state;
     trajectory_first_waypoint.copyJointGroupPositions(arm_jmg_name_, trajectory_first_state);
@@ -131,7 +131,7 @@ protected:
     trajectory_first_waypoint.setJointGroupPositions(arm_jmg_name_, trajectory_first_state);
 
     // Check that the trajectory's first waypoint was updated
-    robot_state::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
+    moveit::core::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
     std::vector<double> trajectory_first_state_after_update;
     trajectory_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
     EXPECT_NE(trajectory_first_state[0], trajectory_first_state_after_update[0]);
@@ -164,12 +164,12 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryShallowCopy)
   modifyFirstWaypointPtrAndCheckTrajectory(trajectory);
 
   // Check that modifying the waypoint also modified the trajectory
-  robot_state::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
+  moveit::core::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
   std::vector<double> trajectory_first_state_after_update;
   trajectory_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
 
   // Get the first waypoint in the modified trajectory_copy
-  robot_state::RobotState trajectory_copy_first_waypoint_after_update = trajectory_copy->getWayPoint(0);
+  moveit::core::RobotState trajectory_copy_first_waypoint_after_update = trajectory_copy->getWayPoint(0);
   std::vector<double> trajectory_copy_first_state_after_update;
   trajectory_copy_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_,
                                                                       trajectory_copy_first_state_after_update);
@@ -190,12 +190,12 @@ TEST_F(RobotTrajectoryTestFixture, RobotTrajectoryDeepCopy)
   modifyFirstWaypointPtrAndCheckTrajectory(trajectory);
 
   // Check that modifying the waypoint also modified the trajectory
-  robot_state::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
+  moveit::core::RobotState trajectory_first_waypoint_after_update = trajectory->getWayPoint(0);
   std::vector<double> trajectory_first_state_after_update;
   trajectory_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_, trajectory_first_state_after_update);
 
   // Get the first waypoint in the modified trajectory_copy
-  robot_state::RobotState trajectory_copy_first_waypoint_after_update = trajectory_copy->getWayPoint(0);
+  moveit::core::RobotState trajectory_copy_first_waypoint_after_update = trajectory_copy->getWayPoint(0);
   std::vector<double> trajectory_copy_first_state_after_update;
   trajectory_copy_first_waypoint_after_update.copyJointGroupPositions(arm_jmg_name_,
                                                                       trajectory_copy_first_state_after_update);

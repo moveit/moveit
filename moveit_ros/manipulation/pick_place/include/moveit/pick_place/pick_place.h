@@ -131,7 +131,7 @@ public:
     return planning_pipeline_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return planning_pipeline_->getRobotModel();
   }

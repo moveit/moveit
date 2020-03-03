@@ -223,7 +223,7 @@ MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMst
 }
 #endif
 
-ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
+ompl_interface::PlanningContextManager::PlanningContextManager(moveit::core::RobotModelConstPtr robot_model,
                                                                constraint_samplers::ConstraintSamplerManagerPtr csm)
   : robot_model_(std::move(robot_model))
   , constraint_sampler_manager_(std::move(csm))
@@ -497,7 +497,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   {
     context->clear();
 
-    robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
+    moveit::core::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
 
     // Setup the context
     context->setPlanningScene(planning_scene);

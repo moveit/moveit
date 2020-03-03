@@ -84,7 +84,7 @@ public:
   ~RobotModelLoader();
 
   /** @brief Get the constructed planning_models::RobotModel */
-  const robot_model::RobotModelPtr& getModel() const
+  const moveit::core::RobotModelPtr& getModel() const
   {
     return model_;
   }
@@ -128,7 +128,7 @@ public:
 private:
   void configure(const Options& opt);
 
-  robot_model::RobotModelPtr model_;
+  moveit::core::RobotModelPtr model_;
   rdf_loader::RDFLoaderPtr rdf_loader_;
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
 };

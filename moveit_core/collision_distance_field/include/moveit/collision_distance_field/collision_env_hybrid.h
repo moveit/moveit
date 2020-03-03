@@ -52,7 +52,7 @@ class CollisionEnvHybrid : public collision_detection::CollisionEnvFCL
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionEnvHybrid(const robot_model::RobotModelConstPtr& robot_model,
+  CollisionEnvHybrid(const moveit::core::RobotModelConstPtr& robot_model,
                      const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
                          std::map<std::string, std::vector<CollisionSphere>>(),
                      double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
@@ -62,7 +62,7 @@ public:
                      double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE, double padding = 0.0,
                      double scale = 1.0);
 
-  CollisionEnvHybrid(const robot_model::RobotModelConstPtr& robot_model, const WorldPtr& world,
+  CollisionEnvHybrid(const moveit::core::RobotModelConstPtr& robot_model, const WorldPtr& world,
                      const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
                          std::map<std::string, std::vector<CollisionSphere>>(),
                      double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
@@ -89,18 +89,18 @@ public:
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
                                        collision_detection::CollisionResult& res,
-                                       const robot_state::RobotState& state) const;
+                                       const moveit::core::RobotState& state) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
-                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       collision_detection::CollisionResult& res, const moveit::core::RobotState& state,
                                        GroupStateRepresentationPtr& gsr) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
-                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       collision_detection::CollisionResult& res, const moveit::core::RobotState& state,
                                        const collision_detection::AllowedCollisionMatrix& acm) const;
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
-                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       collision_detection::CollisionResult& res, const moveit::core::RobotState& state,
                                        const collision_detection::AllowedCollisionMatrix& acm,
                                        GroupStateRepresentationPtr& gsr) const;
   const CollisionEnvDistanceFieldConstPtr getCollisionRobotDistanceField() const
@@ -109,37 +109,37 @@ public:
   }
 
   void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state) const;
+                                   const moveit::core::RobotState& state) const;
 
   void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
+                                   const moveit::core::RobotState& state, GroupStateRepresentationPtr& gsr) const;
 
   void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
+                                   const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
   void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+                                   const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm,
                                    GroupStateRepresentationPtr& gsr) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                        const robot_state::RobotState& state) const;
+                                        const moveit::core::RobotState& state) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                        const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
+                                        const moveit::core::RobotState& state, GroupStateRepresentationPtr& gsr) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                        const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
+                                        const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res,
-                                        const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+                                        const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm,
                                         GroupStateRepresentationPtr& gsr) const;
 
   void setWorld(const WorldPtr& world) override;
 
-  void getCollisionGradients(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
+  void getCollisionGradients(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state,
                              const AllowedCollisionMatrix* acm, GroupStateRepresentationPtr& gsr) const;
 
-  void getAllCollisions(const CollisionRequest& req, CollisionResult& res, const robot_state::RobotState& state,
+  void getAllCollisions(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state,
                         const AllowedCollisionMatrix* acm, GroupStateRepresentationPtr& gsr) const;
 
   const CollisionEnvDistanceFieldConstPtr getCollisionWorldDistanceField() const
