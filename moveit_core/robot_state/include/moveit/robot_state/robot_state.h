@@ -487,33 +487,26 @@ public:
 
   /** @} */
 
-  /** \name Getting and setting joint positions, velocities, accelerations and effort
+  /** \name Getting and setting joint positions, velocities, accelerations and effort for a single, potentially multiple-dof, joint
+   * \brief See setVariablePositions(), setVariableVelocities(), setVariableEffort() to handle multiple joints.
    *  @{
    */
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints. */
   void setJointPositions(const std::string& joint_name, const double* position)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), position);
   }
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints. */
   void setJointPositions(const std::string& joint_name, const std::vector<double>& position)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), &position[0]);
   }
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints. */
   void setJointPositions(const JointModel* joint, const std::vector<double>& position)
   {
     setJointPositions(joint, &position[0]);
   }
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints. */
   void setJointPositions(const JointModel* joint, const double* position)
   {
     memcpy(position_ + joint->getFirstVariableIndex(), position, joint->getVariableCount() * sizeof(double));
@@ -521,15 +514,11 @@ public:
     updateMimicJoint(joint);
   }
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints.*/
   void setJointPositions(const std::string& joint_name, const Eigen::Isometry3d& transform)
   {
     setJointPositions(robot_model_->getJointModel(joint_name), transform);
   }
 
-  /** \brief Set position(s) for a single, potentially multi-dof joint. See setVariablePositions() to handle multiple
-   * joints. */
   void setJointPositions(const JointModel* joint, const Eigen::Isometry3d& transform)
   {
     joint->computeVariablePositions(transform, position_ + joint->getFirstVariableIndex());
