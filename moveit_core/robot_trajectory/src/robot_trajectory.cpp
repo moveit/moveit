@@ -218,12 +218,13 @@ void RobotTrajectory::clear()
   duration_from_previous_.clear();
 }
 
-void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory) const
+void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory,
+                                            const std::vector<std::string>& joint_filter) const
 {
   trajectory = moveit_msgs::RobotTrajectory();
   if (waypoints_.empty())
     return;
-  const std::vector<const moveit::core::JointModel*>& jnt =
+  const std::vector<const moveit::core::JointModel*>& jnts =
       group_ ? group_->getActiveJointModels() : robot_model_->getActiveJointModels();
 
   std::vector<const moveit::core::JointModel*> onedof;
@@ -231,7 +232,13 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
   trajectory.joint_trajectory.joint_names.clear();
   trajectory.multi_dof_joint_trajectory.joint_names.clear();
 
-  for (const moveit::core::JointModel* active_joint : jnt)
+  for (const moveit::core::JointModel* active_joint : jnts)
+  {
+    // only consider joints listed in joint_filter
+    if (!joint_filter.empty() &&
+        std::find(joint_filter.begin(), joint_filter.end(), active_joint->getName()) == joint_filter.end())
+      continue;
+
     if (active_joint->getVariableCount() == 1)
     {
       trajectory.joint_trajectory.joint_names.push_back(active_joint->getName());
@@ -242,6 +249,8 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
       trajectory.multi_dof_joint_trajectory.joint_names.push_back(active_joint->getName());
       mdof.push_back(active_joint);
     }
+  }
+
   if (!onedof.empty())
   {
     trajectory.joint_trajectory.header.frame_id = robot_model_->getModelFrame();

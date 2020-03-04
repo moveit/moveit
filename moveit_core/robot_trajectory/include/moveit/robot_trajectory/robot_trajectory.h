@@ -213,7 +213,8 @@ public:
 
   double getAverageSegmentDuration() const;
 
-  void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory) const;
+  void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory,
+                             const std::vector<std::string>& joint_filter = std::vector<std::string>()) const;
 
   /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required
      to contain the values
