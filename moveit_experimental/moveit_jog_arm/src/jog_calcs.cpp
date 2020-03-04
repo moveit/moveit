@@ -76,15 +76,15 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
 
-  joint_state_.name = joint_model_group_->getVariableNames();
-  num_joints_ = joint_state_.name.size();
-  joint_state_.position.resize(num_joints_);
-  joint_state_.velocity.resize(num_joints_);
-  joint_state_.effort.resize(num_joints_);
+  internal_joint_state_.name = joint_model_group_->getVariableNames();
+  num_joints_ = internal_joint_state_.name.size();
+  internal_joint_state_.position.resize(num_joints_);
+  internal_joint_state_.velocity.resize(num_joints_);
+  internal_joint_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
-  for (std::size_t i = 0; i < joint_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < internal_joint_state_.name.size(); ++i)
   {
-    joint_state_name_map_[joint_state_.name[i]] = i;
+    joint_state_name_map_[internal_joint_state_.name[i]] = i;
   }
 
   // Low-pass filters for the joint positions & velocities
@@ -100,7 +100,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
       return;
 
     mutex.lock();
-    incoming_joints_ = shared_variables.joints;
+    incoming_joint_state_ = shared_variables.joints;
     mutex.unlock();
     default_sleep_rate_.sleep();
   }
@@ -120,16 +120,16 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
 
     // Ensure the low-pass filter matches reality
     for (std::size_t i = 0; i < num_joints_; ++i)
-      position_filters_[i].reset(joint_state_.position[i]);
+      position_filters_[i].reset(internal_joint_state_.position[i]);
 
     //  Check for a new command
     mutex.lock();
     cartesian_deltas = shared_variables.command_deltas;
     joint_deltas = shared_variables.joint_command_deltas;
-    incoming_joints_ = shared_variables.joints;
+    incoming_joint_state_ = shared_variables.joints;
     mutex.unlock();
 
-    kinematic_state_->setVariableValues(joint_state_);
+    kinematic_state_->setVariableValues(internal_joint_state_);
 
     // Always update the end-effector transform in case the getCommandFrameTransform() method is being used
     // Get the transform from MoveIt planning frame to jogging command frame
@@ -159,12 +159,12 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     {
       default_sleep_rate_.sleep();
     }
-    kinematic_state_->setVariableValues(joint_state_);
+    kinematic_state_->setVariableValues(internal_joint_state_);
 
     // Get the transform from MoveIt planning frame to jogging command frame
     // We solve (planning_frame -> base -> robot_link_command_frame)
     // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-    kinematic_state_->setVariableValues(incoming_joints_);
+    kinematic_state_->setVariableValues(incoming_joint_state_);
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                               kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
     mutex.lock();
@@ -176,7 +176,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     if (halt_outgoing_jog_cmds_)
     {
       for (std::size_t i = 0; i < num_joints_; ++i)
-        position_filters_[i].reset(joint_state_.position[i]);
+        position_filters_[i].reset(internal_joint_state_.position[i]);
     }
     // Do jogging calculations only if the robot should move, for efficiency
     else
@@ -208,7 +208,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
       }
       else
       {
-        outgoing_command_ = composeJointTrajMessage(joint_state_);
+        outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
       }
 
       // Halt if the command is stale or inputs are all zero, or commands were zero
@@ -346,7 +346,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   enforceSRDFAccelVelLimits(delta_theta_);
 
-  if (!addJointIncrements(joint_state_, delta_theta_))
+  if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 
   // If close to a collision or a singularity, decelerate
@@ -362,6 +362,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     has_warning_ = true;
     suddenHalt(outgoing_command_);
   }
+
+  prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
   return convertDeltasToOutgoingCmd();
 }
@@ -383,22 +385,31 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
 
   enforceSRDFAccelVelLimits(delta_theta_);
 
-  kinematic_state_->setVariableValues(joint_state_);
+  kinematic_state_->setVariableValues(internal_joint_state_);
+
+  // If a joint limit would be exceeded, halt and publish a warning
+  if (!enforceSRDFPositionLimits(outgoing_command_))
+  {
+    has_warning_ = true;
+    suddenHalt(outgoing_command_);
+  }
+
+  prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
   return convertDeltasToOutgoingCmd();
 }
 
 bool JogCalcs::convertDeltasToOutgoingCmd()
 {
-  if (!addJointIncrements(joint_state_, delta_theta_))
+  if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 
-  lowPassFilterPositions(joint_state_);
+  lowPassFilterPositions(internal_joint_state_);
 
   // Calculate joint velocities here so that positions are filtered and SRDF bounds still get checked
-  calculateJointVelocities(joint_state_, delta_theta_);
+  calculateJointVelocities(internal_joint_state_, delta_theta_);
 
-  outgoing_command_ = composeJointTrajMessage(joint_state_);
+  outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
 
   if (!enforceSRDFPositionLimits(outgoing_command_))
   {
@@ -616,7 +627,6 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
       }
       ++joint_delta_index;
     }
-    prev_joint_velocity_ = velocity;
   }
 }
 
@@ -686,32 +696,32 @@ void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 bool JogCalcs::updateJoints(std::mutex& mutex, const JogArmShared& shared_variables)
 {
   mutex.lock();
-  incoming_joints_ = shared_variables.joints;
+  incoming_joint_state_ = shared_variables.joints;
   mutex.unlock();
 
   // Check that the msg contains enough joints
-  if (incoming_joints_.name.size() < num_joints_)
+  if (incoming_joint_state_.name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_joints_.name.size(); ++m)
+  for (std::size_t m = 0; m < incoming_joint_state_.name.size(); ++m)
   {
     std::size_t c;
     try
     {
-      c = joint_state_name_map_.at(incoming_joints_.name[m]);
+      c = joint_state_name_map_.at(incoming_joint_state_.name[m]);
     }
     catch (const std::out_of_range& e)
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joints_.name[m]);
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
 
-    joint_state_.position[c] = incoming_joints_.position[m];
+    internal_joint_state_.position[c] = incoming_joint_state_.position[m];
   }
 
   // Cache the original joints in case they need to be reset
-  original_joint_state_ = joint_state_;
+  original_joint_state_ = internal_joint_state_;
 
   return true;
 }
@@ -765,7 +775,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     catch (const std::out_of_range& e)
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joints_.name[m]);
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]

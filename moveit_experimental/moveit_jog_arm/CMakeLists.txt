@@ -135,6 +135,9 @@ if(CATKIN_ENABLE_TESTING)
   # Python integration test of a service to enable drift in some dimensions
   add_rostest(test/launch/jog_arm_drift_dimensions_service_test.test)
 
+  # Python integration test of velocity and acceleration limits
+  add_rostest(test/launch/jog_arm_vel_accel_limits_test.test)
+
   # jog_cpp_interface
   add_rostest_gtest(jog_cpp_interface_test
     test/jog_cpp_interface_test.test
