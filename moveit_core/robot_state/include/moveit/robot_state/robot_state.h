@@ -487,7 +487,9 @@ public:
 
   /** @} */
 
-  /** \name Getting and setting joint positions, velocities, accelerations and effort
+  /** \name Getting and setting joint positions, velocities, accelerations and effort for a single joint
+   *  The joint might be multi-DOF, i.e. require more than one variable to set.
+   *  See setVariablePositions(), setVariableVelocities(), setVariableEffort() to handle multiple joints.
    *  @{
    */
   void setJointPositions(const std::string& joint_name, const double* position)
