@@ -205,7 +205,8 @@ void RobotTrajectory::clear()
   duration_from_previous_.clear();
 }
 
-void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory) const
+void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajectory,
+                                            const std::vector<std::string>& joint_filter) const
 {
   trajectory = moveit_msgs::RobotTrajectory();
   if (waypoints_.empty())
@@ -219,6 +220,12 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
   trajectory.multi_dof_joint_trajectory.joint_names.clear();
 
   for (std::size_t i = 0; i < jnt.size(); ++i)
+  {
+    // only consider joints listed in joint_filter
+    if (!joint_filter.empty() &&
+        std::find(joint_filter.begin(), joint_filter.end(), jnt[i]->getName()) == joint_filter.end())
+      continue;
+
     if (jnt[i]->getVariableCount() == 1)
     {
       trajectory.joint_trajectory.joint_names.push_back(jnt[i]->getName());
@@ -229,6 +236,8 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
       trajectory.multi_dof_joint_trajectory.joint_names.push_back(jnt[i]->getName());
       mdof.push_back(jnt[i]);
     }
+  }
+
   if (!onedof.empty())
   {
     trajectory.joint_trajectory.header.frame_id = robot_model_->getModelFrame();
