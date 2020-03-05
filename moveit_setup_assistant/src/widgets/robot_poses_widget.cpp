@@ -122,7 +122,7 @@ QWidget* RobotPosesWidget::createContentsWidget()
   data_table_->setSortingEnabled(true);
   data_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   connect(data_table_, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(editDoubleClicked(int, int)));
-  connect(data_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  connect(data_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewClicked(int, int, int, int)));
   layout->addWidget(data_table_);
 
   // Set header labels
@@ -317,7 +317,7 @@ void RobotPosesWidget::editDoubleClicked(int /*row*/, int /*column*/)
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void RobotPosesWidget::previewClicked(int row, int /*column*/)
+void RobotPosesWidget::previewClicked(int row, int /*column*/, int /*previous_row*/, int /*previous_column*/)
 {
   const std::string& name = data_table_->item(row, 0)->text().toStdString();
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
