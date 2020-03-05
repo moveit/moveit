@@ -48,7 +48,6 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
-#include <QDir>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz
 DIAGNOSTIC_PUSH
@@ -118,7 +117,13 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   }
   else
   {
-    start_screen_widget_->stack_path_->setPath(QDir::currentPath());
+    // Open the directory where the MSA was started from.
+    // cf. http://stackoverflow.com/a/7413516/577001
+    QString pwdir("");
+    char* pwd;
+    pwd = getenv("PWD");
+    pwdir.append(pwd);
+    start_screen_widget_->stack_path_->setPath(pwdir);
   }
 
   // Add Navigation Buttons (but do not load widgets yet except start screen)
