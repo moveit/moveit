@@ -48,7 +48,6 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
-#include <QDir>
 #include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz
 DIAGNOSTIC_PUSH
@@ -118,7 +117,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   }
   else
   {
-    start_screen_widget_->stack_path_->setPath(QDir::currentPath());
+    start_screen_widget_->stack_path_->setPath(QString(getenv("PWD")));
   }
 
   // Add Navigation Buttons (but do not load widgets yet except start screen)
