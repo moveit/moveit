@@ -64,7 +64,8 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   HeaderWidget* header = new HeaderWidget(
       "Define Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
-                            "particular planning groups. This is useful for things like <i>home position</i>.",
+                            "particular planning groups. This is useful for things like <i>home position</i>."
+                            "The first pose for each robot will be its initial pose in simulation.",
       this);
   layout->addWidget(header);
 
