@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
   <arg name="load_robot_description" default="true" />
 
   <!-- load the robot_description parameter before launching ROS-I nodes -->
-  <include file="$(find panda_moveit_config)/launch/planning_context.launch" >
+  <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch" >
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
     <arg name="load_gripper" value="true" />
   </include>
@@ -72,7 +72,7 @@ POSSIBILITY OF SUCH DAMAGE.
     <arg name="load_gripper" value="true" />
   </include>
 
-  <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch">
+  <include file="$(find moveit_resources)/panda_moveit_config/launch/moveit_rviz.launch">
   </include>
 
 </launch>

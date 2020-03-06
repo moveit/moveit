@@ -30,8 +30,33 @@
 #  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #  POSSIBILITY OF SUCH DAMAGE.
 
-# define acceleration limits for panda finger joints for compability with the PTP planner
+# define acceleration limits for panda arm and finger joints for compatibility with the PTP planner
 joint_limits:
+  panda_joint1:
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  panda_joint2:
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  panda_joint3:
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  panda_joint4:
+    has_acceleration_limits: true
+    max_acceleration: 1.0  
+  panda_joint5:
+    has_acceleration_limits: true
+    max_acceleration: 1.0  
+  panda_joint6:
+    has_acceleration_limits: true
+    max_acceleration: 1.0  
+  panda_joint7:
+    has_acceleration_limits: true
+    max_acceleration: 1.0  
+
+  panda_hand_joint:
+    has_acceleration_limits: true
+    max_acceleration: 1.0
   panda_finger_joint1:
     has_acceleration_limits: true
     max_acceleration: 1.0

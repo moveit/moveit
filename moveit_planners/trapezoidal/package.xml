@@ -39,14 +39,13 @@
   <test_depend>rostest</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>cmake_modules</test_depend>
+  <test_depend>moveit_resources</test_depend>
   <test_depend>pilz_testutils</test_depend>
   <test_depend>pilz_industrial_motion_testutils</test_depend>
   <test_depend>prbt_moveit_config</test_depend>
   <test_depend>prbt_support</test_depend>
   <test_depend>prbt_pg70_support</test_depend>
-  <!-- <test_depend>panda_moveit_config</test_depend> -->         <!-- only needed in kinetic -->
   <test_depend>code_coverage</test_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

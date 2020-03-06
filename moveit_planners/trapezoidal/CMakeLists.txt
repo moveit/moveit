@@ -246,11 +246,9 @@ if(CATKIN_ENABLE_TESTING)
     DEPENDENCIES integrationtest_sequence_action_capability
   )
 
-  # Tests with other robots only for kinetic (for now)
-
-  #add_rostest(test/integrationtest_sequence_action_capability_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_sequence_action_capability
-  #)
+  add_rostest(test/integrationtest_sequence_action_capability_frankaemika_panda.test
+    DEPENDENCIES integrationtest_sequence_action_capability
+  )
 
   add_rostest_gtest(integrationtest_sequence_service_capability
     test/integrationtest_sequence_service_capability.test
@@ -262,10 +260,8 @@ if(CATKIN_ENABLE_TESTING)
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
-  # Tests with other robots only for kinetic (for now)
-
-  #add_rostest(test/integrationtest_sequence_service_capability_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_sequence_service_capability )
+  add_rostest(test/integrationtest_sequence_service_capability_frankaemika_panda.test
+    DEPENDENCIES integrationtest_sequence_service_capability )
 
   add_rostest(test/integrationtest_sequence_service_capability_with_gripper.test
     DEPENDENCIES integrationtest_sequence_service_capability
@@ -287,10 +283,8 @@ if(CATKIN_ENABLE_TESTING)
     DEPENDENCIES integrationtest_command_planning
   )
 
-  # Tests with other robots only for kinetic (for now)
-
-  #add_rostest(test/integrationtest_command_planning_frankaemika_panda.test
-  #  DEPENDENCIES integrationtest_command_planning )
+  add_rostest(test/integrationtest_command_planning_frankaemika_panda.test
+    DEPENDENCIES integrationtest_command_planning )
 
   # Blending Integration tests
   add_rostest_gtest(integrationtest_command_list_manager

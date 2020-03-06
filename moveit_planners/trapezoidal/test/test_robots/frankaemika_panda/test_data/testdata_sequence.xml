@@ -77,7 +77,7 @@ POSSIBILITY OF SUCH DAMAGE.
       <startPos>ZeroPose</startPos>
       <endPos>P1</endPos>
       <vel>1.0</vel>
-      <acc>0.3</acc>
+      <acc>0.2</acc>
     </ptp>
 
     <ptp name="Ptp2">
@@ -86,7 +86,7 @@ POSSIBILITY OF SUCH DAMAGE.
       <startPos>P3</startPos>
       <endPos>P2</endPos>
       <vel>1.0</vel>
-      <acc>0.3</acc>
+      <acc>0.2</acc>
     </ptp>
 
     <ptp name="Ptp3">
@@ -95,7 +95,7 @@ POSSIBILITY OF SUCH DAMAGE.
       <startPos>P2</startPos>
       <endPos>P3</endPos>
       <vel>1.0</vel>
-      <acc>0.3</acc>
+      <acc>0.2</acc>
     </ptp>
   </ptps>
 
@@ -106,7 +106,7 @@ POSSIBILITY OF SUCH DAMAGE.
         <startPos>P2</startPos>
         <endPos>P3</endPos>
         <vel>0.1</vel>
-        <acc>0.1</acc>
+        <acc>0.05</acc>
     </lin>
 
     <lin name="lin2">
@@ -115,7 +115,7 @@ POSSIBILITY OF SUCH DAMAGE.
         <startPos>P1</startPos>
         <endPos>P2</endPos>
         <vel>0.1</vel>
-        <acc>0.1</acc>
+        <acc>0.05</acc>
     </lin>
 
     <lin name="lin4">
@@ -124,7 +124,7 @@ POSSIBILITY OF SUCH DAMAGE.
         <startPos>P2</startPos>
         <endPos>P4</endPos>
         <vel>0.1</vel>
-        <acc>0.1</acc>
+        <acc>0.05</acc>
     </lin>
   </lins>
 
@@ -136,7 +136,7 @@ POSSIBILITY OF SUCH DAMAGE.
       <intermediatePos>P2</intermediatePos>
       <endPos>P3</endPos>
       <vel>0.1</vel>
-      <acc>0.2</acc>
+      <acc>0.1</acc>
     </circ>
 
     <circ name="circ1_center_2">
@@ -146,7 +146,7 @@ POSSIBILITY OF SUCH DAMAGE.
       <centerPos>P2</centerPos>
       <endPos>P1</endPos>
       <vel>0.1</vel>
-      <acc>0.15</acc>
+      <acc>0.1</acc>
     </circ>
   </circs>
 

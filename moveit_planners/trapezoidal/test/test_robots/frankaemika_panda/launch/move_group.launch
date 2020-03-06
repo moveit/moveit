@@ -1,16 +1,13 @@
 <launch>
   <!-- Enables the usage of the frankaemika panda in tests by starting and configuring all required ROS components -->
 
-  <arg name="load_gripper" default="true" />
-
   <!-- Load cartesian limits -->
   <group ns="robot_description_planning">
     <rosparam command="load" file="$(find trapezoidal_trajectory_generation)/test/test_robots/config/cartesian_limits.yaml"/>
   </group>
 
-  <include file="$(find panda_moveit_config)/launch/planning_context.launch">
+  <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch">
     <arg name="load_robot_description" value="true" />
-    <arg name="load_gripper" value="$(arg load_gripper)" />
   </include>
 
   <!-- Load additional joint limits for compability with the PTP planner -->
@@ -21,7 +18,7 @@
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
-  <arg     if="$(arg debug)" name="launch_prefix" value="gdb -x $(find panda_moveit_config)/launch/gdb_settings.gdb --ex run --args" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb -x $(find moveit_resources)/panda_moveit_config/launch/gdb_settings.gdb --ex run --args" />
 
   <!-- Verbose Mode Option -->
   <arg name="info" default="$(arg debug)" />
@@ -39,7 +36,7 @@
   <param name="move_group/planning_plugin" value="trapezoidal::CommandPlanner" />
 
   <!-- Trajectory Execution Functionality -->
-  <include ns="move_group" file="$(find panda_moveit_config)/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
+  <include ns="move_group" file="$(find moveit_resources)/panda_moveit_config/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_manage_controllers" value="true" />
     <arg name="moveit_controller_manager" value="panda" if="$(eval not arg('fake_execution') and not arg('load_gripper'))"/>
     <arg name="moveit_controller_manager" value="panda_gripper" if="$(eval not arg('fake_execution') and arg('load_gripper'))"/>
