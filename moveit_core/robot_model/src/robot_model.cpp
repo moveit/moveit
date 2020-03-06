@@ -355,7 +355,18 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
                           group_state.name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!remaining_joints.empty())
-        ROS_WARN_NAMED(LOGNAME, "Group state '%s' doesn't specify all group joints.", group_state.name_.c_str());
+      {
+        std::stringstream missing;
+        missing << (*remaining_joints.begin())->getName();
+        for (auto j = ++remaining_joints.begin(); j != remaining_joints.end(); j++)
+        {
+          missing << ", " << (*j)->getName();
+        }
+        ROS_WARN_STREAM_NAMED(LOGNAME, "Group state '" << group_state.name_
+                                                       << "' doesn't specify all group joints in group '"
+                                                       << group_state.group_ << "'. " << missing.str() << " "
+                                                       << (remaining_joints.size() > 1 ? "are" : "is") << " missing.");
+      }
       if (!state.empty())
         jmg->addDefaultState(group_state.name_, state);
     }
