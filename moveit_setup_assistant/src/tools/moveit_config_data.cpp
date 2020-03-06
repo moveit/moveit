@@ -530,7 +530,49 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     emitter << YAML::EndSeq;
     emitter << YAML::EndMap;
   }
+
   emitter << YAML::EndSeq;
+
+  // Add an initial pose for each group
+  emitter << YAML::Key << "initial" << YAML::Comment("Define initial robot poses.");
+
+  bool poses_found = false;
+  std::string default_group_name;
+  for (const srdf::Model::Group& group : srdf_->groups_)
+  {
+    if (default_group_name.empty())
+      default_group_name = group.name_;
+    for (const srdf::Model::GroupState& group_state : srdf_->group_states_)
+    {
+      if (group.name_ == group_state.group_)
+      {
+        if (!poses_found)
+        {
+          poses_found = true;
+          emitter << YAML::Value << YAML::BeginSeq;
+        }
+        emitter << YAML::BeginMap;
+        emitter << YAML::Key << "group";
+        emitter << YAML::Value << group.name_;
+        emitter << YAML::Key << "pose";
+        emitter << YAML::Value << group_state.name_;
+        emitter << YAML::EndMap;
+        break;
+      }
+    }
+  }
+  if (poses_found)
+    emitter << YAML::EndSeq;
+  else
+  {
+    // Add commented lines to show how the feature can be used
+    if (default_group_name.empty())
+      default_group_name = "group";
+    emitter << YAML::Newline;
+    emitter << YAML::Comment(" - group: " + default_group_name) << YAML::Newline;
+    emitter << YAML::Comment("   pose: home") << YAML::Newline;
+  }
+
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
