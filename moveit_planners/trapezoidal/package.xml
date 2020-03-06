@@ -45,7 +45,6 @@
   <test_depend>prbt_support</test_depend>
   <test_depend>prbt_pg70_support</test_depend>
   <!-- <test_depend>panda_moveit_config</test_depend> -->         <!-- only needed in kinetic -->
-  <!-- <test_depend>abb_irb2400_moveit_config</test_depend> -->         <!-- only needed in kinetic -->
   <test_depend>code_coverage</test_depend>
 
 

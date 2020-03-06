@@ -52,17 +52,6 @@ robot_configs['prbt'] = {
         'P1_orientation': from_euler(0, math.radians(180), math.radians(135))
 }
 
-robot_configs['abb'] = {
-        'initJointPose': [0,0,0,0,0,0],
-        'L': 0.2,
-        'M': 0.2,
-        'planning_group': 'manipulator',
-        'target_link': 'tool0',
-        'reference_frame': 'base',
-        'default_or': from_euler(0, math.radians(180), 0),
-        'P1_position': Point(0.6, 0.0, 1.2)
-}
-
 robot_configs['panda'] = {
         'initJointPose': [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785],
         'L': 0.2,
