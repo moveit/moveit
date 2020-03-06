@@ -159,7 +159,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
     {
       default_sleep_rate_.sleep();
     }
-    kinematic_state_->setVariableValues(internal_joint_state_);
 
     // Get the transform from MoveIt planning frame to jogging command frame
     // We solve (planning_frame -> base -> robot_link_command_frame)
