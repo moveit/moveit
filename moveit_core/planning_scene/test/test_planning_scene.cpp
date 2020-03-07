@@ -125,6 +125,13 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_EQ(next->getWorld()->size(), 2u);
   EXPECT_EQ(ps->getWorld()->size(), 1u);
 
+  /* the worlds used for collision detection contain one and two objects, respectively */
+  EXPECT_EQ(ps->getCollisionEnv()->getWorld()->size(), 1u);
+  EXPECT_EQ(ps->getCollisionEnvUnpadded()->getWorld()->size(), 1u);
+
+  EXPECT_EQ(next->getCollisionEnv()->getWorld()->size(), 2u);
+  EXPECT_EQ(next->getCollisionEnvUnpadded()->getWorld()->size(), 2u);
+
   /* maintained diff contains only overlay object */
   next->getPlanningSceneDiffMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1u);
@@ -142,6 +149,8 @@ TEST(PlanningScene, LoadRestoreDiff)
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2u);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps->getWorld()->size(), 2u);
+  EXPECT_EQ(ps->getCollisionEnv()->getWorld()->size(), 2u);
+  EXPECT_EQ(ps->getCollisionEnvUnpadded()->getWorld()->size(), 2u);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
