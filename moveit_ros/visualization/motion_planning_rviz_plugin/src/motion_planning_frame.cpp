@@ -183,7 +183,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   }
   try
   {
-    planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
+    planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface("", ros::WallDuration(0.0)));
   }
   catch (std::exception& ex)
   {

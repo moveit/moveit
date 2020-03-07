@@ -52,8 +52,10 @@ MOVEIT_CLASS_FORWARD(PlanningSceneInterface);
 class PlanningSceneInterface
 {
 public:
-  explicit PlanningSceneInterface(const std::string& ns = "");
+  explicit PlanningSceneInterface(const std::string& ns = "", const ros::WallDuration& timeout = ros::WallDuration());
   ~PlanningSceneInterface();
+
+  bool waitForServices(const ros::WallDuration& timeout = ros::WallDuration());
 
   /**
    * \name Manage the world

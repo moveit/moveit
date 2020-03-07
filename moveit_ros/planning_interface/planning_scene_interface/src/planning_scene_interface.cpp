@@ -58,9 +58,6 @@ public:
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
-
-    waitForService(planning_scene_service_);
-    waitForService(apply_planning_scene_service_);
   }
 
   std::vector<std::string> getKnownObjectNames(bool with_type)
@@ -251,16 +248,21 @@ public:
     planning_scene_diff_publisher_.publish(planning_scene);
   }
 
-private:
-  void waitForService(ros::ServiceClient& srv)
+  bool waitForServices(const ros::WallDuration& timeout)
   {
-    ros::Duration time_before_warning(5.0);
-    srv.waitForExistence(time_before_warning);
-    if (!srv.exists())
-    {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "service '" << srv.getService() << "' not advertised yet. Continue waiting...");
-      srv.waitForExistence();
-    }
+    auto start = ros::WallTime::now();
+    bool result = waitForService(planning_scene_service_, timeout);
+    result &= waitForService(apply_planning_scene_service_, timeout - (ros::WallTime::now() - start));
+    return result;
+  }
+
+private:
+  bool waitForService(ros::ServiceClient& srv, const ros::WallDuration& timeout)
+  {
+    if (srv.exists())
+      return true;
+    ROS_WARN_STREAM_NAMED(LOGNAME, "service '" << srv.getService() << "' not advertised yet. Waiting...");
+    return srv.waitForExistence(ros::Duration(timeout.toSec()));
   }
 
   ros::NodeHandle node_handle_;
@@ -270,14 +272,20 @@ private:
   moveit::core::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)
+PlanningSceneInterface::PlanningSceneInterface(const std::string& ns, const ros::WallDuration& timeout)
 {
   impl_ = new PlanningSceneInterfaceImpl(ns);
+  impl_->waitForServices(timeout);
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()
 {
   delete impl_;
+}
+
+bool PlanningSceneInterface::waitForServices(const ros::WallDuration& timeout)
+{
+  return impl_->waitForServices(timeout);
 }
 
 std::vector<std::string> PlanningSceneInterface::getKnownObjectNames(bool with_type)
