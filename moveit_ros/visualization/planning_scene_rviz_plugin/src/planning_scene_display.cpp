@@ -370,7 +370,8 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
     std::string service_name = planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE;
     if (!getMoveGroupNS().empty())
       service_name = ros::names::append(getMoveGroupNS(), service_name);
-    planning_scene_monitor_->requestPlanningSceneState(service_name);
+    auto bg_func = [=]() { planning_scene_monitor_->requestPlanningSceneState(service_name); };
+    addBackgroundJob(bg_func, "planning_scene_monitor_->requestPlanningSceneState");
   }
 }
 
