@@ -366,7 +366,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
   {
-    if (std::isnan(velocity) || (fabs(velocity) > 1))
+    if (std::isnan(velocity))
     {
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
       return false;

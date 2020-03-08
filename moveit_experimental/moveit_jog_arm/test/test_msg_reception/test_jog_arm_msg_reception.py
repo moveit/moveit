@@ -75,7 +75,11 @@ def test_jog_arm_cartesian_command(node):
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
 
+    # Send a command to start the jogger
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
         time.sleep(0.1)
@@ -100,7 +104,11 @@ def test_jog_arm_joint_command(node):
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     velocities = [0.1]
 
+    # Send a command to start the jogger
+    joint_cmd.send_joint_velocity_cmd(velocities)
+
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         joint_cmd.send_joint_velocity_cmd(velocities)
         time.sleep(0.1)
@@ -113,5 +121,5 @@ def test_jog_arm_joint_command(node):
 if __name__ == '__main__':
     node = node()
     time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
-    test_jog_arm_trajectory_generated_when_jog_command_is_received(node)
+    test_jog_arm_cartesian_command(node)
     test_jog_arm_joint_command(node)

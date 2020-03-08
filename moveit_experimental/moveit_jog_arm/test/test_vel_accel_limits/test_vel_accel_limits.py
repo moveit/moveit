@@ -36,7 +36,7 @@ class JointJogCmd(object):
         self._pub.publish(jj)
 
 
-def test_vel_accel_limits(node):
+def test_vel_limit(node):
     # Test sending a joint command
 
     received = []
@@ -49,19 +49,32 @@ def test_vel_accel_limits(node):
 
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
-    velocities = [0.1]
+
+    # Panda arm limit, from joint_limits.yaml
+    VELOCITY_LIMIT = rospy.get_param("/robot_description_planning/joint_limits/panda_joint1/max_velocity")
+    # Send a velocity command that exceeds the limit
+    velocities = [10 * VELOCITY_LIMIT]
+
+    # Send a command to start the jogger
+    joint_cmd.send_joint_velocity_cmd(velocities)
 
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         joint_cmd.send_joint_velocity_cmd(velocities)
         time.sleep(0.1)
-    # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
-    # Allow a small +/- window due to rounding/timing errors
-    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 20
-    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 20
 
+    # Period of outgoing commands from the jogger, from yaml
+    JOGGER_COMMAND_PERIOD = rospy.get_param("/jog_server/publish_period")
+
+    # Should be no velocities greater than the limit
+    assert len(received) > 2
+    for msg_idx in range(1, len(received)):
+        velocity = \
+            (received[msg_idx].points[0].positions[0] - received[msg_idx - 1].points[0].positions[0]) / JOGGER_COMMAND_PERIOD
+        assert abs(velocity) <= VELOCITY_LIMIT
 
 if __name__ == '__main__':
     node = node()
     time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
-    test_vel_accel_limits(node)
+    test_vel_limit(node)

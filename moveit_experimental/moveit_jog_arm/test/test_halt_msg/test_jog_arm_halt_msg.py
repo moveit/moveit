@@ -54,6 +54,7 @@ def test_jog_arm_halt_msg(node):
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         cartesian_cmd.send_cmd([1, 1, 1], [0, 0, 1])
         time.sleep(0.1)
