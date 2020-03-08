@@ -251,6 +251,18 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
     goalStateTextChanged(ui_->goal_state_combo_box->currentText());
 }
 
+void MotionPlanningFrame::onNewPlanningSceneState()
+{
+  moveit::core::RobotState current(planning_display_->getPlanningSceneRO()->getCurrentState());
+  if (ui_->start_state_combo_box->currentText() == "<current>")
+  {
+    planning_display_->setQueryStartState(current);
+    planning_display_->rememberPreviousStartState();
+  }
+  if (ui_->goal_state_combo_box->currentText() == "<current>")
+    planning_display_->setQueryGoalState(current);
+}
+
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
