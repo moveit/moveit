@@ -91,6 +91,7 @@ protected:
   // Suddenly halt for a joint limit or other critical issue.
   // Is handled differently for position vs. velocity control.
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
+  void suddenHalt(Eigen::ArrayXd& delta_theta);
 
   void publishWarning(bool active) const;
 

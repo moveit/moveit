@@ -42,6 +42,7 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
+    received = []
     sub = rospy.Subscriber(
         HALT_TOPIC, Bool, lambda msg: received.append(msg)
     )
@@ -52,15 +53,15 @@ def test_jog_arm_halt_msg(node):
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
-    received = []
     start_time = rospy.get_rostime()
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
-        cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
+        cartesian_cmd.send_cmd([1, 1, 1], [0, 0, 1])
         time.sleep(0.1)
 
     # Check the received messages
+    # A non-zero value signifies a warning
     assert len(received) > 1
-    assert received[-1].data == True
+    assert received[-1].data != 0
 
 
 if __name__ == '__main__':

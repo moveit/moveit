@@ -53,6 +53,7 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_cartesian_command(node):
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
@@ -73,7 +74,6 @@ def test_jog_arm_cartesian_command(node):
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
-    received = []
 
     start_time = rospy.get_rostime()
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
@@ -88,6 +88,7 @@ def test_jog_arm_cartesian_command(node):
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
@@ -95,7 +96,6 @@ def test_jog_arm_joint_command(node):
     joint_cmd = JointJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
 
-    received = []
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     velocities = [0.1]

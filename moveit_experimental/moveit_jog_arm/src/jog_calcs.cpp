@@ -353,13 +353,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
                             velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
   {
     has_warning_ = true;
-    suddenHalt(outgoing_command_);
-  }
-  // If a joint limit would be exceeded, halt and publish a warning
-  else if (!enforceSRDFPositionLimits(outgoing_command_))
-  {
-    has_warning_ = true;
-    suddenHalt(outgoing_command_);
+    suddenHalt(delta_theta_);
   }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
@@ -385,13 +379,6 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   enforceSRDFAccelVelLimits(delta_theta_);
 
   kinematic_state_->setVariableValues(internal_joint_state_);
-
-  // If a joint limit would be exceeded, halt and publish a warning
-  if (!enforceSRDFPositionLimits(outgoing_command_))
-  {
-    has_warning_ = true;
-    suddenHalt(outgoing_command_);
-  }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
@@ -673,6 +660,13 @@ void JogCalcs::publishWarning(bool active) const
   std_msgs::Bool status;
   status.data = static_cast<std_msgs::Bool::_data_type>(active);
   warning_pub_.publish(status);
+}
+
+// Suddenly halt for a joint limit or other critical issue.
+// Is handled differently for position vs. velocity control.
+void JogCalcs::suddenHalt(Eigen::ArrayXd& delta_theta)
+{
+  delta_theta = Eigen::ArrayXd::Zero(delta_theta.rows());
 }
 
 // Suddenly halt for a joint limit or other critical issue.

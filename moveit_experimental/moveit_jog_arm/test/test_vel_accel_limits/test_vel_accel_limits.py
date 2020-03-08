@@ -39,6 +39,7 @@ class JointJogCmd(object):
 def test_vel_accel_limits(node):
     # Test sending a joint command
 
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
@@ -46,7 +47,6 @@ def test_vel_accel_limits(node):
     joint_cmd = JointJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
 
-    received = []
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     velocities = [0.1]
