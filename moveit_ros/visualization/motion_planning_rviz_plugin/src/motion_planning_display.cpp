@@ -1185,7 +1185,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
 
   if (frame_)
     frame_->fillPlanningGroupOptions();
-  addMainLoopJob(boost::bind(&MotionPlanningDisplay::changedPlanningGroup, this));
+  changedPlanningGroup();
 }
 
 void MotionPlanningDisplay::updateStateExceptModified(moveit::core::RobotState& dest,

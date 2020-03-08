@@ -533,6 +533,7 @@ void PlanningSceneDisplay::loadRobotModel()
   model_is_loading_ = false;
 }
 
+// This should always run in the main GUI thread!
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
   changedPlanningSceneTopic();
