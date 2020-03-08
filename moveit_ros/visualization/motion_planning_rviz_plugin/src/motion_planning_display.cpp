@@ -1184,6 +1184,10 @@ void MotionPlanningDisplay::onRobotModelLoaded()
     frame_->fillPlanningGroupOptions();
   changedPlanningGroup();
 }
+void MotionPlanningDisplay::onNewPlanningSceneState()
+{
+  frame_->onNewPlanningSceneState();
+}
 
 void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState& dest, const robot_state::RobotState& src)
 {
