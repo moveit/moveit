@@ -25,7 +25,7 @@ command_out_type: trajectory_msgs/JointTrajectory
 
 # What to publish? Can save some bandwidth as most robots only require positions or velocities
 publish_joint_positions: true
-publish_joint_velocities: true
+publish_joint_velocities: false
 publish_joint_accelerations: false
 
 ## MoveIt properties
