@@ -370,8 +370,13 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
     std::string service_name = planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE;
     if (!getMoveGroupNS().empty())
       service_name = ros::names::append(getMoveGroupNS(), service_name);
-    auto bg_func = [=]() { planning_scene_monitor_->requestPlanningSceneState(service_name); };
-    addBackgroundJob(bg_func, "planning_scene_monitor_->requestPlanningSceneState");
+    auto bg_func = [=]() {
+      if (planning_scene_monitor_->requestPlanningSceneState(service_name))
+        addMainLoopJob(boost::bind(&PlanningSceneDisplay::onNewPlanningSceneState, this));
+      else
+        setStatus(rviz::StatusProperty::Warn, "PlanningScene", "Requesting initial scene failed");
+    };
+    addBackgroundJob(bg_func, "requestPlanningSceneState");
   }
 }
 
@@ -533,6 +538,7 @@ void PlanningSceneDisplay::loadRobotModel()
   model_is_loading_ = false;
 }
 
+// This should always run in the main GUI thread!
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
   changedPlanningSceneTopic();
@@ -551,6 +557,10 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   bool old_state = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
   scene_name_property_->blockSignals(old_state);
+}
+
+void PlanningSceneDisplay::onNewPlanningSceneState()
+{
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(

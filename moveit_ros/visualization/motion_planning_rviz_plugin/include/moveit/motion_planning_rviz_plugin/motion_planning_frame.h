@@ -166,6 +166,7 @@ private Q_SLOTS:
   void allowLookingToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
+  void onNewPlanningSceneState();
   void startStateTextChanged(const QString& start_state);
   void goalStateTextChanged(const QString& goal_state);
   void planningGroupTextChanged(const QString& planning_group);
