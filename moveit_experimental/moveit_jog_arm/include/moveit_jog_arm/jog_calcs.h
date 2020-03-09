@@ -75,8 +75,6 @@ protected:
   // Flag that robot state is up to date, end effector transform is known
   std::atomic<bool> is_initialized_;
 
-  sensor_msgs::JointState incoming_joints_;
-
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
 
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
@@ -93,11 +91,15 @@ protected:
   // Suddenly halt for a joint limit or other critical issue.
   // Is handled differently for position vs. velocity control.
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
+  void suddenHalt(Eigen::ArrayXd& delta_theta);
 
   void publishWarning(bool active) const;
 
-  // Scale the delta theta to match joint velocity limits
-  bool enforceSRDFJointBounds(trajectory_msgs::JointTrajectory& new_joint_traj);
+  // Scale the delta theta to match joint velocity/acceleration limits
+  void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
+
+  // Avoid overshooting joint limits
+  bool enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj);
 
   // Possibly calculate a velocity scaling factor, due to proximity of
   // singularity and direction of motion
@@ -142,7 +144,10 @@ protected:
 
   moveit::core::RobotStatePtr kinematic_state_;
 
-  sensor_msgs::JointState joint_state_, original_joint_state_;
+  // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
+  // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
+  // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
+  sensor_msgs::JointState incoming_joint_state_, internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
   trajectory_msgs::JointTrajectory outgoing_command_;
 
@@ -157,6 +162,7 @@ protected:
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
+  Eigen::ArrayXd prev_joint_velocity_;
 
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 

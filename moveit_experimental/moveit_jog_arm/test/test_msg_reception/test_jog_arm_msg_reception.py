@@ -53,12 +53,12 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_cartesian_command(node):
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different thread fills 'received'
@@ -74,35 +74,41 @@ def test_jog_arm_cartesian_command(node):
     # A subscriber in a different thread fills `received`
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
-    received = []
+
+    # Send a command to start the jogger
+    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
 
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
         time.sleep(0.1)
     # TEST_DURATION/PUBLISH_PERIOD is the expected number of messages in this duration.
     # Allow a small +/- window due to rounding/timing errors
-    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 5
-    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 5
+    assert len(received) >= TEST_DURATION/PUBLISH_PERIOD - 20
+    assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 20
 
 
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
 
     joint_cmd = JointJogCmd()
     time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
 
-    received = []
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
     velocities = [0.1]
 
+    # Send a command to start the jogger
+    joint_cmd.send_joint_velocity_cmd(velocities)
+
     start_time = rospy.get_rostime()
+    received = []
     while (rospy.get_rostime() - start_time).to_sec() < TEST_DURATION:
         joint_cmd.send_joint_velocity_cmd(velocities)
         time.sleep(0.1)
@@ -113,6 +119,7 @@ def test_jog_arm_joint_command(node):
 
 
 if __name__ == '__main__':
-   node = node()
-   test_jog_arm_cartesian_command(node)
-   test_jog_arm_joint_command(node)
+    node = node()
+    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    test_jog_arm_cartesian_command(node)
+    test_jog_arm_joint_command(node)
