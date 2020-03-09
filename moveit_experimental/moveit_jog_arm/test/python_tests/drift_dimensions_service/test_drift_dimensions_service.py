@@ -10,6 +10,9 @@ from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import Bool
 from trajectory_msgs.msg import JointTrajectory
 
+# Common Python utilities
+from ..util import wait_for_jogger_initialization
+
 # Send a service call to allow drift in all but the y-dimension.
 # In other words, only the y-dimension will be controlled exactly.
 # Check that the service returns and the jog node continues to publish commands to the robot.
@@ -24,16 +27,6 @@ SERVICE_NAME = 'jog_server/change_drift_dimensions'
 @pytest.fixture
 def node():
     return rospy.init_node('pytest', anonymous=True)
-
-
-def wait_for_jogger_initialization(service_name):
-    try:
-      rospy.wait_for_service(service_name, timeout=15)
-    except rospy.ServiceException as exc:
-      rospy.logerr("The jogger never finished initialization, expected service is not available: " + str(exc))
-      return False
-
-    return True
 
 
 def test_drift_dimensions_service(node):

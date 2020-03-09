@@ -27,16 +27,6 @@ def node():
     return rospy.init_node('pytest', anonymous=True)
 
 
-def wait_for_jogger_initialization(service_name):
-    try:
-      rospy.wait_for_service(service_name, timeout=15)
-    except rospy.ServiceException as exc:
-      rospy.logerr("The jogger never finished initialization, expected service is not available: " + str(exc))
-      return False
-
-    return True
-
-
 class CartesianJogCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
@@ -52,7 +42,15 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
-    assert wait_for_jogger_initialization(SERVICE_NAME)
+    # Import common Python test utilities
+    from os import sys, path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+    import util
+    #from ..util import *
+
+    #wait_for_jogger_initialization(SERVICE_NAME)
+    util.wait_for_jogger_initialization('jog_server/change_drift_dimensions')
+    #assert util.wait_for_jogger_initialization(SERVICE_NAME)
 
     received = []
     sub = rospy.Subscriber(
