@@ -468,14 +468,16 @@ class MoveGroupCommander(object):
                     raise MoveItCommanderException("Expected 0, 4 or 6 values in list specifying workspace")
 
     def set_max_velocity_scaling_factor(self, value):
-        """ Set a scaling factor for optionally reducing the maximum joint velocity. Allowed values are in (0,1]. """
+        """ Set a scaling factor to reduce the maximum joint velocities. Allowed values are in (0,1].
+            The default value is set in the joint_limits.yaml of the moveit_config package. """
         if value > 0 and value <= 1:
             self._g.set_max_velocity_scaling_factor(value)
         else:
             raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor")
 
     def set_max_acceleration_scaling_factor(self, value):
-        """ Set a scaling factor for optionally reducing the maximum joint acceleration. Allowed values are in (0,1]. """
+        """ Set a scaling factor to reduce the maximum joint accelerations. Allowed values are in (0,1].
+            The default value is set in the joint_limits.yaml of the moveit_config package. """
         if value > 0 and value <= 1:
             self._g.set_max_acceleration_scaling_factor(value)
         else:

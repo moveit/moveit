@@ -124,8 +124,10 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
-    max_velocity_scaling_factor_ = 1.0;
-    max_acceleration_scaling_factor_ = 1.0;
+    node_handle_.param<double>("robot_description_planning/joint_limits/default_velocity_scaling_factor",
+                               max_velocity_scaling_factor_, 0.1);
+    node_handle_.param<double>("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
+                               max_acceleration_scaling_factor_, 0.1);
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -335,14 +337,36 @@ public:
     num_planning_attempts_ = num_planning_attempts;
   }
 
-  void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
+  void setMaxVelocityScalingFactor(double value)
   {
-    max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+    setMaxScalingFactor(max_velocity_scaling_factor_, value, "velocity_scaling_factor", 0.1);
   }
 
-  void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+  void setMaxAccelerationScalingFactor(double value)
   {
-    max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
+    setMaxScalingFactor(max_acceleration_scaling_factor_, value, "acceleration_scaling_factor", 0.1);
+  }
+
+  void setMaxScalingFactor(double& variable, const double target_value, const char* factor_name, double fallback_value)
+  {
+    if (target_value > 1.0)
+    {
+      ROS_WARN_NAMED("move_group_interface", "Limiting max_%s (%.2f) to 1.0.", factor_name, target_value);
+      variable = 1.0;
+    }
+    else if (target_value <= 0.0)
+    {
+      node_handle_.param<double>(std::string("robot_description_planning/default_") + factor_name, variable,
+                                 fallback_value);
+      if (target_value < 0.0)
+      {
+        ROS_WARN_NAMED("move_group_interface", "max_%s < 0.0! Setting to default: %.2f.", factor_name, variable);
+      }
+    }
+    else
+    {
+      variable = target_value;
+    }
   }
 
   moveit::core::RobotState& getTargetRobotState()

@@ -73,6 +73,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(planning_display_, SIGNAL(queryStartStateChanged()), joints_tab_, SLOT(queryStartStateChanged()));
   connect(planning_display_, SIGNAL(queryGoalStateChanged()), joints_tab_, SLOT(queryGoalStateChanged()));
 
+  // Set initial velocity and acceleration scaling factors from ROS parameters
+  double factor;
+  nh_.param<double>("robot_description_planning/default_velocity_scaling_factor", factor, 0.1);
+  ui_->velocity_scaling_factor->setValue(factor);
+  nh_.param<double>("robot_description_planning/default_acceleration_scaling_factor", factor, 0.1);
+  ui_->acceleration_scaling_factor->setValue(factor);
+
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
   connect(ui_->plan_button, SIGNAL(clicked()), this, SLOT(planButtonClicked()));
