@@ -14,12 +14,11 @@ from trajectory_msgs.msg import JointTrajectory
 # In other words, only the y-dimension will be controlled exactly.
 # Check that the service returns and the jog node continues to publish commands to the robot.
 
-JOG_ARM_SETTLE_TIME_S = 10
-ROS_SETTLE_TIME_S = 10
-
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
+
+SERVICE_NAME = 'jog_server/change_drift_dimensions'
 
 
 @pytest.fixture
@@ -27,15 +26,21 @@ def node():
     return rospy.init_node('pytest', anonymous=True)
 
 
+def wait_for_jogger_initialization(service_name):
+    try:
+      rospy.wait_for_service(service_name, timeout=15)
+    except rospy.ServiceException as exc:
+      rospy.logerr("The jogger never finished initialization, expected service is not available: " + str(exc))
+      return False
+
+    return True
+
+
 def test_drift_dimensions_service(node):
-    # wait for pub/subs to settle
-    time.sleep(ROS_SETTLE_TIME_S)
+    assert wait_for_jogger_initialization(SERVICE_NAME)
 
     # Service to change drift dimensions
-    drift_service = rospy.ServiceProxy('jog_server/change_drift_dimensions', ChangeDriftDimensions)
-
-    # wait for jog_arm server to init
-    time.sleep(JOG_ARM_SETTLE_TIME_S)
+    drift_service = rospy.ServiceProxy(SERVICE_NAME, ChangeDriftDimensions)
 
     # Service call to allow drift in all dimensions except y-translation
     # The transform is an identity matrix, not used for now

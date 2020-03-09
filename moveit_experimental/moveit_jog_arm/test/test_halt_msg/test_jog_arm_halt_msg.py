@@ -13,18 +13,28 @@ from std_msgs.msg import Bool
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_jog_arm_integration.py
 
-JOG_ARM_SETTLE_TIME_S = 10
-ROS_SETTLE_TIME_S = 10
-
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
 # jog_arm should publish 'true' here if it halts
 HALT_TOPIC = 'jog_server/halted'
 
+# Check if jogger is initialized with this service
+SERVICE_NAME = 'jog_server/change_drift_dimensions'
+
 
 @pytest.fixture
 def node():
     return rospy.init_node('pytest', anonymous=True)
+
+
+def wait_for_jogger_initialization(service_name):
+    try:
+      rospy.wait_for_service(service_name, timeout=15)
+    except rospy.ServiceException as exc:
+      rospy.logerr("The jogger never finished initialization, expected service is not available: " + str(exc))
+      return False
+
+    return True
 
 
 class CartesianJogCmd(object):
@@ -42,15 +52,13 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
-    # wait for pub/subs to settle
-    time.sleep(ROS_SETTLE_TIME_S)
+    assert wait_for_jogger_initialization(SERVICE_NAME)
+
     received = []
     sub = rospy.Subscriber(
         HALT_TOPIC, Bool, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
-    # wait for jog_arm server to init
-    time.sleep(JOG_ARM_SETTLE_TIME_S)
 
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`
