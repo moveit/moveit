@@ -59,8 +59,8 @@ public:
 private:
   using ExecutableTrajs = std::vector<plan_execution::ExecutableTrajectory>;
 
-  using StartStateMsgs = moveit_msgs::MoveGroupSequenceResult::_trajectory_start_type;
-  using PlannedTrajMsgs = moveit_msgs::MoveGroupSequenceResult::_planned_trajectory_type;
+  using StartStateMsgs = moveit_msgs::MotionSequenceResponse::_trajectories_start_type;
+  using PlannedTrajMsgs = moveit_msgs::MotionSequenceResponse::_planned_trajectories_type;
 
 private:
   void executeSequenceCallback(const moveit_msgs::MoveGroupSequenceGoalConstPtr& goal);

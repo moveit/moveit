@@ -75,7 +75,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   catch (const MoveItErrorCodeException& ex)
   {
     ROS_ERROR_STREAM("Planner threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
-    res.error_code.val = ex.getErrorCode();
+    res.response.error_code.val = ex.getErrorCode();
     return true;
   }
   // LCOV_EXCL_START // Keep moveit up even if lower parts throw
@@ -87,15 +87,15 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   }
   // LCOV_EXCL_STOP
 
-  res.trajectory_start.resize(traj_vec.size());
-  res.planned_trajectory.resize(traj_vec.size());
+  res.response.trajectories_start.resize(traj_vec.size());
+  res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.trajectory_start.at(i),
-                                                  res.planned_trajectory.at(i));
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.trajectories_start.at(i),
+                                                  res.response.planned_trajectories.at(i));
   }
-  res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  res.planning_time = (ros::Time::now() - planning_start).toSec();
+  res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  res.response.planning_time = (ros::Time::now() - planning_start).toSec();
   return true;
 }
 

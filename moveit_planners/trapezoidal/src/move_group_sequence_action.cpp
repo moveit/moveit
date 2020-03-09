@@ -81,7 +81,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
     ROS_WARN("Received empty request. That's ok but maybe not what you intended.");
     setMoveState(move_group::IDLE);
     moveit_msgs::MoveGroupSequenceResult action_res;
-    action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    action_res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     move_action_server_->setSucceeded(action_res, "Received empty request.");
     return;
   }
@@ -104,7 +104,7 @@ void MoveGroupSequenceAction::executeSequenceCallback(const moveit_msgs::MoveGro
     executeSequenceCallbackPlanAndExecute(goal, action_res);
   }
 
-  switch (action_res.error_code.val)
+  switch (action_res.response.error_code.val)
   {
     case moveit_msgs::MoveItErrorCodes::SUCCESS:
       move_action_server_->setSucceeded(action_res, "Success");
@@ -148,8 +148,8 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
-  action_res.error_code = plan.error_code_;
+  convertToMsg(plan.plan_components_, action_res.response.trajectories_start, action_res.response.planned_trajectories);
+  action_res.response.error_code = plan.error_code_;
 }
 
 void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsgs& startStatesMsgs,
@@ -186,27 +186,27 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   catch (const MoveItErrorCodeException& ex)
   {
     ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
-    res.error_code.val = ex.getErrorCode();
+    res.response.error_code.val = ex.getErrorCode();
     return;
   }
   // LCOV_EXCL_START // Keep moveit up even if lower parts throw
   catch (const std::exception& ex)
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    res.response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return;
   }
   // LCOV_EXCL_STOP
 
-  res.trajectory_start.resize(traj_vec.size());
-  res.planned_trajectory.resize(traj_vec.size());
+  res.response.trajectories_start.resize(traj_vec.size());
+  res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.trajectory_start.at(i),
-                                                  res.planned_trajectory.at(i));
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.trajectories_start.at(i),
+                                                  res.response.planned_trajectories.at(i));
   }
-  res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  res.planning_time = (ros::Time::now() - planning_start).toSec();
+  res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  res.response.planning_time = ros::Time::now().toSec() - planning_start.toSec();
 }
 
 bool MoveGroupSequenceAction::planUsingSequenceManager(const moveit_msgs::MotionSequenceRequest& req,
