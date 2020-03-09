@@ -4,13 +4,13 @@
   <!-- send Panda urdf to parameter server -->
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_hand.urdf.xacro'" />
 
-  <include file="$(find panda_moveit_config)/launch/planning_context.launch"/>
+  <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch"/>
 
   <node name="compare_collision_checking_speed" pkg="moveit_ros_planning" type="moveit_compare_collision_checking_speed_fcl_bullet" respawn="false" output="screen">
-    <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find moveit_resources)/panda_moveit_config/config/kinematics.yaml"/>
     <param name="visualization" value="$(arg visualization)" type="bool"/>
   </node>
 
-  <include if="$(arg visualization)" file="$(find panda_moveit_config)/launch/demo.launch"/>
+  <include if="$(arg visualization)" file="$(find moveit_resources)/panda_moveit_config/launch/demo.launch"/>
 
 </launch>
