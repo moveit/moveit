@@ -247,14 +247,14 @@ public:
   /** \brief Set a scaling factor for optionally reducing the maximum joint velocity.
       Allowed values are in (0,1]. The maximum joint velocity specified
       in the robot model is multiplied by the factor. If the value is 0, it is set to
-      the default value which is defined in joint_limits.yaml of the moveit_config.
+      the default value, which is defined in joint_limits.yaml of the moveit_config.
       If the value is greater than 1, it is set to 1.0. */
   void setMaxVelocityScalingFactor(double max_velocity_scaling_factor);
 
   /** \brief Set a scaling factor for optionally reducing the maximum joint acceleration.
       Allowed values are in (0,1]. The maximum joint acceleration specified
       in the robot model is multiplied by the factor. If the value is 0, it is set to
-      the default value which is defined in joint_limits.yaml of the moveit_config.
+      the default value, which is defined in joint_limits.yaml of the moveit_config.
       If the value is greater than 1, it is set to 1.0. */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
 
