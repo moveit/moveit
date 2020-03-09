@@ -126,8 +126,11 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(ros_pytest REQUIRED)
 
-  # Python integration test that a halt message is published at a singularity
+  # Python integration tests
   add_rostest(test/launch/jog_arm_halt_msg_test.test)
+  add_rostest(test/launch/jog_arm_msg_reception_test.test)
+  add_rostest(test/launch/jog_arm_vel_accel_limits_test.test)
+  add_rostest(test/launch/jog_arm_drift_dimensions_service_test.test)
 
   # jog_cpp_interface
   add_rostest_gtest(jog_cpp_interface_test

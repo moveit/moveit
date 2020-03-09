@@ -10,8 +10,10 @@ from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import Bool
 from trajectory_msgs.msg import JointTrajectory
 
-# Common Python utilities
-from ..util import wait_for_jogger_initialization
+# Import common Python test utilities
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+import util
 
 # Send a service call to allow drift in all but the y-dimension.
 # In other words, only the y-dimension will be controlled exactly.
@@ -30,7 +32,7 @@ def node():
 
 
 def test_drift_dimensions_service(node):
-    assert wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
 
     # Service to change drift dimensions
     drift_service = rospy.ServiceProxy(SERVICE_NAME, ChangeDriftDimensions)

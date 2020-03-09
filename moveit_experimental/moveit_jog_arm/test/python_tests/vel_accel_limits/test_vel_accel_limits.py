@@ -7,16 +7,21 @@ import rospy
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
+# Import common Python test utilities
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+import util
+
 # Test that commands that are too fast are caught and flagged
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_vel_accel_limits.py
 
-JOG_ARM_SETTLE_TIME_S = 10
-ROS_SETTLE_TIME_S = 10
-
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
+
+# Check if jogger is initialized with this service
+SERVICE_NAME = 'jog_server/change_drift_dimensions'
 
 
 @pytest.fixture
@@ -39,13 +44,14 @@ class JointJogCmd(object):
 def test_vel_limit(node):
     # Test sending a joint command
 
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
 
     joint_cmd = JointJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
 
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
@@ -76,5 +82,5 @@ def test_vel_limit(node):
 
 if __name__ == '__main__':
     node = node()
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
     test_vel_limit(node)
+    # TODO(andyz): add an acceleration limit test (the Panda joint_limits.yaml doesn't define acceleration limits)

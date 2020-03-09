@@ -8,6 +8,11 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
+# Import common Python test utilities
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+import util
+
 # Test that the jogger publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_jog_arm_integration.py
@@ -24,16 +29,6 @@ SERVICE_NAME = 'jog_server/change_drift_dimensions'
 @pytest.fixture
 def node():
     return rospy.init_node('pytest', anonymous=True)
-
-
-def wait_for_jogger_initialization(service_name):
-    try:
-      rospy.wait_for_service(service_name, timeout=15)
-    except rospy.ServiceException as exc:
-      rospy.logerr("The jogger never finished initialization, expected service is not available: " + str(exc))
-      return False
-
-    return True
 
 
 class JointJogCmd(object):
@@ -65,7 +60,7 @@ class CartesianJogCmd(object):
 def test_jog_arm_cartesian_command(node):
     # Test sending a cartesian velocity command
 
-    assert wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
 
     received = []
     sub = rospy.Subscriber(
@@ -105,7 +100,7 @@ def test_jog_arm_cartesian_command(node):
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
-    assert wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
 
     received = []
     sub = rospy.Subscriber(

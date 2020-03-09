@@ -8,6 +8,11 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from std_msgs.msg import Bool
 
+# Import common Python test utilities
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+import util
+
 # The robot starts at a singular position (see config file).
 # Listen for a halt message from the jogger.
 # This can be run as part of a pytest, or like a normal ROS executable:
@@ -42,15 +47,7 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
-    # Import common Python test utilities
-    from os import sys, path
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-    import util
-    #from ..util import *
-
-    #wait_for_jogger_initialization(SERVICE_NAME)
-    util.wait_for_jogger_initialization('jog_server/change_drift_dimensions')
-    #assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
 
     received = []
     sub = rospy.Subscriber(
