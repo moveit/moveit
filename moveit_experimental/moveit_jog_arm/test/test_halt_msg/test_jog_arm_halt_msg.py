@@ -42,12 +42,15 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
+    # wait for pub/subs to settle
+    time.sleep(ROS_SETTLE_TIME_S)
+    received = []
     sub = rospy.Subscriber(
         HALT_TOPIC, Bool, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    # wait for jog_arm server to init
+    time.sleep(JOG_ARM_SETTLE_TIME_S)
 
     # This nonzero command should produce jogging output
     # A subscriber in a different thread fills `received`

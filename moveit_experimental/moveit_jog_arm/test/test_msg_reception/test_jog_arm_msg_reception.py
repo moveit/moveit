@@ -53,12 +53,17 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_cartesian_command(node):
+    # Test sending a cartesian velocity command
+
+    # wait for pub/subs to settle
+    time.sleep(ROS_SETTLE_TIME_S)
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    # wait for jog_arm server to init
+    time.sleep(JOG_ARM_SETTLE_TIME_S)
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different thread fills 'received'
@@ -89,13 +94,15 @@ def test_jog_arm_cartesian_command(node):
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
+    # wait for pub/subs to settle
+    time.sleep(ROS_SETTLE_TIME_S)
+    received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
-
     joint_cmd = JointJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    # wait for jog_arm server to init
+    time.sleep(JOG_ARM_SETTLE_TIME_S)
 
     received = []
     TEST_DURATION = 1

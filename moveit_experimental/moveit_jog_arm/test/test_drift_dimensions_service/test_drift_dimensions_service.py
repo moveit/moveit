@@ -28,9 +28,17 @@ def node():
 
 
 def test_drift_dimensions_service(node):
-    # Make the service call to allow drift in all dimensions except y-translation
+    # wait for pub/subs to settle
+    time.sleep(ROS_SETTLE_TIME_S)
+
+    # Service to change drift dimensions
     drift_service = rospy.ServiceProxy('jog_server/change_drift_dimensions', ChangeDriftDimensions)
-    # the transform is an identity matrix, not used for now
+
+    # wait for jog_arm server to init
+    time.sleep(JOG_ARM_SETTLE_TIME_S)
+
+    # Service call to allow drift in all dimensions except y-translation
+    # The transform is an identity matrix, not used for now
     drift_response = drift_service(True, False, True, True, True, True, Transform())
     # Check for successful response
     assert drift_response.success == True
