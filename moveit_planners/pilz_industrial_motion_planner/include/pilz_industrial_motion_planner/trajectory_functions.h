@@ -202,6 +202,6 @@ bool intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p
 bool isStateColliding(const bool test_for_self_collision, const moveit::core::RobotModelConstPtr& robot_model,
                       robot_state::RobotState* state, const robot_state::JointModelGroup* const group,
                       const double* const ik_solution);
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner
 
 void normalizeQuaternion(geometry_msgs::Quaternion& quat);

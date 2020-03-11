@@ -48,20 +48,20 @@ POSSIBILITY OF SUCH DAMAGE.
   <arg name="display_plots" default="false" />
   <node if="$(arg display_plots)"
         name="plot_trajectory_msg"
-        pkg="trapezoidal_trajectory_generation"
+        pkg="pilz_industrial_motion_planner"
         type="plot_display_trajectory_msg.py"
         args="/my_planned_path"  />
 
   <include ns="integrationtest_command_list_manager" file="$(find prbt_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="trapezoidal_command_planner" />
+    <arg name="pipeline" value="pilz_industrial_motion_planner" />
   </include>
 
   <!-- run test -->
-  <!--test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
+  <!--test pkg="pilz_industrial_motion_planner" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
   time-limit="885.0" launch-prefix="xterm -e gdb - -args" -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_command_list_manager" type="integrationtest_command_list_manager"
   time-limit="885.0" >
-    <param name="testdata_file_name" value="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
+    <param name="testdata_file_name" value="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
   </test>
   <!--launch-prefix="xterm -e gdb - -args"-->
 

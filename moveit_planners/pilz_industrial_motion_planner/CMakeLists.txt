@@ -77,8 +77,8 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-  src/trapezoidal_command_planner.cpp
+add_library(${PROJECT_NAME}_lib
+  src/pilz_industrial_motion_planner.cpp
   src/planning_context_loader.cpp
   src/joint_limits_validator.cpp
   src/joint_limits_aggregator.cpp
@@ -90,15 +90,15 @@ add_library(${PROJECT_NAME}
   src/plan_components_builder.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}_lib
   ${catkin_LIBRARIES}
 )
 
 #############
 ## Plugins ##
 #############
-add_library(trapezoidal_command_planner
-            src/trapezoidal_command_planner.cpp
+add_library(pilz_industrial_motion_planner
+            src/pilz_industrial_motion_planner.cpp
             src/planning_context_loader.cpp
             src/joint_limits_aggregator.cpp
             src/joint_limits_container.cpp
@@ -106,7 +106,7 @@ add_library(trapezoidal_command_planner
             src/cartesian_limit.cpp
             src/cartesian_limits_aggregator.cpp
             )
-target_link_libraries(trapezoidal_command_planner
+target_link_libraries(pilz_industrial_motion_planner
                       ${catkin_LIBRARIES})
 
 add_library(planning_context_loader_ptp
@@ -184,7 +184,7 @@ install(FILES
 
 ## Mark libraries for installation
 install(TARGETS
-   trapezoidal_command_planner
+   pilz_industrial_motion_planner
    planning_context_loader_ptp
    planning_context_loader_lin
    planning_context_loader_circ
@@ -224,7 +224,7 @@ if(CATKIN_ENABLE_TESTING)
 
   set(${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES
     sequence_capability
-    trapezoidal_command_planner
+    pilz_industrial_motion_planner
     planning_context_loader_ptp
     planning_context_loader_lin
     planning_context_loader_circ
@@ -334,15 +334,15 @@ if(CATKIN_ENABLE_TESTING)
     src/velocity_profile_atrap.cpp
   )
 
-  target_link_libraries(${PROJECT_NAME}_testutils ${PROJECT_NAME})
+  target_link_libraries(${PROJECT_NAME}_testutils ${PROJECT_NAME}_lib)
 
   ## Add gtest based cpp test target and link libraries
-  catkin_add_gtest(unittest_trapezoidal_command_planner_direct
-    test/unittest_trapezoidal_command_planner_direct.cpp
+  catkin_add_gtest(unittest_pilz_industrial_motion_planner_direct
+    test/unittest_pilz_industrial_motion_planner_direct.cpp
     src/planning_context_loader_ptp.cpp
   )
 
-  target_link_libraries(unittest_trapezoidal_command_planner_direct
+  target_link_libraries(unittest_pilz_industrial_motion_planner_direct
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testutils
   )
@@ -362,7 +362,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_generator
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
   # Trajectory Generator Unit Test
@@ -433,14 +433,14 @@ if(CATKIN_ENABLE_TESTING)
   )
 
   # Command Planner Unit Test
-  add_rostest_gtest(unittest_trapezoidal_command_planner
-    test/unittest_trapezoidal_command_planner.test
-    test/unittest_trapezoidal_command_planner.cpp
+  add_rostest_gtest(unittest_pilz_industrial_motion_planner
+    test/unittest_pilz_industrial_motion_planner.test
+    test/unittest_pilz_industrial_motion_planner.cpp
   )
 
-  target_link_libraries(unittest_trapezoidal_command_planner
+  target_link_libraries(unittest_pilz_industrial_motion_planner
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
   # JointLimitsAggregator Unit Test
@@ -451,7 +451,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_joint_limits_aggregator
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
   # JointLimitsContainer Unit Test
@@ -461,7 +461,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_joint_limits_container
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
   # JointLimitsValidator Unit Test
@@ -471,7 +471,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_joint_limits_validator
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
    # Cartesian Limits Aggregator Unit Test
@@ -482,7 +482,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_cartesian_limits_aggregator
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
+    ${PROJECT_NAME}_lib
   )
 
   # PlanningContextLoaderPTP Unit Test

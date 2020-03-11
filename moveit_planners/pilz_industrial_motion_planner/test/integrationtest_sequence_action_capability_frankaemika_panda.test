@@ -43,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
         output="screen" />
 
   <arg name="debug" default="false"/>
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/frankaemika_panda/launch/move_group.launch">
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/frankaemika_panda/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
@@ -51,13 +51,13 @@ POSSIBILITY OF SUCH DAMAGE.
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_sequence_action_capability_frankaemika_panda"
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_sequence_action_capability_frankaemika_panda"
         type="integrationtest_sequence_action_capability_frankaemika_panda" time-limit="300.0">
     <param name="joint_prefix" value="panda_joint" />
     <param name="joint_position_tolerance" value="0.01" />
     <param name="group_name" value="panda_arm" />
     <param name="testdata_file_name"
-           value="$(find trapezoidal_trajectory_generation)/test/test_robots/frankaemika_panda/test_data/testdata_sequence.xml" />
+           value="$(find pilz_industrial_motion_planner)/test/test_robots/frankaemika_panda/test_data/testdata_sequence.xml" />
   </test>
 
 </launch>

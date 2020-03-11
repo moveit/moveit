@@ -39,7 +39,7 @@
 
 #include <moveit_msgs/MoveItErrorCodes.h>
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 /**
  * @brief Exception storing an moveit_msgs::MoveItErrorCodes value.
@@ -118,4 +118,4 @@ TemplatedMoveItErrorCodeException<ERROR_CODE>::getErrorCode() const
     }                                                                                                                  \
   }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

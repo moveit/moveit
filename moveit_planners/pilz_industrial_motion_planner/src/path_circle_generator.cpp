@@ -136,4 +136,4 @@ double PathCircleGenerator::cosines(const double a, const double b, const double
   return acos(std::max(std::min((pow(a, 2) + pow(b, 2) - pow(c, 2)) / (2.0 * a * b), 1.0), -1.0));
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

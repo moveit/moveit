@@ -41,7 +41,7 @@
 
 #include <moveit_msgs/MoveGroupSequenceAction.h>
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 class CommandListManager;
 
@@ -84,6 +84,6 @@ private:
   moveit_msgs::MoveGroupSequenceFeedback move_feedback_;
 
   move_group::MoveGroupState move_state_{ move_group::IDLE };
-  std::unique_ptr<trapezoidal_trajectory_generation::CommandListManager> command_list_manager_;
+  std::unique_ptr<pilz_industrial_motion_planner::CommandListManager> command_list_manager_;
 };
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

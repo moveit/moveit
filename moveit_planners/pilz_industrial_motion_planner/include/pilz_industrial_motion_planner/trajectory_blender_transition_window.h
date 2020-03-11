@@ -151,4 +151,4 @@ private:  // static members
   static constexpr double epsilon = 1e-4;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

@@ -338,7 +338,7 @@ MATCHER_P(FeedbackStateEq, state, "")
 }
 MATCHER(IsResultSuccess, "")
 {
-  return arg->error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+  return arg->response.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 MATCHER(IsResultNotEmpty, "")
 {
@@ -427,7 +427,7 @@ TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
   ac_.waitForResult(ros::Duration(WAIT_FOR_RESULT_TIME_OUT));
 
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
-  EXPECT_EQ(res->error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED) << "Error code should be preempted.";
+  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED) << "Error code should be preempted.";
 }
 
 /**

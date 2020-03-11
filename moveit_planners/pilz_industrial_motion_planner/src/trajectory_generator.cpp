@@ -329,4 +329,4 @@ bool TrajectoryGenerator::generate(const planning_interface::MotionPlanRequest& 
   return true;
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

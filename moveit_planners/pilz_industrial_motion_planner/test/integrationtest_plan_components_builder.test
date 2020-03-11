@@ -48,16 +48,16 @@ POSSIBILITY OF SUCH DAMAGE.
   <arg name="display_plots" default="false" />
   <node if="$(arg display_plots)"
         name="plot_trajectory_msg"
-        pkg="trapezoidal_trajectory_generation"
+        pkg="pilz_industrial_motion_planner"
         type="plot_display_trajectory_msg.py"
         args="/my_planned_path"  />
 
   <include ns="integrationtest_plan_components_builder" file="$(find prbt_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="trapezoidal_command_planner" />
+    <arg name="pipeline" value="pilz_industrial_motion_planner" />
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_plan_components_builder" type="integrationtest_plan_components_builder">
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_plan_components_builder" type="integrationtest_plan_components_builder">
     <param name="planning_group" value="manipulator"/>
   </test>
   <!--launch-prefix="xterm -e gdb - -args"-->

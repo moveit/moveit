@@ -48,4 +48,4 @@ struct CartesianTrajectory
   std::vector<CartesianTrajectoryPoint> points;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

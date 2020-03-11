@@ -36,13 +36,13 @@ POSSIBILITY OF SUCH DAMAGE.
   <!-- Parametrized test running with and without gripper! -->
 
   <!-- Load the context with and without the pg70 -->
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch" />
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch">
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/launch/test_context.launch" />
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/launch/test_context.launch">
     <arg name="gripper" value="pg70" />
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="unittest_trapezoidal_command_planner" type="unittest_trapezoidal_command_planner">
-      <param name="planning_plugin" value="trapezoidal::CommandPlanner"/>
+  <test pkg="pilz_industrial_motion_planner" test-name="unittest_pilz_industrial_motion_planner" type="unittest_pilz_industrial_motion_planner">
+      <param name="planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner"/>
   </test>
 </launch>

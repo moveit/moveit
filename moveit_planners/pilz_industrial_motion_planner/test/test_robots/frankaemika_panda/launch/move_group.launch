@@ -3,7 +3,7 @@
 
   <!-- Load cartesian limits -->
   <group ns="robot_description_planning">
-    <rosparam command="load" file="$(find trapezoidal_trajectory_generation)/test/test_robots/config/cartesian_limits.yaml"/>
+    <rosparam command="load" file="$(find pilz_industrial_motion_planner)/test/test_robots/config/cartesian_limits.yaml"/>
   </group>
 
   <include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch">
@@ -12,7 +12,7 @@
 
   <!-- Load additional joint limits for compability with the PTP planner -->
   <group ns="robot_description_planning">
-    <rosparam command="load" file="$(find trapezoidal_trajectory_generation)/test/test_robots/frankaemika_panda/config/joint_limits.yaml"/>
+    <rosparam command="load" file="$(find pilz_industrial_motion_planner)/test/test_robots/frankaemika_panda/config/joint_limits.yaml"/>
   </group>
 
   <!-- GDB Debug Option -->
@@ -33,7 +33,7 @@
   <arg name="publish_monitored_planning_scene" default="true"/>
 
   <!-- Planning Functionality -->
-  <param name="move_group/planning_plugin" value="trapezoidal::CommandPlanner" />
+  <param name="move_group/planning_plugin" value="pilz_industrial_motion_planner::CommandPlanner" />
 
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find moveit_resources)/panda_moveit_config/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
@@ -54,8 +54,8 @@
 
 
     <!-- MoveGroup capabilities to load -->
-    <param name="capabilities" value="trapezoidal_trajectory_generation/MoveGroupSequenceAction
-                                      trapezoidal_trajectory_generation/MoveGroupSequenceService
+    <param name="capabilities" value="pilz_industrial_motion_planner/MoveGroupSequenceAction
+                                      pilz_industrial_motion_planner/MoveGroupSequenceService
                       " />
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->

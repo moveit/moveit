@@ -1,12 +1,12 @@
 <library path="lib/libsequence_capability">
-  <class name="trapezoidal_trajectory_generation/MoveGroupSequenceAction"
-         type="trapezoidal_trajectory_generation::MoveGroupSequenceAction"
+  <class name="pilz_industrial_motion_planner/MoveGroupSequenceAction"
+         type="pilz_industrial_motion_planner::MoveGroupSequenceAction"
          base_class_type="move_group::MoveGroupCapability">
     <description>Motion Planner a sequence of trajectories</description>
   </class>
 
-  <class name="trapezoidal_trajectory_generation/MoveGroupSequenceService"
-         type="trapezoidal_trajectory_generation::MoveGroupSequenceService"
+  <class name="pilz_industrial_motion_planner/MoveGroupSequenceService"
+         type="pilz_industrial_motion_planner::MoveGroupSequenceService"
          base_class_type="move_group::MoveGroupCapability">
     <description>Plan a sequence of trajectory via ROS serivce</description>
   </class>

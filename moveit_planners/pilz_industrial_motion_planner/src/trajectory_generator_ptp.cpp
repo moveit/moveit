@@ -255,4 +255,4 @@ void TrajectoryGeneratorPTP::plan(const planning_interface::MotionPlanRequest& r
           req.max_velocity_scaling_factor, req.max_acceleration_scaling_factor, sampling_time);
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

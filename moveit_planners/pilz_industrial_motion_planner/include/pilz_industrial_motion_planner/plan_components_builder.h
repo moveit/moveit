@@ -45,7 +45,7 @@
 #include "pilz_industrial_motion_planner/trajectory_blender.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 using TipFrameFunc_t = std::function<const std::string&(const std::string&)>;
 
@@ -155,4 +155,4 @@ inline void PlanComponentsBuilder::reset()
   traj_cont_.clear();
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

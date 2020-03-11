@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_get_solver_tip_frame"
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_get_solver_tip_frame"
         type="integrationtest_get_solver_tip_frame" time-limit="120.0" >
   </test>
   <!--launch-prefix="xterm -e gdb - -args"-->

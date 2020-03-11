@@ -99,4 +99,4 @@ private:
   CartesianLimit cartesian_limit_;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

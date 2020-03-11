@@ -182,4 +182,4 @@ void JointLimitsContainer::updateCommonLimit(const pilz_extensions::JointLimit& 
   }
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

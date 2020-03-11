@@ -38,21 +38,21 @@ POSSIBILITY OF SUCH DAMAGE.
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="unittest_joint_limits_aggregator" type="unittest_joint_limits_aggregator">
+  <test pkg="pilz_industrial_motion_planner" test-name="unittest_joint_limits_aggregator" type="unittest_joint_limits_aggregator">
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_valid_1.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_valid_1.yaml"
     ns="valid_1"/>
 
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_position_min.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_position_min.yaml"
     ns="violate_position_min"/>
 
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_position_max.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_position_max.yaml"
     ns="violate_position_max"/>
 
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_velocity.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_joint_limits_aggregator_testdata/test_joint_limits_violate_velocity.yaml"
     ns="violate_velocity"/>
   </test>
 </launch>

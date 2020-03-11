@@ -48,7 +48,7 @@
 
 static const std::string ROBOT_DESCRIPTION_PARAM{ "robot_description" };
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 class GetSolverTipFrameIntegrationTest : public testing::Test
 {
@@ -101,7 +101,7 @@ TEST_F(GetSolverTipFrameIntegrationTest, TestGetTipSolverFrameGripper)
   EXPECT_THROW(getSolverTipFrame(robot_model_->getJointModelGroup("gripper")), NoSolverException);
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner
 
 int main(int argc, char** argv)
 {

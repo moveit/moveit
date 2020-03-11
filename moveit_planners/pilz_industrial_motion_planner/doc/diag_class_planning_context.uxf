@@ -14,7 +14,7 @@
 --
 +getAlgorithm(): std::string
 +setModel(model: moveit::core::RobotModelConstPtr&amp;): bool
-+setLimits(joint_limits: trapezoidal::JointLimitsContainer&amp;): bool
++setLimits(joint_limits: pilz_industrial_motion_planner::JointLimitsContainer&amp;): bool
 +loadContext(planning_context: planning_interface::PlanningContextPtr&amp;, name: std::string&amp;, group: std::string&amp;): bool
 #loadContext&lt;T&gt;(planning_context: planning_interface::PlanningContextPtr&amp;, name: std::string&amp;, group: std::string&amp;): bool
 --</panel_attributes>
@@ -339,9 +339,9 @@ m1=1</panel_attributes>
 --
 --
 +hasCartesianLimit(): bool
-+getCartesianLimit(): trapezoidal::CartesianLimit
++getCartesianLimit(): pilz_industrial_motion_planner::CartesianLimit
 +hasJointLimits(): bool
-+getJointLimits(): trapezoidal::JointLimitsContainer
++getJointLimits(): pilz_industrial_motion_planner::JointLimitsContainer
 --
 </panel_attributes>
     <additional_attributes/>

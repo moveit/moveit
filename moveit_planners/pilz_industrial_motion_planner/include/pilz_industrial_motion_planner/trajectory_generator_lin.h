@@ -40,7 +40,7 @@
 #include "pilz_industrial_motion_planner/trajectory_generator.h"
 #include "pilz_industrial_motion_planner/velocity_profile_atrap.h"
 
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 
 namespace pilz_industrial_motion_planner
 {
@@ -84,4 +84,4 @@ private:
   std::unique_ptr<KDL::Path> setPathLIN(const Eigen::Affine3d& start_pose, const Eigen::Affine3d& goal_pose) const;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

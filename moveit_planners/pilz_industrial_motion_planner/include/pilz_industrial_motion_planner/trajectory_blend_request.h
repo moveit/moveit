@@ -56,4 +56,4 @@ struct TrajectoryBlendRequest
   double blend_radius;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

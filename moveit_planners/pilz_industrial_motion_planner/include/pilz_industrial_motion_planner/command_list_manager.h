@@ -47,7 +47,7 @@
 #include "pilz_industrial_motion_planner/plan_components_builder.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 using RobotTrajCont = std::vector<robot_trajectory::RobotTrajectoryPtr>;
 
@@ -220,4 +220,4 @@ inline void CommandListManager::checkLastBlendRadiusZero(const moveit_msgs::Moti
   }
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

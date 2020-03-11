@@ -39,7 +39,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
 
-#include "pilz_industrial_motion_planner/trapezoidal_command_planner.h"
+#include "pilz_industrial_motion_planner/pilz_industrial_motion_planner.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
@@ -220,7 +220,7 @@ TEST_P(CommandPlannerTest, CheckPlanningContextDescriptionNotEmptyAndStable)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "unittest_trapezoidal_command_planner");
+  ros::init(argc, argv, "unittest_pilz_industrial_motion_planner");
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -153,4 +153,4 @@ protected:
   /// Actual container object containing the data
   std::map<std::string, pilz_extensions::JointLimit> container_;
 };
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

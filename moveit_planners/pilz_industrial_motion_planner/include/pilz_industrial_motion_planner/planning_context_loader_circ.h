@@ -51,7 +51,7 @@ public:
   virtual ~PlanningContextLoaderCIRC();
 
   /**
-   * @brief return a instance of trapezoidal::PlanningContextCIRC
+   * @brief return a instance of pilz_industrial_motion_planner::PlanningContextCIRC
    * @param planning_context returned context
    * @param name
    * @param group
@@ -64,4 +64,4 @@ public:
 typedef boost::shared_ptr<PlanningContextLoaderCIRC> PlanningContextLoaderCIRCPtr;
 typedef boost::shared_ptr<const PlanningContextLoaderCIRC> PlanningContextLoaderCIRCConstPtr;
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

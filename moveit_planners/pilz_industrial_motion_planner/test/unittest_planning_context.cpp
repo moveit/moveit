@@ -130,7 +130,7 @@ protected:
   {
     planning_interface::MotionPlanRequest req;
 
-    req.planner_id = std::string(context_name).erase(0, std::string("trapezoidal::PlanningContext").length());
+    req.planner_id = std::string(context_name).erase(0, std::string("pilz_industrial_motion_planner::PlanningContext").length());
     req.group_name = this->planning_group_;
     req.max_velocity_scaling_factor = 0.01;
     req.max_acceleration_scaling_factor = 0.01;

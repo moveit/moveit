@@ -50,4 +50,4 @@ struct CartesianTrajectoryPoint
   ros::Duration time_from_start;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

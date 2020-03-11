@@ -42,7 +42,7 @@
 #include "pilz_industrial_motion_planner/command_list_manager.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 MoveGroupSequenceService::MoveGroupSequenceService() : MoveGroupCapability("SequenceService")
 {
@@ -54,7 +54,7 @@ MoveGroupSequenceService::~MoveGroupSequenceService()
 
 void MoveGroupSequenceService::initialize()
 {
-  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager(
+  command_list_manager_.reset(new pilz_industrial_motion_planner::CommandListManager(
       ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
 
   sequence_service_ = root_node_handle_.advertiseService(SEQUENCE_SERVICE_NAME, &MoveGroupSequenceService::plan, this);
@@ -99,7 +99,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   return true;
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(trapezoidal_trajectory_generation::MoveGroupSequenceService, move_group::MoveGroupCapability)
+PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceService, move_group::MoveGroupCapability)

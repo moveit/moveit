@@ -138,4 +138,4 @@ bool PlanningContextLoader::loadContext(planning_interface::PlanningContextPtr& 
   }
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

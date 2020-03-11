@@ -40,7 +40,7 @@ namespace pilz_industrial_motion_planner
 {
 /**
  * @class PlanningException
- * @brief A base class for all trapezoidal_planners exceptions inheriting from std::runtime_exception
+ * @brief A base class for all pilz_industrial_motion_planner exceptions inheriting from std::runtime_exception
  */
 class PlanningException : public std::runtime_error
 {
@@ -65,4 +65,4 @@ public:
   }
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

@@ -139,4 +139,4 @@ public:
   }
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

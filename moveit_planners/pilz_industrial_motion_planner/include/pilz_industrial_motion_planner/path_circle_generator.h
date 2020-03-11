@@ -79,7 +79,7 @@ private:
   static constexpr double MAX_COLINEAR_NORM{ 1e-5 };
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner
 
 class Error_MotionPlanning_CenterPointDifferentRadius : public KDL::Error_MotionPlanning
 {

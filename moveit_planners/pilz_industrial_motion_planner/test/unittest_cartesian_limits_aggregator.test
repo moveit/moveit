@@ -39,15 +39,15 @@ POSSIBILITY OF SUCH DAMAGE.
 </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation"
+  <test pkg="pilz_industrial_motion_planner"
         test-name="unittest_cartesian_limits_aggregator"
         type="unittest_cartesian_limits_aggregator">
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_only_vel.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_only_vel.yaml"
     ns="vel_only"/>
 
     <rosparam command="load"
-    file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_all.yaml"
+    file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/unittest_cartesian_limits_aggregator/test_cartesian_limit_all.yaml"
     ns="all"/>
   </test>
 </launch>

@@ -151,4 +151,4 @@ private:
   double max_rot_vel_;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

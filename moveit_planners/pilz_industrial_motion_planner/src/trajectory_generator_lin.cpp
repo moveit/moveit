@@ -190,4 +190,4 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorLIN::setPathLIN(const Eigen::Affin
   return std::unique_ptr<KDL::Path>(new KDL::Path_Line(kdl_start_pose, kdl_goal_pose, rot_interpo, eqradius, true));
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

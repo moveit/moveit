@@ -36,13 +36,13 @@ POSSIBILITY OF SUCH DAMAGE.
   <!-- Parametrized test running with and without gripper! -->
 
   <!-- Load the context with and without the pg70 -->
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch" />
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/launch/test_context.launch">
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/launch/test_context.launch" />
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/launch/test_context.launch">
     <arg name="gripper" value="pg70" />
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation"  time-limit="120.0" test-name="unittest_trajectory_blender_transition_window" type="unittest_trajectory_blender_transition_window">
+  <test pkg="pilz_industrial_motion_planner"  time-limit="120.0" test-name="unittest_trajectory_blender_transition_window" type="unittest_trajectory_blender_transition_window">
     <param name="planning_group" value="manipulator" />
     <param name="target_link" value="prbt_tcp" />
     <param name="cartesian_velocity_tolerance" value="1.0e-6" />
@@ -50,14 +50,14 @@ POSSIBILITY OF SUCH DAMAGE.
     <param name="joint_velocity_tolerance" value="1.0e-6" />
     <param name="joint_acceleration_tolerance" value="1.0e-2" />
     <param name="sampling_time" value="0.01" />
-    <param name="testdata_file_name" value="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
+    <param name="testdata_file_name" value="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
     <rosparam command="load" file="$(find prbt_moveit_config)/config/joint_limits.yaml" />
   </test>
 
   <arg name="display_plots" default="false" />
   <node if="$(arg display_plots)"
         name="plot_trajectory_msg"
-        pkg="trapezoidal_trajectory_generation"
+        pkg="pilz_industrial_motion_planner"
         type="plot_display_trajectory_msg.py"
         args="/my_planned_path"
   />

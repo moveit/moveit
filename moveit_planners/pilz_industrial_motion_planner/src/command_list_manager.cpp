@@ -48,7 +48,7 @@
 #include "pilz_industrial_motion_planner/trajectory_blend_request.h"
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 static const std::string PARAM_NAMESPACE_LIMITS = "robot_description_planning";
 
@@ -311,4 +311,4 @@ CommandListManager::GroupNamesCont CommandListManager::getGroupNames(const movei
   return group_names;
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

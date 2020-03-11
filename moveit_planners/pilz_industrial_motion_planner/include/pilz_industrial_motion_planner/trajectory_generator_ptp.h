@@ -39,7 +39,7 @@
 #include "pilz_industrial_motion_planner/velocity_profile_atrap.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 
 namespace pilz_industrial_motion_planner
 {
@@ -94,4 +94,4 @@ private:
   std::map<std::string, pilz_extensions::JointLimit> most_strict_limits_;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

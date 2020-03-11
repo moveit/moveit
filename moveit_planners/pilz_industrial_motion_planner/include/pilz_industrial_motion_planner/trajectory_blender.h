@@ -70,4 +70,4 @@ protected:
 
 typedef std::unique_ptr<TrajectoryBlender> TrajectoryBlenderUniquePtr;
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

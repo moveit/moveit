@@ -65,7 +65,7 @@ const std::string EMPTY_VALUE{ "" };
 const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 
 using testutils::hasStrictlyIncreasingTime;
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 using namespace pilz_industrial_motion_testutils;
 
 static std::string createManipulatorJointName(const size_t& joint_number)
@@ -96,7 +96,7 @@ protected:
   robot_model::RobotModelConstPtr robot_model_{
     robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_STR).getModel()
   };
-  std::shared_ptr<trapezoidal_trajectory_generation::CommandListManager> manager_;
+  std::shared_ptr<pilz_industrial_motion_planner::CommandListManager> manager_;
   planning_scene::PlanningScenePtr scene_;
   planning_pipeline::PlanningPipelinePtr pipeline_;
 
@@ -119,7 +119,7 @@ void IntegrationTestCommandListManager::SetUp()
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
   // Define and set the current scene and manager test object
-  manager_ = std::make_shared<trapezoidal_trajectory_generation::CommandListManager>(ph_, robot_model_);
+  manager_ = std::make_shared<pilz_industrial_motion_planner::CommandListManager>(ph_, robot_model_);
   scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
   pipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, ph_);
 }

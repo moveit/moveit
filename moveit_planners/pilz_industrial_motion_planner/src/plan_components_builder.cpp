@@ -38,7 +38,7 @@
 
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 std::vector<robot_trajectory::RobotTrajectoryPtr> PlanComponentsBuilder::build() const
 {
@@ -134,4 +134,4 @@ void PlanComponentsBuilder::append(const robot_trajectory::RobotTrajectoryPtr& o
   blend(other, blend_radius);
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

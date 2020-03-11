@@ -45,13 +45,13 @@ POSSIBILITY OF SUCH DAMAGE.
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="gripper" value="pg70"/>
-    <arg name="pipeline" value="trapezoidal_command_planner" />
+    <arg name="pipeline" value="pilz_industrial_motion_planner" />
   </include>
 
   <!-- run test -->
-  <test pkg="trapezoidal_trajectory_generation" test-name="integrationtest_sequence_service_capability_with_gripper"
+  <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_sequence_service_capability_with_gripper"
         type="integrationtest_sequence_service_capability" time-limit="300.0">
-    <param name="testdata_file_name" value="$(find trapezoidal_trajectory_generation)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
+    <param name="testdata_file_name" value="$(find pilz_industrial_motion_planner)/test/test_robots/prbt/test_data/testdata_sequence.xml" />
   </test>
 
 </launch>

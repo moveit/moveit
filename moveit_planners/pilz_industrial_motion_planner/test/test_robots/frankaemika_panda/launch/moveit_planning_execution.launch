@@ -34,7 +34,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<!-- simulated environment for testing trapezoidal_trajectory_generation with a panda robot -->
+<!-- simulated environment for testing pilz_industrial_motion_planner with a panda robot -->
 
 <launch>
   <!-- The planning and execution components of MoveIt! configured to run -->
@@ -65,7 +65,7 @@ POSSIBILITY OF SUCH DAMAGE.
   </group>
 
 
-  <include file="$(find trapezoidal_trajectory_generation)/test/test_robots/frankaemika_panda/launch/move_group.launch">
+  <include file="$(find pilz_industrial_motion_planner)/test/test_robots/frankaemika_panda/launch/move_group.launch">
     <arg name="publish_monitored_planning_scene" value="true" />
     <arg name="fake_execution" value="true"/>
     <!--arg name="pipeline" value="$(arg pipeline)" /-->

@@ -41,7 +41,7 @@
 
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(NoSolverException, moveit_msgs::MoveItErrorCodes::FAILURE);
 CREATE_MOVEIT_ERROR_CODE_EXCEPTION(MoreThanOneTipFrameException, moveit_msgs::MoveItErrorCodes::FAILURE);
@@ -86,4 +86,4 @@ static const std::string& getSolverTipFrame(const JointModelGroup* group)
   return tipFrames.front();
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner

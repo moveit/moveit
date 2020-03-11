@@ -36,7 +36,7 @@
 
 #include <string>
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 static const std::string SEQUENCE_SERVICE_NAME = "plan_sequence_path";
 }

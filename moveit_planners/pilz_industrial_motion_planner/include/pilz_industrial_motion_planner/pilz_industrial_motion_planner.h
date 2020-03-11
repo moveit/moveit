@@ -64,7 +64,7 @@ public:
 
   /**
    * @brief Initializes the planner
-   * Upon initialization this planner will look for plugins implementing trapezoidal::PlanningContextLoader.
+   * Upon initialization this planner will look for plugins implementing pilz_industrial_motion_planner::PlanningContextLoader.
    * @param model The robot model
    * @param ns The namespace
    * @return true on success, false otherwise
@@ -77,7 +77,7 @@ public:
   /**
    * @brief Returns the available planning commands
    * @param list with the planning algorithms
-   * @note behined each command is a trapezoidal::PlanningContextLoader loaded as plugin
+   * @note behined each command is a pilz_industrial_motion_planner::PlanningContextLoader loaded as plugin
    */
   virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
 
@@ -130,4 +130,4 @@ private:
 
 MOVEIT_CLASS_FORWARD(CommandPlanner)
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

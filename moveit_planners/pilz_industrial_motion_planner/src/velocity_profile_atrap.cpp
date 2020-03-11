@@ -448,4 +448,4 @@ void VelocityProfile_ATrap::setEmptyProfile()
   t_c_ = 0;
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

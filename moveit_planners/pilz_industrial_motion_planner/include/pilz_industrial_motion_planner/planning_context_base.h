@@ -173,4 +173,4 @@ void pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::clear()
   return;
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

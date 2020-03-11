@@ -51,7 +51,7 @@
 #include "pilz_industrial_motion_planner/command_list_manager.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 MoveGroupSequenceAction::MoveGroupSequenceAction() : MoveGroupCapability("SequenceAction")
 {
@@ -67,7 +67,7 @@ void MoveGroupSequenceAction::initialize()
   move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupSequenceAction::preemptMoveCallback, this));
   move_action_server_->start();
 
-  command_list_manager_.reset(new trapezoidal_trajectory_generation::CommandListManager(
+  command_list_manager_.reset(new pilz_industrial_motion_planner::CommandListManager(
       ros::NodeHandle("~"), context_->planning_scene_monitor_->getRobotModel()));
 }
 
@@ -265,7 +265,7 @@ void MoveGroupSequenceAction::setMoveState(move_group::MoveGroupState state)
   move_action_server_->publishFeedback(move_feedback_);
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(trapezoidal_trajectory_generation::MoveGroupSequenceAction, move_group::MoveGroupCapability)
+PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::MoveGroupSequenceAction, move_group::MoveGroupCapability)

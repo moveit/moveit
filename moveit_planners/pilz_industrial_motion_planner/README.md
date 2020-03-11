@@ -10,7 +10,7 @@ please refer to the [MoveIt! website](http://moveit.ros.org/).
 # ROS API
 ## User Interface MoveGroup
 This package implements the `planning_interface::PlannerManager` interface of MoveIt!. By loading the corresponding
-planning pipeline (`trapezoidal_command_planner_planning_pipeline.launch.xml` in `prbt_moveit_config` package), the trajectory
+planning pipeline (`pilz_industrial_motion_planner_planning_pipeline.launch.xml` in `prbt_moveit_config` package), the trajectory
 generation functionalities can be accessed through the user interface (c++, python or rviz) provided by
 the `move_group` node, e.g. `/plan_kinematics_path` service and `/move_group` action. For detailed tutorials please
 refer to [MoveIt! Tutorials](http://docs.ros.org/melodic/api/moveit_tutorials/html/index.html).
@@ -181,8 +181,8 @@ the user can interact with the planner through rviz.
 ![rviz figure](doc/figure/rviz_planner.png)
 
 ## Using the command planner
-The *trapezoidal::CommandPlanner* is provided as MoveIt! Motion Planning Pipeline and, therefore, can be used with all
-other manipulators using MoveIt!. Loading the plugin requires the param `/move_group/planner_plugin` to be set to `trapezoidal::CommandPlanner`
+The *pilz_industrial_motion_planner::CommandPlanner* is provided as MoveIt! Motion Planning Pipeline and, therefore, can be used with all
+other manipulators using MoveIt!. Loading the plugin requires the param `/move_group/planner_plugin` to be set to `pilz_industrial_motion_planner::CommandPlanner`
 before the `move_group` node is started.
 
 To use the command planner cartesian limits have to be defined.
@@ -190,7 +190,7 @@ The limits are expected to be under the namespace `<robot_description>_planning`
 E.g. if the urdf was loaded into `/robot_description` the cartesian limits have to be defined at `/robot_description_planning`.
 
 An example showing the cartesian limits which have to be defined can be found
-![here](https://github.com/PilzDE/trapezoidal_robots/blob/melodic-devel/prbt_moveit_config/config/cartesian_limits.yaml).
+![here](https://github.com/PilzDE/pilz_robots/blob/melodic-devel/prbt_moveit_config/config/cartesian_limits.yaml).
 
 # Sequence of multiple segments
 To concatenate multiple trajectories and plan the trajectory at once, you can use the sequence capability.
@@ -229,7 +229,7 @@ position, the path is still executed. The underlying PlannerManager can check, i
 `moveit_msgs::MotionPlanRequest` are already satisfied but the `MoveGroupSequenceAction` capability doesn't implement such a
 check to allow moving on a circular or comparable path.
 
-See the `trapezoidal_robot_programming` package for an example python script that shows how to use the capability.
+See the `pilz_robot_programming` package for an example python script that shows how to use the capability.
 
 ### Service interface
 The service `plan_sequence_path` allows the user to generate a joint trajectory for a `pilz_msgs::MotionSequenceRequest`.

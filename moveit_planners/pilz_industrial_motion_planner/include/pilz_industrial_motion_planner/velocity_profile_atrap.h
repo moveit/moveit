@@ -207,4 +207,4 @@ private:
 
 std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

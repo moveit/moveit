@@ -51,7 +51,7 @@ public:
   virtual ~PlanningContextLoaderPTP();
 
   /**
-   * @brief return a instance of trapezoidal::PlanningContextPTP
+   * @brief return a instance of pilz_industrial_motion_planner::PlanningContextPTP
    * @param planning_context returned context
    * @param name
    * @param group
@@ -64,4 +64,4 @@ public:
 typedef boost::shared_ptr<PlanningContextLoaderPTP> PlanningContextLoaderPTPPtr;
 typedef boost::shared_ptr<const PlanningContextLoaderPTP> PlanningContextLoaderPTPConstPtr;
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

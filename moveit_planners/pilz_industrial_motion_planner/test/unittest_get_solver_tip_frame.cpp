@@ -44,7 +44,7 @@
 
 #include "pilz_industrial_motion_planner/tip_frame_getter.h"
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 using ::testing::AtLeast;
 using ::testing::Return;
@@ -135,7 +135,7 @@ TEST_F(GetSolverTipFrameTest, NullptrJointGroup)
   EXPECT_THROW(hasSolver(group), std::invalid_argument);
 }
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner
 
 int main(int argc, char** argv)
 {

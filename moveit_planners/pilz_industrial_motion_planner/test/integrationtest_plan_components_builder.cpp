@@ -50,7 +50,7 @@ const std::string ROBOT_DESCRIPTION_STR{ "robot_description" };
 const std::string EMPTY_VALUE{ "" };
 
 using namespace pilz_industrial_motion_planner;
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 
 class IntegrationTestPlanComponentBuilder : public testing::Test
 {

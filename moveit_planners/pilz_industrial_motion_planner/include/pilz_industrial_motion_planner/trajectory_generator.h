@@ -48,7 +48,7 @@
 #include "pilz_industrial_motion_planner/trajectory_functions.h"
 #include "pilz_industrial_motion_planner/trajectory_generation_exceptions.h"
 
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 
 namespace pilz_industrial_motion_planner
 {
@@ -269,4 +269,4 @@ inline bool TrajectoryGenerator::isOnlyOneGoalTypeGiven(const moveit_msgs::Const
          (!isJointGoalGiven(constraint) && isCartesianGoalGiven(constraint));
 }
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

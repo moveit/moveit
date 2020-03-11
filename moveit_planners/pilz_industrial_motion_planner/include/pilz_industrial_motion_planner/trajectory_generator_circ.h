@@ -40,7 +40,7 @@
 
 #include "pilz_industrial_motion_planner/trajectory_generator.h"
 
-using namespace trapezoidal_trajectory_generation;
+using namespace pilz_industrial_motion_planner;
 
 namespace pilz_industrial_motion_planner
 {
@@ -105,4 +105,4 @@ private:
   std::unique_ptr<KDL::Path> setPathCIRC(const MotionPlanInfo& info) const;
 };
 
-}  // namespace trapezoidal
+}  // namespace pilz_industrial_motion_planner

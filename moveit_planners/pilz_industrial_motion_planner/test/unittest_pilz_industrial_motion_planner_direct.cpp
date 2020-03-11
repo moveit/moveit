@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "pilz_industrial_motion_planner/trapezoidal_command_planner.h"
+#include "pilz_industrial_motion_planner/pilz_industrial_motion_planner.h"
 #include "pilz_industrial_motion_planner/planning_context_loader_ptp.h"
 #include "pilz_industrial_motion_planner/planning_exceptions.h"
 
@@ -49,8 +49,8 @@ TEST(CommandPlannerTestDirect, ExceptionCoverage)
 }
 
 /**
- *  This test uses trapezoidal::CommandPlanner directly and is thus seperated from
- * unittest_trapezoidal_command_planner.cpp since plugin loading via pluginlib does not allow loading of classes already
+ *  This test uses pilz_industrial_motion_planner::CommandPlanner directly and is thus seperated from
+ * unittest_pilz_industrial_motion_planner.cpp since plugin loading via pluginlib does not allow loading of classes already
  * defined.
  */
 

@@ -38,7 +38,7 @@
 
 #include <moveit_msgs/GetMotionSequence.h>
 
-namespace trapezoidal_trajectory_generation
+namespace pilz_industrial_motion_planner
 {
 // Forward declarations
 class CommandListManager;
@@ -62,4 +62,4 @@ private:
   std::unique_ptr<CommandListManager> command_list_manager_;
 };
 
-}  // namespace trapezoidal_trajectory_generation
+}  // namespace pilz_industrial_motion_planner
