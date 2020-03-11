@@ -38,6 +38,7 @@
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit/py_bindings_tools/gil_releaser.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
@@ -56,6 +57,8 @@
 /** @cond IGNORE */
 
 namespace bp = boost::python;
+
+using moveit::py_bindings_tools::GILReleaser;
 
 namespace moveit
 {
@@ -404,6 +407,7 @@ public:
 
   bool movePython()
   {
+    GILReleaser gr;
     return move() == MoveItErrorCode::SUCCESS;
   }
 
@@ -421,6 +425,7 @@ public:
   {
     MoveGroupInterface::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
+    GILReleaser gr;
     return execute(plan) == MoveItErrorCode::SUCCESS;
   }
 
@@ -433,8 +438,10 @@ public:
 
   py_bindings_tools::ByteString getPlanPython()
   {
+    GILReleaser gr;
     MoveGroupInterface::Plan plan;
     MoveGroupInterface::plan(plan);
+    gr.reacquire();
     return py_bindings_tools::serializeMsg(plan.trajectory_);
   }
 
@@ -460,8 +467,10 @@ public:
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
+    GILReleaser gr;
     double fraction =
         computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+    gr.reacquire();
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
@@ -508,6 +517,7 @@ public:
       // Convert trajectory message to object
       moveit_msgs::RobotTrajectory traj_msg;
       py_bindings_tools::deserializeMsg(traj_str, traj_msg);
+      GILReleaser gr;
       robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
       traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
 
@@ -530,11 +540,13 @@ public:
       else
       {
         ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
+        gr.reacquire();
         return py_bindings_tools::serializeMsg(moveit_msgs::RobotTrajectory());
       }
 
       // Convert the retimed trajectory back into a message
       traj_obj.getRobotTrajectoryMsg(traj_msg);
+      gr.reacquire();
       return py_bindings_tools::serializeMsg(traj_msg);
     }
     else

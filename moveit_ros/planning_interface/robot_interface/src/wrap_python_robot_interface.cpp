@@ -39,6 +39,7 @@
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit/py_bindings_tools/gil_releaser.h>
 #include <moveit_msgs/RobotState.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -49,6 +50,7 @@
 /** @cond IGNORE */
 
 namespace bp = boost::python;
+using moveit::py_bindings_tools::GILReleaser;
 
 namespace moveit
 {
@@ -216,6 +218,7 @@ public:
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
     {
+      GILReleaser gr;
       current_state_monitor_->startStateMonitor();
       if (!current_state_monitor_->waitForCompleteState(wait))
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
