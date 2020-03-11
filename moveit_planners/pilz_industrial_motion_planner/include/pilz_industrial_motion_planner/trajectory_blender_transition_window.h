@@ -100,8 +100,8 @@ private:
    * @param first_interse_index: index of the first point of the first trajectory that is inside the blend sphere
    * @param second_interse_index: index of the last point of the second trajectory that is still inside the blend sphere
    */
-  bool searchIntersectionPoints(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, std::size_t& first_interse_index,
-                                std::size_t& second_interse_index) const;
+  bool searchIntersectionPoints(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+                                std::size_t& first_interse_index, std::size_t& second_interse_index) const;
 
   /**
    * @brief Determine how the second trajectory should be aligned with the first trajectory for blend.
@@ -129,8 +129,9 @@ private:
    * be aligned to for motion blend. It is now always same as first_interse_index
    * @param blend_time: time of the motion blend period
    */
-  void determineTrajectoryAlignment(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, std::size_t first_interse_index,
-                                    std::size_t second_interse_index, std::size_t& blend_align_index) const;
+  void determineTrajectoryAlignment(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+                                    std::size_t first_interse_index, std::size_t second_interse_index,
+                                    std::size_t& blend_align_index) const;
 
   /**
    * @brief blend two trajectories in Cartesian space, result in a MultiDOFJointTrajectory which consists
@@ -142,9 +143,10 @@ private:
    * @param sampling_time
    * @param trajectory: the resulting blend trajectory inside the blending sphere
    */
-  void blendTrajectoryCartesian(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, const std::size_t first_interse_index,
-                                const std::size_t second_interse_index, const std::size_t blend_align_index,
-                                double sampling_time, pilz_industrial_motion_planner::CartesianTrajectory& trajectory) const;
+  void blendTrajectoryCartesian(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+                                const std::size_t first_interse_index, const std::size_t second_interse_index,
+                                const std::size_t blend_align_index, double sampling_time,
+                                pilz_industrial_motion_planner::CartesianTrajectory& trajectory) const;
 
 private:  // static members
   // Constant to check for equality of values.

@@ -45,7 +45,8 @@ static const std::string PARAM_MAX_ROT_VEL = "max_rot_vel";
 static const std::string PARAM_MAX_ROT_ACC = "max_rot_acc";
 static const std::string PARAM_MAX_ROT_DEC = "max_rot_dec";
 
-pilz_industrial_motion_planner::CartesianLimit pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(const ros::NodeHandle& nh)
+pilz_industrial_motion_planner::CartesianLimit
+pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(const ros::NodeHandle& nh)
 {
   std::string param_prefix = PARAM_CARTESIAN_LIMITS_NS + "/";
 

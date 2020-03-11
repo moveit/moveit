@@ -41,7 +41,8 @@
 
 TEST(ATrapTest, Test_SetProfile1)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // can reach the maximal velocity
   vp.SetProfile(3, 35);
@@ -87,7 +88,8 @@ TEST(ATrapTest, Test_SetProfile1)
 
 TEST(ATrapTest, Test_SetProfile2)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1.5);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1.5);
 
   // just arrive the maximal velocity
   vp.SetProfile(5, 26);
@@ -125,7 +127,8 @@ TEST(ATrapTest, Test_SetProfile2)
 
 TEST(ATrapTest, Test_SetProfile3)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1);
 
   // cannot reach the maximal velocity
   vp.SetProfile(5, 17);
@@ -159,7 +162,8 @@ TEST(ATrapTest, Test_SetProfile3)
 
 TEST(ATrapTest, Test_SetProfile4)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(6, 2, 1);
 
   // empty profile
   vp.SetProfile(5, 5);
@@ -190,7 +194,8 @@ TEST(ATrapTest, Test_SetProfile4)
  */
 TEST(ATrapTest, Test_SetProfileToLowDuration)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
   pilz_industrial_motion_planner::VelocityProfile_ATrap vp2 = vp1;
 
   vp1.SetProfileDuration(3, 35, std::numeric_limits<double>::epsilon());
@@ -214,7 +219,8 @@ TEST(ATrapTest, Test_SetProfileToLowDuration)
  */
 TEST(ATrapTest, Test_setProfileAllDurationsToLowDuration)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
   pilz_industrial_motion_planner::VelocityProfile_ATrap vp2 = vp1;
 
   vp1.SetProfile(3, 35);
@@ -239,7 +245,8 @@ TEST(ATrapTest, Test_setProfileAllDurationsToLowDuration)
  */
 TEST(ATrapTest, Test_SetProfileZeroStartVelocity)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp1 =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
   pilz_industrial_motion_planner::VelocityProfile_ATrap vp2 = vp1;
 
   vp1.SetProfile(1, 2);
@@ -250,7 +257,8 @@ TEST(ATrapTest, Test_SetProfileZeroStartVelocity)
 
 TEST(ATrapTest, Test_SetProfileDuration)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // set the duration as twice as the fastest profile
   vp.SetProfileDuration(3, 35, 22.0);
@@ -296,7 +304,8 @@ TEST(ATrapTest, Test_SetProfileDuration)
 
 TEST(ATrapTest, Test_setProfileAllDurations1)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // set durations
   EXPECT_TRUE(vp.setProfileAllDurations(3, 35, 3.0, 4.0, 5.0));
@@ -342,7 +351,8 @@ TEST(ATrapTest, Test_setProfileAllDurations1)
 
 TEST(ATrapTest, Test_setProfileAllDurations2)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // invalid maximal velocity
   EXPECT_FALSE(vp.setProfileAllDurations(3, 35, 3.0, 3.0, 5.0));
@@ -354,7 +364,8 @@ TEST(ATrapTest, Test_setProfileAllDurations2)
 
 TEST(ATrapTest, Test_setProfileStartVelocity1)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // invalide cases
   EXPECT_FALSE(vp.setProfileStartVelocity(3.0, 5.0, -1.0));
@@ -390,7 +401,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity1)
 
 TEST(ATrapTest, Test_setProfileStartVelocity2)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // deceleration, acceleration and deceleration
   vp.setProfileStartVelocity(3.0, 4.0, 2.0);
@@ -438,7 +450,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity2)
 
 TEST(ATrapTest, Test_setProfileStartVelocity3)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // acceleration, deceleration
   vp.setProfileStartVelocity(3, 14, 2);
@@ -478,7 +491,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity3)
 
 TEST(ATrapTest, Test_setProfileStartVelocity4)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 14, 2);
@@ -518,7 +532,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity4)
 
 TEST(ATrapTest, Test_setProfileStartVelocity5)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 18, 2);
@@ -562,7 +577,8 @@ TEST(ATrapTest, Test_setProfileStartVelocity5)
 
 TEST(ATrapTest, Test_setProfileStartVelocity6)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 2, 1);
 
   // acceleration, constant, deceleration
   vp.setProfileStartVelocity(3, 15, 4);
@@ -595,9 +611,11 @@ TEST(ATrapTest, Test_setProfileStartVelocity6)
  */
 TEST(ATrapTest, Test_Clone)
 {
-  pilz_industrial_motion_planner::VelocityProfile_ATrap vp = pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 1, 1);
+  pilz_industrial_motion_planner::VelocityProfile_ATrap vp =
+      pilz_industrial_motion_planner::VelocityProfile_ATrap(4, 1, 1);
   vp.setProfileAllDurations(0, 10, 10, 10, 10);
-  pilz_industrial_motion_planner::VelocityProfile_ATrap* vp_clone = static_cast<pilz_industrial_motion_planner::VelocityProfile_ATrap*>(vp.Clone());
+  pilz_industrial_motion_planner::VelocityProfile_ATrap* vp_clone =
+      static_cast<pilz_industrial_motion_planner::VelocityProfile_ATrap*>(vp.Clone());
   EXPECT_EQ(vp, *vp_clone);
   delete vp_clone;
 }

@@ -47,8 +47,8 @@ pilz_industrial_motion_planner::PlanningContextLoaderPTP::~PlanningContextLoader
 {
 }
 
-bool pilz_industrial_motion_planner::PlanningContextLoaderPTP::loadContext(planning_interface::PlanningContextPtr& planning_context,
-                                                        const std::string& name, const std::string& group) const
+bool pilz_industrial_motion_planner::PlanningContextLoaderPTP::loadContext(
+    planning_interface::PlanningContextPtr& planning_context, const std::string& name, const std::string& group) const
 {
   if (limits_set_ && model_set_)
   {
@@ -69,4 +69,5 @@ bool pilz_industrial_motion_planner::PlanningContextLoaderPTP::loadContext(plann
   }
 }
 
-PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::PlanningContextLoaderPTP, pilz_industrial_motion_planner::PlanningContextLoader)
+PLUGINLIB_EXPORT_CLASS(pilz_industrial_motion_planner::PlanningContextLoaderPTP,
+                       pilz_industrial_motion_planner::PlanningContextLoader)

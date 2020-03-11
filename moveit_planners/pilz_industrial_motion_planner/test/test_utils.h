@@ -308,7 +308,8 @@ bool computeLinkFK(const robot_model::RobotModelConstPtr& robot_model, const std
  * @return
  */
 bool checkOriginalTrajectoryAfterBlending(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
-                                          const pilz_industrial_motion_planner::TrajectoryBlendResponse& res, const double time_tolerance);
+                                          const pilz_industrial_motion_planner::TrajectoryBlendResponse& res,
+                                          const double time_tolerance);
 
 /**
  * @brief check the blending result, if the joint space continuity is fulfilled
@@ -316,8 +317,8 @@ bool checkOriginalTrajectoryAfterBlending(const pilz_industrial_motion_planner::
  * Between these three trajectories should be continuous.
  * @return true if joint position/velocity is continuous. joint acceleration can have jumps.
  */
-bool checkBlendingJointSpaceContinuity(const pilz_industrial_motion_planner::TrajectoryBlendResponse& res, double joint_velocity_tolerance,
-                                       double joint_accleration_tolerance);
+bool checkBlendingJointSpaceContinuity(const pilz_industrial_motion_planner::TrajectoryBlendResponse& res,
+                                       double joint_velocity_tolerance, double joint_accleration_tolerance);
 
 bool checkBlendingCartSpaceContinuity(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
                                       const pilz_industrial_motion_planner::TrajectoryBlendResponse& res,
@@ -398,9 +399,10 @@ bool getBlendTestData(const ros::NodeHandle& nh, const size_t& dataset_num, cons
  * @param checkAcceleration
  */
 bool checkBlendResult(const pilz_industrial_motion_planner::TrajectoryBlendRequest& blend_req,
-                      const pilz_industrial_motion_planner::TrajectoryBlendResponse& blend_res, const pilz_industrial_motion_planner::LimitsContainer& limits,
-                      double joint_velocity_tolerance, double joint_acceleration_tolerance,
-                      double cartesian_velocity_tolerance, double cartesian_angular_velocity_tolerance);
+                      const pilz_industrial_motion_planner::TrajectoryBlendResponse& blend_res,
+                      const pilz_industrial_motion_planner::LimitsContainer& limits, double joint_velocity_tolerance,
+                      double joint_acceleration_tolerance, double cartesian_velocity_tolerance,
+                      double cartesian_angular_velocity_tolerance);
 
 /**
  * @brief generate two LIN trajectories from test data set

@@ -34,7 +34,8 @@
 
 #include "pilz_industrial_motion_planner/limits_container.h"
 
-pilz_industrial_motion_planner::LimitsContainer::LimitsContainer() : has_joint_limits_(false), has_cartesian_limits_(false)
+pilz_industrial_motion_planner::LimitsContainer::LimitsContainer()
+  : has_joint_limits_(false), has_cartesian_limits_(false)
 {
 }
 
@@ -43,13 +44,15 @@ bool pilz_industrial_motion_planner::LimitsContainer::hasJointLimits() const
   return has_joint_limits_;
 }
 
-void pilz_industrial_motion_planner::LimitsContainer::setJointLimits(pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
+void pilz_industrial_motion_planner::LimitsContainer::setJointLimits(
+    pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
   has_joint_limits_ = true;
   joint_limits_ = joint_limits;
 }
 
-const pilz_industrial_motion_planner::JointLimitsContainer& pilz_industrial_motion_planner::LimitsContainer::getJointLimitContainer() const
+const pilz_industrial_motion_planner::JointLimitsContainer&
+pilz_industrial_motion_planner::LimitsContainer::getJointLimitContainer() const
 {
   return joint_limits_;
 }
@@ -61,13 +64,15 @@ bool pilz_industrial_motion_planner::LimitsContainer::hasFullCartesianLimits() c
           cartesian_limit_.hasMaxRotationalVelocity());
 }
 
-void pilz_industrial_motion_planner::LimitsContainer::setCartesianLimits(pilz_industrial_motion_planner::CartesianLimit& cartesian_limit)
+void pilz_industrial_motion_planner::LimitsContainer::setCartesianLimits(
+    pilz_industrial_motion_planner::CartesianLimit& cartesian_limit)
 {
   has_cartesian_limits_ = true;
   cartesian_limit_ = cartesian_limit;
 }
 
-const pilz_industrial_motion_planner::CartesianLimit& pilz_industrial_motion_planner::LimitsContainer::getCartesianLimits() const
+const pilz_industrial_motion_planner::CartesianLimit&
+pilz_industrial_motion_planner::LimitsContainer::getCartesianLimits() const
 {
   return cartesian_limit_;
 }

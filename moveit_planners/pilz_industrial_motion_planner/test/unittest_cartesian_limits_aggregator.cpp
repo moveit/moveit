@@ -53,7 +53,8 @@ TEST_F(CartesianLimitsAggregator, OnlyVelocity)
 {
   ros::NodeHandle nh("~/vel_only");
 
-  pilz_industrial_motion_planner::CartesianLimit limit = pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(nh);
+  pilz_industrial_motion_planner::CartesianLimit limit =
+      pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(nh);
   EXPECT_TRUE(limit.hasMaxTranslationalVelocity());
   EXPECT_EQ(limit.getMaxTranslationalVelocity(), 10);
   EXPECT_FALSE(limit.hasMaxTranslationalAcceleration());
@@ -68,7 +69,8 @@ TEST_F(CartesianLimitsAggregator, AllValues)
 {
   ros::NodeHandle nh("~/all");
 
-  pilz_industrial_motion_planner::CartesianLimit limit = pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(nh);
+  pilz_industrial_motion_planner::CartesianLimit limit =
+      pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(nh);
   EXPECT_TRUE(limit.hasMaxTranslationalVelocity());
   EXPECT_EQ(limit.getMaxTranslationalVelocity(), 1);
 

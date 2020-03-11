@@ -64,7 +64,8 @@ public:
 
   /**
    * @brief Initializes the planner
-   * Upon initialization this planner will look for plugins implementing pilz_industrial_motion_planner::PlanningContextLoader.
+   * Upon initialization this planner will look for plugins implementing
+   * pilz_industrial_motion_planner::PlanningContextLoader.
    * @param model The robot model
    * @param ns The namespace
    * @return true on success, false otherwise

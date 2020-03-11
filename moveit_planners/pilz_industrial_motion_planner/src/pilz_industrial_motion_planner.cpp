@@ -66,12 +66,12 @@ bool CommandPlanner::initialize(const moveit::core::RobotModelConstPtr& model, c
       ros::NodeHandle(PARAM_NAMESPACE_LIMTS), model->getActiveJointModels());
 
   // Obtain cartesian limits
-  cartesian_limit_ =
-      pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(ros::NodeHandle(PARAM_NAMESPACE_LIMTS));
+  cartesian_limit_ = pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(
+      ros::NodeHandle(PARAM_NAMESPACE_LIMTS));
 
   // Load the planning context loader
-  planner_context_loader.reset(new pluginlib::ClassLoader<PlanningContextLoader>("pilz_industrial_motion_planner",
-                                                                                 "pilz_industrial_motion_planner::PlanningContextLoader"));
+  planner_context_loader.reset(new pluginlib::ClassLoader<PlanningContextLoader>(
+      "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader"));
 
   // List available plugins
   const std::vector<std::string>& factories = planner_context_loader->getDeclaredClasses();
@@ -152,7 +152,8 @@ bool CommandPlanner::canServiceRequest(const moveit_msgs::MotionPlanRequest& req
   return context_loader_map_.find(req.planner_id) != context_loader_map_.end();
 }
 
-void CommandPlanner::registerContextLoader(const pilz_industrial_motion_planner::PlanningContextLoaderPtr& planning_context_loader)
+void CommandPlanner::registerContextLoader(
+    const pilz_industrial_motion_planner::PlanningContextLoaderPtr& planning_context_loader)
 {
   // Only add if command is not already in list, throw exception if not
   if (context_loader_map_.find(planning_context_loader->getAlgorithm()) == context_loader_map_.end())

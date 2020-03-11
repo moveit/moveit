@@ -62,7 +62,8 @@ public:
    * @param res: trajectroy blend response
    * @return true if blend succeed
    */
-  virtual bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, pilz_industrial_motion_planner::TrajectoryBlendResponse& res) = 0;
+  virtual bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+                     pilz_industrial_motion_planner::TrajectoryBlendResponse& res) = 0;
 
 protected:
   const pilz_industrial_motion_planner::LimitsContainer limits_;

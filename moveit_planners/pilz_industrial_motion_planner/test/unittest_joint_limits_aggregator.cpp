@@ -77,7 +77,8 @@ TEST_F(JointLimitsAggregator, ExpectedMapSize)
   ros::NodeHandle nh("~");
 
   pilz_industrial_motion_planner::JointLimitsContainer container =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
+                                                                                 robot_model_->getActiveJointModels());
 
   EXPECT_EQ(robot_model_->getActiveJointModels().size(), container.getCount());
 }
@@ -90,7 +91,8 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterPosition)
   ros::NodeHandle nh("~/valid_1");
 
   pilz_industrial_motion_planner::JointLimitsContainer container =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
+                                                                                 robot_model_->getActiveJointModels());
 
   for (std::pair<std::string, JointLimit> lim : container)
   {
@@ -119,7 +121,8 @@ TEST_F(JointLimitsAggregator, CorrectOverwriteByParamterVelocity)
   ros::NodeHandle nh("~/valid_1");
 
   pilz_industrial_motion_planner::JointLimitsContainer container =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
+                                                                                 robot_model_->getActiveJointModels());
 
   for (std::pair<std::string, JointLimit> lim : container)
   {
@@ -144,7 +147,8 @@ TEST_F(JointLimitsAggregator, CorrectSettingAccelerationAndDeceleration)
   ros::NodeHandle nh("~/valid_1");
 
   pilz_industrial_motion_planner::JointLimitsContainer container =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh,
+                                                                                 robot_model_->getActiveJointModels());
 
   for (std::pair<std::string, JointLimit> lim : container)
   {
@@ -173,12 +177,14 @@ TEST_F(JointLimitsAggregator, LimitsViolationPosition)
 {
   ros::NodeHandle nh_min("~/violate_position_min");
 
-  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh_min, robot_model_->getActiveJointModels()),
+  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
+                   nh_min, robot_model_->getActiveJointModels()),
                pilz_industrial_motion_planner::AggregationBoundsViolationException);
 
   ros::NodeHandle nh_max("~/violate_position_max");
 
-  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh_max, robot_model_->getActiveJointModels()),
+  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
+                   nh_max, robot_model_->getActiveJointModels()),
                pilz_industrial_motion_planner::AggregationBoundsViolationException);
 }
 
@@ -189,7 +195,8 @@ TEST_F(JointLimitsAggregator, LimitsViolationVelocity)
 {
   ros::NodeHandle nh("~/violate_velocity");
 
-  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(nh, robot_model_->getActiveJointModels()),
+  EXPECT_THROW(pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
+                   nh, robot_model_->getActiveJointModels()),
                pilz_industrial_motion_planner::AggregationBoundsViolationException);
 }
 

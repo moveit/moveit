@@ -49,10 +49,10 @@
 
 #include <tf2_eigen/tf2_eigen.h>
 
-#include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_testutils/sequence.h>
-#include <pilz_industrial_motion_testutils/lin.h>
-#include <pilz_industrial_motion_testutils/gripper.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/lin.h>
+#include <pilz_industrial_motion_planner_testutils/gripper.h>
 
 #include "test_utils.h"
 
@@ -66,7 +66,7 @@ const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 
 using testutils::hasStrictlyIncreasingTime;
 using namespace pilz_industrial_motion_planner;
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 static std::string createManipulatorJointName(const size_t& joint_number)
 {
@@ -100,7 +100,7 @@ protected:
   planning_scene::PlanningScenePtr scene_;
   planning_pipeline::PlanningPipelinePtr pipeline_;
 
-  std::unique_ptr<pilz_industrial_motion_testutils::TestdataLoader> data_loader_;
+  std::unique_ptr<pilz_industrial_motion_planner_testutils::TestdataLoader> data_loader_;
 };
 
 void IntegrationTestCommandListManager::SetUp()
@@ -115,7 +115,8 @@ void IntegrationTestCommandListManager::SetUp()
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name));
 
   // load the test data provider
-  data_loader_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{ test_data_file_name, robot_model_ });
+  data_loader_.reset(
+      new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name, robot_model_ });
   ASSERT_NE(nullptr, data_loader_) << "Failed to load test data by provider.";
 
   // Define and set the current scene and manager test object

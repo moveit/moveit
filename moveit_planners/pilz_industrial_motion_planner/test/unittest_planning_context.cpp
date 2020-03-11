@@ -100,7 +100,8 @@ protected:
     ASSERT_TRUE(ph_.getParam(PARAM_PLANNING_GROUP_NAME, planning_group_));
     ASSERT_TRUE(ph_.getParam(PARAM_TARGET_LINK_NAME, target_link_));
 
-    pilz_industrial_motion_planner::JointLimitsContainer joint_limits = testutils::createFakeLimits(robot_model_->getVariableNames());
+    pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
+        testutils::createFakeLimits(robot_model_->getVariableNames());
     pilz_industrial_motion_planner::CartesianLimit cartesian_limit;
     cartesian_limit.setMaxRotationalVelocity(1.0 * M_PI);
     cartesian_limit.setMaxTranslationalAcceleration(1.0 * M_PI);
@@ -130,7 +131,8 @@ protected:
   {
     planning_interface::MotionPlanRequest req;
 
-    req.planner_id = std::string(context_name).erase(0, std::string("pilz_industrial_motion_planner::PlanningContext").length());
+    req.planner_id =
+        std::string(context_name).erase(0, std::string("pilz_industrial_motion_planner::PlanningContext").length());
     req.group_name = this->planning_group_;
     req.max_velocity_scaling_factor = 0.01;
     req.max_acceleration_scaling_factor = 0.01;

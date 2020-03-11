@@ -137,8 +137,9 @@ bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
  */
 bool generateJointTrajectory(const robot_model::RobotModelConstPtr& robot_model,
                              const JointLimitsContainer& joint_limits,
-                             const pilz_industrial_motion_planner::CartesianTrajectory& trajectory, const std::string& group_name,
-                             const std::string& link_name, const std::map<std::string, double>& initial_joint_position,
+                             const pilz_industrial_motion_planner::CartesianTrajectory& trajectory,
+                             const std::string& group_name, const std::string& link_name,
+                             const std::map<std::string, double>& initial_joint_position,
                              const std::map<std::string, double>& initial_joint_velocity,
                              trajectory_msgs::JointTrajectory& joint_trajectory,
                              moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision = false);

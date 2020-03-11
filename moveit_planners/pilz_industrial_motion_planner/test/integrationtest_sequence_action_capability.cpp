@@ -54,9 +54,9 @@
 
 #include <pilz_testutils/async_test.h>
 
-#include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_testutils/sequence.h>
-#include <pilz_industrial_motion_testutils/checks.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/checks.h>
 
 #include "moveit_msgs/MoveGroupSequenceAction.h"
 
@@ -76,7 +76,7 @@ const std::string SERVER_IDLE_EVENT = "SERVER_IDLE";
 const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 const std::string GROUP_NAME("group_name");
 
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 class IntegrationTestSequenceAction : public testing::Test, public testing::AsyncTest
 {
@@ -205,7 +205,8 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
   ac_.sendGoalAndWait(seq_goal);
 
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
-  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code.";
+  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
+      << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
   EXPECT_TRUE(res->response.trajectories_start.empty());
 }
@@ -427,7 +428,8 @@ TEST_F(IntegrationTestSequenceAction, TestCancellingOfGoal)
   ac_.waitForResult(ros::Duration(WAIT_FOR_RESULT_TIME_OUT));
 
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
-  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED) << "Error code should be preempted.";
+  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::PREEMPTED)
+      << "Error code should be preempted.";
 }
 
 /**
@@ -522,7 +524,8 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
   ac_.sendGoalAndWait(seq_goal);
 
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
-  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code.";
+  EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
+      << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
   EXPECT_TRUE(res->response.trajectories_start.empty());
 }

@@ -39,8 +39,8 @@
 #include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "test_utils.h"
-#include "pilz_industrial_motion_testutils/xml_testdata_loader.h"
-#include "pilz_industrial_motion_testutils/command_types_typedef.h"
+#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
 
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
@@ -67,7 +67,7 @@ const std::string VELOCITY_SCALING_FACTOR("velocity_scaling_factor");
 const std::string OTHER_TOLERANCE("other_tolerance");
 
 using namespace pilz_industrial_motion_planner;
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 /**
  * @brief Parameterized unittest of trajectory generator LIN to enable tests against
@@ -94,7 +94,7 @@ protected:
   // lin trajectory generator using model without gripper
   std::unique_ptr<TrajectoryGenerator> lin_;
   // test data provider
-  std::unique_ptr<pilz_industrial_motion_testutils::TestdataLoader> tdp_;
+  std::unique_ptr<pilz_industrial_motion_planner_testutils::TestdataLoader> tdp_;
 
   // test parameters from parameter server
   std::string planning_group_, target_link_hcd_, test_data_file_name_;
@@ -121,7 +121,7 @@ void TrajectoryGeneratorLINTest::SetUp()
   testutils::checkRobotModel(robot_model_, planning_group_, target_link_hcd_);
 
   // load the test data provider
-  tdp_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{ test_data_file_name_ });
+  tdp_.reset(new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name_ });
   ASSERT_NE(nullptr, tdp_) << "Failed to load test data by provider.";
 
   tdp_->setRobotModel(robot_model_);
@@ -129,7 +129,8 @@ void TrajectoryGeneratorLINTest::SetUp()
   // create the limits container
   // TODO, move this also into test data set
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_,
+                                                                                 robot_model_->getActiveJointModels());
   CartesianLimit cart_limits;
   cart_limits.setMaxRotationalVelocity(0.5 * M_PI);
   cart_limits.setMaxTranslationalAcceleration(2);

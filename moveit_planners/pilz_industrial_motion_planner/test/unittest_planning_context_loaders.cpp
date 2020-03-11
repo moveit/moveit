@@ -65,8 +65,9 @@ protected:
     // Load the plugin
     try
     {
-      planning_context_loader_class_loader_.reset(new pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>(
-          "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader"));
+      planning_context_loader_class_loader_.reset(
+          new pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader>(
+              "pilz_industrial_motion_planner", "pilz_industrial_motion_planner::PlanningContextLoader"));
     }
     catch (pluginlib::PluginlibException& ex)
     {
@@ -100,26 +101,28 @@ protected:
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam().back()).getModel() };
 
   // Load the plugin
-  boost::scoped_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader> > planning_context_loader_class_loader_;
+  boost::scoped_ptr<pluginlib::ClassLoader<pilz_industrial_motion_planner::PlanningContextLoader> >
+      planning_context_loader_class_loader_;
 
   pilz_industrial_motion_planner::PlanningContextLoaderPtr planning_context_loader_;
 };
 
 // Instantiate the test cases for all loaders, extend here if you added a new ContextLoader you want to test
-INSTANTIATE_TEST_CASE_P(InstantiationName, PlanningContextLoadersTest,
-                        ::testing::Values(std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",
-                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for PTP
-                                          std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",
-                                                                    PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for PTP
-                                          std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderLIN", "LIN",
-                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for LIN
-                                          std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderLIN", "LIN",
-                                                                    PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for LIN
-                                          std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderCIRC", "CIRC",
-                                                                    PARAM_MODEL_NO_GRIPPER_NAME },  // Test for CIRC
-                                          std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderCIRC", "CIRC",
-                                                                    PARAM_MODEL_WITH_GRIPPER_NAME }  // Test for CIRC
-                                          ));
+INSTANTIATE_TEST_CASE_P(
+    InstantiationName, PlanningContextLoadersTest,
+    ::testing::Values(std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",
+                                                PARAM_MODEL_NO_GRIPPER_NAME },  // Test for PTP
+                      std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderPTP", "PTP",
+                                                PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for PTP
+                      std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderLIN", "LIN",
+                                                PARAM_MODEL_NO_GRIPPER_NAME },  // Test for LIN
+                      std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderLIN", "LIN",
+                                                PARAM_MODEL_WITH_GRIPPER_NAME },  // Test for LIN
+                      std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderCIRC", "CIRC",
+                                                PARAM_MODEL_NO_GRIPPER_NAME },  // Test for CIRC
+                      std::vector<std::string>{ "pilz_industrial_motion_planner::PlanningContextLoaderCIRC", "CIRC",
+                                                PARAM_MODEL_WITH_GRIPPER_NAME }  // Test for CIRC
+                      ));
 
 /**
  * @brief Test getAlgorithm returns PTP
@@ -142,7 +145,8 @@ TEST_P(PlanningContextLoadersTest, LoadContext)
   EXPECT_EQ(false, res) << "Context returned even when no limits where set";
 
   // After setting the limits this should work
-  pilz_industrial_motion_planner::JointLimitsContainer joint_limits = testutils::createFakeLimits(robot_model_->getVariableNames());
+  pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
+      testutils::createFakeLimits(robot_model_->getVariableNames());
   pilz_industrial_motion_planner::LimitsContainer limits;
   limits.setJointLimits(joint_limits);
   pilz_industrial_motion_planner::CartesianLimit cart_limits;

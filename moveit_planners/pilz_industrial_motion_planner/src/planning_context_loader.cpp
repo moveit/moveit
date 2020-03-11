@@ -50,7 +50,8 @@ bool pilz_industrial_motion_planner::PlanningContextLoader::setModel(const movei
   return true;
 }
 
-bool pilz_industrial_motion_planner::PlanningContextLoader::setLimits(const pilz_industrial_motion_planner::LimitsContainer& limits)
+bool pilz_industrial_motion_planner::PlanningContextLoader::setLimits(
+    const pilz_industrial_motion_planner::LimitsContainer& limits)
 {
   limits_ = limits;
   limits_set_ = true;

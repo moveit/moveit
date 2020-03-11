@@ -43,7 +43,8 @@
 
 using namespace pilz_extensions;
 
-pilz_industrial_motion_planner::JointLimitsContainer pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
+pilz_industrial_motion_planner::JointLimitsContainer
+pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
     const ros::NodeHandle& nh, const std::vector<const moveit::core::JointModel*>& joint_models)
 {
   JointLimitsContainer container;
@@ -99,8 +100,8 @@ pilz_industrial_motion_planner::JointLimitsContainer pilz_industrial_motion_plan
   return container;
 }
 
-void pilz_industrial_motion_planner::JointLimitsAggregator::updatePositionLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                                           JointLimit& joint_limit)
+void pilz_industrial_motion_planner::JointLimitsAggregator::updatePositionLimitFromJointModel(
+    const moveit::core::JointModel* joint_model, JointLimit& joint_limit)
 {
   switch (joint_model->getVariableBounds().size())
   {
@@ -128,8 +129,8 @@ void pilz_industrial_motion_planner::JointLimitsAggregator::updatePositionLimitF
                             << " max:" << joint_limit.max_position);
 }
 
-void pilz_industrial_motion_planner::JointLimitsAggregator::updateVelocityLimitFromJointModel(const moveit::core::JointModel* joint_model,
-                                                                           JointLimit& joint_limit)
+void pilz_industrial_motion_planner::JointLimitsAggregator::updateVelocityLimitFromJointModel(
+    const moveit::core::JointModel* joint_model, JointLimit& joint_limit)
 {
   switch (joint_model->getVariableBounds().size())
   {
@@ -152,8 +153,8 @@ void pilz_industrial_motion_planner::JointLimitsAggregator::updateVelocityLimitF
   }
 }
 
-void pilz_industrial_motion_planner::JointLimitsAggregator::checkPositionBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                                                     const pilz_extensions::JointLimit& joint_limit)
+void pilz_industrial_motion_planner::JointLimitsAggregator::checkPositionBoundsThrowing(
+    const moveit::core::JointModel* joint_model, const pilz_extensions::JointLimit& joint_limit)
 {
   // Check min position
   if (!joint_model->satisfiesPositionBounds(&joint_limit.min_position))
@@ -170,8 +171,8 @@ void pilz_industrial_motion_planner::JointLimitsAggregator::checkPositionBoundsT
   }
 }
 
-void pilz_industrial_motion_planner::JointLimitsAggregator::checkVelocityBoundsThrowing(const moveit::core::JointModel* joint_model,
-                                                                     const JointLimit& joint_limit)
+void pilz_industrial_motion_planner::JointLimitsAggregator::checkVelocityBoundsThrowing(
+    const moveit::core::JointModel* joint_model, const JointLimit& joint_limit)
 {
   // Check min position
   if (!joint_model->satisfiesVelocityBounds(&joint_limit.max_velocity))

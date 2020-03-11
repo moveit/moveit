@@ -106,8 +106,9 @@ protected:
 
     // create the limits container
     std::string robot_description_param = (!T::VALUE ? PARAM_MODEL_NO_GRIPPER_NAME : PARAM_MODEL_WITH_GRIPPER_NAME);
-    pilz_industrial_motion_planner::JointLimitsContainer joint_limits = pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
-        ros::NodeHandle(robot_description_param + "_planning"), robot_model_->getActiveJointModels());
+    pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
+        pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(
+            ros::NodeHandle(robot_description_param + "_planning"), robot_model_->getActiveJointModels());
     pilz_industrial_motion_planner::CartesianLimit cart_limits;
     cart_limits.setMaxRotationalVelocity(0.5 * M_PI);
     cart_limits.setMaxTranslationalAcceleration(2);

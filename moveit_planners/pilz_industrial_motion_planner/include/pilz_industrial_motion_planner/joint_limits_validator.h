@@ -67,7 +67,8 @@ public:
    * @return true if all are equal
    * @note always returns true if has_acceleration_limits=false for all limits, or if size of joint_limits is 0 or 1
    */
-  static bool validateAllAccelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
+  static bool
+  validateAllAccelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
   /**
    * @brief Validates that the deceleration of all limits is equal
@@ -75,7 +76,8 @@ public:
    * @return true if all are equal
    * @note always returns true if has_acceleration_limits=false for all limits, or if size of joint_limits is 0 or 1
    */
-  static bool validateAllDecelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
+  static bool
+  validateAllDecelerationLimitsEqual(const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits);
 
 private:
   static bool validateWithEqualFunc(bool (*eq_func)(const pilz_extensions::JointLimit&,

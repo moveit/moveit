@@ -46,9 +46,9 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_testutils/sequence.h>
-#include <pilz_industrial_motion_testutils/command_types_typedef.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/command_types_typedef.h>
 
 #include "pilz_industrial_motion_planner/trajectory_generator_lin.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
@@ -72,7 +72,7 @@ const std::string SAMPLING_TIME("sampling_time");
 const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 
 using namespace pilz_industrial_motion_planner;
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 class TrajectoryBlenderTransitionWindowTest : public testing::TestWithParam<std::string>
 {
@@ -127,7 +127,8 @@ void TrajectoryBlenderTransitionWindowTest::SetUp()
 
   // create the limits container
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_,
+                                                                                 robot_model_->getActiveJointModels());
   CartesianLimit cart_limits;
   cart_limits.setMaxRotationalVelocity(1 * M_PI);
   cart_limits.setMaxTranslationalAcceleration(2);

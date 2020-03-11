@@ -351,8 +351,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIK)
 
     // compute the ik
     std::map<std::string, double> ik_actual;
-    EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
-                                           ik_actual, false));
+    EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                              frame_id, ik_seed, ik_actual, false));
 
     // compare ik solution and expected value
     for (auto joint_pair : ik_actual)
@@ -376,8 +376,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidGroupNam
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, "InvalidGroupName", tcp_link_, pose_expect, frame_id, ik_seed,
-                                          ik_actual, false));
+  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, "InvalidGroupName", tcp_link_, pose_expect,
+                                                             frame_id, ik_seed, ik_actual, false));
 }
 
 /**
@@ -392,8 +392,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidLinkName
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, "WrongLink", pose_expect, frame_id, ik_seed,
-                                          ik_actual, false));
+  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, "WrongLink", pose_expect,
+                                                             frame_id, ik_seed, ik_actual, false));
 }
 
 /**
@@ -409,8 +409,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKInvalidFrameId)
 
   // compute the ik
   std::map<std::string, double> ik_actual;
-  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, "InvalidFrameId",
-                                          ik_seed, ik_actual, false));
+  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                             "InvalidFrameId", ik_seed, ik_actual, false));
 }
 
 /**
@@ -445,8 +445,8 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 
   // compute the ik without self collision check and expect the resulting pose to be in self collission.
   std::map<std::string, double> ik_actual1;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
-                                         ik_actual1, false));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                            frame_id, ik_seed, ik_actual1, false));
 
   robot_state::RobotState rstate(robot_model_);
   planning_scene::PlanningScene rscene(robot_model_);
@@ -468,8 +468,8 @@ TEST_P(TrajectoryFunctionsTestOnlyGripper, testComputePoseIKSelfCollisionForVali
 
   // compute the ik with collision detection activated and expect the resulting pose to be without self collision.
   std::map<std::string, double> ik_actual2;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
-                                         ik_actual2, true));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                            frame_id, ik_seed, ik_actual2, true));
 
   std::vector<double> ik_state2;
   std::transform(ik_actual2.begin(), ik_actual2.end(), std::back_inserter(ik_state2),
@@ -510,12 +510,12 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testComputePoseIKSelfCollisionFo
 
   // compute the ik with disabled collision check
   std::map<std::string, double> ik_actual;
-  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
-                                         ik_actual, false));
+  EXPECT_TRUE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                            frame_id, ik_seed, ik_actual, false));
 
   // compute the ik with enabled collision check
-  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect, frame_id, ik_seed,
-                                          ik_actual, true));
+  EXPECT_FALSE(pilz_industrial_motion_planner::computePoseIK(robot_model_, planning_group_, tcp_link_, pose_expect,
+                                                             frame_id, ik_seed, ik_actual, true));
 }
 
 /**
@@ -536,8 +536,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsWithS
 
   double duration_current = 10e-7;
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
-                                                    duration_current, joint_limits));
+  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current,
+                                                                       duration_last, duration_current, joint_limits));
 }
 
 /**
@@ -568,8 +568,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsVeloc
   test_joint_limits.has_velocity_limits = true;
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
-                                                    duration_current, joint_limits));
+  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current,
+                                                                       duration_last, duration_current, joint_limits));
 }
 
 /**
@@ -609,8 +609,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsAccel
 
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
-                                                    duration_current, joint_limits));
+  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current,
+                                                                       duration_last, duration_current, joint_limits));
 }
 
 /**
@@ -650,8 +650,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testVerifySampleJointLimitsDecel
 
   joint_limits.addLimit(test_joint_name, test_joint_limits);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current, duration_last,
-                                                    duration_current, joint_limits));
+  EXPECT_FALSE(pilz_industrial_motion_planner::verifySampleJointLimits(position_last, velocity_last, position_current,
+                                                                       duration_last, duration_current, joint_limits));
 }
 
 /**
@@ -688,9 +688,9 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
   moveit_msgs::MoveItErrorCodes error_code;
   bool check_self_collision{ false };
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(robot_model_, joint_limits, kdl_trajectory, group_name, tcp_link_,
-                                                    initial_joint_position, sampling_time, joint_trajectory, error_code,
-                                                    check_self_collision));
+  EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(
+      robot_model_, joint_limits, kdl_trajectory, group_name, tcp_link_, initial_joint_position, sampling_time,
+      joint_trajectory, error_code, check_self_collision));
 
   std::map<std::string, double> initial_joint_velocity;
 
@@ -700,9 +700,9 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testGenerateJointTrajectoryWithI
   pilz_industrial_motion_planner::CartesianTrajectoryPoint cart_traj_point;
   cart_traj.points.push_back(cart_traj_point);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(robot_model_, joint_limits, cart_traj, group_name, tcp_link_,
-                                                    initial_joint_position, initial_joint_velocity, joint_trajectory,
-                                                    error_code, check_self_collision));
+  EXPECT_FALSE(pilz_industrial_motion_planner::generateJointTrajectory(
+      robot_model_, joint_limits, cart_traj, group_name, tcp_link_, initial_joint_position, initial_joint_velocity,
+      joint_trajectory, error_code, check_self_collision));
 }
 
 /**
@@ -729,7 +729,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
   first_trajectory->insertWayPoint(0, rstate, 0.1);
   second_trajectory->insertWayPoint(0, rstate, 0.1);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
+  EXPECT_FALSE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory,
+                                                                             epsilon, sampling_time));
 }
 
 /**
@@ -761,7 +762,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
   second_trajectory->insertWayPoint(1, rstate, expected_sampling_time);
   second_trajectory->insertWayPoint(2, rstate, expected_sampling_time);
 
-  EXPECT_TRUE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
+  EXPECT_TRUE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory,
+                                                                            epsilon, sampling_time));
   EXPECT_EQ(expected_sampling_time, sampling_time);
 }
 
@@ -799,7 +801,8 @@ TEST_P(TrajectoryFunctionsTestFlangeAndGripper, testDetermineAndCheckSamplingTim
   second_trajectory->insertWayPoint(2, rstate, expected_sampling_time);
   second_trajectory->insertWayPoint(3, rstate, expected_sampling_time);
 
-  EXPECT_FALSE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory, epsilon, sampling_time));
+  EXPECT_FALSE(pilz_industrial_motion_planner::determineAndCheckSamplingTime(first_trajectory, second_trajectory,
+                                                                             epsilon, sampling_time));
   EXPECT_EQ(expected_sampling_time, sampling_time);
 }
 

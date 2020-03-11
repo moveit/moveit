@@ -136,7 +136,8 @@ bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(plan
 }
 
 template <typename GeneratorT>
-bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(planning_interface::MotionPlanDetailedResponse& res)
+bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(
+    planning_interface::MotionPlanDetailedResponse& res)
 {
   // delegate to regular response
   planning_interface::MotionPlanResponse undetailed_response;

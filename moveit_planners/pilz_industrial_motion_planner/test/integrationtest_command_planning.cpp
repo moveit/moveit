@@ -47,8 +47,8 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_testutils/command_types_typedef.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <pilz_industrial_motion_planner_testutils/command_types_typedef.h>
 #include <ros/ros.h>
 #include <tf2/convert.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -66,7 +66,7 @@ const std::string ORIENTATION_NORM_TOLERANCE("orientation_norm_tolerance");
 const std::string PARAM_TARGET_LINK_NAME("target_link");
 const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 /**
  * PLEASE NOTE:
@@ -87,7 +87,7 @@ protected:
   double pose_norm_tolerance_, orientation_norm_tolerance_;
   std::string planning_group_, target_link_, test_data_file_name_;
 
-  std::unique_ptr<pilz_industrial_motion_testutils::TestdataLoader> test_data_;
+  std::unique_ptr<pilz_industrial_motion_planner_testutils::TestdataLoader> test_data_;
 
   unsigned int num_joints_{ 0 };
 };
@@ -106,7 +106,8 @@ void IntegrationTestCommandPlanning::SetUp()
   ASSERT_TRUE(ph_.getParam(TEST_DATA_FILE_NAME, test_data_file_name_));
 
   // load the test data provider
-  test_data_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{ test_data_file_name_, robot_model_ });
+  test_data_.reset(
+      new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name_, robot_model_ });
   ASSERT_NE(nullptr, test_data_) << "Failed to load test data by provider.";
 
   num_joints_ = robot_model_->getJointModelGroup(planning_group_)->getActiveJointModelNames().size();

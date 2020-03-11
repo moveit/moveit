@@ -131,9 +131,9 @@ void TrajectoryGeneratorPTPTest::SetUp()
   ASSERT_NE(nullptr, ptp_);
 }
 
-bool TrajectoryGeneratorPTPTest::checkTrajectory(const trajectory_msgs::JointTrajectory& trajectory,
-                                                 const planning_interface::MotionPlanRequest& req,
-                                                 const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
+bool TrajectoryGeneratorPTPTest::checkTrajectory(
+    const trajectory_msgs::JointTrajectory& trajectory, const planning_interface::MotionPlanRequest& req,
+    const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
   return (testutils::isTrajectoryConsistent(trajectory) &&
           testutils::isGoalReached(trajectory, req.goal_constraints.front().joint_constraints,

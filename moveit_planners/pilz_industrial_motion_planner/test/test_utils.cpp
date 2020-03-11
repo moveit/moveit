@@ -42,7 +42,8 @@
 
 #include "test_utils.h"
 
-pilz_industrial_motion_planner::JointLimitsContainer testutils::createFakeLimits(const std::vector<std::string>& joint_names)
+pilz_industrial_motion_planner::JointLimitsContainer
+testutils::createFakeLimits(const std::vector<std::string>& joint_names)
 {
   pilz_industrial_motion_planner::JointLimitsContainer container;
 
@@ -986,9 +987,10 @@ bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& datase
 }
 
 bool testutils::generateTrajFromBlendTestData(
-    const robot_model::RobotModelConstPtr& robot_model, const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg,
-    const std::string& group_name, const std::string& link_name, const testutils::blend_test_data& data,
-    const double& sampling_time_1, const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
+    const robot_model::RobotModelConstPtr& robot_model,
+    const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg, const std::string& group_name,
+    const std::string& link_name, const testutils::blend_test_data& data, const double& sampling_time_1,
+    const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
     planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
 {
   // generate first trajectory
@@ -1049,9 +1051,9 @@ bool testutils::generateTrajFromBlendTestData(
 
 bool testutils::checkBlendResult(const pilz_industrial_motion_planner::TrajectoryBlendRequest& blend_req,
                                  const pilz_industrial_motion_planner::TrajectoryBlendResponse& blend_res,
-                                 const pilz_industrial_motion_planner::LimitsContainer& limits, double joint_velocity_tolerance,
-                                 double joint_acceleration_tolerance, double cartesian_velocity_tolerance,
-                                 double cartesian_angular_velocity_tolerance)
+                                 const pilz_industrial_motion_planner::LimitsContainer& limits,
+                                 double joint_velocity_tolerance, double joint_acceleration_tolerance,
+                                 double cartesian_velocity_tolerance, double cartesian_angular_velocity_tolerance)
 {
   // ++++++++++++++++++++++
   // + Check trajectories +

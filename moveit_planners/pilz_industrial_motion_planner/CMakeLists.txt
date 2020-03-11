@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   moveit_ros_move_group
   moveit_ros_planning_interface
-  pilz_industrial_motion_testutils
+  pilz_industrial_motion_planner_testutils
   kdl_conversions
 )
 
@@ -324,7 +324,7 @@ if(CATKIN_ENABLE_TESTING)
   ####Unit Tests####
   ##################
 
-  add_library(${PROJECT_NAME}_testutils
+  add_library(${PROJECT_NAME}_testhelpers
     test/test_utils.cpp
     src/trajectory_generator.cpp
     src/trajectory_generator_circ.cpp
@@ -334,7 +334,7 @@ if(CATKIN_ENABLE_TESTING)
     src/velocity_profile_atrap.cpp
   )
 
-  target_link_libraries(${PROJECT_NAME}_testutils ${PROJECT_NAME}_lib)
+  target_link_libraries(${PROJECT_NAME}_testhelpers ${PROJECT_NAME}_lib)
 
   ## Add gtest based cpp test target and link libraries
   catkin_add_gtest(unittest_pilz_industrial_motion_planner_direct
@@ -344,7 +344,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_pilz_industrial_motion_planner_direct
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   ## Add gtest based cpp test target and link libraries
@@ -373,7 +373,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_functions
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # unittest for trajectory blender transition window
@@ -385,7 +385,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_blender_transition_window
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # trajectory generator Unit Test
@@ -396,7 +396,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_generator_common
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # trajectory generator circ Unit Test
@@ -407,7 +407,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_generator_circ
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # trajectory generator lin Unit Test
@@ -418,7 +418,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_generator_lin
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # trajectory generator ptp Unit Test
@@ -429,7 +429,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_trajectory_generator_ptp
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # Command Planner Unit Test
@@ -493,7 +493,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_planning_context_loaders
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # PlanningContext Unit Test (Typed test)
@@ -507,7 +507,7 @@ if(CATKIN_ENABLE_TESTING)
 
   target_link_libraries(unittest_planning_context
     ${catkin_LIBRARIES}
-    ${PROJECT_NAME}_testutils
+    ${PROJECT_NAME}_testhelpers
   )
 
   # GetTipFrames Unit Test

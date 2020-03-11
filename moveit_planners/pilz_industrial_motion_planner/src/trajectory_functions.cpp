@@ -40,11 +40,12 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
-                                const std::string& link_name, const Eigen::Isometry3d& pose,
-                                const std::string& frame_id, const std::map<std::string, double>& seed,
-                                std::map<std::string, double>& solution, bool check_self_collision,
-                                const double timeout)
+bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model,
+                                                   const std::string& group_name, const std::string& link_name,
+                                                   const Eigen::Isometry3d& pose, const std::string& frame_id,
+                                                   const std::map<std::string, double>& seed,
+                                                   std::map<std::string, double>& solution, bool check_self_collision,
+                                                   const double timeout)
 {
   if (!robot_model->hasJointModelGroup(group_name))
   {
@@ -72,7 +73,8 @@ bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotMode
   rstate.setVariablePositions(seed);
 
   moveit::core::GroupStateValidityCallbackFn ik_constraint_function;
-  ik_constraint_function = boost::bind(&pilz_industrial_motion_planner::isStateColliding, check_self_collision, robot_model, _1, _2, _3);
+  ik_constraint_function =
+      boost::bind(&pilz_industrial_motion_planner::isStateColliding, check_self_collision, robot_model, _1, _2, _3);
 
   // call ik
   if (rstate.setFromIK(robot_model->getJointModelGroup(group_name), pose, link_name, timeout, ik_constraint_function))
@@ -91,11 +93,12 @@ bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotMode
   }
 }
 
-bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
-                                const std::string& link_name, const geometry_msgs::Pose& pose,
-                                const std::string& frame_id, const std::map<std::string, double>& seed,
-                                std::map<std::string, double>& solution, bool check_self_collision,
-                                const double timeout)
+bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotModelConstPtr& robot_model,
+                                                   const std::string& group_name, const std::string& link_name,
+                                                   const geometry_msgs::Pose& pose, const std::string& frame_id,
+                                                   const std::map<std::string, double>& seed,
+                                                   std::map<std::string, double>& solution, bool check_self_collision,
+                                                   const double timeout)
 {
   Eigen::Isometry3d pose_eigen;
   tf2::convert<geometry_msgs::Pose, Eigen::Isometry3d>(pose, pose_eigen);
@@ -103,8 +106,10 @@ bool pilz_industrial_motion_planner::computePoseIK(const moveit::core::RobotMode
                        timeout);
 }
 
-bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model, const std::string& link_name,
-                                const std::map<std::string, double>& joint_state, Eigen::Isometry3d& pose)
+bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotModelConstPtr& robot_model,
+                                                   const std::string& link_name,
+                                                   const std::map<std::string, double>& joint_state,
+                                                   Eigen::Isometry3d& pose)
 {
   // create robot state
   robot_state::RobotState rstate(robot_model);
@@ -126,11 +131,10 @@ bool pilz_industrial_motion_planner::computeLinkFK(const moveit::core::RobotMode
   return true;
 }
 
-bool pilz_industrial_motion_planner::verifySampleJointLimits(const std::map<std::string, double>& position_last,
-                                          const std::map<std::string, double>& velocity_last,
-                                          const std::map<std::string, double>& position_current, double duration_last,
-                                          double duration_current,
-                                          const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
+bool pilz_industrial_motion_planner::verifySampleJointLimits(
+    const std::map<std::string, double>& position_last, const std::map<std::string, double>& velocity_last,
+    const std::map<std::string, double>& position_current, double duration_last, double duration_current,
+    const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
   const double epsilon = 10e-6;
   if (duration_current <= epsilon)
@@ -186,14 +190,13 @@ bool pilz_industrial_motion_planner::verifySampleJointLimits(const std::map<std:
   return true;
 }
 
-bool pilz_industrial_motion_planner::generateJointTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
-                                          const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits,
-                                          const KDL::Trajectory& trajectory, const std::string& group_name,
-                                          const std::string& link_name,
-                                          const std::map<std::string, double>& initial_joint_position,
-                                          const double& sampling_time,
-                                          trajectory_msgs::JointTrajectory& joint_trajectory,
-                                          moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision)
+bool pilz_industrial_motion_planner::generateJointTrajectory(
+    const moveit::core::RobotModelConstPtr& robot_model,
+    const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits, const KDL::Trajectory& trajectory,
+    const std::string& group_name, const std::string& link_name,
+    const std::map<std::string, double>& initial_joint_position, const double& sampling_time,
+    trajectory_msgs::JointTrajectory& joint_trajectory, moveit_msgs::MoveItErrorCodes& error_code,
+    bool check_self_collision)
 {
   ROS_DEBUG("Generate joint trajectory from a Cartesian trajectory.");
 
@@ -301,14 +304,13 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(const moveit::core:
   return true;
 }
 
-bool pilz_industrial_motion_planner::generateJointTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
-                                          const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits,
-                                          const pilz_industrial_motion_planner::CartesianTrajectory& trajectory,
-                                          const std::string& group_name, const std::string& link_name,
-                                          const std::map<std::string, double>& initial_joint_position,
-                                          const std::map<std::string, double>& initial_joint_velocity,
-                                          trajectory_msgs::JointTrajectory& joint_trajectory,
-                                          moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision)
+bool pilz_industrial_motion_planner::generateJointTrajectory(
+    const moveit::core::RobotModelConstPtr& robot_model,
+    const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits,
+    const pilz_industrial_motion_planner::CartesianTrajectory& trajectory, const std::string& group_name,
+    const std::string& link_name, const std::map<std::string, double>& initial_joint_position,
+    const std::map<std::string, double>& initial_joint_velocity, trajectory_msgs::JointTrajectory& joint_trajectory,
+    moveit_msgs::MoveItErrorCodes& error_code, bool check_self_collision)
 {
   ROS_DEBUG("Generate joint trajectory from a Cartesian trajectory.");
 
@@ -392,9 +394,9 @@ bool pilz_industrial_motion_planner::generateJointTrajectory(const moveit::core:
   return true;
 }
 
-bool pilz_industrial_motion_planner::determineAndCheckSamplingTime(const robot_trajectory::RobotTrajectoryPtr& first_trajectory,
-                                                const robot_trajectory::RobotTrajectoryPtr& second_trajectory,
-                                                double epsilon, double& sampling_time)
+bool pilz_industrial_motion_planner::determineAndCheckSamplingTime(
+    const robot_trajectory::RobotTrajectoryPtr& first_trajectory,
+    const robot_trajectory::RobotTrajectoryPtr& second_trajectory, double epsilon, double& sampling_time)
 {
   // The last sample is ignored because it is allowed to violate the sampling time.
   std::size_t n1 = first_trajectory->getWayPointCount() - 1;
@@ -440,8 +442,9 @@ bool pilz_industrial_motion_planner::determineAndCheckSamplingTime(const robot_t
   return true;
 }
 
-bool pilz_industrial_motion_planner::isRobotStateEqual(const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
-                                    const std::string& joint_group_name, double epsilon)
+bool pilz_industrial_motion_planner::isRobotStateEqual(const moveit::core::RobotState& state1,
+                                                       const moveit::core::RobotState& state2,
+                                                       const std::string& joint_group_name, double epsilon)
 {
   Eigen::VectorXd joint_position_1, joint_position_2;
 
@@ -482,8 +485,8 @@ bool pilz_industrial_motion_planner::isRobotStateEqual(const moveit::core::Robot
   return true;
 }
 
-bool pilz_industrial_motion_planner::isRobotStateStationary(const moveit::core::RobotState& state, const std::string& group,
-                                         double EPSILON)
+bool pilz_industrial_motion_planner::isRobotStateStationary(const moveit::core::RobotState& state,
+                                                            const std::string& group, double EPSILON)
 {
   Eigen::VectorXd joint_variable;
   state.copyJointGroupVelocities(group, joint_variable);
@@ -501,9 +504,11 @@ bool pilz_industrial_motion_planner::isRobotStateStationary(const moveit::core::
   return true;
 }
 
-bool pilz_industrial_motion_planner::linearSearchIntersectionPoint(const std::string& link_name, const Eigen::Vector3d& center_position,
-                                                const double& r, const robot_trajectory::RobotTrajectoryPtr& traj,
-                                                bool inverseOrder, std::size_t& index)
+bool pilz_industrial_motion_planner::linearSearchIntersectionPoint(const std::string& link_name,
+                                                                   const Eigen::Vector3d& center_position,
+                                                                   const double& r,
+                                                                   const robot_trajectory::RobotTrajectoryPtr& traj,
+                                                                   bool inverseOrder, std::size_t& index)
 {
   ROS_DEBUG("Start linear search for intersection point.");
 
@@ -537,15 +542,18 @@ bool pilz_industrial_motion_planner::linearSearchIntersectionPoint(const std::st
   return false;
 }
 
-bool pilz_industrial_motion_planner::intersectionFound(const Eigen::Vector3d& p_center, const Eigen::Vector3d& p_current,
-                                    const Eigen::Vector3d& p_next, const double& r)
+bool pilz_industrial_motion_planner::intersectionFound(const Eigen::Vector3d& p_center,
+                                                       const Eigen::Vector3d& p_current, const Eigen::Vector3d& p_next,
+                                                       const double& r)
 {
   return ((p_current - p_center).norm() <= r) && ((p_next - p_center).norm() >= r);
 }
 
 bool pilz_industrial_motion_planner::isStateColliding(const bool test_for_self_collision,
-                                   const moveit::core::RobotModelConstPtr& robot_model, robot_state::RobotState* rstate,
-                                   const robot_state::JointModelGroup* const group, const double* const ik_solution)
+                                                      const moveit::core::RobotModelConstPtr& robot_model,
+                                                      robot_state::RobotState* rstate,
+                                                      const robot_state::JointModelGroup* const group,
+                                                      const double* const ik_solution)
 {
   if (!test_for_self_collision)
   {

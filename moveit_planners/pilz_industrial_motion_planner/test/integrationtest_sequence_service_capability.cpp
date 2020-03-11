@@ -49,8 +49,8 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit_msgs/MotionPlanResponse.h>
 
-#include <pilz_industrial_motion_testutils/xml_testdata_loader.h>
-#include <pilz_industrial_motion_testutils/sequence.h>
+#include <pilz_industrial_motion_planner_testutils/xml_testdata_loader.h>
+#include <pilz_industrial_motion_planner_testutils/sequence.h>
 
 #include "moveit_msgs/GetMotionSequence.h"
 #include "moveit_msgs/MotionSequenceRequest.h"
@@ -59,7 +59,7 @@
 // Parameters from parameter server
 const std::string TEST_DATA_FILE_NAME("testdata_file_name");
 
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 static std::string createJointName(const size_t& joint_number)
 {
@@ -195,7 +195,8 @@ TEST_F(IntegrationTestSequenceService, TestOverlappingBlendRadii)
 
   ASSERT_TRUE(client_.call(srv));
 
-  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN, srv.response.response.error_code.val) << "Incorrect error code";
+  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN, srv.response.response.error_code.val)
+      << "Incorrect error code";
   EXPECT_TRUE(srv.response.response.planned_trajectories.empty());
 }
 
@@ -252,7 +253,8 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
 
   ASSERT_TRUE(client_.call(srv));
 
-  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE, srv.response.response.error_code.val) << "Incorrect error code.";
+  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE, srv.response.response.error_code.val)
+      << "Incorrect error code.";
   EXPECT_TRUE(srv.response.response.planned_trajectories.empty());
 }
 
@@ -279,7 +281,8 @@ TEST_F(IntegrationTestSequenceService, TestFirstGoalNotReachable)
 
   ASSERT_TRUE(client_.call(srv));
 
-  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION, srv.response.response.error_code.val) << "Incorrect error code.";
+  EXPECT_EQ(moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION, srv.response.response.error_code.val)
+      << "Incorrect error code.";
   EXPECT_TRUE(srv.response.response.planned_trajectories.empty());
 }
 

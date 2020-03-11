@@ -39,8 +39,9 @@
 #include <algorithm>
 #include <math.h>
 
-bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
-                                                           pilz_industrial_motion_planner::TrajectoryBlendResponse& res)
+bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(
+    const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+    pilz_industrial_motion_planner::TrajectoryBlendResponse& res)
 {
   ROS_INFO("Start trajectory blending using transition window.");
 
@@ -126,9 +127,9 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::blend(co
   return true;
 }
 
-bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validateRequest(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
-                                                                     double& sampling_time,
-                                                                     moveit_msgs::MoveItErrorCodes& error_code) const
+bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validateRequest(
+    const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, double& sampling_time,
+    moveit_msgs::MoveItErrorCodes& error_code) const
 {
   ROS_DEBUG("Validate the trajectory blend request.");
 
@@ -157,8 +158,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
   }
 
   // end position of the first trajectory and start position of second trajectory must be the same
-  if (!pilz_industrial_motion_planner::isRobotStateEqual(req.first_trajectory->getLastWayPoint(),
-                                      req.second_trajectory->getFirstWayPoint(), req.group_name, epsilon))
+  if (!pilz_industrial_motion_planner::isRobotStateEqual(
+          req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, epsilon))
   {
     ROS_ERROR_STREAM("During blending the last point ("
                      << req.first_trajectory->getLastWayPoint()
@@ -169,7 +170,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
   }
 
   // same uniform sampling time
-  if (!pilz_industrial_motion_planner::determineAndCheckSamplingTime(req.first_trajectory, req.second_trajectory, epsilon, sampling_time))
+  if (!pilz_industrial_motion_planner::determineAndCheckSamplingTime(req.first_trajectory, req.second_trajectory,
+                                                                     epsilon, sampling_time))
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
@@ -177,8 +179,10 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
 
   // end position of the first trajectory and start position of second trajectory must have zero
   // velocities/accelerations
-  if (!pilz_industrial_motion_planner::isRobotStateStationary(req.first_trajectory->getLastWayPoint(), req.group_name, epsilon) ||
-      !pilz_industrial_motion_planner::isRobotStateStationary(req.second_trajectory->getFirstWayPoint(), req.group_name, epsilon))
+  if (!pilz_industrial_motion_planner::isRobotStateStationary(req.first_trajectory->getLastWayPoint(), req.group_name,
+                                                              epsilon) ||
+      !pilz_industrial_motion_planner::isRobotStateStationary(req.second_trajectory->getFirstWayPoint(), req.group_name,
+                                                              epsilon))
   {
     ROS_ERROR("Intersection point of the blending trajectories has non-zero velocities/accelerations.");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
@@ -277,8 +281,8 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::searchIn
 }
 
 void pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::determineTrajectoryAlignment(
-    const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, std::size_t first_interse_index, std::size_t second_interse_index,
-    std::size_t& blend_align_index) const
+    const pilz_industrial_motion_planner::TrajectoryBlendRequest& req, std::size_t first_interse_index,
+    std::size_t second_interse_index, std::size_t& blend_align_index) const
 {
   size_t way_point_count_1 = req.first_trajectory->getWayPointCount() - first_interse_index;
   size_t way_point_count_2 = second_interse_index + 1;

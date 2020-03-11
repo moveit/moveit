@@ -64,9 +64,9 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::validateAllDecelerati
   return validateWithEqualFunc(&pilz_industrial_motion_planner::JointLimitsValidator::decelerationEqual, joint_limits);
 }
 
-bool pilz_industrial_motion_planner::JointLimitsValidator::validateWithEqualFunc(bool (*eq_func)(const pilz_extensions::JointLimit&,
-                                                                              const pilz_extensions::JointLimit&),
-                                                              const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
+bool pilz_industrial_motion_planner::JointLimitsValidator::validateWithEqualFunc(
+    bool (*eq_func)(const pilz_extensions::JointLimit&, const pilz_extensions::JointLimit&),
+    const pilz_industrial_motion_planner::JointLimitsContainer& joint_limits)
 {
   // If there are no joint_limits it is considered equal
   if (joint_limits.empty())
@@ -88,7 +88,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::validateWithEqualFunc
 }
 
 bool pilz_industrial_motion_planner::JointLimitsValidator::positionEqual(const pilz_extensions::JointLimit& lhs,
-                                                      const pilz_extensions::JointLimit& rhs)
+                                                                         const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
   if (lhs.has_position_limits != rhs.has_position_limits)
@@ -105,7 +105,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::positionEqual(const p
 }
 
 bool pilz_industrial_motion_planner::JointLimitsValidator::velocityEqual(const pilz_extensions::JointLimit& lhs,
-                                                      const pilz_extensions::JointLimit& rhs)
+                                                                         const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_velocity_limits differs
   if (lhs.has_velocity_limits != rhs.has_velocity_limits)
@@ -123,7 +123,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::velocityEqual(const p
 }
 
 bool pilz_industrial_motion_planner::JointLimitsValidator::accelerationEqual(const pilz_extensions::JointLimit& lhs,
-                                                          const pilz_extensions::JointLimit& rhs)
+                                                                             const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_acceleration_limits differs
   if (lhs.has_acceleration_limits != rhs.has_acceleration_limits)
@@ -141,7 +141,7 @@ bool pilz_industrial_motion_planner::JointLimitsValidator::accelerationEqual(con
 }
 
 bool pilz_industrial_motion_planner::JointLimitsValidator::decelerationEqual(const pilz_extensions::JointLimit& lhs,
-                                                          const pilz_extensions::JointLimit& rhs)
+                                                                             const pilz_extensions::JointLimit& rhs)
 {
   // Return false if .has_acceleration_limits differs
   if (lhs.has_deceleration_limits != rhs.has_deceleration_limits)

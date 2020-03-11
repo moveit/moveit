@@ -55,8 +55,8 @@ void PlanComponentsBuilder::appendWithStrictTimeIncrease(robot_trajectory::Robot
                                                          const robot_trajectory::RobotTrajectory& source)
 {
   if (result.empty() ||
-      !pilz_industrial_motion_planner::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(), result.getGroupName(),
-                                      ROBOT_STATE_EQUALITY_EPSILON))
+      !pilz_industrial_motion_planner::isRobotStateEqual(result.getLastWayPoint(), source.getFirstWayPoint(),
+                                                         result.getGroupName(), ROBOT_STATE_EQUALITY_EPSILON))
   {
     result.append(source, 0.0);
     return;

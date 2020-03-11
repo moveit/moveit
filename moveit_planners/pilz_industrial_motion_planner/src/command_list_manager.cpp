@@ -63,15 +63,16 @@ CommandListManager::CommandListManager(const ros::NodeHandle& nh, const moveit::
 
   // Obtain cartesian limits
   pilz_industrial_motion_planner::CartesianLimit cartesian_limit =
-      pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(ros::NodeHandle(PARAM_NAMESPACE_LIMITS));
+      pilz_industrial_motion_planner::CartesianLimitsAggregator::getAggregatedLimits(
+          ros::NodeHandle(PARAM_NAMESPACE_LIMITS));
 
   pilz_industrial_motion_planner::LimitsContainer limits;
   limits.setJointLimits(aggregated_limit_active_joints);
   limits.setCartesianLimits(cartesian_limit);
 
   plan_comp_builder_.setModel(model);
-  plan_comp_builder_.setBlender(
-      std::unique_ptr<pilz_industrial_motion_planner::TrajectoryBlender>(new pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow(limits)));
+  plan_comp_builder_.setBlender(std::unique_ptr<pilz_industrial_motion_planner::TrajectoryBlender>(
+      new pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow(limits)));
 }
 
 RobotTrajCont CommandListManager::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

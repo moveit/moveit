@@ -48,8 +48,8 @@
 #include "pilz_industrial_motion_planner/trajectory_generator_circ.h"
 #include "pilz_industrial_motion_planner/joint_limits_aggregator.h"
 #include "test_utils.h"
-#include "pilz_industrial_motion_testutils/xml_testdata_loader.h"
-#include "pilz_industrial_motion_testutils/command_types_typedef.h"
+#include "pilz_industrial_motion_planner_testutils/xml_testdata_loader.h"
+#include "pilz_industrial_motion_planner_testutils/command_types_typedef.h"
 
 const std::string PARAM_MODEL_NO_GRIPPER_NAME{ "robot_description" };
 const std::string PARAM_MODEL_WITH_GRIPPER_NAME{ "robot_description_pg70" };
@@ -72,7 +72,7 @@ const std::string OTHER_TOLERANCE("other_tolerance");
   };
 
 using namespace pilz_industrial_motion_planner;
-using namespace pilz_industrial_motion_testutils;
+using namespace pilz_industrial_motion_planner_testutils;
 
 class TrajectoryGeneratorCIRCTest : public testing::TestWithParam<std::string>
 {
@@ -95,7 +95,7 @@ protected:
   robot_model::RobotModelConstPtr robot_model_{ robot_model_loader::RobotModelLoader(GetParam()).getModel() };
   std::unique_ptr<TrajectoryGeneratorCIRC> circ_;
   // test data provider
-  std::unique_ptr<pilz_industrial_motion_testutils::TestdataLoader> tdp_;
+  std::unique_ptr<pilz_industrial_motion_planner_testutils::TestdataLoader> tdp_;
 
   // test parameters from parameter server
   std::string planning_group_, target_link_, test_data_file_name_;
@@ -121,14 +121,15 @@ void TrajectoryGeneratorCIRCTest::SetUp()
   testutils::checkRobotModel(robot_model_, planning_group_, target_link_);
 
   // load the test data provider
-  tdp_.reset(new pilz_industrial_motion_testutils::XmlTestdataLoader{ test_data_file_name_ });
+  tdp_.reset(new pilz_industrial_motion_planner_testutils::XmlTestdataLoader{ test_data_file_name_ });
   ASSERT_NE(nullptr, tdp_) << "Failed to load test data by provider.";
 
   tdp_->setRobotModel(robot_model_);
 
   // create the limits container
   pilz_industrial_motion_planner::JointLimitsContainer joint_limits =
-      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_, robot_model_->getActiveJointModels());
+      pilz_industrial_motion_planner::JointLimitsAggregator::getAggregatedLimits(ph_,
+                                                                                 robot_model_->getActiveJointModels());
   CartesianLimit cart_limits;
   // Cartesian limits are chose as such values to ease the manually compute the trajectory
 
