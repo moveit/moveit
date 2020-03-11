@@ -106,6 +106,7 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 
   // This parameter name was changed recently.
   // Try retrieving from the correct name. If it fails, then try the deprecated name.
+  // TODO(andyz): remove this deprecation warning in ROS Noetic
   if (!rosparam_shortcuts::get("", n, parameter_ns + "/status_topic", ros_parameters_.status_topic))
   {
     ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "

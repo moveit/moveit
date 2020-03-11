@@ -181,7 +181,7 @@ protected:
 
   ros::Publisher status_pub_;
 
-  StatusCode status_ = kNoWarning;
+  StatusCode status_ = NO_WARNING;
 
   JogArmParameters parameters_;
 
