@@ -52,7 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
   <!-- run test -->
   <test pkg="pilz_industrial_motion_planner" test-name="integrationtest_sequence_action_capability_frankaemika_panda"
-        type="integrationtest_sequence_action_capability_frankaemika_panda" time-limit="300.0">
+        type="integrationtest_sequence_action_capability" time-limit="300.0">
     <param name="joint_prefix" value="panda_joint" />
     <param name="joint_position_tolerance" value="0.01" />
     <param name="group_name" value="panda_arm" />
