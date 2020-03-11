@@ -112,7 +112,7 @@ protected:
   void suddenHalt(Eigen::ArrayXd& delta_theta);
 
   /** \brief Publish the status of the jogger to a ROS topic */
-  void publishStatus(StatusCode status) const;
+  void publishStatus() const;
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);

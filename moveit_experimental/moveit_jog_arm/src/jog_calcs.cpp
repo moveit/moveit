@@ -357,7 +357,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  publishStatus(status_);
+  publishStatus();
   // Cache the status so it can be retrieved asynchronously
   updateCachedStatus(shared_variables, mutex);
 
@@ -385,7 +385,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  publishStatus(status_);
+  publishStatus();
   // Cache the status so it can be retrieved asynchronously
   updateCachedStatus(shared_variables, mutex);
 
@@ -394,9 +394,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
 
 void JogCalcs::updateCachedStatus(JogArmShared& shared_variables, std::mutex& mutex)
 {
-  mutex.lock();
   shared_variables.status = status_;
-  mutex.unlock();
   status_ = NO_WARNING;
 }
 
@@ -676,10 +674,10 @@ bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_j
   return !halting;
 }
 
-void JogCalcs::publishStatus(StatusCode status) const
+void JogCalcs::publishStatus() const
 {
   std_msgs::Int8 status_msg;
-  status_msg.data = status;
+  status_msg.data = status_;
   status_pub_.publish(status_msg);
 }
 

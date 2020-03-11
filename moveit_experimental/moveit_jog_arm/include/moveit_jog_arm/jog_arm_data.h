@@ -92,8 +92,8 @@ struct JogArmShared
   std::atomic_bool drift_dimensions[6] = { ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false),
                                            ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false) };
 
-  // Current status of the jogger. In collision, etc.
-  StatusCode status;
+  // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
+  std::atomic<StatusCode> status;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

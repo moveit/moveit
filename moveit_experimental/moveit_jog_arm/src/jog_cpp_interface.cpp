@@ -224,10 +224,6 @@ bool JogCppInterface::getCommandFrameTransform(Eigen::Isometry3d& transform)
 
 StatusCode JogCppInterface::getJoggerStatus()
 {
-  shared_variables_mutex_.lock();
-  StatusCode status = shared_variables_.status;
-  shared_variables_mutex_.unlock();
-
-  return status;
+  return shared_variables_.status;
 }
 }  // namespace moveit_jog_arm
