@@ -9,9 +9,9 @@ add_definitions(-Wno-unused-parameter)
 add_definitions(-Werror)
 
 find_package(catkin REQUIRED COMPONENTS
+  eigen_conversions
   moveit_core
   moveit_msgs
-  eigen_conversions
 )
 
 find_package(Boost REQUIRED COMPONENTS)
@@ -50,37 +50,31 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
- include
- ${catkin_INCLUDE_DIRS}
- ${Boost_INCLUDE_DIRS}
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
- add_library(${PROJECT_NAME}
-   src/xml_testdata_loader.cpp
-   src/robotconfiguration.cpp
-   src/jointconfiguration.cpp
-   src/cartesianconfiguration.cpp
-   src/sequence.cpp
+add_library(${PROJECT_NAME}
+  src/cartesianconfiguration.cpp
+  src/jointconfiguration.cpp
+  src/robotconfiguration.cpp
+  src/sequence.cpp
+  src/xml_testdata_loader.cpp
 )
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}
-   ${catkin_LIBRARIES}
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
 )
 
 add_dependencies(${PROJECT_NAME}
-            ${catkin_EXPORTED_TARGETS})
+  ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##
 #############
-
-install(PROGRAMS
-   src/${PROJECT_NAME}/xml_testdata_loader.py
-   src/${PROJECT_NAME}/acceptance_test_utils.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}

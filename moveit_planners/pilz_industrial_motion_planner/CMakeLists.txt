@@ -9,10 +9,15 @@ add_definitions(-Wno-unused-parameter)
 add_definitions(-Werror)
 
 find_package(catkin REQUIRED COMPONENTS
+  eigen_conversions
+  kdl_conversions
   moveit_core
   moveit_msgs
+  moveit_ros_move_group
   moveit_ros_planning
+  moveit_ros_planning_interface
   pilz_extensions
+  ${PROJECT_NAME}_testutils
   pluginlib
   roscpp
   tf2
@@ -20,11 +25,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
   tf2_kdl
   tf2_ros
-  eigen_conversions
-  moveit_ros_move_group
-  moveit_ros_planning_interface
-  pilz_industrial_motion_planner_testutils
-  kdl_conversions
 )
 
 find_package(orocos_kdl)
@@ -78,7 +78,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_lib
-  src/pilz_industrial_motion_planner.cpp
+  src/${PROJECT_NAME}.cpp
   src/planning_context_loader.cpp
   src/joint_limits_validator.cpp
   src/joint_limits_aggregator.cpp
@@ -97,8 +97,8 @@ target_link_libraries(${PROJECT_NAME}_lib
 #############
 ## Plugins ##
 #############
-add_library(pilz_industrial_motion_planner
-            src/pilz_industrial_motion_planner.cpp
+add_library(${PROJECT_NAME}
+            src/${PROJECT_NAME}.cpp
             src/planning_context_loader.cpp
             src/joint_limits_aggregator.cpp
             src/joint_limits_container.cpp
@@ -106,7 +106,7 @@ add_library(pilz_industrial_motion_planner
             src/cartesian_limit.cpp
             src/cartesian_limits_aggregator.cpp
             )
-target_link_libraries(pilz_industrial_motion_planner
+target_link_libraries(${PROJECT_NAME}
                       ${catkin_LIBRARIES})
 
 add_library(planning_context_loader_ptp
@@ -177,14 +177,14 @@ add_dependencies(sequence_capability
 #############
 install(FILES
        plugins/sequence_capability_plugin_description.xml
-       plugins/pilz_industrial_motion_planner_plugin_description.xml
+       plugins/${PROJECT_NAME}_plugin_description.xml
        plugins/planning_context_plugin_description.xml
        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/plugins
        )
 
 ## Mark libraries for installation
 install(TARGETS
-   pilz_industrial_motion_planner
+   ${PROJECT_NAME}
    planning_context_loader_ptp
    planning_context_loader_lin
    planning_context_loader_circ
@@ -224,7 +224,7 @@ if(CATKIN_ENABLE_TESTING)
 
   set(${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES
     sequence_capability
-    pilz_industrial_motion_planner
+    ${PROJECT_NAME}
     planning_context_loader_ptp
     planning_context_loader_lin
     planning_context_loader_circ
@@ -337,12 +337,12 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(${PROJECT_NAME}_testhelpers ${PROJECT_NAME}_lib)
 
   ## Add gtest based cpp test target and link libraries
-  catkin_add_gtest(unittest_pilz_industrial_motion_planner_direct
-    test/unittest_pilz_industrial_motion_planner_direct.cpp
+  catkin_add_gtest(unittest_${PROJECT_NAME}_direct
+    test/unittest_${PROJECT_NAME}_direct.cpp
     src/planning_context_loader_ptp.cpp
   )
 
-  target_link_libraries(unittest_pilz_industrial_motion_planner_direct
+  target_link_libraries(unittest_${PROJECT_NAME}_direct
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
   )
@@ -433,12 +433,12 @@ if(CATKIN_ENABLE_TESTING)
   )
 
   # Command Planner Unit Test
-  add_rostest_gtest(unittest_pilz_industrial_motion_planner
-    test/unittest_pilz_industrial_motion_planner.test
-    test/unittest_pilz_industrial_motion_planner.cpp
+  add_rostest_gtest(unittest_${PROJECT_NAME}
+    test/unittest_${PROJECT_NAME}.test
+    test/unittest_${PROJECT_NAME}.cpp
   )
 
-  target_link_libraries(unittest_pilz_industrial_motion_planner
+  target_link_libraries(unittest_${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
   )
