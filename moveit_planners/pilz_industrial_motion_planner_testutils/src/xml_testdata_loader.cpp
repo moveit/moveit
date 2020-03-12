@@ -189,10 +189,16 @@ const pt::ptree::value_type& XmlTestdataLoader::findNodeWithName(const boost::pr
   }
 
   std::string msg;
-  msg.append("Node of type \"").append(key).append("\" with ").append(path_str).append("=\"").append(name).append("\" "
-                                                                                                                  "not "
-                                                                                                                  "foun"
-                                                                                                                  "d.");
+  msg.append("Node of type \"")
+      .append(key)
+      .append("\" with ")
+      .append(path_str)
+      .append("=\"")
+      .append(name)
+      .append("\" "
+              "not "
+              "foun"
+              "d.");
   throw TestDataLoaderReadingException(msg);
 }
 
