@@ -199,14 +199,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
       object_recognition_client_.reset();
     }
   }
-  try
-  {
-    planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
-  }
-  catch (std::exception& ex)
-  {
-    ROS_ERROR("%s", ex.what());
-  }
 
   try
   {

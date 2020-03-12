@@ -44,7 +44,6 @@
 #ifndef Q_MOC_RUN
 #include <moveit/macros/class_forward.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interaction_handler.h>
@@ -126,7 +125,6 @@ protected:
   MotionPlanningFrameJointsWidget* joints_tab_;
 
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
-  moveit::planning_interface::PlanningSceneInterfacePtr planning_scene_interface_;
   moveit::semantic_world::SemanticWorldPtr semantic_world_;
 
   moveit::planning_interface::MoveGroupInterface::PlanPtr current_plan_;
@@ -270,7 +268,7 @@ private:
 
   // Pick and place
   void processDetectedObjects();
-  void updateDetectedObjectsList(const std::vector<std::string>& object_ids, const std::vector<std::string>& objects);
+  void updateDetectedObjectsList(const std::vector<std::string>& object_ids);
   void publishTables();
   void updateSupportSurfacesList();
   ros::Publisher object_recognition_trigger_publisher_;
