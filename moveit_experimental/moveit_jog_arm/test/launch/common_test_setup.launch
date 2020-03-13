@@ -8,14 +8,6 @@
     <arg name="load_robot_description" value="true"/>
   </include>
 
-  <!-- Note, we're using fake, simulated trajectory controllers.
-       These aren't suitable for actually jogging a robot in RViz, but they are good enough to
-       test jog node output.
-  -->
-  <include file="$(find moveit_jog_arm)/test/arm_setup/launch/panda_move_group.launch">
-    <arg name="fake_execution" value="true"/>
-  </include>
-
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="tool_state_publisher">
     <param name="publish_frequency" type="double" value="50.0"/>
   </node>
