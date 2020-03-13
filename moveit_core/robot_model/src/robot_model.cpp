@@ -990,6 +990,7 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
   EigenSTL::vector_Isometry3d poses;
 
   for (const urdf::CollisionSharedPtr& col : col_array)
+  {
     if (col && col->geometry)
     {
       shapes::ShapeConstPtr s = constructShape(col->geometry.get());
@@ -999,21 +1000,32 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
         poses.push_back(urdfPose2Isometry3d(col->origin));
       }
     }
+  }
+
+  // Set to true if previous moveit behavior would have changed urdf collision to match the visual
+  bool has_missing_collision = false;
   if (shapes.empty())
   {
     const std::vector<urdf::VisualSharedPtr>& vis_array = urdf_link->visual_array.empty() ?
                                                               std::vector<urdf::VisualSharedPtr>(1, urdf_link->visual) :
                                                               urdf_link->visual_array;
     for (const urdf::VisualSharedPtr& vis : vis_array)
+    {
       if (vis && vis->geometry)
       {
-        shapes::ShapeConstPtr s = constructShape(vis->geometry.get());
-        if (s)
-        {
-          shapes.push_back(s);
-          poses.push_back(urdfPose2Isometry3d(vis->origin));
-        }
+        has_missing_collision = true;
       }
+    }
+  }
+
+  if (has_missing_collision)
+  {
+    // clang-format off
+    ROS_WARN_STREAM_NAMED(LOGNAME + ".empty_collision_geometry",
+                          "Link " << urdf_link->name << " has visual geometry but no collision geometry. "
+                          "Collision geometry will be left empty. "
+                          "Fix your URDF file by explicitly specifying collision geometry.");
+    // clang-format on
   }
 
   new_link_model->setGeometry(shapes, poses);
