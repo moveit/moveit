@@ -602,9 +602,12 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
 
+    case IKP_TranslationXY2D:
+      ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
+      return solutions.GetNumSolutions();
+
     case IKP_Rotation3D:
     case IKP_Lookat3D:
-    case IKP_TranslationXY2D:
     case IKP_TranslationXYOrientation3D:
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
