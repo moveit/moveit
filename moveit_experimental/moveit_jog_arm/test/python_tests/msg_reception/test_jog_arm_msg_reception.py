@@ -8,17 +8,22 @@ from geometry_msgs.msg import TwistStamped
 from control_msgs.msg import JointJog
 from trajectory_msgs.msg import JointTrajectory
 
+# Import common Python test utilities
+from os import sys, path
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+import util
+
 # Test that the jogger publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_jog_arm test_jog_arm_integration.py
-
-JOG_ARM_SETTLE_TIME_S = 10
-ROS_SETTLE_TIME_S = 10
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
+
+# Check if jogger is initialized with this service
+SERVICE_NAME = 'jog_server/change_drift_dimensions'
 
 
 @pytest.fixture
@@ -53,12 +58,15 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_cartesian_command(node):
+    # Test sending a cartesian velocity command
+
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different thread fills 'received'
@@ -92,13 +100,13 @@ def test_jog_arm_cartesian_command(node):
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
+    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
-
     joint_cmd = JointJogCmd()
-    time.sleep(ROS_SETTLE_TIME_S)  # wait for pub/subs to settle
 
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
