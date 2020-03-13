@@ -1002,30 +1002,25 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
     }
   }
 
-  // Set to true if previous moveit behavior would have changed urdf collision to match the visual
-  bool has_missing_collision = false;
+  // Should we warn that old (melodic) behaviour has changed, not copying visual to collision geometries anymore?
+  bool warn_about_missing_collision = false;
   if (shapes.empty())
   {
-    const std::vector<urdf::VisualSharedPtr>& vis_array = urdf_link->visual_array.empty() ?
-                                                              std::vector<urdf::VisualSharedPtr>(1, urdf_link->visual) :
+    const auto& vis_array = urdf_link->visual_array.empty() ? std::vector<urdf::VisualSharedPtr>{ urdf_link->visual } :
                                                               urdf_link->visual_array;
     for (const urdf::VisualSharedPtr& vis : vis_array)
     {
       if (vis && vis->geometry)
-      {
-        has_missing_collision = true;
-      }
+        warn_about_missing_collision = true;
     }
   }
-
-  if (has_missing_collision)
+  if (warn_about_missing_collision)
   {
-    // clang-format off
     ROS_WARN_STREAM_NAMED(LOGNAME + ".empty_collision_geometry",
-                          "Link " << urdf_link->name << " has visual geometry but no collision geometry. "
-                          "Collision geometry will be left empty. "
-                          "Fix your URDF file by explicitly specifying collision geometry.");
-    // clang-format on
+                          "Link " << urdf_link->name
+                                  << " has visual geometry but no collision geometry. "
+                                     "Collision geometry will be left empty. "
+                                     "Fix your URDF file by explicitly specifying collision geometry.");
   }
 
   new_link_model->setGeometry(shapes, poses);
