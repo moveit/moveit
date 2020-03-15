@@ -238,5 +238,88 @@ std::ostream& operator<<(std::ostream& out, const VariableBounds& b)
   return out;
 }
 
+
+// Calculating hash for JointModel
+namespace std
+{
+	template<> struct hash<JointModel>
+	{
+		std::size_t operator()(JointModel const& joint) const noexcept
+		{
+			std::size_t h =0;
+      // use Joint name_
+			boost::hash_combine(h, joint.name_);
+      // use Joint type_: unknown/revolute/prismatic/planner/floating/fixed
+			boost::hash_combine(h, std::hash<JointType>{}(joint.type_));
+
+      // local_var_names: Do we want this for hash?
+			for (auto &local_var : local_variable_names_) {
+				boost::hash_combine(h, std::hash<std::string>{}(local_var));
+			}
+      // Ignoring variable_names_
+
+      // use Joint variable bounds 
+      // //This is a vector of VariableBounds. They should be really Map<std::string, Bounds> where the key 
+      // should be local_var_names_. So instead of initializing two variables (variable_names_ and 
+      // variable_bounds_) I would just initialize this map. So no need for two loop to associate 
+      // variable_bounds_ from the JointLimit to variable_names_ and then assign limits to VariableBounds. 
+      // ANYHOW we don’t need to worry about the order of those, since the vector corresponds to the 
+      // local_variable_names_ index!
+			for (auto &var : variable_bounds_) {
+				boost::hash_combine(h, std::hash<VariableBounds>{}(var));
+			}
+
+      // Ignoring JointLimits.msg
+      // Ignoring variable_index_map_
+_
+      // use parent and child model links model
+			boost::hash_combine(h, std::hash<LinkModel>{}(parent_link_model_->hash()));
+			boost::hash_combine(h, std::hash<LinkModel>{}(child_link_model_->hash()));
+      boost::hash_combine(h, std::hash<JointModel>{})(mimic_->hash());
+      boost::hash_combine(h, mimic_factor_);
+      boost::hash_combine(h, mimic_offset_);
+      // Ignore mimic mimic_requests_
+    
+      // All the links/joins which would move/not move with this Joint
+      for (auto &desc_link : descendant_link_models_) {
+        boost::hash_combine(h, std::hash<LinkModel>{}(desc_link->hash()));
+      }
+      for (auto &desc_joint : descendant_joint_models_) {
+        boost::hash_combine(h, std::hash<JointModel>{}(desc_joint->hash()));
+      }
+      for (auto &non_fixed : non_fixed_descendant_joint_models_) {
+        boost::hash_combine(h, std::hash<JointModel>{}(non_fixed->hash()));
+      }
+
+      boost::hash_combine(h, joint.passive_);
+      boost::hash_combine(h, joint.distance_factor_);
+      boost::hash_combine(h, joint.first_variable_index_);
+      boost::hash_combine(h, joint.joint_index_);
+      return h;
+		}
+	}
+}
+
+// Calculating Hash for VariableBounds
+namespace std 
+{
+  template<> struct hash<VariableBounds> {
+		std::size_t operator()(VariableBounds const& varBound) const noexcept
+    {
+			std::size_t h = 0;
+			boost::hash_combine(h, varBound.min_position_);
+			boost::hash_combine(h, varBound.max_position_);
+			boost::hash_combine(h, varBound.acceleration_bounded_);
+			boost::hash_combine(h, varBound.min_acceleration_);
+			boost::hash_combine(h, varBound.max_acceleration_);
+			boost::hash_combine(h, varBound.position_bounded_);
+			boost::hash_combine(h, varBound.min_velocity_);
+			boost::hash_combine(h, varBound.max_velocity_);
+
+      return h;
+    }
+
+  }
+}
 }  // end of namespace core
 }  // end of namespace moveit

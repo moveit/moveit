@@ -84,4 +84,3 @@ private:
   double angular_distance_weight_;
 };
 }
-}

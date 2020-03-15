@@ -236,5 +236,22 @@ void PlanarJointModel::computeVariablePositions(const Eigen::Isometry3d& transf,
   }
 }
 
+
+// Calculate hash for planar joint model
+namespace std
+{
+  template<> struct hash<PlanarJointModel> 
+  {
+		std::size_t operator()(JointModel const& joint) const noexcept
+		{
+			std::size_t h =0;
+      boost::hash_combine(h, JointModel::hash());
+      boost::hash_combine(h, joint.angular_distance_weight_);
+
+      return h;
+    }
+  }
+}
+
 }  // end of namespace core
 }  // end of namespace moveit

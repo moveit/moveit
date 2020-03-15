@@ -148,5 +148,21 @@ void PrismaticJointModel::computeVariablePositions(const Eigen::Isometry3d& tran
   joint_values[0] = transf.translation().dot(axis_);
 }
 
+
+// Calculate hash for planar joint model
+namespace std
+{
+  template<> struct hash<PrismaticJointModel> 
+  {
+		std::size_t operator()(JointModel const& joint) const noexcept
+		{
+			std::size_t h =0;
+      boost::hash_combine(h, JointModel::hash());
+
+      return h;
+    }
+  }
+}
+
 }  // end of namespace core
 }  // end of namespace moveit
