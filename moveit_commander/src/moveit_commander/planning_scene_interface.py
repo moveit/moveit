@@ -78,6 +78,12 @@ class PlanningSceneInterface(object):
             else:
                 self._pub_co.publish(collision_object)
 
+    def add_object(self, collision_object):
+        """
+        Add an object to the planning scene
+        """
+        self.__submit(collision_object, attach=False)
+
     def add_sphere(self, name, pose, radius=1):
         """
         Add a sphere to the planning scene
@@ -118,6 +124,12 @@ class PlanningSceneInterface(object):
         co.planes = [p]
         co.plane_poses = [pose.pose]
         self.__submit(co, attach=False)
+    
+    def attach_object(self, attached_collision_object):
+        """
+        Attach an object in the planning scene
+        """
+        self.__submit(attached_collision_object, attach=True)
 
     def attach_mesh(self, link, name, pose=None, filename='', size=(1, 1, 1), touch_links=[]):
         aco = AttachedCollisionObject()
