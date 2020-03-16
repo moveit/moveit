@@ -794,7 +794,7 @@ public:
     }
   }
 
-  MoveItErrorCode execute(const Plan& plan, bool wait)
+  MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory, bool wait)
   {
     if (!execute_action_client_->isServerConnected())
     {
@@ -802,7 +802,7 @@ public:
     }
 
     moveit_msgs::ExecuteTrajectoryGoal goal;
-    goal.trajectory = plan.trajectory_;
+    goal.trajectory = trajectory;
 
     execute_action_client_->sendGoal(goal);
     if (!wait)
@@ -1428,12 +1428,24 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::asyncExecute(const Plan& plan)
 {
-  return impl_->execute(plan, false);
+  return impl_->execute(plan.trajectory_, false);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::asyncExecute(const moveit_msgs::RobotTrajectory& trajectory)
+{
+  return impl_->execute(trajectory, false);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::execute(const Plan& plan)
 {
-  return impl_->execute(plan, true);
+  return impl_->execute(plan.trajectory_, true);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::execute(const moveit_msgs::RobotTrajectory& trajectory)
+{
+  return impl_->execute(trajectory, true);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::plan(Plan& plan)
