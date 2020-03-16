@@ -57,7 +57,8 @@
 namespace moveit_jog_arm
 {
 // Variables to share between threads, and their mutexes
-struct JogArmShared
+// Inherit from a mutex so the struct can be locked/unlocked easily
+struct JogArmShared : public std::mutex
 {
   geometry_msgs::TwistStamped command_deltas;
 

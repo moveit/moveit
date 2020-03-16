@@ -95,7 +95,6 @@ protected:
 
   // Share data between threads
   JogArmShared shared_variables_;
-  std::mutex shared_variables_mutex_;
 
   // Jog calcs
   std::unique_ptr<JogCalcs> jog_calcs_;

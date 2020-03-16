@@ -204,8 +204,9 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 // Listen to joint angles. Store them in a shared variable.
 void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  const std::lock_guard<std::mutex> lock(shared_variables_mutex_);
+  shared_variables_.lock();
   shared_variables_.joints = *msg;
+  shared_variables_.unlock();
 }
 
 bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
@@ -229,8 +230,7 @@ bool JogInterfaceBase::startJogCalcThread()
   if (!jog_calcs_)
     jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
 
-  jog_calc_thread_.reset(
-      new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+  jog_calc_thread_.reset(new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_); }));
 
   return true;
 }
@@ -257,8 +257,7 @@ bool JogInterfaceBase::startCollisionCheckThread()
   if (!collision_checker_)
     collision_checker_.reset(new CollisionCheckThread(ros_parameters_, planning_scene_monitor_));
 
-  collision_check_thread_.reset(
-      new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+  collision_check_thread_.reset(new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_); }));
 
   return true;
 }

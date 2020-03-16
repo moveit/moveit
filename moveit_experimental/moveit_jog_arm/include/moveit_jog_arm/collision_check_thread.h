@@ -60,7 +60,7 @@ public:
   // Get thread-safe read-only lock of planning scene
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
 
-  void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables, std::mutex& mutex);
+  void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables);
 
   void stopMainLoop();
 

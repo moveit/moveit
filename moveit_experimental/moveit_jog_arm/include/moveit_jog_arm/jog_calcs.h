@@ -58,7 +58,7 @@ class JogCalcs
 public:
   JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
-  void startMainLoop(JogArmShared& shared_variables, std::mutex& mutex);
+  void startMainLoop(JogArmShared& shared_variables);
 
   void stopMainLoop();
 
@@ -82,7 +82,7 @@ protected:
   std::atomic<bool> is_initialized_;
 
   /** \brief Do jogging calculations for Cartesian twist commands. */
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
   /** \brief Do jogging calculations for direct commands to a joint. */
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
@@ -91,7 +91,7 @@ protected:
   void updateCachedStatus(JogArmShared& shared_variables);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
-  bool updateJoints(std::mutex& mutex, const JogArmShared& shared_variables);
+  bool updateJoints(JogArmShared& shared_variables);
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
@@ -130,13 +130,11 @@ protected:
   /**
    * Slow motion down if close to singularity or collision.
    * @param shared_variables data shared between threads, tells how close we are to collision
-   * @param mutex locks shared data
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    * @return false if very close to collision or singularity
    */
-  bool applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex, Eigen::ArrayXd& delta_theta,
-                            double singularity_scale);
+  bool applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta, double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
   trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;

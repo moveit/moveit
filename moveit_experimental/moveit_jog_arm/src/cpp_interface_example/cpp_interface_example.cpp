@@ -115,8 +115,7 @@ int main(int argc, char** argv)
 
   // Retrieve the current status of the jogger
   moveit_jog_arm::StatusCode status = jog_interface.getJoggerStatus();
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status:");
-  ROS_INFO_STREAM_NAMED(LOGNAME, status);
+  ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status:\n" << status);
 
   jog_interface.stopMainLoop();
   jogging_thread.join();
