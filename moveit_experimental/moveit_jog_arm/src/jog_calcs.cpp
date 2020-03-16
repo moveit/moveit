@@ -352,7 +352,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   if (!applyVelocityScaling(shared_variables, delta_theta_,
                             velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
   {
-    suddenHalt(outgoing_command_);
+    suddenHalt(delta_theta_);
   }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;

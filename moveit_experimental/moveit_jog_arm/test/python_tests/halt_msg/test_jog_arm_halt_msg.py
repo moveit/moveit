@@ -67,8 +67,8 @@ def test_jog_arm_halt_msg(node):
 
     # Check the received messages
     # A non-zero value signifies a warning
-    assert len(received) > 1
-    assert received[-1].data != 0
+    assert len(received) > 3
+    assert (received[-1].data != 0) or (received[-2].data != 0) or (received[-3].data != 0)
 
 
 if __name__ == '__main__':
