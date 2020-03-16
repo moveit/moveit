@@ -726,11 +726,17 @@ public:
       target. No execution is performed. The resulting plan is stored in \e plan*/
   MoveItErrorCode plan(Plan& plan);
 
-  /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
+  /** \brief Given a \e plan, execute it without waiting for completion. */
   MoveItErrorCode asyncExecute(const Plan& plan);
 
-  /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
+  /** \brief Given a \e robot trajectory, execute it without waiting for completion. */
+  MoveItErrorCode asyncExecute(const moveit_msgs::RobotTrajectory& trajectory);
+
+  /** \brief Given a \e plan, execute it while waiting for completion. */
   MoveItErrorCode execute(const Plan& plan);
+
+  /** \brief Given a \e robot trajectory, execute it while waiting for completion. */
+  MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
