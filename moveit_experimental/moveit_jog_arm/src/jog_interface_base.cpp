@@ -94,7 +94,6 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/check_collisions", ros_parameters_.check_collisions);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/warning_topic", ros_parameters_.warning_topic);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/joint_limit_margin", ros_parameters_.joint_limit_margin);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/command_out_topic", ros_parameters_.command_out_topic);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/command_out_type", ros_parameters_.command_out_type);
@@ -104,6 +103,16 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.publish_joint_velocities);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/publish_joint_accelerations",
                                     ros_parameters_.publish_joint_accelerations);
+
+  // This parameter name was changed recently.
+  // Try retrieving from the correct name. If it fails, then try the deprecated name.
+  // TODO(andyz): remove this deprecation warning in ROS Noetic
+  if (!rosparam_shortcuts::get("", n, parameter_ns + "/status_topic", ros_parameters_.status_topic))
+  {
+    ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "
+                            "the jogging yaml file.");
+    error += !rosparam_shortcuts::get("", n, parameter_ns + "/warning_topic", ros_parameters_.status_topic);
+  }
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
@@ -195,8 +204,9 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
 // Listen to joint angles. Store them in a shared variable.
 void JogInterfaceBase::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  const std::lock_guard<std::mutex> lock(shared_variables_mutex_);
+  shared_variables_.lock();
   shared_variables_.joints = *msg;
+  shared_variables_.unlock();
 }
 
 bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
@@ -220,8 +230,7 @@ bool JogInterfaceBase::startJogCalcThread()
   if (!jog_calcs_)
     jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
 
-  jog_calc_thread_.reset(
-      new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+  jog_calc_thread_.reset(new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_); }));
 
   return true;
 }
@@ -248,8 +257,7 @@ bool JogInterfaceBase::startCollisionCheckThread()
   if (!collision_checker_)
     collision_checker_.reset(new CollisionCheckThread(ros_parameters_, planning_scene_monitor_));
 
-  collision_check_thread_.reset(
-      new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_, shared_variables_mutex_); }));
+  collision_check_thread_.reset(new std::thread([&]() { collision_checker_->startMainLoop(shared_variables_); }));
 
   return true;
 }

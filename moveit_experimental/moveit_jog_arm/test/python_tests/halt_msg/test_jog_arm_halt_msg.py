@@ -6,7 +6,7 @@ import rospy
 from geometry_msgs.msg import TwistStamped
 
 from control_msgs.msg import JointJog
-from std_msgs.msg import Bool
+from std_msgs.msg import Int8
 
 # Import common Python test utilities
 from os import sys, path
@@ -14,14 +14,15 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import util
 
 # The robot starts at a singular position (see config file).
-# Listen for a halt message from the jogger.
+# The jogger should halt and publish a warning.
+# Listen for a warning message from the jogger.
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_jog_arm test_jog_arm_integration.py
+# rosrun moveit_jog_arm test_jog_arm_halt_msg.py
 
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
-# jog_arm should publish 'true' here if it halts
-HALT_TOPIC = 'jog_server/halted'
+# jog_arm should publish a nonzero warning code here
+HALT_TOPIC = 'jog_server/status'
 
 # Check if jogger is initialized with this service
 SERVICE_NAME = 'jog_server/change_drift_dimensions'
@@ -51,7 +52,7 @@ def test_jog_arm_halt_msg(node):
 
     received = []
     sub = rospy.Subscriber(
-        HALT_TOPIC, Bool, lambda msg: received.append(msg)
+        HALT_TOPIC, Int8, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
 
@@ -66,8 +67,8 @@ def test_jog_arm_halt_msg(node):
 
     # Check the received messages
     # A non-zero value signifies a warning
-    assert len(received) > 1
-    assert received[-1].data != 0
+    assert len(received) > 3
+    assert (received[-1].data != 0) or (received[-2].data != 0) or (received[-3].data != 0)
 
 
 if __name__ == '__main__':

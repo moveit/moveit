@@ -95,7 +95,7 @@ void JogCppInterface::startMainLoop()
   {
     ros::spinOnce();
 
-    shared_variables_mutex_.lock();
+    shared_variables_.lock();
     trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
     // Check if incoming commands are stale
@@ -139,7 +139,7 @@ void JogCppInterface::startMainLoop()
       ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
 
-    shared_variables_mutex_.unlock();
+    shared_variables_.unlock();
 
     main_rate.sleep();
   }
@@ -155,7 +155,7 @@ void JogCppInterface::stopMainLoop()
 
 void JogCppInterface::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)
 {
-  shared_variables_mutex_.lock();
+  shared_variables_.lock();
 
   shared_variables_.command_deltas.twist = velocity_command.twist;
   shared_variables_.command_deltas.header = velocity_command.header;
@@ -178,12 +178,12 @@ void JogCppInterface::provideTwistStampedCommand(const geometry_msgs::TwistStamp
   {
     shared_variables_.latest_nonzero_cmd_stamp = velocity_command.header.stamp;
   }
-  shared_variables_mutex_.unlock();
+  shared_variables_.unlock();
 };
 
 void JogCppInterface::provideJointCommand(const control_msgs::JointJog& joint_command)
 {
-  shared_variables_mutex_.lock();
+  shared_variables_.lock();
   shared_variables_.joint_command_deltas = joint_command;
 
   // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
@@ -198,14 +198,14 @@ void JogCppInterface::provideJointCommand(const control_msgs::JointJog& joint_co
   {
     shared_variables_.latest_nonzero_cmd_stamp = joint_command.header.stamp;
   }
-  shared_variables_mutex_.unlock();
+  shared_variables_.unlock();
 }
 
 sensor_msgs::JointState JogCppInterface::getJointState()
 {
-  shared_variables_mutex_.lock();
+  shared_variables_.lock();
   sensor_msgs::JointState current_joints = shared_variables_.joints;
-  shared_variables_mutex_.unlock();
+  shared_variables_.unlock();
 
   return current_joints;
 }
@@ -215,10 +215,16 @@ bool JogCppInterface::getCommandFrameTransform(Eigen::Isometry3d& transform)
   if (!jog_calcs_ || !jog_calcs_->isInitialized())
     return false;
 
-  const std::lock_guard<std::mutex> lock(shared_variables_mutex_);
+  shared_variables_.lock();
   transform = shared_variables_.tf_moveit_to_cmd_frame;
+  shared_variables_.unlock();
 
   // All zeros means the transform wasn't initialized, so return false
   return !transform.matrix().isZero(0);
+}
+
+StatusCode JogCppInterface::getJoggerStatus()
+{
+  return shared_variables_.status;
 }
 }  // namespace moveit_jog_arm

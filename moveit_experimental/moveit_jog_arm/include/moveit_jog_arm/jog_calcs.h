@@ -38,12 +38,18 @@
 
 #pragma once
 
+// System
 #include <atomic>
-#include "jog_arm_data.h"
-#include "low_pass_filter.h"
+
+// ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
+
+// moveit_jog_arm
+#include "jog_arm_data.h"
+#include "low_pass_filter.h"
+#include "status_codes.h"
 
 namespace moveit_jog_arm
 {
@@ -52,7 +58,7 @@ class JogCalcs
 public:
   JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
-  void startMainLoop(JogArmShared& shared_variables, std::mutex& mutex);
+  void startMainLoop(JogArmShared& shared_variables);
 
   void stopMainLoop();
 
@@ -75,34 +81,48 @@ protected:
   // Flag that robot state is up to date, end effector transform is known
   std::atomic<bool> is_initialized_;
 
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables, std::mutex& mutex);
+  /** \brief Do jogging calculations for Cartesian twist commands. */
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
+  /** \brief Do jogging calculations for direct commands to a joint. */
   bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
 
-  // Parse the incoming joint msg for the joints of our MoveGroup
-  bool updateJoints(std::mutex& mutex, const JogArmShared& shared_variables);
+  /** \brief Update the stashed status so it can be retrieved asynchronously */
+  void updateCachedStatus(JogArmShared& shared_variables);
 
+  /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
+  bool updateJoints(JogArmShared& shared_variables);
+
+  /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
+   * Also, multiply by timestep to calculate a position change.
+   */
   Eigen::VectorXd scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const;
 
+  /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
+   * Also, multiply by timestep to calculate a position change.
+   */
   Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
   bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
-  // Suddenly halt for a joint limit or other critical issue.
-  // Is handled differently for position vs. velocity control.
+  /** \brief Suddenly halt for a joint limit or other critical issue.
+   * Is handled differently for position vs. velocity control.
+   */
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
   void suddenHalt(Eigen::ArrayXd& delta_theta);
 
-  void publishWarning(bool active) const;
+  /** \brief Publish the status of the jogger to a ROS topic */
+  void publishStatus() const;
 
-  // Scale the delta theta to match joint velocity/acceleration limits
+  /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
 
-  // Avoid overshooting joint limits
+  /** \brief Avoid overshooting joint limits */
   bool enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj);
 
-  // Possibly calculate a velocity scaling factor, due to proximity of
-  // singularity and direction of motion
+  /** \brief Possibly calculate a velocity scaling factor, due to proximity of
+   * singularity and direction of motion
+   */
   double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
                                              const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
                                              const Eigen::MatrixXd& jacobian, const Eigen::MatrixXd& pseudo_inverse);
@@ -110,18 +130,19 @@ protected:
   /**
    * Slow motion down if close to singularity or collision.
    * @param shared_variables data shared between threads, tells how close we are to collision
-   * @param mutex locks shared data
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    * @return false if very close to collision or singularity
    */
-  bool applyVelocityScaling(const JogArmShared& shared_variables, std::mutex& mutex, Eigen::ArrayXd& delta_theta,
-                            double singularity_scale);
+  bool applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta, double singularity_scale);
 
+  /** \brief Compose the outgoing JointTrajectory message */
   trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
 
+  /** \brief Smooth position commands with a lowpass filter */
   void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
 
+  /** \brief Convert an incremental position command to joint velocity message */
   void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
@@ -129,6 +150,9 @@ protected:
     */
   bool convertDeltasToOutgoingCmd();
 
+  /** \brief Gazebo simulations have very strict message timestamp requirements.
+   * Satisfy Gazebo by stuffing multiple messages into one.
+   */
   void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
 
   /**
@@ -153,10 +177,9 @@ protected:
 
   std::vector<LowPassFilter> position_filters_;
 
-  ros::Publisher warning_pub_;
+  ros::Publisher status_pub_;
 
-  // Flag that a warning should be published
-  bool has_warning_ = false;
+  StatusCode status_ = NO_WARNING;
 
   JogArmParameters parameters_;
 

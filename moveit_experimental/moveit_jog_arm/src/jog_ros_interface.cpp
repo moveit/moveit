@@ -117,7 +117,7 @@ JogROSInterface::JogROSInterface()
   {
     ros::spinOnce();
 
-    shared_variables_mutex_.lock();
+    shared_variables_.lock();
     trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
     // Check for stale cmds
@@ -162,7 +162,7 @@ JogROSInterface::JogROSInterface()
       ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
 
-    shared_variables_mutex_.unlock();
+    shared_variables_.unlock();
 
     main_rate.sleep();
   }
@@ -174,7 +174,7 @@ JogROSInterface::JogROSInterface()
 // Listen to cartesian delta commands. Store them in a shared variable.
 void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  shared_variables_mutex_.lock();
+  shared_variables_.lock();
 
   // Copy everything but the frame name. The frame name is set by yaml file at startup.
   // (so it isn't copied over and over)
@@ -199,13 +199,13 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
   {
     shared_variables_.latest_nonzero_cmd_stamp = msg->header.stamp;
   }
-  shared_variables_mutex_.unlock();
+  shared_variables_.unlock();
 }
 
 // Listen to joint delta commands. Store them in a shared variable.
 void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
-  shared_variables_mutex_.lock();
+  shared_variables_.lock();
   shared_variables_.joint_command_deltas = *msg;
 
   // Check if joint inputs is all zeros. Flag it if so to skip calculations/publication
@@ -220,6 +220,6 @@ void JogROSInterface::deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg)
   {
     shared_variables_.latest_nonzero_cmd_stamp = msg->header.stamp;
   }
-  shared_variables_mutex_.unlock();
+  shared_variables_.unlock();
 }
 }  // namespace moveit_jog_arm

@@ -56,7 +56,7 @@ planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPla
   return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
-void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mutex& mutex)
+void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 {
   // Reset loop termination flag
   stop_requested_ = false;
@@ -78,9 +78,9 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
   /////////////////////////////////////////////////
   while (ros::ok() && !stop_requested_)
   {
-    mutex.lock();
+    shared_variables.lock();
     sensor_msgs::JointState jts = shared_variables.joints;
-    mutex.unlock();
+    shared_variables.unlock();
 
     for (std::size_t i = 0; i < jts.position.size(); ++i)
       current_state.setJointPositions(jts.name[i], &jts.position[i]);
@@ -108,9 +108,9 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables, std::mu
           exp(velocity_scale_coefficient * (collision_result.distance - parameters_.collision_proximity_threshold));
     }
 
-    mutex.lock();
+    shared_variables.lock();
     shared_variables.collision_velocity_scale = velocity_scale;
-    mutex.unlock();
+    shared_variables.unlock();
 
     collision_rate.sleep();
   }

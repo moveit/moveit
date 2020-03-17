@@ -1,7 +1,7 @@
 /*******************************************************************************
- *      Title     : jog_cpp_interface.h
+ *      Title     : status_codes.h
  *      Project   : moveit_jog_arm
- *      Created   : 11/20/2019
+ *      Created   : 2/25/2019
  *      Author    : Andy Zelenak
  *
  * BSD 3-Clause License
@@ -38,62 +38,24 @@
 
 #pragma once
 
-#include <atomic>
-#include "jog_interface_base.h"
-#include <std_msgs/Int8.h>
+#include <string>
+#include <unordered_map>
 
 namespace moveit_jog_arm
 {
-/**
-* Class JogCppInterface - This class should be instantiated in a new thread
-* See cpp_interface_example.cpp
-*/
-class JogCppInterface : public JogInterfaceBase
+enum StatusCode : int8_t
 {
-public:
-  JogCppInterface(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
-
-  ~JogCppInterface();
-
-  void startMainLoop();
-
-  void stopMainLoop();
-
-  /** \brief Provide a Cartesian velocity command to the jogger.
-   * The units are determined by settings in the yaml file.
-   */
-  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
-
-  /** \brief Send joint position(s) commands */
-  void provideJointCommand(const control_msgs::JointJog& joint_command);
-
-  /**
-   * Returns the most recent JointState that the jogger has received.
-   * May eliminate the need to create your own joint_state subscriber.
-   *
-   * @return the most recent joints known to the jogger
-   */
-  sensor_msgs::JointState getJointState();
-
-  /**
-   * Get the MoveIt planning link transform.
-   * The transform from the MoveIt planning frame to robot_link_command_frame
-   *
-   * @param transform the transform that will be calculated
-   * @return true if a valid transform was available
-   */
-  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
-
-  /**
-   * Get the status of the jogger.
-   *
-   * @return 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-   */
-  StatusCode getJoggerStatus();
-
-private:
-  ros::NodeHandle nh_;
-
-  std::atomic<bool> stop_requested_;
+  NO_WARNING = 0,
+  DECELERATE_FOR_SINGULARITY = 1,
+  HALT_FOR_SINGULARITY = 2,
+  COLLISION = 3,
+  JOINT_BOUND = 4
 };
-}  // namespace moveit_jog_arm
+
+const std::unordered_map<uint, std::string>
+    JOG_ARM_STATUS_CODE_MAP({ { NO_WARNING, "No warnings" },
+                              { DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
+                              { HALT_FOR_SINGULARITY, "Very close to a singularity, halting" },
+                              { COLLISION, "Close to a collision, halting." },
+                              { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
+}  // end namespace trackjoint
