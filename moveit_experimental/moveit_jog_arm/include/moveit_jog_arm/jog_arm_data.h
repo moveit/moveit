@@ -38,18 +38,27 @@
 
 #pragma once
 
-#include <control_msgs/JointJog.h>
-#include <Eigen/Geometry>
-#include <geometry_msgs/TwistStamped.h>
+// System
 #include <mutex>
-#include <sensor_msgs/JointState.h>
 #include <thread>
+
+// Eigen
+#include <Eigen/Geometry>
+
+// ROS
+#include <control_msgs/JointJog.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
+
+// moveit_jog_arm
+#include "status_codes.h"
 
 namespace moveit_jog_arm
 {
 // Variables to share between threads, and their mutexes
-struct JogArmShared
+// Inherit from a mutex so the struct can be locked/unlocked easily
+struct JogArmShared : public std::mutex
 {
   geometry_msgs::TwistStamped command_deltas;
 
@@ -83,6 +92,9 @@ struct JogArmShared
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
   std::atomic_bool drift_dimensions[6] = { ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false),
                                            ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false) };
+
+  // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
+  std::atomic<StatusCode> status;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.
@@ -94,7 +106,7 @@ struct JogArmParameters
   std::string robot_link_command_frame;
   std::string command_out_topic;
   std::string planning_frame;
-  std::string warning_topic;
+  std::string status_topic;
   std::string joint_command_in_topic;
   std::string command_in_type;
   std::string command_out_type;
