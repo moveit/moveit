@@ -89,6 +89,7 @@ public:
   QLineEdit* padding_offset_field_;
   QLineEdit* padding_scale_field_;
   QLineEdit* max_update_rate_field_;
+  QComboBox* incremental_field_;
   QLineEdit* filtered_cloud_topic_field_;
 
   // Depth Map plugin feilds

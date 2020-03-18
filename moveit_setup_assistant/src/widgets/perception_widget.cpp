@@ -127,7 +127,15 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
   max_update_rate_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Max Update Rate:", max_update_rate_field_);
 
-  // Piont Cloud form layout
+  // Incremental updates
+  incremental_field_ = new QComboBox(this);
+  incremental_field_->setEditable(false);
+  incremental_field_->setMaximumWidth(400);
+  incremental_field_->addItem("Incremental");
+  incremental_field_->addItem("Snapshot");
+  point_cloud_form_layout->addRow("Updating:", incremental_field_);
+
+  // Point Cloud form layout
   point_cloud_group_->setLayout(point_cloud_form_layout);
   layout->addWidget(point_cloud_group_);
 
@@ -178,7 +186,7 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
   depth_filtered_cloud_topic_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Filtered Cloud Topic:", depth_filtered_cloud_topic_field_);
 
-  // Filtered Cloud Topic
+  // Max Update Rate
   depth_max_update_rate_field_ = new QLineEdit(this);
   depth_max_update_rate_field_->setMaximumWidth(400);
   depth_map_form_layout->addRow("Max Update Rate:", depth_max_update_rate_field_);
@@ -222,6 +230,8 @@ bool PerceptionWidget::focusLost()
                                                           padding_scale_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("max_update_rate",
                                                           max_update_rate_field_->text().trimmed().toStdString());
+    config_data_->addGenericParameterToSensorPluginConfig("incremental",
+                                                          incremental_field_->currentIndex() == 1 ? "false" : "true");
     config_data_->addGenericParameterToSensorPluginConfig("filtered_cloud_topic",
                                                           filtered_cloud_topic_field_->text().trimmed().toStdString());
 

@@ -56,6 +56,7 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater()
   , max_range_(std::numeric_limits<double>::infinity())
   , point_subsample_(1)
   , max_update_rate_(0)
+  , incremental_(true)
   , point_cloud_subscriber_(nullptr)
   , point_cloud_filter_(nullptr)
 {
@@ -80,6 +81,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "point_subsample", &point_subsample_);
     if (params.hasMember("max_update_rate"))
       readXmlParam(params, "max_update_rate", &max_update_rate_);
+    if (params.hasMember("incremental"))
+      incremental_ = static_cast<bool>(params["incremental"]);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
   }
@@ -219,7 +222,9 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     return;
   }
 
-  /* mask out points on the robot */
+  /* Mask out points contained in filtered shapes
+   * by default this includes the robot and all collision objects
+   */
   shape_mask_->maskContainment(*cloud_msg, sensor_origin_eigen, 0.0, max_range_, mask_);
   updateMask(*cloud_msg, sensor_origin_eigen, mask_);
 
@@ -252,8 +257,6 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
   try
   {
-    /* do ray tracing to find which cells this point cloud indicates should be free, and which it indicates
-     * should be occupied */
     for (unsigned int row = 0; row < cloud_msg->height; row += point_subsample_)
     {
       unsigned int row_c = row * cloud_msg->width;
@@ -297,20 +300,26 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       }
     }
 
-    /* compute the free cells along each ray that ends at an occupied cell */
-    for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
-      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(occupied_cell), key_ray_))
-        free_cells.insert(key_ray_.begin(), key_ray_.end());
+    if (incremental_)
+    {
+      /* If we are performing incremental updates, do ray tracing to find which cells this point cloud indicates should
+       * be free */
 
-    /* compute the free cells along each ray that ends at a model cell */
-    for (const octomap::OcTreeKey& model_cell : model_cells)
-      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(model_cell), key_ray_))
-        free_cells.insert(key_ray_.begin(), key_ray_.end());
+      /* compute the free cells along each ray that ends at an occupied cell */
+      for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
+        if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(occupied_cell), key_ray_))
+          free_cells.insert(key_ray_.begin(), key_ray_.end());
 
-    /* compute the free cells along each ray that ends at a clipped cell */
-    for (const octomap::OcTreeKey& clip_cell : clip_cells)
-      if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(clip_cell), key_ray_))
-        free_cells.insert(key_ray_.begin(), key_ray_.end());
+      /* compute the free cells along each ray that ends at a model cell */
+      for (const octomap::OcTreeKey& model_cell : model_cells)
+        if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(model_cell), key_ray_))
+          free_cells.insert(key_ray_.begin(), key_ray_.end());
+
+      /* compute the free cells along each ray that ends at a clipped cell */
+      for (const octomap::OcTreeKey& clip_cell : clip_cells)
+        if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(clip_cell), key_ray_))
+          free_cells.insert(key_ray_.begin(), key_ray_.end());
+    }
   }
   catch (...)
   {
@@ -320,15 +329,17 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
   tree_->unlockRead();
 
-  /* cells that overlap with the model are not occupied */
-  for (const octomap::OcTreeKey& model_cell : model_cells)
-    occupied_cells.erase(model_cell);
-
-  /* occupied cells are not free */
-  for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
-    free_cells.erase(occupied_cell);
+  if (incremental_)
+  {
+    /* occupied cells are not free */
+    for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
+      free_cells.erase(occupied_cell);
+  }
 
   tree_->lockWrite();
+
+  if (!incremental_)
+    tree_->clear();
 
   try
   {
