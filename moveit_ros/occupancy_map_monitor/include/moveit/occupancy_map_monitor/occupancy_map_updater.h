@@ -64,6 +64,13 @@ public:
   /** \brief This is the first function to be called after construction */
   void setMonitor(OccupancyMapMonitor* monitor);
 
+  /** \brief Bypass the default monitor by setting the linked occupancy map directly.  Updates must be processed
+   * manually*/
+  void setTree(const OccMapTreePtr& tree)
+  {
+    tree_ = tree;
+  }
+
   /** @brief Set updater params using struct that comes from parsing a yaml string. This must be called after
    * setMonitor() */
   virtual bool setParams(XmlRpc::XmlRpcValue& params) = 0;

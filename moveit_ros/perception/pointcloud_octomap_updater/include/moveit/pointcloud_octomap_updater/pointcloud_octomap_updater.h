@@ -61,7 +61,8 @@ public:
   void stop() override;
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
   void forgetShape(ShapeHandle handle) override;
-  bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose);
+  bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
+                    bool incremental);
 
 protected:
   virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,

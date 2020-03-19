@@ -10,6 +10,12 @@ add_library(${MOVEIT_LIB_NAME} src/plugin_init.cpp)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 target_link_libraries(${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+if (CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest_gtest(pointcloud_octomap_updater_test test/pointcloud_octomap_updater_test.test test/pointcloud_octomap_updater_test.cpp)
+  target_link_libraries(pointcloud_octomap_updater_test ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${MOVEIT_LIB_NAME})
+endif()
+
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 install(TARGETS ${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core

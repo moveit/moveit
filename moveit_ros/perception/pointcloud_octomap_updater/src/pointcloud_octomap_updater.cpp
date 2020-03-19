@@ -172,7 +172,7 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 }
 
 bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg,
-                                            const Eigen::Isometry3d& sensor_pose)
+                                            const Eigen::Isometry3d& sensor_pose, bool incremental)
 {
   ros::WallTime start = ros::WallTime::now();
 
@@ -181,7 +181,13 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
    */
   octomap::point3d sensor_origin(sensor_pose.translation().x(), sensor_pose.translation().y(),
                                  sensor_pose.translation().z());
-  shape_mask_->maskContainment(*cloud_msg, sensor_pose.translation(), 0.0, max_range_, mask_);
+  if (shape_mask_)
+    shape_mask_->maskContainment(*cloud_msg, sensor_pose.translation(), 0.0, max_range_, mask_);
+  else
+  {
+    ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
+    return false;
+  }
   updateMask(*cloud_msg, sensor_pose.translation(), mask_);
 
   octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
@@ -257,11 +263,10 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
       }
     }
 
-    if (incremental_)
+    if (incremental)
     {
-      /* If we are performing incremental updates, do ray tracing to find which
-       * cells this point cloud indicates should
-       * be free */
+      /* If we are performing an incremental update, do ray tracing to find which cells this point cloud indicates
+       * should be free */
 
       /* compute the free cells along each ray that ends at an occupied cell */
       for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
@@ -288,7 +293,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
   tree_->unlockRead();
 
-  if (incremental_)
+  if (incremental)
   {
     /* occupied cells are not free */
     for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
@@ -297,7 +302,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
   tree_->lockWrite();
 
-  if (!incremental_)
+  if (!incremental)
     tree_->clear();
 
   bool success = true;
@@ -382,6 +387,6 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     return;
   }
 
-  processCloud(cloud_msg, sensor_origin_eigen);
+  processCloud(cloud_msg, sensor_origin_eigen, incremental_);
 }
 }  // namespace occupancy_map_monitor
