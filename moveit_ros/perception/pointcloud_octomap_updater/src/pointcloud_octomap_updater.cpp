@@ -34,14 +34,14 @@
 
 /* Author: Jon Binney, Ioan Sucan */
 
-#include <cmath>
-#include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
-#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2/LinearMath/Vector3.h>
-#include <tf2/LinearMath/Transform.h>
-#include <sensor_msgs/point_cloud2_iterator.h>
 #include <XmlRpcException.h>
+#include <cmath>
+#include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 #include <memory>
 
@@ -171,62 +171,18 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 {
 }
 
-void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg,
+                                            const Eigen::Isometry3d& sensor_pose)
 {
-  ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
-
-  if (max_update_rate_ > 0)
-  {
-    // ensure we are not updating the octomap representation too often
-    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
-      return;
-    last_update_time_ = ros::Time::now();
-  }
-
-  if (monitor_->getMapFrame().empty())
-    monitor_->setMapFrame(cloud_msg->header.frame_id);
-
-  /* get transform for cloud into map frame */
-  tf2::Stamped<tf2::Transform> map_h_sensor;
-  if (monitor_->getMapFrame() == cloud_msg->header.frame_id)
-    map_h_sensor.setIdentity();
-  else
-  {
-    if (tf_buffer_)
-    {
-      try
-      {
-        tf2::fromMsg(tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id,
-                                                 cloud_msg->header.stamp),
-                     map_h_sensor);
-      }
-      catch (tf2::TransformException& ex)
-      {
-        ROS_ERROR_STREAM_NAMED(LOGNAME, "Transform error of sensor data: " << ex.what() << "; quitting callback");
-        return;
-      }
-    }
-    else
-      return;
-  }
-
-  /* compute sensor origin in map frame */
-  const tf2::Vector3& sensor_origin_tf = map_h_sensor.getOrigin();
-  octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
-  Eigen::Vector3d sensor_origin_eigen(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
-
-  if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
-  {
-    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
-    return;
-  }
 
   /* Mask out points contained in filtered shapes
    * by default this includes the robot and all collision objects
    */
-  shape_mask_->maskContainment(*cloud_msg, sensor_origin_eigen, 0.0, max_range_, mask_);
-  updateMask(*cloud_msg, sensor_origin_eigen, mask_);
+  octomap::point3d sensor_origin(sensor_pose.translation().x(), sensor_pose.translation().y(),
+                                 sensor_pose.translation().z());
+  shape_mask_->maskContainment(*cloud_msg, sensor_pose.translation(), 0.0, max_range_, mask_);
+  updateMask(*cloud_msg, sensor_pose.translation(), mask_);
 
   octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
   std::unique_ptr<sensor_msgs::PointCloud2> filtered_cloud;
@@ -234,9 +190,9 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   // We only use these iterators if we are creating a filtered_cloud for
   // publishing. We cannot default construct these, so we use unique_ptr's
   // to defer construction
-  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
-  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
-  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float>> iter_filtered_x;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float>> iter_filtered_y;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float>> iter_filtered_z;
 
   if (!filtered_cloud_topic_.empty())
   {
@@ -273,17 +229,18 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
         if (!std::isnan(pt_iter[0]) && !std::isnan(pt_iter[1]) && !std::isnan(pt_iter[2]))
         {
           /* transform to map frame */
-          tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(pt_iter[0], pt_iter[1], pt_iter[2]);
+          Eigen::Vector3d point_pose = sensor_pose * Eigen::Vector3d(pt_iter[0], pt_iter[1], pt_iter[2]);
 
-          /* occupied cell at ray endpoint if ray is shorter than max range and this point
+          /* occupied cell at ray endpoint if ray is shorter than max range and
+             this point
              isn't on a part of the robot*/
           if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
-            model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+            model_cells.insert(tree_->coordToKey(point_pose.x(), point_pose.y(), point_pose.z()));
           else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
-            clip_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+            clip_cells.insert(tree_->coordToKey(point_pose.x(), point_pose.y(), point_pose.z()));
           else
           {
-            occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+            occupied_cells.insert(tree_->coordToKey(point_pose.x(), point_pose.y(), point_pose.z()));
             // build list of valid points if we want to publish them
             if (filtered_cloud)
             {
@@ -302,7 +259,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
     if (incremental_)
     {
-      /* If we are performing incremental updates, do ray tracing to find which cells this point cloud indicates should
+      /* If we are performing incremental updates, do ray tracing to find which
+       * cells this point cloud indicates should
        * be free */
 
       /* compute the free cells along each ray that ends at an occupied cell */
@@ -324,7 +282,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   catch (...)
   {
     tree_->unlockRead();
-    return;
+    ROS_ERROR_NAMED(LOGNAME, "Internal error while updating octree");
+    return false;
   }
 
   tree_->unlockRead();
@@ -341,6 +300,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   if (!incremental_)
     tree_->clear();
 
+  bool success = true;
   try
   {
     /* mark free cells only if not seen occupied in this cloud */
@@ -359,10 +319,9 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   catch (...)
   {
     ROS_ERROR_NAMED(LOGNAME, "Internal error while updating octree");
+    success = false;
   }
   tree_->unlockWrite();
-  ROS_DEBUG_NAMED(LOGNAME, "Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-  tree_->triggerUpdateCallback();
 
   if (filtered_cloud)
   {
@@ -370,5 +329,59 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     pcd_modifier.resize(filtered_cloud_size);
     filtered_cloud_publisher_.publish(*filtered_cloud);
   }
+
+  ROS_DEBUG_NAMED(LOGNAME, "Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  tree_->triggerUpdateCallback();
+
+  return success;
+}
+
+void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+{
+  ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
+
+  if (max_update_rate_ > 0)
+  {
+    // ensure we are not updating the octomap representation too often
+    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
+      return;
+    last_update_time_ = ros::Time::now();
+  }
+
+  if (monitor_->getMapFrame().empty())
+    monitor_->setMapFrame(cloud_msg->header.frame_id);
+
+  /* get transform for cloud into map frame */
+  Eigen::Isometry3d sensor_origin_eigen;
+
+  if (monitor_->getMapFrame() == cloud_msg->header.frame_id)
+    sensor_origin_eigen = Eigen::Isometry3d::Identity();
+  else
+  {
+    if (tf_buffer_)
+    {
+      try
+      {
+        geometry_msgs::TransformStamped sensor_origin =
+            tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id, cloud_msg->header.stamp);
+        sensor_origin_eigen = tf2::transformToEigen(sensor_origin);
+      }
+      catch (tf2::TransformException& ex)
+      {
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Transform error of sensor data: " << ex.what() << "; quitting callback");
+        return;
+      }
+    }
+    else
+      return;
+  }
+
+  if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
+  {
+    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
+    return;
+  }
+
+  processCloud(cloud_msg, sensor_origin_eigen);
 }
 }  // namespace occupancy_map_monitor
