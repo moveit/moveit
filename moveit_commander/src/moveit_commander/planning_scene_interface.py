@@ -64,7 +64,7 @@ class PlanningSceneInterface(object):
         self._pub_aco = rospy.Publisher(ns + '/attached_collision_object', AttachedCollisionObject, queue_size=100)
         self.__synchronous = synchronous
         if self.__synchronous:
-            self._apply_planning_scene_diff = rospy.ServiceProxy('apply_planning_scene', ApplyPlanningScene)
+            self._apply_planning_scene_diff = rospy.ServiceProxy(ns + '/apply_planning_scene', ApplyPlanningScene)
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
 
     def __submit(self, collision_object, attach=False):
