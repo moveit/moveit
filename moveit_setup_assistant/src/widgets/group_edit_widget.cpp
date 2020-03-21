@@ -88,6 +88,11 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   kinematics_timeout_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Search Timeout (sec):", kinematics_timeout_field_);
 
+  // file to load additional parameters from
+  kinematics_parameters_file_field_ = new QLineEdit(this);
+  kinematics_parameters_file_field_->setMaximumWidth(400);
+  form_layout->addRow("Kin. parameters file:", kinematics_parameters_file_field_);
+
   group1->setLayout(form_layout);
 
   // OMPL Planner form --------------------------------------------
@@ -257,6 +262,8 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   {
     kinematics_solver_field_->setCurrentIndex(index);
   }
+
+  kinematics_parameters_file_field_->setText(config_data_->group_meta_data_[group_name].kinematics_parameters_file_.c_str());
 
   // Set default planner
   std::string default_planner = config_data_->group_meta_data_[group_name].default_planner_;
