@@ -11,6 +11,7 @@
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
 	args="$(arg command_args)" output="screen">
     <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>
+    [KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]
   </node>
 
 </launch>

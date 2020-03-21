@@ -1118,6 +1118,19 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
 
+  std::string kinematics_parameters_files_block;
+  for (const auto& groups : config_data_->group_meta_data_)
+  {
+      if (groups.second.kinematics_parameters_file_.empty())
+          continue;
+
+      std::string line = "<rosparam command=\"load\" namespace=\""
+                         +groups.first+"\" file=\""+groups.second.kinematics_parameters_file_+"\"/>\n";
+      kinematics_parameters_files_block += line;
+  }
+  addTemplateString("[KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]", kinematics_parameters_files_block);
+
+
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
   addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);
 }
@@ -1137,6 +1150,9 @@ bool ConfigurationFilesWidget::addTemplateString(const std::string& key, const s
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, const std::string& output_path)
 {
+  // clear template strings in order to update them
+  template_strings_.clear();
+
   // Check if template strings have been loaded yet
   if (template_strings_.empty())
   {
