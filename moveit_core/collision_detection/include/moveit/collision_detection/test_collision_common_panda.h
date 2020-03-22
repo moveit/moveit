@@ -254,5 +254,53 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
   EXPECT_NEAR(res.distance, 0.029, 0.01);
 }
 
+template <class CollisionAllocatorType>
+class DistanceCheckPandaTest : public CollisionDetectorPandaTest<CollisionAllocatorType>
+{
+};
+
+TYPED_TEST_CASE_P(DistanceCheckPandaTest);
+
+TYPED_TEST_P(DistanceCheckPandaTest, DistanceSingle)
+{
+  std::set<const moveit::core::LinkModel*> active_components{ this->robot_model_->getLinkModel("panda_hand") };
+  collision_detection::DistanceRequest req;
+  req.type = collision_detection::DistanceRequestTypes::SINGLE;
+  req.active_components_only = &active_components;
+  req.enable_signed_distance = true;
+
+  random_numbers::RandomNumberGenerator rng(0x47110815);
+  double min_distance = std::numeric_limits<double>::max();
+  for (int i = 0; i < 10; ++i)
+  {
+    collision_detection::DistanceResult res;
+
+    shapes::ShapeConstPtr shape(new shapes::Cylinder(rng.uniform01(), rng.uniform01()));
+    Eigen::Isometry3d pose{ Eigen::Isometry3d::Identity() };
+    pose.translation() =
+        Eigen::Vector3d(rng.uniformReal(0.1, 2.0), rng.uniformReal(0.1, 2.0), rng.uniformReal(1.2, 1.7));
+    double quat[4];
+    rng.quaternion(quat);
+    pose.linear() = Eigen::Quaterniond(quat[0], quat[1], quat[2], quat[3]).toRotationMatrix();
+
+    this->cenv_->getWorld()->addToObject("collection", shape, pose);
+    this->cenv_->getWorld()->removeObject("object");
+    this->cenv_->getWorld()->addToObject("object", shape, pose);
+
+    this->cenv_->distanceRobot(req, res, *this->robot_state_);
+    auto& distances1 = res.distances[std::pair<std::string, std::string>("collection", "panda_hand")];
+    auto& distances2 = res.distances[std::pair<std::string, std::string>("object", "panda_hand")];
+    ASSERT_EQ(distances1.size(), 1) << "no distance reported for collection/panda_hand";
+    ASSERT_EQ(distances2.size(), 1) << "no distance reported for object/panda_hand";
+
+    double collection_distance = distances1[0].distance;
+    min_distance = std::min(min_distance, distances2[0].distance);
+    ASSERT_NEAR(collection_distance, min_distance, 1e-5)
+        << "distance to collection is greater than distance to minimum of individual objects after " << i << " rounds";
+  }
+}
+
 REGISTER_TYPED_TEST_CASE_P(CollisionDetectorPandaTest, InitOK, DefaultNotInCollision, LinksInCollision,
                            RobotWorldCollision_1, RobotWorldCollision_2, PaddingTest, DistanceSelf, DistanceWorld);
+
+REGISTER_TYPED_TEST_CASE_P(DistanceCheckPandaTest, DistanceSingle);
