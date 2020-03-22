@@ -166,10 +166,6 @@ TYPED_TEST_P(CollisionDetectorPandaTest, RobotWorldCollision_1)
   this->cenv_->getWorld()->moveObject("box", pos1);
   this->cenv_->checkRobotCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_TRUE(res.collision);
-  res.clear();
-
-  this->cenv_->getWorld()->moveObject("box", pos1);
-  ASSERT_FALSE(res.collision);
 }
 
 /** \brief Adding obstacles to the world which are tested against the robot. */
