@@ -62,7 +62,7 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
   const Eigen::Isometry3d& start_pose = start_state->getGlobalLinkTransform(link);
 
   // the direction can be in the local reference frame (in which case we rotate it)
-  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.linear() * direction;
 
   // The target pose is built by applying a translation to the start pose for the desired direction and distance
   Eigen::Isometry3d target_pose = start_pose;
@@ -91,8 +91,8 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
   // the target can be in the local reference frame (in which case we rotate it)
   Eigen::Isometry3d rotated_target = global_reference_frame ? target : start_pose * target;
 
-  Eigen::Quaterniond start_quaternion(start_pose.rotation());
-  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  Eigen::Quaterniond start_quaternion(start_pose.linear());
+  Eigen::Quaterniond target_quaternion(rotated_target.linear());
 
   if (max_step.translation <= 0.0 && max_step.rotation <= 0.0)
   {

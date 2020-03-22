@@ -391,7 +391,7 @@ bool PositionConstraint::equal(const KinematicConstraint& other, double margin) 
       for (std::size_t j = 0; j < o.constraint_region_.size(); ++j)
       {
         Eigen::Isometry3d diff = constraint_region_pose_[i].inverse() * o.constraint_region_pose_[j];
-        if (diff.translation().norm() < margin && diff.rotation().isIdentity(margin) &&
+        if (diff.translation().norm() < margin && diff.linear().isIdentity(margin) &&
             constraint_region_[i]->getType() == o.constraint_region_[j]->getType() &&
             fabs(constraint_region_[i]->computeVolume() - o.constraint_region_[j]->computeVolume()) < margin)
         {
@@ -597,16 +597,15 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   Eigen::Vector3d xyz;
   if (mobile_frame_)
   {
-    Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).rotation() * desired_rotation_matrix_;
-    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).rotation());
-    xyz = diff.rotation().eulerAngles(0, 1, 2);
+    Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
+    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());
+    xyz = diff.linear().eulerAngles(0, 1, 2);
     // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
   else
   {
-    Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).rotation());
-    xyz =
-        diff.rotation().eulerAngles(0, 1, 2);  // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
+    Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
+    xyz = diff.linear().eulerAngles(0, 1, 2);  // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
 
   xyz(0) = std::min(fabs(xyz(0)), boost::math::constants::pi<double>() - fabs(xyz(0)));
@@ -618,7 +617,7 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
 
   if (verbose)
   {
-    Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).rotation());
+    Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).linear());
     Eigen::Quaterniond q_des(desired_rotation_matrix_);
     ROS_INFO_NAMED("kinematic_constraints",
                    "Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
@@ -756,12 +755,12 @@ bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin
     Eigen::Isometry3d diff = sensor_pose_.inverse() * o.sensor_pose_;
     if (diff.translation().norm() > margin)
       return false;
-    if (!diff.rotation().isIdentity(margin))
+    if (!diff.linear().isIdentity(margin))
       return false;
     diff = target_pose_.inverse() * o.target_pose_;
     if (diff.translation().norm() > margin)
       return false;
-    if (!diff.rotation().isIdentity(margin))
+    if (!diff.linear().isIdentity(margin))
       return false;
     return true;
   }
@@ -895,7 +894,7 @@ void VisibilityConstraint::getMarkers(const moveit::core::RobotState& state,
   mka.scale.y = .15;
   mka.scale.z = 0.0;
   mka.points.resize(2);
-  Eigen::Vector3d d = tp.translation() + tp.rotation().col(2) * 0.5;
+  Eigen::Vector3d d = tp.translation() + tp.linear().col(2) * 0.5;
   mka.points[0].x = tp.translation().x();
   mka.points[0].y = tp.translation().y();
   mka.points[0].z = tp.translation().z();
@@ -908,7 +907,7 @@ void VisibilityConstraint::getMarkers(const moveit::core::RobotState& state,
   mka.color.b = 1.0;
   mka.color.r = 0.0;
 
-  d = sp.translation() + sp.rotation().col(2 - sensor_view_direction_) * 0.5;
+  d = sp.translation() + sp.linear().col(2 - sensor_view_direction_) * 0.5;
   mka.points[0].x = sp.translation().x();
   mka.points[0].y = sp.translation().y();
   mka.points[0].z = sp.translation().z();
@@ -932,11 +931,11 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const moveit::core::Robo
         mobile_target_frame_ ? state.getFrameTransform(target_frame_id_) * target_pose_ : target_pose_;
 
     // necessary to do subtraction as SENSOR_Z is 0 and SENSOR_X is 2
-    const Eigen::Vector3d& normal2 = sp.rotation().col(2 - sensor_view_direction_);
+    const Eigen::Vector3d& normal2 = sp.linear().col(2 - sensor_view_direction_);
 
     if (max_view_angle_ > 0.0)
     {
-      const Eigen::Vector3d& normal1 = tp.rotation().col(2) * -1.0;  // along Z axis and inverted
+      const Eigen::Vector3d& normal1 = tp.linear().col(2) * -1.0;  // along Z axis and inverted
       double dp = normal2.dot(normal1);
       double ang = acos(dp);
       if (dp < 0.0)

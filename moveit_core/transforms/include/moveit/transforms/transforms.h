@@ -137,7 +137,7 @@ public:
    */
   void transformVector3(const std::string& from_frame, const Eigen::Vector3d& v_in, Eigen::Vector3d& v_out) const
   {
-    v_out = getTransform(from_frame).rotation() * v_in;
+    v_out = getTransform(from_frame).linear() * v_in;
   }
 
   /**
@@ -149,7 +149,7 @@ public:
   void transformQuaternion(const std::string& from_frame, const Eigen::Quaterniond& q_in,
                            Eigen::Quaterniond& q_out) const
   {
-    q_out = getTransform(from_frame).rotation() * q_in;
+    q_out = getTransform(from_frame).linear() * q_in;
   }
 
   /**
@@ -160,7 +160,7 @@ public:
    */
   void transformRotationMatrix(const std::string& from_frame, const Eigen::Matrix3d& m_in, Eigen::Matrix3d& m_out) const
   {
-    m_out = getTransform(from_frame).rotation() * m_in;
+    m_out = getTransform(from_frame).linear() * m_in;
   }
 
   /**

@@ -567,7 +567,7 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
     if (c.link_name != robot_link->getName())
     {
       c.link_name = robot_link->getName();
-      Eigen::Quaterniond link_name_to_robot_link(transform.linear().inverse() *
+      Eigen::Quaterniond link_name_to_robot_link(transform.linear().transpose() *
                                                  state.getGlobalLinkTransform(robot_link).linear());
       Eigen::Quaterniond quat_target;
       tf::quaternionMsgToEigen(c.orientation, quat_target);

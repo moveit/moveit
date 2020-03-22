@@ -172,10 +172,10 @@ void DistanceField::getGradientMarkers(double min_distance, double max_distance,
           // double angle = -gradient.angle(unitX);
           // Eigen::AngleAxisd rotation(angle, axis);
 
-          // marker.pose.orientation.x = rotation.rotation().x();
-          // marker.pose.orientation.y = rotation.rotation().y();
-          // marker.pose.orientation.z = rotation.rotation().z();
-          // marker.pose.orientation.w = rotation.rotation().w();
+          // marker.pose.orientation.x = rotation.linear().x();
+          // marker.pose.orientation.y = rotation.linear().y();
+          // marker.pose.orientation.z = rotation.linear().z();
+          // marker.pose.orientation.w = rotation.linear().w();
 
           marker.scale.x = getResolution();
           marker.scale.y = getResolution();
