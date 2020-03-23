@@ -40,6 +40,9 @@
 INSTANTIATE_TYPED_TEST_CASE_P(FCLCollisionCheckPanda, CollisionDetectorPandaTest,
                               collision_detection::CollisionDetectorAllocatorFCL);
 
+INSTANTIATE_TYPED_TEST_CASE_P(FCLDistanceCheckPanda, DistanceCheckPandaTest,
+                              collision_detection::CollisionDetectorAllocatorFCL);
+
 int main(int argc, char* argv[])
 {
   testing::InitGoogleTest(&argc, argv);

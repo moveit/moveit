@@ -610,7 +610,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
         }
         else if (cdata->req->type == DistanceRequestType::SINGLE)
         {
-          if (it->second[0].distance < dist_result.distance)
+          if (dist_result.distance < it->second[0].distance)
             it->second[0] = dist_result;
         }
         else if (cdata->req->type == DistanceRequestType::LIMITED)
