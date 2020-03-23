@@ -258,7 +258,7 @@ void MotionPlanningDisplay::onInitialize()
   if (context_ && context_->getWindowManager() && context_->getWindowManager()->getParentWindow())
   {
     QShortcut* im_reset_shortcut =
-        new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
+        new QShortcut(QKeySequence("Ctrl+I"), context_->getWindowManager()->getParentWindow());
     connect(im_reset_shortcut, SIGNAL(activated()), this, SLOT(resetInteractiveMarkers()));
   }
 }
