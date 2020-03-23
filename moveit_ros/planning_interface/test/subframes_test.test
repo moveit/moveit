@@ -25,5 +25,5 @@
 
   <!-- Subframes test -->
   <test pkg="moveit_ros_planning_interface" type="subframes_test" test-name="subframes_test"
-        time-limit="30" args=""/>
+        time-limit="600" args=""/>
 </launch>
