@@ -147,14 +147,10 @@ TEST_F(TrajectoryTest, goalTolerance)
   // Set start state
   // ========================================================================================
   std::vector<double> start_joint_values = { 0.4, 0.3, 0.5, -0.55, 0.88, 1.0, -0.075 };
-<<<<<<< HEAD
+
   moveit::core::RobotStatePtr start_state(new moveit::core::RobotState(robot_model_));
   start_state->setJointGroupPositions(joint_model_group, start_joint_values);
   start_state->update();
-=======
-  robot_state->setJointGroupPositions(joint_model_group, start_joint_values);
-  robot_state->update();
->>>>>>> When using motion planning display in rviz, the reference trajectory is not set. Check this and warn the user if ref traj is empty
 
   req.start_state.joint_state.name = joint_names;
   req.start_state.joint_state.position = start_joint_values;
