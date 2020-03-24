@@ -61,6 +61,7 @@ catkin_package(
     moveit_common_planning_interface_objects
     moveit_planning_scene_interface
     moveit_move_group_interface
+    moveit_py_bindings_tools
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
