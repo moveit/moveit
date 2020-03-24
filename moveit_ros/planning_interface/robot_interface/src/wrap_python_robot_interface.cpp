@@ -223,10 +223,10 @@ public:
     return true;
   }
 
-  py_bindings_tools::ByteString getCurrentState()
+  std::string getCurrentState()
   {
     if (!ensureCurrentState())
-      return py_bindings_tools::ByteString("");
+      return "";
     robot_state::RobotStatePtr s = current_state_monitor_->getCurrentState();
     moveit_msgs::RobotState msg;
     robot_state::robotStateToRobotStateMsg(*s, msg);
@@ -244,7 +244,7 @@ public:
     return boost::python::make_tuple(parent_group.first, parent_group.second);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersPythonDictList(bp::dict& values, bp::list& links)
+  std::string getRobotMarkersPythonDictList(bp::dict& values, bp::list& links)
   {
     robot_state::RobotStatePtr state;
     if (ensureCurrentState())
@@ -273,13 +273,13 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersPythonDict(bp::dict& values)
+  std::string getRobotMarkersPythonDict(bp::dict& values)
   {
     bp::list links = py_bindings_tools::listFromString(robot_model_->getLinkModelNames());
     return getRobotMarkersPythonDictList(values, links);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersFromMsg(const py_bindings_tools::ByteString& state_str)
+  std::string getRobotMarkersFromMsg(const std::string& state_str)
   {
     moveit_msgs::RobotState state_msg;
     robot_state::RobotState state(robot_model_);
@@ -292,10 +292,10 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  py_bindings_tools::ByteString getRobotMarkers()
+  std::string getRobotMarkers()
   {
     if (!ensureCurrentState())
-      return py_bindings_tools::ByteString();
+      return "";
     robot_state::RobotStatePtr s = current_state_monitor_->getCurrentState();
     visualization_msgs::MarkerArray msg;
     s->getRobotMarkers(msg, s->getRobotModel()->getLinkModelNames());
@@ -303,10 +303,10 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersPythonList(const bp::list& links)
+  std::string getRobotMarkersPythonList(const bp::list& links)
   {
     if (!ensureCurrentState())
-      return py_bindings_tools::ByteString("");
+      return "";
     robot_state::RobotStatePtr s = current_state_monitor_->getCurrentState();
     visualization_msgs::MarkerArray msg;
     s->getRobotMarkers(msg, py_bindings_tools::stringFromList(links));
@@ -314,10 +314,10 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersGroup(const std::string& group)
+  std::string getRobotMarkersGroup(const std::string& group)
   {
     if (!ensureCurrentState())
-      return py_bindings_tools::ByteString("");
+      return "";
     robot_state::RobotStatePtr s = current_state_monitor_->getCurrentState();
     const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
     visualization_msgs::MarkerArray msg;
@@ -329,11 +329,11 @@ public:
     return py_bindings_tools::serializeMsg(msg);
   }
 
-  py_bindings_tools::ByteString getRobotMarkersGroupPythonDict(const std::string& group, bp::dict& values)
+  std::string getRobotMarkersGroupPythonDict(const std::string& group, bp::dict& values)
   {
     const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
     if (!jmg)
-      return py_bindings_tools::ByteString("");
+      return "";
     bp::list links = py_bindings_tools::listFromString(jmg->getLinkModelNames());
     return getRobotMarkersPythonDictList(values, links);
   }

@@ -45,7 +45,7 @@ class SimpleCompleter(object):
         prefix = ""
         if len(cmds) > 0:
             prefix = cmds[0]
-            if not prefix in self.options:
+            if not self.options.has_key(prefix):
                 prefix = ""
 
         if state == 0:

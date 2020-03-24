@@ -453,7 +453,7 @@ class MoveitJoy:
                 self.marker_lock.acquire()
                 self.initialize_poses = True
                 topic_suffix = next_topic.split("/")[-1]
-                if topic_suffix in self.initial_poses:
+                if self.initial_poses.has_key(topic_suffix):
                     self.pre_pose = PoseStamped(pose=self.initial_poses[topic_suffix])
                     self.initialize_poses = False
                     return True
