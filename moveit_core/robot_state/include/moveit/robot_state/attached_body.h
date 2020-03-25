@@ -123,15 +123,23 @@ public:
     subframe_poses_ = subframe_poses;
   }
 
-  /** \brief Get the fixed transform to a named subframe on this body.
+  /** \brief Get the fixed transform to a named subframe on this body.  Relative to parrent link.
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
    * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false). */
   const Eigen::Isometry3d& getSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
+
+  /** \brief Get the fixed transform to a named subframe on this body.
+   * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
+   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false). */
+  const Eigen::Isometry3d& getGlobalSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
   /** \brief Check whether a subframe of given @frame_name is present in this object.
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
    * name is "screwdriver"). */
   bool hasSubframeTransform(const std::string& frame_name) const;
+
+  /** \brief Updates global subframe poses */
+  void updateGlobalSubframePoses();
 
   /** \brief Get the global transforms for the collision bodies */
   const EigenSTL::vector_Isometry3d& getGlobalCollisionBodyTransforms() const
@@ -180,6 +188,13 @@ private:
    *  (e.g. screwdriver/tip, kettle/spout, mug/base).
    * */
   moveit::core::FixedTransformsMap subframe_poses_;
+
+  /** \brief Transforms to subframes on the object. Transforms are relative to world.
+   *  These are updated when computeTransform is called and are used by getGlobalSubframeTransform
+   *  and hasSubframeTransform. Use these to define points of interest on the object to plan with
+   *  (e.g. screwdriver/tip, kettle/spout, mug/base).
+   * */
+  moveit::core::FixedTransformsMap global_subframe_poses_;
 };
 }
 }
