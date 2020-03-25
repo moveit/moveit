@@ -211,6 +211,30 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   ROS_INFO_STREAM_NAMED(log_name, "att_coll_object: " << att_coll_object);
   planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
 
+  {
+    planning_scene_monitor->requestPlanningSceneState(service_name);
+
+    // lock planning scene
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+    // get the tip and box subframe locations in world
+    Eigen::Affine3d panda_hand = planning_scene->getFrameTransform("panda_hand");
+    Eigen::Affine3d cylinder = planning_scene->getFrameTransform("cylinder");
+    Eigen::Affine3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Affine3d box_subframe = planning_scene->getFrameTransform("box/bottom");
+
+    ROS_WARN_STREAM_NAMED(log_name, "panda_hand: " << panda_hand.translation()[0] << ", " << panda_hand.translation()[1]
+                                                   << ", " << panda_hand.translation()[2]);
+    ROS_WARN_STREAM_NAMED(log_name, "box_subframe: " << box_subframe.translation()[0] << ", "
+                                                     << box_subframe.translation()[1] << ", "
+                                                     << box_subframe.translation()[2]);
+    ROS_WARN_STREAM_NAMED(log_name, "cylinder: " << cylinder.translation()[0] << ", " << cylinder.translation()[1]
+                                                 << ", " << cylinder.translation()[2]);
+    ROS_WARN_STREAM_NAMED(log_name, "cylinder_tip: " << cylinder_tip.translation()[0] << ", "
+                                                     << cylinder_tip.translation()[1] << ", "
+                                                     << cylinder_tip.translation()[2]);
+  }
+
   tf2::Quaternion target_orientation;
   target_orientation.setRPY(-(90.0 / 180.0 * M_PI), (180.0 / 180.0 * M_PI), 0);
   geometry_msgs::PoseStamped target_pose_stamped;
