@@ -130,9 +130,9 @@ struct object_manager_traits<moveit::py_bindings_tools::ByteString>
 #else
     : pytype_object_manager_traits<&PyString_Type, moveit::py_bindings_tools::ByteString>
 #endif
-
 {
 };
+
 }  // namespace converter
 }  // namespace python
 }  // namespace boost

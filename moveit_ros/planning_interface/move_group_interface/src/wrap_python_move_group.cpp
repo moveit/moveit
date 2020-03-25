@@ -478,7 +478,7 @@ public:
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(grasp_list[i]), grasps[i]);
-    return pick(object, grasps, plan_only).val;
+    return pick(object, std::move(grasps), plan_only).val;
   }
 
   void setPathConstraintsFromMsg(const py_bindings_tools::ByteString& constraints_str)
@@ -497,7 +497,7 @@ public:
   py_bindings_tools::ByteString retimeTrajectory(const py_bindings_tools::ByteString& ref_state_str,
                                                  const py_bindings_tools::ByteString& traj_str,
                                                  double velocity_scaling_factor, double acceleration_scaling_factor,
-                                                 std::string algorithm)
+                                                 const std::string& algorithm)
   {
     // Convert reference state message to object
     moveit_msgs::RobotState ref_state_msg;
