@@ -38,38 +38,103 @@
 #define MOVEIT_PY_BINDINGS_TOOLS_SERIALIZE_MSG_
 
 #include <ros/ros.h>
+#include <Python.h>
+#include <boost/python.hpp>
+#include <string>
+#include <stdexcept>
+#include <type_traits>
 
 namespace moveit
 {
 namespace py_bindings_tools
 {
-/** \brief Convert a ROS message to a string */
-template <typename T>
-std::string serializeMsg(const T& msg)
+/** \brief C++ Wrapper class for Python 3 \c Bytes Object */
+class ByteString : public boost::python::object
 {
-  // we use the fact char is same size as uint8_t;
-  assert(sizeof(uint8_t) == sizeof(char));
-  std::size_t size = ros::serialization::serializationLength(msg);
-  std::string result(size, '\0');
-  if (size)
+public:
+  // constructors for bp::handle and friends
+  BOOST_PYTHON_FORWARD_OBJECT_CONSTRUCTORS(ByteString, boost::python::object)
+  ByteString() : boost::python::object(boost::python::handle<>(PyBytes_FromString("")))
   {
-    // we convert the message into a string because that is easy to sent back & forth with Python
-    // This is fine since C0x because &string[0] is guaranteed to point to a contiguous block of memory
-    ros::serialization::OStream stream_arg(reinterpret_cast<uint8_t*>(&result[0]), size);
+  }
+  explicit ByteString(const char* s) : boost::python::object(boost::python::handle<>(PyBytes_FromString(s)))
+  {
+  }
+  explicit ByteString(const std::string& s)
+    : boost::python::object(boost::python::handle<>(PyBytes_FromStringAndSize(s.c_str(), s.size())))
+  {
+  }
+  // bp::list[] returns a proxy which has to be converted to an object first
+  template <typename T>
+  explicit ByteString(const boost::python::api::proxy<T>& proxy) : boost::python::object(proxy)
+  {
+  }
+  /** \brief Serializes a ROS message into a Python Bytes object
+   * The second template parameter ensures that this overload is only chosen with a ROS message argument
+   */
+  template <typename T, typename std::enable_if<ros::message_traits::IsMessage<T>::value, int>::type = 0>
+  explicit ByteString(const T& msg)
+    : boost::python::object(
+          boost::python::handle<>(PyBytes_FromStringAndSize(nullptr, ros::serialization::serializationLength(msg))))
+  {
+    ros::serialization::OStream stream_arg(reinterpret_cast<uint8_t*>(PyBytes_AS_STRING(ptr())),
+                                           PyBytes_GET_SIZE(ptr()));
     ros::serialization::serialize(stream_arg, msg);
   }
-  return result;
+
+  /** \brief Convert content to a ROS message */
+  template <typename T>
+  void deserialize(T& msg) const
+  {
+    static_assert(sizeof(uint8_t) == sizeof(char), "ros/python buffer layout mismatch");
+    char* buf = PyBytes_AsString(ptr());
+    // buf == NULL on error
+    if (!buf)
+    {
+      throw std::runtime_error("Underlying python object is not a Bytes/String instance");
+    }
+    // unfortunately no constructor with const uint8_t
+    ros::serialization::IStream stream_arg(reinterpret_cast<uint8_t*>(buf), PyBytes_GET_SIZE(ptr()));
+    ros::serialization::deserialize(stream_arg, msg);
+  }
+};
+
+/** \brief Convert a ROS message to a Python Bytestring */
+template <typename T>
+ByteString serializeMsg(const T& msg)
+{
+  return ByteString(msg);
 }
 
-/** \brief Convert a string to a ROS message */
+/** \brief Convert a Python Bytestring to a ROS message */
 template <typename T>
-void deserializeMsg(const std::string& data, T& msg)
+void deserializeMsg(const ByteString& data, T& msg)
 {
-  assert(sizeof(uint8_t) == sizeof(char));
-  ros::serialization::IStream stream_arg(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&data[0])), data.size());
-  ros::serialization::deserialize(stream_arg, msg);
+  data.deserialize(msg);
 }
-}
-}
+
+}  // namespace py_bindings_tools
+}  // namespace moveit
+
+namespace boost
+{
+namespace python
+{
+namespace converter
+{
+// only accept Python 3 Bytes / Python 2 String instance when used as C++ function parameter
+template <>
+struct object_manager_traits<moveit::py_bindings_tools::ByteString>
+#if PY_VERSION_HEX >= 0x03000000
+    : pytype_object_manager_traits<&PyBytes_Type, moveit::py_bindings_tools::ByteString>
+#else
+    : pytype_object_manager_traits<&PyString_Type, moveit::py_bindings_tools::ByteString>
+#endif
+{
+};
+
+}  // namespace converter
+}  // namespace python
+}  // namespace boost
 
 #endif
