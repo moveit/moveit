@@ -1052,7 +1052,8 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   // Check if an AttachedBody has a subframe with name frame_id
   for (const std::pair<std::string, AttachedBody*>& body : attached_body_map_)
   {
-    const auto& transform = body.second->getSubframeTransform(frame_id, &frame_found);
+    body.second->updateGlobalSubframePoses();
+    const auto& transform = body.second->getGlobalSubframeTransform(frame_id, &frame_found);
     if (frame_found)
     {
       robot_link = body.second->getAttachedLink();

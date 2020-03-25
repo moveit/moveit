@@ -54,6 +54,7 @@ AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string
   , touch_links_(touch_links)
   , detach_posture_(detach_posture)
   , subframe_poses_(subframe_poses)
+  , global_subframe_poses_(subframe_poses)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
   for (Eigen::Isometry3d& global_collision_body_transform : global_collision_body_transforms_)
@@ -114,11 +115,42 @@ const Eigen::Isometry3d& AttachedBody::getSubframeTransform(const std::string& f
   return IDENTITY_TRANSFORM;
 }
 
+const Eigen::Isometry3d& AttachedBody::getGlobalSubframeTransform(const std::string& frame_name, bool* found) const
+{
+  if (boost::starts_with(frame_name, id_) && frame_name[id_.length()] == '/')
+  {
+    auto it = global_subframe_poses_.find(frame_name.substr(id_.length() + 1));
+    if (it != global_subframe_poses_.end())
+    {
+      if (found)
+        *found = true;
+      return it->second;
+    }
+  }
+  static const Eigen::Isometry3d IDENTITY_TRANSFORM = Eigen::Isometry3d::Identity();
+  if (found)
+    *found = false;
+  return IDENTITY_TRANSFORM;
+}
+
 bool AttachedBody::hasSubframeTransform(const std::string& frame_name) const
 {
   bool found;
   getSubframeTransform(frame_name, &found);
   return found;
+}
+
+void AttachedBody::updateGlobalSubframePoses()
+{
+  global_subframe_poses_ = subframe_poses_;
+  if (global_collision_body_transforms_.size() > 0)
+  {
+    auto global_transform = global_collision_body_transforms_[0];
+    for (auto& subframe_pose : global_subframe_poses_)
+    {
+      subframe_pose.second = global_transform * subframe_pose.second;
+    }
+  }
 }
 }  // namespace core
 }  // namespace moveit
