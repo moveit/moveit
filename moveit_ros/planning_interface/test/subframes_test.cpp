@@ -199,50 +199,108 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   tf2::Quaternion target_orientation;
   target_orientation.setRPY(0, 180.0 / 180.0 * M_PI, 90.0 / 180.0 * M_PI);
   geometry_msgs::PoseStamped target_pose_stamped;
-  target_pose_stamped.header.frame_id = "box/bottom";
   target_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   target_pose_stamped.pose.position.z = Z_OFFSET;
 
   ROS_INFO_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip");
+  target_pose_stamped.header.frame_id = "box/bottom";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  ROS_INFO_STREAM_NAMED(log_name, "Finished Moving to bottom of box with cylinder tip");
-
   {
     planning_scene_monitor->requestPlanningSceneState();
     planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
 
     // get the tip and box subframe locations in world
     Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
-    Eigen::Isometry3d box_bottom = planning_scene->getFrameTransform("box/bottom");
+    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
     Eigen::Isometry3d target_pose;
     tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
 
     // expect that they are identical
-    EXPECT_TRUE(cylinder_tip.isApprox(box_bottom * target_pose, EPSILON)) << "box frame: \n"
-                                                                          << box_bottom.matrix()
-                                                                          << "\ncylinder frame: \n"
-                                                                          << cylinder_tip.matrix();
+    EXPECT_TRUE(cylinder_tip.isApprox(box_subframe * target_pose, EPSILON)) << "box frame: \n"
+                                                                            << box_subframe.matrix()
+                                                                            << "\ncylinder frame: \n"
+                                                                            << cylinder_tip.matrix();
   }
 
-  // ROS_INFO_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
-  // target_pose_stamped.header.frame_id = "box/top";
-  // ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  // planning_scene_monitor->requestPlanningSceneState(service_name);
+  ROS_INFO_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
+  target_pose_stamped.header.frame_id = "box/top";
+  ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
+  {
+    planning_scene_monitor->requestPlanningSceneState();
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
 
-  // ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 1 with cylinder tip");
-  // target_pose_stamped.header.frame_id = "box/corner_1";
-  // ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  // planning_scene_monitor->requestPlanningSceneState(service_name);
+    // get the tip and box subframe locations in world
+    Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
+    Eigen::Isometry3d target_pose;
+    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
 
-  // ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 2 with cylinder tip");
-  // target_pose_stamped.header.frame_id = "box/corner_2";
-  // ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  // planning_scene_monitor->requestPlanningSceneState(service_name);
+    // expect that they are identical
+    EXPECT_TRUE(cylinder_tip.isApprox(box_subframe * target_pose, EPSILON)) << "box frame: \n"
+                                                                            << box_subframe.matrix()
+                                                                            << "\ncylinder frame: \n"
+                                                                            << cylinder_tip.matrix();
+  }
 
-  // ROS_INFO_STREAM_NAMED(log_name, "Moving to side of box with cylinder tip");
-  // target_pose_stamped.header.frame_id = "box/side";
-  // ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
-  // planning_scene_monitor->requestPlanningSceneState(service_name);
+  ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 1 with cylinder tip");
+  target_pose_stamped.header.frame_id = "box/corner_1";
+  ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
+  {
+    planning_scene_monitor->requestPlanningSceneState();
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+    // get the tip and box subframe locations in world
+    Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
+    Eigen::Isometry3d target_pose;
+    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
+
+    // expect that they are identical
+    EXPECT_TRUE(cylinder_tip.isApprox(box_subframe * target_pose, EPSILON)) << "box frame: \n"
+                                                                            << box_subframe.matrix()
+                                                                            << "\ncylinder frame: \n"
+                                                                            << cylinder_tip.matrix();
+  }
+
+  ROS_INFO_STREAM_NAMED(log_name, "Moving to box corner 2 with cylinder tip");
+  target_pose_stamped.header.frame_id = "box/corner_2";
+  ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
+  {
+    planning_scene_monitor->requestPlanningSceneState();
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+    // get the tip and box subframe locations in world
+    Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
+    Eigen::Isometry3d target_pose;
+    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
+
+    // expect that they are identical
+    EXPECT_TRUE(cylinder_tip.isApprox(box_subframe * target_pose, EPSILON)) << "box frame: \n"
+                                                                            << box_subframe.matrix()
+                                                                            << "\ncylinder frame: \n"
+                                                                            << cylinder_tip.matrix();
+  }
+
+  ROS_INFO_STREAM_NAMED(log_name, "Moving to side of box with cylinder tip");
+  target_pose_stamped.header.frame_id = "box/side";
+  ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
+  {
+    planning_scene_monitor->requestPlanningSceneState();
+    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
+
+    // get the tip and box subframe locations in world
+    Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
+    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform(target_pose_stamped.header.frame_id);
+    Eigen::Isometry3d target_pose;
+    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
+
+    // expect that they are identical
+    EXPECT_TRUE(cylinder_tip.isApprox(box_subframe * target_pose, EPSILON)) << "box frame: \n"
+                                                                            << box_subframe.matrix()
+                                                                            << "\ncylinder frame: \n"
+                                                                            << cylinder_tip.matrix();
+  }
 }
 
 int main(int argc, char** argv)
