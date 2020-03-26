@@ -107,49 +107,20 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
   is_initialized_ = true;
 
-  // Wait for the first jogging cmd.
-  // Store it in a class member for further calcs, then free up the shared variable again.
-  geometry_msgs::TwistStamped cartesian_deltas;
-  control_msgs::JointJog joint_deltas;
-  while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
-  {
-    if (stop_jog_loop_requested_)
-      return;
-
-    default_sleep_rate_.sleep();
-
-    // Ensure the low-pass filter matches reality
-    for (std::size_t i = 0; i < num_joints_; ++i)
-      position_filters_[i].reset(internal_joint_state_.position[i]);
-
-    //  Check for a new command
-    shared_variables.lock();
-    cartesian_deltas = shared_variables.command_deltas;
-    joint_deltas = shared_variables.joint_command_deltas;
-    incoming_joint_state_ = shared_variables.joints;
-    shared_variables.unlock();
-
-    kinematic_state_->setVariableValues(internal_joint_state_);
-
-    // Always update the end-effector transform in case the getCommandFrameTransform() method is being used
-    // Get the transform from MoveIt planning frame to jogging command frame
-    // We solve (planning_frame -> base -> robot_link_command_frame)
-    // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-    tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                              kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
-
-    shared_variables.lock();
-    shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
-    shared_variables.unlock();
-  }
-
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
   int zero_velocity_count = 0;
 
   ros::Rate loop_rate(1. / parameters_.publish_period);
 
-  // Now do jogging calcs
+  // Flag for staying inactive while there are no incoming commands
+  bool wait_for_jog_commands = true;
+
+  // Incoming command messages
+  geometry_msgs::TwistStamped cartesian_deltas;
+  control_msgs::JointJog joint_deltas;
+
+  // Do jogging calcs
   while (ros::ok() && !stop_jog_loop_requested_)
   {
     // Always update the joints and end-effector transform for 2 reasons:
@@ -170,9 +141,19 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
     shared_variables.unlock();
 
-    // If paused, just keep the low-pass filters up to date with current joints so a jump doesn't occur when
-    // restarting
-    if (halt_outgoing_jog_cmds_)
+    //  Check for an initial jog command
+    if (wait_for_jog_commands)
+    {
+      shared_variables.lock();
+      // Check if there are any commands with valid timestamp
+      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.)
+        && shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
+      shared_variables.unlock();
+    }
+
+    // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
+    // joints so a jump doesn't occur when restarting
+    if (wait_for_jog_commands || halt_outgoing_jog_cmds_)
     {
       for (std::size_t i = 0; i < num_joints_; ++i)
         position_filters_[i].reset(internal_joint_state_.position[i]);
