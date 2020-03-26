@@ -40,6 +40,7 @@
 #include <moveit_jog_arm/collision_check_thread.h>
 
 static const std::string LOGNAME = "collision_check_thread";
+static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
 
 namespace moveit_jog_arm
 {
@@ -49,6 +50,8 @@ CollisionCheckThread::CollisionCheckThread(
     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : parameters_(parameters), planning_scene_monitor_(planning_scene_monitor)
 {
+  if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
+    ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
 }
 
 planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
@@ -73,7 +76,6 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   ros::Rate collision_rate(parameters_.collision_check_rate);
 
   double collision_distance = 0;
-  bool is_in_collision = false;
 
   // Scale robot velocity according to collision proximity and user-defined thresholds.
   // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
@@ -102,10 +104,9 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
     // Do a binary collision detection (helps with strange edge cases like being in collision initially)
     collision_request.distance = false;
     getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
-    is_in_collision = collision_result.collision;
 
     // If we're definitely in collision, stop immediately
-    if (is_in_collision)
+    if (collision_result.collision)
     {
       velocity_scale = 0;
     }

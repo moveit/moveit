@@ -52,5 +52,5 @@ command_out_topic: joint_group_position_controller/command # Publish outgoing co
 
 ## Collision checking for the entire robot body
 check_collisions: true # Check collisions?
-collision_check_rate: 5 # [Hz] Collision-checking can easily bog down a CPU if done too often.
+collision_check_rate: 10 # [Hz] Collision-checking can easily bog down a CPU if done too often.
 collision_proximity_threshold: 0.01 # Start decelerating when a collision is this far [m]

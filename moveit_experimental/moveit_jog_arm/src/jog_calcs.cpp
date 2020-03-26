@@ -353,7 +353,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
                        velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
   if (status_ == HALT_FOR_COLLISION)
   {
-    ROS_ERROR_STREAM("Halting!");
+    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
     suddenHalt(delta_theta_);
   }
 
@@ -402,6 +402,7 @@ void JogCalcs::updateCachedStatus(JogArmShared& shared_variables)
 
 bool JogCalcs::convertDeltasToOutgoingCmd()
 {
+  internal_joint_state_ = original_joint_state_;
   if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 

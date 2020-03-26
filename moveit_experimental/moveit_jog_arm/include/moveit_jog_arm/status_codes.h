@@ -56,8 +56,8 @@ enum StatusCode : int8_t
 const std::unordered_map<uint, std::string>
     JOG_ARM_STATUS_CODE_MAP({ { NO_WARNING, "No warnings" },
                               { DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
-                              { HALT_FOR_SINGULARITY, "Very close to a singularity, halting" },
-                              { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating." },
-                              { HALT_FOR_COLLISION, "Close to a collision, halting." },
+                              { HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
+                              { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
+                              { HALT_FOR_COLLISION, "Collision detected, emergency stop" },
                               { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
 }  // end namespace trackjoint
