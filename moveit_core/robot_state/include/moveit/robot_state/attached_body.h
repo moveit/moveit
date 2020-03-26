@@ -144,9 +144,6 @@ public:
    * name is "screwdriver"). */
   bool hasSubframeTransform(const std::string& frame_name) const;
 
-  /** \brief Updates global subframe poses */
-  void updateGlobalSubframePoses();
-
   /** \brief Get the global transforms for the collision bodies */
   const EigenSTL::vector_Isometry3d& getGlobalCollisionBodyTransforms() const
   {
@@ -160,11 +157,7 @@ public:
   void setScale(double scale);
 
   /** \brief Recompute global_collision_body_transform given the transform of the parent link */
-  void computeTransform(const Eigen::Isometry3d& parent_link_global_transform)
-  {
-    for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
-      global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];
-  }
+  void computeTransform(const Eigen::Isometry3d& parent_link_global_transform);
 
 private:
   /** \brief The link that owns this attached body */
@@ -192,11 +185,7 @@ private:
   /** \brief Transforms to subframes on the object. Transforms are relative to the link. */
   moveit::core::FixedTransformsMap subframe_poses_;
 
-  /** \brief Transforms to subframes on the object. Transforms are relative to world.
-   *  These are updated when computeTransform is called and are used by getGlobalSubframeTransform
-   *  and hasSubframeTransform. Use these to define points of interest on the object to plan with
-   *  (e.g. screwdriver/tip, kettle/spout, mug/base).
-   * */
+  /** \brief Transforms to subframes on the object, relative to the model frame. */
   moveit::core::FixedTransformsMap global_subframe_poses_;
 };
 }

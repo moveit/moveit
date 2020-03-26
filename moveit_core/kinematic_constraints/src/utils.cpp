@@ -39,6 +39,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit/utils/xmlrpc_casts.h>
 #include <moveit/utils/message_checks.h>
+#include <eigen_conversions/eigen_msg.h>
 
 using namespace moveit::core;
 
@@ -540,21 +541,19 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
     if (!frame_found)
       return false;
 
-    // If the frame of the constraint is not part of the robot link model (but is an
-    // attached body or subframe instead), the constraint needs to be expressed in
-    // the frame of a robot link.
+    // If the frame of the constraint is not part of the robot link model (but an attached body or subframe),
+    // the constraint needs to be expressed in the frame of a robot link.
     if (c.link_name != robot_link->getName())
     {
-      Eigen::Vector3d pos_in_link_frame,
-          pos_in_original_frame(c.target_point_offset.x, c.target_point_offset.y, c.target_point_offset.z);
+      Eigen::Isometry3d robot_link_to_link_name = state.getGlobalLinkTransform(robot_link).inverse() * transform;
+      Eigen::Vector3d offset_link_name(c.target_point_offset.x, c.target_point_offset.y, c.target_point_offset.z);
+      Eigen::Vector3d offset_robot_link = robot_link_to_link_name * offset_link_name;
 
-      pos_in_link_frame = transform * pos_in_original_frame;
       c.link_name = robot_link->getName();
-      c.target_point_offset.x = pos_in_link_frame[0];
-      c.target_point_offset.y = pos_in_link_frame[1];
-      c.target_point_offset.z = pos_in_link_frame[2];
+      tf::vectorEigenToMsg(offset_robot_link, c.target_point_offset);
     }
   }
+
   for (auto& c : constraints.orientation_constraints)
   {
     bool frame_found;
@@ -563,20 +562,16 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
     if (!frame_found)
       return false;
 
-    // If the frame of the constraint is not part of the robot link model (but is an
-    // attached body or subframe instead), the constraint needs to be expressed in
-    // the frame of a robot link.
+    // If the frame of the constraint is not part of the robot link model (but an attached body or subframe),
+    // the constraint needs to be expressed in the frame of a robot link.
     if (c.link_name != robot_link->getName())
     {
-      Eigen::Quaterniond q_body_to_link(transform.inverse().rotation());
-      Eigen::Quaterniond q_target(c.orientation.w, c.orientation.x, c.orientation.y, c.orientation.z);
-      Eigen::Quaterniond q_in_link = q_body_to_link * q_target;
-
       c.link_name = robot_link->getName();
-      c.orientation.x = q_in_link.x();
-      c.orientation.y = q_in_link.y();
-      c.orientation.z = q_in_link.z();
-      c.orientation.w = q_in_link.w();
+      Eigen::Quaterniond link_name_to_robot_link(transform.linear().inverse() *
+                                                 state.getGlobalLinkTransform(robot_link).linear());
+      Eigen::Quaterniond quat_target;
+      tf::quaternionMsgToEigen(c.orientation, quat_target);
+      tf::quaternionEigenToMsg(quat_target * link_name_to_robot_link, c.orientation);
     }
   }
   return true;

@@ -118,34 +118,34 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   box.subframe_poses[0].position.z = 0.0 + z_offset_box;
 
   tf2::Quaternion orientation;
-  orientation.setRPY((90.0 / 180.0 * M_PI), 0, 0);
+  orientation.setRPY(90.0 / 180.0 * M_PI, 0, 0);
   box.subframe_poses[0].orientation = tf2::toMsg(orientation);
 
   box.subframe_names[1] = "top";
   box.subframe_poses[1].position.y = .05;
   box.subframe_poses[1].position.z = 0.0 + z_offset_box;
-  orientation.setRPY(-(90.0 / 180.0 * M_PI), 0, 0);
+  orientation.setRPY(-90.0 / 180.0 * M_PI, 0, 0);
   box.subframe_poses[1].orientation = tf2::toMsg(orientation);
 
   box.subframe_names[2] = "corner_1";
   box.subframe_poses[2].position.x = -.025;
   box.subframe_poses[2].position.y = -.05;
   box.subframe_poses[2].position.z = -.01 + z_offset_box;
-  orientation.setRPY((90.0 / 180.0 * M_PI), 0, 0);
+  orientation.setRPY(90.0 / 180.0 * M_PI, 0, 0);
   box.subframe_poses[2].orientation = tf2::toMsg(orientation);
 
   box.subframe_names[3] = "corner_2";
   box.subframe_poses[3].position.x = .025;
   box.subframe_poses[3].position.y = -.05;
   box.subframe_poses[3].position.z = -.01 + z_offset_box;
-  orientation.setRPY((90.0 / 180.0 * M_PI), 0, 0);
+  orientation.setRPY(90.0 / 180.0 * M_PI, 0, 0);
   box.subframe_poses[3].orientation = tf2::toMsg(orientation);
 
   box.subframe_names[4] = "side";
   box.subframe_poses[4].position.x = .0;
   box.subframe_poses[4].position.y = .0;
   box.subframe_poses[4].position.z = -.01 + z_offset_box;
-  orientation.setRPY(0, (180.0 / 180.0 * M_PI), 0);
+  orientation.setRPY(0, 180.0 / 180.0 * M_PI, 0);
   box.subframe_poses[4].orientation = tf2::toMsg(orientation);
 
   ROS_INFO_STREAM_NAMED(log_name, "box: " << box);
@@ -163,7 +163,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   cylinder.primitive_poses[0].position.x = 0.0;
   cylinder.primitive_poses[0].position.y = 0.0;
   cylinder.primitive_poses[0].position.z = 0.0 + z_offset_cylinder;
-  orientation.setRPY(0, (90.0 / 180.0 * M_PI), 0);
+  orientation.setRPY(0, 90.0 / 180.0 * M_PI, 0);
   cylinder.primitive_poses[0].orientation = tf2::toMsg(orientation);
 
   cylinder.subframe_poses.resize(1);
@@ -172,7 +172,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   cylinder.subframe_poses[0].position.x = 0.03;
   cylinder.subframe_poses[0].position.y = 0.0;
   cylinder.subframe_poses[0].position.z = 0.0 + z_offset_cylinder;
-  orientation.setRPY(0, (90.0 / 180.0 * M_PI), 0);
+  orientation.setRPY(0, 90.0 / 180.0 * M_PI, 0);
   cylinder.subframe_poses[0].orientation = tf2::toMsg(orientation);
 
   ROS_INFO_STREAM_NAMED(log_name, "cylinder: " << cylinder);
@@ -224,15 +224,13 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   }
 
   tf2::Quaternion target_orientation;
-  target_orientation.setRPY(-(90.0 / 180.0 * M_PI), (180.0 / 180.0 * M_PI), 0);
+  target_orientation.setRPY(0, 180.0 / 180.0 * M_PI, 90.0 / 180.0 * M_PI);
   geometry_msgs::PoseStamped target_pose_stamped;
+  target_pose_stamped.header.frame_id = "box/bottom";
   target_pose_stamped.pose.orientation = tf2::toMsg(target_orientation);
   target_pose_stamped.pose.position.z = Z_OFFSET;
 
-  // When constructing the target pose for the robot, we multiply the quaternions to get the
-  // target orientation and convert the result to a geometry_msgs/orientation message.
   ROS_INFO_STREAM_NAMED(log_name, "Moving to bottom of box with cylinder tip");
-  target_pose_stamped.header.frame_id = "box/bottom";
   ASSERT_TRUE(moveToCartPose(target_pose_stamped, group, "cylinder/tip"));
   ROS_INFO_STREAM_NAMED(log_name, "Finished Moving to bottom of box with cylinder tip");
 

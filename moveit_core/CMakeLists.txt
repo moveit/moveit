@@ -60,6 +60,7 @@ COMPONENTS
   tf2_eigen
   tf2_geometry_msgs
   eigen_stl_containers
+  eigen_conversions
   geometric_shapes
   geometry_msgs
   kdl_parser
