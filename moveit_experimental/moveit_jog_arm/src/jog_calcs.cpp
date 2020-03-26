@@ -349,9 +349,10 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     return false;
 
   // If close to a collision or a singularity, decelerate
-  if (!applyVelocityScaling(shared_variables, delta_theta_,
-                            velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
+  applyVelocityScaling(shared_variables, delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
+  if (status_ == HALT_FOR_COLLISION)
   {
+    ROS_ERROR_STREAM("Halting!");
     suddenHalt(delta_theta_);
   }
 
@@ -483,23 +484,24 @@ trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::
 
 // Apply velocity scaling for proximity of collisions and singularities.
 // Scale for collisions is read from a shared variable.
-bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta,
+void JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta,
                                     double singularity_scale)
 {
   shared_variables.lock();
   double collision_scale = shared_variables.collision_velocity_scale;
   shared_variables.unlock();
 
-  if (collision_scale < 1)
+  if (collision_scale > 0 && collision_scale < 1)
   {
-    status_ = COLLISION;
+    status_ = DECELERATE_FOR_COLLISION;
     ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+  }
+  else if (collision_scale == 0)
+  {
+    status_ = HALT_FOR_COLLISION;
   }
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
-
-  // Heuristic: flag that we are stuck if velocity scaling is < X%
-  return collision_scale * singularity_scale >= 0.1;
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
