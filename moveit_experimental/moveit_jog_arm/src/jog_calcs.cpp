@@ -326,9 +326,6 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   enforceSRDFAccelVelLimits(delta_theta_);
 
-  if (!addJointIncrements(internal_joint_state_, delta_theta_))
-    return false;
-
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(shared_variables, delta_theta_,
                        velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
