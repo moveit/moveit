@@ -55,7 +55,7 @@
 /moveit_core/planning_request_adapter/                      @rhaschke
 /moveit_core/planning_scene/                                @rhaschke
 /moveit_core/profiler/                                      @tylerjw
-/moveit_core/robot_model/                                   @jonbinney
+/moveit_core/robot_model/                                   @tylerjw
 /moveit_core/robot_state/                                   @rhaschke @mlautman
 /moveit_core/robot_trajectory/                              @mlautman
 /moveit_core/sensor_manager/                                @mlautman
@@ -79,7 +79,7 @@
 /moveit_ros/robot_interaction/	                            @mikeferguson @rhaschke
 /moveit_ros/warehouse/	                                    @mikeferguson @dg-shadow
 /moveit_ros/move_group/	                                    @rhaschke @IanTheEngineer
-/moveit_ros/visualization/	                            @rhaschke @jonbinney @RoboticsYY
+/moveit_ros/visualization/	                            @rhaschke @tylerjw @RoboticsYY
 
 /moveit_ros/planning/collision_plugin_loader/               @j-petit
 /moveit_ros/planning/constraint_sampler_manager_loader/     @nbbrooks
