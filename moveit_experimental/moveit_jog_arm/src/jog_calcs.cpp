@@ -61,7 +61,7 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader:
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
-  prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getVariableCount());
+  prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getActiveJointModels().size());
 }
 
 void JogCalcs::startMainLoop(JogArmShared& shared_variables)
@@ -76,7 +76,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
 
-  internal_joint_state_.name = joint_model_group_->getVariableNames();
+  internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
   num_joints_ = internal_joint_state_.name.size();
   internal_joint_state_.position.resize(num_joints_);
   internal_joint_state_.velocity.resize(num_joints_);
@@ -146,8 +146,8 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     {
       shared_variables.lock();
       // Check if there are any commands with valid timestamp
-      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.)
-        && shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
+      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.) &&
+                              shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
       shared_variables.unlock();
     }
 
@@ -555,61 +555,70 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
 void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
 {
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
+  const Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
 
   std::size_t joint_delta_index = 0;
-  for (auto joint : joint_model_group_->getJointModels())
+  for (auto joint : joint_model_group_->getActiveJointModels())
   {
     // Some joints do not have bounds defined
-    if (kinematic_state_->getJointModel(joint->getName())->hasVariable(joint->getName()))
+    const auto bounds = joint->getVariableBounds(joint->getName());
+    if (bounds.acceleration_bounded_)
     {
-      auto bounds = kinematic_state_->getJointModel(joint->getName())->getVariableBounds(joint->getName());
+      bool clip_acceleration = false;
+      double acceleration_limit = 0.0;
+      if (acceleration(joint_delta_index) < bounds.min_acceleration_)
+      {
+        clip_acceleration = true;
+        acceleration_limit = bounds.min_acceleration_;
+      }
+      else if (acceleration(joint_delta_index) > bounds.max_acceleration_)
+      {
+        clip_acceleration = true;
+        acceleration_limit = bounds.max_acceleration_;
+      }
 
       // Apply acceleration bounds
-      // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
-      // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
-      Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
-      if ((bounds.min_acceleration_ != 0) && (acceleration(joint_delta_index) < bounds.min_acceleration_))
+      if (clip_acceleration)
       {
-        double relative_change =
-            ((bounds.min_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
+        // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
+        // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
+        const double relative_change =
+            ((acceleration_limit * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
              parameters_.publish_period) /
             delta_theta(joint_delta_index);
         // Avoid nan
         if (fabs(relative_change) < 1)
-          delta_theta = relative_change * delta_theta;
+          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
       }
-      else if ((bounds.max_acceleration_ != 0) && (acceleration(joint_delta_index) > bounds.max_acceleration_))
+    }
+
+    if (bounds.velocity_bounded_)
+    {
+      velocity(joint_delta_index) = delta_theta(joint_delta_index) / parameters_.publish_period;
+
+      bool clip_velocity = false;
+      double velocity_limit = 0.0;
+      if (velocity(joint_delta_index) < bounds.min_velocity_)
       {
-        double relative_change =
-            ((bounds.max_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
-             parameters_.publish_period) /
-            delta_theta(joint_delta_index);
-        // Avoid nan
-        if (fabs(relative_change) < 1)
-          delta_theta = relative_change * delta_theta;
+        clip_velocity = true;
+        velocity_limit = bounds.min_velocity_;
+      }
+      else if (velocity(joint_delta_index) > bounds.max_velocity_)
+      {
+        clip_velocity = true;
+        velocity_limit = bounds.max_velocity_;
       }
 
-      velocity = delta_theta / parameters_.publish_period;
       // Apply velocity bounds
-      // delta_theta = joint_velocity * delta_t
-      if ((bounds.min_velocity_ != 0) && (velocity(joint_delta_index) < bounds.min_velocity_))
+      if (clip_velocity)
       {
-        double relative_change = (bounds.min_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
+        // delta_theta = joint_velocity * delta_t
+        const double relative_change = (velocity_limit * parameters_.publish_period) / delta_theta(joint_delta_index);
         // Avoid nan
         if (fabs(relative_change) < 1)
         {
-          delta_theta = relative_change * delta_theta;
-          velocity = relative_change * velocity;
-        }
-      }
-      else if ((bounds.max_velocity_ != 0) && (velocity(joint_delta_index) > bounds.max_velocity_))
-      {
-        double relative_change = (bounds.max_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
-        // Avoid nan
-        if (fabs(relative_change) < 1)
-        {
-          delta_theta = relative_change * delta_theta;
-          velocity = relative_change * velocity;
+          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
+          velocity(joint_delta_index) = relative_change * velocity(joint_delta_index);
         }
       }
       ++joint_delta_index;
@@ -621,7 +630,7 @@ bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_j
 {
   bool halting = false;
 
-  for (auto joint : joint_model_group_->getJointModels())
+  for (auto joint : joint_model_group_->getActiveJointModels())
   {
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
@@ -707,7 +716,7 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
     }
     catch (const std::out_of_range& e)
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
 
