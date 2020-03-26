@@ -228,7 +228,8 @@ bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions:
 bool JogInterfaceBase::startJogCalcThread()
 {
   if (!jog_calcs_)
-    jog_calcs_.reset(new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader()));
+    jog_calcs_.reset(
+        new JogCalcs(ros_parameters_, planning_scene_monitor_->getRobotModelLoader(), planning_scene_monitor_));
 
   jog_calc_thread_.reset(new std::thread([&]() { jog_calcs_->startMainLoop(shared_variables_); }));
 

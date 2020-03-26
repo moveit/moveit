@@ -51,11 +51,6 @@ CollisionCheckThread::CollisionCheckThread(
 {
 }
 
-planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
-{
-  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
-}
-
 void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 {
   // Reset loop termination flag
@@ -68,7 +63,8 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   collision_detection::CollisionResult collision_result;
 
   // Copy the planning scene's version of current state into new memory
-  moveit::core::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
+  moveit::core::RobotState current_state(
+      planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)->getCurrentState());
 
   double velocity_scale_coefficient = -log(0.001) / parameters_.collision_proximity_threshold;
   ros::Rate collision_rate(parameters_.collision_check_rate);
@@ -87,8 +83,9 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
     collision_result.clear();
     current_state.updateCollisionBodyTransforms();
-    // Do thread-safe collsion collision checking
-    getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
+    // Do thread-safe collision checking
+    planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)
+        ->checkCollision(collision_request, collision_result, current_state);
 
     // Scale robot velocity according to collision proximity and user-defined thresholds.
     // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.

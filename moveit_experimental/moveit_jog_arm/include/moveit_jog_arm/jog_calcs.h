@@ -56,7 +56,14 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  /** \brief Constructor
+   *  \param parameters: common settings of jog_arm
+   *  \param model_loader_ptr: pointer to the robot model loader
+   *  \param planning_scene_monitor: PSM should have scene monitor and state monitor already started when passed into
+                                     this class
+   */
+  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr,
+           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   void startMainLoop(JogArmShared& shared_variables);
 
@@ -194,5 +201,9 @@ protected:
   uint num_joints_;
 
   ros::Rate default_sleep_rate_;
+
+  // Pointer to the collision environment
+  // We do fast, binary collision checking in this thread
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };
 }  // namespace moveit_jog_arm

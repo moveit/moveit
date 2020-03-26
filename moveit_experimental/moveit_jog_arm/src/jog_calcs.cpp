@@ -44,8 +44,9 @@ static const std::string LOGNAME = "jog_calcs";
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
-  : parameters_(parameters), default_sleep_rate_(1000)
+JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr,
+                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : parameters_(parameters), default_sleep_rate_(1000), planning_scene_monitor_(planning_scene_monitor)
 {
   // Publish jogger status
   status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
@@ -86,6 +87,15 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   {
     joint_state_name_map_[internal_joint_state_.name[i]] = i;
   }
+
+  // Set up for fast, binary collision detection
+  collision_detection::CollisionRequest collision_request;
+  collision_request.group_name = parameters_.move_group_name;
+  collision_detection::CollisionResult collision_result;
+
+  // Copy the planning scene's version of current state into new memory
+  moveit::core::RobotState current_state(
+      planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)->getCurrentState());
 
   // Low-pass filters for the joint positions & velocities
   for (size_t i = 0; i < num_joints_; ++i)
@@ -169,6 +179,28 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     shared_variables.lock();
     shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
     shared_variables.unlock();
+
+    // Do a fast, binary collision check
+    collision_result.clear();
+    current_state = planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)->getCurrentState();
+    // Do thread-safe collsion checking
+    planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)
+        ->checkCollision(collision_request, collision_result, current_state);
+    // Pause if in collision
+    if (collision_result.collision)
+    {
+      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "jog_calcs_thread: Collision detected. Halting.");
+      halt_outgoing_jog_cmds_ = true;
+      status_ = HALT_FOR_SINGULARITY;
+      publishStatus();
+      // Cache the status so it can be retrieved asynchronously
+      updateCachedStatus(shared_variables);
+    }
+
+    // current_state.updateCollisionBodyTransforms();
+    // Do thread-safe collision checking
+    planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_)
+        ->checkCollision(collision_request, collision_result, current_state);
 
     // If paused, just keep the low-pass filters up to date with current joints so a jump doesn't occur when
     // restarting
