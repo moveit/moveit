@@ -80,6 +80,19 @@ void AttachedBody::setScale(double scale)
   }
 }
 
+void AttachedBody::computeTransform(const Eigen::Isometry3d& parent_link_global_transform)
+{
+  // update collision body transforms
+  for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
+    global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];
+
+  // update subframe transforms
+  for (auto global = global_subframe_poses_.begin(), end = global_subframe_poses_.end(),
+            local = subframe_poses_.begin();
+       global != end; ++global, ++local)
+    global->second = parent_link_global_transform * local->second;
+}
+
 void AttachedBody::setPadding(double padding)
 {
   for (shapes::ShapeConstPtr& shape : shapes_)
@@ -140,17 +153,5 @@ bool AttachedBody::hasSubframeTransform(const std::string& frame_name) const
   return found;
 }
 
-void AttachedBody::updateGlobalSubframePoses()
-{
-  global_subframe_poses_ = subframe_poses_;
-  if (global_collision_body_transforms_.size() > 0)
-  {
-    auto global_transform = global_collision_body_transforms_[0];
-    for (auto& subframe_pose : global_subframe_poses_)
-    {
-      subframe_pose.second = global_transform * subframe_pose.second;
-    }
-  }
-}
 }  // namespace core
 }  // namespace moveit
