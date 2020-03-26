@@ -341,18 +341,8 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   return success;
 }
 
-void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+bool PointCloudUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
-  ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
-
-  if (max_update_rate_ > 0)
-  {
-    // ensure we are not updating the octomap representation too often
-    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
-      return;
-    last_update_time_ = ros::Time::now();
-  }
-
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
 
@@ -374,19 +364,34 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       catch (tf2::TransformException& ex)
       {
         ROS_ERROR_STREAM_NAMED(LOGNAME, "Transform error of sensor data: " << ex.what() << "; quitting callback");
-        return;
+        return false;
       }
     }
     else
-      return;
+      return false;
   }
 
   if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
   {
     ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
-    return;
+    return false;
   }
 
-  processCloud(cloud_msg, sensor_origin_eigen, incremental_);
+  return processCloud(cloud_msg, sensor_origin_eigen, incremental_);
+}
+
+void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+{
+  ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
+
+  if (max_update_rate_ > 0)
+  {
+    // ensure we are not updating the octomap representation too often
+    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
+      return;
+    last_update_time_ = ros::Time::now();
+  }
+
+  processCloud(cloud_msg);
 }
 }  // namespace occupancy_map_monitor
