@@ -56,6 +56,7 @@
 
 // TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <eigen_conversions/eigen_msg.h>
 
 constexpr double EPSILON = 1e-3;
 constexpr double Z_OFFSET = 0.01;
@@ -70,10 +71,6 @@ bool moveToCartPose(geometry_msgs::PoseStamped pose, moveit::planning_interface:
   group.setStartStateToCurrentState();
   group.setPoseTarget(pose);
 
-  // The rest of the planning is done as usual. Naturally, you can also use the ``go()`` command instead of
-  // ``plan()`` and ``execute()``.
-  ROS_INFO_STREAM("Planning motion to pose:");
-  ROS_INFO_STREAM(pose.pose.position.x << ", " << pose.pose.position.y << ", " << pose.pose.position.z);
   moveit::planning_interface::MoveGroupInterface::Plan myplan;
   if (group.plan(myplan) && group.execute(myplan))
     return true;
@@ -89,7 +86,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
 {
   const std::string log_name = "spawn_collision_objects";
   double z_offset_box = .25;  // The z-axis points away from the gripper
-  double z_offset_cylinder = .12;
+  double z_offset_cylinder = .1;
 
   // First, we start defining the CollisionObject as usual.
   moveit_msgs::CollisionObject box;
@@ -148,8 +145,6 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   orientation.setRPY(0, 180.0 / 180.0 * M_PI, 0);
   box.subframe_poses[4].orientation = tf2::toMsg(orientation);
 
-  ROS_INFO_STREAM_NAMED(log_name, "box: " << box);
-
   // Next, define the cylinder
   moveit_msgs::CollisionObject cylinder;
   cylinder.id = "cylinder";
@@ -175,8 +170,6 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   orientation.setRPY(0, 90.0 / 180.0 * M_PI, 0);
   cylinder.subframe_poses[0].orientation = tf2::toMsg(orientation);
 
-  ROS_INFO_STREAM_NAMED(log_name, "cylinder: " << cylinder);
-
   // Lastly, the objects are published to the PlanningScene. In this tutorial, we publish a box and a cylinder.
   box.operation = moveit_msgs::CollisionObject::ADD;
   cylinder.operation = moveit_msgs::CollisionObject::ADD;
@@ -201,27 +194,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   att_coll_object.object.id = "cylinder";
   att_coll_object.link_name = "panda_hand";
   att_coll_object.object.operation = att_coll_object.object.ADD;
-  ROS_INFO_STREAM_NAMED(log_name, "Attaching cylinder to robot.");
-  ROS_INFO_STREAM_NAMED(log_name, "att_coll_object: " << att_coll_object);
   planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
-
-  {
-    planning_scene_monitor->requestPlanningSceneState();
-
-    // lock planning scene
-    planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
-
-    // get the tip and box subframe locations in world
-    Eigen::Isometry3d panda_hand = planning_scene->getFrameTransform("panda_hand");
-    Eigen::Isometry3d cylinder = planning_scene->getFrameTransform("cylinder");
-    Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
-    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform("box/bottom");
-
-    ROS_WARN_STREAM_NAMED(log_name, "panda_hand: " << panda_hand.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "box/bottom: " << box_subframe.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "cylinder: " << cylinder.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "cylinder/tip: " << cylinder_tip.translation().transpose());
-  }
 
   tf2::Quaternion target_orientation;
   target_orientation.setRPY(0, 180.0 / 180.0 * M_PI, 90.0 / 180.0 * M_PI);
@@ -236,23 +209,19 @@ TEST(TestPlanUsingSubframes, SubframesTests)
 
   {
     planning_scene_monitor->requestPlanningSceneState();
-
-    // lock planning scene
     planning_scene_monitor::LockedPlanningSceneRO planning_scene(planning_scene_monitor);
 
     // get the tip and box subframe locations in world
-    Eigen::Isometry3d panda_hand = planning_scene->getFrameTransform("panda_hand");
-    Eigen::Isometry3d cylinder = planning_scene->getFrameTransform("cylinder");
     Eigen::Isometry3d cylinder_tip = planning_scene->getFrameTransform("cylinder/tip");
-    Eigen::Isometry3d box_subframe = planning_scene->getFrameTransform("box/bottom");
+    Eigen::Isometry3d box_bottom = planning_scene->getFrameTransform("box/bottom");
+    Eigen::Isometry3d target_pose;
+    tf::poseMsgToEigen(target_pose_stamped.pose, target_pose);
 
-    ROS_WARN_STREAM_NAMED(log_name, "panda_hand: " << panda_hand.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "box/bottom: " << box_subframe.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "cylinder: " << cylinder.translation().transpose());
-    ROS_WARN_STREAM_NAMED(log_name, "cylinder/tip: " << cylinder_tip.translation().transpose());
-
-    // test that the cylinder tip and target are in the same position
-    EXPECT_TRUE(box_subframe.isApprox(cylinder_tip, EPSILON));
+    // expect that they are identical
+    EXPECT_TRUE(cylinder_tip.isApprox(box_bottom * target_pose, EPSILON)) << "box frame: \n"
+                                                                          << box_bottom.matrix()
+                                                                          << "\ncylinder frame: \n"
+                                                                          << cylinder_tip.matrix();
   }
 
   // ROS_INFO_STREAM_NAMED(log_name, "Moving to top of box with cylinder tip");
