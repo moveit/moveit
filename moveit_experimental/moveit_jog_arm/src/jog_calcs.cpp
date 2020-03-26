@@ -349,7 +349,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     return false;
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
+  applyVelocityScaling(shared_variables, delta_theta_,
+                       velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
   if (status_ == HALT_FOR_COLLISION)
   {
     ROS_ERROR_STREAM("Halting!");
