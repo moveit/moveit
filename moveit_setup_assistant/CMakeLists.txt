@@ -56,6 +56,7 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_visualization
+    roscpp
 )
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:

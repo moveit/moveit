@@ -27,7 +27,9 @@ catkin_package(
     warehouse/include
   CATKIN_DEPENDS
     moveit_ros_planning
-    warehouse_ros)
+    warehouse_ros
+    roscpp
+)
 
 include_directories(warehouse/include)
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})

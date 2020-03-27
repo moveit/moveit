@@ -80,6 +80,7 @@ catkin_package(
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
     object_recognition_msgs
+    roscpp
   DEPENDS
     EIGEN3
 )

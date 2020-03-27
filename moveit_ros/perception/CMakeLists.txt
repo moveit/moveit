@@ -67,6 +67,7 @@ catkin_package(
     moveit_msgs
     moveit_ros_occupancy_map_monitor
     object_recognition_msgs
+    roscpp
     sensor_msgs
     tf2_geometry_msgs
   DEPENDS
