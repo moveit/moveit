@@ -130,12 +130,14 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(detectedObjectChanged(QListWidgetItem*)));
   connect(ui_->support_surfaces_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedSupportSurfaceChanged()));
 
+  connect(ui_->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+
+  /* Notice changes to be safed in config file */
   connect(ui_->database_host, SIGNAL(textChanged(QString)), this, SIGNAL(configChanged()));
   connect(ui_->database_port, SIGNAL(valueChanged(int)), this, SIGNAL(configChanged()));
 
   connect(ui_->goal_tolerance, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
 
-  // "Options" Section
   connect(ui_->planning_time, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
   connect(ui_->planning_attempts, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
   connect(ui_->velocity_scaling_factor, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
@@ -153,8 +155,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->wsize_x, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
   connect(ui_->wsize_y, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
   connect(ui_->wsize_z, SIGNAL(valueChanged(double)), this, SIGNAL(configChanged()));
-
-  connect(ui_->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
   QShortcut* copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
   connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
