@@ -63,10 +63,13 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
-    pluginlib
+    actionlib
+    dynamic_reconfigure
     moveit_core
     moveit_ros_occupancy_map_monitor
     moveit_msgs
+    pluginlib
+    roscpp
     tf2_msgs
     tf2_geometry_msgs
   DEPENDS

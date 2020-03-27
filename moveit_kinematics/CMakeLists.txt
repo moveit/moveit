@@ -32,8 +32,9 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
-    pluginlib
     moveit_core
+    pluginlib
+    roscpp
   DEPENDS
     EIGEN3
 )

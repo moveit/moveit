@@ -25,6 +25,7 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     moveit_ros_planning
+    roscpp
 )
 
 add_library(${PROJECT_NAME}

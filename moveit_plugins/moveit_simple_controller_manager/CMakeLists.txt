@@ -22,9 +22,15 @@ find_package(catkin COMPONENTS
 include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 catkin_package(
-  LIBRARIES ${PROJECT_NAME}
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS moveit_core actionlib control_msgs
+  LIBRARIES
+    ${PROJECT_NAME}
+  INCLUDE_DIRS
+    include
+  CATKIN_DEPENDS
+    actionlib
+    control_msgs
+    moveit_core
+    roscpp
 )
 
 add_library(${PROJECT_NAME}
