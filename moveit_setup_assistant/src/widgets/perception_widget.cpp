@@ -122,6 +122,11 @@ PerceptionWidget::PerceptionWidget(QWidget* parent, const MoveItConfigDataPtr& c
   filtered_cloud_topic_field_->setMaximumWidth(400);
   point_cloud_form_layout->addRow("Filtered Cloud Topic:", filtered_cloud_topic_field_);
 
+  // Service name
+  service_name_field_ = new QLineEdit(this);
+  service_name_field_->setMaximumWidth(400);
+  point_cloud_form_layout->addRow("Service name:", service_name_field_);
+
   // Max Update Rate
   max_update_rate_field_ = new QLineEdit(this);
   max_update_rate_field_->setMaximumWidth(400);
@@ -232,6 +237,8 @@ bool PerceptionWidget::focusLost()
                                                           max_update_rate_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("incremental",
                                                           incremental_field_->currentIndex() == 1 ? "false" : "true");
+    config_data_->addGenericParameterToSensorPluginConfig("service_name",
+                                                          service_name_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("filtered_cloud_topic",
                                                           filtered_cloud_topic_field_->text().trimmed().toStdString());
 
@@ -312,7 +319,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   sensor_plugin_field_->addItem("Point Cloud");
   sensor_plugin_field_->addItem("Depth Map");
 
-  // Load deafult config, or use the one in the config package if exists
+  // Load default config, or use the one in the config package if exists
   std::vector<std::map<std::string, GenericParameter> > sensors_vec_map = config_data_->getSensorPluginConfig();
   for (std::map<std::string, GenericParameter>& sensor_plugin_config : sensors_vec_map)
   {
@@ -326,6 +333,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
       padding_offset_field_->setText(QString(sensor_plugin_config["padding_offset"].getValue().c_str()));
       padding_scale_field_->setText(QString(sensor_plugin_config["padding_scale"].getValue().c_str()));
       max_update_rate_field_->setText(QString(sensor_plugin_config["max_update_rate"].getValue().c_str()));
+      service_name_field_->setText(QString(sensor_plugin_config["service_name"].getValue().c_str()));
       filtered_cloud_topic_field_->setText(QString(sensor_plugin_config["filtered_cloud_topic"].getValue().c_str()));
     }
     else if (sensor_plugin_config["sensor_plugin"].getValue() ==
