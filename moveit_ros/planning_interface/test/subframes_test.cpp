@@ -58,7 +58,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <eigen_conversions/eigen_msg.h>
 
-constexpr double EPSILON = 1e-3;
+constexpr double EPSILON = 1e-2;
 constexpr double Z_OFFSET = 0.01;
 
 // Function copied from tutorial
