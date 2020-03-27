@@ -43,8 +43,10 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
+#include <moveit_msgs/UpdatePointcloudOctomap.h>
 
 #include <memory>
+#include <mutex>
 
 namespace occupancy_map_monitor
 {
@@ -63,6 +65,7 @@ public:
   void forgetShape(ShapeHandle handle) override;
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
                     bool incremental);
+  bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
 
 protected:
   virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
@@ -72,7 +75,8 @@ private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
   void stopHelper();
-
+  bool updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
+                                      moveit_msgs::UpdatePointcloudOctomap::Response& res);
   ros::NodeHandle root_nh_;
   ros::NodeHandle private_nh_;
 
@@ -90,7 +94,9 @@ private:
   double max_update_rate_;
   bool incremental_;
   std::string filtered_cloud_topic_;
+  std::string service_name_;
   ros::Publisher filtered_cloud_publisher_;
+  ros::ServiceServer update_service_;
 
   message_filters::Subscriber<sensor_msgs::PointCloud2>* point_cloud_subscriber_;
   tf2_ros::MessageFilter<sensor_msgs::PointCloud2>* point_cloud_filter_;
@@ -101,5 +107,8 @@ private:
 
   std::unique_ptr<point_containment_filter::ShapeMask> shape_mask_;
   std::vector<int> mask_;
+
+  // mutex to ensure that msg callback and service call are not performed simultaniously
+  std::mutex update_mutex_;
 };
 }  // namespace occupancy_map_monitor

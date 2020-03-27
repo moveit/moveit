@@ -85,6 +85,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
       incremental_ = static_cast<bool>(params["incremental"]);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
+    if (params.hasMember("service_name"))
+      service_name_ = static_cast<const std::string&>(params["service_name"]);
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -112,6 +114,9 @@ void PointCloudOctomapUpdater::start()
     return;
   /* subscribe to point cloud topic using tf filter*/
   point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 5);
+  if (service_name_ != "")
+    update_service_ =
+        private_nh_.advertiseService(service_name_, &PointCloudOctomapUpdater::updatePointcloudOctomapService, this);
   if (tf_listener_ && tf_buffer_ && !monitor_->getMapFrame().empty())
   {
     point_cloud_filter_ = new tf2_ros::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_buffer_,
@@ -341,7 +346,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   return success;
 }
 
-bool PointCloudUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
@@ -383,7 +388,7 @@ bool PointCloudUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& c
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
   ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
-
+  std::lock_guard<std::mutex> lock(update_mutex_);
   if (max_update_rate_ > 0)
   {
     // ensure we are not updating the octomap representation too often
@@ -394,4 +399,15 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
   processCloud(cloud_msg);
 }
+
+bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
+                                                              moveit_msgs::UpdatePointcloudOctomap::Response& res)
+{
+  std::lock_guard<std::mutex> lock(update_mutex_);
+  sensor_msgs::PointCloud2::ConstPtr cloud = boost::make_shared<sensor_msgs::PointCloud2>(std::move(req.cloud));
+  last_update_time_ = ros::Time::now();
+  res.success = processCloud(cloud);
+  return res.success;
+}
+
 }  // namespace occupancy_map_monitor
