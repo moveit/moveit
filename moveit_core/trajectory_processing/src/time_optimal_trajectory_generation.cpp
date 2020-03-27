@@ -39,7 +39,6 @@
 #include <limits>
 #include <Eigen/Geometry>
 #include <algorithm>
-#include <angles/angles.h>
 #include <cmath>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <ros/console.h>
