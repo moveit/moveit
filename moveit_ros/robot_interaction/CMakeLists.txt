@@ -28,8 +28,9 @@ catkin_package(
   INCLUDE_DIRS
     include
   CATKIN_DEPENDS
-    moveit_ros_planning
     interactive_markers
+    moveit_ros_planning
+    roscpp
     tf2_geometry_msgs
 )
 

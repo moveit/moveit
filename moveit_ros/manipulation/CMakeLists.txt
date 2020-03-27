@@ -33,9 +33,12 @@ catkin_package(
   LIBRARIES
     moveit_pick_place_planner
   CATKIN_DEPENDS
+    actionlib
+    dynamic_reconfigure
     moveit_core
     moveit_msgs
     moveit_ros_planning
+    roscpp
   DEPENDS
     EIGEN3
 )

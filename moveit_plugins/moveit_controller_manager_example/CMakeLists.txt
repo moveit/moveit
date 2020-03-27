@@ -21,6 +21,7 @@ catkin_package(
   INCLUDE_DIRS
   CATKIN_DEPENDS
     moveit_core
+    roscpp
 )
 
 include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})

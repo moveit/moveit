@@ -28,8 +28,11 @@ catkin_package(
   INCLUDE_DIRS
     include
   CATKIN_DEPENDS
+    actionlib
     moveit_core
     moveit_ros_planning
+    roscpp
+    std_srvs
     tf2_geometry_msgs
 )
 
