@@ -39,7 +39,6 @@
 #include <vector>
 #include <iterator>
 #include <ros/ros.h>
-#include <angles/angles.h>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 
