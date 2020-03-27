@@ -86,7 +86,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
 {
   const std::string log_name = "spawn_collision_objects";
   double z_offset_box = .25;  // The z-axis points away from the gripper
-  double z_offset_cylinder = .12;
+  double z_offset_cylinder = .1;
 
   // First, we start defining the CollisionObject as usual.
   moveit_msgs::CollisionObject box;
