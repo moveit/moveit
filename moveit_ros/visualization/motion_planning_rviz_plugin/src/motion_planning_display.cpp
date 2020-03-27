@@ -221,8 +221,8 @@ void MotionPlanningDisplay::onInitialize()
   query_robot_goal_->setDefaultAttachedObjectColor(color);
 
   rviz::WindowManagerInterface* window_context = context_->getWindowManager();
-  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : NULL);
-  connect(frame_, SIGNAL(configChanged()), this, SLOT(changedPlanningFrame()));
+  frame_ = new MotionPlanningFrame(this, context_, window_context ? window_context->getParentWindow() : nullptr);
+  connect(frame_, SIGNAL(configChanged()), this->getModel(), SIGNAL(configChanged()));
   resetStatusTextColor();
   addStatusText("Initialized.");
 
@@ -432,12 +432,6 @@ void MotionPlanningDisplay::changedMetricsSetPayload()
 void MotionPlanningDisplay::changedMetricsTextHeight()
 {
   text_to_display_->setCharacterHeight(metrics_text_height_property_->getFloat());
-}
-
-void MotionPlanningDisplay::changedPlanningFrame()
-{
-  setShouldBeSaved(true);  // Does not seem the get read by Rviz
-  // Q_EMIT changed(); This triggers onEnable() causing a reset of e.g. the goal_query_
 }
 
 void MotionPlanningDisplay::displayTable(const std::map<std::string, double>& values, const Ogre::ColourValue& color,
