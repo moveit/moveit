@@ -31,7 +31,9 @@ catkin_package(
   INCLUDE_DIRS
     ompl_interface/include
   CATKIN_DEPENDS
+    dynamic_reconfigure
     moveit_core
+    roscpp
   DEPENDS
     OMPL
 )

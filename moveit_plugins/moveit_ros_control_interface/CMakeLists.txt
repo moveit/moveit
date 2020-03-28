@@ -22,8 +22,9 @@ catkin_package(
     ${PROJECT_NAME}_plugin
     ${PROJECT_NAME}_trajectory_plugin
   CATKIN_DEPENDS
-    moveit_core
+    actionlib
     controller_manager_msgs
+    moveit_core
     trajectory_msgs
   DEPENDS Boost
 )
