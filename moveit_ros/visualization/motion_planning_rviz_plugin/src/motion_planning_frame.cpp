@@ -156,6 +156,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->allow_replanning, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
   connect(ui_->allow_looking, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
   connect(ui_->allow_external_program, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
+  connect(ui_->use_cartesian_path, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
   connect(ui_->collision_aware_ik, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
   connect(ui_->approximate_ik, SIGNAL(stateChanged(int)), this, SIGNAL(configChanged()));
 
