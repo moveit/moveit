@@ -1319,27 +1319,26 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     int attempts;
     if (config.mapGetInt("MoveIt_Planning_Attempts", &attempts))
       frame_->ui_->planning_attempts->setValue(attempts);
+    if (config.mapGetFloat("Velocity_Scaling_Factor", &d))
+      frame_->ui_->velocity_scaling_factor->setValue(d);
+    if (config.mapGetFloat("Acceleration_Scaling_Factor", &d))
+      frame_->ui_->acceleration_scaling_factor->setValue(d);
     if (config.mapGetFloat("MoveIt_Goal_Tolerance", &d))
       frame_->ui_->goal_tolerance->setValue(d);
+
     bool b;
+    if (config.mapGetBool("MoveIt_Allow_Replanning", &b))
+      frame_->ui_->allow_replanning->setChecked(b);
+    if (config.mapGetBool("MoveIt_Allow_Sensor_Positioning", &b))
+      frame_->ui_->allow_looking->setChecked(b);
+    if (config.mapGetBool("MoveIt_Allow_External_Program", &b))
+      frame_->ui_->allow_external_program->setChecked(b);
     if (config.mapGetBool("MoveIt_Use_Cartesian_Path", &b))
       frame_->ui_->use_cartesian_path->setChecked(b);
     if (config.mapGetBool("MoveIt_Use_Constraint_Aware_IK", &b))
       frame_->ui_->collision_aware_ik->setChecked(b);
     if (config.mapGetBool("MoveIt_Allow_Approximate_IK", &b))
       frame_->ui_->approximate_ik->setChecked(b);
-    if (config.mapGetBool("MoveIt_Allow_External_Program", &b))
-      frame_->ui_->allow_external_program->setChecked(b);
-    if (config.mapGetBool("MoveIt_Allow_Replanning", &b))
-      frame_->ui_->allow_replanning->setChecked(b);
-    if (config.mapGetBool("MoveIt_Allow_Sensor_Positioning", &b))
-      frame_->ui_->allow_looking->setChecked(b);
-
-    float v;
-    if (config.mapGetFloat("Velocity_Scaling_Factor", &v))
-      frame_->ui_->velocity_scaling_factor->setValue(v);
-    if (config.mapGetFloat("Acceleration_Scaling_Factor", &v))
-      frame_->ui_->acceleration_scaling_factor->setValue(v);
 
     rviz::Config workspace = config.mapGetChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapGetChild("Center");
