@@ -6,6 +6,9 @@ if (CATKIN_ENABLE_TESTING)
   add_executable(test_cleanup test_cleanup.cpp)
   target_link_libraries(test_cleanup moveit_move_group_interface)
 
+  add_rostest_gtest(move_group_interface_cpp_test move_group_interface_cpp_test.test move_group_interface_cpp_test.cpp)
+  target_link_libraries(move_group_interface_cpp_test moveit_move_group_interface ${catkin_LIBRARIES} ${eigen_conversions_LIBRARIES})
+
   add_rostest_gtest(moveit_cpp_test moveit_cpp_test.test moveit_cpp_test.cpp)
   target_link_libraries(moveit_cpp_test moveit_cpp ${catkin_LIBRARIES})
 
