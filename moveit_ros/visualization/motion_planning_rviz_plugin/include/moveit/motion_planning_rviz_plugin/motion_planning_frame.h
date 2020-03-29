@@ -142,6 +142,7 @@ protected:
 
 Q_SIGNALS:
   void planningFinished();
+  void configChanged();
 
 private Q_SLOTS:
 
