@@ -180,7 +180,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
 
     // expect that they are identical
     std::stringstream ss;
-    ss << "box frame: \n" << box_subframe.matrix() << "\ncylinder frame: \n" << eef.matrix();
+    ss << "target frame: \n" << (box_subframe * target_pose).matrix() << "\ncylinder frame: \n" << eef.matrix();
     EXPECT_TRUE(eef.isApprox(box_subframe * target_pose, EPSILON)) << ss.str();
   }
 }
