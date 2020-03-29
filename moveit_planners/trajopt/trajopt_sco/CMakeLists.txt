@@ -3,26 +3,19 @@ project(trajopt_sco)
 
 add_compile_options(-std=c++11 -Wall -Wextra)
 
-include(ExternalProject)
-
-ExternalProject_Add(osqp
-    PREFIX osqp
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=osqp-install
-    # Github tar balls don't code in submodules, so need to
-    # download via git
-    GIT_REPOSITORY https://github.com/oxfordcontrol/osqp.git 
-    GIT_TAG v0.5.0 # currently, not compatible with v0.6.0
-)
-find_package(osqp CONFIG 
-    PATHS "${CMAKE_CURRENT_BINARY_DIR}/osqp/src/osqp-build/osqp-install"
-    NO_DEFAULT_PATH)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 find_package(catkin REQUIRED COMPONENTS trajopt_utils)
 find_package(GUROBI QUIET)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
 
+find_package(osqp CONFIG 
+    PATHS "${CMAKE_CURRENT_BINARY_DIR}/../trajopt_utils/osqp/src/osqp-build/osqp-install"
+    NO_DEFAULT_PATH)
+
+if(!${osqp_FOUND})
+	message([FATAL_ERROR] "OSQP was not found. Check trajopt_utils CMakeLists to make sure OSQP is installed in build directory")
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)

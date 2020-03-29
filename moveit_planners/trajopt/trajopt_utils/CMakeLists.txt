@@ -3,8 +3,18 @@ project(trajopt_utils)
 
 add_compile_options(-std=c++11 -Wall -Wextra)
 
-find_package(catkin REQUIRED COMPONENTS)
+include(ExternalProject)
 
+ExternalProject_Add(osqp
+    PREFIX osqp
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=osqp-install
+    # Github tar balls don't code in submodules, so need to
+    # download via git
+    GIT_REPOSITORY https://github.com/oxfordcontrol/osqp.git 
+    GIT_TAG v0.5.0 # currently, not compatible with v0.6.0
+)
+
+find_package(catkin REQUIRED COMPONENTS)
 find_package(Eigen3 REQUIRED)
 find_package(Boost COMPONENTS system python thread program_options REQUIRED)
 
