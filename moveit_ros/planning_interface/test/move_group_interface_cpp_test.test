@@ -23,7 +23,7 @@
     <arg name="info" value="true"/>
   </include>
 
-  <!-- Subframes test -->
+  <!-- test -->
   <test pkg="moveit_ros_planning_interface" type="move_group_interface_cpp_test" test-name="move_group_interface_cpp_test"
         time-limit="120" args=""/>
 </launch>

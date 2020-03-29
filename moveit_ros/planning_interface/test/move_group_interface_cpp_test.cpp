@@ -71,37 +71,99 @@ public:
     nh_ = ros::NodeHandle("/move_group_interface_cpp_test");
     move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(PLANNING_GROUP);
 
+    // get the starting pose
+    start_pose_stamped_ = move_group_->getCurrentPose();
+
     // set velocity and acceleration scaling factors (full speed)
     move_group_->setMaxVelocityScalingFactor(1.0);
     move_group_->setMaxAccelerationScalingFactor(1.0);
   }
 
-  // Helper function to move to a start position
-  void MoveToStart(const geometry_msgs::Pose& pose)
+  void RetrunToStartPose()
   {
-    // get the joint model group
-    const robot_state::JointModelGroup* joint_model_group =
-        move_group_->getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+    SCOPED_TRACE("RetrunToStartPose");
+    PlanAndMoveToPose(start_pose_stamped_.pose);
+  }
 
-    robot_state::RobotState start_state(*move_group_->getCurrentState());
-    start_state.setFromIK(joint_model_group, pose);
-    move_group_->setStartState(start_state);
+  void PlanAndMoveToPose(const geometry_msgs::Pose& pose)
+  {
+    SCOPED_TRACE("PlanAndMoveToPose");
+    move_group_->setStartStateToCurrentState();
+    ASSERT_TRUE(move_group_->setJointValueTarget(pose));
+    PlanAndMove();
+  }
 
-    // plan and move
-    ASSERT_TRUE(move_group_->setJointValueTarget(start_state));
+  void PlanAndMove()
+  {
+    SCOPED_TRACE("PlanAndMove");
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
     ASSERT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ASSERT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  }
+
+  void TestEigenPose(const Eigen::Isometry3d& expected, const Eigen::Isometry3d& actual)
+  {
+    SCOPED_TRACE("TestEigenPose");
+    std::stringstream ss;
+    ss << "expected: \n" << expected.matrix() << "\nactual: \n" << actual.matrix();
+    EXPECT_TRUE(actual.isApprox(expected, EPSILON)) << ss.str();
+  }
+
+  void TestPose(const Eigen::Isometry3d& expected_pose)
+  {
+    SCOPED_TRACE("TestPose(const Eigen::Isometry3d&)");
+    // get the pose after the movement
+    geometry_msgs::PoseStamped actual_pose_stamped = move_group_->getCurrentPose();
+    Eigen::Isometry3d actual_pose;
+    tf::poseMsgToEigen(actual_pose_stamped.pose, actual_pose);
+
+    // compare to planned pose
+    TestEigenPose(expected_pose, actual_pose);
+  }
+
+  void TestPose(const geometry_msgs::Pose& expected_pose_msg)
+  {
+    SCOPED_TRACE("TestPose(const geometry_msgs::Pose&)");
+    Eigen::Isometry3d expected_pose;
+    tf::poseMsgToEigen(expected_pose_msg, expected_pose);
+    TestPose(expected_pose);
+  }
+
+  void TestJointPositions(const std::vector<double>& expected)
+  {
+    SCOPED_TRACE("TestJointPositions");
+    const robot_state::JointModelGroup* joint_model_group =
+        move_group_->getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+    std::vector<double> actual;
+    move_group_->getCurrentState()->copyJointGroupPositions(joint_model_group, actual);
+    ASSERT_EQ(expected.size(), actual.size());
+    for (size_t i = 0; i < actual.size(); ++i)
+    {
+      double delta = std::abs(expected[i] - actual[i]);
+      EXPECT_LT(delta, EPSILON) << "joint index: " << i << ", plan: " << expected[i] << ", result: " << actual[i];
+    }
+  }
+
+  void TestVectorOfStrings(const std::vector<std::string>& expected, const std::vector<std::string>& actual,
+                           const std::string name)
+  {
+    SCOPED_TRACE("TestVectorOfStrings");
+    ASSERT_EQ(expected.size(), actual.size());
+    for (size_t i = 0; i < actual.size(); ++i)
+      EXPECT_EQ(expected[i], actual[i]) << "(" << name << "[" << i << "])";
   }
 
 protected:
   ros::NodeHandle nh_;
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
+  geometry_msgs::PoseStamped start_pose_stamped_;
 };
 
 TEST_F(MoveGroupTestFixture, StartingConditionsTest)
 {
+  SCOPED_TRACE("StartingConditionsTest");
+
   // test that setting the planning time works
   move_group_->setPlanningTime(PLANNING_TIME_S);
   EXPECT_EQ(move_group_->getPlanningTime(), PLANNING_TIME_S);
@@ -120,49 +182,30 @@ TEST_F(MoveGroupTestFixture, StartingConditionsTest)
   EXPECT_EQ(move_group_->getGoalPositionTolerance(), 0.0001);
   EXPECT_EQ(move_group_->getGoalOrientationTolerance(), 0.001);
 
-  const std::vector<std::string> NAMED_TARGETS = { "ready", "extended" };
-  std::vector<std::string> named_targets = move_group_->getNamedTargets();
-  ASSERT_EQ(named_targets.size(), NAMED_TARGETS.size());
-  for (size_t i = 0; i < named_targets.size(); ++i)
-    EXPECT_EQ(named_targets[i], NAMED_TARGETS[i]) << "index: " << i;
-
-  const std::vector<std::string> JOINT_MODEL_GROUP_NAMES = { "hand", "panda_arm", "panda_arm_hand" };
-  std::vector<std::string> joint_model_group_names = move_group_->getJointModelGroupNames();
-  ASSERT_EQ(joint_model_group_names.size(), JOINT_MODEL_GROUP_NAMES.size());
-  for (size_t i = 0; i < joint_model_group_names.size(); ++i)
-    EXPECT_EQ(joint_model_group_names[i], JOINT_MODEL_GROUP_NAMES[i]) << "index: " << i;
-
-  const std::vector<std::string> JOINT_NAMES = { "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4",
-                                                 "panda_joint5", "panda_joint6", "panda_joint7" };
-  std::vector<std::string> joint_names = move_group_->getJointNames();
-  ASSERT_EQ(joint_names.size(), JOINT_NAMES.size());
-  for (size_t i = 0; i < joint_names.size(); ++i)
-    EXPECT_EQ(joint_names[i], JOINT_NAMES[i]) << "index: " << i;
-
-  const std::vector<std::string> LINK_NAMES = { "panda_link1", "panda_link2", "panda_link3", "panda_link4",
-                                                "panda_link5", "panda_link6", "panda_link7", "panda_link8" };
-  std::vector<std::string> link_names = move_group_->getLinkNames();
-  ASSERT_EQ(link_names.size(), LINK_NAMES.size());
-  for (size_t i = 0; i < link_names.size(); ++i)
-    EXPECT_EQ(link_names[i], LINK_NAMES[i]) << "index: " << i;
-
-  const std::vector<std::string> ACTIVE_JOINTS = { "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4",
-                                                   "panda_joint5", "panda_joint6", "panda_joint7" };
-  std::vector<std::string> active_joints = move_group_->getActiveJoints();
-  ASSERT_EQ(active_joints.size(), ACTIVE_JOINTS.size());
-  for (size_t i = 0; i < active_joints.size(); ++i)
-    EXPECT_EQ(active_joints[i], ACTIVE_JOINTS[i]) << "index: " << i;
-
-  const std::vector<std::string> JOINTS = { "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4",
-                                            "panda_joint5", "panda_joint6", "panda_joint7", "panda_joint8" };
-  std::vector<std::string> joints = move_group_->getJoints();
-  ASSERT_EQ(joints.size(), JOINTS.size());
-  for (size_t i = 0; i < joints.size(); ++i)
-    EXPECT_EQ(joints[i], JOINTS[i]) << "index: " << i;
+  TestVectorOfStrings({ "ready", "extended" }, move_group_->getNamedTargets(), "named_targets");
+  TestVectorOfStrings({ "hand", "panda_arm", "panda_arm_hand" }, move_group_->getJointModelGroupNames(),
+                      "joint_model_group_names");
+  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+                        "panda_joint7" },
+                      move_group_->getJointNames(), "joint_names");
+  TestVectorOfStrings({ "panda_link1", "panda_link2", "panda_link3", "panda_link4", "panda_link5", "panda_link6",
+                        "panda_link7", "panda_link8" },
+                      move_group_->getLinkNames(), "link_names");
+  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+                        "panda_joint7" },
+                      move_group_->getActiveJoints(), "active_joints");
+  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+                        "panda_joint7", "panda_joint8" },
+                      move_group_->getJoints(), "joints");
 }
 
 TEST_F(MoveGroupTestFixture, MoveToPoseTest)
 {
+  SCOPED_TRACE("MoveToPoseTest");
+
+  // set current state to start state
+  move_group_->setStartStateToCurrentState();
+
   // Test setting target pose with eigen and with geometry_msgs
   geometry_msgs::Pose target_pose;
   target_pose.orientation.w = 1.0;
@@ -181,43 +224,21 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
   tf::poseMsgToEigen(set_target_pose.pose, eigen_set_target_pose);
 
   // expect that they are identical
-  {
-    std::stringstream ss;
-    ss << "eigen_target_pose: \n"
-       << eigen_target_pose.matrix() << "\neigen_set_target_pose: \n"
-       << eigen_set_target_pose.matrix();
-    EXPECT_TRUE(eigen_set_target_pose.isApprox(eigen_target_pose, EPSILON)) << ss.str();
-  }
+  TestEigenPose(eigen_target_pose, eigen_set_target_pose);
 
   // plan and move
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  EXPECT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  EXPECT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  PlanAndMove();
 
   // get the pose after the movement
-  geometry_msgs::PoseStamped after_move_pose = move_group_->getCurrentPose();
-  Eigen::Isometry3d eigen_after_move_pose;
-  tf::poseMsgToEigen(after_move_pose.pose, eigen_after_move_pose);
+  TestPose(eigen_target_pose);
 
-  // compare to planned pose
-  {
-    std::stringstream ss;
-    ss << "eigen_target_pose: \n"
-       << eigen_target_pose.matrix() << "\neigen_after_move_pose: \n"
-       << eigen_after_move_pose.matrix();
-    EXPECT_TRUE(eigen_after_move_pose.isApprox(eigen_target_pose, EPSILON)) << ss.str();
-  }
+  // return to start pose for next test
+  RetrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 {
-  // get the joint model group
-  const robot_state::JointModelGroup* joint_model_group =
-      move_group_->getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-
-  // set velocity and acceleration scaling factors
-  move_group_->setMaxVelocityScalingFactor(0.8);
-  move_group_->setMaxAccelerationScalingFactor(0.8);
+  SCOPED_TRACE("JointSpaceGoalTest");
 
   // set a custom start state
   geometry_msgs::Pose start_pose;
@@ -225,43 +246,42 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
   start_pose.position.x = 0.55;
   start_pose.position.y = -0.05;
   start_pose.position.z = 0.8;
-  MoveToStart(start_pose);
+  PlanAndMoveToPose(start_pose);
+
+  // set start state for planning
+  move_group_->setStartStateToCurrentState();
 
   // Next get the current set of joint values for the group.
   std::vector<double> plan_joint_positions;
-  move_group_->getCurrentState()->copyJointGroupPositions(joint_model_group, plan_joint_positions);
+  move_group_->getCurrentState()->copyJointGroupPositions(
+      move_group_->getCurrentState()->getJointModelGroup(PLANNING_GROUP), plan_joint_positions);
 
   // Now, let's modify the joint positions.  (radians)
   ASSERT_EQ(plan_joint_positions.size(), std::size_t(7));
-  plan_joint_positions = { 1.0, -1.0, 0.5, -1.0, 2.0, 0.5, -1.0 };
+  plan_joint_positions = { 1.0, -0.5, 0.5, -1.0, 2.0, 1.0, -1.0 };
   move_group_->setJointValueTarget(plan_joint_positions);
 
   // plan and move
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  EXPECT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  EXPECT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  PlanAndMove();
 
   // test that we moved to the expected joint positions
-  std::vector<double> result_joint_positions;
-  move_group_->getCurrentState()->copyJointGroupPositions(joint_model_group, result_joint_positions);
-  ASSERT_EQ(plan_joint_positions.size(), result_joint_positions.size());
-  for (size_t i = 0; i < result_joint_positions.size(); ++i)
-  {
-    double joint_position_plan_result_delta = std::abs(plan_joint_positions[i] - result_joint_positions[i]);
-    EXPECT_LT(joint_position_plan_result_delta, EPSILON)
-        << "joint index: " << i << ", plan: " << plan_joint_positions[i] << ", result: " << result_joint_positions[i];
-  }
+  TestJointPositions(plan_joint_positions);
+
+  // return to start pose for next test
+  RetrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, PathConstraintTest)
 {
+  SCOPED_TRACE("PathConstraintTest");
+
   // set a custom start state
   geometry_msgs::Pose start_pose;
   start_pose.orientation.w = 1.0;
   start_pose.position.x = 0.55;
   start_pose.position.y = -0.05;
   start_pose.position.z = 0.8;
-  MoveToStart(start_pose);
+  PlanAndMoveToPose(start_pose);
 
   // create an orientation constraint
   moveit_msgs::OrientationConstraint ocm;
@@ -276,51 +296,35 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
   test_constraints.orientation_constraints.push_back(ocm);
   move_group_->setPathConstraints(test_constraints);
 
-  // set the target state
+  // move to a custom target pose
   geometry_msgs::Pose target_pose;
   target_pose.orientation.w = 1.0;
   target_pose.position.x = 0.28;
   target_pose.position.y = -0.2;
   target_pose.position.z = 0.5;
-  EXPECT_TRUE(move_group_->setPoseTarget(target_pose));
-
-  // set longer planning time
-  move_group_->setPlanningTime(10.0);
-
-  // plan and move
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  EXPECT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  EXPECT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  PlanAndMoveToPose(target_pose);
 
   // clear path constraints
   move_group_->clearPathConstraints();
 
   // get the pose after the movement
-  geometry_msgs::PoseStamped after_move_pose = move_group_->getCurrentPose();
-  Eigen::Isometry3d eigen_after_move_pose;
-  tf::poseMsgToEigen(after_move_pose.pose, eigen_after_move_pose);
-  Eigen::Isometry3d eigen_target_pose;
-  tf::poseMsgToEigen(target_pose, eigen_target_pose);
+  TestPose(target_pose);
 
-  // compare to planned pose
-  {
-    std::stringstream ss;
-    ss << "eigen_target_pose: \n"
-       << eigen_target_pose.matrix() << "\neigen_after_move_pose: \n"
-       << eigen_after_move_pose.matrix();
-    EXPECT_TRUE(eigen_after_move_pose.isApprox(eigen_target_pose, EPSILON)) << ss.str();
-  }
+  // return to start pose for next test
+  RetrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CartPathTest)
 {
+  SCOPED_TRACE("CartPathTest");
+
   // set a custom start state
   geometry_msgs::Pose start_pose;
   start_pose.orientation.w = 1.0;
   start_pose.position.x = 0.55;
   start_pose.position.y = -0.05;
   start_pose.position.z = 0.8;
-  MoveToStart(start_pose);
+  PlanAndMoveToPose(start_pose);
 
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.push_back(start_pose);
@@ -348,31 +352,23 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
   EXPECT_EQ(move_group_->execute(cartesian_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   // get the pose after the movement
-  geometry_msgs::PoseStamped after_move_pose = move_group_->getCurrentPose();
-  Eigen::Isometry3d eigen_after_move_pose;
-  tf::poseMsgToEigen(after_move_pose.pose, eigen_after_move_pose);
-  Eigen::Isometry3d eigen_target_pose;
-  tf::poseMsgToEigen(target_waypoint, eigen_target_pose);
+  TestPose(target_waypoint);
 
-  // compare to planned pose
-  {
-    std::stringstream ss;
-    ss << "eigen_target_pose: \n"
-       << eigen_target_pose.matrix() << "\neigen_after_move_pose: \n"
-       << eigen_after_move_pose.matrix();
-    EXPECT_TRUE(eigen_after_move_pose.isApprox(eigen_target_pose, EPSILON)) << ss.str();
-  }
+  // return to start pose for next test
+  RetrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
 {
+  SCOPED_TRACE("CollisionObjectsTest");
+
   // set a custom start state
   geometry_msgs::Pose start_pose;
   start_pose.orientation.w = 1.0;
-  start_pose.position.x = 0.55;
-  start_pose.position.y = -0.05;
-  start_pose.position.z = 0.8;
-  MoveToStart(start_pose);
+  start_pose.position.x = 0.28;
+  start_pose.position.y = -0.2;
+  start_pose.position.z = 0.5;
+  PlanAndMoveToPose(start_pose);
 
   // Define a collision object ROS message.
   moveit_msgs::CollisionObject collision_object;
@@ -387,14 +383,14 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   primitive.dimensions.resize(3);
   primitive.dimensions[0] = 0.4;
   primitive.dimensions[1] = 0.1;
-  primitive.dimensions[2] = 0.4;
+  primitive.dimensions[2] = 0.1;
 
   // Define a pose for the box (specified relative to frame_id)
   geometry_msgs::Pose box_pose;
   box_pose.orientation.w = 1.0;
   box_pose.position.x = 0.4;
   box_pose.position.y = -0.2;
-  box_pose.position.z = 1.0;
+  box_pose.position.z = 0.8;
 
   collision_object.primitives.push_back(primitive);
   collision_object.primitive_poses.push_back(box_pose);
@@ -407,34 +403,15 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   planning_scene_interface_.addCollisionObjects(collision_objects);
 
   // plan trajectory avoiding object
-  move_group_->setStartState(*move_group_->getCurrentState());
   geometry_msgs::Pose target_pose;
-  target_pose.orientation.w = 1.0;
+  target_pose.orientation.w = 0.0;
   target_pose.position.x = 0.4;
   target_pose.position.y = -0.4;
-  target_pose.position.z = 0.9;
-  move_group_->setPoseTarget(target_pose);
-
-  // plan and move
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  EXPECT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  EXPECT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  target_pose.position.z = 0.7;
+  PlanAndMoveToPose(target_pose);
 
   // get the pose after the movement
-  geometry_msgs::PoseStamped after_move_pose = move_group_->getCurrentPose();
-  Eigen::Isometry3d eigen_after_move_pose;
-  tf::poseMsgToEigen(after_move_pose.pose, eigen_after_move_pose);
-  Eigen::Isometry3d eigen_target_pose;
-  tf::poseMsgToEigen(target_pose, eigen_target_pose);
-
-  // compare to planned pose
-  {
-    std::stringstream ss;
-    ss << "eigen_target_pose: \n"
-       << eigen_target_pose.matrix() << "\neigen_after_move_pose: \n"
-       << eigen_after_move_pose.matrix();
-    EXPECT_TRUE(eigen_after_move_pose.isApprox(eigen_target_pose, EPSILON)) << ss.str();
-  }
+  TestPose(target_pose);
 
   // attach and detach collision object
   EXPECT_TRUE(move_group_->attachObject(collision_object.id));
@@ -448,6 +425,9 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(1));
   planning_scene_interface_.removeCollisionObjects(object_ids);
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
+
+  // return to start pose for next test
+  RetrunToStartPose();
 }
 
 int main(int argc, char** argv)
