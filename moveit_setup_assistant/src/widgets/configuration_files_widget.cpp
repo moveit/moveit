@@ -1121,15 +1121,14 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   std::string kinematics_parameters_files_block;
   for (const auto& groups : config_data_->group_meta_data_)
   {
-      if (groups.second.kinematics_parameters_file_.empty())
-          continue;
+    if (groups.second.kinematics_parameters_file_.empty())
+      continue;
 
-      std::string line = "<rosparam command=\"load\" namespace=\""
-                         +groups.first+"\" file=\""+groups.second.kinematics_parameters_file_+"\"/>\n";
-      kinematics_parameters_files_block += line;
+    std::string line = "<rosparam command=\"load\" namespace=\"" + groups.first + "\" file=\"" +
+                       groups.second.kinematics_parameters_file_ + "\"/>\n";
+    kinematics_parameters_files_block += line;
   }
   addTemplateString("[KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]", kinematics_parameters_files_block);
-
 
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
   addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);

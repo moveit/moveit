@@ -263,7 +263,8 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     kinematics_solver_field_->setCurrentIndex(index);
   }
 
-  kinematics_parameters_file_field_->setText(config_data_->group_meta_data_[group_name].kinematics_parameters_file_.c_str());
+  kinematics_parameters_file_field_->setText(
+      config_data_->group_meta_data_[group_name].kinematics_parameters_file_.c_str());
 
   // Set default planner
   std::string default_planner = config_data_->group_meta_data_[group_name].default_planner_;
