@@ -364,6 +364,13 @@ public:
   bool inputKinematicsYAML(const std::string& file_path);
 
   /**
+   * Input planning_context.launch for editing its values
+   * @param file_path path to planning_context.launch in the input package
+   * @return true if the file was read correctly
+   */
+  bool inputPlanningContextLaunch(const std::string& file_path);
+
+  /**
    * Helper function for parsing ros_controllers.yaml file
    * @param YAML::Node - individual controller to be parsed
    * @return true if the file was read correctly

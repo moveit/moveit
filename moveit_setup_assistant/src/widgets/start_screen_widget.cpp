@@ -416,6 +416,12 @@ bool StartScreenWidget::loadExistingFiles()
                                  "at location ")
                              .append(kinematics_yaml_path.make_preferred().string().c_str()));
   }
+  else
+  {
+    fs::path planning_context_launch_path = config_data_->config_pkg_path_;
+    planning_context_launch_path /= "launch/planning_context.launch";
+    config_data_->inputPlanningContextLaunch(planning_context_launch_path.make_preferred().string());
+  }
 
   // Load 3d_sensors config file
   load3DSensorsFile();
