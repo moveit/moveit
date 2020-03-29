@@ -52,7 +52,7 @@ TrajOptPlanningContext::TrajOptPlanningContext(const std::string& context_name, 
                                                const moveit::core::RobotModelConstPtr& model)
   : planning_interface::PlanningContext(context_name, group_name), robot_model_(model)
 {
-  ROS_INFO(" ======================================= TrajOptPlanningContext is constructed");
+  ROS_INFO_STREAM_NAMED(name_, "TrajOptPlanningContext is constructed");
   trajopt_interface_ = TrajOptInterfacePtr(new TrajOptInterface());
 }
 

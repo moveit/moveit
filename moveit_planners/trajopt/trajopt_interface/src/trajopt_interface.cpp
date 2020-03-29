@@ -58,7 +58,8 @@ namespace trajopt_interface
 {
 TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
-  trajopt_problem_ = trajopt::TrajOptProblemPtr(new trajopt::TrajOptProblem);
+  ROS_INFO_STREAM_NAMED(name_, "TrajOptInterface is constructed");
+  trajopt_problem_ = trajopt::TrajOptProblemPtr();
   setDefaultTrajOPtParams();
 
   // TODO: callbacks should be defined by the user
@@ -69,7 +70,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
                              const planning_interface::MotionPlanRequest& req,
                              moveit_msgs::MotionPlanDetailedResponse& res)
 {
-  ROS_INFO(" ======================================= From trajopt_interface, solve is called");
+  ROS_INFO_STREAM_NAMED(name_, "solve is called");
   setTrajOptParams(params_);
 
   if (!planning_scene)
@@ -79,7 +80,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     return false;
   }
 
-  ROS_INFO(" ======================================= Extract current state information");
+  ROS_INFO_STREAM_NAMED(name_, "Extract current state information");
   ros::WallTime start_time = ros::WallTime::now();
   moveit::core::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
   bool robot_model_ok = static_cast<bool>(robot_model);
