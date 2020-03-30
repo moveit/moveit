@@ -37,6 +37,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QString>
 #include <QGroupBox>
@@ -91,7 +92,16 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, const MoveItConfigDataPtr& con
   // file to load additional parameters from
   kinematics_parameters_file_field_ = new QLineEdit(this);
   kinematics_parameters_file_field_->setMaximumWidth(400);
-  form_layout->addRow("Kin. parameters file:", kinematics_parameters_file_field_);
+  QPushButton* kinematics_parameters_file_button = new QPushButton("...", this);
+  kinematics_parameters_file_button->setMaximumWidth(50);
+  connect(kinematics_parameters_file_button, SIGNAL(clicked()), this, SLOT(selectKinematicsFile()));
+  QBoxLayout* kinematics_parameters_file_layout = new QHBoxLayout(this);
+  kinematics_parameters_file_layout->addWidget(kinematics_parameters_file_field_);
+  kinematics_parameters_file_layout->addWidget(kinematics_parameters_file_button);
+  kinematics_parameters_file_layout->setContentsMargins(0, 0, 0, 0);
+  QWidget* container = new QWidget(this);
+  container->setLayout(kinematics_parameters_file_layout);
+  form_layout->addRow("Kin. parameters file:", container);
 
   group1->setLayout(form_layout);
 
@@ -344,6 +354,18 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
     std::string planner_name = planner.name_;
     default_planner_field_->addItem(planner_name.c_str());
   }
+}
+
+void GroupEditWidget::selectKinematicsFile()
+{
+  QString filename = QFileDialog::getOpenFileName(this, "Select a parameter file", "", "YAML files (*.yaml)");
+
+  if (filename.isEmpty())
+  {
+    return;
+  }
+
+  kinematics_parameters_file_field_->setText(filename);
 }
 
 }  // namespace moveit_setup_assistant

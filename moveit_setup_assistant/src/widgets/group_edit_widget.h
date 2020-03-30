@@ -87,6 +87,9 @@ private Q_SLOTS:
   // Slot Event Functions
   // ******************************************************************************************
 
+  /// Shows a file dialog to select an additional parameter file for kinematics
+  void selectKinematicsFile();
+
 Q_SIGNALS:
 
   // ******************************************************************************************
