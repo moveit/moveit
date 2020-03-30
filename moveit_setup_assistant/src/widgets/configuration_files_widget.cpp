@@ -1127,7 +1127,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     if (groups.second.kinematics_parameters_file_.empty())
       continue;
 
-    std::string line = "<rosparam command=\"load\" namespace=\"" + groups.first + "\" file=\"" +
+    std::string line = "<rosparam command=\"load\" ns=\"" + groups.first + "\" file=\"" +
                        groups.second.kinematics_parameters_file_ + "\"/>\n";
     kinematics_parameters_files_block += line;
   }
