@@ -30,6 +30,7 @@ jobs:
     - env: ROS_DISTRO=kinetic
     - compiler: clang
       env: TEST=clang-tidy-fix CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
+    - env: ROS_REPO=ros-shadow-fixed
   allow_failures:
     - env: ROS_REPO=ros-shadow-fixed
 
