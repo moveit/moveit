@@ -111,7 +111,7 @@ private Q_SLOTS:
   void editDoubleClicked(int row, int column);
 
   /// Preview whatever element is selected
-  void previewClicked(int row, int column);
+  void previewClicked(int row, int column, int previous_row, int previous_column);
 
   /// Delete currently editing ite
   void deleteSelected();
