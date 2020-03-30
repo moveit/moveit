@@ -962,6 +962,9 @@ bool ConfigurationFilesWidget::generatePackage()
     absolute_path = config_data_->appendPaths(new_package_path, file->rel_path_);
     ROS_DEBUG_STREAM("Creating file " << absolute_path);
 
+    // Clear template strings in case export is run multiple times with changes in between
+    template_strings_.clear();
+
     // Run the generate function
     if (!file->gen_func_(absolute_path))
     {
@@ -1149,9 +1152,6 @@ bool ConfigurationFilesWidget::addTemplateString(const std::string& key, const s
 // ******************************************************************************************
 bool ConfigurationFilesWidget::copyTemplate(const std::string& template_path, const std::string& output_path)
 {
-  // clear template strings in order to update them
-  template_strings_.clear();
-
   // Check if template strings have been loaded yet
   if (template_strings_.empty())
   {
