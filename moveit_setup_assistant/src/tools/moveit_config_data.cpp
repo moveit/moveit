@@ -1395,7 +1395,7 @@ bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
   for (TiXmlElement* kinematics_parameter_file = kinematics_group->FirstChildElement("rosparam");
        kinematics_parameter_file; kinematics_parameter_file = kinematics_parameter_file->NextSiblingElement("rosparam"))
   {
-    const char* ns = kinematics_parameter_file->Attribute("namespace");
+    const char* ns = kinematics_parameter_file->Attribute("ns");
     if (ns && (group_meta_data_.find(ns) != group_meta_data_.end()))
     {
       group_meta_data_[ns].kinematics_parameters_file_ = kinematics_parameter_file->Attribute("file");
