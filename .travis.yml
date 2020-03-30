@@ -1,5 +1,5 @@
 # This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
-sudo: required
+os: linux
 dist: xenial  # distro used by Travis, moveit_ci uses the docker image's distro
 services:
   - docker
@@ -21,13 +21,13 @@ env:
     - TEST_BLACKLIST="moveit_ros_perception"
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
     - WARNINGS_OK=false
-  matrix:
+  jobs:
     - TEST="clang-format catkin_lint"
     - TEST=code-coverage
     - ROS_DISTRO=melodic
     - ROS_DISTRO=kinetic
 
-matrix: # Add a separate config to the matrix, using clang as compiler
+jobs: # Add a separate config to the matrix, using clang as compiler
   include:
     # add a config to the matrix using clang as compiler and also test ikfast plugin creation
     - compiler: clang
