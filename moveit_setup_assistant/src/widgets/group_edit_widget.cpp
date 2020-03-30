@@ -365,7 +365,17 @@ void GroupEditWidget::selectKinematicsFile()
     return;
   }
 
-  kinematics_parameters_file_field_->setText(filename);
+  std::string package_name;
+  std::string relative_filename;
+  bool package_found =
+      config_data_->extractPackageNameFromPath(filename.toStdString(), package_name, relative_filename);
+
+  QString lookup_path = filename;
+  if (package_found)
+  {
+    lookup_path = QString("$(find %1)/%2").arg(package_name.c_str()).arg(relative_filename.c_str());
+  }
+  kinematics_parameters_file_field_->setText(lookup_path);
 }
 
 }  // namespace moveit_setup_assistant

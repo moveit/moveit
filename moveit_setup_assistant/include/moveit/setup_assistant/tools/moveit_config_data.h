@@ -405,6 +405,16 @@ public:
   bool setPackagePath(const std::string& pkg_path);
 
   /**
+   * determine the package name containing a given file path
+   * @param path to a file
+   * @param package_name holds the ros package name if found
+   * @param relative_filepath holds the relative path of the file to the package root
+   * @return whether the file belongs to a known package
+   */
+  bool extractPackageNameFromPath(const std::string& path, std::string& package_name,
+                                  std::string& relative_filepath) const;
+
+  /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
    * @return true if the path could be resolved
