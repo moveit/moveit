@@ -22,19 +22,22 @@ env:
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
     - WARNINGS_OK=false
   jobs:
-    - TEST="clang-format catkin_lint"
-    - TEST=code-coverage
-    - ROS_DISTRO=melodic
-    - ROS_DISTRO=kinetic
+    include:
+      - TEST="clang-format catkin_lint"
+      - TEST=code-coverage
+      - ROS_DISTRO=melodic BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
+      - ROS_DISTRO=kinetic
+    allow_failures:
+      - ROS_REPO=ros-shadow-fixed
 
-jobs: # Add a separate config to the matrix, using clang as compiler
-  include:
-    # add a config to the matrix using clang as compiler and also test ikfast plugin creation
+env:
+  global:
+    - ROS_REPO=ros
+    - ROS_DISTRO=melodic
+    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
+  jobs: # Add a separate config to the matrix, using clang as compiler
     - compiler: clang
-      env: ROS_REPO=ros-shadow-fixed
-           TEST=clang-tidy-fix
-           BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
-           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
+      env: TEST=clang-tidy-fix
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
