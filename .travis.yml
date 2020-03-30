@@ -26,10 +26,11 @@ jobs:
   include:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
-    - env: ROS_DISTRO=melodic BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
+    - env: ROS_DISTRO=melodic
     - env: ROS_DISTRO=kinetic
     - compiler: clang
-      env: TEST=clang-tidy-fix CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
+      # test_ikfast_plugins takes ~10 minutes. Take the time off clang-tidy to keep the main jobs shorter
+      env: TEST=clang-tidy-fix BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh" CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
     - env: ROS_REPO=ros-shadow-fixed
   allow_failures:
     - env: ROS_REPO=ros-shadow-fixed
