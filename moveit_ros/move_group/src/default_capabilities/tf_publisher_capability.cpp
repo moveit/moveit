@@ -95,7 +95,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         const moveit::core::FixedTransformsMap& subframes = obj.second->subframe_poses_;
-        publishSubframes(broadcaster, subframes, object_frame, stamp);
+        publishSubframes(broadcaster, subframes, planning_frame, stamp);
       }
 
       const moveit::core::RobotState& rs = locked_planning_scene->getCurrentState();
