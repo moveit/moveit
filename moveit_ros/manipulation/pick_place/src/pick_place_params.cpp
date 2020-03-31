@@ -80,6 +80,6 @@ pick_place::PickPlaceParams::PickPlaceParams() : max_goal_count_(5), max_fail_(3
 
 const pick_place::PickPlaceParams& pick_place::GetGlobalPickPlaceParams()
 {
-  static DynamicReconfigureImpl PICK_PLACE_PARAMS;
-  return PICK_PLACE_PARAMS.getParams();
+  static DynamicReconfigureImpl pick_place_params;
+  return pick_place_params.getParams();
 }

@@ -370,7 +370,13 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
     std::string service_name = planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE;
     if (!getMoveGroupNS().empty())
       service_name = ros::names::append(getMoveGroupNS(), service_name);
-    planning_scene_monitor_->requestPlanningSceneState(service_name);
+    auto bg_func = [=]() {
+      if (planning_scene_monitor_->requestPlanningSceneState(service_name))
+        addMainLoopJob(boost::bind(&PlanningSceneDisplay::onNewPlanningSceneState, this));
+      else
+        setStatus(rviz::StatusProperty::Warn, "PlanningScene", "Requesting initial scene failed");
+    };
+    addBackgroundJob(bg_func, "requestPlanningSceneState");
   }
 }
 
@@ -518,6 +524,8 @@ void PlanningSceneDisplay::loadRobotModel()
   if (psm->getPlanningScene())
   {
     planning_scene_monitor_.swap(psm);
+    planning_scene_monitor_->addUpdateCallback(
+        boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
     addMainLoopJob(boost::bind(&PlanningSceneDisplay::onRobotModelLoaded, this));
     setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
     waitForAllMainLoopJobs();
@@ -527,13 +535,10 @@ void PlanningSceneDisplay::loadRobotModel()
     setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
   }
 
-  if (planning_scene_monitor_)
-    planning_scene_monitor_->addUpdateCallback(
-        boost::bind(&PlanningSceneDisplay::sceneMonitorReceivedUpdate, this, _1));
-
   model_is_loading_ = false;
 }
 
+// This should always run in the main GUI thread!
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
   changedPlanningSceneTopic();
@@ -549,9 +554,13 @@ void PlanningSceneDisplay::onRobotModelLoaded()
     planning_scene_robot_->update(robot_state::RobotStateConstPtr(rs));
   }
 
-  bool oldState = scene_name_property_->blockSignals(true);
+  bool old_state = scene_name_property_->blockSignals(true);
   scene_name_property_->setStdString(ps->getName());
-  scene_name_property_->blockSignals(oldState);
+  scene_name_property_->blockSignals(old_state);
+}
+
+void PlanningSceneDisplay::onNewPlanningSceneState()
+{
 }
 
 void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
@@ -563,10 +572,10 @@ void PlanningSceneDisplay::sceneMonitorReceivedUpdate(
 void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(
     planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
 {
-  bool oldState = scene_name_property_->blockSignals(true);
+  bool old_state = scene_name_property_->blockSignals(true);
   getPlanningSceneRW()->getCurrentStateNonConst().update();
   scene_name_property_->setStdString(getPlanningSceneRO()->getName());
-  scene_name_property_->blockSignals(oldState);
+  scene_name_property_->blockSignals(old_state);
 
   planning_scene_needs_render_ = true;
 }

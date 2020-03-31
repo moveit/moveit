@@ -328,6 +328,7 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
     if (hasJointModelGroup(ds[i].group_))
     {
       JointModelGroup* jmg = getJointModelGroup(ds[i].group_);
+      std::vector<const JointModel*> remaining_joints = jmg->getActiveJointModels();
       std::map<std::string, double> state;
       for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin();
            jt != ds[i].joint_values_.end(); ++jt)
@@ -336,6 +337,10 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
         {
           const JointModel* jm = jmg->getJointModel(jt->first);
           const std::vector<std::string>& vn = jm->getVariableNames();
+          // Remove current joint name from remaining list.
+          auto it_found = std::find(remaining_joints.begin(), remaining_joints.end(), jm);
+          if (it_found != remaining_joints.end())
+            remaining_joints.erase(it_found);
           if (vn.size() == jt->second.size())
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
@@ -349,6 +354,18 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
           ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specifies value for joint '%s', "
                                    "but that joint is not part of group '%s'",
                           ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
+      }
+      if (!remaining_joints.empty())
+      {
+        std::stringstream missing;
+        missing << (*remaining_joints.begin())->getName();
+        for (auto j = ++remaining_joints.begin(); j != remaining_joints.end(); j++)
+        {
+          missing << ", " << (*j)->getName();
+        }
+        ROS_WARN_STREAM_NAMED(LOGNAME, "Group state '" << ds[i].name_ << "' doesn't specify all group joints in group '"
+                                                       << ds[i].group_ << "'. " << missing.str() << " "
+                                                       << (remaining_joints.size() > 1 ? "are" : "is") << " missing.");
       }
       if (!state.empty())
         jmg->addDefaultState(ds[i].name_, state);

@@ -48,16 +48,16 @@
 
 using namespace distance_field;
 
-static const double width = 1.0;
-static const double height = 1.0;
-static const double depth = 1.0;
-static const double resolution = 0.1;
+static const double WIDTH = 1.0;
+static const double HEIGHT = 1.0;
+static const double DEPTH = 1.0;
+static const double RESOLUTION = 0.1;
 static const double ORIGIN_X = 0.0;
 static const double ORIGIN_Y = 0.0;
 static const double ORIGIN_Z = 0.0;
-static const double max_dist = 0.3;
+static const double MAX_DIST = 0.3;
 
-static const Eigen::Vector3d point1(0.1, 0.0, 0.0);
+static const Eigen::Vector3d POINT1(0.1, 0.0, 0.0);
 static const Eigen::Vector3d POINT2(0.0, 0.1, 0.2);
 static const Eigen::Vector3d POINT3(0.4, 0.0, 0.0);
 
@@ -328,27 +328,27 @@ void check_distance_field(const PropagationDistanceField& df, const EigenSTL::ve
 
 TEST(TestPropagationDistanceField, TestAddRemovePoints)
 {
-  PropagationDistanceField df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist);
+  PropagationDistanceField df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST);
 
   // Check size
-  int numX = df.getXNumCells();
-  int numY = df.getYNumCells();
-  int numZ = df.getZNumCells();
+  int num_x = df.getXNumCells();
+  int num_y = df.getYNumCells();
+  int num_z = df.getZNumCells();
 
-  EXPECT_EQ(numX, (int)(width / resolution + 0.5));
-  EXPECT_EQ(numY, (int)(height / resolution + 0.5));
-  EXPECT_EQ(numZ, (int)(depth / resolution + 0.5));
+  EXPECT_EQ(num_x, (int)(WIDTH / RESOLUTION + 0.5));
+  EXPECT_EQ(num_y, (int)(HEIGHT / RESOLUTION + 0.5));
+  EXPECT_EQ(num_z, (int)(DEPTH / RESOLUTION + 0.5));
 
   // getting a bad point
   double tgx, tgy, tgz;
   bool in_bounds;
-  EXPECT_NEAR(df.getDistance(1000.0, 1000.0, 1000.0), max_dist, .0001);
-  EXPECT_NEAR(df.getDistanceGradient(1000.0, 1000.0, 1000.0, tgx, tgy, tgz, in_bounds), max_dist, .0001);
+  EXPECT_NEAR(df.getDistance(1000.0, 1000.0, 1000.0), MAX_DIST, .0001);
+  EXPECT_NEAR(df.getDistanceGradient(1000.0, 1000.0, 1000.0, tgx, tgy, tgz, in_bounds), MAX_DIST, .0001);
   EXPECT_FALSE(in_bounds);
 
   // Add points to the grid
   EigenSTL::vector_Vector3d points;
-  points.push_back(point1);
+  points.push_back(POINT1);
   points.push_back(POINT2);
   ROS_INFO_NAMED("distance_field", "Adding %zu points", points.size());
   df.addPointsToField(points);
@@ -359,12 +359,12 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   points.push_back(POINT2);
   points.push_back(POINT3);
   EigenSTL::vector_Vector3d old_points;
-  old_points.push_back(point1);
+  old_points.push_back(POINT1);
   df.updatePointsInField(old_points, points);
   // std::cout << "One removal, one addition" << std::endl;
   // print(df, numX, numY, numZ);
   // printNeg(df, numX, numY, numZ);
-  check_distance_field(df, points, numX, numY, numZ, false);
+  check_distance_field(df, points, num_x, num_y, num_z, false);
 
   // Remove
   points.clear();
@@ -372,12 +372,12 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   df.removePointsFromField(points);
   points.clear();
   points.push_back(POINT3);
-  check_distance_field(df, points, numX, numY, numZ, false);
+  check_distance_field(df, points, num_x, num_y, num_z, false);
 
   // now testing gradient calls
   df.reset();
   points.clear();
-  points.push_back(point1);
+  points.push_back(POINT1);
   df.addPointsToField(points);
   bool first = true;
   for (int z = 1; z < df.getZNumCells() - 1; z++)
@@ -394,7 +394,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
         double dist_grad = df.getDistanceGradient(wx, wy, wz, grad.x(), grad.y(), grad.z(), grad_in_bounds);
         ASSERT_TRUE(grad_in_bounds) << x << " " << y << " " << z;
         ASSERT_NEAR(dist, dist_grad, .0001);
-        if (dist > 0 && dist < max_dist)
+        if (dist > 0 && dist < MAX_DIST)
         {
           double xscale = grad.x() / grad.norm();
           double yscale = grad.y() / grad.norm();
@@ -412,13 +412,13 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
             std::cout << "Grad " << grad.x() << " " << grad.y() << " " << grad.z() << " comp " << comp_x << " "
                       << comp_y << " " << comp_z << std::endl;
           }
-          ASSERT_NEAR(comp_x, point1.x(), resolution) << dist << x << " " << y << " " << z << " " << grad.x() << " "
+          ASSERT_NEAR(comp_x, POINT1.x(), RESOLUTION) << dist << x << " " << y << " " << z << " " << grad.x() << " "
                                                       << grad.y() << " " << grad.z() << " " << xscale << " " << yscale
                                                       << " " << zscale << std::endl;
-          ASSERT_NEAR(comp_y, point1.y(), resolution) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
+          ASSERT_NEAR(comp_y, POINT1.y(), RESOLUTION) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
                                                       << " " << grad.z() << " " << xscale << " " << yscale << " "
                                                       << zscale << std::endl;
-          ASSERT_NEAR(comp_z, point1.z(), resolution) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
+          ASSERT_NEAR(comp_z, POINT1.z(), RESOLUTION) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
                                                       << " " << grad.z() << " " << xscale << " " << yscale << " "
                                                       << zscale << std::endl;
         }
@@ -430,16 +430,16 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
 
 TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
 {
-  PropagationDistanceField df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
+  PropagationDistanceField df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
 
   // Check size
-  int numX = df.getXNumCells();
-  int numY = df.getYNumCells();
-  int numZ = df.getZNumCells();
+  int num_x = df.getXNumCells();
+  int num_y = df.getYNumCells();
+  int num_z = df.getZNumCells();
 
-  EXPECT_EQ(numX, (int)(width / resolution + 0.5));
-  EXPECT_EQ(numY, (int)(height / resolution + 0.5));
-  EXPECT_EQ(numZ, (int)(depth / resolution + 0.5));
+  EXPECT_EQ(num_x, (int)(WIDTH / RESOLUTION + 0.5));
+  EXPECT_EQ(num_y, (int)(HEIGHT / RESOLUTION + 0.5));
+  EXPECT_EQ(num_z, (int)(DEPTH / RESOLUTION + 0.5));
 
   // Error checking
   // print(df, numX, numY, numZ);
@@ -485,7 +485,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   // printNeg(df, numX, numY, numZ);
 
   // testing equality with initial add of points without the center point
-  PropagationDistanceField test_df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
+  PropagationDistanceField test_df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
   EigenSTL::vector_Vector3d test_points;
   for (unsigned int i = 0; i < points.size(); i++)
   {
@@ -497,7 +497,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   test_df.addPointsToField(test_points);
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(df, test_df));
 
-  PropagationDistanceField gradient_df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
+  PropagationDistanceField gradient_df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
 
   shapes::Sphere sphere(.25);
 
@@ -600,7 +600,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
 
 TEST(TestSignedPropagationDistanceField, TestShape)
 {
-  PropagationDistanceField df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
+  PropagationDistanceField df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
 
   int num_x = df.getXNumCells();
   int num_y = df.getYNumCells();
@@ -616,7 +616,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   bodies::Body* body = bodies::createBodyFromShape(&sphere);
   body->setPose(p);
   EigenSTL::vector_Vector3d point_vec;
-  findInternalPointsConvex(*body, resolution, point_vec);
+  findInternalPointsConvex(*body, RESOLUTION, point_vec);
   delete body;
   check_distance_field(df, point_vec, num_x, num_y, num_z, true);
 
@@ -631,7 +631,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   body->setPose(np);
 
   EigenSTL::vector_Vector3d point_vec_2;
-  findInternalPointsConvex(*body, resolution, point_vec_2);
+  findInternalPointsConvex(*body, RESOLUTION, point_vec_2);
   delete body;
   EigenSTL::vector_Vector3d point_vec_union = point_vec_2;
   point_vec_union.insert(point_vec_union.end(), point_vec.begin(), point_vec.end());
@@ -643,7 +643,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   check_distance_field(df, point_vec_2, num_x, num_y, num_z, true);
 
   // should be equivalent to just adding second shape
-  PropagationDistanceField test_df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist, true);
+  PropagationDistanceField test_df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST, true);
   test_df.addShapeToField(&sphere, np);
   ASSERT_TRUE(areDistanceFieldsDistancesEqual(df, test_df));
 }
@@ -883,10 +883,10 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
 
 TEST(TestSignedPropagationDistanceField, TestReadWrite)
 {
-  PropagationDistanceField small_df(width, height, depth, resolution, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, max_dist);
+  PropagationDistanceField small_df(WIDTH, HEIGHT, DEPTH, RESOLUTION, ORIGIN_X, ORIGIN_Y, ORIGIN_Z, MAX_DIST);
 
   EigenSTL::vector_Vector3d points;
-  points.push_back(point1);
+  points.push_back(POINT1);
   points.push_back(POINT2);
   points.push_back(POINT3);
   small_df.addPointsToField(points);

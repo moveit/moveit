@@ -78,7 +78,7 @@ class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
 public:
   const std::string& getName() const override
   {
-    return CollisionDetectorAllocatorType::NAME_;
+    return CollisionDetectorAllocatorType::NAME;
   }
 
   CollisionWorldPtr allocateWorld(const WorldPtr& world) const override

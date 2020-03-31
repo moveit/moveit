@@ -208,12 +208,12 @@ void ChompTrajectory::fillInMinJerk()
 {
   double start_index = start_index_ - 1;
   double end_index = end_index_ + 1;
-  double T[6];  // powers of the time duration
-  T[0] = 1.0;
-  T[1] = (end_index - start_index) * discretization_;
+  double td[6];  // powers of the time duration
+  td[0] = 1.0;
+  td[1] = (end_index - start_index) * discretization_;
 
   for (int i = 2; i <= 5; i++)
-    T[i] = T[i - 1] * T[1];
+    td[i] = td[i - 1] * td[1];
 
   // calculate the spline coefficients for each joint:
   // (these are for the special case of zero start and end vel and acc)
@@ -225,26 +225,26 @@ void ChompTrajectory::fillInMinJerk()
     coeff[i][0] = x0;
     coeff[i][1] = 0;
     coeff[i][2] = 0;
-    coeff[i][3] = (-20 * x0 + 20 * x1) / (2 * T[3]);
-    coeff[i][4] = (30 * x0 - 30 * x1) / (2 * T[4]);
-    coeff[i][5] = (-12 * x0 + 12 * x1) / (2 * T[5]);
+    coeff[i][3] = (-20 * x0 + 20 * x1) / (2 * td[3]);
+    coeff[i][4] = (30 * x0 - 30 * x1) / (2 * td[4]);
+    coeff[i][5] = (-12 * x0 + 12 * x1) / (2 * td[5]);
   }
 
   // now fill in the joint positions at each time step
   for (int i = start_index + 1; i < end_index; i++)
   {
-    double t[6];  // powers of the time index point
-    t[0] = 1.0;
-    t[1] = (i - start_index) * discretization_;
+    double ti[6];  // powers of the time index point
+    ti[0] = 1.0;
+    ti[1] = (i - start_index) * discretization_;
     for (int k = 2; k <= 5; k++)
-      t[k] = t[k - 1] * t[1];
+      ti[k] = ti[k - 1] * ti[1];
 
     for (int j = 0; j < num_joints_; j++)
     {
       (*this)(i, j) = 0.0;
       for (int k = 0; k <= 5; k++)
       {
-        (*this)(i, j) += t[k] * coeff[j][k];
+        (*this)(i, j) += ti[k] * coeff[j][k];
       }
     }
   }

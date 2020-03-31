@@ -89,7 +89,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   // Create Qt Application
-  QApplication qtApp(argc, argv);
+  QApplication qt_app(argc, argv);
   // numeric values should always be POSIX
   setlocale(LC_NUMERIC, "C");
 
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   signal(SIGINT, siginthandler);
 
   // Wait here until Qt App is finished
-  const int result = qtApp.exec();
+  const int result = qt_app.exec();
 
   // Shutdown ROS
   ros::shutdown();

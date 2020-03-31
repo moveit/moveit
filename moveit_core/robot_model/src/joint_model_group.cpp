@@ -96,6 +96,8 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
 }
 }  // namespace
 
+const std::string LOGNAME = "robot_model.jmg";
+
 JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Model::Group& config,
                                  const std::vector<const JointModel*>& unsorted_group_joints,
                                  const RobotModel* parent_model)
@@ -292,7 +294,7 @@ const LinkModel* JointModelGroup::getLinkModel(const std::string& name) const
   LinkModelMapConst::const_iterator it = link_model_map_.find(name);
   if (it == link_model_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model.jmg", "Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;
@@ -303,7 +305,7 @@ const JointModel* JointModelGroup::getJointModel(const std::string& name) const
   JointModelMapConst::const_iterator it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model.jmg", "Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;
@@ -345,8 +347,7 @@ void JointModelGroup::getVariableRandomPositionsNearBy(
     if (iter != distance_map.end())
       distance = iter->second;
     else
-      ROS_WARN_NAMED("robot_model.jmg", "Did not pass in distance for '%s'",
-                     active_joint_model_vector_[i]->getName().c_str());
+      ROS_WARN_NAMED(LOGNAME, "Did not pass in distance for '%s'", active_joint_model_vector_[i]->getName().c_str());
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(
         rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
         near + active_joint_model_start_index_[i], distance);
@@ -502,7 +503,7 @@ bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) co
     const JointModelGroup* eef = parent_model_->getEndEffector(name);
     if (!eef)
     {
-      ROS_ERROR_NAMED("robot_model.jmg", "Unable to find joint model group for eef");
+      ROS_ERROR_NAMED(LOGNAME, "Unable to find joint model group for eef");
       return false;
     }
     const std::string& eef_parent = eef->getEndEffectorParentGroup().second;
@@ -510,7 +511,7 @@ bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) co
     const LinkModel* eef_link = parent_model_->getLinkModel(eef_parent);
     if (!eef_link)
     {
-      ROS_ERROR_NAMED("robot_model.jmg", "Unable to find end effector link for eef");
+      ROS_ERROR_NAMED(LOGNAME, "Unable to find end effector link for eef");
       return false;
     }
     // insert eef_link into tips, maintaining a *sorted* vector, thus enabling use of std::lower_bound
@@ -528,10 +529,10 @@ const LinkModel* JointModelGroup::getOnlyOneEndEffectorTip() const
   if (tips.size() == 1)
     return tips.front();
   else if (tips.size() > 1)
-    ROS_ERROR_NAMED("robot_model.jmg", "More than one end effector tip found for joint model group, "
-                                       "so cannot return only one");
+    ROS_ERROR_NAMED(LOGNAME, "More than one end effector tip found for joint model group, "
+                             "so cannot return only one");
   else
-    ROS_ERROR_NAMED("robot_model.jmg", "No end effector tips found in joint model group");
+    ROS_ERROR_NAMED(LOGNAME, "No end effector tips found in joint model group");
   return nullptr;
 }
 
@@ -540,7 +541,7 @@ int JointModelGroup::getVariableGroupIndex(const std::string& variable) const
   VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
   {
-    ROS_ERROR_NAMED("robot_model.jmg", "Variable '%s' is not part of group '%s'", variable.c_str(), name_.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Variable '%s' is not part of group '%s'", variable.c_str(), name_.c_str());
     return -1;
   }
   return it->second;
@@ -567,8 +568,8 @@ bool JointModelGroup::computeIKIndexBijection(const std::vector<std::string>& ik
       // skip reported fixed joints
       if (hasJointModel(ik_jnames[i]) && getJointModel(ik_jnames[i])->getType() == JointModel::FIXED)
         continue;
-      ROS_ERROR_NAMED("robot_model.jmg", "IK solver computes joint values for joint '%s' "
-                                         "but group '%s' does not contain such a joint.",
+      ROS_ERROR_NAMED(LOGNAME, "IK solver computes joint values for joint '%s' "
+                               "but group '%s' does not contain such a joint.",
                       ik_jnames[i].c_str(), getName().c_str());
       return false;
     }
@@ -620,7 +621,7 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
 
   if (tip_frames.empty())
   {
-    ROS_DEBUG_NAMED("robot_model.jmg", "Group %s has no tip frame(s)", name_.c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "Group %s has no tip frame(s)", name_.c_str());
     return false;
   }
 
@@ -630,7 +631,7 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
     // remove frame reference, if specified
     const std::string& tip_local = tip[0] == '/' ? tip.substr(1) : tip;
     const std::string& tip_frame_local = tip_frames[i][0] == '/' ? tip_frames[i].substr(1) : tip_frames[i];
-    ROS_DEBUG_NAMED("robot_model.jmg", "comparing input tip: %s to this groups tip: %s ", tip_local.c_str(),
+    ROS_DEBUG_NAMED(LOGNAME, "comparing input tip: %s to this groups tip: %s ", tip_local.c_str(),
                     tip_frame_local.c_str());
 
     // Check if the IK solver's tip is the same as the frame of inquiry
@@ -717,5 +718,48 @@ void JointModelGroup::printGroupInfo(std::ostream& out) const
   out << std::endl;
 }
 
+bool JointModelGroup::isValidVelocityMove(const std::vector<double>& from_joint_pose,
+                                          const std::vector<double>& to_joint_pose, double dt) const
+{
+  // Check for equal sized arrays
+  if (from_joint_pose.size() != to_joint_pose.size())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "To and from joint poses are of different sizes.");
+    return false;
+  }
+
+  return isValidVelocityMove(&from_joint_pose[0], &to_joint_pose[0], from_joint_pose.size(), dt);
+}
+
+bool JointModelGroup::isValidVelocityMove(const double* from_joint_pose, const double* to_joint_pose,
+                                          std::size_t array_size, double dt) const
+{
+  const std::vector<const JointModel::Bounds*>& bounds = getActiveJointModelsBounds();
+  const std::vector<unsigned int>& bij = getKinematicsSolverJointBijection();
+
+  for (std::size_t i = 0; i < array_size; ++i)
+  {
+    double dtheta = std::abs(from_joint_pose[i] - to_joint_pose[i]);
+    const std::vector<moveit::core::VariableBounds>* var_bounds = bounds[bij[i]];
+
+    if (var_bounds->size() != 1)
+    {
+      // TODO(davetcoleman) Support multiple variables
+      ROS_ERROR_NAMED(LOGNAME, "Attempting to check velocity bounds for waypoint move with joints that have multiple "
+                               "variables");
+      return false;
+    }
+    const double max_velocity = (*var_bounds)[0].max_velocity_;
+
+    double max_dtheta = dt * max_velocity;
+    if (dtheta > max_dtheta)
+    {
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "Not valid velocity move because of joint " << i);
+      return false;
+    }
+  }
+
+  return true;
+}
 }  // end of namespace core
 }  // end of namespace moveit

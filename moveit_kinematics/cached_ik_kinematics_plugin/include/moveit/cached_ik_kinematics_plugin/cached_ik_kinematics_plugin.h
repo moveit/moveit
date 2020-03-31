@@ -91,7 +91,7 @@ public:
 
   IKCache();
   ~IKCache();
-  IKCache(const IKCache&) = default;
+  IKCache(const IKCache&) = delete;
 
   /** get the entry from the IK cache that best matches a given pose */
   const IKEntry& getBestApproximateIKSolution(const Pose& pose) const;

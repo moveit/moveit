@@ -346,7 +346,8 @@ robot_model::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const s
 
           // TODO: Remove in future release (deprecated in PR #1288, Jan-2019, Melodic)
           std::string ksolver_attempts_param_name;
-          if (nh.searchParam(base_param_name + "/kinematics_solver_attempts", ksolver_attempts_param_name))
+          if (nh.searchParam(base_param_name + "/kinematics_solver_attempts", ksolver_attempts_param_name) &&
+              nh.hasParam(ksolver_attempts_param_name))
           {
             ROS_WARN_ONCE_NAMED(LOGNAME, "Kinematics solver doesn't support #attempts anymore, but only a timeout.\n"
                                          "Please remove the parameter '%s' from your configuration.",

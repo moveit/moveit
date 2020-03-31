@@ -286,45 +286,16 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
   if (!plannerConfigurationsExist(opts.getPlannerConfigurations(), opts.getGroupName()))
     return false;
 
-  try
-  {
-    warehouse_ros::DatabaseConnection::Ptr conn = dbloader.loadDatabase();
-    conn->setParams(opts.getHostName(), opts.getPort(), 20);
-    if (conn->connect())
-    {
-      pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
-      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
-      rs_ = new moveit_warehouse::RobotStateStorage(conn);
-      cs_ = new moveit_warehouse::ConstraintsStorage(conn);
-      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
-    }
-    else
-    {
-      ROS_ERROR("Failed to connect to DB");
-      return false;
-    }
-  }
-  catch (std::exception& e)
-  {
-    ROS_ERROR("Failed to initialize benchmark server: '%s'", e.what());
-    return false;
-  }
-
   std::vector<StartState> start_states;
   std::vector<PathConstraints> path_constraints;
   std::vector<PathConstraints> goal_constraints;
   std::vector<TrajectoryConstraints> traj_constraints;
   std::vector<BenchmarkRequest> queries;
 
-  bool ok = loadPlanningScene(opts.getSceneName(), scene_msg) && loadStates(opts.getStartStateRegex(), start_states) &&
-            loadPathConstraints(opts.getGoalConstraintRegex(), goal_constraints) &&
-            loadPathConstraints(opts.getPathConstraintRegex(), path_constraints) &&
-            loadTrajectoryConstraints(opts.getTrajectoryConstraintRegex(), traj_constraints) &&
-            loadQueries(opts.getQueryRegex(), opts.getSceneName(), queries);
-
-  if (!ok)
+  if (!loadBenchmarkQueryData(opts, scene_msg, start_states, path_constraints, goal_constraints, traj_constraints,
+                              queries))
   {
-    ROS_ERROR("Failed to load benchmark stuff");
+    ROS_ERROR("Failed to load benchmark query data");
     return false;
   }
 
@@ -432,6 +403,44 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 
   options_ = opts;
   return true;
+}
+
+bool BenchmarkExecutor::loadBenchmarkQueryData(const BenchmarkOptions& opts, moveit_msgs::PlanningScene& scene_msg,
+                                               std::vector<StartState>& start_states,
+                                               std::vector<PathConstraints>& path_constraints,
+                                               std::vector<PathConstraints>& goal_constraints,
+                                               std::vector<TrajectoryConstraints>& traj_constraints,
+                                               std::vector<BenchmarkRequest>& queries)
+{
+  try
+  {
+    warehouse_ros::DatabaseConnection::Ptr warehouse_connection = dbloader.loadDatabase();
+    warehouse_connection->setParams(opts.getHostName(), opts.getPort(), 20);
+    if (warehouse_connection->connect())
+    {
+      pss_ = new moveit_warehouse::PlanningSceneStorage(warehouse_connection);
+      psws_ = new moveit_warehouse::PlanningSceneWorldStorage(warehouse_connection);
+      rs_ = new moveit_warehouse::RobotStateStorage(warehouse_connection);
+      cs_ = new moveit_warehouse::ConstraintsStorage(warehouse_connection);
+      tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(warehouse_connection);
+    }
+    else
+    {
+      ROS_ERROR("Failed to connect to DB");
+      return false;
+    }
+  }
+  catch (std::exception& e)
+  {
+    ROS_ERROR("Failed to initialize benchmark server: '%s'", e.what());
+    return false;
+  }
+
+  return loadPlanningScene(opts.getSceneName(), scene_msg) && loadStates(opts.getStartStateRegex(), start_states) &&
+         loadPathConstraints(opts.getGoalConstraintRegex(), goal_constraints) &&
+         loadPathConstraints(opts.getPathConstraintRegex(), path_constraints) &&
+         loadTrajectoryConstraints(opts.getTrajectoryConstraintRegex(), traj_constraints) &&
+         loadQueries(opts.getQueryRegex(), opts.getSceneName(), queries);
 }
 
 void BenchmarkExecutor::shiftConstraintsByOffset(moveit_msgs::Constraints& constraints,
@@ -772,6 +781,9 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
     {
       // This container stores all of the benchmark data for this planner
       PlannerBenchmarkData planner_data(runs);
+      // This vector stores all motion plan results for further evaluation
+      std::vector<planning_interface::MotionPlanDetailedResponse> responses(runs);
+      std::vector<bool> solved(runs);
 
       request.planner_id = it->second[i];
 
@@ -788,23 +800,24 @@ void BenchmarkExecutor::runBenchmark(moveit_msgs::MotionPlanRequest request,
           pre_event_fns_[k](request);
 
         // Solve problem
-        planning_interface::MotionPlanDetailedResponse mp_res;
         ros::WallTime start = ros::WallTime::now();
-        bool solved = context->solve(mp_res);
+        solved[j] = context->solve(responses[j]);
         double total_time = (ros::WallTime::now() - start).toSec();
 
         // Collect data
         start = ros::WallTime::now();
 
         // Post-run events
-        for (std::size_t k = 0; k < post_event_fns_.size(); ++k)
-          post_event_fns_[k](request, mp_res, planner_data[j]);
-        collectMetrics(planner_data[j], mp_res, solved, total_time);
+        for (PostRunEventFunction& post_event_fn : post_event_fns_)
+          post_event_fn(request, responses[j], planner_data[j]);
+        collectMetrics(planner_data[j], responses[j], solved[j], total_time);
         double metrics_time = (ros::WallTime::now() - start).toSec();
         ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
 
         ++progress;
       }
+
+      computeAveragePathSimilarities(planner_data, responses, solved);
 
       // Planner completion events
       for (std::size_t j = 0; j < planner_completion_fns_.size(); ++j)
@@ -825,7 +838,7 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
   if (solved)
   {
     // Analyzing the trajectory(ies) geometrically
-    double L = 0.0;           // trajectory length
+    double traj_len = 0.0;    // trajectory length
     double clearance = 0.0;   // trajectory clearance (average)
     double smoothness = 0.0;  // trajectory smoothness (average)
     bool correct = true;      // entire trajectory collision free and in bounds
@@ -834,14 +847,14 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
     for (std::size_t j = 0; j < mp_res.trajectory_.size(); ++j)
     {
       correct = true;
-      L = 0.0;
+      traj_len = 0.0;
       clearance = 0.0;
       smoothness = 0.0;
       const robot_trajectory::RobotTrajectory& p = *mp_res.trajectory_[j];
 
       // compute path length
       for (std::size_t k = 1; k < p.getWayPointCount(); ++k)
-        L += p.getWayPoint(k - 1).distance(p.getWayPoint(k));
+        traj_len += p.getWayPoint(k - 1).distance(p.getWayPoint(k));
 
       // compute correctness and clearance
       collision_detection::CollisionRequest req;
@@ -877,11 +890,11 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
           // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
           double b = p.getWayPoint(k - 1).distance(p.getWayPoint(k));
           double cdist = p.getWayPoint(k - 2).distance(p.getWayPoint(k));
-          double acosValue = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
-          if (acosValue > -1.0 && acosValue < 1.0)
+          double acos_value = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
+          if (acos_value > -1.0 && acos_value < 1.0)
           {
             // the smoothness is actually the outside angle of the one we compute
-            double angle = (boost::math::constants::pi<double>() - acos(acosValue));
+            double angle = (boost::math::constants::pi<double>() - acos(acos_value));
 
             // and we normalize by the length of the segments
             double u = 2.0 * angle;  /// (a + b);
@@ -892,16 +905,140 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         smoothness /= (double)p.getWayPointCount();
       }
       metrics["path_" + mp_res.description_[j] + "_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
-      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(L);
+      metrics["path_" + mp_res.description_[j] + "_length REAL"] = moveit::core::toString(traj_len);
       metrics["path_" + mp_res.description_[j] + "_clearance REAL"] = moveit::core::toString(clearance);
       metrics["path_" + mp_res.description_[j] + "_smoothness REAL"] = moveit::core::toString(smoothness);
       metrics["path_" + mp_res.description_[j] + "_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
+
+      if (j == mp_res.trajectory_.size() - 1)
+      {
+        metrics["final_path_correct BOOLEAN"] = boost::lexical_cast<std::string>(correct);
+        metrics["final_path_length REAL"] = moveit::core::toString(traj_len);
+        metrics["final_path_clearance REAL"] = moveit::core::toString(clearance);
+        metrics["final_path_smoothness REAL"] = moveit::core::toString(smoothness);
+        metrics["final_path_time REAL"] = moveit::core::toString(mp_res.processing_time_[j]);
+      }
       process_time -= mp_res.processing_time_[j];
     }
     if (process_time <= 0.0)
       process_time = 0.0;
     metrics["process_time REAL"] = moveit::core::toString(process_time);
   }
+}
+
+void BenchmarkExecutor::computeAveragePathSimilarities(
+    PlannerBenchmarkData& planner_data, const std::vector<planning_interface::MotionPlanDetailedResponse>& responses,
+    const std::vector<bool>& solved)
+{
+  ROS_INFO("Computing result path similarity");
+  const size_t result_count = planner_data.size();
+  size_t unsolved = std::count_if(solved.begin(), solved.end(), [](bool s) { return !s; });
+  std::vector<double> average_distances(responses.size());
+  for (size_t first_traj_i = 0; first_traj_i < result_count; ++first_traj_i)
+  {
+    // If trajectory was not solved there is no valid average distance so it's set to max double only
+    if (!solved[first_traj_i])
+    {
+      average_distances[first_traj_i] = std::numeric_limits<double>::max();
+      continue;
+    }
+    // Iterate all result trajectories that haven't been compared yet
+    for (size_t second_traj_i = first_traj_i + 1; second_traj_i < result_count; ++second_traj_i)
+    {
+      // Ignore if other result has not been solved
+      if (!solved[second_traj_i])
+        continue;
+
+      // Get final trajectories
+      const robot_trajectory::RobotTrajectory& traj_first = *responses[first_traj_i].trajectory_.back();
+      const robot_trajectory::RobotTrajectory& traj_second = *responses[second_traj_i].trajectory_.back();
+
+      // Compute trajectory distance
+      double trajectory_distance;
+      if (!computeTrajectoryDistance(traj_first, traj_second, trajectory_distance))
+        continue;
+
+      // Add average distance to counters of both trajectories
+      average_distances[first_traj_i] += trajectory_distance;
+      average_distances[second_traj_i] += trajectory_distance;
+    }
+    // Normalize average distance by number of actual comparisons
+    average_distances[first_traj_i] /= result_count - unsolved - 1;
+  }
+
+  // Store results in planner_data
+  for (size_t i = 0; i < result_count; ++i)
+    planner_data[i]["average_waypoint_distance REAL"] = moveit::core::toString(average_distances[i]);
+}
+
+bool BenchmarkExecutor::computeTrajectoryDistance(const robot_trajectory::RobotTrajectory& traj_first,
+                                                  const robot_trajectory::RobotTrajectory& traj_second,
+                                                  double& result_distance)
+{
+  // Abort if trajectories are empty
+  if (traj_first.empty() || traj_second.empty())
+    return false;
+
+  // Waypoint counter
+  size_t pos_first = 0;
+  size_t pos_second = 0;
+  const size_t max_pos_first = traj_first.getWayPointCount() - 1;
+  const size_t max_pos_second = traj_second.getWayPointCount() - 1;
+
+  // Compute total distance between pairwise waypoints of both trajectories.
+  // The selection of waypoint pairs is based on what steps results in the minimal distance between the next pair of
+  // waypoints. We first check what steps are still possible or if we reached the end of the trajectories. Then we
+  // compute the pairwise waypoint distances of the pairs from increasing both, the first, or the second trajectory.
+  // Finally we select the pair that results in the minimal distance, summarize the total distance and iterate
+  // accordingly. After that we compute the average trajectory distance by normalizing over the number of steps.
+  double total_distance = 0;
+  size_t steps = 0;
+  double current_distance = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second));
+  while (true)
+  {
+    // Keep track of total distance and number of comparisons
+    total_distance += current_distance;
+    ++steps;
+    if (pos_first == max_pos_first && pos_second == max_pos_second)  // end reached
+      break;
+
+    // Determine what steps are still possible
+    bool can_up_first = pos_first < max_pos_first;
+    bool can_up_second = pos_second < max_pos_second;
+    bool can_up_both = can_up_first && can_up_second;
+
+    // Compute pair-wise waypoint distances (increasing both, first, or second trajectories).
+    double up_both = std::numeric_limits<double>::max();
+    double up_first = std::numeric_limits<double>::max();
+    double up_second = std::numeric_limits<double>::max();
+    if (can_up_both)
+      up_both = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second + 1));
+    if (can_up_first)
+      up_first = traj_first.getWayPoint(pos_first + 1).distance(traj_second.getWayPoint(pos_second));
+    if (can_up_second)
+      up_second = traj_first.getWayPoint(pos_first).distance(traj_second.getWayPoint(pos_second + 1));
+
+    // Select actual step, store new distance value and iterate trajectory positions
+    if (can_up_both && up_both < up_first && up_both < up_second)
+    {
+      ++pos_first;
+      ++pos_second;
+      current_distance = up_both;
+    }
+    else if ((can_up_first && up_first < up_second) || !can_up_second)
+    {
+      ++pos_first;
+      current_distance = up_first;
+    }
+    else if (can_up_second)
+    {
+      ++pos_second;
+      current_distance = up_second;
+    }
+  }
+  // Normalize trajectory distance by number of comparison steps
+  result_distance = total_distance / static_cast<double>(steps);
+  return true;
 }
 
 void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std::string& start_time,

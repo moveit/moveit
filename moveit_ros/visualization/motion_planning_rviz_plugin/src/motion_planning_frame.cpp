@@ -199,14 +199,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
       object_recognition_client_.reset();
     }
   }
-  try
-  {
-    planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
-  }
-  catch (std::exception& ex)
-  {
-    ROS_ERROR("%s", ex.what());
-  }
 
   try
   {
@@ -385,8 +377,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());
       move_group_->allowReplanning(ui_->allow_replanning->isChecked());
-      bool hasUniqueEndeffector = !move_group_->getEndEffectorLink().empty();
-      planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(hasUniqueEndeffector); });
+      bool has_unique_endeffector = !move_group_->getEndEffectorLink().empty();
+      planning_display_->addMainLoopJob([=]() { ui_->use_cartesian_path->setEnabled(has_unique_endeffector); });
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
@@ -452,12 +444,12 @@ void MotionPlanningFrame::importResource(const std::string& path)
       // If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
       {
-        QMessageBox msgBox;
-        msgBox.setText("There exists another object with the same name.");
-        msgBox.setInformativeText("Would you like to overwrite it?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::No);
-        int ret = msgBox.exec();
+        QMessageBox msg_box;
+        msg_box.setText("There exists another object with the same name.");
+        msg_box.setInformativeText("Would you like to overwrite it?");
+        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg_box.setDefaultButton(QMessageBox::No);
+        int ret = msg_box.exec();
 
         switch (ret)
         {
@@ -536,6 +528,7 @@ void MotionPlanningFrame::enable()
 void MotionPlanningFrame::disable()
 {
   move_group_.reset();
+  scene_marker_.reset();
   parentWidget()->hide();
 }
 

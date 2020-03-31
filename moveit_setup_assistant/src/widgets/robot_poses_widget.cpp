@@ -64,7 +64,8 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   HeaderWidget* header = new HeaderWidget(
       "Define Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
-                            "particular planning groups. This is useful for things like <i>home position</i>.",
+                            "particular planning groups. This is useful for things like <i>home position</i>."
+                            "The first pose for each robot will be its initial pose in simulation.",
       this);
   layout->addWidget(header);
 
@@ -122,7 +123,7 @@ QWidget* RobotPosesWidget::createContentsWidget()
   data_table_->setSortingEnabled(true);
   data_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   connect(data_table_, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(editDoubleClicked(int, int)));
-  connect(data_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  connect(data_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewClicked(int, int, int, int)));
   layout->addWidget(data_table_);
 
   // Set header labels
@@ -261,14 +262,14 @@ QWidget* RobotPosesWidget::createEditWidget()
   controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton* btn_save_ = new QPushButton("&Save", this);
+  btn_save_ = new QPushButton("&Save", this);
   btn_save_->setMaximumWidth(200);
   connect(btn_save_, SIGNAL(clicked()), this, SLOT(doneEditing()));
   controls_layout->addWidget(btn_save_);
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton* btn_cancel_ = new QPushButton("&Cancel", this);
+  btn_cancel_ = new QPushButton("&Cancel", this);
   btn_cancel_->setMaximumWidth(200);
   connect(btn_cancel_, SIGNAL(clicked()), this, SLOT(cancelEditing()));
   controls_layout->addWidget(btn_cancel_);
@@ -317,7 +318,7 @@ void RobotPosesWidget::editDoubleClicked(int row, int column)
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void RobotPosesWidget::previewClicked(int row, int column)
+void RobotPosesWidget::previewClicked(int row, int /*column*/, int /*previous_row*/, int /*previous_column*/)
 {
   const std::string& name = data_table_->item(row, 0)->text().toStdString();
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
@@ -659,11 +660,11 @@ void RobotPosesWidget::doneEditing()
   config_data_->changes |= MoveItConfigData::POSES;
 
   // Save the new pose name or create the new pose ----------------------------
-  bool isNew = false;
+  bool is_new = false;
 
   if (searched_data == nullptr)  // create new
   {
-    isNew = true;
+    is_new = true;
     searched_data = new srdf::Model::GroupState();
   }
 
@@ -693,7 +694,7 @@ void RobotPosesWidget::doneEditing()
   }
 
   // Insert new poses into group state vector --------------------------
-  if (isNew)
+  if (is_new)
   {
     config_data_->srdf_->group_states_.push_back(*searched_data);
     delete searched_data;

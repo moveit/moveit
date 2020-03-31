@@ -14,7 +14,7 @@ add_library(${MOVEIT_TEST_LIB_NAME}
   src/robot_model_test_utils.cpp
 )
 add_dependencies(${MOVEIT_TEST_LIB_NAME} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${MOVEIT_TEST_LIB_NAME} ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_TEST_LIB_NAME} moveit_robot_model ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(${MOVEIT_TEST_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
 install(

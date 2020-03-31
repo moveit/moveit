@@ -340,7 +340,7 @@ MOVEIT_CLASS_FORWARD(OrientationConstraint);
  * This class expresses an orientation constraint on a particular
  * link.  The constraint is specified in terms of a quaternion, with
  * tolerances on X,Y, and Z axes.  The rotation difference is computed
- * based on the ZXZ Euler angle formulation.  The header on the
+ * based on the XYZ Euler angle formulation (intrinsic rotations).  The header on the
  * quaternion can be specified in terms of either a fixed frame or a
  * mobile frame.  The type value will return ORIENTATION_CONSTRAINT.
  *

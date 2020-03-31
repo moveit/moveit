@@ -44,19 +44,6 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
-move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService()
-  : MoveGroupCapability("CartesianPathService"), display_computed_paths_(true)
-{
-}
-
-void move_group::MoveGroupCartesianPathService::initialize()
-{
-  display_path_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>(
-      planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC, 10, true);
-  cartesian_path_service_ = root_node_handle_.advertiseService(CARTESIAN_PATH_SERVICE_NAME,
-                                                               &MoveGroupCartesianPathService::computeService, this);
-}
-
 namespace
 {
 bool isStateValid(const planning_scene::PlanningScene* planning_scene,
@@ -70,10 +57,25 @@ bool isStateValid(const planning_scene::PlanningScene* planning_scene,
 }
 }  // namespace
 
-bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath::Request& req,
-                                                               moveit_msgs::GetCartesianPath::Response& res)
+namespace move_group
 {
-  ROS_INFO("Received request to compute Cartesian path");
+MoveGroupCartesianPathService::MoveGroupCartesianPathService()
+  : MoveGroupCapability("CartesianPathService"), display_computed_paths_(true)
+{
+}
+
+void MoveGroupCartesianPathService::initialize()
+{
+  display_path_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>(
+      planning_pipeline::PlanningPipeline::DISPLAY_PATH_TOPIC, 10, true);
+  cartesian_path_service_ = root_node_handle_.advertiseService(CARTESIAN_PATH_SERVICE_NAME,
+                                                               &MoveGroupCartesianPathService::computeService, this);
+}
+
+bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath::Request& req,
+                                                   moveit_msgs::GetCartesianPath::Response& res)
+{
+  ROS_INFO_NAMED(getName(), "Received request to compute Cartesian path");
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   robot_state::RobotState start_state =
@@ -105,7 +107,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           tf2::fromMsg(p.pose, waypoints[i]);
         else
         {
-          ROS_ERROR("Error encountered transforming waypoints to frame '%s'", default_frame.c_str());
+          ROS_ERROR_NAMED(getName(), "Error encountered transforming waypoints to frame '%s'", default_frame.c_str());
           ok = false;
           break;
         }
@@ -116,8 +118,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     {
       if (req.max_step < std::numeric_limits<double>::epsilon())
       {
-        ROS_ERROR("Maximum step to take between consecutive configrations along Cartesian path was not specified (this "
-                  "value needs to be > 0)");
+        ROS_ERROR_NAMED(getName(), "Maximum step to take between consecutive configrations along Cartesian path"
+                                   "was not specified (this value needs to be > 0)");
         res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
       }
       else
@@ -138,10 +140,10 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
                 kset->empty() ? nullptr : kset.get(), _1, _2, _3);
           }
           bool global_frame = !robot_state::Transforms::sameFrame(link_name, req.header.frame_id);
-          ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in "
-                   "%s reference frame)",
-                   (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
-                   global_frame ? "global" : "link");
+          ROS_INFO_NAMED(getName(), "Attempting to follow %u waypoints for link '%s' using a step of %lf m "
+                                    "and jump threshold %lf (in %s reference frame)",
+                         (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
+                         global_frame ? "global" : "link");
           std::vector<robot_state::RobotStatePtr> traj;
           res.fraction =
               start_state.computeCartesianPath(jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame,
@@ -158,8 +160,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           time_param.computeTimeStamps(rt, 1.0);
 
           rt.getRobotTrajectoryMsg(res.solution);
-          ROS_INFO("Computed Cartesian path with %u points (followed %lf%% of requested trajectory)",
-                   (unsigned int)traj.size(), res.fraction * 100.0);
+          ROS_INFO_NAMED(getName(), "Computed Cartesian path with %u points (followed %lf%% of requested trajectory)",
+                         (unsigned int)traj.size(), res.fraction * 100.0);
           if (display_computed_paths_ && rt.getWayPointCount() > 0)
           {
             moveit_msgs::DisplayTrajectory disp;
@@ -180,6 +182,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
 
   return true;
 }
+
+}  // namespace move_group
 
 #include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupCartesianPathService, move_group::MoveGroupCapability)

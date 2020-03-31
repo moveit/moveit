@@ -966,7 +966,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QGroupBox" name="groupBox_4">
+        <widget class="QGroupBox" name="pose_scale_group_box">
          <property name="title">
           <string>Manage Pose and Scale</string>
          </property>
@@ -988,6 +988,9 @@
               <property name="maximum">
                <double>1000.000000000000000</double>
               </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
              </widget>
             </item>
             <item>
@@ -998,6 +1001,9 @@
               <property name="maximum">
                <double>1000.000000000000000</double>
               </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
              </widget>
             </item>
             <item>
@@ -1007,6 +1013,9 @@
               </property>
               <property name="maximum">
                <double>1000.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
               </property>
              </widget>
             </item>
@@ -1030,7 +1039,7 @@
                <double>3.140000000000000</double>
               </property>
               <property name="singleStep">
-               <double>0.200000000000000</double>
+               <double>0.100000000000000</double>
               </property>
              </widget>
             </item>
@@ -1043,7 +1052,7 @@
                <double>3.140000000000000</double>
               </property>
               <property name="singleStep">
-               <double>0.200000000000000</double>
+               <double>0.100000000000000</double>
               </property>
              </widget>
             </item>
@@ -1056,7 +1065,7 @@
                <double>3.140000000000000</double>
               </property>
               <property name="singleStep">
-               <double>0.200000000000000</double>
+               <double>0.100000000000000</double>
               </property>
              </widget>
             </item>

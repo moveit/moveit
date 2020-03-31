@@ -49,7 +49,7 @@ class CollisionDetectorAllocatorAllValid
                                                 CollisionDetectorAllocatorAllValid>
 {
 public:
-  static const std::string NAME_;  // defined in collision_world_allvalid.cpp
+  static const std::string NAME;  // defined in collision_world_allvalid.cpp
 };
 }
 

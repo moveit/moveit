@@ -251,6 +251,18 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
     goalStateTextChanged(ui_->goal_state_combo_box->currentText());
 }
 
+void MotionPlanningFrame::onNewPlanningSceneState()
+{
+  moveit::core::RobotState current(planning_display_->getPlanningSceneRO()->getCurrentState());
+  if (ui_->start_state_combo_box->currentText() == "<current>")
+  {
+    planning_display_->setQueryStartState(current);
+    planning_display_->rememberPreviousStartState();
+  }
+  if (ui_->goal_state_combo_box->currentText() == "<current>")
+    planning_display_->setQueryGoalState(current);
+}
+
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
@@ -398,10 +410,10 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
 
   // retrieve default planner config from parameter server
   const std::string& default_planner_config = move_group_->getDefaultPlannerId(found_group ? group : std::string());
-  int defaultIndex = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
-  if (defaultIndex < 0)
-    defaultIndex = 0;  // 0 is <unspecified> fallback
-  ui_->planning_algorithm_combo_box->setCurrentIndex(defaultIndex);
+  int default_index = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
+  if (default_index < 0)
+    default_index = 0;  // 0 is <unspecified> fallback
+  ui_->planning_algorithm_combo_box->setCurrentIndex(default_index);
 }
 
 void MotionPlanningFrame::populateConstraintsList()

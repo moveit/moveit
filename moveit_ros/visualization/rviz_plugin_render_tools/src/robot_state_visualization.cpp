@@ -66,7 +66,6 @@ void RobotStateVisualization::load(const urdf::ModelInterface& descr, bool visua
   robot_.setVisualVisible(visual_visible_);
   robot_.setCollisionVisible(collision_visible_);
   robot_.setVisible(visible_);
-  QApplication::processEvents();
 }
 
 void RobotStateVisualization::clear()

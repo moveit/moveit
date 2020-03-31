@@ -563,8 +563,8 @@ bool DefaultCollisionsWidget::eventFilter(QObject* object, QEvent* event)
   }
   else if (event->type() == QEvent::KeyPress)
   {
-    QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-    if (keyEvent->key() != Qt::Key_Space)
+    QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
+    if (key_event->key() != Qt::Key_Space)
       return false;
 
     toggleSelection(selection_model_->selection());

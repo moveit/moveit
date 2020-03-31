@@ -520,7 +520,9 @@ public:
 
   /** @} */
 
-  /** \name Getting and setting joint positions, velocities, accelerations and effort
+  /** \name Getting and setting joint positions, velocities, accelerations and effort for a single joint
+   *  The joint might be multi-DOF, i.e. require more than one variable to set.
+   *  See setVariablePositions(), setVariableVelocities(), setVariableEffort() to handle multiple joints.
    *  @{
    */
   void setJointPositions(const std::string& joint_name, const double* position)
@@ -1736,14 +1738,14 @@ as the new values that correspond to the group */
     return *rng_;
   }
 
-  /** \brief Get the transformation matrix from the model frame to the frame identified by \e id */
-  const Eigen::Isometry3d& getFrameTransform(const std::string& id);
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id */
+  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id);
 
-  /** \brief Get the transformation matrix from the model frame to the frame identified by \e id */
-  const Eigen::Isometry3d& getFrameTransform(const std::string& id) const;
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e frame_id */
+  const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id) const;
 
-  /** \brief Check if a transformation matrix from the model frame to frame \e id is known */
-  bool knowsFrameTransform(const std::string& id) const;
+  /** \brief Check if a transformation matrix from the model frame to frame \e frame_id is known */
+  bool knowsFrameTransform(const std::string& frame_id) const;
 
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
    *  @param arr The returned marker array

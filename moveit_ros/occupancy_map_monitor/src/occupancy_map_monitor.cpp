@@ -173,6 +173,8 @@ void OccupancyMapMonitor::initialize()
       ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
     }
   }
+  else
+    ROS_ERROR("Failed to find 3D sensor plugin parameters for octomap generation");
 
   /* advertise a service for loading octomaps from disk */
   save_map_srv_ = nh_.advertiseService("save_map", &OccupancyMapMonitor::saveMapCallback, this);
@@ -188,8 +190,8 @@ void OccupancyMapMonitor::addUpdater(const OccupancyMapUpdaterPtr& updater)
     if (map_updaters_.size() > 1)
     {
       mesh_handles_.resize(map_updaters_.size());
-      if (map_updaters_.size() ==
-          2)  // when we had one updater only, we passed direcly the transform cache callback to that updater
+      // when we had one updater only, we passed direcly the transform cache callback to that updater
+      if (map_updaters_.size() == 2)
       {
         map_updaters_[0]->setTransformCacheCallback(
             boost::bind(&OccupancyMapMonitor::getShapeTransformCache, this, 0, _1, _2, _3));
@@ -272,10 +274,10 @@ bool OccupancyMapMonitor::getShapeTransformCache(std::size_t index, const std::s
 {
   if (transform_cache_callback_)
   {
-    ShapeTransformCache tempCache;
-    if (transform_cache_callback_(target_frame, target_time, tempCache))
+    ShapeTransformCache temp_cache;
+    if (transform_cache_callback_(target_frame, target_time, temp_cache))
     {
-      for (ShapeTransformCache::iterator it = tempCache.begin(); it != tempCache.end(); ++it)
+      for (ShapeTransformCache::iterator it = temp_cache.begin(); it != temp_cache.end(); ++it)
       {
         std::map<ShapeHandle, ShapeHandle>::const_iterator jt = mesh_handles_[index].find(it->first);
         if (jt == mesh_handles_[index].end())
@@ -329,6 +331,9 @@ bool OccupancyMapMonitor::loadMapCallback(moveit_msgs::LoadMap::Request& request
     response.success = false;
   }
   tree_->unlockWrite();
+
+  if (response.success)
+    tree_->triggerUpdateCallback();
 
   return true;
 }

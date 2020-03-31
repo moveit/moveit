@@ -150,6 +150,8 @@ protected:
 
   /// This is an event called by loadRobotModel() in the MainLoop; do not call directly
   virtual void onRobotModelLoaded();
+  /// This is called upon successful retrieval of the (initial) planning scene state
+  virtual void onNewPlanningSceneState();
 
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame

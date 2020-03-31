@@ -52,12 +52,12 @@ TEST(time_optimal_trajectory_generation, test1)
   waypoint << 1423.0, 985.000244140625, 2126.0, 0.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.00249, 0.00249, 0.00249, 0.00249;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.00249, 0.00249, 0.00249, 0.00249;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations, 10.0);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(40.080256821829849, trajectory.getDuration());
 
@@ -90,12 +90,12 @@ TEST(time_optimal_trajectory_generation, test2)
   waypoint << 452.5, 533.0, 951.0, 90.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.002, 0.002, 0.002, 0.002;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.002, 0.002, 0.002, 0.002;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations, 10.0);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(1922.1418427445944, trajectory.getDuration());
 
@@ -128,12 +128,12 @@ TEST(time_optimal_trajectory_generation, test3)
   waypoint << 452.5, 533.0, 951.0, 90.0;
   waypoints.push_back(waypoint);
 
-  Eigen::VectorXd maxVelocities(4);
-  maxVelocities << 1.3, 0.67, 0.67, 0.5;
-  Eigen::VectorXd maxAccelerations(4);
-  maxAccelerations << 0.002, 0.002, 0.002, 0.002;
+  Eigen::VectorXd max_velocities(4);
+  max_velocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd max_accelerations(4);
+  max_accelerations << 0.002, 0.002, 0.002, 0.002;
 
-  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations);
+  Trajectory trajectory(Path(waypoints, 100.0), max_velocities, max_accelerations);
   EXPECT_TRUE(trajectory.isValid());
   EXPECT_DOUBLE_EQ(1919.5597888812974, trajectory.getDuration());
 
@@ -148,6 +148,83 @@ TEST(time_optimal_trajectory_generation, test3)
   EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
   EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
   EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
+}
+
+// Test that totg algorithm doesn't give large acceleration
+TEST(time_optimal_trajectory_generation, testLargeAccel)
+{
+  double path_tolerance = 0.1;
+  double resample_dt = 0.1;
+  Eigen::VectorXd waypoint(6);
+  std::list<Eigen::VectorXd> waypoints;
+  Eigen::VectorXd max_velocities(6);
+  Eigen::VectorXd max_accelerations(6);
+
+  // Waypoints
+  // clang-format off
+  waypoint << 1.6113056281076339,
+             -0.21400163389235427,
+             -1.974502599739185,
+              9.9653618690354051e-12,
+             -1.3810916877429624,
+              1.5293902838041467;
+  waypoints.push_back(waypoint);
+
+  waypoint << 1.6088016187976597,
+             -0.21792862470933924,
+             -1.9758628799742952,
+              0.00010424017303217738,
+             -1.3835690515335755,
+              1.5279972853269816;
+  waypoints.push_back(waypoint);
+
+  waypoint << 1.5887695443178671,
+             -0.24934455124521923,
+             -1.9867451218551782,
+              0.00093816147756670078,
+             -1.4033879618584812,
+              1.5168532975096607;
+  waypoints.push_back(waypoint);
+
+  waypoint << 1.1647412393815282,
+             -0.91434018564402375,
+             -2.2170946337498498,
+              0.018590164397622583,
+             -1.8229041212673529,
+              1.2809632867583278;
+  waypoints.push_back(waypoint);
+
+  // Max velocities
+  max_velocities << 0.89535390627300004,
+                    0.89535390627300004,
+                    0.79587013890930003,
+                    0.92022484811399996,
+                    0.82074108075029995,
+                    1.3927727430915;
+  // Max accelerations
+  max_accelerations << 0.82673490883799994,
+                       0.78539816339699997,
+                       0.60883578557700002,
+                       3.2074759432319997,
+                       1.4398966328939999,
+                       4.7292792634680003;
+  // clang-format on
+
+  Trajectory parameterized(Path(waypoints, path_tolerance), max_velocities, max_accelerations, 0.001);
+
+  ASSERT_TRUE(parameterized.isValid());
+
+  size_t sample_count = std::ceil(parameterized.getDuration() / resample_dt);
+  for (size_t sample = 0; sample <= sample_count; ++sample)
+  {
+    // always sample the end of the trajectory as well
+    double t = std::min(parameterized.getDuration(), sample * resample_dt);
+    Eigen::VectorXd acceleration = parameterized.getAcceleration(t);
+
+    ASSERT_EQ(acceleration.size(), 6);
+    for (std::size_t i = 0; i < 6; ++i)
+      EXPECT_NEAR(acceleration(i), 0.0, 100.0) << "Invalid acceleration at position " << sample_count << "\n";
+  }
 }
 
 int main(int argc, char** argv)

@@ -429,6 +429,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   return false;
 }
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init,
                                    const KDL::Frame& p_in, KDL::JntArray& q_out, const unsigned int max_iter,
                                    const Eigen::VectorXd& joint_weights, const Twist& cartesian_weights) const
@@ -438,8 +439,8 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
   KDL::Frame f;
   KDL::Twist delta_twist;
   KDL::JntArray delta_q(q_out.rows()), q_backup(q_out.rows());
-  Eigen::ArrayXd extra_joint_weights;
-  extra_joint_weights.setOnes(joint_weights.rows());
+  Eigen::ArrayXd extra_joint_weights(joint_weights.rows());
+  extra_joint_weights.setOnes();
 
   q_out = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
@@ -488,12 +489,14 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
                     delta_q_norm);
     if (delta_q_norm < epsilon_)  // stuck in singularity
     {
-      if (step_size < 0.005)  // cannot reach target
+      if (step_size < epsilon_)  // cannot reach target
         break;
       // wiggle joints
       last_delta_twist_norm = DBL_MAX;
       delta_q.data.setRandom();
       delta_q.data *= std::min(0.1, delta_twist_norm);
+      clipToJointLimits(q_out, delta_q, extra_joint_weights);
+      extra_joint_weights.setOnes();
     }
 
     KDL::Add(q_out, delta_q, q_out);

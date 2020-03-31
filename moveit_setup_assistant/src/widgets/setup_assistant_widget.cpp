@@ -113,13 +113,7 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, const boost::program
   }
   else
   {
-    // Open the directory where the MSA was started from.
-    // cf. http://stackoverflow.com/a/7413516/577001
-    QString pwdir("");
-    char* pwd;
-    pwd = getenv("PWD");
-    pwdir.append(pwd);
-    start_screen_widget_->stack_path_->setPath(pwdir);
+    start_screen_widget_->stack_path_->setPath(QString(getenv("PWD")));
   }
 
   // Add Navigation Buttons (but do not load widgets yet except start screen)

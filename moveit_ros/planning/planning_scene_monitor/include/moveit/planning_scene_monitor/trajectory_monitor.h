@@ -57,7 +57,7 @@ class TrajectoryMonitor
 public:
   /** @brief Constructor.
    */
-  TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor, double sampling_frequency = 5.0);
+  TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor, double sampling_frequency = 0.0);
 
   ~TrajectoryMonitor();
 

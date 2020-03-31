@@ -198,6 +198,7 @@ protected:
   };
 
   void onRobotModelLoaded() override;
+  void onNewPlanningSceneState() override;
   void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type) override;
   void updateInternal(float wall_dt, float ros_dt) override;
 

@@ -70,7 +70,7 @@ AuthorInformationWidget::AuthorInformationWidget(QWidget* parent, const MoveItCo
   layout->addWidget(name_title);
 
   name_edit_ = new QLineEdit(this);
-  connect(name_edit_, SIGNAL(editingFinished()), this, SLOT(edited_name()));
+  connect(name_edit_, SIGNAL(editingFinished()), this, SLOT(editedName()));
   layout->addWidget(name_edit_);
 
   QLabel* email_title = new QLabel(this);
@@ -78,7 +78,7 @@ AuthorInformationWidget::AuthorInformationWidget(QWidget* parent, const MoveItCo
   layout->addWidget(email_title);
 
   email_edit_ = new QLineEdit(this);
-  connect(email_edit_, SIGNAL(editingFinished()), this, SLOT(edited_email()));
+  connect(email_edit_, SIGNAL(editingFinished()), this, SLOT(editedEmail()));
   layout->addWidget(email_edit_);
 
   // Finish Layout --------------------------------------------------
@@ -95,13 +95,13 @@ void AuthorInformationWidget::focusGiven()
   this->email_edit_->setText(QString::fromStdString(config_data_->author_email_));
 }
 
-void AuthorInformationWidget::edited_name()
+void AuthorInformationWidget::editedName()
 {
   config_data_->author_name_ = this->name_edit_->text().toStdString();
   config_data_->changes |= MoveItConfigData::AUTHOR_INFO;
 }
 
-void AuthorInformationWidget::edited_email()
+void AuthorInformationWidget::editedEmail()
 {
   config_data_->author_email_ = this->email_edit_->text().toStdString();
   config_data_->changes |= MoveItConfigData::AUTHOR_INFO;
