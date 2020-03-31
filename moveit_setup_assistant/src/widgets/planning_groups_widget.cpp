@@ -1405,7 +1405,7 @@ void PlanningGroupsWidget::previewSelectedLink(const std::vector<std::string>& l
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for (std::string& link : links)
+  for (const std::string& link : links)
   {
     if (link.empty())
     {
