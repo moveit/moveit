@@ -59,11 +59,8 @@ public:
 
   void stopMainLoop();
 
-  /** \brief Pause processing jog commands while keeping the main loop alive */
-  void pause();
-
-  /** \brief Continue processing jog commands */
-  void unpause();
+  /** \brief Pause or unpause processing jog commands while keeping the main loop alive */
+  void setPaused(bool paused);
 
   /** \brief Provide a Cartesian velocity command to the jogger.
    * The units are determined by settings in the yaml file.
@@ -99,8 +96,5 @@ public:
 
 private:
   ros::NodeHandle nh_;
-
-  std::atomic<bool> stop_requested_;
-  std::atomic<bool> paused_;
 };
 }  // namespace moveit_jog_arm

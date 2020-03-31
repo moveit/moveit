@@ -167,6 +167,8 @@ JogROSInterface::JogROSInterface()
     main_rate.sleep();
   }
 
+  // Stop JogArm threads
+  shared_variables_.stop_requested = true;
   stopJogCalcThread();
   stopCollisionCheckThread();
 }

@@ -62,12 +62,7 @@ public:
 
   void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables);
 
-  void stopMainLoop();
-
 private:
-  // Loop termination flag
-  std::atomic<bool> stop_requested_;
-
   const moveit_jog_arm::JogArmParameters parameters_;
 
   // Pointer to the collision environment
