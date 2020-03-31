@@ -107,10 +107,10 @@ private Q_SLOTS:
   void editSelected();
 
   /// Called from Double List widget to highlight a joint
-  void previewSelectedJoints(std::vector<std::string> joints);
+  void previewSelectedJoints(const std::vector<std::string>& joints);
 
   /// Called from Double List widget to highlight a group
-  void previewSelectedGroup(std::vector<std::string> groups);
+  void previewSelectedGroup(const std::vector<std::string>& groups);
 
   /// Called when an item is seleceted from the controllers tree
   void previewSelected(QTreeWidgetItem* selected_item, int column);

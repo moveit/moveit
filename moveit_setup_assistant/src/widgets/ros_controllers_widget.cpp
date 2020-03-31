@@ -466,7 +466,7 @@ void ROSControllersWidget::cancelEditing()
 // ******************************************************************************************
 // Called from Double List widget to highlight joints
 // ******************************************************************************************
-void ROSControllersWidget::previewSelectedJoints(std::vector<std::string> joints)
+void ROSControllersWidget::previewSelectedJoints(const std::vector<std::string>& joints)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -497,7 +497,7 @@ void ROSControllersWidget::previewSelectedJoints(std::vector<std::string> joints
 // ******************************************************************************************
 // Called from Double List widget to highlight a group
 // ******************************************************************************************
-void ROSControllersWidget::previewSelectedGroup(std::vector<std::string> groups)
+void ROSControllersWidget::previewSelectedGroup(const std::vector<std::string>& groups)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -671,14 +671,12 @@ bool ROSControllersWidget::saveControllerScreen()
   }
 
   // Check that the controller name is unique
-  for (std::vector<moveit_setup_assistant::ROSControlConfig>::const_iterator controller_it =
-           config_data_->getROSControllers().begin();
-       controller_it != config_data_->getROSControllers().end(); ++controller_it)
+  for (const auto& controller : config_data_->getROSControllers())
   {
-    if (controller_it->name_.compare(controller_name) == 0)  // the names are the same
+    if (controller.name_.compare(controller_name) == 0)  // the names are the same
     {
       // is this our existing controller? check if controller pointers are same
-      if (&(*controller_it) != searched_controller)
+      if (&controller != searched_controller)
       {
         QMessageBox::warning(this, "Error Saving", "A controller already exists with that name!");
         return false;

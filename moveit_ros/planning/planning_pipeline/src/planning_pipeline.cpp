@@ -349,7 +349,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     bool stacked_constraints = false;
     if (req.path_constraints.position_constraints.size() > 1 || req.path_constraints.orientation_constraints.size() > 1)
       stacked_constraints = true;
-    for (auto constraint : req.goal_constraints)
+    for (const auto& constraint : req.goal_constraints)
     {
       if (constraint.position_constraints.size() > 1 || constraint.orientation_constraints.size() > 1)
         stacked_constraints = true;

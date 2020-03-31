@@ -195,10 +195,10 @@ public:
     }
 
     // fill the joint state
-    for (JointPoseMap::const_iterator it = joints.begin(), end = joints.end(); it != end; ++it)
+    for (const auto& name_pos_pair : joints)
     {
-      js.name.push_back(it->first);
-      js.position.push_back(it->second);
+      js.name.push_back(name_pos_pair.first);
+      js.position.push_back(name_pos_pair.second);
     }
     return js;
   }

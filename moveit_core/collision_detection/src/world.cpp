@@ -312,8 +312,8 @@ void World::notifyAll(Action action)
 
 void World::notify(const ObjectConstPtr& obj, Action action)
 {
-  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
-    (*obs)->callback_(obj, action);
+  for (Observer* observer : observers_)
+    observer->callback_(obj, action);
 }
 
 void World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const

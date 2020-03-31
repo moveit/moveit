@@ -1022,24 +1022,23 @@ const std::string ConfigurationFilesWidget::getPackageName(std::string package_p
 bool ConfigurationFilesWidget::noGroupsEmpty()
 {
   // Loop through all groups
-  for (std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it)
+  for (const auto& group : config_data_->srdf_->groups_)
   {
     // Whenever 1 of the 4 component types are found, stop checking this group
-    if (!group_it->joints_.empty())
+    if (!group.joints_.empty())
       continue;
-    if (!group_it->links_.empty())
+    if (!group.links_.empty())
       continue;
-    if (!group_it->chains_.empty())
+    if (!group.chains_.empty())
       continue;
-    if (!group_it->subgroups_.empty())
+    if (!group.subgroups_.empty())
       continue;
 
     // This group has no contents, bad
     QMessageBox::warning(
         this, "Empty Group",
         QString("The planning group '")
-            .append(group_it->name_.c_str())
+            .append(group.name_.c_str())
             .append("' is empty and has no subcomponents associated with it (joints/links/chains/subgroups). You must "
                     "edit or remove this planning group before this configuration package can be saved."));
     return false;

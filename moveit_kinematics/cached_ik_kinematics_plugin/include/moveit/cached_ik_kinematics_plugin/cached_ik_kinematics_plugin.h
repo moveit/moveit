@@ -98,7 +98,7 @@ public:
   const IKEntry& getBestApproximateIKSolution(const std::vector<Pose>& poses) const;
   /** initialize cache, read from disk if found */
   void initializeCache(const std::string& robot_id, const std::string& group_name, const std::string& cache_name,
-                       const unsigned int num_joints, Options opts = Options());
+                       const unsigned int num_joints, const Options& opts = Options());
   /**
     insert (pose,config) as an entry if it's different enough from the
     most similar cache entry

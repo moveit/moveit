@@ -1103,13 +1103,12 @@ bool PlanningGroupsWidget::saveGroupScreen()
   }
 
   // Check that the group name is unique
-  for (std::vector<srdf::Model::Group>::const_iterator group_it = config_data_->srdf_->groups_.begin();
-       group_it != config_data_->srdf_->groups_.end(); ++group_it)
+  for (const auto& group : config_data_->srdf_->groups_)
   {
-    if (group_it->name_.compare(group_name) == 0)  // the names are the same
+    if (group.name_.compare(group_name) == 0)  // the names are the same
     {
       // is this our existing group? check if group pointers are same
-      if (&(*group_it) != searched_group)
+      if (&group != searched_group)
       {
         QMessageBox::warning(this, "Error Saving", "A group already exists with that name!");
         return false;
@@ -1401,7 +1400,7 @@ void PlanningGroupsWidget::changeScreen(int index)
 // ******************************************************************************************
 // Called from Double List widget to highlight a link
 // ******************************************************************************************
-void PlanningGroupsWidget::previewSelectedLink(std::vector<std::string> links)
+void PlanningGroupsWidget::previewSelectedLink(const std::vector<std::string>& links)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -1421,7 +1420,7 @@ void PlanningGroupsWidget::previewSelectedLink(std::vector<std::string> links)
 // ******************************************************************************************
 // Called from Double List widget to highlight joints
 // ******************************************************************************************
-void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints)
+void PlanningGroupsWidget::previewSelectedJoints(const std::vector<std::string>& joints)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -1452,7 +1451,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
 // ******************************************************************************************
 // Called from Double List widget to highlight a subgroup
 // ******************************************************************************************
-void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> groups)
+void PlanningGroupsWidget::previewSelectedSubgroup(const std::vector<std::string>& groups)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();

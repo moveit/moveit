@@ -709,18 +709,16 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
   std::pair<std::string, std::string> link_pair;
 
   // Loop through all disabled collisions in SRDF and update the comprehensive list that has already been created
-  for (std::vector<srdf::Model::DisabledCollision>::const_iterator collision_it =
-           config_data_->srdf_->disabled_collisions_.begin();
-       collision_it != config_data_->srdf_->disabled_collisions_.end(); ++collision_it)
+  for (const auto& disabled_collision : config_data_->srdf_->disabled_collisions_)
   {
     // Set the link names
-    link_pair.first = collision_it->link1_;
-    link_pair.second = collision_it->link2_;
+    link_pair.first = disabled_collision.link1_;
+    link_pair.second = disabled_collision.link2_;
     if (link_pair.first >= link_pair.second)
       std::swap(link_pair.first, link_pair.second);
 
     // Set the link meta data
-    link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString(collision_it->reason_);
+    link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString(disabled_collision.reason_);
     link_pair_data.disable_check = true;  // disable checking the collision btw the 2 links
 
     // Insert into map

@@ -128,14 +128,14 @@ private Q_SLOTS:
   void alterTree(const QString& link);
 
   /// Called from Double List widget to highlight a link
-  void previewSelectedLink(std::vector<std::string> links);
+  void previewSelectedLink(const std::vector<std::string>& links);
 
   /// Called from Double List widget to highlight a joint
   // void previewClickedJoint( std::string name );
-  void previewSelectedJoints(std::vector<std::string> joints);
+  void previewSelectedJoints(const std::vector<std::string>& joints);
 
   /// Called from Double List widget to highlight a subgroup
-  void previewSelectedSubgroup(std::vector<std::string> groups);
+  void previewSelectedSubgroup(const std::vector<std::string>& groups);
 
 private:
   // ******************************************************************************************

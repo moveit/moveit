@@ -143,10 +143,9 @@ void MoveItConfigData::loadAllowedCollisionMatrix()
   allowed_collision_matrix_.clear();
 
   // Update the allowed collision matrix, in case there has been a change
-  for (std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = srdf_->disabled_collisions_.begin();
-       pair_it != srdf_->disabled_collisions_.end(); ++pair_it)
+  for (const auto& disabled_collision : srdf_->disabled_collisions_)
   {
-    allowed_collision_matrix_.setEntry(pair_it->link1_, pair_it->link2_, true);
+    allowed_collision_matrix_.setEntry(disabled_collision.link1_, disabled_collision.link2_, true);
   }
 }
 
@@ -971,23 +970,22 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
     // Writes Follow Joint Trajectory ROS controllers to ros_controller.yaml
     outputFollowJointTrajectoryYAML(emitter, ros_controllers_config_output);
 
-    for (std::vector<ROSControlConfig>::const_iterator controller_it = ros_controllers_config_output.begin();
-         controller_it != ros_controllers_config_output.end(); ++controller_it)
+    for (const auto& controller : ros_controllers_config_output)
     {
-      emitter << YAML::Key << controller_it->name_;
+      emitter << YAML::Key << controller.name_;
       emitter << YAML::Value << YAML::BeginMap;
       emitter << YAML::Key << "type";
-      emitter << YAML::Value << controller_it->type_;
+      emitter << YAML::Value << controller.type_;
 
       // Write joints
       emitter << YAML::Key << "joints";
       {
-        if (controller_it->joints_.size() != 1)
+        if (controller.joints_.size() != 1)
         {
           emitter << YAML::Value << YAML::BeginSeq;
 
           // Iterate through the joints
-          for (const std::string& joint : controller_it->joints_)
+          for (const std::string& joint : controller.joints_)
           {
             emitter << joint;
           }
@@ -996,7 +994,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
         else
         {
           emitter << YAML::Value << YAML::BeginMap;
-          emitter << controller_it->joints_[0];
+          emitter << controller.joints_[0];
           emitter << YAML::EndMap;
         }
       }
@@ -1005,7 +1003,7 @@ bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
       emitter << YAML::Value << YAML::BeginMap;
       {
         // Iterate through the joints
-        for (const std::string& joint : controller_it->joints_)
+        for (const std::string& joint : controller.joints_)
         {
           emitter << YAML::Key << joint << YAML::Value << YAML::BeginMap;
           emitter << YAML::Key << "p";

@@ -472,13 +472,12 @@ void VirtualJointsWidget::doneEditing()
   }
 
   // Check that the vjoint name is unique
-  for (std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
-       data_it != config_data_->srdf_->virtual_joints_.end(); ++data_it)
+  for (const auto& virtual_joint : config_data_->srdf_->virtual_joints_)
   {
-    if (data_it->name_.compare(vjoint_name) == 0)  // the names are the same
+    if (virtual_joint.name_.compare(vjoint_name) == 0)  // the names are the same
     {
       // is this our existing vjoint? check if vjoint pointers are same
-      if (&(*data_it) != searched_data)
+      if (&virtual_joint != searched_data)
       {
         QMessageBox::warning(this, "Error Saving", "A virtual joint already exists with that name!");
         return;
@@ -574,17 +573,16 @@ void VirtualJointsWidget::loadDataTable()
 
   // Loop through every virtual joint
   int row = 0;
-  for (std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
-       data_it != config_data_->srdf_->virtual_joints_.end(); ++data_it)
+  for (const auto& virtual_joint : config_data_->srdf_->virtual_joints_)
   {
     // Create row elements
-    QTableWidgetItem* data_name = new QTableWidgetItem(data_it->name_.c_str());
+    QTableWidgetItem* data_name = new QTableWidgetItem(virtual_joint.name_.c_str());
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* child_link_name = new QTableWidgetItem(data_it->child_link_.c_str());
+    QTableWidgetItem* child_link_name = new QTableWidgetItem(virtual_joint.child_link_.c_str());
     child_link_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* parent_frame_name = new QTableWidgetItem(data_it->parent_frame_.c_str());
+    QTableWidgetItem* parent_frame_name = new QTableWidgetItem(virtual_joint.parent_frame_.c_str());
     parent_frame_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* type_name = new QTableWidgetItem(data_it->type_.c_str());
+    QTableWidgetItem* type_name = new QTableWidgetItem(virtual_joint.type_.c_str());
     type_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     // Add to table
