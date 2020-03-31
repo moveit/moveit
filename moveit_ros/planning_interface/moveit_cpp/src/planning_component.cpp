@@ -94,13 +94,13 @@ PlanningComponent::~PlanningComponent()
   clearContents();
 }
 
-PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other)
+PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other) noexcept
 {
   if (this != &other)
   {
-    this->considered_start_state_ = other.considered_start_state_;
-    this->workspace_parameters_ = other.workspace_parameters_;
-    this->last_plan_solution_ = other.last_plan_solution_;
+    this->considered_start_state_ = std::move(other.considered_start_state_);
+    this->workspace_parameters_ = std::move(other.workspace_parameters_);
+    this->last_plan_solution_ = std::move(other.last_plan_solution_);
     other.clearContents();
   }
   return *this;
