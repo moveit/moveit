@@ -1,5 +1,5 @@
 # This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
-sudo: required
+os: linux
 dist: xenial  # distro used by Travis, moveit_ci uses the docker image's distro
 services:
   - docker
@@ -8,9 +8,8 @@ cache: ccache
 compiler: gcc
 
 notifications:
-  email:
-    recipients:
-      - 130s@2000.jukuin.keio.ac.jp
+  email: true
+
 env:
   global:
     - MOVEIT_CI_TRAVIS_TIMEOUT=85  # Travis grants us 90 min, but we add a safety margin of 5 min
@@ -20,20 +19,19 @@ env:
     - TEST_BLACKLIST=moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
-  matrix:
-    - TEST="clang-format catkin_lint"
-    - ROS_DISTRO=melodic
-    - ROS_DISTRO=kinetic
 
-matrix: # Add a separate config to the matrix, using clang as compiler
+jobs:
   include:
-    # add a config to the matrix using clang as compiler and also test ikfast plugin creation
+    - env: TEST="clang-format catkin_lint"
+    - env: TEST=code-coverage
+    - env: ROS_DISTRO=melodic
+    - env: ROS_DISTRO=kinetic
     - compiler: clang
-      env: ROS_REPO=ros-shadow-fixed
+      # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter
+      env: TEST=clang-tidy-fix
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
-
-  fast_finish: true  # finish, even if allow-failure-tests still running
+#           ROS_REPO=ros-shadow-fixed
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
