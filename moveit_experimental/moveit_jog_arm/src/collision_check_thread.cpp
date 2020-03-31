@@ -61,9 +61,6 @@ planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPla
 
 void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 {
-  // Reset loop termination flag
-  stop_requested_ = false;
-
   // Init collision request
   collision_detection::CollisionRequest collision_request;
   collision_request.group_name = parameters_.move_group_name;
@@ -84,50 +81,48 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   /////////////////////////////////////////////////
   // Spin while checking collisions
   /////////////////////////////////////////////////
-  while (ros::ok() && !stop_requested_)
+  while (ros::ok() && !shared_variables.stop_requested)
   {
-    shared_variables.lock();
-    sensor_msgs::JointState jts = shared_variables.joints;
-    shared_variables.unlock();
-
-    for (std::size_t i = 0; i < jts.position.size(); ++i)
-      current_state.setJointPositions(jts.name[i], &jts.position[i]);
-
-    collision_result.clear();
-    current_state.updateCollisionBodyTransforms();
-
-    // Do a thread-safe distance-based collision detection
-    getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
-
-    // If we're definitely in collision, stop immediately
-    if (collision_result.collision)
+    if (!shared_variables.paused)
     {
-      velocity_scale = 0;
-    }
+      shared_variables.lock();
+      sensor_msgs::JointState jts = shared_variables.joints;
+      shared_variables.unlock();
 
-    // If we are far from a collision, velocity_scale should be 1.
-    // If we are very close to a collision, velocity_scale should be ~zero.
-    // When collision_proximity_threshold is breached, start decelerating exponentially.
-    else if (collision_result.distance < parameters_.collision_proximity_threshold)
-    {
-      // velocity_scale = e ^ k * (collision_result.distance - threshold)
-      // k = - ln(0.001) / collision_proximity_threshold
-      // velocity_scale should equal one when collision_result.distance is at collision_proximity_threshold.
-      // velocity_scale should equal 0.001 when collision_result.distance is at zero.
-      velocity_scale =
-          exp(velocity_scale_coefficient * (collision_result.distance - parameters_.collision_proximity_threshold));
-    }
+      for (std::size_t i = 0; i < jts.position.size(); ++i)
+        current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
-    shared_variables.lock();
-    shared_variables.collision_velocity_scale = velocity_scale;
-    shared_variables.unlock();
+      collision_result.clear();
+      current_state.updateCollisionBodyTransforms();
+
+      // Do a thread-safe distance-based collision detection
+      getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
+
+      // If we're definitely in collision, stop immediately
+      if (collision_result.collision)
+      {
+        velocity_scale = 0;
+      }
+
+      // If we are far from a collision, velocity_scale should be 1.
+      // If we are very close to a collision, velocity_scale should be ~zero.
+      // When collision_proximity_threshold is breached, start decelerating exponentially.
+      else if (collision_result.distance < parameters_.collision_proximity_threshold)
+      {
+        // velocity_scale = e ^ k * (collision_result.distance - threshold)
+        // k = - ln(0.001) / collision_proximity_threshold
+        // velocity_scale should equal one when collision_result.distance is at collision_proximity_threshold.
+        // velocity_scale should equal 0.001 when collision_result.distance is at zero.
+        velocity_scale =
+            exp(velocity_scale_coefficient * (collision_result.distance - parameters_.collision_proximity_threshold));
+      }
+
+      shared_variables.lock();
+      shared_variables.collision_velocity_scale = velocity_scale;
+      shared_variables.unlock();
+    }
 
     collision_rate.sleep();
   }
-}
-
-void CollisionCheckThread::stopMainLoop()
-{
-  stop_requested_ = true;
 }
 }  // namespace moveit_jog_arm

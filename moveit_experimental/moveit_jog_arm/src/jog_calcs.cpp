@@ -67,8 +67,6 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader:
 void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 {
   // Reset flags
-  stop_jog_loop_requested_ = false;
-  pause_outgoing_jog_cmds_ = false;
   is_initialized_ = false;
 
   // Wait for initial messages
@@ -96,7 +94,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   // Initialize the position filters to initial robot joints
   while (!updateJoints(shared_variables) && ros::ok())
   {
-    if (stop_jog_loop_requested_)
+    if (shared_variables.stop_requested)
       return;
 
     shared_variables.lock();
@@ -121,7 +119,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   control_msgs::JointJog joint_deltas;
 
   // Do jogging calcs
-  while (ros::ok() && !stop_jog_loop_requested_)
+  while (ros::ok() && !shared_variables.stop_requested)
   {
     // Always update the joints and end-effector transform for 2 reasons:
     // 1) in case the getCommandFrameTransform() method is being used
@@ -153,7 +151,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
     // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
     // joints so a jump doesn't occur when restarting
-    if (wait_for_jog_commands || pause_outgoing_jog_cmds_)
+    if (wait_for_jog_commands || shared_variables.paused)
     {
       for (std::size_t i = 0; i < num_joints_; ++i)
         position_filters_[i].reset(internal_joint_state_.position[i]);
@@ -242,21 +240,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
     loop_rate.sleep();
   }
-}
-
-void JogCalcs::stopMainLoop()
-{
-  stop_jog_loop_requested_ = true;
-}
-
-void JogCalcs::pauseOutgoingJogCmds()
-{
-  pause_outgoing_jog_cmds_ = true;
-}
-
-void JogCalcs::unpauseOutgoingJogCmds()
-{
-  pause_outgoing_jog_cmds_ = false;
 }
 
 bool JogCalcs::isInitialized()

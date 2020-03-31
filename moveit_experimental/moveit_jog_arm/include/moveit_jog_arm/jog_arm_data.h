@@ -95,6 +95,12 @@ struct JogArmShared : public std::mutex
 
   // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
   std::atomic<StatusCode> status;
+
+  // Pause/unpause jog threads - threads are not paused by default
+  std::atomic<bool> paused{ false };
+
+  // Stop jog loop threads - threads are not stopped by default
+  std::atomic<bool> stop_requested{ false };
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

@@ -60,8 +60,8 @@ JogCppInterface::~JogCppInterface()
 void JogCppInterface::startMainLoop()
 {
   // Reset loop termination flag
-  stop_requested_ = false;
-  paused_ = false;
+  shared_variables_.stop_requested = false;
+  shared_variables_.paused = false;
 
   // Crunch the numbers in this thread
   startJogCalcThread();
@@ -92,11 +92,11 @@ void JogCppInterface::startMainLoop()
 
   ros::Rate main_rate(1. / ros_parameters_.publish_period);
 
-  while (ros::ok() && !stop_requested_)
+  while (ros::ok() && !shared_variables_.stop_requested)
   {
     ros::spinOnce();
 
-    if (!paused_)
+    if (!shared_variables_.paused)
     {
       shared_variables_.lock();
       trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
@@ -154,23 +154,12 @@ void JogCppInterface::startMainLoop()
 
 void JogCppInterface::stopMainLoop()
 {
-  stop_requested_ = true;
+  shared_variables_.stop_requested = true;
 }
 
-void JogCppInterface::pause()
+void JogCppInterface::setPaused(bool paused)
 {
-  if (jog_calcs_)
-    jog_calcs_->pauseOutgoingJogCmds();
-
-  paused_ = true;
-}
-
-void JogCppInterface::unpause()
-{
-  if (jog_calcs_)
-    jog_calcs_->unpauseOutgoingJogCmds();
-
-  paused_ = false;
+  shared_variables_.paused = paused;
 }
 
 void JogCppInterface::provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command)

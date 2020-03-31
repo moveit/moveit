@@ -60,14 +60,6 @@ public:
 
   void startMainLoop(JogArmShared& shared_variables);
 
-  void stopMainLoop();
-
-  /** \brief Stop publishing jog commands while keeping the main loop spinning and filters up to date */
-  void pauseOutgoingJogCmds();
-
-  /** \brief Continue publishing jog commands */
-  void unpauseOutgoingJogCmds();
-
   /** \brief Check if the robot state is being updated and the end effector transform is known
    *  @return true if initialized properly
    */
@@ -75,12 +67,6 @@ public:
 
 protected:
   ros::NodeHandle nh_;
-
-  // Loop termination flag
-  std::atomic<bool> stop_jog_loop_requested_;
-
-  // Flag that outgoing commands to the robot should not be published
-  std::atomic<bool> pause_outgoing_jog_cmds_;
 
   // Flag that robot state is up to date, end effector transform is known
   std::atomic<bool> is_initialized_;
