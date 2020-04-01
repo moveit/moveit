@@ -109,9 +109,6 @@ TEST_F(PointcloudUpdaterTester, NonIncrementalUpdate)
 
 TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 {
-  ASSERT_FALSE(isOccupied(0.95, 0.0, 0.0));
-  ASSERT_FALSE(isOccupied(0.0, 0.95, 0.0));
-
   sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
   cloud = createPointcloudFromXYZ({ 0.0, 0.95, 0.0 });
@@ -124,9 +121,6 @@ TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 
 TEST_F(PointcloudUpdaterTester, IncrementalRayTracing)
 {
-  ASSERT_FALSE(isOccupied(0.95, 0.0, 0.0));
-  ASSERT_FALSE(isOccupied(0.55, 0.0, 0.0));
-
   sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.55, 0.0, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
   ASSERT_TRUE(isOccupied(0.55, 0.0, 0.0));
@@ -140,6 +134,25 @@ TEST_F(PointcloudUpdaterTester, IncrementalRayTracing)
   ASSERT_TRUE(isOccupied(0.95, 0.0, 0.0));
   ASSERT_FALSE(isOccupied(0.55, 0.0, 0.0));
 }
+
+TEST_F(PointcloudUpdaterTester, UpdateWithExclusion)
+{
+  shapes::ShapeConstPtr exclude_shape = std::make_shared<shapes::Box>(0.5,0.5,0.5);
+  auto exclude_shape_pose = Eigen::Isometry3d(Eigen::Translation3d(1.0, 0.0, 0.0));
+  sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0, 1.95, 0.0, 0.0});
+
+  // If we exclude the shape, a point in the shape shouldn't be occupied
+  auto shape_handle = updater_.excludeShape(exclude_shape, exclude_shape_pose);
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(isOccupied(1.95, 0.0, 0.0));
+  ASSERT_FALSE(isOccupied(0.95, 0.0, 0.0));
+
+  // Reinclude the shape and process again, and the point should be occupied
+  updater_.forgetShape(shape_handle);
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(isOccupied(0.95, 0.0, 0.0));
+}
+
 }
 
 int main(int argc, char** argv)

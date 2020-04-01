@@ -71,9 +71,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 {
   try
   {
-    if (!params.hasMember("point_cloud_topic"))
-      return false;
-    point_cloud_topic_ = static_cast<const std::string&>(params["point_cloud_topic"]);
+    if (params.hasMember("point_cloud_topic"))
+      point_cloud_topic_ = static_cast<const std::string&>(params["point_cloud_topic"]);
 
     readXmlParam(params, "max_range", &max_range_);
     readXmlParam(params, "padding_offset", &padding_);
@@ -87,6 +86,11 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
     if (params.hasMember("service_name"))
       service_name_ = static_cast<const std::string&>(params["service_name"]);
+
+    if (point_cloud_topic_.empty() && service_name_.empty())
+    {
+      ROS_WARN_NAMED(LOGNAME, "Neither point_cloud_topic nor service_name was specified.  Updates may not be processed.");
+    }
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -152,6 +156,28 @@ ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& 
     h = shape_mask_->addShape(shape, scale_, padding_);
   else
     ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
+  return h;
+}
+
+ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
+{
+  ShapeHandle h = 0;
+  if (shape_mask_)
+    h = shape_mask_->addShape(shape, scale_, padding_);
+  else
+    ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
+  // Add to transform cache, or update if it is already in it
+  ShapeTransformCache::iterator it = transform_cache_.find(h);
+  if (it != transform_cache_.end())
+  {
+    it->second = pose;
+    ROS_DEBUG_NAMED(LOGNAME, "Updated shape pose in transform cache");
+  }
+  else
+  {
+    transform_cache_.emplace(h, pose);
+    ROS_DEBUG_NAMED(LOGNAME, "Added shape to transform cache");
+  }
   return h;
 }
 

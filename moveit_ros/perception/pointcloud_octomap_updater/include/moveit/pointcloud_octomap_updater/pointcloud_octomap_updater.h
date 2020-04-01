@@ -62,6 +62,9 @@ public:
   void start() override;
   void stop() override;
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
+  // Add a shape along with a pose to directly add it to the transform cache.
+  // Requires sensor_pose to also be specified when processing pointclouds
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
   void forgetShape(ShapeHandle handle) override;
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
                     bool incremental);
