@@ -111,7 +111,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         const moveit::core::FixedTransformsMap& subframes = attached_body->getSubframeTransforms();
-        publishSubframes(broadcaster, subframes, object_frame, object_frame, stamp);
+        publishSubframes(broadcaster, subframes, object_frame, attached_body->getAttachedLinkName(), stamp);
       }
     }
 
