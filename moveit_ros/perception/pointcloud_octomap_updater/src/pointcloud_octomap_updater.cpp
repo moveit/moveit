@@ -89,7 +89,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 
     if (point_cloud_topic_.empty() && service_name_.empty())
     {
-      ROS_WARN_NAMED(LOGNAME, "Neither point_cloud_topic nor service_name was specified.  Updates may not be processed.");
+      ROS_WARN_NAMED(LOGNAME,
+                     "Neither point_cloud_topic nor service_name was specified.  Updates may not be processed.");
     }
   }
   catch (XmlRpc::XmlRpcException& ex)

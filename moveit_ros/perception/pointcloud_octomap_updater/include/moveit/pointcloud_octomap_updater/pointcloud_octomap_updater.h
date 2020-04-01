@@ -62,12 +62,27 @@ public:
   void start() override;
   void stop() override;
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
-  // Add a shape along with a pose to directly add it to the transform cache.
-  // Requires sensor_pose to also be specified when processing pointclouds
+
+  /** @brief Exclude a shape from the octomap when processing.  Allows specifying an initial transform to put in the
+     transform cache.
+             For use outside of the perception pipeline
+      @param shape The shape to exclude
+      @param pose Pose of the shape in the sensor frame */
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+
   void forgetShape(ShapeHandle handle) override;
+
+  /** @brief process a pointcloud message and update the octomap.  Does not update the transform cache.
+             Can be used outside of the perception pipeline
+      @param cloud_msg The pointcloud to process
+      @param sensor_pose Eigen pose of the frame in which the pointcloud is given
+      @param incremental True to update the current octomap probabilities.  False to forget all previous octomap data */
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
                     bool incremental);
+
+  /** @brief process a pointcloud message and update the octomap.  Updates transform cache.
+             Requires setTransformCacheCallback to have been called
+      @param cloud_msg The pointcloud to process */
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
 
 protected:
