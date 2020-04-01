@@ -118,8 +118,10 @@ void PointCloudOctomapUpdater::start()
   if (point_cloud_subscriber_)
     return;
   /* subscribe to point cloud topic using tf filter*/
-  point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 5);
-  if (service_name_ != "")
+  if (!point_cloud_topic_.empty())
+    point_cloud_subscriber_ =
+        new message_filters::Subscriber<sensor_msgs::PointCloud2>(root_nh_, point_cloud_topic_, 5);
+  if (!service_name_.empty())
     update_service_ =
         private_nh_.advertiseService(service_name_, &PointCloudOctomapUpdater::updatePointcloudOctomapService, this);
   if (tf_listener_ && tf_buffer_ && !monitor_->getMapFrame().empty())

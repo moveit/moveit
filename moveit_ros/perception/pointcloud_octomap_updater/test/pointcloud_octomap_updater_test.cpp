@@ -152,7 +152,7 @@ TEST_F(PointcloudUpdaterTester, UpdateWithExclusion)
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
 }
-}
+}  // namespace occupancy_map_monitor
 
 int main(int argc, char** argv)
 {
