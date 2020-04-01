@@ -13,6 +13,10 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(subframes_test moveit_move_group_interface
 	                     ${catkin_LIBRARIES} ${eigen_conversions_LIBRARIES})
 
+  catkin_add_gtest(test_serialize_msg_python test_serialize_msg_python.cpp)
+  target_link_libraries(test_serialize_msg_python
+                        ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${catkin_LIBRARIES})
+
   add_rostest(python_move_group.test)
   add_rostest(python_move_group_ns.test)
   add_rostest(robot_state_update.test)
