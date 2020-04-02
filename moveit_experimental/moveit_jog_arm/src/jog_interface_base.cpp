@@ -88,8 +88,10 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.lower_singularity_threshold);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/hard_stop_singularity_threshold",
                                     ros_parameters_.hard_stop_singularity_threshold);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/collision_proximity_threshold",
-                                    ros_parameters_.collision_proximity_threshold);
+  error += !rosparam_shortcuts::get("", n, parameter_ns + "/self_collision_proximity_threshold",
+                                    ros_parameters_.self_collision_proximity_threshold);
+  error += !rosparam_shortcuts::get("", n, parameter_ns + "/scene_collision_proximity_threshold",
+                                    ros_parameters_.scene_collision_proximity_threshold);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/move_group_name", ros_parameters_.move_group_name);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
@@ -143,11 +145,22 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.collision_proximity_threshold < 0.)
+  if (ros_parameters_.self_collision_proximity_threshold < 0.)
   {
-    ROS_WARN_NAMED(LOGNAME, "Parameter 'collision_proximity_threshold' should be "
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'self_collision_proximity_threshold' should be "
                             "greater than zero. Check yaml file.");
     return false;
+  }
+  if (ros_parameters_.scene_collision_proximity_threshold < 0.)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'scene_collision_proximity_threshold' should be "
+                            "greater than zero. Check yaml file.");
+    return false;
+  }
+  if (ros_parameters_.scene_collision_proximity_threshold < ros_parameters_.self_collision_proximity_threshold)
+  {
+    ROS_WARN_NAMED(LOGNAME, "Parameter 'self_collision_proximity_threshold' should probably be less "
+                            "than or equal to 'scene_collision_proximity_threshold'. Check yaml file.");
   }
   if (ros_parameters_.low_pass_filter_coeff < 0.)
   {

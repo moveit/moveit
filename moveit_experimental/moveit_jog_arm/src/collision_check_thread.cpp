@@ -70,8 +70,12 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   // Copy the planning scene's version of current state into new memory
   moveit::core::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
 
-  double velocity_scale_coefficient = -log(0.001) / parameters_.collision_proximity_threshold;
+  double self_velocity_scale_coefficient = -log(0.001) / parameters_.self_collision_proximity_threshold;
+  double scene_velocity_scale_coefficient = -log(0.001) / parameters_.scene_collision_proximity_threshold;
   ros::Rate collision_rate(parameters_.collision_check_rate);
+
+  double self_collision_distance = 0;
+  double scene_collision_distance = 0;
 
   // Scale robot velocity according to collision proximity and user-defined thresholds.
   // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
@@ -98,6 +102,10 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
       // Do a thread-safe distance-based collision detection
       getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
 
+      self_collision_distance = collision_result.distance;
+      scene_collision_distance = getLockedPlanningSceneRO()->distanceToCollision(current_state);
+
+      velocity_scale = 1;
       // If we're definitely in collision, stop immediately
       if (collision_result.collision)
       {
@@ -106,15 +114,23 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
       // If we are far from a collision, velocity_scale should be 1.
       // If we are very close to a collision, velocity_scale should be ~zero.
-      // When collision_proximity_threshold is breached, start decelerating exponentially.
-      else if (collision_result.distance < parameters_.collision_proximity_threshold)
+      // When scene_collision_proximity_threshold is breached, start decelerating exponentially.
+      if (scene_collision_distance < parameters_.scene_collision_proximity_threshold)
       {
-        // velocity_scale = e ^ k * (collision_result.distance - threshold)
+        // velocity_scale = e ^ k * (collision_distance - threshold)
         // k = - ln(0.001) / collision_proximity_threshold
-        // velocity_scale should equal one when collision_result.distance is at collision_proximity_threshold.
-        // velocity_scale should equal 0.001 when collision_result.distance is at zero.
+        // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
+        // velocity_scale should equal 0.001 when collision_distance is at zero.
         velocity_scale =
-            exp(velocity_scale_coefficient * (collision_result.distance - parameters_.collision_proximity_threshold));
+            std::min(velocity_scale, exp(scene_velocity_scale_coefficient *
+                                         (scene_collision_distance - parameters_.scene_collision_proximity_threshold)));
+      }
+
+      if (self_collision_distance < parameters_.self_collision_proximity_threshold)
+      {
+        velocity_scale =
+            std::min(velocity_scale, exp(self_velocity_scale_coefficient *
+                                         (self_collision_distance - parameters_.self_collision_proximity_threshold)));
       }
 
       shared_variables.lock();
