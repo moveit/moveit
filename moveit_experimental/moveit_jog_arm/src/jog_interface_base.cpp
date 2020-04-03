@@ -237,9 +237,6 @@ bool JogInterfaceBase::startJogCalcThread()
 
 bool JogInterfaceBase::stopJogCalcThread()
 {
-  if (jog_calcs_)
-    jog_calcs_->stopMainLoop();
-
   if (jog_calc_thread_)
   {
     if (jog_calc_thread_->joinable())
@@ -264,9 +261,6 @@ bool JogInterfaceBase::startCollisionCheckThread()
 
 bool JogInterfaceBase::stopCollisionCheckThread()
 {
-  if (collision_checker_)
-    collision_checker_->stopMainLoop();
-
   if (collision_check_thread_)
   {
     if (collision_check_thread_->joinable())
