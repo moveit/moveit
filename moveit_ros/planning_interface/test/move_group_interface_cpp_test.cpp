@@ -61,7 +61,7 @@
 constexpr double EPSILON = 1e-2;
 
 static const std::string PLANNING_GROUP = "panda_arm";
-constexpr double PLANNING_TIME_S = 10;
+constexpr double PLANNING_TIME_S = 30.0;
 
 class MoveGroupTestFixture : public ::testing::Test
 {
@@ -177,7 +177,6 @@ TEST_F(MoveGroupTestFixture, StartingConditionsTest)
   EXPECT_EQ(move_group_->getPlanningFrame(), "world");
   EXPECT_EQ(move_group_->getVariableCount(), std::size_t(7));
   EXPECT_EQ(move_group_->getDefaultPlannerId(), "");
-  EXPECT_EQ(move_group_->getPlanningTime(), 10.0);
   EXPECT_EQ(move_group_->getGoalJointTolerance(), 0.0001);
   EXPECT_EQ(move_group_->getGoalPositionTolerance(), 0.0001);
   EXPECT_EQ(move_group_->getGoalOrientationTolerance(), 0.001);
