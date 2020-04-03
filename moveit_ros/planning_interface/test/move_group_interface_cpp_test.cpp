@@ -79,59 +79,59 @@ public:
     move_group_->setMaxAccelerationScalingFactor(1.0);
   }
 
-  void RetrunToStartPose()
+  void retrunToStartPose()
   {
-    SCOPED_TRACE("RetrunToStartPose");
-    PlanAndMoveToPose(start_pose_stamped_.pose);
+    SCOPED_TRACE("retrunToStartPose");
+    planAndMoveToPose(start_pose_stamped_.pose);
   }
 
-  void PlanAndMoveToPose(const geometry_msgs::Pose& pose)
+  void planAndMoveToPose(const geometry_msgs::Pose& pose)
   {
-    SCOPED_TRACE("PlanAndMoveToPose");
+    SCOPED_TRACE("planAndMoveToPose");
     move_group_->setStartStateToCurrentState();
     ASSERT_TRUE(move_group_->setJointValueTarget(pose));
-    PlanAndMove();
+    planAndMove();
   }
 
-  void PlanAndMove()
+  void planAndMove()
   {
-    SCOPED_TRACE("PlanAndMove");
+    SCOPED_TRACE("planAndMove");
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
     ASSERT_EQ(move_group_->plan(my_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ASSERT_EQ(move_group_->move(), moveit::planning_interface::MoveItErrorCode::SUCCESS);
   }
 
-  void TestEigenPose(const Eigen::Isometry3d& expected, const Eigen::Isometry3d& actual)
+  void testEigenPose(const Eigen::Isometry3d& expected, const Eigen::Isometry3d& actual)
   {
-    SCOPED_TRACE("TestEigenPose");
+    SCOPED_TRACE("testEigenPose");
     std::stringstream ss;
     ss << "expected: \n" << expected.matrix() << "\nactual: \n" << actual.matrix();
     EXPECT_TRUE(actual.isApprox(expected, EPSILON)) << ss.str();
   }
 
-  void TestPose(const Eigen::Isometry3d& expected_pose)
+  void testPose(const Eigen::Isometry3d& expected_pose)
   {
-    SCOPED_TRACE("TestPose(const Eigen::Isometry3d&)");
+    SCOPED_TRACE("testPose(const Eigen::Isometry3d&)");
     // get the pose after the movement
     geometry_msgs::PoseStamped actual_pose_stamped = move_group_->getCurrentPose();
     Eigen::Isometry3d actual_pose;
     tf::poseMsgToEigen(actual_pose_stamped.pose, actual_pose);
 
     // compare to planned pose
-    TestEigenPose(expected_pose, actual_pose);
+    testEigenPose(expected_pose, actual_pose);
   }
 
-  void TestPose(const geometry_msgs::Pose& expected_pose_msg)
+  void testPose(const geometry_msgs::Pose& expected_pose_msg)
   {
-    SCOPED_TRACE("TestPose(const geometry_msgs::Pose&)");
+    SCOPED_TRACE("testPose(const geometry_msgs::Pose&)");
     Eigen::Isometry3d expected_pose;
     tf::poseMsgToEigen(expected_pose_msg, expected_pose);
-    TestPose(expected_pose);
+    testPose(expected_pose);
   }
 
-  void TestJointPositions(const std::vector<double>& expected)
+  void testJointPositions(const std::vector<double>& expected)
   {
-    SCOPED_TRACE("TestJointPositions");
+    SCOPED_TRACE("testJointPositions");
     const robot_state::JointModelGroup* joint_model_group =
         move_group_->getCurrentState()->getJointModelGroup(PLANNING_GROUP);
     std::vector<double> actual;
@@ -144,10 +144,10 @@ public:
     }
   }
 
-  void TestVectorOfStrings(const std::vector<std::string>& expected, const std::vector<std::string>& actual,
-                           const std::string name)
+  void testVectorOfStrings(const std::vector<std::string>& expected, const std::vector<std::string>& actual,
+                           const std::string& name)
   {
-    SCOPED_TRACE("TestVectorOfStrings");
+    SCOPED_TRACE("testVectorOfStrings");
     ASSERT_EQ(expected.size(), actual.size());
     for (size_t i = 0; i < actual.size(); ++i)
       EXPECT_EQ(expected[i], actual[i]) << "(" << name << "[" << i << "])";
@@ -181,19 +181,19 @@ TEST_F(MoveGroupTestFixture, StartingConditionsTest)
   EXPECT_EQ(move_group_->getGoalPositionTolerance(), 0.0001);
   EXPECT_EQ(move_group_->getGoalOrientationTolerance(), 0.001);
 
-  TestVectorOfStrings({ "ready", "extended" }, move_group_->getNamedTargets(), "named_targets");
-  TestVectorOfStrings({ "hand", "panda_arm", "panda_arm_hand" }, move_group_->getJointModelGroupNames(),
+  testVectorOfStrings({ "ready", "extended" }, move_group_->getNamedTargets(), "named_targets");
+  testVectorOfStrings({ "hand", "panda_arm", "panda_arm_hand" }, move_group_->getJointModelGroupNames(),
                       "joint_model_group_names");
-  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
                         "panda_joint7" },
                       move_group_->getJointNames(), "joint_names");
-  TestVectorOfStrings({ "panda_link1", "panda_link2", "panda_link3", "panda_link4", "panda_link5", "panda_link6",
+  testVectorOfStrings({ "panda_link1", "panda_link2", "panda_link3", "panda_link4", "panda_link5", "panda_link6",
                         "panda_link7", "panda_link8" },
                       move_group_->getLinkNames(), "link_names");
-  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
                         "panda_joint7" },
                       move_group_->getActiveJoints(), "active_joints");
-  TestVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
+  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
                         "panda_joint7", "panda_joint8" },
                       move_group_->getJoints(), "joints");
 }
@@ -223,16 +223,16 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
   tf::poseMsgToEigen(set_target_pose.pose, eigen_set_target_pose);
 
   // expect that they are identical
-  TestEigenPose(eigen_target_pose, eigen_set_target_pose);
+  testEigenPose(eigen_target_pose, eigen_set_target_pose);
 
   // plan and move
-  PlanAndMove();
+  planAndMove();
 
   // get the pose after the movement
-  TestPose(eigen_target_pose);
+  testPose(eigen_target_pose);
 
   // return to start pose for next test
-  RetrunToStartPose();
+  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
@@ -253,13 +253,13 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
   move_group_->setJointValueTarget(plan_joint_positions);
 
   // plan and move
-  PlanAndMove();
+  planAndMove();
 
   // test that we moved to the expected joint positions
-  TestJointPositions(plan_joint_positions);
+  testJointPositions(plan_joint_positions);
 
   // return to start pose for next test
-  RetrunToStartPose();
+  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, PathConstraintTest)
@@ -272,7 +272,7 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
   start_pose.position.x = 0.55;
   start_pose.position.y = -0.05;
   start_pose.position.z = 0.8;
-  PlanAndMoveToPose(start_pose);
+  planAndMoveToPose(start_pose);
 
   // create an orientation constraint
   moveit_msgs::OrientationConstraint ocm;
@@ -293,16 +293,16 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
   target_pose.position.x = 0.28;
   target_pose.position.y = -0.2;
   target_pose.position.z = 0.5;
-  PlanAndMoveToPose(target_pose);
+  planAndMoveToPose(target_pose);
 
   // clear path constraints
   move_group_->clearPathConstraints();
 
   // get the pose after the movement
-  TestPose(target_pose);
+  testPose(target_pose);
 
   // return to start pose for next test
-  RetrunToStartPose();
+  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CartPathTest)
@@ -315,7 +315,7 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
   start_pose.position.x = 0.55;
   start_pose.position.y = -0.05;
   start_pose.position.z = 0.8;
-  PlanAndMoveToPose(start_pose);
+  planAndMoveToPose(start_pose);
 
   std::vector<geometry_msgs::Pose> waypoints;
   waypoints.push_back(start_pose);
@@ -343,10 +343,10 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
   EXPECT_EQ(move_group_->execute(cartesian_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   // get the pose after the movement
-  TestPose(target_waypoint);
+  testPose(target_waypoint);
 
   // return to start pose for next test
-  RetrunToStartPose();
+  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
@@ -359,7 +359,7 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   start_pose.position.x = 0.28;
   start_pose.position.y = -0.2;
   start_pose.position.z = 0.5;
-  PlanAndMoveToPose(start_pose);
+  planAndMoveToPose(start_pose);
 
   // Define a collision object ROS message.
   moveit_msgs::CollisionObject collision_object;
@@ -399,10 +399,10 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   target_pose.position.x = 0.4;
   target_pose.position.y = -0.4;
   target_pose.position.z = 0.7;
-  PlanAndMoveToPose(target_pose);
+  planAndMoveToPose(target_pose);
 
   // get the pose after the movement
-  TestPose(target_pose);
+  testPose(target_pose);
 
   // attach and detach collision object
   EXPECT_TRUE(move_group_->attachObject(collision_object.id));
@@ -418,7 +418,7 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
 
   // return to start pose for next test
-  RetrunToStartPose();
+  retrunToStartPose();
 }
 
 int main(int argc, char** argv)
