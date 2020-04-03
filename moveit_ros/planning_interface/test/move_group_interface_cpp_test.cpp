@@ -240,14 +240,6 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 {
   SCOPED_TRACE("JointSpaceGoalTest");
 
-  // set a custom start state
-  geometry_msgs::Pose start_pose;
-  start_pose.orientation.w = 1.0;
-  start_pose.position.x = 0.55;
-  start_pose.position.y = -0.05;
-  start_pose.position.z = 0.8;
-  PlanAndMoveToPose(start_pose);
-
   // set start state for planning
   move_group_->setStartStateToCurrentState();
 
@@ -258,7 +250,7 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 
   // Now, let's modify the joint positions.  (radians)
   ASSERT_EQ(plan_joint_positions.size(), std::size_t(7));
-  plan_joint_positions = { 1.0, -0.5, 0.5, -1.0, 2.0, 1.0, -1.0 };
+  plan_joint_positions = { 1.2, -1.0, -0.1, -2.4, 0.0, 1.5, 0.6 };
   move_group_->setJointValueTarget(plan_joint_positions);
 
   // plan and move
