@@ -73,21 +73,12 @@ public:
     nh_ = ros::NodeHandle("/move_group_interface_cpp_test");
     move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(PLANNING_GROUP);
 
-    // get the starting pose
-    start_pose_stamped_ = move_group_->getCurrentPose();
-
     // set velocity and acceleration scaling factors (full speed)
     move_group_->setMaxVelocityScalingFactor(MAX_VELOCITY_SCALE);
     move_group_->setMaxAccelerationScalingFactor(MAX_ACCELERATION_SCALE);
 
     // allow more time for planning
     move_group_->setPlanningTime(PLANNING_TIME_S);
-  }
-
-  void retrunToStartPose()
-  {
-    SCOPED_TRACE("retrunToStartPose");
-    planAndMoveToPose(start_pose_stamped_.pose);
   }
 
   void planAndMoveToPose(const geometry_msgs::Pose& pose)
@@ -162,7 +153,6 @@ protected:
   ros::NodeHandle nh_;
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
-  geometry_msgs::PoseStamped start_pose_stamped_;
 };
 
 TEST_F(MoveGroupTestFixture, StartingConditionsTest)
@@ -235,9 +225,6 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
 
   // get the pose after the movement
   testPose(eigen_target_pose);
-
-  // return to start pose for next test
-  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
@@ -262,9 +249,6 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 
   // test that we moved to the expected joint positions
   testJointPositions(plan_joint_positions);
-
-  // return to start pose for next test
-  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, PathConstraintTest)
@@ -305,9 +289,6 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
 
   // get the pose after the movement
   testPose(target_pose);
-
-  // return to start pose for next test
-  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CartPathTest)
@@ -349,9 +330,6 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
 
   // get the pose after the movement
   testPose(target_waypoint);
-
-  // return to start pose for next test
-  retrunToStartPose();
 }
 
 TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
@@ -421,9 +399,6 @@ TEST_F(MoveGroupTestFixture, CollisionObjectsTest)
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(1));
   planning_scene_interface_.removeCollisionObjects(object_ids);
   EXPECT_EQ(planning_scene_interface_.getObjects().size(), std::size_t(0));
-
-  // return to start pose for next test
-  retrunToStartPose();
 }
 
 int main(int argc, char** argv)
