@@ -56,6 +56,7 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
 
   void startMainLoop(JogArmShared& shared_variables);

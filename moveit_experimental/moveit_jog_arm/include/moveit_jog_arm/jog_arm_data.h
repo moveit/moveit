@@ -60,6 +60,7 @@ namespace moveit_jog_arm
 // Inherit from a mutex so the struct can be locked/unlocked easily
 struct JogArmShared : public std::mutex
 {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   geometry_msgs::TwistStamped command_deltas;
 
   control_msgs::JointJog joint_command_deltas;
