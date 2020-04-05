@@ -292,6 +292,8 @@ MOVEIT_CLASS_FORWARD(IKConstraintSampler);
 class IKConstraintSampler : public ConstraintSampler
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   /**
    * \brief Constructor
    *
