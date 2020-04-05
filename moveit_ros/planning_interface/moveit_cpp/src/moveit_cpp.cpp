@@ -97,31 +97,10 @@ MoveItCpp::MoveItCpp(const Options& options, const ros::NodeHandle& /*unused*/,
   ROS_DEBUG_NAMED(LOGNAME, "MoveItCpp running");
 }
 
-MoveItCpp::MoveItCpp(MoveItCpp&& other) noexcept
-{
-  *this = std::move(other);
-}
-
 MoveItCpp::~MoveItCpp()
 {
   ROS_INFO_NAMED(LOGNAME, "Deleting MoveItCpp");
   clearContents();
-}
-
-MoveItCpp& MoveItCpp::operator=(MoveItCpp&& other) noexcept
-{
-  if (this != &other)
-  {
-    this->node_handle_ = other.node_handle_;
-    this->tf_buffer_ = std::move(other.tf_buffer_);
-    this->tf_listener_ = std::move(other.tf_listener_);
-    this->robot_model_ = std::move(other.robot_model_);
-    this->planning_scene_monitor_ = std::move(other.planning_scene_monitor_);
-    // TODO: what about the other elements?
-    other.clearContents();
-  }
-
-  return *this;
 }
 
 bool MoveItCpp::loadPlanningSceneMonitor(const PlanningSceneMonitorOptions& options)
