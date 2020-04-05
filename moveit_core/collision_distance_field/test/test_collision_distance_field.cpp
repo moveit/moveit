@@ -84,7 +84,7 @@ protected:
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 
-    std::map<std::string, std::vector<collision_detection::CollisionSphere>> link_body_decompositions;
+    std::map<std::string, collision_detection::CollisionSphere::AlignedVector> link_body_decompositions;
     cenv_.reset(new DefaultCEnvType(robot_model_, link_body_decompositions));
   }
 

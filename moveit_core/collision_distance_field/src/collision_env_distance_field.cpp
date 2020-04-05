@@ -42,6 +42,7 @@
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/collision_distance_field/collision_detector_allocator_distance_field.h>
+#include <moveit/utils/aligned_make_shared.h>
 #include <boost/bind.hpp>
 #include <memory>
 #include <utility>
@@ -54,7 +55,7 @@ const std::string collision_detection::CollisionDetectorAllocatorDistanceField::
 
 CollisionEnvDistanceField::CollisionEnvDistanceField(
     const moveit::core::RobotModelConstPtr& robot_model,
-    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
+    const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions, double size_x, double size_y,
     double size_z, const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
     double collision_tolerance, double max_propogation_distance, double padding, double scale)
   : CollisionEnv(robot_model)
@@ -72,7 +73,7 @@ CollisionEnvDistanceField::CollisionEnvDistanceField(
 
 CollisionEnvDistanceField::CollisionEnvDistanceField(
     const moveit::core::RobotModelConstPtr& robot_model, const WorldPtr& world,
-    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
+    const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions, double size_x, double size_y,
     double size_z, const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution,
     double collision_tolerance, double max_propogation_distance, double padding, double scale)
   : CollisionEnv(robot_model, world, padding, scale)
@@ -116,7 +117,7 @@ CollisionEnvDistanceField::~CollisionEnvDistanceField()
 }
 
 void CollisionEnvDistanceField::initialize(
-    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, const Eigen::Vector3d& size,
+    const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions, const Eigen::Vector3d& size,
     const Eigen::Vector3d& origin, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance)
 {
@@ -270,7 +271,7 @@ bool CollisionEnvDistanceField::getSelfCollisions(const collision_detection::Col
     bool is_link = i < gsr->dfce_->link_names_.size();
     if ((is_link && !gsr->dfce_->link_has_geometry_[i]) || !gsr->dfce_->self_collision_enabled_[i])
       continue;
-    const std::vector<CollisionSphere>* collision_spheres_1;
+    const CollisionSphere::AlignedVector* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
 
     if (is_link)
@@ -354,7 +355,7 @@ bool CollisionEnvDistanceField::getSelfProximityGradients(GroupStateRepresentati
       continue;
     }
 
-    const std::vector<CollisionSphere>* collision_spheres_1;
+    const CollisionSphere::AlignedVector* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
     if (is_link)
     {
@@ -532,8 +533,8 @@ bool CollisionEnvDistanceField::getIntraGroupCollisions(const collision_detectio
           num_pair = it->second.size();
         }
       }
-      const std::vector<CollisionSphere>* collision_spheres_1;
-      const std::vector<CollisionSphere>* collision_spheres_2;
+      const CollisionSphere::AlignedVector* collision_spheres_1;
+      const CollisionSphere::AlignedVector* collision_spheres_2;
       const EigenSTL::vector_Vector3d* sphere_centers_1;
       const EigenSTL::vector_Vector3d* sphere_centers_2;
       if (i_is_link)
@@ -663,8 +664,8 @@ bool CollisionEnvDistanceField::getIntraGroupProximityGradients(GroupStateRepres
         continue;
       if (!gsr->dfce_->intra_group_collision_enabled_[i][j])
         continue;
-      const std::vector<CollisionSphere>* collision_spheres_1;
-      const std::vector<CollisionSphere>* collision_spheres_2;
+      const CollisionSphere::AlignedVector* collision_spheres_1;
+      const CollisionSphere::AlignedVector* collision_spheres_2;
       const EigenSTL::vector_Vector3d* sphere_centers_1;
       const EigenSTL::vector_Vector3d* sphere_centers_2;
       if (i_is_link)
@@ -1053,7 +1054,7 @@ void CollisionEnvDistanceField::createCollisionModelMarker(const moveit::core::R
 }
 
 void CollisionEnvDistanceField::addLinkBodyDecompositions(
-    double resolution, const std::map<std::string, std::vector<CollisionSphere>>& link_spheres)
+    double resolution, const std::map<std::string, CollisionSphere::AlignedVector>& link_spheres)
 {
   ROS_ASSERT_MSG(robot_model_, "RobotModelPtr is invalid");
   const std::vector<const moveit::core::LinkModel*>& link_models = robot_model_->getLinkModelsWithCollisionGeometry();
@@ -1579,7 +1580,7 @@ bool CollisionEnvDistanceField::getEnvironmentCollisions(
       continue;
     }
 
-    const std::vector<CollisionSphere>* collision_spheres_1;
+    const CollisionSphere::AlignedVector* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
 
     if (is_link)
@@ -1662,7 +1663,7 @@ bool CollisionEnvDistanceField::getEnvironmentProximityGradients(
       continue;
     }
 
-    const std::vector<CollisionSphere>* collision_spheres_1;
+    const CollisionSphere::AlignedVector* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
     if (is_link)
     {
@@ -1763,13 +1764,14 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
         const shapes::OcTree* octree_shape = static_cast<const shapes::OcTree*>(shape.get());
         std::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
 
-        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree));
+        shape_points.push_back(moveit::core::aligned_make_shared<PosedBodyPointDecomposition>(octree));
       }
       else
       {
         BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(shape, resolution_);
 
-        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+        shape_points.push_back(
+            moveit::core::aligned_make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
       }
 
       add_points.insert(add_points.end(), shape_points.back()->getCollisionPoints().begin(),

@@ -69,6 +69,7 @@ enum CollisionType
 
 struct CollisionSphere
 {
+  using AlignedVector = std::vector<CollisionSphere, Eigen::aligned_allocator<CollisionSphere>>;
   CollisionSphere(const Eigen::Vector3d& rel, double radius)
   {
     relative_vec_ = rel;
@@ -187,7 +188,7 @@ public:
    * @param stop_at_first_collision when true the computation is terminated when
    * the first collision is found
    */
-  bool getCollisionSphereGradients(const std::vector<CollisionSphere>& sphere_list,
+  bool getCollisionSphereGradients(const CollisionSphere::AlignedVector& sphere_list,
                                    const EigenSTL::vector_Vector3d& sphere_centers, GradientInfo& gradient,
                                    const CollisionType& type, double tolerance, bool subtract_radii,
                                    double maximum_value, bool stop_at_first_collision);
@@ -199,23 +200,24 @@ protected:
 // determines set of collision spheres given a posed body; this is BAD!
 // Allocation erorrs will happen; change this function so it does not return
 // that vector by value
-std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Isometry3d& relativeTransform);
+CollisionSphere::AlignedVector determineCollisionSpheres(const bodies::Body* body,
+                                                         Eigen::Isometry3d& relativeTransform);
 
 // determines a set of gradients of the given collision spheres in the distance
 // field
 bool getCollisionSphereGradients(const distance_field::DistanceField* distance_field,
-                                 const std::vector<CollisionSphere>& sphere_list,
+                                 const CollisionSphere::AlignedVector& sphere_list,
                                  const EigenSTL::vector_Vector3d& sphere_centers, GradientInfo& gradient,
                                  const CollisionType& type, double tolerance, bool subtract_radii, double maximum_value,
                                  bool stop_at_first_collision);
 
 bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
-                                 const std::vector<CollisionSphere>& sphere_list,
+                                 const CollisionSphere::AlignedVector& sphere_list,
                                  const EigenSTL::vector_Vector3d& sphere_centers, double maximum_value,
                                  double tolerance);
 
 bool getCollisionSphereCollision(const distance_field::DistanceField* distance_field,
-                                 const std::vector<CollisionSphere>& sphere_list,
+                                 const CollisionSphere::AlignedVector& sphere_list,
                                  const EigenSTL::vector_Vector3d& sphere_centers, double maximum_value,
                                  double tolerance, unsigned int num_coll, std::vector<unsigned int>& colls);
 
@@ -238,7 +240,7 @@ public:
 
   Eigen::Isometry3d relative_cylinder_pose_;
 
-  void replaceCollisionSpheres(const std::vector<CollisionSphere>& new_collision_spheres,
+  void replaceCollisionSpheres(const CollisionSphere::AlignedVector& new_collision_spheres,
                                const Eigen::Isometry3d& new_relative_cylinder_pose)
   {
     // std::cerr << "Replacing " << collision_spheres_.size() << " with " <<
@@ -247,7 +249,7 @@ public:
     relative_cylinder_pose_ = new_relative_cylinder_pose;
   }
 
-  const std::vector<CollisionSphere>& getCollisionSpheres() const
+  const CollisionSphere::AlignedVector& getCollisionSpheres() const
   {
     return collision_spheres_;
   }
@@ -291,7 +293,7 @@ protected:
 
   bodies::BoundingSphere relative_bounding_sphere_;
   std::vector<double> sphere_radii_;
-  std::vector<CollisionSphere> collision_spheres_;
+  CollisionSphere::AlignedVector collision_spheres_;
   EigenSTL::vector_Vector3d relative_collision_points_;
 };
 
@@ -302,7 +304,7 @@ public:
 
   PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 
-  const std::vector<CollisionSphere>& getCollisionSpheres() const
+  const CollisionSphere::AlignedVector& getCollisionSpheres() const
   {
     return body_decomposition_->getCollisionSpheres();
   }
@@ -374,7 +376,7 @@ public:
   {
   }
 
-  const std::vector<CollisionSphere>& getCollisionSpheres() const
+  const CollisionSphere::AlignedVector& getCollisionSpheres() const
   {
     return collision_spheres_;
   }
@@ -432,7 +434,7 @@ public:
 private:
   PosedBodySphereDecompositionConstPtr empty_ptr_;
   std::vector<PosedBodySphereDecompositionPtr> decomp_vector_;
-  std::vector<CollisionSphere> collision_spheres_;
+  CollisionSphere::AlignedVector collision_spheres_;
   EigenSTL::vector_Vector3d posed_collision_spheres_;
   std::vector<double> sphere_radii_;
   std::map<unsigned int, unsigned int> sphere_index_map_;
@@ -526,4 +528,4 @@ void getCollisionMarkers(const std::string& frame_id, const std::string& ns, con
                          const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
                          const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
                          const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr);
-}
+}  // namespace collision_detection

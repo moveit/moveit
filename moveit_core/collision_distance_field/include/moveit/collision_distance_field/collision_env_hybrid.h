@@ -53,8 +53,8 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   CollisionEnvHybrid(const moveit::core::RobotModelConstPtr& robot_model,
-                     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
-                         std::map<std::string, std::vector<CollisionSphere>>(),
+                     const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions =
+                         std::map<std::string, CollisionSphere::AlignedVector>(),
                      double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
                      const Eigen::Vector3d& origin = Eigen::Vector3d(0, 0, 0),
                      bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
@@ -63,8 +63,8 @@ public:
                      double scale = 1.0);
 
   CollisionEnvHybrid(const moveit::core::RobotModelConstPtr& robot_model, const WorldPtr& world,
-                     const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions =
-                         std::map<std::string, std::vector<CollisionSphere>>(),
+                     const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions =
+                         std::map<std::string, CollisionSphere::AlignedVector>(),
                      double size_x = DEFAULT_SIZE_X, double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
                      const Eigen::Vector3d& origin = Eigen::Vector3d(0, 0, 0),
                      bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
@@ -78,9 +78,10 @@ public:
   {
   }
 
-  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
-                                    double size_x, double size_y, double size_z, bool use_signed_distance_field,
-                                    double resolution, double collision_tolerance, double max_propogation_distance)
+  void
+  initializeRobotDistanceField(const std::map<std::string, CollisionSphere::AlignedVector>& link_body_decompositions,
+                               double size_x, double size_y, double size_z, bool use_signed_distance_field,
+                               double resolution, double collision_tolerance, double max_propogation_distance)
   {
     cenv_distance_->initialize(link_body_decompositions, Eigen::Vector3d(size_x, size_y, size_z),
                                Eigen::Vector3d(0, 0, 0), use_signed_distance_field, resolution, collision_tolerance,
@@ -150,4 +151,4 @@ public:
 protected:
   CollisionEnvDistanceFieldPtr cenv_distance_;
 };
-};
+};  // namespace collision_detection
