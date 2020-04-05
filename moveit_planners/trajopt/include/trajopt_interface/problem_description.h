@@ -262,7 +262,7 @@ private:
 */
 struct CartPoseTermInfo : public TermInfo
 {
-  //  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /** @brief Timestep at which to apply term */
   int timestep;
