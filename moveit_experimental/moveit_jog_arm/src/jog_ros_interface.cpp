@@ -121,16 +121,8 @@ JogROSInterface::JogROSInterface()
     trajectory_msgs::JointTrajectory outgoing_command = shared_variables_.outgoing_command;
 
     // Check for stale cmds
-    if ((ros::Time::now() - shared_variables_.latest_nonzero_cmd_stamp) <
-        ros::Duration(ros_parameters_.incoming_command_timeout))
-    {
-      // Mark that incoming commands are not stale
-      shared_variables_.command_is_stale = false;
-    }
-    else
-    {
-      shared_variables_.command_is_stale = true;
-    }
+    shared_variables_.command_is_stale = ((ros::Time::now() - shared_variables_.latest_nonzero_cmd_stamp) >=
+                                          ros::Duration(ros_parameters_.incoming_command_timeout));
 
     // Publish the most recent trajectory, unless the jogging calculation thread tells not to
     if (shared_variables_.ok_to_publish)
