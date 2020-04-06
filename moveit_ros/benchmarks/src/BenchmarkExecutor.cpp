@@ -118,7 +118,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& planning_pipe
   else
   {
     ROS_INFO("Available planning pipelines:");
-    for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& entry : planning_pipelines_)
+    for (const std::pair<const std::string, planning_pipeline::PlanningPipelinePtr>& entry : planning_pipelines_)
       ROS_INFO_STREAM("Pipeline: " << entry.first << ", Planner: " << entry.second->getPlannerPluginName());
   }
 }
@@ -245,7 +245,7 @@ bool BenchmarkExecutor::queriesAndPlannersCompatible(
     const std::vector<BenchmarkRequest>& requests, const std::map<std::string, std::vector<std::string>>& /*planners*/)
 {
   // Make sure that the planner interfaces can service the desired queries
-  for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
+  for (const std::pair<const std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
   {
     for (const BenchmarkRequest& request : requests)
     {
@@ -499,10 +499,11 @@ bool BenchmarkExecutor::plannerConfigurationsExist(
     const std::map<std::string, std::vector<std::string>>& pipeline_configurations, const std::string& group_name)
 {
   // Make sure planner plugins exist
-  for (const std::pair<std::string, std::vector<std::string>>& pipeline_config_entry : pipeline_configurations)
+  for (const std::pair<const std::string, std::vector<std::string>>& pipeline_config_entry : pipeline_configurations)
   {
     bool pipeline_exists = false;
-    for (const std::pair<std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry : planning_pipelines_)
+    for (const std::pair<const std::string, planning_pipeline::PlanningPipelinePtr>& pipeline_entry :
+         planning_pipelines_)
     {
       pipeline_exists = pipeline_entry.first == pipeline_config_entry.first;
       if (pipeline_exists)
@@ -517,7 +518,7 @@ bool BenchmarkExecutor::plannerConfigurationsExist(
   }
 
   // Make sure planners exist within those pipelines
-  for (const std::pair<std::string, std::vector<std::string>>& entry : pipeline_configurations)
+  for (const std::pair<const std::string, std::vector<std::string>>& entry : pipeline_configurations)
   {
     planning_interface::PlannerManagerPtr pm = planning_pipelines_[entry.first]->getPlannerManager();
     const planning_interface::PlannerConfigurationMap& config_map = pm->getPlannerConfigurations();
@@ -531,7 +532,8 @@ bool BenchmarkExecutor::plannerConfigurationsExist(
     for (std::size_t i = 0; i < entry.second.size(); ++i)
     {
       bool planner_exists = false;
-      for (const std::pair<std::string, planning_interface::PlannerConfigurationSettings>& config_entry : config_map)
+      for (const std::pair<const std::string, planning_interface::PlannerConfigurationSettings>& config_entry :
+           config_map)
       {
         std::string planner_name = group_name + "[" + entry.second[i] + "]";
         planner_exists = (config_entry.second.group == group_name && config_entry.second.name == planner_name);

@@ -1050,7 +1050,7 @@ const Eigen::Isometry3d& RobotState::getFrameInfo(const std::string& frame_id, c
   }
 
   // Check if an AttachedBody has a subframe with name frame_id
-  for (const std::pair<std::string, AttachedBody*>& body : attached_body_map_)
+  for (const std::pair<const std::string, AttachedBody*>& body : attached_body_map_)
   {
     const auto& transform = body.second->getGlobalSubframeTransform(frame_id, &frame_found);
     if (frame_found)
@@ -1079,7 +1079,7 @@ bool RobotState::knowsFrameTransform(const std::string& frame_id) const
     return !it->second->getGlobalCollisionBodyTransforms().empty();
 
   // Check if an AttachedBody has a subframe with name frame_id
-  for (const std::pair<std::string, AttachedBody*>& body : attached_body_map_)
+  for (const std::pair<const std::string, AttachedBody*>& body : attached_body_map_)
   {
     if (body.second->hasSubframeTransform(frame_id))
       return true;

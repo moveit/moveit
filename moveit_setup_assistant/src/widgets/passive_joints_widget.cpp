@@ -126,7 +126,7 @@ void PassiveJointsWidget::selectionUpdated()
 // ******************************************************************************************
 // Called from Double List widget to highlight joints
 // ******************************************************************************************
-void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
+void PassiveJointsWidget::previewSelectedJoints(const std::vector<std::string>& joints)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();

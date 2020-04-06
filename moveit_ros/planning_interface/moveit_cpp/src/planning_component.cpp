@@ -94,18 +94,6 @@ PlanningComponent::~PlanningComponent()
   clearContents();
 }
 
-PlanningComponent& PlanningComponent::operator=(PlanningComponent&& other)
-{
-  if (this != &other)
-  {
-    this->considered_start_state_ = other.considered_start_state_;
-    this->workspace_parameters_ = other.workspace_parameters_;
-    this->last_plan_solution_ = other.last_plan_solution_;
-    other.clearContents();
-  }
-  return *this;
-}
-
 const std::vector<std::string> PlanningComponent::getNamedTargetStates()
 {
   if (joint_model_group_)

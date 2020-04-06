@@ -61,7 +61,7 @@ IKCache::~IKCache()
 }
 
 void IKCache::initializeCache(const std::string& robot_id, const std::string& group_name, const std::string& cache_name,
-                              const unsigned int num_joints, Options opts)
+                              const unsigned int num_joints, const Options& opts)
 {
   // read ROS parameters
   max_cache_size_ = opts.max_cache_size;

@@ -93,10 +93,10 @@ bool MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlannerParams::Req
         config.insert(it->second.config.begin(), it->second.config.end());
     }
 
-    for (std::map<std::string, std::string>::const_iterator it = config.begin(), end = config.end(); it != end; ++it)
+    for (const auto& key_value_pair : config)
     {
-      res.params.keys.push_back(it->first);
-      res.params.values.push_back(it->second);
+      res.params.keys.push_back(key_value_pair.first);
+      res.params.values.push_back(key_value_pair.second);
     }
   }
   return true;

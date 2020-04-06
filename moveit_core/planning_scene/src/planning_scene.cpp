@@ -423,13 +423,12 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
     // push colors and types for attached objects
     std::vector<const moveit::core::AttachedBody*> attached_objs;
     robot_state_->getAttachedBodies(attached_objs);
-    for (std::vector<const moveit::core::AttachedBody*>::const_iterator it = attached_objs.begin();
-         it != attached_objs.end(); ++it)
+    for (const moveit::core::AttachedBody* attached_obj : attached_objs)
     {
-      if (hasObjectType((*it)->getName()))
-        scene->setObjectType((*it)->getName(), getObjectType((*it)->getName()));
-      if (hasObjectColor((*it)->getName()))
-        scene->setObjectColor((*it)->getName(), getObjectColor((*it)->getName()));
+      if (hasObjectType(attached_obj->getName()))
+        scene->setObjectType(attached_obj->getName(), getObjectType(attached_obj->getName()));
+      if (hasObjectColor(attached_obj->getName()))
+        scene->setObjectColor(attached_obj->getName(), getObjectColor(attached_obj->getName()));
     }
   }
 
@@ -780,7 +779,7 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
     if (hasObjectType(collision_obj.id))
       collision_obj.type = getObjectType(collision_obj.id);
   }
-  for (auto frame_pair : obj->subframe_poses_)
+  for (const auto& frame_pair : obj->subframe_poses_)
   {
     collision_obj.subframe_names.push_back(frame_pair.first);
     geometry_msgs::Pose p;

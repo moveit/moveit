@@ -146,7 +146,7 @@ bool World::knowsTransform(const std::string& name) const
     return it->second->shape_poses_.size() == 1;
   else  // Then objects' subframes
   {
-    for (const std::pair<std::string, ObjectPtr>& object : objects_)
+    for (const std::pair<const std::string, ObjectPtr>& object : objects_)
     {
       // if "object name/" matches start of object_id, we found the matching object
       if (boost::starts_with(name, object.first) && name[object.first.length()] == '/')
@@ -174,7 +174,7 @@ const Eigen::Isometry3d& World::getTransform(const std::string& name, bool& fram
     return it->second->shape_poses_[0];
   else  // Search within subframes
   {
-    for (const std::pair<std::string, ObjectPtr>& object : objects_)
+    for (const std::pair<const std::string, ObjectPtr>& object : objects_)
     {
       // if "object name/" matches start of object_id, we found the matching object
       if (boost::starts_with(name, object.first) && name[object.first.length()] == '/')
@@ -312,8 +312,8 @@ void World::notifyAll(Action action)
 
 void World::notify(const ObjectConstPtr& obj, Action action)
 {
-  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
-    (*obs)->callback_(obj, action);
+  for (Observer* observer : observers_)
+    observer->callback_(obj, action);
 }
 
 void World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
