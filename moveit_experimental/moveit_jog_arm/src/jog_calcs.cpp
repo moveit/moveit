@@ -180,7 +180,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
         shared_variables.lock();
         joint_deltas = shared_variables.joint_command_deltas;
         shared_variables.unlock();
-        ROS_ERROR_STREAM("Joint jogging");
 
         if (!jointJogCalcs(joint_deltas, shared_variables))
           continue;

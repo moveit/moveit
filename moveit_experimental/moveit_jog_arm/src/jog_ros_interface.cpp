@@ -183,11 +183,11 @@ void JogROSInterface::deltaCartesianCmdCB(const geometry_msgs::TwistStampedConst
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication after num_outgoing_halt_msgs_to_publish
   shared_variables_.have_nonzero_cartesian_cmd = shared_variables_.command_deltas.twist.linear.x != 0.0 ||
-                                              shared_variables_.command_deltas.twist.linear.y != 0.0 ||
-                                              shared_variables_.command_deltas.twist.linear.z != 0.0 ||
-                                              shared_variables_.command_deltas.twist.angular.x != 0.0 ||
-                                              shared_variables_.command_deltas.twist.angular.y != 0.0 ||
-                                              shared_variables_.command_deltas.twist.angular.z != 0.0;
+                                                 shared_variables_.command_deltas.twist.linear.y != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.linear.z != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.x != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.y != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.z != 0.0;
 
   if (shared_variables_.have_nonzero_cartesian_cmd)
   {
