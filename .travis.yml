@@ -32,7 +32,8 @@ jobs:
       env: TEST=clang-tidy-fix
            BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
-           ROS_REPO=ros-shadow-fixed
+    - if: branch =~ /^(.*-devel|master)$/
+      env: ROS_REPO=ros-shadow-fixed
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
