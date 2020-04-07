@@ -58,8 +58,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <eigen_conversions/eigen_msg.h>
 
-// 1mm acuracy tested for position and orientation
-constexpr double EPSILON = 1e-3;
+// 1cm acuracy tested for position and orientation
+constexpr double EPSILON = 1e-2;
 
 static const std::string PLANNING_GROUP = "panda_arm";
 constexpr double PLANNING_TIME_S = 30.0;
