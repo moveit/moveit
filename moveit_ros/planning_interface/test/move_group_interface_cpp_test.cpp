@@ -58,7 +58,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <eigen_conversions/eigen_msg.h>
 
-constexpr double EPSILON = 1e-2;
+// 1mm acuracy tested for position and orientation
+constexpr double EPSILON = 1e-3;
 
 static const std::string PLANNING_GROUP = "panda_arm";
 constexpr double PLANNING_TIME_S = 30.0;
@@ -84,7 +85,6 @@ public:
   void planAndMoveToPose(const geometry_msgs::Pose& pose)
   {
     SCOPED_TRACE("planAndMoveToPose");
-    move_group_->setStartStateToCurrentState();
     ASSERT_TRUE(move_group_->setJointValueTarget(pose));
     planAndMove();
   }
@@ -140,58 +140,11 @@ public:
     }
   }
 
-  void testVectorOfStrings(const std::vector<std::string>& expected, const std::vector<std::string>& actual,
-                           const std::string& name)
-  {
-    SCOPED_TRACE("testVectorOfStrings");
-    ASSERT_EQ(expected.size(), actual.size());
-    for (size_t i = 0; i < actual.size(); ++i)
-      EXPECT_EQ(expected[i], actual[i]) << "(" << name << "[" << i << "])";
-  }
-
 protected:
   ros::NodeHandle nh_;
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface_;
 };
-
-TEST_F(MoveGroupTestFixture, StartingConditionsTest)
-{
-  SCOPED_TRACE("StartingConditionsTest");
-
-  // test that setting the planning time works
-  move_group_->setPlanningTime(PLANNING_TIME_S);
-  EXPECT_EQ(move_group_->getPlanningTime(), PLANNING_TIME_S);
-
-  // test that the world and panda robot is initialized the way we expect by default
-  EXPECT_EQ(move_group_->getNodeHandle().getNamespace(), "/");
-  EXPECT_EQ(move_group_->getEndEffectorLink(), "panda_link8");
-  EXPECT_EQ(move_group_->getEndEffector(), "");
-  EXPECT_EQ(move_group_->getPoseReferenceFrame(), "world");
-  EXPECT_EQ(move_group_->getName(), "panda_arm");
-  EXPECT_EQ(move_group_->getPlanningFrame(), "world");
-  EXPECT_EQ(move_group_->getVariableCount(), std::size_t(7));
-  EXPECT_EQ(move_group_->getDefaultPlannerId(), "");
-  EXPECT_EQ(move_group_->getGoalJointTolerance(), 0.0001);
-  EXPECT_EQ(move_group_->getGoalPositionTolerance(), 0.0001);
-  EXPECT_EQ(move_group_->getGoalOrientationTolerance(), 0.001);
-
-  testVectorOfStrings({ "ready", "extended" }, move_group_->getNamedTargets(), "named_targets");
-  testVectorOfStrings({ "hand", "panda_arm", "panda_arm_hand" }, move_group_->getJointModelGroupNames(),
-                      "joint_model_group_names");
-  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
-                        "panda_joint7" },
-                      move_group_->getJointNames(), "joint_names");
-  testVectorOfStrings({ "panda_link1", "panda_link2", "panda_link3", "panda_link4", "panda_link5", "panda_link6",
-                        "panda_link7", "panda_link8" },
-                      move_group_->getLinkNames(), "link_names");
-  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
-                        "panda_joint7" },
-                      move_group_->getActiveJoints(), "active_joints");
-  testVectorOfStrings({ "panda_joint1", "panda_joint2", "panda_joint3", "panda_joint4", "panda_joint5", "panda_joint6",
-                        "panda_joint7", "panda_joint8" },
-                      move_group_->getJoints(), "joints");
-}
 
 TEST_F(MoveGroupTestFixture, MoveToPoseTest)
 {
@@ -324,9 +277,7 @@ TEST_F(MoveGroupTestFixture, CartPathTest)
   move_group_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
 
   // Execute trajectory
-  moveit::planning_interface::MoveGroupInterface::Plan cartesian_plan;
-  cartesian_plan.trajectory_ = trajectory;
-  EXPECT_EQ(move_group_->execute(cartesian_plan), moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  EXPECT_EQ(move_group_->execute(trajectory), moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   // get the pose after the movement
   testPose(target_waypoint);
