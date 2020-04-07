@@ -216,6 +216,10 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
   start_pose.position.z = 0.8;
   planAndMoveToPose(start_pose);
 
+  // NOTE: If the link names change this will fail.  This was put here because
+  // the tutorial for C++ move_group usese these links.  If the link names are
+  // change this and the tutorial will have to be updated.
+
   // create an orientation constraint
   moveit_msgs::OrientationConstraint ocm;
   ocm.link_name = "panda_link7";
