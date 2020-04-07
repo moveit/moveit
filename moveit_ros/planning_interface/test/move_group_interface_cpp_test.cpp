@@ -108,7 +108,7 @@ public:
   void testPose(const Eigen::Isometry3d& expected_pose)
   {
     SCOPED_TRACE("testPose(const Eigen::Isometry3d&)");
-    // get the pose after the movement
+    // get the pose of the end effector link after the movement
     geometry_msgs::PoseStamped actual_pose_stamped = move_group_->getCurrentPose();
     Eigen::Isometry3d actual_pose;
     tf::poseMsgToEigen(actual_pose_stamped.pose, actual_pose);
