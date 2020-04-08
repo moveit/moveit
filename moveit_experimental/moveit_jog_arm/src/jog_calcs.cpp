@@ -161,12 +161,12 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     {
       // Flag that incoming commands are all zero. May be used to skip calculations/publication
       shared_variables.lock();
-      bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
-      bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
+      bool have_nonzero_cartesian_cmd = shared_variables.have_nonzero_cartesian_cmd;
+      bool have_nonzero_joint_cmd = shared_variables.have_nonzero_joint_cmd;
       shared_variables.unlock();
 
       // Prioritize cartesian jogging above joint jogging
-      if (!zero_cartesian_cmd_flag)
+      if (have_nonzero_cartesian_cmd)
       {
         shared_variables.lock();
         cartesian_deltas = shared_variables.command_deltas;
@@ -175,7 +175,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
         if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
           continue;
       }
-      else if (!zero_joint_cmd_flag)
+      else if (have_nonzero_joint_cmd)
       {
         shared_variables.lock();
         joint_deltas = shared_variables.joint_command_deltas;
@@ -194,14 +194,19 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
       bool stale_command = shared_variables.command_is_stale;
       shared_variables.unlock();
 
-      if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
+      if (stale_command || (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd))
       {
         suddenHalt(outgoing_command_);
-        zero_cartesian_cmd_flag = true;
-        zero_joint_cmd_flag = true;
+        have_nonzero_cartesian_cmd = false;
+        have_nonzero_joint_cmd = false;
+        // Reset the valid command flag so jogging stops until a new command arrives
+        shared_variables.lock();
+        shared_variables.have_nonzero_cartesian_cmd = false;
+        shared_variables.have_nonzero_joint_cmd = false;
+        shared_variables.unlock();
       }
 
-      bool valid_nonzero_command = !zero_cartesian_cmd_flag || !zero_joint_cmd_flag;
+      bool valid_nonzero_command = have_nonzero_cartesian_cmd || have_nonzero_joint_cmd;
 
       // Send the newest target joints
       shared_variables.lock();
@@ -228,7 +233,7 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
       // Store last zero-velocity message flag to prevent superfluous warnings.
       // Cartesian and joint commands must both be zero.
-      if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
+      if (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd)
       {
         // Avoid overflow
         if (zero_velocity_count < std::numeric_limits<int>::max())

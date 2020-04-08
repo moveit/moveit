@@ -68,11 +68,11 @@ struct JogArmShared : public std::mutex
 
   double collision_velocity_scale = 1;
 
-  // Indicates that an incoming Cartesian command is all zero velocities
-  bool zero_cartesian_cmd_flag = true;
+  // Flag a valid incoming Cartesian command having nonzero velocities
+  bool have_nonzero_cartesian_cmd = false;
 
-  // Indicates that an incoming joint angle command is all zero velocities
-  bool zero_joint_cmd_flag = true;
+  // Flag a valid incoming joint angle command having nonzero velocities
+  bool have_nonzero_joint_cmd = false;
 
   // Indicates that we have not received a new command in some time
   bool command_is_stale = false;

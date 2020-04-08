@@ -169,14 +169,14 @@ void JogCppInterface::provideTwistStampedCommand(const geometry_msgs::TwistStamp
   }
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication after num_outgoing_halt_msgs_to_publish
-  shared_variables_.zero_cartesian_cmd_flag = shared_variables_.command_deltas.twist.linear.x == 0.0 &&
-                                              shared_variables_.command_deltas.twist.linear.y == 0.0 &&
-                                              shared_variables_.command_deltas.twist.linear.z == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.x == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.y == 0.0 &&
-                                              shared_variables_.command_deltas.twist.angular.z == 0.0;
+  shared_variables_.have_nonzero_cartesian_cmd = shared_variables_.command_deltas.twist.linear.x != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.linear.y != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.linear.z != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.x != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.y != 0.0 ||
+                                                 shared_variables_.command_deltas.twist.angular.z != 0.0;
 
-  if (!shared_variables_.zero_cartesian_cmd_flag)
+  if (shared_variables_.have_nonzero_cartesian_cmd)
   {
     shared_variables_.latest_nonzero_cmd_stamp = velocity_command.header.stamp;
   }
@@ -194,9 +194,9 @@ void JogCppInterface::provideJointCommand(const control_msgs::JointJog& joint_co
   {
     all_zeros &= (delta == 0.0);
   };
-  shared_variables_.zero_joint_cmd_flag = all_zeros;
+  shared_variables_.have_nonzero_joint_cmd = !all_zeros;
 
-  if (!shared_variables_.zero_joint_cmd_flag)
+  if (shared_variables_.have_nonzero_joint_cmd)
   {
     shared_variables_.latest_nonzero_cmd_stamp = joint_command.header.stamp;
   }
