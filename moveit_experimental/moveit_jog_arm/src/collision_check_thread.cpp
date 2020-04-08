@@ -82,6 +82,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   // Proximity decreasing --> decelerate
   double velocity_scale = 1;
 
+  collision_detection::AllowedCollisionMatrix acm = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
   /////////////////////////////////////////////////
   // Spin while checking collisions
   /////////////////////////////////////////////////
@@ -106,11 +107,8 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
       collision_result.clear();
       getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request, collision_result,
-                                                                                current_state);
+                                                                                current_state, acm);
       self_collision_distance = collision_result.distance;
-
-      ROS_WARN_THROTTLE_NAMED(1, LOGNAME, "Done checking collisions: %f %f", scene_collision_distance,
-                              self_collision_distance);
 
       velocity_scale = 1;
       // If we're definitely in collision, stop immediately

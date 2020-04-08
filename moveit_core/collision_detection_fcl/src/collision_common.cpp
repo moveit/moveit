@@ -465,19 +465,16 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
                         cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
-  else
+  else if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
   {
-    if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
+    const std::set<std::string>& tl = cd1->ptr.ab->getTouchLinks();
+    if (tl.find(cd2->getID()) != tl.end())
     {
-      const std::set<std::string>& tl = cd1->ptr.ab->getTouchLinks();
-      if (tl.find(cd2->getID()) != tl.end())
-      {
-        always_allow_collision = true;
-        if (cdata->req->verbose)
-          ROS_DEBUG_NAMED("collision_detection.fcl",
-                          "Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
-                          cd2->getID().c_str(), cd1->getID().c_str());
-      }
+      always_allow_collision = true;
+      if (cdata->req->verbose)
+        ROS_DEBUG_NAMED("collision_detection.fcl",
+                        "Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
+                        cd2->getID().c_str(), cd1->getID().c_str());
     }
   }
 
