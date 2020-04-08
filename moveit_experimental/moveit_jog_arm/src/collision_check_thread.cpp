@@ -96,14 +96,21 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
       for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
-      collision_result.clear();
       current_state.updateCollisionBodyTransforms();
 
       // Do a thread-safe distance-based collision detection
-      getLockedPlanningSceneRO()->checkCollision(collision_request, collision_result, current_state);
+      collision_result.clear();
+      getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request, collision_result,
+                                                                         current_state);
+      scene_collision_distance = collision_result.distance;
 
+      collision_result.clear();
+      getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request, collision_result,
+                                                                                current_state);
       self_collision_distance = collision_result.distance;
-      scene_collision_distance = getLockedPlanningSceneRO()->distanceToCollision(current_state);
+
+      ROS_WARN_THROTTLE_NAMED(1, LOGNAME, "Done checking collisions: %f %f", scene_collision_distance,
+                              self_collision_distance);
 
       velocity_scale = 1;
       // If we're definitely in collision, stop immediately
