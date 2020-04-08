@@ -58,13 +58,14 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <eigen_conversions/eigen_msg.h>
 
-// 1cm acuracy tested for position and orientation
-constexpr double EPSILON = 1e-2;
+// 10um acuracy tested for position and orientation
+constexpr double EPSILON = 1e-5;
 
 static const std::string PLANNING_GROUP = "panda_arm";
 constexpr double PLANNING_TIME_S = 30.0;
 constexpr double MAX_VELOCITY_SCALE = 1.0;
 constexpr double MAX_ACCELERATION_SCALE = 1.0;
+constexpr double GOAL_TOLERANCE = 1e-6;
 
 class MoveGroupTestFixture : public ::testing::Test
 {
@@ -80,6 +81,9 @@ public:
 
     // allow more time for planning
     move_group_->setPlanningTime(PLANNING_TIME_S);
+
+    // set the tolerance for the goals to be smaller than epsilon
+    move_group_->setGoalTolerance(GOAL_TOLERANCE);
   }
 
   void planAndMoveToPose(const geometry_msgs::Pose& pose)
@@ -150,9 +154,6 @@ TEST_F(MoveGroupTestFixture, MoveToPoseTest)
 {
   SCOPED_TRACE("MoveToPoseTest");
 
-  // set current state to start state
-  move_group_->setStartStateToCurrentState();
-
   // Test setting target pose with eigen and with geometry_msgs
   geometry_msgs::Pose target_pose;
   target_pose.orientation.w = 1.0;
@@ -184,9 +185,6 @@ TEST_F(MoveGroupTestFixture, JointSpaceGoalTest)
 {
   SCOPED_TRACE("JointSpaceGoalTest");
 
-  // set start state for planning
-  move_group_->setStartStateToCurrentState();
-
   // Next get the current set of joint values for the group.
   std::vector<double> plan_joint_positions;
   move_group_->getCurrentState()->copyJointGroupPositions(
@@ -216,14 +214,10 @@ TEST_F(MoveGroupTestFixture, PathConstraintTest)
   start_pose.position.z = 0.8;
   planAndMoveToPose(start_pose);
 
-  // NOTE: If the link names change this will fail.  This was put here because
-  // the tutorial for C++ move_group usese these links.  If the link names are
-  // change this and the tutorial will have to be updated.
-
   // create an orientation constraint
   moveit_msgs::OrientationConstraint ocm;
-  ocm.link_name = "panda_link7";
-  ocm.header.frame_id = "panda_link0";
+  ocm.link_name = move_group_->getEndEffectorLink();
+  ocm.header.frame_id = move_group_->getPlanningFrame();
   ocm.orientation.w = 1.0;
   ocm.absolute_x_axis_tolerance = 0.1;
   ocm.absolute_y_axis_tolerance = 0.1;
