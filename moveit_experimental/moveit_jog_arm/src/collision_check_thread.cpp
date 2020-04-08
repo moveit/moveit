@@ -70,8 +70,8 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   // Copy the planning scene's version of current state into new memory
   moveit::core::RobotState current_state(getLockedPlanningSceneRO()->getCurrentState());
 
-  double self_velocity_scale_coefficient = -log(0.001) / parameters_.self_collision_proximity_threshold;
-  double scene_velocity_scale_coefficient = -log(0.001) / parameters_.scene_collision_proximity_threshold;
+  const double self_velocity_scale_coefficient = -log(0.001) / parameters_.self_collision_proximity_threshold;
+  const double scene_velocity_scale_coefficient = -log(0.001) / parameters_.scene_collision_proximity_threshold;
   ros::Rate collision_rate(parameters_.collision_check_rate);
 
   double self_collision_distance = 0;

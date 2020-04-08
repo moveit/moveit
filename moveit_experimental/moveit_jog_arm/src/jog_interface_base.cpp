@@ -88,10 +88,26 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.lower_singularity_threshold);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/hard_stop_singularity_threshold",
                                     ros_parameters_.hard_stop_singularity_threshold);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/self_collision_proximity_threshold",
-                                    ros_parameters_.self_collision_proximity_threshold);
-  error += !rosparam_shortcuts::get("", n, parameter_ns + "/scene_collision_proximity_threshold",
-                                    ros_parameters_.scene_collision_proximity_threshold);
+  // parameter was removed, replaced with separate self- and scene-collision proximity thresholds; if old parameter
+  // exists, print warning and use old parameter for both new parameter values
+  // in the strange case that all three parameters are defined, this will use the old parameter, but will still print
+  // the warning
+  // TODO(JStech): remove this deprecation warning in ROS Noetic
+  if (rosparam_shortcuts::get("", n, parameter_ns + "/collision_proximity_threshold",
+                              ros_parameters_.self_collision_proximity_threshold))
+  {
+    ROS_WARN_NAMED(LOGNAME, "'collision_proximity_threshold' parameter is deprecated, and has been replaced by separate"
+                            "'self_collision_proximity_threshold' and 'scene_collision_proximity_threshold' "
+                            "parameters. Please update the jogging yaml file.");
+    ros_parameters_.scene_collision_proximity_threshold = ros_parameters_.self_collision_proximity_threshold;
+  }
+  else
+  {
+    error += !rosparam_shortcuts::get("", n, parameter_ns + "/self_collision_proximity_threshold",
+                                      ros_parameters_.self_collision_proximity_threshold);
+    error += !rosparam_shortcuts::get("", n, parameter_ns + "/scene_collision_proximity_threshold",
+                                      ros_parameters_.scene_collision_proximity_threshold);
+  }
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/move_group_name", ros_parameters_.move_group_name);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
