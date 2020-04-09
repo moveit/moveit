@@ -76,6 +76,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
   double self_collision_distance = 0;
   double scene_collision_distance = 0;
+  bool collision_detected;
 
   // Scale robot velocity according to collision proximity and user-defined thresholds.
   // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
@@ -98,21 +99,24 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
       current_state.updateCollisionBodyTransforms();
+      collision_detected = false;
 
       // Do a thread-safe distance-based collision detection
       collision_result.clear();
       getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request, collision_result,
                                                                          current_state);
       scene_collision_distance = collision_result.distance;
+      collision_detected |= collision_result.collision;
 
       collision_result.clear();
       getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request, collision_result,
                                                                                 current_state, acm);
       self_collision_distance = collision_result.distance;
+      collision_detected |= collision_result.collision;
 
       velocity_scale = 1;
       // If we're definitely in collision, stop immediately
-      if (collision_result.collision)
+      if (collision_detected)
       {
         velocity_scale = 0;
       }
