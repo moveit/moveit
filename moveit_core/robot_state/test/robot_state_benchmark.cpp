@@ -86,7 +86,6 @@ protected:
   }
 
 public:
-  const Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
   // put transforms into a vector to avoid compiler optimization on variables
   EigenSTL::vector_Isometry3d transforms_;
   volatile size_t result_idx_ = 0;
