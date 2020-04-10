@@ -44,7 +44,7 @@ namespace collision_detection
 {
 static inline bool loadLinkBodySphereDecompositions(
     ros::NodeHandle& nh, const planning_models::RobotModelConstPtr& robot_model,
-    std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
+    std::map<std::string, collision_detection::CollisionSphere::AlignedVector>& link_body_spheres)
 {
   if (!nh.hasParam("link_spheres"))
   {
@@ -84,12 +84,12 @@ static inline bool loadLinkBodySphereDecompositions(
       if (std::string(spheres) == "none")
       {
         ROS_DEBUG_STREAM("No spheres for " << link);
-        std::vector<collision_detection::CollisionSphere> coll_spheres;
+        collision_detection::CollisionSphere::AlignedVector coll_spheres;
         link_body_spheres[link_spheres[i]["link"]] = coll_spheres;
         continue;
       }
     }
-    std::vector<collision_detection::CollisionSphere> coll_spheres;
+    collision_detection::CollisionSphere::AlignedVector coll_spheres;
     for (int j = 0; j < spheres.size(); j++)
     {
       if (!spheres[j].hasMember("x"))
@@ -124,4 +124,4 @@ static inline bool loadLinkBodySphereDecompositions(
   }
   return true;
 }
-}
+}  // namespace collision_detection

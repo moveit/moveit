@@ -55,10 +55,10 @@ public:
     : CollisionRobotDistanceField(robot_model)
   {
     ros::NodeHandle nh;
-    std::map<std::string, std::vector<CollisionSphere> > coll_spheres;
+    std::map<std::string, CollisionSphere::AlignedVector> coll_spheres;
     collision_detection::loadLinkBodySphereDecompositions(nh, getRobotModel(), coll_spheres);
     initialize(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance,
                max_propogation_distance);
   }
 };
-}
+}  // namespace collision_detection
