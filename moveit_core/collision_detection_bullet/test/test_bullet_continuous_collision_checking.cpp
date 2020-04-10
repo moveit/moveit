@@ -196,7 +196,7 @@ void addCollisionObjectsMesh(cb::BulletCastBVHManager& checker)
 }
 
 void runTest(cb::BulletCastBVHManager& checker, collision_detection::CollisionResult& result,
-             std::vector<collision_detection::Contact>& result_vector, Eigen::Isometry3d& start_pos,
+             collision_detection::Contact::AlignedVector& result_vector, Eigen::Isometry3d& start_pos,
              Eigen::Isometry3d& end_pos)
 {
   //////////////////////////////////////
@@ -318,7 +318,7 @@ TEST_F(BulletCollisionDetectionTester, ContinuousCollisionWorld)
 TEST(ContinuousCollisionUnit, BulletCastBVHCollisionBoxBoxUnit)
 {
   collision_detection::CollisionResult result;
-  std::vector<collision_detection::Contact> result_vector;
+  collision_detection::Contact::AlignedVector result_vector;
 
   Eigen::Isometry3d start_pos, end_pos;
   start_pos.setIdentity();
@@ -347,7 +347,7 @@ TEST(ContinuousCollisionUnit, BulletCastMeshVsBox)
   end_pos.translation().x() = 1.9;
 
   collision_detection::CollisionResult result;
-  std::vector<collision_detection::Contact> result_vector;
+  collision_detection::Contact::AlignedVector result_vector;
 
   runTest(checker, result, result_vector, start_pos, end_pos);
 

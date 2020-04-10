@@ -80,7 +80,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
     std::string contact1 = contact.first.first;
     std::string contact2 = contact.first.second;
     std::string octomap_name = "";
-    std::vector<collision_detection::Contact>& contact_vector = contact.second;
+    collision_detection::Contact::AlignedVector& contact_vector = contact.second;
 
     if (contact1.find("octomap") != std::string::npos)
       octomap_name = contact1;

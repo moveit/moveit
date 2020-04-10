@@ -77,7 +77,7 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
       cdata.res.collision = true;
     }
 
-    std::vector<collision_detection::Contact> data;
+    collision_detection::Contact::AlignedVector data;
 
     // if we dont want contacts we are done here
     if (!cdata.req.contacts)
@@ -112,7 +112,7 @@ inline collision_detection::Contact* processResult(ContactTestData& cdata, colli
   }
   else
   {
-    std::vector<collision_detection::Contact>& dr = cdata.res.contacts[key];
+    collision_detection::Contact::AlignedVector& dr = cdata.res.contacts[key];
     dr.emplace_back(contact);
     cdata.res.contact_count++;
 

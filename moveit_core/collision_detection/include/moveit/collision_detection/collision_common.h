@@ -64,7 +64,7 @@ enum Type
   /** \brief A body in the environment */
   WORLD_OBJECT
 };
-}
+}  // namespace BodyTypes
 
 /** \brief The types of bodies that are considered for collision */
 typedef BodyTypes::Type BodyType;
@@ -73,6 +73,7 @@ typedef BodyTypes::Type BodyType;
 struct Contact
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using AlignedVector = std::vector<Contact, Eigen::aligned_allocator<Contact>>;
 
   /** \brief contact position */
   Eigen::Vector3d pos;
@@ -147,7 +148,7 @@ struct CollisionResult
   CollisionResult() : collision(false), distance(std::numeric_limits<double>::max()), contact_count(0)
   {
   }
-  typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
+  typedef std::map<std::pair<std::string, std::string>, Contact::AlignedVector> ContactMap;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -366,7 +367,7 @@ struct DistanceResultsData
 };
 
 /** \brief Mapping between the names of the collision objects and the DistanceResultData. */
-typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData> > DistanceMap;
+typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData>> DistanceMap;
 
 /** \brief Result of a distance request. */
 struct DistanceResult
@@ -392,4 +393,4 @@ struct DistanceResult
     distances.clear();
   }
 };
-}
+}  // namespace collision_detection
