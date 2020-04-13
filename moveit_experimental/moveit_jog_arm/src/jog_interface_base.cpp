@@ -91,10 +91,10 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
   // parameter was removed, replaced with separate self- and scene-collision proximity thresholds; if old parameter
   // exists, print warning and use old parameter for both new parameter values
   // TODO(JStech): remove this deprecation warning in ROS Noetic
-  if (!rosparam_shortcuts::get("", n, parameter_ns + "/self_collision_proximity_threshold",
-                               ros_parameters_.self_collision_proximity_threshold) &&
-      !rosparam_shortcuts::get("", n, parameter_ns + "/scene_collision_proximity_threshold",
-                               ros_parameters_.scene_collision_proximity_threshold))
+  if (!(rosparam_shortcuts::get("", n, parameter_ns + "/self_collision_proximity_threshold",
+                                ros_parameters_.self_collision_proximity_threshold) &&
+        rosparam_shortcuts::get("", n, parameter_ns + "/scene_collision_proximity_threshold",
+                                ros_parameters_.scene_collision_proximity_threshold)))
   {
     if (rosparam_shortcuts::get("", n, parameter_ns + "/collision_proximity_threshold",
                                 ros_parameters_.self_collision_proximity_threshold))
