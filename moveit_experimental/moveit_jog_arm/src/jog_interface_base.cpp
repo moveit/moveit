@@ -104,9 +104,15 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
                             "'self_collision_proximity_threshold' and 'scene_collision_proximity_threshold' "
                             "parameters. Please update the jogging yaml file.");
     if (!have_self_collision_proximity_threshold)
+    {
       ros_parameters_.self_collision_proximity_threshold;
+      have_self_collision_proximity_threshold = true;
+    }
     if (!have_scene_collision_proximity_threshold)
+    {
       ros_parameters_.scene_collision_proximity_threshold;
+      have_scene_collision_proximity_threshold = true;
+    }
   }
   error += !(have_self_collision_proximity_threshold && have_scene_collision_proximity_threshold);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/move_group_name", ros_parameters_.move_group_name);
