@@ -229,4 +229,14 @@ StatusCode JogCppInterface::getJoggerStatus()
 {
   return shared_variables_.status;
 }
+
+bool JogCppInterface::updateLowPassFilterCoefficients(double new_filter_coefficient)
+{
+  if (!jog_calcs_)
+    return false;
+
+  shared_variables_.filter_coefficient_queue.push(new_filter_coefficient);
+
+  return true;
+}
 }  // namespace moveit_jog_arm

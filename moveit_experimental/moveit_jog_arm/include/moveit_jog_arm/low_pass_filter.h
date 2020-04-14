@@ -57,13 +57,14 @@ public:
   explicit LowPassFilter(double low_pass_filter_coeff);
   double filter(double new_measurement);
   void reset(double data);
+  void updateFilterCoeff(double new_filter_coeff);
 
 private:
   static constexpr std::size_t FILTER_LENGTH = 2;
   double previous_measurements_[FILTER_LENGTH];
   double previous_filtered_measurement_;
-  // Scale and feedback term are calculated from supplied filter coefficient
-  const double scale_term_;
-  const double feedback_term_;
+  // Scale and feedback term are calculated from supplied filter coefficient.
+  double scale_term_;
+  double feedback_term_;
 };
 }  // namespace moveit_jog_arm

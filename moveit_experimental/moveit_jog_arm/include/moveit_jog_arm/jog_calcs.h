@@ -129,7 +129,7 @@ protected:
   trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
 
   /** \brief Smooth position commands with a lowpass filter */
-  void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
+  void lowPassFilterPositions(sensor_msgs::JointState& joint_state, JogArmShared& shared_variables);
 
   /** \brief Convert an incremental position command to joint velocity message */
   void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
@@ -137,7 +137,7 @@ protected:
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
     * This happens for joint commands and Cartesian commands.
     */
-  bool convertDeltasToOutgoingCmd();
+  bool convertDeltasToOutgoingCmd(JogArmShared& shared_variables);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
    * Satisfy Gazebo by stuffing multiple messages into one.
@@ -152,6 +152,13 @@ protected:
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
   void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
+
+  /**
+   * Update the filter coefficient to change the degree of smoothing.
+   *
+   * @param new_filter_coeff Must be greater than 1. A larger number will cause more smoothing but a longer delay.
+   */
+  void updateFilterCoeff(double new_filter_coeff);
 
   const moveit::core::JointModelGroup* joint_model_group_;
 

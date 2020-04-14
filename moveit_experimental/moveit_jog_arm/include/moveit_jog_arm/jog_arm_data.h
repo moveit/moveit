@@ -40,6 +40,7 @@
 
 // System
 #include <mutex>
+#include <boost/lockfree/queue.hpp>  // boost::lockfree::queue, share data in a lock-free way
 #include <thread>
 
 // Eigen
@@ -101,6 +102,9 @@ struct JogArmShared : public std::mutex
 
   // Stop jog loop threads - threads are not stopped by default
   std::atomic<bool> stop_requested{ false };
+
+  // Use a lock-free queue to update filter coefficients from other threads
+  boost::lockfree::queue<double> filter_coefficient_queue;
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

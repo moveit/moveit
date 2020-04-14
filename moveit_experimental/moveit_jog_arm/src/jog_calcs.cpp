@@ -69,6 +69,10 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   // Reset flags
   is_initialized_ = false;
 
+  // We expect a maximum of 1 value in the filter coefficient queue
+  // It is emptied as soon as a new value arrives
+  shared_variables.filter_coefficient_queue.reserve(2);
+
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
@@ -196,6 +200,10 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
       if (stale_command || (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd))
       {
+        // Keep the joint position filters up-to-date with current joints
+        for (std::size_t i = 0; i < num_joints_; ++i)
+          position_filters_[i].reset(original_joint_state_.position[i]);
+
         suddenHalt(outgoing_command_);
         have_nonzero_cartesian_cmd = false;
         have_nonzero_joint_cmd = false;
@@ -334,7 +342,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Cache the status so it can be retrieved asynchronously
   updateCachedStatus(shared_variables);
 
-  return convertDeltasToOutgoingCmd();
+  return convertDeltasToOutgoingCmd(shared_variables);
 }
 
 bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
@@ -362,7 +370,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
   // Cache the status so it can be retrieved asynchronously
   updateCachedStatus(shared_variables);
 
-  return convertDeltasToOutgoingCmd();
+  return convertDeltasToOutgoingCmd(shared_variables);
 }
 
 void JogCalcs::updateCachedStatus(JogArmShared& shared_variables)
@@ -371,13 +379,13 @@ void JogCalcs::updateCachedStatus(JogArmShared& shared_variables)
   status_ = NO_WARNING;
 }
 
-bool JogCalcs::convertDeltasToOutgoingCmd()
+bool JogCalcs::convertDeltasToOutgoingCmd(JogArmShared& shared_variables)
 {
   internal_joint_state_ = original_joint_state_;
   if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 
-  lowPassFilterPositions(internal_joint_state_);
+  lowPassFilterPositions(internal_joint_state_, shared_variables);
 
   // Calculate joint velocities here so that positions are filtered and SRDF bounds still get checked
   calculateJointVelocities(internal_joint_state_, delta_theta_);
@@ -413,8 +421,16 @@ void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraject
   }
 }
 
-void JogCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
+void JogCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state, JogArmShared& shared_variables)
 {
+  // Check if a new filter coefficient was supplied
+  if (!shared_variables.filter_coefficient_queue.empty())
+  {
+    double new_coefficient;
+    shared_variables.filter_coefficient_queue.pop(new_coefficient);
+    updateFilterCoeff(new_coefficient);
+  }
+
   for (size_t i = 0; i < position_filters_.size(); ++i)
   {
     joint_state.position[i] = position_filters_[i].filter(joint_state.position[i]);
@@ -821,5 +837,13 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
   }
   jacobian.conservativeResize(num_rows, num_cols);
   delta_x.conservativeResize(num_rows);
+}
+
+void JogCalcs::updateFilterCoeff(double new_filter_coeff)
+{
+  for (size_t index = 0; index < position_filters_.size(); ++index)
+  {
+    position_filters_[index].updateFilterCoeff(new_filter_coeff);
+  }
 }
 }  // namespace moveit_jog_arm

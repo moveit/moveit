@@ -94,6 +94,15 @@ public:
    */
   StatusCode getJoggerStatus();
 
+  /**
+   * Update the low-pass filter coefficients for all joints.
+   * The new coefficient should be > 1.
+   * A larger number will cause more smoothing but a longer delay.
+   *
+   * @return true for no error.
+   */
+  bool updateLowPassFilterCoefficients(double new_filter_coefficient);
+
 private:
   ros::NodeHandle nh_;
 };
