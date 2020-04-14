@@ -114,7 +114,8 @@ bool JogInterfaceBase::readParameters(ros::NodeHandle& n)
       have_scene_collision_proximity_threshold = true;
     }
   }
-  error += !(have_self_collision_proximity_threshold && have_scene_collision_proximity_threshold);
+  error += !have_self_collision_proximity_threshold;
+  error += !have_scene_collision_proximity_threshold;
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/move_group_name", ros_parameters_.move_group_name);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
