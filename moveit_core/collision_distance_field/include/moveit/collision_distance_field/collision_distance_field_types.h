@@ -88,6 +88,7 @@ struct GradientInfo
   }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using AlignedVector = std::vector<GradientInfo, Eigen::aligned_allocator<GradientInfo>>;
 
   double closest_distance;
   bool collision;
@@ -522,10 +523,10 @@ void getCollisionSphereMarkers(const std_msgs::ColorRGBA& color, const std::stri
 void getProximityGradientMarkers(const std::string& frame_id, const std::string& ns, const ros::Duration& dur,
                                  const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
                                  const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
-                                 const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr);
+                                 const GradientInfo::AlignedVector& gradients, visualization_msgs::MarkerArray& arr);
 
 void getCollisionMarkers(const std::string& frame_id, const std::string& ns, const ros::Duration& dur,
                          const std::vector<PosedBodySphereDecompositionPtr>& posed_decompositions,
                          const std::vector<PosedBodySphereDecompositionVectorPtr>& posed_vector_decompositions,
-                         const std::vector<GradientInfo>& gradients, visualization_msgs::MarkerArray& arr);
+                         const GradientInfo::AlignedVector& gradients, visualization_msgs::MarkerArray& arr);
 }  // namespace collision_detection

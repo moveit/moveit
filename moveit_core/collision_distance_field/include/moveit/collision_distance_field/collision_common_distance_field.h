@@ -98,7 +98,7 @@ struct GroupStateRepresentation
   /** information about detected collisions, collected during collision
    * detection.  One entry for each link and one entry for each attached
    * object. */
-  std::vector<GradientInfo> gradients_;
+  GradientInfo::AlignedVector gradients_;
 };
 
 /** collision volume representation for a particular link group of a robot
@@ -178,4 +178,4 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const mov
 
 void getBodySphereVisualizationMarkers(const GroupStateRepresentationPtr& gsr, const std::string& reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array);
-}
+}  // namespace collision_detection
