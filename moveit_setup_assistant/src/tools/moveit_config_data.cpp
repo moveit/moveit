@@ -1598,65 +1598,25 @@ bool MoveItConfigData::setPackagePath(const std::string& pkg_path)
 bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::string& package_name,
                                                   std::string& relative_filepath) const
 {
-  // Get the path to urdf, save filename
-  fs::path file_path = path;
-  fs::path file_directory = file_path;
-  file_directory.remove_filename();
-
-  fs::path sub_path;       // holds the directory less one folder
-  fs::path relative_path;  // holds the path after the sub_path
-
-  // Paths for testing if files exist
-  fs::path package_path;
-
-  std::vector<std::string> path_parts;  // holds each folder name in vector
-
-  // Copy path into vector of parts
-  for (fs::path::iterator it = file_directory.begin(); it != file_directory.end(); ++it)
-    path_parts.push_back(it->string());
+  fs::path sub_path = path; // holds the directory less one folder
+  fs::path relative_path; // holds the path after the sub_path
 
   bool package_found = false;
 
-  // reduce the generated directoy path's folder count by 1 each loop
-  for (int segment_length = path_parts.size(); segment_length > 0; --segment_length)
+  // truncate path step by step and check if it contains a package.xml
+  while (!sub_path.empty())
   {
-    // Reset the sub_path
-    sub_path.clear();
-
-    // Create a subpath based on the outer loops length
-    for (int segment_count = 0; segment_count < segment_length; ++segment_count)
+    ROS_DEBUG_STREAM("checking in " << sub_path.make_preferred().string());
+    if (fs::is_regular_file(sub_path / "package.xml") || fs::is_regular_file(sub_path / "manifest.xml"))
     {
-      sub_path /= path_parts[segment_count];
-
-      // decide if we should remember this directory name because it is topmost, in case it is the package/stack name
-      if (segment_count == segment_length - 1)
-      {
-        package_name = path_parts[segment_count];
-      }
-    }
-
-    // check if this directory has a package.xml
-    package_path = sub_path;
-    package_path /= "package.xml";
-    ROS_DEBUG_STREAM("Checking for " << package_path.make_preferred().string());
-
-    // Check if the files exist
-    if (fs::is_regular_file(package_path) || fs::is_regular_file(sub_path / "manifest.xml"))
-    {
-      // now generate the relative path
-      for (std::size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count)
-        relative_path /= path_parts[relative_count];
-
-      // add the filename at end of relative path
-      relative_path /= file_path.filename();
-
-      relative_filepath = relative_path.generic_string();
-
-      // end the search
-      segment_length = 0;
+      ROS_DEBUG_STREAM("Found package.xml or manifest.xml in " << sub_path.make_preferred().string());
       package_found = true;
+      relative_filepath = relative_path.string();
+      package_name = sub_path.leaf().string();
       break;
     }
+    relative_path = sub_path.leaf() / relative_path;
+    sub_path.remove_leaf();
   }
 
   // Assign data to moveit_config_data
