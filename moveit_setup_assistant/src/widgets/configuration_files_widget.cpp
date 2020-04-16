@@ -1121,14 +1121,20 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
 
+  // Pair 10 - Add parameter files for the kinematics solvers that should be loaded
+  // in addition to kinematics.yaml by planning_context.launch
   std::string kinematics_parameters_files_block;
   for (const auto& groups : config_data_->group_meta_data_)
   {
     if (groups.second.kinematics_parameters_file_.empty())
       continue;
 
-    std::string line = "<rosparam command=\"load\" ns=\"" + groups.first + "\" file=\"" +
-                       groups.second.kinematics_parameters_file_ + "\"/>\n";
+    // add a linebreak if we have more than one entry
+    if (!kinematics_parameters_files_block.empty())
+      kinematics_parameters_files_block += "\n";
+
+    std::string line = "    <rosparam command=\"load\" ns=\"" + groups.first + "\" file=\"" +
+                       groups.second.kinematics_parameters_file_ + "\"/>";
     kinematics_parameters_files_block += line;
   }
   addTemplateString("[KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]", kinematics_parameters_files_block);
