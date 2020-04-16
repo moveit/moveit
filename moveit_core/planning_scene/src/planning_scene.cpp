@@ -1629,6 +1629,7 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       const std::vector<shapes::ShapeConstPtr>& shapes = attached_body->getShapes();
       const EigenSTL::vector_Isometry3d& poses = attached_body->getGlobalCollisionBodyTransforms();
       const std::string& name = attached_body->getName();
+      const moveit::core::FixedTransformsMap& subframe_poses = attached_body->getSubframeTransforms();
 
       if (world_->hasObject(name))
         ROS_WARN_NAMED(LOGNAME,
@@ -1637,7 +1638,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
                        object.object.id.c_str());
       else
       {
-        world_->addToObject(name, shapes, poses);
+        world_->addToObject(name, attached_body->getShapes(), attached_body->getGlobalCollisionBodyTransforms());
+        world_->setSubframesOfObject(name, attached_body->getGlobalSubframeTransforms());
         ROS_DEBUG_NAMED(LOGNAME, "Detached object '%s' from link '%s' and added it back in the collision world",
                         name.c_str(), object.link_name.c_str());
       }
@@ -1773,7 +1775,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
     setObjectType(object.id, object.type);
 
   // Add subframes
-  moveit::core::FixedTransformsMap subframes;
+  moveit::core::FixedTransformsMap subframes = world_->getObject(object.id)->subframe_poses_;
   Eigen::Isometry3d frame_pose;
   for (std::size_t i = 0; i < object.subframe_poses.size(); ++i)
   {
@@ -1830,6 +1832,7 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
     }
 
     collision_detection::World::ObjectConstPtr obj = world_->getObject(object.id);
+    
     if (obj->shapes_.size() == new_poses.size())
     {
       std::vector<shapes::ShapeConstPtr> shapes = obj->shapes_;
