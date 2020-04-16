@@ -1375,11 +1375,6 @@ bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
   // find the kinematics section
   TiXmlHandle doc(&launch_document);
   TiXmlElement* kinematics_group = doc.FirstChild("launch").FirstChild("group").ToElement();
-  if (!kinematics_group)
-  {
-    ROS_ERROR("no <group> found");
-    return false;
-  }
   while (kinematics_group && kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
   {
     kinematics_group = kinematics_group->NextSiblingElement("group");
