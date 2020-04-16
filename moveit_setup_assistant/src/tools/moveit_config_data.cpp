@@ -1598,8 +1598,8 @@ bool MoveItConfigData::setPackagePath(const std::string& pkg_path)
 bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::string& package_name,
                                                   std::string& relative_filepath) const
 {
-  fs::path sub_path = path; // holds the directory less one folder
-  fs::path relative_path; // holds the path after the sub_path
+  fs::path sub_path = path;  // holds the directory less one folder
+  fs::path relative_path;    // holds the path after the sub_path
 
   bool package_found = false;
 
@@ -1607,9 +1607,9 @@ bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::
   while (!sub_path.empty())
   {
     ROS_DEBUG_STREAM("checking in " << sub_path.make_preferred().string());
-    if (fs::is_regular_file(sub_path / "package.xml") || fs::is_regular_file(sub_path / "manifest.xml"))
+    if (fs::is_regular_file(sub_path / "package.xml"))
     {
-      ROS_DEBUG_STREAM("Found package.xml or manifest.xml in " << sub_path.make_preferred().string());
+      ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
       package_found = true;
       relative_filepath = relative_path.string();
       package_name = sub_path.leaf().string();
