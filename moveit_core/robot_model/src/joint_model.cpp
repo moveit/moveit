@@ -252,7 +252,8 @@ namespace std
       // use Joint type_: unknown/revolute/prismatic/planner/floating/fixed
 			boost::hash_combine(h, std::hash<JointType>{}(joint.type_));
 
-      // local_var_names: Do we want this for hash?
+      // local_var_names: Do we want this for hash? Yep. This makes Index map in RobotModel
+      // See RobotModel::buildJointInfo
 			for (auto &local_var : local_variable_names_) {
 				boost::hash_combine(h, std::hash<std::string>{}(local_var));
 			}
@@ -298,11 +299,8 @@ _
       return h;
 		}
 	}
-}
 
 // Calculating Hash for VariableBounds
-namespace std 
-{
   template<> struct hash<VariableBounds> {
 		std::size_t operator()(VariableBounds const& varBound) const noexcept
     {
@@ -318,8 +316,7 @@ namespace std
 
       return h;
     }
+} // end of namespace std
 
-  }
-}
 }  // end of namespace core
 }  // end of namespace moveit

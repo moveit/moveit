@@ -121,5 +121,159 @@ void LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Isome
   visual_mesh_scale_ = scale;
 }
 
+// Calculating hash for LinkModel
+namespace std
+{
+  template<> struct hash<LinkModel>
+  {
+    std::size_t operator()(LinkModel const& link) const noexcept
+    {
+			std::size_t h =0;
+      // use Link name_
+			boost::hash_combine(h, link.name_);
+      boost::hash_combine(h, link.parent_joint_model_.hash());
+      boost::hash_combine(h, link.parent_link_model_.hash());
+      boost::hash_combine(h, link.is_parent_joint_fixed_);
+      boost::hash_combine(h, link.joint_origin_transform_is_identity);
+
+      // rows = 3 and cols = 4 since it is Isometry3d
+      const MatrixType* transform_matrix = link.joint_origin_transform_.matrix()
+      for (auto i = 0; i < 3; i++) {
+        for (auto j = 0; j < 4; j++) {
+          boost::hash_combine(h, transform_matrix[i][j]);
+        }
+      }
+
+      for (auto& collision_isometry : link.collision_origin_transform_) {
+        boost::hash_combine(h, collision_isometry);
+      }
+
+      for (auto& identity : link.collision_origin_transform_is_identity_) {
+        boost:hash_combine(h, identity);
+      }
+
+      for (auto const& x: link.associated_fixed_transforms_) {
+        const Eigen::Isometry3d matrix = x->second;
+            boost::hash_combine(h, matrix.hash());
+        }
+    
+      for(auto const& x : link.shapes_) {
+        boost::hash_combine(h, h.hash())
+      }
+      boost::hash_combine(h, link.shape_extents_.hash());
+      boost::hash_combine(h, link.centered_bounding_box_offset_.hash());
+      
+      boost::hash_combine(h, link.visual_mesh_filename_.hash());
+
+      boost::hash_combine(h, link.visual_mesh_origin.hash());
+
+      boost::hash_combine(h, link.visual_mesh_scale_.hash());
+
+      boost::hash_combine(h, link.first_collision_body_transform_index_);
+
+      boost::hash_combine(h, link.link_index_);
+      return h;
+
+    }
+  }   
+
+
+  // Eigen Isometry3d
+  template<>
+  struct hash<Eigen::Isometry3d>
+  {
+    std::size_t operator(const Eigen::Isometry3d& transform_matrix) const 
+    {
+        std::size_t h = 0;
+        const MatrixType* transform_matrix : transform_matrix.matrix();
+        for (auto i = 0; i < 3; i++) 
+        {
+          for (auto j = 0; j < 4; j++) 
+          {
+            boost::hash_combine(h, matrix[i][j]);
+          }
+        }
+        return h;
+    }
+  }
+
+  // Eigen Vector3d
+  template<>
+  struct hash<Eigen::Vector3d>
+  {
+    std::size_t operator(const Eigen::Vector3d& v) const 
+    {
+        std::size_t h = 0;
+        for (auto i = 0; i < 3; i++) 
+        {
+          boost::hash_combine(h, v[i][0]);
+        }
+    }
+  }
+
+  // ROS Shapes
+  template<> 
+  struct hash<shapes::Box>
+  {
+    std::size_t operator()(const& shape::Box box) const 
+    {
+      std::size_t h = 0;
+      boost::hash_combine(h, Box::STRING_NAME);
+      // box size
+      for (auto i = 0; i < 3; i++)
+        boost::hash_combine(h, size[i])
+      return h;
+    }
+  }
+
+  template<> 
+  struct hash<shapes::Cylinder>
+  {
+    std::size_t operator()(const& shape::Cylinder c) const 
+    {
+      std::size_t h = 0;
+      boost::hash_combine(h, Cylinder::STRING_NAME);
+      boost::hash_combine(h, cone.length);
+      boost::hash_combine(h, cone.radius);
+      return h;
+    }
+  }
+
+  template<> 
+  struct hash<shapes::Mesh>
+  {
+    std::size_t operator()(const& shape::Mesh m) const 
+    {
+      std::size_t h = 0;
+      boost::hash_combine(h, Mesh::STRING_NAME);
+      boost::hash_combine(h, m.triangle_count);
+      n = 3 * m.triangle_count;
+      for(auto i  = 0; i < n; i++) {
+        boost::hash_combine(h, m.triangles[i]);
+        boost::hash_combine(h, m.triangle_normals[i]);
+      }
+      boost::hash_combine(h, m.vertex_count);
+      n = 3 * m.vertex_count;
+      for(auto i = 0; i < n; i++) {
+        boost::hash_combine(h, m.vertices[i]);
+        boost::hash_combine(h, m.vertex_normals[i]);
+      }
+      return h;
+    }
+  }
+
+  template<> 
+  struct hash<shapes::Sphere>
+  {
+    std::size_t operator()(const& shape::Sphere s) const 
+    {
+      std::size_t h = 0;
+      boost::hash_combine(h, Sphere::STRING_NAME);
+      boost::hash_combine(h, s.radius);
+      return h;
+    }
+  }
+} // end of namespace std
+
 }  // end of namespace core
 }  // end of namespace moveit

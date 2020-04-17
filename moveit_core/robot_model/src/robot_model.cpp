@@ -568,7 +568,7 @@ void RobotModel::buildGroupsInfoSubgroups(const srdf::Model& srdf_model)
 void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
 {
   // set the end-effector flags
-  const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEffectors();
+  const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEfGfectors();
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
   {
     // check if this group is a known end effector
@@ -1407,6 +1407,51 @@ void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Isom
       computeFixedTransforms(link->getChildJointModels()[i]->getChildLinkModel(),
                              transform * link->getJointOriginTransform(), associated_transforms);
 }
+
+// Calculating Hash for RobotModel
+namespace std
+{
+	template<> struct hash<RobotModel>
+	{
+		std::size_t operator()(RobotModel const& r) const noexcept 
+    {
+			std::size_t h =0;
+      boost::hash_combine(h, r.model_name_); 
+      boost::hash_combine(h, r.model_frame_);
+
+
+      /**
+       * RobotModel consists of 2: Joint and Link
+       * Additionally it has 1) Indexing for Joint and Link 2) Groups
+       * Groups would be needed for EndEffectors which comes from SRDF (yet to look at JointModelGroups)
+       */
+
+      for (LinkModel* link_model : link_model_vector_) {
+        boost::hash_combine(h, std::hash<LinkModel>{}link_model->hash());
+      }
+
+      for (JointModel* joint_model : joint_model_vector_) {
+        boost::hash_combine(h, std::hash<JointModel>{}(joint_model->hash()));
+      }
+
+      for (const JointModelGroup* group: end_effectors_) {
+        boost::hash_combine(h, std::hash<JointModelGroup>{}(group->hash()));
+      }
+
+      return h;
+    }
+  }
+
+  template<> struct hash<JointModelGroup>
+  {
+    std::size_t operator()(JointModelGroup const&j) const noexcept
+    {
+      std::size_t h = 0;
+      // TODO
+    }
+  }
+
+} // end of namespace std
 
 }  // end of namespace core
 }  // end of namespace moveit
