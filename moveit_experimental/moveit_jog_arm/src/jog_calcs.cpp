@@ -196,6 +196,10 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
 
       if (stale_command || (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd))
       {
+        // Keep the joint position filters up-to-date with current joints
+        for (std::size_t i = 0; i < num_joints_; ++i)
+          position_filters_[i].reset(original_joint_state_.position[i]);
+
         suddenHalt(outgoing_command_);
         have_nonzero_cartesian_cmd = false;
         have_nonzero_joint_cmd = false;
