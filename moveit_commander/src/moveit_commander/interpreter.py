@@ -587,7 +587,7 @@ class MoveGroupCommandInterpreter(object):
             known_vars = self.get_active_group().get_remembered_joint_values().keys()
             known_constr = self.get_active_group().get_known_constraints()
         groups = self._robot.get_group_names()
-        return {'go':['up', 'down', 'left', 'right', 'backward', 'forward', 'random'] + known_vars,
+        return {'go':['up', 'down', 'left', 'right', 'backward', 'forward', 'random'] + list(known_vars),
                 'help':[],
                 'record':known_vars,
                 'show':known_vars,
