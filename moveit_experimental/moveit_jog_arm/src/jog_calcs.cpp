@@ -163,27 +163,31 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
       bool stale_command = shared_variables.command_is_stale;
       shared_variables.unlock();
 
-      // Prioritize cartesian jogging above joint jogging
-      if (!stale_command && have_nonzero_cartesian_cmd)
+      bool valid_nonzero_command = false;
+      if (!stale_command)
       {
-        shared_variables.lock();
-        cartesian_deltas = shared_variables.command_deltas;
-        shared_variables.unlock();
+        // Prioritize cartesian jogging above joint jogging
+        if (have_nonzero_cartesian_cmd)
+        {
+          shared_variables.lock();
+          cartesian_deltas = shared_variables.command_deltas;
+          shared_variables.unlock();
 
-        if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
-          continue;
+          if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
+            continue;
+        }
+        else if (have_nonzero_joint_cmd)
+        {
+          shared_variables.lock();
+          joint_deltas = shared_variables.joint_command_deltas;
+          shared_variables.unlock();
+
+          if (!jointJogCalcs(joint_deltas, shared_variables))
+            continue;
+        }
+
+        valid_nonzero_command = have_nonzero_cartesian_cmd || have_nonzero_joint_cmd;
       }
-      else if (!stale_command && have_nonzero_joint_cmd)
-      {
-        shared_variables.lock();
-        joint_deltas = shared_variables.joint_command_deltas;
-        shared_variables.unlock();
-
-        if (!jointJogCalcs(joint_deltas, shared_variables))
-          continue;
-      }
-
-      bool valid_nonzero_command = !stale_command && (have_nonzero_cartesian_cmd || have_nonzero_joint_cmd);
 
       // If we should halt
       if (!valid_nonzero_command)
