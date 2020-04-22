@@ -70,7 +70,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   RobotTrajCont traj_vec;
   try
   {
-    traj_vec = command_list_manager_->solve(ps, context_->planning_pipeline_, req.commands);
+    traj_vec = command_list_manager_->solve(ps, context_->planning_pipeline_, req.request);
   }
   catch (const MoveItErrorCodeException& ex)
   {

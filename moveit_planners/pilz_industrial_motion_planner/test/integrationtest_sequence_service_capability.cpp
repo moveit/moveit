@@ -113,7 +113,7 @@ TEST_F(IntegrationTestSequenceService, TestSendingOfEmptySequence)
   moveit_msgs::MotionSequenceRequest empty_list;
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = empty_list;
+  srv.request.request = empty_list;
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -139,7 +139,7 @@ TEST_F(IntegrationTestSequenceService, TestDifferingGroupNames)
   cmd.setPlanningGroup("WrongGroupName");
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -165,7 +165,7 @@ TEST_F(IntegrationTestSequenceService, TestNegativeBlendRadius)
   seq.setBlendRadius(0, -1.0);
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -191,7 +191,7 @@ TEST_F(IntegrationTestSequenceService, TestOverlappingBlendRadii)
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(0));
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -218,7 +218,7 @@ TEST_F(IntegrationTestSequenceService, TestTooLargeBlendRadii)
   seq.setBlendRadius(0, 10 * seq.getBlendRadius(seq.size() - 2));
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -249,7 +249,7 @@ TEST_F(IntegrationTestSequenceService, TestSecondTrajInvalidStartState)
   req_list.items[1].req.start_state.joint_state = config.toSensorMsg();
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = req_list;
+  srv.request.request = req_list;
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -277,7 +277,7 @@ TEST_F(IntegrationTestSequenceService, TestFirstGoalNotReachable)
   cmd.getGoalConfiguration().getPose().position.y = 27;
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -307,7 +307,7 @@ TEST_F(IntegrationTestSequenceService, TestInvalidLinkName)
   circ.getGoalConfiguration().setLinkName("InvalidLinkName");
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -347,7 +347,7 @@ TEST_F(IntegrationTestSequenceService, TestLargeRequest)
   }
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = req;
+  srv.request.request = req;
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -376,7 +376,7 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithoutBlending)
   seq.setAllBlendRadiiToZero();
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
@@ -403,7 +403,7 @@ TEST_F(IntegrationTestSequenceService, TestComplexSequenceWithBlending)
   Sequence seq{ data_loader_->getSequence("ComplexSequence") };
 
   moveit_msgs::GetMotionSequence srv;
-  srv.request.commands = seq.toRequest();
+  srv.request.request = seq.toRequest();
 
   ASSERT_TRUE(client_.call(srv));
 
