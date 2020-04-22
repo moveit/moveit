@@ -64,7 +64,6 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-
 include_directories(
   include
 )
@@ -118,9 +117,8 @@ add_library(planning_context_loader_ptp
             src/velocity_profile_atrap.cpp
             src/joint_limits_container.cpp
             )
-
 target_link_libraries(planning_context_loader_ptp
-                      ${catkin_LIBRARIES}) # DO NOT LINK ${PROJECT_NAME} here!
+                      ${catkin_LIBRARIES})
 
 add_library(planning_context_loader_lin
             src/planning_context_loader_lin.cpp
@@ -130,9 +128,8 @@ add_library(planning_context_loader_lin
             src/trajectory_generator_lin.cpp
             src/velocity_profile_atrap.cpp
             )
-
 target_link_libraries(planning_context_loader_lin
-                      ${catkin_LIBRARIES}) # DO NOT LINK ${PROJECT_NAME} here!
+                      ${catkin_LIBRARIES})
 
 add_library(planning_context_loader_circ
             src/planning_context_loader_circ.cpp
@@ -142,10 +139,8 @@ add_library(planning_context_loader_circ
             src/trajectory_generator_circ.cpp
             src/path_circle_generator.cpp
             )
-
-
 target_link_libraries(planning_context_loader_circ
-                      ${catkin_LIBRARIES}) # DO NOT LINK ${PROJECT_NAME} here!
+                      ${catkin_LIBRARIES})
 
 add_library(command_list_manager
             src/command_list_manager.cpp
@@ -168,7 +163,7 @@ add_library(sequence_capability
             src/cartesian_limits_aggregator.cpp
             )
 target_link_libraries(sequence_capability
-                      ${catkin_LIBRARIES}) # DO NOT LINK ${PROJECT_NAME} here!
+                      ${catkin_LIBRARIES})
 add_dependencies(sequence_capability
            ${catkin_EXPORTED_TARGETS})
 
@@ -190,17 +185,9 @@ install(TARGETS
    planning_context_loader_circ
    command_list_manager
    sequence_capability
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-## Mark cpp header files for installation
-#install(DIRECTORY include/${PROJECT_NAME}/
-#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#  FILES_MATCHING PATTERN "*.h"
-#  PATTERN ".svn" EXCLUDE
-#)
 
 #############
 ## Testing ##
@@ -221,7 +208,6 @@ if(CATKIN_ENABLE_TESTING)
   #########################
   ####Integration Tests####
   #########################
-
   set(${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES
     sequence_capability
     ${PROJECT_NAME}
@@ -235,7 +221,6 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_sequence_action_capability.test
     test/integrationtest_sequence_action_capability.cpp
   )
-
   target_link_libraries(integrationtest_sequence_action_capability
     ${catkin_LIBRARIES}
     ${pilz_testutils_LIBRARIES}
@@ -254,7 +239,6 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_sequence_service_capability.test
     test/integrationtest_sequence_service_capability.cpp
   )
-
   target_link_libraries(integrationtest_sequence_service_capability
     ${catkin_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
@@ -273,7 +257,6 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_command_planning.cpp
     test/test_utils.cpp
   )
-
   target_link_libraries(integrationtest_command_planning
     ${catkin_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
@@ -292,7 +275,6 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_command_list_manager.cpp
     test/test_utils.cpp
   )
-
   target_link_libraries(integrationtest_command_list_manager
     ${catkin_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
@@ -302,7 +284,6 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_get_solver_tip_frame.test
     test/integrationtest_get_solver_tip_frame.cpp
   )
-
   target_link_libraries(integrationtest_get_solver_tip_frame
     ${catkin_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
@@ -312,18 +293,14 @@ if(CATKIN_ENABLE_TESTING)
     test/integrationtest_plan_components_builder.test
     test/integrationtest_plan_components_builder.cpp
   )
-
   target_link_libraries(integrationtest_plan_components_builder
     ${catkin_LIBRARIES}
     ${${PROJECT_NAME}_INTEGRATIONTEST_LIBRARIES}
   )
 
-
-
   ##################
   ####Unit Tests####
   ##################
-
   add_library(${PROJECT_NAME}_testhelpers
     test/test_utils.cpp
     src/trajectory_generator.cpp
@@ -341,7 +318,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_${PROJECT_NAME}_direct.cpp
     src/planning_context_loader_ptp.cpp
   )
-
   target_link_libraries(unittest_${PROJECT_NAME}_direct
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -352,14 +328,14 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_velocity_profile_atrap.cpp
     src/velocity_profile_atrap.cpp
   )
-
-  target_link_libraries(unittest_velocity_profile_atrap ${catkin_LIBRARIES})
+  target_link_libraries(unittest_velocity_profile_atrap 
+    ${catkin_LIBRARIES}
+  )
 
   catkin_add_gtest(unittest_trajectory_generator
     test/unittest_trajectory_generator.cpp
     src/trajectory_generator.cpp
   )
-
   target_link_libraries(unittest_trajectory_generator
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
@@ -370,7 +346,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_functions.test
     test/unittest_trajectory_functions.cpp
   )
-
   target_link_libraries(unittest_trajectory_functions
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -382,7 +357,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_blender_transition_window.cpp
     src/trajectory_blender_transition_window.cpp
   )
-
   target_link_libraries(unittest_trajectory_blender_transition_window
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -393,7 +367,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_generator_common.test
     test/unittest_trajectory_generator_common.cpp
   )
-
   target_link_libraries(unittest_trajectory_generator_common
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -404,7 +377,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_generator_circ.test
     test/unittest_trajectory_generator_circ.cpp
   )
-
   target_link_libraries(unittest_trajectory_generator_circ
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -415,7 +387,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_generator_lin.test
     test/unittest_trajectory_generator_lin.cpp
   )
-
   target_link_libraries(unittest_trajectory_generator_lin
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -426,7 +397,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_trajectory_generator_ptp.test
     test/unittest_trajectory_generator_ptp.cpp
   )
-
   target_link_libraries(unittest_trajectory_generator_ptp
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -437,7 +407,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_${PROJECT_NAME}.test
     test/unittest_${PROJECT_NAME}.cpp
   )
-
   target_link_libraries(unittest_${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
@@ -448,7 +417,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_joint_limits_aggregator.test
     test/unittest_joint_limits_aggregator.cpp
   )
-
   target_link_libraries(unittest_joint_limits_aggregator
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
@@ -458,7 +426,6 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(unittest_joint_limits_container
     test/unittest_joint_limits_container.cpp
   )
-
   target_link_libraries(unittest_joint_limits_container
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
@@ -468,18 +435,16 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(unittest_joint_limits_validator
     test/unittest_joint_limits_validator.cpp
   )
-
   target_link_libraries(unittest_joint_limits_validator
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
   )
 
-   # Cartesian Limits Aggregator Unit Test
+  # Cartesian Limits Aggregator Unit Test
   add_rostest_gtest(unittest_cartesian_limits_aggregator
     test/unittest_cartesian_limits_aggregator.test
     test/unittest_cartesian_limits_aggregator.cpp
   )
-
   target_link_libraries(unittest_cartesian_limits_aggregator
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_lib
@@ -490,7 +455,6 @@ if(CATKIN_ENABLE_TESTING)
     test/unittest_planning_context_loaders.test
     test/unittest_planning_context_loaders.cpp
   )
-
   target_link_libraries(unittest_planning_context_loaders
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -504,7 +468,6 @@ if(CATKIN_ENABLE_TESTING)
     src/planning_context_loader_lin.cpp
     src/planning_context_loader_ptp.cpp
   )
-
   target_link_libraries(unittest_planning_context
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}_testhelpers
@@ -514,8 +477,9 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gmock(unittest_get_solver_tip_frame
     test/unittest_get_solver_tip_frame.cpp
   )
-
-  target_link_libraries(unittest_get_solver_tip_frame ${catkin_LIBRARIES})
+  target_link_libraries(unittest_get_solver_tip_frame 
+    ${catkin_LIBRARIES}
+  )
 
   # to run: catkin_make -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE_TESTING=ON package_name_coverage
   if(ENABLE_COVERAGE_TESTING)
