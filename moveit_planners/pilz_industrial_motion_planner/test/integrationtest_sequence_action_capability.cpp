@@ -153,7 +153,6 @@ TEST_F(IntegrationTestSequenceAction, TestSendingOfEmptySequence)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -180,7 +179,6 @@ TEST_F(IntegrationTestSequenceAction, TestDifferingGroupNames)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME) << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -208,7 +206,6 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadius)
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
       << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -237,7 +234,6 @@ TEST_F(IntegrationTestSequenceAction, TestOverlappingBlendRadii)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN) << "Incorrect error code";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -267,7 +263,6 @@ TEST_F(IntegrationTestSequenceAction, TestTooLargeBlendRadii)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::FAILURE) << "Incorrect error code";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -297,7 +292,6 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidCmd)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_NE(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -327,7 +321,6 @@ TEST_F(IntegrationTestSequenceAction, TestInvalidLinkName)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_NE(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 //*******************************************************
@@ -343,7 +336,7 @@ MATCHER(IsResultSuccess, "")
 }
 MATCHER(IsResultNotEmpty, "")
 {
-  return !arg->response.planned_trajectories.empty() || !arg->response.trajectories_start.empty();
+  return !arg->response.planned_trajectories.empty();
 }
 
 /**
@@ -457,7 +450,6 @@ TEST_F(IntegrationTestSequenceAction, TestPlanOnlyFlag)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Sequence execution failed.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 
   ASSERT_TRUE(
       isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
@@ -493,7 +485,6 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotStateForPlanOnly)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 
   ASSERT_TRUE(
       isAtExpectedPosition(*(move_group_->getCurrentState()), start_config.toRobotState(), joint_position_tolerance_))
@@ -527,7 +518,6 @@ TEST_F(IntegrationTestSequenceAction, TestNegativeBlendRadiusForPlanOnly)
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN)
       << "Incorrect error code.";
   EXPECT_TRUE(res->response.planned_trajectories.empty());
-  EXPECT_TRUE(res->response.trajectories_start.empty());
 }
 
 /**
@@ -558,7 +548,6 @@ TEST_F(IntegrationTestSequenceAction, TestIgnoreRobotState)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Execution of sequence failed.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 }
 
 /**
@@ -598,7 +587,6 @@ TEST_F(IntegrationTestSequenceAction, TestLargeRequest)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS) << "Incorrect error code.";
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 }
 
 /**
@@ -626,7 +614,6 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithoutBlending)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 }
 
 /**
@@ -652,7 +639,6 @@ TEST_F(IntegrationTestSequenceAction, TestComplexSequenceWithBlending)
   moveit_msgs::MoveGroupSequenceResultConstPtr res = ac_.getResult();
   EXPECT_EQ(res->response.error_code.val, moveit_msgs::MoveItErrorCodes::SUCCESS);
   EXPECT_FALSE(res->response.planned_trajectories.empty()) << "Planned trajectory is empty";
-  EXPECT_FALSE(res->response.trajectories_start.empty()) << "No start states returned";
 }
 
 int main(int argc, char** argv)

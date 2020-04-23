@@ -59,7 +59,7 @@ public:
 private:
   using ExecutableTrajs = std::vector<plan_execution::ExecutableTrajectory>;
 
-  using StartStateMsgs = moveit_msgs::MotionSequenceResponse::_trajectories_start_type;
+  using StartStateMsg = moveit_msgs::MotionSequenceResponse::_sequence_start_type;
   using PlannedTrajMsgs = moveit_msgs::MotionSequenceResponse::_planned_trajectories_type;
 
 private:
@@ -76,7 +76,8 @@ private:
                                 plan_execution::ExecutableMotionPlan& plan);
 
 private:
-  static void convertToMsg(const ExecutableTrajs& trajs, StartStateMsgs& startStatesMsgs,
+  static void convertToMsg(const ExecutableTrajs& trajs, 
+                           StartStateMsg& startStatesMsg,
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:

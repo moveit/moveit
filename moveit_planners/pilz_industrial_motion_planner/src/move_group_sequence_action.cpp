@@ -148,18 +148,17 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.response.trajectories_start, action_res.response.planned_trajectories);
+  convertToMsg(plan.plan_components_, action_res.response.sequence_start, action_res.response.planned_trajectories);
   action_res.response.error_code = plan.error_code_;
 }
 
-void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsgs& startStatesMsgs,
+void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsg& startStatesMsg,
                                            PlannedTrajMsgs& plannedTrajsMsgs)
 {
-  startStatesMsgs.resize(trajs.size());
+    robot_state::robotStateToRobotStateMsg(trajs.at(0).trajectory_->getFirstWayPoint(), startStatesMsg);
   plannedTrajsMsgs.resize(trajs.size());
   for (size_t i = 0; i < trajs.size(); ++i)
   {
-    robot_state::robotStateToRobotStateMsg(trajs.at(i).trajectory_->getFirstWayPoint(), startStatesMsgs.at(i));
     trajs.at(i).trajectory_->getRobotTrajectoryMsg(plannedTrajsMsgs.at(i));
   }
 }
@@ -198,11 +197,10 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   }
   // LCOV_EXCL_STOP
 
-  res.response.trajectories_start.resize(traj_vec.size());
   res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.trajectories_start.at(i),
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.sequence_start,
                                                   res.response.planned_trajectories.at(i));
   }
   res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
