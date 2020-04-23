@@ -1361,6 +1361,46 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Input planning_context.launch file
+// ******************************************************************************************
+bool MoveItConfigData::inputPlanningContextLaunch(const std::string& file_path)
+{
+  TiXmlDocument launch_document(file_path);
+  if (!launch_document.LoadFile())
+  {
+    ROS_ERROR_STREAM("Failed parsing " << file_path);
+    return false;
+  }
+
+  // find the kinematics section
+  TiXmlHandle doc(&launch_document);
+  TiXmlElement* kinematics_group = doc.FirstChild("launch").FirstChild("group").ToElement();
+  while (kinematics_group && kinematics_group->Attribute("ns") != std::string("$(arg robot_description)_kinematics"))
+  {
+    kinematics_group = kinematics_group->NextSiblingElement("group");
+  }
+  if (!kinematics_group)
+  {
+    ROS_ERROR("<group ns=\"$(arg robot_description)_kinematics\"> not found");
+    return false;
+  }
+
+  // iterate over all <rosparam namespace="group" file="..."/> elements
+  // and if 'group' matches an existing group, copy the filename
+  for (TiXmlElement* kinematics_parameter_file = kinematics_group->FirstChildElement("rosparam");
+       kinematics_parameter_file; kinematics_parameter_file = kinematics_parameter_file->NextSiblingElement("rosparam"))
+  {
+    const char* ns = kinematics_parameter_file->Attribute("ns");
+    if (ns && (group_meta_data_.find(ns) != group_meta_data_.end()))
+    {
+      group_meta_data_[ns].kinematics_parameters_file_ = kinematics_parameter_file->Attribute("file");
+    }
+  }
+
+  return true;
+}
+
+// ******************************************************************************************
 // Helper function for parsing an individual ROSController from ros_controllers yaml file
 // ******************************************************************************************
 bool MoveItConfigData::parseROSController(const YAML::Node& controller)
@@ -1547,6 +1587,46 @@ bool MoveItConfigData::setPackagePath(const std::string& pkg_path)
   }
 
   config_pkg_path_ = full_package_path;
+  return true;
+}
+
+// ******************************************************************************************
+// Extract the package/stack name from an absolute file path
+// Input:  path
+// Output: package name and relative path
+// ******************************************************************************************
+bool MoveItConfigData::extractPackageNameFromPath(const std::string& path, std::string& package_name,
+                                                  std::string& relative_filepath) const
+{
+  fs::path sub_path = path;  // holds the directory less one folder
+  fs::path relative_path;    // holds the path after the sub_path
+
+  bool package_found = false;
+
+  // truncate path step by step and check if it contains a package.xml
+  while (!sub_path.empty())
+  {
+    ROS_DEBUG_STREAM("checking in " << sub_path.make_preferred().string());
+    if (fs::is_regular_file(sub_path / "package.xml"))
+    {
+      ROS_DEBUG_STREAM("Found package.xml in " << sub_path.make_preferred().string());
+      package_found = true;
+      relative_filepath = relative_path.string();
+      package_name = sub_path.leaf().string();
+      break;
+    }
+    relative_path = sub_path.leaf() / relative_path;
+    sub_path.remove_leaf();
+  }
+
+  // Assign data to moveit_config_data
+  if (!package_found)
+  {
+    // No package name found, we must be outside ROS
+    return false;
+  }
+
+  ROS_DEBUG_STREAM("Package name for file \"" << path << "\" is \"" << package_name << "\"");
   return true;
 }
 

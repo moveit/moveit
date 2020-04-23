@@ -416,6 +416,12 @@ bool StartScreenWidget::loadExistingFiles()
                                  "at location ")
                              .append(kinematics_yaml_path.make_preferred().string().c_str()));
   }
+  else
+  {
+    fs::path planning_context_launch_path = config_data_->config_pkg_path_;
+    planning_context_launch_path /= "launch/planning_context.launch";
+    config_data_->inputPlanningContextLaunch(planning_context_launch_path.make_preferred().string());
+  }
 
   // Load 3d_sensors config file
   load3DSensorsFile();
@@ -636,65 +642,10 @@ bool StartScreenWidget::setSRDFFile(const std::string& srdf_string)
 // ******************************************************************************************
 bool StartScreenWidget::extractPackageNameFromPath()
 {
-  // Get the path to urdf, save filename
-  fs::path urdf_path = config_data_->urdf_path_;
-  fs::path urdf_directory = urdf_path;
-  urdf_directory.remove_filename();
+  std::string relative_path;  // holds the path after the sub_path
+  std::string package_name;   // result
 
-  fs::path sub_path;         // holds the directory less one folder
-  fs::path relative_path;    // holds the path after the sub_path
-  std::string package_name;  // result
-
-  // Paths for testing if files exist
-  fs::path package_path;
-
-  std::vector<std::string> path_parts;  // holds each folder name in vector
-
-  // Copy path into vector of parts
-  for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
-    path_parts.push_back(it->string());
-
-  bool package_found = false;
-
-  // reduce the generated directoy path's folder count by 1 each loop
-  for (int segment_length = path_parts.size(); segment_length > 0; --segment_length)
-  {
-    // Reset the sub_path
-    sub_path.clear();
-
-    // Create a subpath based on the outer loops length
-    for (int segment_count = 0; segment_count < segment_length; ++segment_count)
-    {
-      sub_path /= path_parts[segment_count];
-
-      // decide if we should remember this directory name because it is topmost, in case it is the package/stack name
-      if (segment_count == segment_length - 1)
-      {
-        package_name = path_parts[segment_count];
-      }
-    }
-
-    // check if this directory has a package.xml
-    package_path = sub_path;
-    package_path /= "package.xml";
-    ROS_DEBUG_STREAM("Checking for " << package_path.make_preferred().string());
-
-    // Check if the files exist
-    if (fs::is_regular_file(package_path) || fs::is_regular_file(sub_path / "manifest.xml"))
-    {
-      // now generate the relative path
-      for (std::size_t relative_count = segment_length; relative_count < path_parts.size(); ++relative_count)
-        relative_path /= path_parts[relative_count];
-
-      // add the URDF filename at end of relative path
-      relative_path /= urdf_path.filename();
-
-      // end the search
-      segment_length = 0;
-      package_found = true;
-      break;
-    }
-  }
+  bool package_found = config_data_->extractPackageNameFromPath(config_data_->urdf_path_, package_name, relative_path);
 
   // Assign data to moveit_config_data
   if (!package_found)
@@ -706,7 +657,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   else
   {
     // Check that ROS can find the package
-    const std::string robot_desc_pkg_path = ros::package::getPath(config_data_->urdf_pkg_name_) + "/";
+    const std::string robot_desc_pkg_path = ros::package::getPath(package_name);
 
     if (robot_desc_pkg_path.empty())
     {
@@ -718,7 +669,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
 
     // Success
     config_data_->urdf_pkg_name_ = package_name;
-    config_data_->urdf_pkg_relative_path_ = relative_path.make_preferred().string();
+    config_data_->urdf_pkg_relative_path_ = relative_path;
   }
 
   ROS_DEBUG_STREAM("URDF Package Name: " << config_data_->urdf_pkg_name_);

@@ -962,6 +962,9 @@ bool ConfigurationFilesWidget::generatePackage()
     absolute_path = config_data_->appendPaths(new_package_path, file->rel_path_);
     ROS_DEBUG_STREAM("Creating file " << absolute_path);
 
+    // Clear template strings in case export is run multiple times with changes in between
+    template_strings_.clear();
+
     // Run the generate function
     if (!file->gen_func_(absolute_path))
     {
@@ -1117,6 +1120,24 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     }
     addTemplateString("[ROS_CONTROLLERS]", controllers.str());
   }
+
+  // Pair 10 - Add parameter files for the kinematics solvers that should be loaded
+  // in addition to kinematics.yaml by planning_context.launch
+  std::string kinematics_parameters_files_block;
+  for (const auto& groups : config_data_->group_meta_data_)
+  {
+    if (groups.second.kinematics_parameters_file_.empty())
+      continue;
+
+    // add a linebreak if we have more than one entry
+    if (!kinematics_parameters_files_block.empty())
+      kinematics_parameters_files_block += "\n";
+
+    std::string line = "    <rosparam command=\"load\" ns=\"" + groups.first + "\" file=\"" +
+                       groups.second.kinematics_parameters_file_ + "\"/>";
+    kinematics_parameters_files_block += line;
+  }
+  addTemplateString("[KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]", kinematics_parameters_files_block);
 
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
   addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);

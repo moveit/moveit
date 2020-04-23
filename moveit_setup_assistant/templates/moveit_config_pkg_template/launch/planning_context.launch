@@ -19,6 +19,7 @@
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="$(arg robot_description)_kinematics">
     <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>
+[KINEMATICS_PARAMETERS_FILE_NAMES_BLOCK]
   </group>
 
 </launch>

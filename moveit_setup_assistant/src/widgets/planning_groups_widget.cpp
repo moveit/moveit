@@ -1084,6 +1084,8 @@ bool PlanningGroupsWidget::saveGroupScreen()
   const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
+  const std::string& kinematics_parameters_file =
+      group_edit_widget_->kinematics_parameters_file_field_->text().toStdString();
 
   // Used for editing existing groups
   srdf::Model::Group* searched_group = nullptr;
@@ -1234,6 +1236,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_ = kinematics_solver;
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
+  config_data_->group_meta_data_[group_name].kinematics_parameters_file_ = kinematics_parameters_file;
   config_data_->group_meta_data_[group_name].default_planner_ = default_planner;
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 

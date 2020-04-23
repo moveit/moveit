@@ -69,6 +69,7 @@ struct GroupMetaData
   std::string kinematics_solver_;               // Name of kinematics plugin to use
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
+  std::string kinematics_parameters_file_;      // file for additional kinematics parameters
   std::string default_planner_;                 // Name of the default planner to use
 };
 
@@ -363,6 +364,13 @@ public:
   bool inputKinematicsYAML(const std::string& file_path);
 
   /**
+   * Input planning_context.launch for editing its values
+   * @param file_path path to planning_context.launch in the input package
+   * @return true if the file was read correctly
+   */
+  bool inputPlanningContextLaunch(const std::string& file_path);
+
+  /**
    * Helper function for parsing ros_controllers.yaml file
    * @param YAML::Node - individual controller to be parsed
    * @return true if the file was read correctly
@@ -395,6 +403,16 @@ public:
    * @return true if the path was set
    */
   bool setPackagePath(const std::string& pkg_path);
+
+  /**
+   * determine the package name containing a given file path
+   * @param path to a file
+   * @param package_name holds the ros package name if found
+   * @param relative_filepath holds the relative path of the file to the package root
+   * @return whether the file belongs to a known package
+   */
+  bool extractPackageNameFromPath(const std::string& path, std::string& package_name,
+                                  std::string& relative_filepath) const;
 
   /**
    * Resolve path to .setup_assistant file
