@@ -58,6 +58,7 @@ endif()
 catkin_package(
   CATKIN_DEPENDS
   moveit_msgs
+  roscpp
   tf2_geometry_msgs
 )
 
