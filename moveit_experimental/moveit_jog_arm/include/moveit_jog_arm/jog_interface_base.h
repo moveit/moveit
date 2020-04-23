@@ -75,7 +75,8 @@ public:
 
   /** \brief Start the main calculation thread */
   // Service callback for changing jogging dimensions
-  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req, moveit_msgs::ChangeControlDimensions::Response& res);
+  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                               moveit_msgs::ChangeControlDimensions::Response& res);
 
   // Jogging calculation thread
   bool startJogCalcThread();

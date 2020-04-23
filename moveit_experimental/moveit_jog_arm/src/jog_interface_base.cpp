@@ -262,7 +262,7 @@ bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions:
 }
 
 bool JogInterfaceBase::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-                                              moveit_msgs::ChangeControlDimensions::Response& res)
+                                               moveit_msgs::ChangeControlDimensions::Response& res)
 {
   shared_variables_.control_dimensions[0] = req.control_x_translation;
   shared_variables_.control_dimensions[1] = req.control_y_translation;
