@@ -12,9 +12,9 @@
 
   <license>BSD</license>
 
-  <url type="website">https://wiki.ros.org/pilz_trajectory_generation</url>
-  <url type="bugtracker">https://github.com/PilzDE/pilz_industrial_motion/issues</url>
-  <url type="repository">https://github.com/PilzDE/pilz_industrial_motion</url>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

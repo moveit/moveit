@@ -10,11 +10,11 @@
   <maintainer email="j.schleicher@pilz.de">Joachim Schleicher</maintainer>
   <maintainer email="h.slusarek@pilz.de">Hagen Slusarek</maintainer>
 
-  <license>Apache 2.0</license>
+  <license>BSD</license>
 
-  <url type="website">https://wiki.ros.org/pilz_industrial_motion</url>
-  <url type="bugtracker">https://github.com/PilzDE/pilz_industrial_motion/issues</url>
-  <url type="repository">https://github.com/PilzDE/pilz_industrial_motion</url>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit</url>
 
   <build_depend>eigen_conversions</build_depend>
   <build_depend>moveit_core</build_depend>
