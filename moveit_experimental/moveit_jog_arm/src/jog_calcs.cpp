@@ -139,63 +139,63 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
     shared_variables.unlock();
 
-    //  Check for an initial jog command
-    if (wait_for_jog_commands)
-    {
-      shared_variables.lock();
-      // Check if there are any commands with valid timestamp
-      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.) &&
-                              shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
-      shared_variables.unlock();
-    }
-
     // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
     // joints so a jump doesn't occur when restarting
     if (wait_for_jog_commands || shared_variables.paused)
     {
       for (std::size_t i = 0; i < num_joints_; ++i)
-        position_filters_[i].reset(internal_joint_state_.position[i]);
+        position_filters_[i].reset(original_joint_state_.position[i]);
+
+      shared_variables.lock();
+      // Check if there are any new commands with valid timestamp
+      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.) &&
+                              shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
+      shared_variables.unlock();
     }
+    // If not waiting for initial command, and not paused.
     // Do jogging calculations only if the robot should move, for efficiency
     else
     {
-      // Flag that incoming commands are all zero. May be used to skip calculations/publication
+      // Halt if the command is stale or inputs are all zero, or commands were zero
       shared_variables.lock();
       bool have_nonzero_cartesian_cmd = shared_variables.have_nonzero_cartesian_cmd;
       bool have_nonzero_joint_cmd = shared_variables.have_nonzero_joint_cmd;
-      shared_variables.unlock();
-
-      // Prioritize cartesian jogging above joint jogging
-      if (have_nonzero_cartesian_cmd)
-      {
-        shared_variables.lock();
-        cartesian_deltas = shared_variables.command_deltas;
-        shared_variables.unlock();
-
-        if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
-          continue;
-      }
-      else if (have_nonzero_joint_cmd)
-      {
-        shared_variables.lock();
-        joint_deltas = shared_variables.joint_command_deltas;
-        shared_variables.unlock();
-
-        if (!jointJogCalcs(joint_deltas, shared_variables))
-          continue;
-      }
-      else
-      {
-        outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
-      }
-
-      // Halt if the command is stale or inputs are all zero, or commands were zero
-      shared_variables.lock();
       bool stale_command = shared_variables.command_is_stale;
       shared_variables.unlock();
 
-      if (stale_command || (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd))
+      bool valid_nonzero_command = false;
+      if (!stale_command)
       {
+        // Prioritize cartesian jogging above joint jogging
+        if (have_nonzero_cartesian_cmd)
+        {
+          shared_variables.lock();
+          cartesian_deltas = shared_variables.command_deltas;
+          shared_variables.unlock();
+
+          if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
+            continue;
+        }
+        else if (have_nonzero_joint_cmd)
+        {
+          shared_variables.lock();
+          joint_deltas = shared_variables.joint_command_deltas;
+          shared_variables.unlock();
+
+          if (!jointJogCalcs(joint_deltas, shared_variables))
+            continue;
+        }
+
+        valid_nonzero_command = have_nonzero_cartesian_cmd || have_nonzero_joint_cmd;
+      }
+
+      // If we should halt
+      if (!valid_nonzero_command)
+      {
+        // Keep the joint position filters up-to-date with current joints
+        for (std::size_t i = 0; i < num_joints_; ++i)
+          position_filters_[i].reset(original_joint_state_.position[i]);
+
         suddenHalt(outgoing_command_);
         have_nonzero_cartesian_cmd = false;
         have_nonzero_joint_cmd = false;
@@ -205,8 +205,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
         shared_variables.have_nonzero_joint_cmd = false;
         shared_variables.unlock();
       }
-
-      bool valid_nonzero_command = have_nonzero_cartesian_cmd || have_nonzero_joint_cmd;
 
       // Send the newest target joints
       shared_variables.lock();
