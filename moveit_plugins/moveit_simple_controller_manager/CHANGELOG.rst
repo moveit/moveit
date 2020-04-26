@@ -2,6 +2,16 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [fix]   Handle "default" parameter in MoveitControllerManagers
+  MoveIt{Fake|Simple}ControllerManager::getControllerState() now correctly returns current state
+* [maint] Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
+* [maint] Windows build: Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint] Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [fix]   `ControllerManager`: wait for done-callback (`#1783 <https://github.com/ros-planning/moveit/issues/1783>`_)
+* Contributors: Robert Haschke, Sean Yen, Luca Lach
+
 1.0.2 (2019-06-28)
 ------------------
 
@@ -70,7 +80,7 @@ Changelog for package moveit_simple_controller_manager
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 

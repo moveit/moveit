@@ -2,6 +2,20 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [maint] Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [maint] Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
+* [maint] Windows build fixes
+  * Fix header inclusion and other MSVC build errors (`#1636 <https://github.com/ros-planning/moveit/issues/1636>`_)
+  * Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint] Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [maint] Allow subclassing of point_containment_filter::ShapeMask. (`#1457 <https://github.com/ros-planning/moveit/issues/1457>`_)
+* [fix]   `depth_image_octomap_updater`: reset depth transfer function to standard values (`#1661 <https://github.com/ros-planning/moveit/issues/1661>`_)
+* [fix]   `depth_image_octomap_updater`: correctly set properties of debug images (`#1652 <https://github.com/ros-planning/moveit/issues/1652>`_)
+* [maint] Move `occupancy_map_monitor` into its own package (`#1533 <https://github.com/ros-planning/moveit/issues/1533>`_)
+* Contributors: Martin Pecka, Matthias Nieuwenhuisen, Robert Haschke, Sean Yen, Yu, Yan, jschleicher
+
 1.0.2 (2019-06-28)
 ------------------
 * [maintenance] Removed unnecessary null pointer checks on deletion (`#1410 <https://github.com/ros-planning/moveit/issues/1410>`_)
@@ -84,7 +98,7 @@ Changelog for package moveit_ros_perception
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 

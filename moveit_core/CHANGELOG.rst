@@ -2,6 +2,26 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [feature] Allow to filter for joint when creating a RobotTrajectory message (`#1927 <https://github.com/ros-planning/moveit/issues/1927>`_)
+* [fix]     Fix RobotState::copyFrom()
+* [fix]     Fix segfault in totg (`#1861 <https://github.com/ros-planning/moveit/issues/1861>`_)
+* [fix]     Handle incomplete group states
+* [fix]     Fix issue in totg giving invalid accelerations (`#1729 <https://github.com/ros-planning/moveit/issues/1729>`_)
+* [feature] New isValidVelocityMove() for checking time between two waypoints given velocity (`#684 <https://github.com/ros-planning/moveit/issues/684>`_)
+* [maint]   Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [fix]     Fix Condition for adding current DistanceResultData to DistanceMap (`#1968 <https://github.com/ros-planning/moveit/issues/1968>`_)
+* [maint]   Fix various build issues on Windows (`#1880 <https://github.com/ros-planning/moveit/issues/1880>`_)
+  * remove GCC extensions (`#1583 <https://github.com/ros-planning/moveit/issues/1583>`_)
+  * Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [fix]     Delete attached body before adding a new one with same id (`#1821 <https://github.com/ros-planning/moveit/issues/1821>`_)
+* [maint]   Provide UniquePtr macros (`#1771 <https://github.com/ros-planning/moveit/issues/1771>`_)
+* [maint]   Updated deprecation method: MOVEIT_DEPRECATED -> [[deprecated]] (`#1748 <https://github.com/ros-planning/moveit/issues/1748>`_)
+* [feature] Add RobotTrajectory::getDuration() (`#1554 <https://github.com/ros-planning/moveit/issues/1554>`_)
+* Contributors: Ayush Garg, Dale Koenig, Dave Coleman, Felix von Drigalski, Jafar Abdi, Jeroen, Michael Görner, Mike Lautman, Niklas Fiedler, Robert Haschke, Sean Yen, Yu, Yan
+
 1.0.2 (2019-06-28)
 ------------------
 * [fix] Removed MessageFilter for /collision_object messages (`#1406 <https://github.com/ros-planning/moveit/issues/1406>`_)
@@ -133,7 +153,7 @@ Changelog for package moveit_core
 0.9.9 (2017-08-06)
 ------------------
 * [fix][moveit_core] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
-* [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_) 
+* [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
 * Contributors: Martin Pecka, henhenhen
 
 0.9.8 (2017-06-21)
@@ -151,7 +171,7 @@ Changelog for package moveit_core
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 
@@ -209,7 +229,7 @@ Changelog for package moveit_core
 * [fix] New getOnlyOneEndEffectorTip() function `#262 <https://github.com/ros-planning/moveit_core/issues/262>`_
 * [fix] issue `#258 <https://github.com/ros-planning/moveit_core/issues/258>`_ in jade-devel `#266 <https://github.com/ros-planning/moveit_core/issues/266>`_
 * [fix] Segfault in parenthesis operator `#254 <https://github.com/ros-planning/moveit_core/issues/254>`_
-* [fix] API Change of shape_tools `#242 <https://github.com/ros-planning/moveit_core/issues/242>`_  
+* [fix] API Change of shape_tools `#242 <https://github.com/ros-planning/moveit_core/issues/242>`_
 * [fix] Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints. `#250 <https://github.com/ros-planning/moveit_core/issues/250>`_
 * [fix] Prevent divide by zero `#246 <https://github.com/ros-planning/moveit_core/issues/246>`_
 * [fix] removed the 'f' float specifiers and corrected misspelled method name

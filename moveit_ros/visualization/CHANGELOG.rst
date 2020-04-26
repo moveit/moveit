@@ -2,6 +2,35 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [fix]     `MotionPlanningDisplay`: change internal shortcut Ctrl+R to Ctrl+I (`#1967 <https://github.com/ros-planning/moveit/issues/1967>`_)
+* [fix]     Remove `PlanningSceneInterface` from rviz display, but use its `PlanningSceneMonitor` instead
+* [fix]     Fix segfault in `RobotStateVisualization` (`#1941 <https://github.com/ros-planning/moveit/issues/1941>`_)
+* [feature] Provide visual feedback on success of requestPlanningSceneState()
+* [feature] Wait for `get_planning_scene` in background (`#1934 <https://github.com/ros-planning/moveit/issues/1934>`_)
+* [feature] Reduce step size for pose-adapting widgets
+* [fix]     Reset `scene_marker` when disabling motion planning panel
+* [fix]     Enable/disable motion planning panel with display
+* [fix]     Enable/disable pose+scale group box when collision object is selected/deselected
+* [fix]     Correctly populate the list of scene objects in the motion planning panel
+* [feature] Resize scene marker with collision object
+* [feature] Show attached bodies in trajectory trail (`#1766 <https://github.com/ros-planning/moveit/issues/1766>`_)
+* [fix]     Fix `REALTIME` trajectory playback (`#1683 <https://github.com/ros-planning/moveit/issues/1683>`_)
+* [maint]   Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [maint]   Notice changes in rviz planning panel requiring saving (`#1991 <https://github.com/ros-planning/moveit/issues/1991>`_)
+* [maint]   Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
+* [maint]   Improve Python 3 compatibility (`#1870 <https://github.com/ros-planning/moveit/issues/1870>`_)
+  * Replaced StringIO with BytesIO for python msg serialization
+  * Use py_bindings_tools::ByteString as byte-based serialization buffer on C++ side
+* [maint]   Windows build: Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [fix]     Fix pruning of enclosed nodes when rendering octomap in RViz (`#1685 <https://github.com/ros-planning/moveit/issues/1685>`_)
+* [fix]     Fix missing `scene_manager` initialization in OcTreeRender's  constructor (`#1817 <https://github.com/ros-planning/moveit/issues/1817>`_)
+* [feature] new `Joints` tab in RViz motion panel (`#1308 <https://github.com/ros-planning/moveit/issues/1308>`_)
+* [feature] Add `<previous>` robot state to RViz motion panel (`#1742 <https://github.com/ros-planning/moveit/issues/1742>`_)
+* Contributors: Bjar Ne, Dale Koenig, MarqRazz, Max Krichenbauer, Michael Görner, Robert Haschke, RyodoTanaka, Sean Yen, Takara Kasai, Yannick Jonetzko, Yu, Yan, v4hn
+
 1.0.2 (2019-06-28)
 ------------------
 * [maintenance] Removed unnecessary null pointer checks on deletion (`#1410 <https://github.com/ros-planning/moveit/issues/1410>`_)
@@ -118,8 +147,8 @@ Changelog for package moveit_ros_visualization
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)" 
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)"
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman, Isaac I.Y. Saito, Yannick Jonetzko
 

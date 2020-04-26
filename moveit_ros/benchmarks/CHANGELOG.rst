@@ -2,6 +2,24 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [feature] MoveIt benchmark improvements (`#1510 <https://github.com/ros-planning/moveit/issues/1510>`_)
+  * Add pseudo experiment all_experiments to allow comparing all entries
+  * Expose loadBenchmarkQueryData() for setting up custom queries
+  * Add benchmark entry for comparing the 'final' result trajectory
+  * Add trajectory similarity function to measure repeatability
+  * Address requested changes
+  * Fill empty fields in all_experiments
+  * Improve variable and function names
+  * Add helper function computeTrajectoryDistance()
+* [maint]   Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [maint]   Windows build fixes
+  * Fix header inclusion and other MSVC build errors (`#1636 <https://github.com/ros-planning/moveit/issues/1636>`_)
+  * Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* Contributors: Henning Kayser, Michael Görner, Robert Haschke, Sean Yen, Yu, Yan
+
 1.0.2 (2019-06-28)
 ------------------
 * [maintenance] Removed unnecessary null pointer checks on deletion (`#1410 <https://github.com/ros-planning/moveit/issues/1410>`_)
@@ -74,7 +92,7 @@ Changelog for package moveit_ros_benchmarks
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * Contributors: Bence Magyar, Dave Coleman
 

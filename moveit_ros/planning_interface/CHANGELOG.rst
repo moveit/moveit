@@ -2,6 +2,31 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2020-04-26)
+------------------
+* [feature] `MoveGroupInterface`: Add execution methods for moveit_msgs::RobotTrajectory (`#1955 <https://github.com/ros-planning/moveit/issues/1955>`_)
+* [feature] Allow to instantiate a `PlanningSceneInterface` w/ and w/o a running `move_group` node
+* [fix]     Release Python `GIL` for C++ calls (`#1947 <https://github.com/ros-planning/moveit/issues/1947>`_)
+* [feature] Expose reference_point_position parameter in getJacobian() (`#1595 <https://github.com/ros-planning/moveit/issues/1595>`_)
+* [feature] `MoveGroupInterface`: Expose `constructPickGoal` and `constructPlaceGoal` (`#1498 <https://github.com/ros-planning/moveit/issues/1498>`_)
+* [feature] `python MoveGroupInterface`: Added custom time limit for `wait_for_servers()` (`#1444 <https://github.com/ros-planning/moveit/issues/1444>`_)
+* [maint]   Apply clang-tidy fix to entire code base (`#1394 <https://github.com/ros-planning/moveit/issues/1394>`_)
+* [maint]   Fix errors: catkin_lint 1.6.7 (`#1987 <https://github.com/ros-planning/moveit/issues/1987>`_)
+* [maint]   Improve Python 3 compatibility (`#1870 <https://github.com/ros-planning/moveit/issues/1870>`_)
+  * Replaced StringIO with BytesIO for python msg serialization
+  * Use py_bindings_tools::ByteString as byte-based serialization buffer on C++ side
+* [feature] Export moveit_py_bindings_tools library
+* [maint]   Fix various build issues on Windows
+  * Use `.pyd` as the output suffix for Python module on Windows. (`#1637 <https://github.com/ros-planning/moveit/issues/1637>`_)
+  * Favor ros::Duration.sleep over sleep. (`#1634 <https://github.com/ros-planning/moveit/issues/1634>`_)
+  * Fix binary artifact install locations. (`#1575 <https://github.com/ros-planning/moveit/issues/1575>`_)
+* [maint]   Use CMAKE_CXX_STANDARD to enforce c++14 (`#1607 <https://github.com/ros-planning/moveit/issues/1607>`_)
+* [maint]   Updated deprecation method: MOVEIT_DEPRECATED -> [[deprecated]] (`#1748 <https://github.com/ros-planning/moveit/issues/1748>`_)
+* [maint]   `eigenpy`: switched to system package (`#1737 <https://github.com/ros-planning/moveit/issues/1737>`_)
+* [featue]  `PlanningSceneInterface`: wait for its two services
+* [feature] Select time parametrization algorithm in retime_trajectory (`#1508 <https://github.com/ros-planning/moveit/issues/1508>`_)
+* Contributors: Bjar Ne, Felix von Drigalski, Kunal Tyagi, Luca Rinelli, Masaki Murooka, Michael Görner, Niklas Fiedler, Robert Haschke, Sean Yen, Yu, Yan, mvieth, v4hn
+
 1.0.2 (2019-06-28)
 ------------------
 * [maintenance] Removed unnecessary null pointer checks on deletion (`#1410 <https://github.com/ros-planning/moveit/issues/1410>`_)
@@ -96,7 +121,7 @@ Changelog for package moveit_ros_planning_interface
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
 * [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
 * Contributors: Bence Magyar, Dave Coleman
