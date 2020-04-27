@@ -72,8 +72,9 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
   ss.body = bodies::createBodyFromShape(shape.get());
   if (ss.body)
   {
-    ss.body->setScale(scale);
-    ss.body->setPadding(padding);
+    ss.body->setScaleDirty(scale);
+    ss.body->setPaddingDirty(padding);
+    ss.body->updateInternalData();
     ss.volume = ss.body->computeVolume();
     ss.handle = next_handle_;
     std::pair<std::set<SeeShape, SortBodies>::iterator, bool> insert_op = bodies_.insert(ss);
