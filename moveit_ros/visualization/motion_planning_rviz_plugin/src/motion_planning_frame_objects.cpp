@@ -56,6 +56,20 @@
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
+namespace
+{
+QString subframe_poses_to_qstring(const moveit::core::FixedTransformsMap& subframes)
+{
+  QString status_text = "\nIt has the subframes '";
+  for (auto subframe : subframes)
+  {
+    status_text += QString::fromStdString(subframe.first) + "', '";
+  }
+  status_text.chop(3);
+  status_text += ".";
+}
+}  // namespace
+
 namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::importFileButtonClicked()
@@ -179,13 +193,7 @@ static QString decideStatusText(const collision_detection::CollisionEnv::ObjectC
   }
   if (!obj->subframe_poses_.empty())
   {
-    status_text += "\nIt has the subframes '";
-    for (auto subframe : obj->subframe_poses_)
-    {
-      status_text += QString::fromStdString(subframe.first) + "', '";
-    }
-    status_text.chop(3);
-    status_text += ".";
+    status_text += subframe_poses_to_qstring(obj->subframe_poses_);
   }
   return status_text;
 }
@@ -196,13 +204,7 @@ static QString decideStatusText(const moveit::core::AttachedBody* attached_body)
                         QString::fromStdString(attached_body->getAttachedLinkName()) + "'.";
   if (!attached_body->getSubframeTransforms().empty())
   {
-    status_text += "\nIt has the subframes '";
-    for (auto ab : attached_body->getSubframeTransforms())
-    {
-      status_text += QString::fromStdString(ab.first) + "', '";
-    }
-    status_text.chop(3);
-    status_text += ".";
+    status_text += subframe_poses_to_qstring(attached_body->getSubframeTransforms());
   }
   return status_text;
 }
