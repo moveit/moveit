@@ -155,7 +155,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
 void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsg& startStatesMsg,
                                            PlannedTrajMsgs& plannedTrajsMsgs)
 {
-    robot_state::robotStateToRobotStateMsg(trajs.at(0).trajectory_->getFirstWayPoint(), startStatesMsg);
+  robot_state::robotStateToRobotStateMsg(trajs.at(0).trajectory_->getFirstWayPoint(), startStatesMsg);
   plannedTrajsMsgs.resize(trajs.size());
   for (size_t i = 0; i < trajs.size(); ++i)
   {

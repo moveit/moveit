@@ -76,8 +76,7 @@ private:
                                 plan_execution::ExecutableMotionPlan& plan);
 
 private:
-  static void convertToMsg(const ExecutableTrajs& trajs, 
-                           StartStateMsg& startStatesMsg,
+  static void convertToMsg(const ExecutableTrajs& trajs, StartStateMsg& startStatesMsg,
                            PlannedTrajMsgs& plannedTrajsMsgs);
 
 private:

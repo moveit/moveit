@@ -90,8 +90,7 @@ bool MoveGroupSequenceService::plan(moveit_msgs::GetMotionSequence::Request& req
   res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), 
-                                                  res.response.sequence_start,
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.sequence_start,
                                                   res.response.planned_trajectories.at(i));
   }
   res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
