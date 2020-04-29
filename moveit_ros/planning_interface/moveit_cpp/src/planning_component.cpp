@@ -81,7 +81,7 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const MoveIt
     throw std::runtime_error(error);
   }
   planning_pipeline_names_ = moveit_cpp_->getPlanningPipelineNames(group_name);
-  plan_request_parameters_.load(nh_, !planning_pipeline_names_.empty() ? *planning_pipeline_names_.begin() : "");
+  plan_request_parameters_.load(nh_);
   ROS_DEBUG_STREAM_NAMED(
       LOGNAME, "Plan request parameters loaded with --"
                    << " planning_pipeline: " << plan_request_parameters_.planning_pipeline << ","

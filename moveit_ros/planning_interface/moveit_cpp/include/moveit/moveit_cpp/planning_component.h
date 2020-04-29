@@ -113,11 +113,11 @@ public:
     double max_velocity_scaling_factor;
     double max_acceleration_scaling_factor;
 
-    void load(const ros::NodeHandle& nh, const std::string& default_planning_pipeline)
+    void load(const ros::NodeHandle& nh)
     {
       std::string ns = "plan_request_params/";
       nh.param(ns + "planner_id", planner_id, std::string(""));
-      nh.param(ns + "planning_pipeline", planning_pipeline, default_planning_pipeline);
+      nh.param(ns + "planning_pipeline", planning_pipeline, std::string(""));
       nh.param(ns + "planning_time", planning_attempts, 1);
       nh.param(ns + "planning_attempts", planning_time, 5.0);
       nh.param(ns + "max_velocity_scaling_factor", max_velocity_scaling_factor, 1.0);
