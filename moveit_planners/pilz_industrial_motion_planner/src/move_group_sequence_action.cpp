@@ -156,7 +156,7 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   }
   catch (std::out_of_range)
   {
-    ROS_WARN("Can not determin start state from empty sequence.");
+    ROS_WARN("Can not determine start state from empty sequence.");
   }
   action_res.response.error_code = plan.error_code_;
 }
@@ -208,6 +208,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   // LCOV_EXCL_STOP
 
   StartStatesMsg startStatesMsg;
+  startStatesMsg.resize(traj_vec.size());
   res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
@@ -220,7 +221,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   }
   catch (std::out_of_range)
   {
-    ROS_WARN("Can not determin start state from empty sequence.");
+    ROS_WARN("Can not determine start state from empty sequence.");
   }
 
   res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
