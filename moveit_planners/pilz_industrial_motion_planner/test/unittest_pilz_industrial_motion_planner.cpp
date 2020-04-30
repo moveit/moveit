@@ -93,7 +93,7 @@ protected:
     }
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
     planner_plugin_loader_->unloadLibraryForClass(planner_plugin_name_);
   }
