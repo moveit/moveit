@@ -274,25 +274,25 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
+  // Set uncontrolled dimensions to 0 in command frame
+  if (!shared_variables.control_dimensions[0])
+    cmd.twist.linear.x = 0;
+  if (!shared_variables.control_dimensions[1])
+    cmd.twist.linear.y = 0;
+  if (!shared_variables.control_dimensions[2])
+    cmd.twist.linear.z = 0;
+  if (!shared_variables.control_dimensions[3])
+    cmd.twist.angular.x = 0;
+  if (!shared_variables.control_dimensions[4])
+    cmd.twist.angular.y = 0;
+  if (!shared_variables.control_dimensions[5])
+    cmd.twist.angular.z = 0;
+
   // Transform the command to the MoveGroup planning frame
   if (cmd.header.frame_id != parameters_.planning_frame)
   {
     Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
     Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
-
-    // Set uncontrolled dimensions to 0 in command frame
-    if (!shared_variables.control_dimensions[0])
-      translation_vector(0) = 0;
-    if (!shared_variables.control_dimensions[1])
-      translation_vector(1) = 0;
-    if (!shared_variables.control_dimensions[2])
-      translation_vector(2) = 0;
-    if (!shared_variables.control_dimensions[3])
-      angular_vector(0) = 0;
-    if (!shared_variables.control_dimensions[4])
-      angular_vector(1) = 0;
-    if (!shared_variables.control_dimensions[5])
-      angular_vector(2) = 0;
 
     // We solve (planning_frame -> base -> cmd.header.frame_id)
     // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
