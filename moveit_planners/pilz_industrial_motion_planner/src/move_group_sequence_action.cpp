@@ -148,17 +148,27 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
 
-  convertToMsg(plan.plan_components_, action_res.response.sequence_start, action_res.response.planned_trajectories);
+  StartStatesMsg startStatesMsg;
+  convertToMsg(plan.plan_components_, startStatesMsg, action_res.response.planned_trajectories);
+  try
+  {
+    action_res.response.sequence_start = startStatesMsg.at(0);
+  }
+  catch (std::out_of_range)
+  {
+    ROS_WARN("Can not determin start state from empty sequence.");
+  }
   action_res.response.error_code = plan.error_code_;
 }
 
-void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStateMsg& startStatesMsg,
+void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStatesMsg& startStatesMsg,
                                            PlannedTrajMsgs& plannedTrajsMsgs)
 {
-  robot_state::robotStateToRobotStateMsg(trajs.at(0).trajectory_->getFirstWayPoint(), startStatesMsg);
+  startStatesMsg.resize(trajs.size());
   plannedTrajsMsgs.resize(trajs.size());
   for (size_t i = 0; i < trajs.size(); ++i)
   {
+    robot_state::robotStateToRobotStateMsg(trajs.at(i).trajectory_->getFirstWayPoint(), startStatesMsg.at(i));
     trajs.at(i).trajectory_->getRobotTrajectoryMsg(plannedTrajsMsgs.at(i));
   }
 }
@@ -184,7 +194,7 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   }
   catch (const MoveItErrorCodeException& ex)
   {
-    ROS_ERROR_STREAM("Planning pipeline threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
+    ROS_ERROR_STREAM("> Planning pipeline threw an exception (error code: " << ex.getErrorCode() << "): " << ex.what());
     res.response.error_code.val = ex.getErrorCode();
     return;
   }
@@ -197,12 +207,22 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   }
   // LCOV_EXCL_STOP
 
+  StartStatesMsg startStatesMsg;
   res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), res.response.sequence_start,
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), startStatesMsg.at(i),
                                                   res.response.planned_trajectories.at(i));
   }
+  try
+  {
+    res.response.sequence_start = startStatesMsg.at(0);
+  }
+  catch (std::out_of_range)
+  {
+    ROS_WARN("Can not determin start state from empty sequence.");
+  }
+
   res.response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   res.response.planning_time = ros::Time::now().toSec() - planning_start.toSec();
 }
