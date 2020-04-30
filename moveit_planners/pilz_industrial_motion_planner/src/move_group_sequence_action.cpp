@@ -148,11 +148,11 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   plan_execution::ExecutableMotionPlan plan;
   context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
 
-  StartStatesMsg startStatesMsg;
-  convertToMsg(plan.plan_components_, startStatesMsg, action_res.response.planned_trajectories);
+  StartStatesMsg start_states_msg;
+  convertToMsg(plan.plan_components_, start_states_msg, action_res.response.planned_trajectories);
   try
   {
-    action_res.response.sequence_start = startStatesMsg.at(0);
+    action_res.response.sequence_start = start_states_msg.at(0);
   }
   catch (std::out_of_range)
   {
@@ -161,15 +161,15 @@ void MoveGroupSequenceAction::executeSequenceCallbackPlanAndExecute(
   action_res.response.error_code = plan.error_code_;
 }
 
-void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStatesMsg& startStatesMsg,
-                                           PlannedTrajMsgs& plannedTrajsMsgs)
+void MoveGroupSequenceAction::convertToMsg(const ExecutableTrajs& trajs, StartStatesMsg& start_states_msg,
+                                           PlannedTrajMsgs& planned_trajs_msgs)
 {
-  startStatesMsg.resize(trajs.size());
-  plannedTrajsMsgs.resize(trajs.size());
+  start_states_msg.resize(trajs.size());
+  planned_trajs_msgs.resize(trajs.size());
   for (size_t i = 0; i < trajs.size(); ++i)
   {
-    robot_state::robotStateToRobotStateMsg(trajs.at(i).trajectory_->getFirstWayPoint(), startStatesMsg.at(i));
-    trajs.at(i).trajectory_->getRobotTrajectoryMsg(plannedTrajsMsgs.at(i));
+    robot_state::robotStateToRobotStateMsg(trajs.at(i).trajectory_->getFirstWayPoint(), start_states_msg.at(i));
+    trajs.at(i).trajectory_->getRobotTrajectoryMsg(planned_trajs_msgs.at(i));
   }
 }
 
@@ -207,17 +207,17 @@ void MoveGroupSequenceAction::executeMoveCallbackPlanOnly(const moveit_msgs::Mov
   }
   // LCOV_EXCL_STOP
 
-  StartStatesMsg startStatesMsg;
-  startStatesMsg.resize(traj_vec.size());
+  StartStatesMsg start_states_msg;
+  start_states_msg.resize(traj_vec.size());
   res.response.planned_trajectories.resize(traj_vec.size());
   for (RobotTrajCont::size_type i = 0; i < traj_vec.size(); ++i)
   {
-    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), startStatesMsg.at(i),
+    move_group::MoveGroupCapability::convertToMsg(traj_vec.at(i), start_states_msg.at(i),
                                                   res.response.planned_trajectories.at(i));
   }
   try
   {
-    res.response.sequence_start = startStatesMsg.at(0);
+    res.response.sequence_start = start_states_msg.at(0);
   }
   catch (std::out_of_range)
   {
