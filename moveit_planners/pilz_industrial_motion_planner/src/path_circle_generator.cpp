@@ -57,9 +57,9 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromCenter(const KDL::Fram
   try
   {
     KDL::epsilon = MAX_COLINEAR_NORM;
-    auto circle = std::unique_ptr<KDL::Path>(new KDL::Path_Circle(start_pose, center_point, goal_pose.p, goal_pose.M, alpha,
-                                                                  rot_interpo, eqradius,
-                                                                  true /* take ownership of RotationalInterpolation */));
+    auto circle = std::unique_ptr<KDL::Path>(
+        new KDL::Path_Circle(start_pose, center_point, goal_pose.p, goal_pose.M, alpha, rot_interpo, eqradius,
+                             true /* take ownership of RotationalInterpolation */));
     KDL::epsilon = old_kdl_epsilon;
     return circle;
   }
