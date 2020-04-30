@@ -100,3 +100,5 @@
 /moveit_planners/chomp/chomp_optimizer_adapter/	            @raghavendersahdev @knorth55 @bmagyar
 /moveit_planners/chomp/chomp_motion_planner/	            @raghavendersahdev @knorth55 @bmagyar
 /moveit_planners/trajopt                                    @ommmid @mamoll
+/moveit_planners/pilz_industrial_motion_planner             @jschleicher @ct2034
+/moveit_planners/pilz_industrial_motion_planner_testutils/  @jschleicher @ct2034
