@@ -16,7 +16,6 @@ env:
     - ROS_DISTRO=melodic
     - ROS_REPO=ros
     - UPSTREAM_WORKSPACE=moveit.rosinstall
-    - TEST_BLACKLIST=moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
     - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-function"
     - WARNINGS_OK=false
 
