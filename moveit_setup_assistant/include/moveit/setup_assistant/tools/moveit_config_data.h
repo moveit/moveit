@@ -43,6 +43,10 @@
 #include <urdf/model.h>                                               // to share throughout app
 #include <srdfdom/srdf_writer.h>                                      // for writing srdf data
 
+
+#include <utility>
+
+
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
@@ -143,15 +147,15 @@ public:
 
   void setName(std::string name)
   {
-    name_ = name;
+    name_ = std::move(name);
   };
   void setValue(std::string value)
   {
-    value_ = value;
+    value_ = std::move(value);
   };
   void setComment(std::string comment)
   {
-    comment_ = comment;
+    comment_ = std::move(comment);
   };
   std::string getName()
   {
