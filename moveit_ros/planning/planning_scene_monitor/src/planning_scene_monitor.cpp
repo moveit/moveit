@@ -370,6 +370,11 @@ void PlanningSceneMonitor::scenePublishingThread()
             if (octomap_monitor_)
               lock = octomap_monitor_->getOcTreePtr()->reading();
             scene_->getPlanningSceneDiffMsg(msg);
+            if (new_scene_update_ == UPDATE_STATE)
+            {
+              msg.robot_state.attached_collision_objects.clear();
+              msg.robot_state.is_diff = true;
+            }
           }
           boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_);  // we don't want the
                                                                                                  // transform cache to
