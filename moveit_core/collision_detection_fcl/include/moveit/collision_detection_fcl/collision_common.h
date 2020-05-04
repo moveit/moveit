@@ -360,4 +360,4 @@ inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
 
   cs.cost = fcs.cost_density;
 }
-}
+}  // namespace collision_detection

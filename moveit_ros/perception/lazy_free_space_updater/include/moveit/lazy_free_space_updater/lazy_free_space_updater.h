@@ -87,4 +87,4 @@ private:
   boost::thread update_thread_;
   boost::thread process_thread_;
 };
-}
+}  // namespace occupancy_map_monitor

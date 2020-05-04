@@ -101,4 +101,4 @@ public:
   virtual bool pointSensorTo(const std::string& name, const geometry_msgs::PointStamped& target,
                              moveit_msgs::RobotTrajectory& sensor_trajectory) = 0;
 };
-}
+}  // namespace moveit_sensor_manager

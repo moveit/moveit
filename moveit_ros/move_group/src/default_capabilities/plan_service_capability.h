@@ -53,4 +53,4 @@ private:
 
   ros::ServiceServer plan_service_;
 };
-}
+}  // namespace move_group

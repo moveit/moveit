@@ -719,4 +719,4 @@ public:
     return planning_scene_monitor_->getPlanningScene();
   }
 };
-}
+}  // namespace planning_scene_monitor

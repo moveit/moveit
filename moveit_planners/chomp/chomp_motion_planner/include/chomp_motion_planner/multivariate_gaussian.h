@@ -91,4 +91,4 @@ void MultivariateGaussian::sample(Eigen::MatrixBase<Derived>& output)
     output(i) = gaussian_();
   output = mean_ + covariance_cholesky_ * output;
 }
-}
+}  // namespace chomp

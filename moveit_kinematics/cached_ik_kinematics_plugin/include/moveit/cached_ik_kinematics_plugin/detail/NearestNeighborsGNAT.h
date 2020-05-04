@@ -718,4 +718,4 @@ protected:
   // \brief Cache of removed elements.
   std::unordered_set<const _T*> removed_;
 };
-}
+}  // namespace cached_ik_kinematics_plugin

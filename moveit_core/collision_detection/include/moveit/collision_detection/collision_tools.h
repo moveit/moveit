@@ -70,4 +70,4 @@ bool getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource
 
 void costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg);
 void contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg);
-}
+}  // namespace collision_detection

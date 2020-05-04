@@ -161,5 +161,5 @@ private:
 
   ros::Publisher planning_scene_diff_publisher_;
 };
-}
-}
+}  // namespace semantic_world
+}  // namespace moveit

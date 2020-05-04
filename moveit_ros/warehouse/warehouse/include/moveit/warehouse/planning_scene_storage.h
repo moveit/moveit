@@ -118,4 +118,4 @@ private:
   MotionPlanRequestCollection motion_plan_request_collection_;
   RobotTrajectoryCollection robot_trajectory_collection_;
 };
-}
+}  // namespace moveit_warehouse

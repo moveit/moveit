@@ -344,6 +344,6 @@ public:
                         const KinematicsQueryOptions& options = KinematicsQueryOptions(),
                         const moveit::core::RobotState* context_state = nullptr) const override;
 };
-}
+}  // namespace cached_ik_kinematics_plugin
 
 #include "cached_ik_kinematics_plugin-inl.h"

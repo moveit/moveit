@@ -53,4 +53,4 @@ public:
              const planning_interface::MotionPlanRequest& req, const ChompParameters& params,
              planning_interface::MotionPlanDetailedResponse& res) const;
 };
-}
+}  // namespace chomp

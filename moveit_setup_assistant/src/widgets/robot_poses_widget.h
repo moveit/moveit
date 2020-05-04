@@ -290,7 +290,7 @@ private:
   // ******************************************************************************************
 };
 
-}  // namespace
+}  // namespace moveit_setup_assistant
 
 // Declare std::string as metatype so we can use it in a signal
 Q_DECLARE_METATYPE(std::string)

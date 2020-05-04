@@ -1844,5 +1844,5 @@ private:
 
 /** \brief Operator overload for printing variable bounds to a stream */
 std::ostream& operator<<(std::ostream& out, const RobotState& s);
-}
-}
+}  // namespace core
+}  // namespace moveit

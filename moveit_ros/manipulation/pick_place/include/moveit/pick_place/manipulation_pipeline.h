@@ -115,4 +115,4 @@ protected:
 
   bool stop_processing_;
 };
-}
+}  // namespace pick_place

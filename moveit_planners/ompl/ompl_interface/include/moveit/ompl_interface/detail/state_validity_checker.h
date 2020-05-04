@@ -87,4 +87,4 @@ protected:
   collision_detection::CollisionRequest collision_request_with_cost_;
   bool verbose_;
 };
-}
+}  // namespace ompl_interface

@@ -75,7 +75,7 @@ enum DiscretizationMethod
   SOME_RANDOM_SAMPLED /**< the discretization for some redundant joint will be randomly generated.
                            The unused redundant joints will be fixed at their current value. */
 };
-}
+}  // namespace DiscretizationMethods
 typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
 
 /*
@@ -97,7 +97,7 @@ enum KinematicError
   NO_SOLUTION                          /**< A valid joint solution that can reach this pose(s) could not be found */
 
 };
-}
+}  // namespace KinematicErrors
 typedef KinematicErrors::KinematicError KinematicError;
 
 /**
@@ -663,4 +663,4 @@ protected:
 private:
   std::string removeSlash(const std::string& str) const;
 };
-};
+}  // namespace kinematics

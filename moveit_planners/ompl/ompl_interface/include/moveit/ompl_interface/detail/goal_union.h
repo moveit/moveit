@@ -81,4 +81,4 @@ protected:
   std::vector<ompl::base::GoalPtr> goals_;
   mutable unsigned int gindex_;
 };
-}
+}  // namespace ompl_interface

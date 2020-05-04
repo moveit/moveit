@@ -97,4 +97,4 @@ protected:
   std::string capability_name_;
   MoveGroupContextPtr context_;
 };
-}
+}  // namespace move_group

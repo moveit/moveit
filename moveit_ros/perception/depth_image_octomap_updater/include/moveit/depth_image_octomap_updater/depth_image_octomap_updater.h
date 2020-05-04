@@ -105,4 +105,4 @@ private:
   std::vector<unsigned int> filtered_labels_;
   ros::WallTime last_depth_callback_start_;
 };
-}
+}  // namespace occupancy_map_monitor

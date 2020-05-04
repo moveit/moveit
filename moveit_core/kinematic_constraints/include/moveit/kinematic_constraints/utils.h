@@ -214,4 +214,4 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
  * @param [in] constraints The constraint to resolve.
  */
 bool resolveConstraintFrames(const moveit::core::RobotState& state, moveit_msgs::Constraints& constraints);
-}
+}  // namespace kinematic_constraints

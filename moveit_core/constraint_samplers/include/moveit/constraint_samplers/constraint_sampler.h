@@ -294,4 +294,4 @@ protected:
   moveit::core::GroupStateValidityCallbackFn group_state_validity_callback_;
   bool verbose_;  ///< True if verbosity is on
 };
-}
+}  // namespace constraint_samplers

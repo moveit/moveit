@@ -309,4 +309,4 @@ private:
   // remove '_' characters from name
   static std::string fixName(std::string name);
 };
-}
+}  // namespace robot_interaction

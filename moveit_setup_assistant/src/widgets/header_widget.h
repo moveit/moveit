@@ -117,4 +117,4 @@ public:
   void setArgs(const QString& args);
   void setArgsEnabled(bool enabled = true);
 };
-}
+}  // namespace moveit_setup_assistant

@@ -94,5 +94,5 @@ protected:
 private:
   double x2_, y2_, z2_, xy_, xz_, yz_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

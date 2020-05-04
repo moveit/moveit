@@ -232,4 +232,4 @@ private:
   // options for doing IK
   KinematicOptionsMapPtr kinematic_options_map_;
 };
-}
+}  // namespace robot_interaction

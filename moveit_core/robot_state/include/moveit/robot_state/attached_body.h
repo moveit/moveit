@@ -188,5 +188,5 @@ private:
   /** \brief Transforms to subframes on the object, relative to the model frame. */
   moveit::core::FixedTransformsMap global_subframe_poses_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

@@ -87,4 +87,4 @@ struct KinematicOptions
   /// other options
   kinematics::KinematicsQueryOptions options_;
 };
-}
+}  // namespace robot_interaction

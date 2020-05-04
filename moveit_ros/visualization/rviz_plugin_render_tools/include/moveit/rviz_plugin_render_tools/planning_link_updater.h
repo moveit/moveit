@@ -60,4 +60,4 @@ public:
 private:
   moveit::core::RobotStateConstPtr kinematic_state_;
 };
-}
+}  // namespace moveit_rviz_plugin

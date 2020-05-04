@@ -255,4 +255,4 @@ private:
   unsigned int progress_;
   bool canceled_;
 };
-}
+}  // namespace moveit_setup_assistant
