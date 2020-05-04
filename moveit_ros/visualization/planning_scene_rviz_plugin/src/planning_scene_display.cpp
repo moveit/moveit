@@ -115,8 +115,8 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   octree_coloring_property_->addOption("Cell Probability", OCTOMAP_PROBABLILTY_COLOR);
 
   scene_display_time_property_ =
-      new rviz::FloatProperty("Scene Display Time", 0.2f, "The amount of wall-time to wait in between rendering "
-                                                          "updates to the planning scene (if any)",
+      new rviz::FloatProperty("Scene Display Time", 0.01f, "The amount of wall-time to wait in between rendering "
+                                                           "updates to the planning scene (if any)",
                               scene_category_, SLOT(changedSceneDisplayTime()), this);
   scene_display_time_property_->setMin(0.0001);
 
