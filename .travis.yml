@@ -22,6 +22,7 @@ env:
     - WARNINGS_OK=false
 
 jobs:
+  fast_finish: true
   include:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
@@ -34,6 +35,8 @@ jobs:
            CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
     - if: branch =~ /^(.*-devel|master)$/
       env: ROS_REPO=ros-shadow-fixed
+  allow_failures:
+    - env: TEST=code-coverage
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
