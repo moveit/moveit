@@ -336,10 +336,17 @@ void PlanningSceneDisplay::renderPlanningScene()
   try
   {
     const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
-    planning_scene_render_->renderPlanningScene(
-        ps, env_color, attached_color, static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
-        static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
-        scene_alpha_property_->getFloat());
+    if (planning_scene_needs_render_)
+    {
+      planning_scene_render_->renderPlanningScene(
+          ps, env_color, attached_color, static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
+          static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
+          scene_alpha_property_->getFloat());
+    }
+    else
+    {
+      planning_scene_render_->updateRobotPosition(ps);
+    }
   }
   catch (std::exception& ex)
   {
@@ -633,12 +640,14 @@ void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 void PlanningSceneDisplay::updateInternal(float wall_dt, float /*ros_dt*/)
 {
   current_scene_time_ += wall_dt;
-  if (current_scene_time_ > scene_display_time_property_->getFloat() && planning_scene_render_ &&
+  if ((current_scene_time_ > scene_display_time_property_->getFloat() && planning_scene_render_ &&
+       robot_state_needs_render_) ||
       planning_scene_needs_render_)
   {
     renderPlanningScene();
     calculateOffsetPosition();
     current_scene_time_ = 0.0f;
+    robot_state_needs_render_ = false;
     planning_scene_needs_render_ = false;
   }
 }

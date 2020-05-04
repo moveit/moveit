@@ -37,6 +37,7 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <rviz/robot/robot_link.h>
 #include <QApplication>
 
 namespace moveit_rviz_plugin
@@ -100,7 +101,7 @@ void RobotStateVisualization::update(const moveit::core::RobotStateConstPtr& kin
                                      const std_msgs::ColorRGBA& default_attached_object_color,
                                      const std::map<std::string, std_msgs::ColorRGBA>& color_map)
 {
-    updateHelper(kinematic_state, default_attached_object_color, &color_map);
+  updateHelper(kinematic_state, default_attached_object_color, &color_map);
 }
 
 void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPtr& kinematic_state,
@@ -130,8 +131,8 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
     rviz::RobotLink* link = robot_.getLink(attached_body->getAttachedLinkName());
     if (!link)
     {
-        ROS_ERROR_STREAM("Link " << attached_body->getAttachedLinkName() << " not found in rviz::Robot");
-        continue;
+      ROS_ERROR_STREAM("Link " << attached_body->getAttachedLinkName() << " not found in rviz::Robot");
+      continue;
     }
     rviz::Color rcolor(color.r, color.g, color.b);
     const EigenSTL::vector_Isometry3d& ab_t = attached_body->getFixedTransforms();
@@ -147,6 +148,11 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
   robot_.setVisualVisible(visual_visible_);
   robot_.setCollisionVisible(collision_visible_);
   robot_.setVisible(visible_);
+}
+
+void RobotStateVisualization::updateKinematicState(const moveit::core::RobotStateConstPtr& kinematic_state)
+{
+  robot_.update(PlanningLinkUpdater(kinematic_state));
 }
 
 void RobotStateVisualization::setVisible(bool visible)

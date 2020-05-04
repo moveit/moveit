@@ -191,7 +191,10 @@ protected:
   RobotStateVisualizationPtr planning_scene_robot_;
   PlanningSceneRenderPtr planning_scene_render_;
 
+  // full update required
   bool planning_scene_needs_render_;
+  // or only the robot position (excluding attached object changes)
+  bool robot_state_needs_render_;
   float current_scene_time_;
 
   rviz::Property* scene_category_;
