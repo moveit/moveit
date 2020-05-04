@@ -240,7 +240,7 @@ void PlanningSceneMonitor::initialize(const planning_scene::PlanningScenePtr& sc
 
   last_update_time_ = last_robot_motion_time_ = ros::Time::now();
   last_robot_state_update_wall_time_ = ros::WallTime::now();
-  dt_state_update_ = ros::WallDuration(0.1);
+  dt_state_update_ = ros::WallDuration(0.03);
 
   double temp_wait_time = 0.05;
 
