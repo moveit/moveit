@@ -72,8 +72,8 @@ class DefaultCollisionsWidget : public SetupScreenWidget
 public:
   enum ViewMode
   {
-    MatrixMode = 0,
-    LinearMode = 1
+    MATRIX_MODE = 0,
+    LINEAR_MODE = 1
   };
 
   // ******************************************************************************************

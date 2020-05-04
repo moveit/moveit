@@ -55,7 +55,7 @@ namespace distance_field
  * \brief Struct for sorting type Eigen::Vector3i for use in sorted
  * std containers.  Sorts in z order, then y order, then x order.
  */
-struct compareEigen_Vector3i
+struct CompareEigenVector3i
 {
   bool operator()(const Eigen::Vector3i& loc_1, const Eigen::Vector3i& loc_2) const
   {
@@ -448,7 +448,7 @@ public:
 
 private:
   /** Typedef for set of integer indices */
-  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
+  typedef std::set<Eigen::Vector3i, CompareEigenVector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
   /**
    * \brief Initializes the field, resetting the voxel grid and
    * building a sqrt lookup table for efficiency based on

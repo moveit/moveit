@@ -148,7 +148,7 @@ public:
   };
 
   /** \brief predefined sensor model for OpenNI compatible devices (e.g., PrimeSense, Kinect, Asus Xtion) */
-  static const StereoCameraModel::Parameters& REGISTERED_PSDK_PARAMS;
+  static const StereoCameraModel::Parameters& REGISTERED_PSDK_PARAMS;  // NOLINT(readability-identifier-naming)
 
   /** \brief source code of the vertex shader used to render the meshes*/
   static const std::string RENDER_VERTEX_SHADER_SOURCE;

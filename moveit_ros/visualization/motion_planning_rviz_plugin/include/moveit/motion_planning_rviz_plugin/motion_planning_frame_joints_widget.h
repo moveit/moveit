@@ -164,8 +164,8 @@ class ProgressBarDelegate : public QStyledItemDelegate
 public:
   enum CustomRole
   {
-    JointTypeRole = Qt::UserRole,
-    VariableBoundsRole
+    JointTypeRole = Qt::UserRole,  // NOLINT(readability-identifier-naming)
+    VariableBoundsRole  // NOLINT(readability-identifier-naming)
   };
 
   ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent)

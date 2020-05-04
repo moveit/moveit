@@ -58,7 +58,7 @@ public:
 
   // for editing
   Qt::ItemFlags flags(const QModelIndex& index) const override;
-  bool setData(const QModelIndex&, const QVariant& value, int role) override;
+  bool setData(const QModelIndex& /*index*/, const QVariant& value, int role) override;
   void setEnabled(const QItemSelection& selection, bool value);
   void setEnabled(const QModelIndexList& indexes, bool value);
 

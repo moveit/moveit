@@ -59,8 +59,8 @@ mesh_filter::MeshFilterBase::MeshFilterBase(const TransformCallback& transform_c
                                             const std::string& filter_vertex_shader,
                                             const std::string& filter_fragment_shader)
   : sensor_parameters_(sensor_parameters.clone())
-  , next_handle_(FirstLabel)  // 0 and 1 are reserved!
-  , min_handle_(FirstLabel)
+  , next_handle_(FIRST_LABEL)  // 0 and 1 are reserved!
+  , min_handle_(FIRST_LABEL)
   , stop_(false)
   , transform_callback_(transform_callback)
   , padding_scale_(1.0)

@@ -148,7 +148,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
       new_point_set.insert(voxel_loc);
     }
   }
-  compareEigen_Vector3i comp;
+  CompareEigenVector3i comp;
 
   EigenSTL::vector_Vector3i old_not_new;
   std::set_difference(old_point_set.begin(), old_point_set.end(), new_point_set.begin(), new_point_set.end(),
