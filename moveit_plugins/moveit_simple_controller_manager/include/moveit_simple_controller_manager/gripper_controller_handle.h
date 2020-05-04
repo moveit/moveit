@@ -117,10 +117,8 @@ public:
     ROS_DEBUG_NAMED("GripperController", "Sending command from trajectory point %d", tpoint);
 
     // fill in goal from last point
-    for (std::size_t i = 0; i < gripper_joint_indexes.size(); ++i)
+    for (std::size_t idx : gripper_joint_indexes)
     {
-      std::size_t idx = gripper_joint_indexes[i];
-
       if (trajectory.joint_trajectory.points[tpoint].positions.size() <= idx)
       {
         ROS_ERROR_NAMED("GripperController", "GripperController expects a joint trajectory with one \
