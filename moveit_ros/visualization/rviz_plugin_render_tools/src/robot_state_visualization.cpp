@@ -100,7 +100,7 @@ void RobotStateVisualization::update(const moveit::core::RobotStateConstPtr& kin
                                      const std_msgs::ColorRGBA& default_attached_object_color,
                                      const std::map<std::string, std_msgs::ColorRGBA>& color_map)
 {
-  updateHelper(kinematic_state, default_attached_object_color, &color_map);
+    updateHelper(kinematic_state, default_attached_object_color, &color_map);
 }
 
 void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPtr& kinematic_state,
@@ -127,14 +127,20 @@ void RobotStateVisualization::updateHelper(const moveit::core::RobotStateConstPt
         alpha = color.a = it->second.a;
       }
     }
+    rviz::RobotLink* link = robot_.getLink(attached_body->getAttachedLinkName());
+    if (!link)
+    {
+        ROS_ERROR_STREAM("Link " << attached_body->getAttachedLinkName() << " not found in rviz::Robot");
+        continue;
+    }
     rviz::Color rcolor(color.r, color.g, color.b);
-    const EigenSTL::vector_Isometry3d& ab_t = attached_body->getGlobalCollisionBodyTransforms();
+    const EigenSTL::vector_Isometry3d& ab_t = attached_body->getFixedTransforms();
     const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_body->getShapes();
     for (std::size_t j = 0; j < ab_shapes.size(); ++j)
     {
-      render_shapes_->renderShape(robot_.getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
+      render_shapes_->renderShape(link->getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
                                   octree_voxel_color_mode_, rcolor, alpha);
-      render_shapes_->renderShape(robot_.getCollisionNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
+      render_shapes_->renderShape(link->getCollisionNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,
                                   octree_voxel_color_mode_, rcolor, alpha);
     }
   }
