@@ -45,7 +45,7 @@ class TfPublisher : public MoveGroupCapability
 {
 public:
   TfPublisher();
-  ~TfPublisher();
+  ~TfPublisher() override;
 
   void initialize() override;
 

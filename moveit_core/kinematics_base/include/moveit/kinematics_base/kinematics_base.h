@@ -508,7 +508,7 @@ public:
    *          supported.
    * \return True if the group is supported, false if not.
    */
-  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = NULL) const;
+  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = nullptr) const;
 
   /**
    * @brief  Set the search discretization value for all the redundant joints

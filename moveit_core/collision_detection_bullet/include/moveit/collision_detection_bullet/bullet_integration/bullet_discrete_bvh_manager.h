@@ -50,7 +50,7 @@ public:
   /** \brief Constructor */
   BulletDiscreteBVHManager() = default;
 
-  virtual ~BulletDiscreteBVHManager() = default;
+  ~BulletDiscreteBVHManager() override = default;
 
   /**@brief Clone the manager
    *

@@ -241,7 +241,7 @@ public:
   class ObserverHandle
   {
   public:
-    ObserverHandle() : observer_(NULL)
+    ObserverHandle() : observer_(nullptr)
     {
     }
 

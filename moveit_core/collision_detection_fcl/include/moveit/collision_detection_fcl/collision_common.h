@@ -139,12 +139,12 @@ struct CollisionGeometryData
 /** \brief Data structure which is passed to the collision callback function of the collision manager. */
 struct CollisionData
 {
-  CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
+  CollisionData() : req_(nullptr), active_components_only_(nullptr), res_(nullptr), acm_(nullptr), done_(false)
   {
   }
 
   CollisionData(const CollisionRequest* req, CollisionResult* res, const AllowedCollisionMatrix* acm)
-    : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
+    : req_(req), active_components_only_(nullptr), res_(res), acm_(acm), done_(false)
   {
   }
 

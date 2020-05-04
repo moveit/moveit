@@ -64,32 +64,32 @@ public:
 
   ~CollisionEnvFCL() override;
 
-  virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                   const moveit::core::RobotState& state) const override;
 
-  virtual void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                   const moveit::core::RobotState& state,
                                   const AllowedCollisionMatrix& acm) const override;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const moveit::core::RobotState& state) const override;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const moveit::core::RobotState& state,
                                    const AllowedCollisionMatrix& acm) const override;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
                                    const AllowedCollisionMatrix& acm) const override;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                    const moveit::core::RobotState& state1,
                                    const moveit::core::RobotState& state2) const override;
 
-  virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
+  void distanceSelf(const DistanceRequest& req, DistanceResult& res,
                             const moveit::core::RobotState& state) const override;
 
-  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
+  void distanceRobot(const DistanceRequest& req, DistanceResult& res,
                              const moveit::core::RobotState& state) const override;
 
   void setWorld(const WorldPtr& world) override;
