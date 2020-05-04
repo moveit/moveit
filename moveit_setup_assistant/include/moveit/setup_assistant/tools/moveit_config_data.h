@@ -43,9 +43,7 @@
 #include <urdf/model.h>                                               // to share throughout app
 #include <srdfdom/srdf_writer.h>                                      // for writing srdf data
 
-
 #include <utility>
-
 
 namespace moveit_setup_assistant
 {

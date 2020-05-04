@@ -332,8 +332,8 @@ protected:
       dist = nbhQueue.top().second;  // note the difference with nearestRInternal
       node_dist = node_queue.top();
       node_queue.pop();
-      if (nbhQueue.size() == k &&
-          (node_dist.second > node_dist.first->maxRadius_ + dist || node_dist.second < node_dist.first->minRadius_ - dist))
+      if (nbhQueue.size() == k && (node_dist.second > node_dist.first->maxRadius_ + dist ||
+                                   node_dist.second < node_dist.first->minRadius_ - dist))
         continue;
       node_dist.first->nearestK(*this, data, k, nbhQueue, node_queue, is_pivot);
     }
@@ -352,7 +352,8 @@ protected:
     {
       node_dist = node_queue.top();
       node_queue.pop();
-      if (node_dist.second > node_dist.first->maxRadius_ + dist || node_dist.second < node_dist.first->minRadius_ - dist)
+      if (node_dist.second > node_dist.first->maxRadius_ + dist ||
+          node_dist.second < node_dist.first->minRadius_ - dist)
         continue;
       node_dist.first->nearestR(*this, data, radius, nbhQueue, node_queue);
     }

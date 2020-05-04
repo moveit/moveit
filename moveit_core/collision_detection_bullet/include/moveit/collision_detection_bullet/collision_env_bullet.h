@@ -60,32 +60,28 @@ public:
   CollisionEnvBullet(CollisionEnvBullet&) = delete;
 
   void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const moveit::core::RobotState& state) const override;
+                          const moveit::core::RobotState& state) const override;
 
-  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                  const moveit::core::RobotState& state,
-                                  const AllowedCollisionMatrix& acm) const override;
-
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state) const override;
+  void checkSelfCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state,
+                          const AllowedCollisionMatrix& acm) const override;
 
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state,
-                                   const AllowedCollisionMatrix& acm) const override;
+                           const moveit::core::RobotState& state) const override;
 
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state1,
-                                   const moveit::core::RobotState& state2) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state,
+                           const AllowedCollisionMatrix& acm) const override;
 
-  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
-                                   const AllowedCollisionMatrix& acm) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state1,
+                           const moveit::core::RobotState& state2) const override;
+
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state1,
+                           const moveit::core::RobotState& state2, const AllowedCollisionMatrix& acm) const override;
 
   void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                            const moveit::core::RobotState& state) const override;
+                    const moveit::core::RobotState& state) const override;
 
   void distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                             const moveit::core::RobotState& state) const override;
+                     const moveit::core::RobotState& state) const override;
 
   void setWorld(const WorldPtr& world) override;
 

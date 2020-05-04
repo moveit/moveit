@@ -1767,8 +1767,7 @@ private:
     for (const JointModel* jm : mim)
     {
       const int fvi = jm->getFirstVariableIndex();
-      position_[fvi] =
-          jm->getMimicFactor() * position_[jm->getMimic()->getFirstVariableIndex()] + jm->getMimicOffset();
+      position_[fvi] = jm->getMimicFactor() * position_[jm->getMimic()->getFirstVariableIndex()] + jm->getMimicOffset();
       // Only mark joint transform dirty, but not the associated link transform
       // as this function is always used in combination of
       // updateMimicJoint(group->getMimicJointModels()) + markDirtyJointTransforms(group);

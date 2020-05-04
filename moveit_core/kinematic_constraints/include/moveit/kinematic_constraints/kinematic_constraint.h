@@ -355,7 +355,8 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  OrientationConstraint(const moveit::core::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(nullptr)
+  OrientationConstraint(const moveit::core::RobotModelConstPtr& model)
+    : KinematicConstraint(model), link_model_(nullptr)
   {
     type_ = ORIENTATION_CONSTRAINT;
   }

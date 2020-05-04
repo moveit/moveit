@@ -452,8 +452,7 @@ public:
     EigenSTL::vector_Vector3d ret_points;
     for (const PosedBodyPointDecompositionPtr& decomp : decomp_vector_)
     {
-      ret_points.insert(ret_points.end(), decomp->getCollisionPoints().begin(),
-                        decomp->getCollisionPoints().end());
+      ret_points.insert(ret_points.end(), decomp->getCollisionPoints().begin(), decomp->getCollisionPoints().end());
     }
     return ret_points;
   }
