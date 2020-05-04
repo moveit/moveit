@@ -73,4 +73,4 @@ protected:
   virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const = 0;
   std::string type_;
 };
-}
+}  // namespace ompl_interface

@@ -361,4 +361,4 @@ private:
   double execution_velocity_scaling_;
   bool wait_for_trajectory_completion_;
 };
-}
+}  // namespace trajectory_execution_manager

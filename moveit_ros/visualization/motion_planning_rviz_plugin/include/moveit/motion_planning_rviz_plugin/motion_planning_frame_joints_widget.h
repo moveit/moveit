@@ -251,4 +251,4 @@ private:
 Q_SIGNALS:
   void triggered(double value);
 };
-}
+}  // namespace moveit_rviz_plugin

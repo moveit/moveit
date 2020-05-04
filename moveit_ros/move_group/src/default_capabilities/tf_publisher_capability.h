@@ -56,4 +56,4 @@ private:
   std::thread thread_;
   bool keep_running_;
 };
-}
+}  // namespace move_group

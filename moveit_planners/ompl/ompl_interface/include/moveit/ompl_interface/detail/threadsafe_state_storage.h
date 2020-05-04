@@ -56,4 +56,4 @@ private:
   mutable std::map<std::thread::id, moveit::core::RobotState*> thread_states_;
   mutable std::mutex lock_;
 };
-}
+}  // namespace ompl_interface

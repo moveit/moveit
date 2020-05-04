@@ -310,8 +310,8 @@ private:
   bool running_;
   bool printOnDestroy_;
 };
-}
-}
+}  // namespace tools
+}  // namespace moveit
 
 #else
 

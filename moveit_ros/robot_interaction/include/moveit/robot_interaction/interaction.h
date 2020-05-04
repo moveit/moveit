@@ -75,7 +75,7 @@ enum InteractionStyle
   ORIENTATION_NOSPHERE = ORIENTATION_CIRCLES | ORIENTATION_EEF,
   SIX_DOF_NOSPHERE = POSITION_NOSPHERE | ORIENTATION_NOSPHERE
 };
-}
+}  // namespace InteractionStyle
 
 /// Type of function for constructing markers.
 /// This callback sets up the marker used for an interaction.
@@ -173,4 +173,4 @@ struct JointInteraction
   /// The size of the connecting link  (diameter of enclosing sphere)
   double size;
 };
-}
+}  // namespace robot_interaction

@@ -60,4 +60,4 @@ private:
   double max_step_;
   double jump_factor_;
 };
-}
+}  // namespace pick_place

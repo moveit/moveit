@@ -91,4 +91,4 @@ private:
   double colorFactor_;
   std::size_t octree_depth_;
 };
-}
+}  // namespace moveit_rviz_plugin

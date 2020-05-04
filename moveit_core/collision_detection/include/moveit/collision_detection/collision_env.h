@@ -324,4 +324,4 @@ private:
   WorldPtr world_;             // The world always valid, never nullptr.
   WorldConstPtr world_const_;  // always same as world_
 };
-}
+}  // namespace collision_detection

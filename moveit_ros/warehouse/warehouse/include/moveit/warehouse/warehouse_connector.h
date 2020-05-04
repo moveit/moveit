@@ -53,4 +53,4 @@ private:
   std::string dbexec_;
   int child_pid_;
 };
-}
+}  // namespace moveit_warehouse

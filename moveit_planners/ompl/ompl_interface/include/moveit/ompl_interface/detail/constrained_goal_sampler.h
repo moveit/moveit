@@ -71,4 +71,4 @@ private:
   bool warned_invalid_samples_;
   unsigned int verbose_display_;
 };
-}
+}  // namespace ompl_interface

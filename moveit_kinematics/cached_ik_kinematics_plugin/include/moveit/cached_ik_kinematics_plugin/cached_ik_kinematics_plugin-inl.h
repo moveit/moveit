@@ -239,4 +239,4 @@ bool CachedMultiTipIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(
     CachedIKKinematicsPlugin<KinematicsPlugin>::cache_.updateCache(nearest, poses, solution);
   return solution_found;
 }
-}
+}  // namespace cached_ik_kinematics_plugin

@@ -177,4 +177,4 @@ private:
    * = 0.0: perform position-only IK */
   double orientation_vs_position_weight_;
 };
-}
+}  // namespace kdl_kinematics_plugin

@@ -211,4 +211,4 @@ private:
 };
 
 MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
-}
+}  // namespace planning_scene_monitor

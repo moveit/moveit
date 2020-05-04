@@ -145,4 +145,4 @@ private:
 
   World::ObserverHandle observer_handle_;
 };
-}
+}  // namespace collision_detection

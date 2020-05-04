@@ -150,4 +150,4 @@ public:
 protected:
   CollisionEnvDistanceFieldPtr cenv_distance_;
 };
-};
+}  // namespace collision_detection

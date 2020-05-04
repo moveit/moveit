@@ -80,4 +80,4 @@ private:
   std::string group_name_;
   std::string planner_id_;
 };
-}
+}  // namespace moveit_rviz_plugin

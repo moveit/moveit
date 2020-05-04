@@ -227,4 +227,4 @@ protected:
   std::vector<QueryStartEventFunction> query_start_fns_;
   std::vector<QueryCompletionEventFunction> query_end_fns_;
 };
-}
+}  // namespace moveit_ros_benchmarks

@@ -300,4 +300,4 @@ private:
   /// All registered observers of this world representation
   std::vector<Observer*> observers_;
 };
-}
+}  // namespace collision_detection

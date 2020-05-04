@@ -280,5 +280,5 @@ private:
   /** \brief Index of the transform for this link in the full robot frame */
   int link_index_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

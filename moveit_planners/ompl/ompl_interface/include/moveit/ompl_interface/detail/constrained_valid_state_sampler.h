@@ -68,4 +68,4 @@ private:
   double inv_dim_;
   ompl::RNG rng_;
 };
-}
+}  // namespace ompl_interface

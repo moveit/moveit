@@ -140,4 +140,4 @@ public:
 private:
   boost::function<void()> exec_;
 };
-}
+}  // namespace mesh_filter

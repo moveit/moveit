@@ -58,4 +58,4 @@ private:
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;
   constraint_samplers::ConstraintSamplerManagerPtr constraints_sampler_manager_;
 };
-}
+}  // namespace pick_place

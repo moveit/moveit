@@ -140,5 +140,5 @@ void robotStateToStream(const RobotState& state, std::ostream& out,
  * \return true on success
  */
 void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator = ",");
-}
-}
+}  // namespace core
+}  // namespace moveit

@@ -156,4 +156,4 @@ private:
 
   double penalty_multiplier_;
 };
-}
+}  // namespace kinematics_metrics

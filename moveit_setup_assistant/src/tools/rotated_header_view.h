@@ -48,4 +48,4 @@ public:
   QSize sectionSizeFromContents(int logicalIndex) const override;
   int sectionSizeHint(int logicalIndex) const;
 };
-}
+}  // namespace moveit_setup_assistant  // namespace moveit_setup_assistant

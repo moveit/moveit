@@ -82,4 +82,4 @@ private:
 
   ConstraintsCollection constraints_collection_;
 };
-}
+}  // namespace moveit_warehouse

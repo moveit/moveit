@@ -79,4 +79,4 @@ struct MoveGroupContext
   bool allow_trajectory_execution_;
   bool debug_;
 };
-}
+}  // namespace move_group

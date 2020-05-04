@@ -65,5 +65,5 @@ public:
   void computeTransform(const double* joint_values, Eigen::Isometry3d& transf) const override;
   void computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const override;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

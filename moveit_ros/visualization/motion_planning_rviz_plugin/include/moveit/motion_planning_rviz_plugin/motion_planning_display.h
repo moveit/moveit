@@ -75,7 +75,7 @@ class RosTopicProperty;
 class EditableEnumProperty;
 class ColorProperty;
 class MovableText;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {

@@ -193,5 +193,5 @@ private:
   /// Whether the current builder state is valid. If any 'add' method fails, this becomes false.
   bool is_valid_ = true;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

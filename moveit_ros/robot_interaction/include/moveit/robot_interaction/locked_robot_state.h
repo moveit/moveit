@@ -107,4 +107,4 @@ private:
   // PROTECTED BY state_lock_
   moveit::core::RobotStatePtr state_;
 };
-}
+}  // namespace robot_interaction

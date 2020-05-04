@@ -53,4 +53,4 @@ private:
 
   ros::ServiceServer validity_service_;
 };
-}
+}  // namespace move_group

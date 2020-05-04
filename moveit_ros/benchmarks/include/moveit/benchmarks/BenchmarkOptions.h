@@ -135,4 +135,4 @@ protected:
 
   moveit_msgs::WorkspaceParameters workspace_;
 };
-}
+}  // namespace moveit_ros_benchmarks
