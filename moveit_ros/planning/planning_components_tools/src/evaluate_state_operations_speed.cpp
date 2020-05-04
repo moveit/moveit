@@ -59,40 +59,40 @@ int main(int argc, char** argv)
 
     printf("Evaluating model '%s' using %d trials for each test\n", robot_model->getName().c_str(), N);
 
-    moveit::tools::Profiler::Clear();
-    moveit::tools::Profiler::Start();
+    moveit::tools::Profiler::clear();
+    moveit::tools::Profiler::start();
 
     printf("Evaluating FK Default ...\n");
     for (int i = 0; i < N; ++i)
     {
-      moveit::tools::Profiler::Begin("FK Default");
+      moveit::tools::Profiler::begin("FK Default");
       state.setToDefaultValues();
       state.update();
-      moveit::tools::Profiler::End("FK Default");
+      moveit::tools::Profiler::end("FK Default");
     }
 
     printf("Evaluating FK Random ...\n");
     for (int i = 0; i < N; ++i)
     {
-      moveit::tools::Profiler::Begin("FK Random");
+      moveit::tools::Profiler::begin("FK Random");
       state.setToRandomPositions();
       state.update();
-      moveit::tools::Profiler::End("FK Random");
+      moveit::tools::Profiler::end("FK Random");
     }
 
     std::vector<moveit::core::RobotState*> copies(N, (moveit::core::RobotState*)nullptr);
     printf("Evaluating Copy State ...\n");
     for (int i = 0; i < N; ++i)
     {
-      moveit::tools::Profiler::Begin("Copy State");
+      moveit::tools::Profiler::begin("Copy State");
       copies[i] = new moveit::core::RobotState(state);
-      moveit::tools::Profiler::End("Copy State");
+      moveit::tools::Profiler::end("Copy State");
     }
 
     printf("Evaluating Free State ...\n");
     for (int i = 0; i < N; ++i)
     {
-      moveit::tools::Profiler::Begin("Free State");
+      moveit::tools::Profiler::begin("Free State");
       delete copies[i];
       moveit::tools::Profiler::End("Free State");
     }

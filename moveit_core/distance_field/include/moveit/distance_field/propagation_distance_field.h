@@ -55,7 +55,7 @@ namespace distance_field
  * \brief Struct for sorting type Eigen::Vector3i for use in sorted
  * std containers.  Sorts in z order, then y order, then x order.
  */
-struct compareEigen_Vector3i
+struct CompareEigenVector3i
 {
   bool operator()(const Eigen::Vector3i& loc_1, const Eigen::Vector3i& loc_2) const
   {
@@ -417,20 +417,20 @@ public:
       dist = sqrt_table_[cell->distance_square_];
       pos = cell->closest_point_;
       const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
-      return ncell == cell ? NULL : ncell;
+      return ncell == cell ? nullptr : ncell;
     }
     if (cell->negative_distance_square_ > 0)
     {
       dist = -sqrt_table_[cell->negative_distance_square_];
       pos = cell->closest_negative_point_;
       const PropDistanceFieldVoxel* ncell = &voxel_grid_->getCell(pos.x(), pos.y(), pos.z());
-      return ncell == cell ? NULL : ncell;
+      return ncell == cell ? nullptr : ncell;
     }
     dist = 0.0;
     pos.x() = x;
     pos.y() = y;
     pos.z() = z;
-    return NULL;
+    return nullptr;
   }
 
   /**
@@ -448,7 +448,7 @@ public:
 
 private:
   /** Typedef for set of integer indices */
-  typedef std::set<Eigen::Vector3i, compareEigen_Vector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
+  typedef std::set<Eigen::Vector3i, CompareEigenVector3i, Eigen::aligned_allocator<Eigen::Vector3i>> VoxelSet;
   /**
    * \brief Initializes the field, resetting the voxel grid and
    * building a sqrt lookup table for efficiency based on

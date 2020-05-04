@@ -180,7 +180,7 @@ protected:
 // hasRobotModelAPI<T>::value provides a true/false constexpr depending on KinematicsPlugin offers the new API
 // This uses SFINAE magic: https://jguegant.github.io/blogs/tech/sfinae-introduction.html
 template <typename KinematicsPlugin, typename = bool>
-struct hasRobotModelAPI : std::false_type
+struct HasRobotModelApi : std::false_type
 {
 };
 
@@ -192,7 +192,7 @@ struct hasRobotModelAPI<KinematicsPlugin, decltype(std::declval<KinematicsPlugin
 };
 
 template <typename KinematicsPlugin, typename = bool>
-struct hasRobotDescAPI : std::false_type
+struct HasRobotDescApi : std::false_type
 {
 };
 
@@ -265,7 +265,7 @@ private:
      availability of API in wrapped KinematicsPlugin class.
      However, as templates and virtual functions cannot be combined, we need helpers initializeImpl(). */
   template <class T = KinematicsPlugin>
-  typename std::enable_if<hasRobotModelAPI<T>::value, bool>::type
+  typename std::enable_if<HasRobotModelApi<T>::value, bool>::type
   initializeImpl(const moveit::core::RobotModel& robot_model, const std::string& group_name,
                  const std::string& base_frame, const std::vector<std::string>& tip_frames,
                  double search_discretization)
@@ -284,15 +284,15 @@ private:
   }
 
   template <class T = KinematicsPlugin>
-  typename std::enable_if<!hasRobotModelAPI<T>::value, bool>::type
-  initializeImpl(const moveit::core::RobotModel&, const std::string&, const std::string&,
-                 const std::vector<std::string>&, double)
+  typename std::enable_if<!HasRobotModelApi<T>::value, bool>::type
+  initializeImpl(const moveit::core::RobotModel& /*unused*/, const std::string& /*unused*/, const std::string& /*unused*/,
+                 const std::vector<std::string>& /*unused*/, double /*unused*/)
   {
     return false;  // API not supported
   }
 
   template <class T = KinematicsPlugin>
-  typename std::enable_if<hasRobotDescAPI<T>::value, bool>::type
+  typename std::enable_if<HasRobotDescApi<T>::value, bool>::type
   initializeImpl(const std::string& robot_description, const std::string& group_name, const std::string& base_frame,
                  const std::string& tip_frame, double search_discretization)
   {
@@ -304,8 +304,8 @@ private:
   }
 
   template <class T = KinematicsPlugin>
-  typename std::enable_if<!hasRobotDescAPI<T>::value, bool>::type
-  initializeImpl(const std::string&, const std::string&, const std::string&, const std::string&, double)
+  typename std::enable_if<!HasRobotDescApi<T>::value, bool>::type
+  initializeImpl(const std::string& /*unused*/, const std::string& /*unused*/, const std::string& /*unused*/, const std::string& /*unused*/, double /*unused*/)
   {
     return false;  // API not supported
   }

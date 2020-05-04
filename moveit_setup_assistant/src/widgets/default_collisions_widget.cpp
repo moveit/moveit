@@ -187,12 +187,12 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, const MoveItCo
   QRadioButton* radio_btn;
   radio_btn = new QRadioButton("linear view");
   bottom_layout->addWidget(radio_btn);
-  view_mode_buttons_->addButton(radio_btn, LinearMode);
+  view_mode_buttons_->addButton(radio_btn, LINEAR_MODE);
   radio_btn->setChecked(true);
 
   radio_btn = new QRadioButton("matrix view");
   bottom_layout->addWidget(radio_btn);
-  view_mode_buttons_->addButton(radio_btn, MatrixMode);
+  view_mode_buttons_->addButton(radio_btn, MATRIX_MODE);
   connect(view_mode_buttons_, SIGNAL(buttonClicked(int)), this, SLOT(loadCollisionTable()));
 
   // Revert Button
@@ -282,7 +282,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
       link_pairs_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
   QAbstractItemModel* model;
 
-  if (view_mode_buttons_->checkedId() == MatrixMode)
+  if (view_mode_buttons_->checkedId() == MATRIX_MODE)
   {
     model = matrix_model;
   }
@@ -311,7 +311,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
   QHeaderView *horizontal_header, *vertical_header;
 
   // activate some model-specific settings
-  if (view_mode_buttons_->checkedId() == MatrixMode)
+  if (view_mode_buttons_->checkedId() == MATRIX_MODE)
   {
     connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
             SLOT(previewSelectedMatrix(QModelIndex)));
@@ -377,7 +377,7 @@ void DefaultCollisionsWidget::collisionsChanged(const QModelIndex& index)
   if (!index.isValid())
     return;
   // Hm. For some reason, QTableView doesn't change selection if we click a checkbox
-  bool linear_mode = (view_mode_buttons_->checkedId() == LinearMode);
+  bool linear_mode = (view_mode_buttons_->checkedId() == LINEAR_MODE);
   const QItemSelection& selection = selection_model_->selection();
   if ((linear_mode && !selection.contains(index)) ||  // in linear mode: index not in selection
       (!linear_mode &&
@@ -592,7 +592,7 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
 
   // set all selected items to inverse value of current item
   const QModelIndex& cur_idx = selection_model_->currentIndex();
-  if (view_mode_buttons_->checkedId() == MatrixMode)
+  if (view_mode_buttons_->checkedId() == MATRIX_MODE)
   {
     QModelIndex input_index;
     if (cur_idx.flags() & Qt::ItemIsUserCheckable)

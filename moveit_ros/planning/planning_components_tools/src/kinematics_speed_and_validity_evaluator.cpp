@@ -83,30 +83,30 @@ int main(int argc, char** argv)
 
         ROS_INFO("Running %u tests", test_count);
 
-        moveit::tools::Profiler::Start();
+        moveit::tools::Profiler::start();
         for (unsigned int i = 0; i < test_count; ++i)
         {
           state.setToRandomPositions(jmg);
           Eigen::Isometry3d pose = state.getGlobalLinkTransform(tip);
           state.setToRandomPositions(jmg);
-          moveit::tools::Profiler::Begin("IK");
+          moveit::tools::Profiler::begin("IK");
           state.setFromIK(jmg, pose);
-          moveit::tools::Profiler::End("IK");
+          moveit::tools::Profiler::end("IK");
           const Eigen::Isometry3d& pose_upd = state.getGlobalLinkTransform(tip);
           Eigen::Isometry3d diff = pose_upd * pose.inverse();
           double rot_err = (diff.rotation() - Eigen::Matrix3d::Identity()).norm();
           double trans_err = diff.translation().norm();
-          moveit::tools::Profiler::Average("Rotation error", rot_err);
-          moveit::tools::Profiler::Average("Translation error", trans_err);
+          moveit::tools::Profiler::average("Rotation error", rot_err);
+          moveit::tools::Profiler::average("Translation error", trans_err);
           if (rot_err < 1e-3 && trans_err < 1e-3)
           {
-            moveit::tools::Profiler::Event("Valid IK");
-            moveit::tools::Profiler::Average("Success Rate", 100);
+            moveit::tools::Profiler::event("Valid IK");
+            moveit::tools::Profiler::average("Success Rate", 100);
           }
           else
           {
-            moveit::tools::Profiler::Event("Invalid IK");
-            moveit::tools::Profiler::Average("Success Rate", 0);
+            moveit::tools::Profiler::event("Invalid IK");
+            moveit::tools::Profiler::average("Success Rate", 0);
           }
         }
         moveit::tools::Profiler::Stop();

@@ -508,7 +508,7 @@ public:
    *          supported.
    * \return True if the group is supported, false if not.
    */
-  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = NULL) const;
+  virtual bool supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out = nullptr) const;
 
   /**
    * @brief  Set the search discretization value for all the redundant joints
@@ -531,10 +531,10 @@ public:
   {
     redundant_joint_discretization_.clear();
     redundant_joint_indices_.clear();
-    for (std::map<int, double>::const_iterator i = discretization.begin(); i != discretization.end(); i++)
+    for (auto i : discretization)
     {
-      redundant_joint_discretization_.insert(*i);
-      redundant_joint_indices_.push_back(i->first);
+      redundant_joint_discretization_.insert(i);
+      redundant_joint_indices_.push_back(i.first);
     }
   }
 

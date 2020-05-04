@@ -107,11 +107,11 @@ QVariant JMGItemModel::data(const QModelIndex& index, int role) const
           if (jm)
             return jm->getType() == moveit::core::JointModel::REVOLUTE ? value * 180 / M_PI : value;
           break;
-        case ProgressBarDelegate::JointTypeRole:
+        case ProgressBarDelegate::JOINT_TYPE_ROLE:
           if (jm)
             return jm->getType();
           break;
-        case ProgressBarDelegate::VariableBoundsRole:
+        case ProgressBarDelegate::VARIABLE_BOUNDS_ROLE:
           if (const moveit::core::VariableBounds* bounds = getVariableBounds(jm, index))
             return QPointF(bounds->min_position_, bounds->max_position_);
           break;
@@ -381,12 +381,12 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
 
   if (index.column() == 1)
   {
-    QVariant joint_type = index.data(JointTypeRole);
+    QVariant joint_type = index.data(JOINT_TYPE_ROLE);
     double value = index.data().toDouble();
     bool is_revolute = joint_type.isValid() && joint_type.toInt() == moveit::core::JointModel::REVOLUTE;
     style_option.text = option.locale.toString(is_revolute ? value * 180 / M_PI : value, 'f', is_revolute ? 0 : 3);
 
-    QVariant vbounds = index.data(VariableBoundsRole);
+    QVariant vbounds = index.data(VARIABLE_BOUNDS_ROLE);
     if (vbounds.isValid())
     {
       QPointF bounds = vbounds.toPointF();
@@ -415,13 +415,13 @@ QWidget* ProgressBarDelegate::createEditor(QWidget* parent, const QStyleOptionVi
 {
   if (index.column() == 1)
   {
-    QVariant vbounds = index.data(VariableBoundsRole);
+    QVariant vbounds = index.data(VARIABLE_BOUNDS_ROLE);
     if (vbounds.isValid())
     {
       QPointF bounds = vbounds.toPointF();
       float min = bounds.x();
       float max = bounds.y();
-      bool is_revolute = (index.data(JointTypeRole).toInt() == moveit::core::JointModel::REVOLUTE);
+      bool is_revolute = (index.data(JOINT_TYPE_ROLE).toInt() == moveit::core::JointModel::REVOLUTE);
       if (is_revolute)
       {
         min *= 180. / M_PI;

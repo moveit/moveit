@@ -124,7 +124,7 @@ class MotionPlanningFrameJointsWidget : public QWidget
 public:
   MotionPlanningFrameJointsWidget(const MotionPlanningFrameJointsWidget&) = delete;
   MotionPlanningFrameJointsWidget(MotionPlanningDisplay* display, QWidget* parent = nullptr);
-  ~MotionPlanningFrameJointsWidget();
+  ~MotionPlanningFrameJointsWidget() override;
 
   void changePlanningGroup(const std::string& group_name,
                            const robot_interaction::InteractionHandlerPtr& start_state_handler,
@@ -164,11 +164,11 @@ class ProgressBarDelegate : public QStyledItemDelegate
 public:
   enum CustomRole
   {
-    JointTypeRole = Qt::UserRole,
-    VariableBoundsRole
+    JOINT_TYPE_ROLE = Qt::UserRole,
+    VARIABLE_BOUNDS_ROLE
   };
 
-  ProgressBarDelegate(QWidget* parent = 0) : QStyledItemDelegate(parent)
+  ProgressBarDelegate(QWidget* parent = nullptr) : QStyledItemDelegate(parent)
   {
   }
 

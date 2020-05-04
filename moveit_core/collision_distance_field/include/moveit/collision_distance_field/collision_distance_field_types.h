@@ -450,10 +450,10 @@ public:
   EigenSTL::vector_Vector3d getCollisionPoints() const
   {
     EigenSTL::vector_Vector3d ret_points;
-    for (unsigned int i = 0; i < decomp_vector_.size(); i++)
+    for (const auto & i : decomp_vector_)
     {
-      ret_points.insert(ret_points.end(), decomp_vector_[i]->getCollisionPoints().begin(),
-                        decomp_vector_[i]->getCollisionPoints().end());
+      ret_points.insert(ret_points.end(), i->getCollisionPoints().begin(),
+                        i->getCollisionPoints().end());
     }
     return ret_points;
   }

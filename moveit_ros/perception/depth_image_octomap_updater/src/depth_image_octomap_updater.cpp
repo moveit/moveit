@@ -122,7 +122,7 @@ bool DepthImageOctomapUpdater::initialize()
 
   // create our mesh filter
   mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(
-      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS));
+      mesh_filter::MeshFilterBase::TransformCallback(), mesh_filter::StereoCameraModel::REGISTERED_PSDK_PARAMS_));
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
@@ -473,7 +473,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
         for (int x = skip_horizontal_pixels_; x < w_bound; ++x)
         {
           // not filtered
-          if (labels_row[x] == mesh_filter::MeshFilterBase::Background)
+          if (labels_row[x] == mesh_filter::MeshFilterBase::BACKGROUND)
           {
             float zz = (float)input_row[x] * 1e-3;  // scale from mm to m
             float yy = y_cache_[y] * zz;
@@ -483,7 +483,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
           // on far plane or a model point -> remove
-          else if (labels_row[x] >= mesh_filter::MeshFilterBase::FarClip)
+          else if (labels_row[x] >= mesh_filter::MeshFilterBase::FAR_CLIP)
           {
             float zz = input_row[x] * 1e-3;
             float yy = y_cache_[y] * zz;
@@ -502,7 +502,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       for (int y = skip_vertical_pixels_; y < h_bound; ++y, labels_row += w, input_row += w)
         for (int x = skip_horizontal_pixels_; x < w_bound; ++x)
         {
-          if (labels_row[x] == mesh_filter::MeshFilterBase::Background)
+          if (labels_row[x] == mesh_filter::MeshFilterBase::BACKGROUND)
           {
             float zz = input_row[x];
             float yy = y_cache_[y] * zz;
@@ -511,7 +511,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             tf2::Vector3 point_tf = map_h_sensor * tf2::Vector3(xx, yy, zz);
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
-          else if (labels_row[x] >= mesh_filter::MeshFilterBase::FarClip)
+          else if (labels_row[x] >= mesh_filter::MeshFilterBase::FAR_CLIP)
           {
             float zz = input_row[x];
             float yy = y_cache_[y] * zz;

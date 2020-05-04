@@ -95,7 +95,7 @@ protected:
   {
     SeeShape()
     {
-      body = NULL;
+      body = nullptr;
     }
 
     bodies::Body* body;

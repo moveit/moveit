@@ -79,7 +79,7 @@ TEST_F(LoadPlanningModelsPr2, Model)
   {
     ASSERT_EQ(links[i]->getLinkIndex(), static_cast<int>(i));
   }
-  moveit::tools::Profiler::Status();
+  moveit::tools::Profiler::status();
 }
 
 TEST(SiblingAssociateLinks, SimpleYRobot)

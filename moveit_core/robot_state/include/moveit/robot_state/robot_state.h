@@ -1734,15 +1734,15 @@ private:
   {
     dirty_joint_transforms_[joint->getJointIndex()] = 1;
     dirty_link_transforms_ =
-        dirty_link_transforms_ == NULL ? joint : robot_model_->getCommonRoot(dirty_link_transforms_, joint);
+        dirty_link_transforms_ == nullptr ? joint : robot_model_->getCommonRoot(dirty_link_transforms_, joint);
   }
 
   void markDirtyJointTransforms(const JointModelGroup* group)
   {
     const std::vector<const JointModel*>& jm = group->getActiveJointModels();
-    for (std::size_t i = 0; i < jm.size(); ++i)
-      dirty_joint_transforms_[jm[i]->getJointIndex()] = 1;
-    dirty_link_transforms_ = dirty_link_transforms_ == NULL ?
+    for (auto i : jm)
+      dirty_joint_transforms_[i->getJointIndex()] = 1;
+    dirty_link_transforms_ = dirty_link_transforms_ == nullptr ?
                                  group->getCommonRoot() :
                                  robot_model_->getCommonRoot(dirty_link_transforms_, group->getCommonRoot());
   }
@@ -1755,10 +1755,10 @@ private:
   {
     const std::vector<const JointModel*>& mim = joint->getMimicRequests();
     double v = position_[joint->getFirstVariableIndex()];
-    for (std::size_t i = 0; i < mim.size(); ++i)
+    for (auto i : mim)
     {
-      position_[mim[i]->getFirstVariableIndex()] = mim[i]->getMimicFactor() * v + mim[i]->getMimicOffset();
-      markDirtyJointTransforms(mim[i]);
+      position_[i->getFirstVariableIndex()] = i->getMimicFactor() * v + i->getMimicOffset();
+      markDirtyJointTransforms(i);
     }
   }
 
@@ -1766,15 +1766,15 @@ private:
   /* use updateMimicJoints() instead, which also marks joints dirty */
   [[deprecated]] void updateMimicJoint(const std::vector<const JointModel*>& mim)
   {
-    for (std::size_t i = 0; i < mim.size(); ++i)
+    for (auto i : mim)
     {
-      const int fvi = mim[i]->getFirstVariableIndex();
+      const int fvi = i->getFirstVariableIndex();
       position_[fvi] =
-          mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset();
+          i->getMimicFactor() * position_[i->getMimic()->getFirstVariableIndex()] + i->getMimicOffset();
       // Only mark joint transform dirty, but not the associated link transform
       // as this function is always used in combination of
       // updateMimicJoint(group->getMimicJointModels()) + markDirtyJointTransforms(group);
-      dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
+      dirty_joint_transforms_[i->getJointIndex()] = 1;
     }
   }
 

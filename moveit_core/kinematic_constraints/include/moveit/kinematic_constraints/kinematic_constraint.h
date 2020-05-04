@@ -144,7 +144,7 @@ public:
    *
    * @param [in] out The file descriptor for printing
    */
-  virtual void print(std::ostream& = std::cout) const
+  virtual void print(std::ostream&  /*unused*/= std::cout) const
   {
   }
 
@@ -208,7 +208,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    */
   JointConstraint(const moveit::core::RobotModelConstPtr& model)
-    : KinematicConstraint(model), joint_model_(NULL), joint_variable_index_(-1)
+    : KinematicConstraint(model), joint_model_(nullptr), joint_variable_index_(-1)
   {
     type_ = JOINT_CONSTRAINT;
   }
@@ -355,7 +355,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  OrientationConstraint(const moveit::core::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(NULL)
+  OrientationConstraint(const moveit::core::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(nullptr)
   {
     type_ = ORIENTATION_CONSTRAINT;
   }
@@ -512,7 +512,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  PositionConstraint(const moveit::core::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(NULL)
+  PositionConstraint(const moveit::core::RobotModelConstPtr& model) : KinematicConstraint(model), link_model_(nullptr)
   {
     type_ = POSITION_CONSTRAINT;
   }

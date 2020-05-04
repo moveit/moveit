@@ -1108,7 +1108,7 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
 
   // Union all the joints in groups. Uses a custom comparator to allow the joints to be sorted by name
-  std::set<const moveit::core::JointModel*, joint_model_compare> joints;
+  std::set<const moveit::core::JointModel*, JointModelCompare> joints;
 
   // Loop through groups
   for (srdf::Model::Group& group : srdf_->groups_)
@@ -1344,8 +1344,8 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
 
       parse(group, "kinematics_solver", meta_data.kinematics_solver_);
       parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
-            DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_);
-      parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT_);
+            DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION);
+      parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT);
 
       // Assign meta data to vector
       group_meta_data_[group_name] = meta_data;

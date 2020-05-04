@@ -142,15 +142,15 @@ public:
 
   bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
   {
-    for (std::size_t i = 0; i < deactivate.size(); ++i)
+    for (const auto & i : deactivate)
     {
-      controllers_[deactivate[i]] &= ~ACTIVE;
-      std::cout << "Deactivated controller " << deactivate[i] << std::endl;
+      controllers_[i] &= ~ACTIVE;
+      std::cout << "Deactivated controller " << i << std::endl;
     }
-    for (std::size_t i = 0; i < activate.size(); ++i)
+    for (const auto & i : activate)
     {
-      controllers_[activate[i]] |= ACTIVE;
-      std::cout << "Activated controller " << activate[i] << std::endl;
+      controllers_[i] |= ACTIVE;
+      std::cout << "Activated controller " << i << std::endl;
     }
     return true;
   }
