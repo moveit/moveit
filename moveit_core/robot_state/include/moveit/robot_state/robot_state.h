@@ -279,6 +279,9 @@ public:
     return velocity_;
   }
 
+  /** \brief Set all velocities to 0.0 */
+  void zeroVelocities();
+
   /** \brief Given an array with velocity values for all variables, set those values as the velocities in this state */
   void setVariableVelocities(const double* velocity)
   {
@@ -336,6 +339,9 @@ public:
     return velocity_[index];
   }
 
+  /** \brief Remove velocities from this state (this differs from setting them to zero) */
+  void dropVelocities();
+
   /** @} */
 
   /** \name Getting and setting variable acceleration
@@ -366,6 +372,9 @@ public:
   {
     return acceleration_;
   }
+
+  /** \brief Set all accelerations to 0.0 */
+  void zeroAccelerations();
 
   /** \brief Given an array with acceleration values for all variables, set those values as the accelerations in this
    * state */
@@ -429,6 +438,9 @@ public:
     return acceleration_[index];
   }
 
+  /** \brief Remove accelerations from this state (this differs from setting them to zero) */
+  void dropAccelerations();
+
   /** @} */
 
   /** \name Getting and setting variable effort
@@ -458,6 +470,9 @@ public:
   {
     return effort_;
   }
+
+  /** \brief Set all effort values to 0.0 */
+  void zeroEffort();
 
   /** \brief Given an array with effort values for all variables, set those values as the effort in this state */
   void setVariableEffort(const double* effort)
@@ -514,6 +529,12 @@ public:
   {
     return effort_[index];
   }
+
+  /** \brief Remove effort values from this state (this differs from setting them to zero) */
+  void dropEffort();
+
+  /** \brief Reduce RobotState to kinematic information (remove velocity, acceleration and effort, if present) */
+  void dropDynamics();
 
   /** \brief Invert velocity if present. */
   void invertVelocity();
