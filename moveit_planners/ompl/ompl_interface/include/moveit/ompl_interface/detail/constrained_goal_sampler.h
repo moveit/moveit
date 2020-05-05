@@ -58,7 +58,8 @@ public:
 private:
   bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples* gls, ompl::base::State* new_goal);
   bool stateValidityCallback(ompl::base::State* new_goal, moveit::core::RobotState const* state,
-                             const moveit::core::JointModelGroup*, const double*, bool verbose = false) const;
+                             const moveit::core::JointModelGroup* /*jmg*/, const double* /*jpos*/,
+                             bool verbose = false) const;
   bool checkStateValidity(ompl::base::State* new_goal, const moveit::core::RobotState& state,
                           bool verbose = false) const;
 
@@ -71,4 +72,4 @@ private:
   bool warned_invalid_samples_;
   unsigned int verbose_display_;
 };
-}
+}  // namespace ompl_interface

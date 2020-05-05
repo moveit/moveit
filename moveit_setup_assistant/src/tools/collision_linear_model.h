@@ -51,7 +51,7 @@ class CollisionLinearModel : public QAbstractProxyModel
   Q_OBJECT
 
 public:
-  CollisionLinearModel(CollisionMatrixModel* src, QObject* parent = NULL);
+  CollisionLinearModel(CollisionMatrixModel* src, QObject* parent = nullptr);
   ~CollisionLinearModel() override;
 
   // reimplement to return the model index in the proxy model that to the sourceIndex from the source model
@@ -81,7 +81,7 @@ class SortFilterProxyModel : public QSortFilterProxyModel
   Q_OBJECT
 
 public:
-  SortFilterProxyModel(QObject* parent = 0);
+  SortFilterProxyModel(QObject* parent = nullptr);
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   void sort(int column, Qt::SortOrder order) override;
   void setShowAll(bool show_all);

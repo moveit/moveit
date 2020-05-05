@@ -65,7 +65,7 @@ enum Type
       imply that the two bodies are in collision*/
   CONDITIONAL
 };
-}
+}  // namespace AllowedCollision
 
 /** \brief Signature of predicate that decides whether a contact is allowed or not (when AllowedCollision::Type is
  * CONDITIONAL) */
@@ -276,4 +276,4 @@ private:
   std::map<std::string, AllowedCollision::Type> default_entries_;
   std::map<std::string, DecideContactFn> default_allowed_contacts_;
 };
-}
+}  // namespace collision_detection

@@ -169,13 +169,11 @@ public:
                                    const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm,
                                    GroupStateRepresentationPtr& gsr) const;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state1, const moveit::core::RobotState& state2,
-                                   const AllowedCollisionMatrix& acm) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state1,
+                           const moveit::core::RobotState& state2, const AllowedCollisionMatrix& acm) const override;
 
-  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                   const moveit::core::RobotState& state1,
-                                   const moveit::core::RobotState& state2) const override;
+  void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state1,
+                           const moveit::core::RobotState& state2) const override;
 
   virtual double distanceRobot(const moveit::core::RobotState& state, bool verbose = false) const
   {
@@ -306,4 +304,4 @@ protected:
   GroupStateRepresentationPtr last_gsr_;
   World::ObserverHandle observer_handle_;
 };
-}
+}  // namespace collision_detection

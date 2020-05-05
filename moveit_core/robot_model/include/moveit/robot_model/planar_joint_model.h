@@ -83,5 +83,5 @@ public:
 private:
   double angular_distance_weight_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

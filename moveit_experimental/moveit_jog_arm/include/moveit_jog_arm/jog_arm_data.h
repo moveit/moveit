@@ -135,4 +135,4 @@ struct JogArmParameters
   bool publish_joint_velocities;
   bool publish_joint_accelerations;
 };
-}
+}  // namespace moveit_jog_arm

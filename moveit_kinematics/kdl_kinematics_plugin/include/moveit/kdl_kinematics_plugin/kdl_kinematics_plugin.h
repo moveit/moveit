@@ -124,6 +124,7 @@ public:
 protected:
   typedef Eigen::Matrix<double, 6, 1> Twist;
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
   /// Solve position IK given initial joint values
   int CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
                 KDL::JntArray& q_out, const unsigned int max_iter, const Eigen::VectorXd& joint_weights,
@@ -177,4 +178,4 @@ private:
    * = 0.0: perform position-only IK */
   double orientation_vs_position_weight_;
 };
-}
+}  // namespace kdl_kinematics_plugin

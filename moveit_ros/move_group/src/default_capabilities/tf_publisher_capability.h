@@ -45,7 +45,7 @@ class TfPublisher : public MoveGroupCapability
 {
 public:
   TfPublisher();
-  ~TfPublisher();
+  ~TfPublisher() override;
 
   void initialize() override;
 
@@ -56,4 +56,4 @@ private:
   std::thread thread_;
   bool keep_running_;
 };
-}
+}  // namespace move_group

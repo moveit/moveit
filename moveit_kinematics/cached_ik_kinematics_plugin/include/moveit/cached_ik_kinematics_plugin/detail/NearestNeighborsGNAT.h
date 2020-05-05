@@ -186,17 +186,17 @@ public:
   {
     if (size_ == 0u)
       return false;
-    NearQueue nbhQueue;
+    NearQueue nbh_queue;
     // find data in tree
-    bool isPivot = nearestKInternal(data, 1, nbhQueue);
-    const _T* d = nbhQueue.top().first;
+    bool is_pivot = nearestKInternal(data, 1, nbh_queue);
+    const _T* d = nbh_queue.top().first;
     if (*d != data)
       return false;
     removed_.insert(d);
     size_--;
     // if we removed a pivot or if the capacity of removed elements
     // has been reached, we rebuild the entire GNAT
-    if (isPivot || removed_.size() >= removedCacheSize_)
+    if (is_pivot || removed_.size() >= removedCacheSize_)
       rebuildDataStructure();
     return true;
   }
@@ -205,10 +205,10 @@ public:
   {
     if (size_)
     {
-      NearQueue nbhQueue;
-      nearestKInternal(data, 1, nbhQueue);
-      if (!nbhQueue.empty())
-        return *nbhQueue.top().first;
+      NearQueue nbh_queue;
+      nearestKInternal(data, 1, nbh_queue);
+      if (!nbh_queue.empty())
+        return *nbh_queue.top().first;
     }
     throw moveit::Exception("No elements found in nearest neighbors data structure");
   }
@@ -221,9 +221,9 @@ public:
       return;
     if (size_)
     {
-      NearQueue nbhQueue;
-      nearestKInternal(data, k, nbhQueue);
-      postprocessNearest(nbhQueue, nbh);
+      NearQueue nbh_queue;
+      nearestKInternal(data, k, nbh_queue);
+      postprocessNearest(nbh_queue, nbh);
     }
   }
 
@@ -233,9 +233,9 @@ public:
     nbh.clear();
     if (size_)
     {
-      NearQueue nbhQueue;
-      nearestRInternal(data, radius, nbhQueue);
-      postprocessNearest(nbhQueue, nbh);
+      NearQueue nbh_queue;
+      nearestRInternal(data, radius, nbh_queue);
+      postprocessNearest(nbh_queue, nbh);
     }
   }
 
@@ -319,42 +319,43 @@ protected:
   // special case).
   bool nearestKInternal(const _T& data, std::size_t k, NearQueue& nbhQueue) const
   {
-    bool isPivot;
+    bool is_pivot;
     double dist;
-    NodeDist nodeDist;
-    NodeQueue nodeQueue;
+    NodeDist node_dist;
+    NodeQueue node_queue;
 
     dist = NearestNeighbors<_T>::distFun_(data, tree_->pivot_);
-    isPivot = tree_->insertNeighborK(nbhQueue, k, tree_->pivot_, data, dist);
-    tree_->nearestK(*this, data, k, nbhQueue, nodeQueue, isPivot);
-    while (!nodeQueue.empty())
+    is_pivot = tree_->insertNeighborK(nbhQueue, k, tree_->pivot_, data, dist);
+    tree_->nearestK(*this, data, k, nbhQueue, node_queue, is_pivot);
+    while (!node_queue.empty())
     {
       dist = nbhQueue.top().second;  // note the difference with nearestRInternal
-      nodeDist = nodeQueue.top();
-      nodeQueue.pop();
-      if (nbhQueue.size() == k &&
-          (nodeDist.second > nodeDist.first->maxRadius_ + dist || nodeDist.second < nodeDist.first->minRadius_ - dist))
+      node_dist = node_queue.top();
+      node_queue.pop();
+      if (nbhQueue.size() == k && (node_dist.second > node_dist.first->maxRadius_ + dist ||
+                                   node_dist.second < node_dist.first->minRadius_ - dist))
         continue;
-      nodeDist.first->nearestK(*this, data, k, nbhQueue, nodeQueue, isPivot);
+      node_dist.first->nearestK(*this, data, k, nbhQueue, node_queue, is_pivot);
     }
-    return isPivot;
+    return is_pivot;
   }
   // \brief Return in nbhQueue the elements that are within distance radius of data.
   void nearestRInternal(const _T& data, double radius, NearQueue& nbhQueue) const
   {
     double dist = radius;  // note the difference with nearestKInternal
-    NodeQueue nodeQueue;
-    NodeDist nodeDist;
+    NodeQueue node_queue;
+    NodeDist node_dist;
 
     tree_->insertNeighborR(nbhQueue, radius, tree_->pivot_, NearestNeighbors<_T>::distFun_(data, tree_->pivot_));
-    tree_->nearestR(*this, data, radius, nbhQueue, nodeQueue);
-    while (!nodeQueue.empty())
+    tree_->nearestR(*this, data, radius, nbhQueue, node_queue);
+    while (!node_queue.empty())
     {
-      nodeDist = nodeQueue.top();
-      nodeQueue.pop();
-      if (nodeDist.second > nodeDist.first->maxRadius_ + dist || nodeDist.second < nodeDist.first->minRadius_ - dist)
+      node_dist = node_queue.top();
+      node_queue.pop();
+      if (node_dist.second > node_dist.first->maxRadius_ + dist ||
+          node_dist.second < node_dist.first->minRadius_ - dist)
         continue;
-      nodeDist.first->nearestR(*this, data, radius, nbhQueue, nodeQueue);
+      node_dist.first->nearestR(*this, data, radius, nbhQueue, node_queue);
     }
   }
   // \brief Convert the internal data structure used for storing neighbors
@@ -443,19 +444,19 @@ protected:
       else
       {
         std::vector<double> dist(children_.size());
-        double minDist = dist[0] = gnat.distFun_(data, children_[0]->pivot_);
-        int minInd = 0;
+        double min_dist = dist[0] = gnat.distFun_(data, children_[0]->pivot_);
+        int min_ind = 0;
 
         for (unsigned int i = 1; i < children_.size(); ++i)
-          if ((dist[i] = gnat.distFun_(data, children_[i]->pivot_)) < minDist)
+          if ((dist[i] = gnat.distFun_(data, children_[i]->pivot_)) < min_dist)
           {
-            minDist = dist[i];
-            minInd = i;
+            min_dist = dist[i];
+            min_ind = i;
           }
         for (unsigned int i = 0; i < children_.size(); ++i)
-          children_[i]->updateRange(minInd, dist[i]);
-        children_[minInd]->updateRadius(minDist);
-        children_[minInd]->add(gnat, data);
+          children_[i]->updateRange(min_ind, dist[i]);
+        children_[min_ind]->updateRadius(min_dist);
+        children_[min_ind]->add(gnat, data);
       }
     }
     // Return true iff the node needs to be split into child nodes.
@@ -547,7 +548,7 @@ protected:
       {
         double dist;
         Node* child;
-        std::vector<double> distToPivot(children_.size());
+        std::vector<double> dist_to_pivot(children_.size());
         std::vector<int> permutation(children_.size());
         for (unsigned int i = 0; i < permutation.size(); ++i)
           permutation[i] = i;
@@ -557,16 +558,16 @@ protected:
           if (permutation[i] >= 0)
           {
             child = children_[permutation[i]];
-            distToPivot[permutation[i]] = gnat.distFun_(data, child->pivot_);
-            if (insertNeighborK(nbh, k, child->pivot_, data, distToPivot[permutation[i]]))
+            dist_to_pivot[permutation[i]] = gnat.distFun_(data, child->pivot_);
+            if (insertNeighborK(nbh, k, child->pivot_, data, dist_to_pivot[permutation[i]]))
               isPivot = true;
             if (nbh.size() == k)
             {
               dist = nbh.top().second;  // note difference with nearestR
               for (unsigned int j = 0; j < children_.size(); ++j)
                 if (permutation[j] >= 0 && i != j &&
-                    (distToPivot[permutation[i]] - dist > child->maxRange_[permutation[j]] ||
-                     distToPivot[permutation[i]] + dist < child->minRange_[permutation[j]]))
+                    (dist_to_pivot[permutation[i]] - dist > child->maxRange_[permutation[j]] ||
+                     dist_to_pivot[permutation[i]] + dist < child->minRange_[permutation[j]]))
                   permutation[j] = -1;
             }
           }
@@ -576,9 +577,9 @@ protected:
           if (permutation[i] >= 0)
           {
             child = children_[permutation[i]];
-            if (nbh.size() < k || (distToPivot[permutation[i]] - dist <= child->maxRadius_ &&
-                                   distToPivot[permutation[i]] + dist >= child->minRadius_))
-              nodeQueue.push(std::make_pair(child, distToPivot[permutation[i]]));
+            if (nbh.size() < k || (dist_to_pivot[permutation[i]] - dist <= child->maxRadius_ &&
+                                   dist_to_pivot[permutation[i]] + dist >= child->minRadius_))
+              nodeQueue.push(std::make_pair(child, dist_to_pivot[permutation[i]]));
           }
       }
     }
@@ -601,7 +602,7 @@ protected:
       if (!children_.empty())
       {
         Node* child;
-        std::vector<double> distToPivot(children_.size());
+        std::vector<double> dist_to_pivot(children_.size());
         std::vector<int> permutation(children_.size());
         for (unsigned int i = 0; i < permutation.size(); ++i)
           permutation[i] = i;
@@ -611,11 +612,11 @@ protected:
           if (permutation[i] >= 0)
           {
             child = children_[permutation[i]];
-            distToPivot[i] = gnat.distFun_(data, child->pivot_);
-            insertNeighborR(nbh, r, child->pivot_, distToPivot[i]);
+            dist_to_pivot[i] = gnat.distFun_(data, child->pivot_);
+            insertNeighborR(nbh, r, child->pivot_, dist_to_pivot[i]);
             for (unsigned int j = 0; j < children_.size(); ++j)
-              if (permutation[j] >= 0 && i != j && (distToPivot[i] - dist > child->maxRange_[permutation[j]] ||
-                                                    distToPivot[i] + dist < child->minRange_[permutation[j]]))
+              if (permutation[j] >= 0 && i != j && (dist_to_pivot[i] - dist > child->maxRange_[permutation[j]] ||
+                                                    dist_to_pivot[i] + dist < child->minRange_[permutation[j]]))
                 permutation[j] = -1;
           }
 
@@ -623,8 +624,8 @@ protected:
           if (permutation[i] >= 0)
           {
             child = children_[permutation[i]];
-            if (distToPivot[i] - dist <= child->maxRadius_ && distToPivot[i] + dist >= child->minRadius_)
-              nodeQueue.push(std::make_pair(child, distToPivot[i]));
+            if (dist_to_pivot[i] - dist <= child->maxRadius_ && dist_to_pivot[i] + dist >= child->minRadius_)
+              nodeQueue.push(std::make_pair(child, dist_to_pivot[i]));
           }
       }
     }
@@ -718,4 +719,4 @@ protected:
   // \brief Cache of removed elements.
   std::unordered_set<const _T*> removed_;
 };
-}
+}  // namespace cached_ik_kinematics_plugin

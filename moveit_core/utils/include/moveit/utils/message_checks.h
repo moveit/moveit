@@ -61,5 +61,5 @@ bool isEmpty(const moveit_msgs::RobotState& msg);
 
 /** \brief Check if a message specifies constraints */
 bool isEmpty(const moveit_msgs::Constraints& msg);
-}
-}
+}  // namespace core
+}  // namespace moveit

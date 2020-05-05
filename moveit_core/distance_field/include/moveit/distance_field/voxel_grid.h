@@ -341,7 +341,7 @@ protected:
 template <typename T>
 VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution, double origin_x,
                         double origin_y, double origin_z, T default_object)
-  : data_(NULL)
+  : data_(nullptr)
 {
   resize(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, default_object);
 }
@@ -368,7 +368,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
                           double origin_y, double origin_z, T default_object)
 {
   delete[] data_;
-  data_ = NULL;
+  data_ = nullptr;
 
   size_[DIM_X] = size_x;
   size_[DIM_Y] = size_y;
@@ -461,12 +461,12 @@ inline int VoxelGrid<T>::getNumCells(Dimension dim) const
 template <typename T>
 inline const T& VoxelGrid<T>::operator()(double x, double y, double z) const
 {
-  int cellX = getCellFromLocation(DIM_X, x);
-  int cellY = getCellFromLocation(DIM_Y, y);
-  int cellZ = getCellFromLocation(DIM_Z, z);
-  if (!isCellValid(cellX, cellY, cellZ))
+  int cell_x = getCellFromLocation(DIM_X, x);
+  int cell_y = getCellFromLocation(DIM_Y, y);
+  int cell_z = getCellFromLocation(DIM_Z, z);
+  if (!isCellValid(cell_x, cell_y, cell_z))
     return default_object_;
-  return getCell(cellX, cellY, cellZ);
+  return getCell(cell_x, cell_y, cell_z);
 }
 
 template <typename T>

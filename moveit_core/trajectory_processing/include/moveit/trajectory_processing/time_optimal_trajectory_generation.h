@@ -95,7 +95,7 @@ public:
   Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, const Eigen::VectorXd& max_acceleration,
              double time_step = 0.001);
 
-  ~Trajectory(void);
+  ~Trajectory();
 
   /** @brief Call this method after constructing the object to make sure the
      trajectory generation succeeded without errors. If this method returns

@@ -86,7 +86,7 @@ public:
       IS_GOAL_STATE = 16
     };
 
-    StateType() : ompl::base::State(), values(NULL), tag(-1), flags(0), distance(0.0)
+    StateType() : ompl::base::State(), values(nullptr), tag(-1), flags(0), distance(0.0)
     {
     }
 

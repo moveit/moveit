@@ -82,4 +82,4 @@ public:
 private:
   std::vector<unsigned int> variables_;
 };
-}
+}  // namespace ompl_interface

@@ -79,7 +79,7 @@ public:
   RobotInteraction(const moveit::core::RobotModelConstPtr& robot_model, const std::string& ns = "");
   virtual ~RobotInteraction();
 
-  const std::string& getServerTopic(void) const
+  const std::string& getServerTopic() const
   {
     return topic_;
   }
@@ -232,4 +232,4 @@ private:
   // options for doing IK
   KinematicOptionsMapPtr kinematic_options_map_;
 };
-}
+}  // namespace robot_interaction

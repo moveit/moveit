@@ -83,5 +83,5 @@ protected:
   /** \brief The axis of the joint */
   Eigen::Vector3d axis_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit

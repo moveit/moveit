@@ -76,4 +76,4 @@ private:
   unsigned int constrained_failure_;
   double inv_dim_;
 };
-}
+}  // namespace ompl_interface

@@ -79,6 +79,7 @@ public:
                      Eigen::Matrix<double, 6, 1>::Constant(1.0));
   }
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
   /** Compute qdot_out = W_q * (W_x * J * W_q)^# * W_x * v_in
    *
    * where W_q and W_x are joint- and Cartesian weights respectively.
@@ -114,4 +115,4 @@ private:
   Jacobian jac_;          // full Jacobian
   Jacobian jac_reduced_;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
 };
-}
+}  // namespace KDL

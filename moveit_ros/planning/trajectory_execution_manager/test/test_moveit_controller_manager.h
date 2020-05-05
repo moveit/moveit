@@ -142,15 +142,15 @@ public:
 
   bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate) override
   {
-    for (std::size_t i = 0; i < deactivate.size(); ++i)
+    for (const std::string& controller : deactivate)
     {
-      controllers_[deactivate[i]] &= ~ACTIVE;
-      std::cout << "Deactivated controller " << deactivate[i] << std::endl;
+      controllers_[controller] &= ~ACTIVE;
+      std::cout << "Deactivated controller " << controller << std::endl;
     }
-    for (std::size_t i = 0; i < activate.size(); ++i)
+    for (const std::string& controller : activate)
     {
-      controllers_[activate[i]] |= ACTIVE;
-      std::cout << "Activated controller " << activate[i] << std::endl;
+      controllers_[controller] |= ACTIVE;
+      std::cout << "Activated controller " << controller << std::endl;
     }
     return true;
   }
@@ -159,4 +159,4 @@ protected:
   std::map<std::string, int> controllers_;
   std::map<std::string, std::vector<std::string> > controller_joints_;
 };
-}
+}  // namespace test_moveit_controller_manager

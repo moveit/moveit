@@ -95,7 +95,7 @@ protected:
   {
     SeeShape()
     {
-      body = NULL;
+      body = nullptr;
     }
 
     bodies::Body* body;
@@ -130,4 +130,4 @@ private:
   ShapeHandle min_handle_;
   std::map<ShapeHandle, std::set<SeeShape, SortBodies>::iterator> used_handles_;
 };
-}
+}  // namespace point_containment_filter

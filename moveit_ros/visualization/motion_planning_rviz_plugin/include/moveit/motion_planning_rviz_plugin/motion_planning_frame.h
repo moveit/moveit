@@ -104,7 +104,7 @@ class MotionPlanningFrame : public QWidget
 
 public:
   MotionPlanningFrame(const MotionPlanningFrame&) = delete;
-  MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = 0);
+  MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent = nullptr);
   ~MotionPlanningFrame() override;
 
   void changePlanningGroup();
@@ -371,4 +371,4 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   else
     ROS_DEBUG("Connected to '%s'", name.c_str());
 };
-}
+}  // namespace moveit_rviz_plugin

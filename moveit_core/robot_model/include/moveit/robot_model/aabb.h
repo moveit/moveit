@@ -50,4 +50,4 @@ public:
   void extendWithTransformedBox(const Eigen::Isometry3d& transform, const Eigen::Vector3d& box);
 };
 }
-}
+}  // namespace moveit

@@ -68,4 +68,4 @@ private:
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };
-}
+}  // namespace moveit_jog_arm

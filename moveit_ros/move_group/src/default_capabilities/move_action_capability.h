@@ -69,4 +69,4 @@ private:
   MoveGroupState move_state_;
   bool preempt_requested_;
 };
-}
+}  // namespace move_group

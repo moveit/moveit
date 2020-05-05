@@ -110,4 +110,4 @@ protected:
   static void readXmlParam(XmlRpc::XmlRpcValue& params, const std::string& param_name, double* value);
   static void readXmlParam(XmlRpc::XmlRpcValue& params, const std::string& param_name, unsigned int* value);
 };
-}
+}  // namespace occupancy_map_monitor

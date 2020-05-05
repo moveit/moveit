@@ -110,5 +110,5 @@ private:
 
   void processingThread();
 };
-}
-}
+}  // namespace tools
+}  // namespace moveit

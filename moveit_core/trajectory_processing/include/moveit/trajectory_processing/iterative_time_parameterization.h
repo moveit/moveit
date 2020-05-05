@@ -67,4 +67,4 @@ private:
   double findT1(const double d1, const double d2, double t1, const double t2, const double a_max) const;
   double findT2(const double d1, const double d2, const double t1, double t2, const double a_max) const;
 };
-}
+}  // namespace trajectory_processing

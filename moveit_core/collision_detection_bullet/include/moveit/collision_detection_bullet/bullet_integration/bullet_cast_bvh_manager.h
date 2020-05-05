@@ -50,7 +50,7 @@ public:
   /** \brief Constructor */
   BulletCastBVHManager() = default;
 
-  virtual ~BulletCastBVHManager() = default;
+  ~BulletCastBVHManager() override = default;
 
   /**@brief Clone the manager
    *

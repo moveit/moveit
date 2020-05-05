@@ -43,6 +43,8 @@
 #include <urdf/model.h>                                               // to share throughout app
 #include <srdfdom/srdf_writer.h>                                      // for writing srdf data
 
+#include <utility>
+
 namespace moveit_setup_assistant
 {
 // ******************************************************************************************
@@ -54,8 +56,8 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
 // Default kin solver values
-static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;
-static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;
+static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION = 0.005;
+static const double DEFAULT_KIN_SOLVER_TIMEOUT = 0.005;
 
 // ******************************************************************************************
 // Structs
@@ -143,15 +145,15 @@ public:
 
   void setName(std::string name)
   {
-    name_ = name;
+    name_ = std::move(name);
   };
   void setValue(std::string value)
   {
-    value_ = value;
+    value_ = std::move(value);
   };
   void setComment(std::string comment)
   {
-    comment_ = comment;
+    comment_ = std::move(comment);
   };
   std::string getName()
   {
@@ -510,7 +512,7 @@ public:
    * \param jm2 - a pointer to the second joint model to compare
    * \return bool of alphabetical sorting comparison
    */
-  struct joint_model_compare
+  struct JointModelCompare
   {
     bool operator()(const moveit::core::JointModel* jm1, const moveit::core::JointModel* jm2) const
     {
@@ -536,4 +538,4 @@ private:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 
-}  // namespace
+}  // namespace moveit_setup_assistant

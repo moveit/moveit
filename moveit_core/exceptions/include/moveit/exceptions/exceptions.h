@@ -54,4 +54,4 @@ class Exception : public std::runtime_error
 public:
   explicit Exception(const std::string& what_arg);
 };
-}
+}  // namespace moveit

@@ -100,4 +100,4 @@ private:
   std::string current_edit_vjoint_;
 };
 
-}  // namespace
+}  // namespace moveit_setup_assistant

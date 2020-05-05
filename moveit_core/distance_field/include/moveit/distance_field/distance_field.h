@@ -68,9 +68,9 @@ namespace distance_field
 /// \brief The plane to visualize
 enum PlaneVisualizationType
 {
-  XYPlane,
-  XZPlane,
-  YZPlane
+  XY_PLANE,
+  XZ_PLANE,
+  YZ_PLANE
 };
 
 MOVEIT_CLASS_FORWARD(DistanceField);

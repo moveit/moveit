@@ -90,7 +90,7 @@ public:
   /** \brief Return true if the model is empty (has no root link, no joints) */
   bool isEmpty() const
   {
-    return root_link_ == NULL;
+    return root_link_ == nullptr;
   }
 
   /** \brief Get the parsed URDF model */
@@ -615,8 +615,8 @@ protected:
   /** \brief Given a geometry spec from the URDF and a filename (for a mesh), construct the corresponding shape object*/
   shapes::ShapePtr constructShape(const urdf::Geometry* geom);
 };
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 namespace robot_model = moveit::core;
 namespace robot_state = moveit::core;

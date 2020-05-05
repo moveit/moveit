@@ -43,9 +43,9 @@ namespace moveit_setup_assistant
 class RotatedHeaderView : public QHeaderView
 {
 public:
-  RotatedHeaderView(Qt::Orientation orientation, QWidget* parent = NULL);
+  RotatedHeaderView(Qt::Orientation orientation, QWidget* parent = nullptr);
   void paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const override;
   QSize sectionSizeFromContents(int logicalIndex) const override;
   int sectionSizeHint(int logicalIndex) const;
 };
-}
+}  // namespace moveit_setup_assistant

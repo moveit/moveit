@@ -100,7 +100,7 @@ public:
     return WriteLock(tree_mutex_);
   }
 
-  void triggerUpdateCallback(void)
+  void triggerUpdateCallback()
   {
     if (update_callback_)
       update_callback_();
@@ -119,4 +119,4 @@ private:
 
 typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
 typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
-}
+}  // namespace occupancy_map_monitor

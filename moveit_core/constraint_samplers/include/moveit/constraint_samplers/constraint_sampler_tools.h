@@ -53,4 +53,4 @@ double countSamplesPerSecond(const ConstraintSamplerPtr& sampler, const moveit::
 
 double countSamplesPerSecond(const moveit_msgs::Constraints& constr, const planning_scene::PlanningSceneConstPtr& scene,
                              const std::string& group);
-}
+}  // namespace constraint_samplers

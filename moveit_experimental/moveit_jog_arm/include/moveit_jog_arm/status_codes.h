@@ -60,4 +60,4 @@ const std::unordered_map<uint, std::string>
                               { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
                               { HALT_FOR_COLLISION, "Collision detected, emergency stop" },
                               { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
-}  // end namespace trackjoint
+}  // namespace moveit_jog_arm

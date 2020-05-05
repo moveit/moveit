@@ -102,4 +102,4 @@ private:
   // PROTECTED BY lock_
   M_options options_;
 };
-}
+}  // namespace robot_interaction

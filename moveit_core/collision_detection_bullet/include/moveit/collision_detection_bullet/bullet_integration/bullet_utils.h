@@ -929,7 +929,7 @@ inline void addCollisionObjectToBroadphase(const CollisionObjectWrapperPtr& cow,
 
 struct BroadphaseFilterCallback : public btOverlapFilterCallback
 {
-  virtual bool needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const override
+  bool needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const override
   {
     bool cull = !(proxy0->m_collisionFilterMask & proxy1->m_collisionFilterGroup);
     cull = cull || !(proxy1->m_collisionFilterMask & proxy0->m_collisionFilterGroup);

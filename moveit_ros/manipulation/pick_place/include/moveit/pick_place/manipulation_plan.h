@@ -55,9 +55,9 @@ MOVEIT_STRUCT_FORWARD(ManipulationPlanSharedData);
 struct ManipulationPlanSharedData
 {
   ManipulationPlanSharedData()
-    : planning_group_(NULL)
-    , end_effector_group_(NULL)
-    , ik_link_(NULL)
+    : planning_group_(nullptr)
+    , end_effector_group_(nullptr)
+    , ik_link_(nullptr)
     , max_goal_sampling_attempts_(0)
     , minimize_object_distance_(false)
   {
@@ -141,4 +141,4 @@ struct ManipulationPlan
   // An id for this plan; this is usually the index of the Grasp / PlaceLocation in the input request
   std::size_t id_;
 };
-}
+}  // namespace pick_place

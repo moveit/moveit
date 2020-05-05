@@ -62,4 +62,4 @@ protected:
 
   chomp::ChompParameters params_;
 };
-}
+}  // namespace chomp_interface

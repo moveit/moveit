@@ -358,7 +358,7 @@ void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length, 
 
   switch (type)
   {
-    case XYPlane:
+    case XY_PLANE:
       min_z = height;
       max_z = height;
 
@@ -367,7 +367,7 @@ void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length, 
       min_y = -width / 2.0;
       max_y = width / 2.0;
       break;
-    case XZPlane:
+    case XZ_PLANE:
       min_y = height;
       max_y = height;
 
@@ -376,7 +376,7 @@ void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length, 
       min_z = -width / 2.0;
       max_z = width / 2.0;
       break;
-    case YZPlane:
+    case YZ_PLANE:
       min_x = height;
       max_x = height;
 

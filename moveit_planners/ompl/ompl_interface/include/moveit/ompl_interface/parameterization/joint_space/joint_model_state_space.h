@@ -52,4 +52,4 @@ public:
     return PARAMETERIZATION_TYPE;
   }
 };
-}
+}  // namespace ompl_interface

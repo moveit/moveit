@@ -73,4 +73,4 @@ public:
   void distanceSelf(const DistanceRequest& req, DistanceResult& res,
                     const moveit::core::RobotState& state) const override;
 };
-}
+}  // namespace collision_detection

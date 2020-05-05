@@ -216,4 +216,4 @@ private:
   void computeJointProperties(int trajectoryPoint);
   bool isCurrentTrajectoryMeshToMeshCollisionFree() const;
 };
-}
+}  // namespace chomp
