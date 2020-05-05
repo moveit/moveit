@@ -56,7 +56,7 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater()
   , max_range_(std::numeric_limits<double>::infinity())
   , point_subsample_(1)
   , max_update_rate_(0)
-  , incremental_(true)
+  , update_method_(UpdateMethod::INCREMENTAL)
   , point_cloud_subscriber_(nullptr)
   , point_cloud_filter_(nullptr)
 {
@@ -81,7 +81,7 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     if (params.hasMember("max_update_rate"))
       readXmlParam(params, "max_update_rate", &max_update_rate_);
     if (params.hasMember("incremental"))
-      incremental_ = static_cast<bool>(params["incremental"]);
+      update_method_ = (static_cast<bool>(params["incremental"]) ? UpdateMethod::INCREMENTAL : UpdateMethod::SNAPSHOT);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
     if (params.hasMember("service_name"))
@@ -206,7 +206,7 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 }
 
 bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg,
-                                            const Eigen::Isometry3d& sensor_pose, bool incremental)
+                                            const Eigen::Isometry3d& sensor_pose, UpdateMethod update_method)
 {
   ros::WallTime start = ros::WallTime::now();
 
@@ -297,7 +297,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
       }
     }
 
-    if (incremental)
+    if (update_method == UpdateMethod::INCREMENTAL)
     {
       /* If we are performing an incremental update, do ray tracing to find which cells this point cloud indicates
        * should be free */
@@ -327,7 +327,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
   tree_->unlockRead();
 
-  if (incremental)
+  if (update_method == UpdateMethod::INCREMENTAL)
   {
     /* occupied cells are not free */
     for (const octomap::OcTreeKey& occupied_cell : occupied_cells)
@@ -336,7 +336,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
   tree_->lockWrite();
 
-  if (!incremental)
+  if (update_method == UpdateMethod::SNAPSHOT)
     tree_->clear();
 
   bool success = true;
@@ -411,7 +411,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
     return false;
   }
 
-  return processCloud(cloud_msg, sensor_origin_eigen, incremental_);
+  return processCloud(cloud_msg, sensor_origin_eigen, update_method_);
 }
 
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)

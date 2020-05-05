@@ -50,6 +50,9 @@
 
 namespace occupancy_map_monitor
 {
+
+enum class UpdateMethod {INCREMENTAL, SNAPSHOT};
+
 class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
@@ -76,9 +79,9 @@ public:
              Can be used outside of the perception pipeline
       @param cloud_msg The pointcloud to process
       @param sensor_pose Eigen pose of the frame in which the pointcloud is given
-      @param incremental True to update the current octomap probabilities.  False to forget all previous octomap data */
+      @param update_method Whether to update the current octomap probabilities or to forget all previous octomap data */
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
-                    bool incremental);
+                    UpdateMethod update_method);
 
   /** @brief process a pointcloud message and update the octomap.  Updates transform cache.
              Requires setTransformCacheCallback to have been called
@@ -110,7 +113,7 @@ private:
   double max_range_;
   unsigned int point_subsample_;
   double max_update_rate_;
-  bool incremental_;
+  UpdateMethod update_method_;
   std::string filtered_cloud_topic_;
   std::string service_name_;
   ros::Publisher filtered_cloud_publisher_;

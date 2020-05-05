@@ -66,8 +66,7 @@ protected:
     if (data.size() % 3)
       return nullptr;
 
-    sensor_msgs::PointCloud2::Ptr cloud;
-    cloud.reset(new sensor_msgs::PointCloud2());
+    sensor_msgs::PointCloud2::Ptr cloud(new sensor_msgs::PointCloud2());
     sensor_msgs::PointCloud2Modifier pcd_modifier(*cloud);
     pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
     pcd_modifier.resize(data.size() / 3);
@@ -97,12 +96,12 @@ TEST_F(PointcloudUpdaterTester, NonIncrementalUpdate)
   EXPECT_FALSE(isOccupied(0.0, 0.95, 0.0));
 
   sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::SNAPSHOT));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
   EXPECT_FALSE(isOccupied(0.0, 0.95, 0.0));
 
   cloud = createPointcloudFromXYZ({ 0.0, 0.95, 0.0 });
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::SNAPSHOT));
   EXPECT_FALSE(isOccupied(0.95, 0.0, 0.0));
   EXPECT_TRUE(isOccupied(0.0, 0.95, 0.0));
 }
@@ -110,9 +109,9 @@ TEST_F(PointcloudUpdaterTester, NonIncrementalUpdate)
 TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 {
   sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
   cloud = createPointcloudFromXYZ({ 0.0, 0.95, 0.0 });
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
 
   EXPECT_TRUE(isOccupied(0.0, 0.95, 0.0));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
@@ -122,15 +121,15 @@ TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 TEST_F(PointcloudUpdaterTester, IncrementalRayTracing)
 {
   sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.55, 0.0, 0.0 });
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
   EXPECT_TRUE(isOccupied(0.55, 0.0, 0.0));
 
   cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
   // We have to process the pointcloud a few times to get the probability odds low enough for the cell to be marked
   // empty
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), true));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
   EXPECT_FALSE(isOccupied(0.55, 0.0, 0.0));
 }
@@ -143,13 +142,13 @@ TEST_F(PointcloudUpdaterTester, UpdateWithExclusion)
 
   // If we exclude the shape, a point in the shape shouldn't be occupied
   auto shape_handle = updater_.excludeShape(exclude_shape, exclude_shape_pose);
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::SNAPSHOT));
   EXPECT_TRUE(isOccupied(1.95, 0.0, 0.0));
   EXPECT_FALSE(isOccupied(0.95, 0.0, 0.0));
 
   // Reinclude the shape and process again, and the point should be occupied
   updater_.forgetShape(shape_handle);
-  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), false));
+  ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::SNAPSHOT));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
 }
 }  // namespace occupancy_map_monitor
