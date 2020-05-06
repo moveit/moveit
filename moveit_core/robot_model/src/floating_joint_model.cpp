@@ -45,6 +45,12 @@ namespace moveit
 {
 namespace core
 {
+namespace
+{
+constexpr size_t STATE_SPACE_DIMENSION = 7;
+
+}  // namespace
+
 FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = FLOATING;
@@ -55,7 +61,7 @@ FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(nam
   local_variable_names_.push_back("rot_y");
   local_variable_names_.push_back("rot_z");
   local_variable_names_.push_back("rot_w");
-  for (int i = 0; i < 7; ++i)
+  for (size_t i = 0; i < STATE_SPACE_DIMENSION; ++i)
   {
     variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
     variable_index_map_[variable_names_.back()] = i;
@@ -192,7 +198,7 @@ bool FloatingJointModel::normalizeRotation(double* values) const
 
 unsigned int FloatingJointModel::getStateSpaceDimension() const
 {
-  return 6;
+  return STATE_SPACE_DIMENSION;
 }
 
 bool FloatingJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
