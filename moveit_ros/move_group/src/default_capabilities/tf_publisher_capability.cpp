@@ -57,13 +57,13 @@ TfPublisher::~TfPublisher()
 namespace
 {
 void publishSubframes(tf2_ros::TransformBroadcaster& broadcaster, const moveit::core::FixedTransformsMap& subframes,
-                      const std::string& parent_frame, const ros::Time& stamp)
+                      const std::string& parent_object, const std::string& parent_frame, const ros::Time& stamp)
 {
   geometry_msgs::TransformStamped transform;
   for (auto& subframe : subframes)
   {
     transform = tf2::eigenToTransform(subframe.second);
-    transform.child_frame_id = parent_frame + "/" + subframe.first;
+    transform.child_frame_id = parent_object + "/" + subframe.first;
     transform.header.stamp = stamp;
     transform.header.frame_id = parent_frame;
     broadcaster.sendTransform(transform);
@@ -95,7 +95,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         const moveit::core::FixedTransformsMap& subframes = obj.second->subframe_poses_;
-        publishSubframes(broadcaster, subframes, object_frame, stamp);
+        publishSubframes(broadcaster, subframes, object_frame, planning_frame, stamp);
       }
 
       const moveit::core::RobotState& rs = locked_planning_scene->getCurrentState();
@@ -111,7 +111,7 @@ void TfPublisher::publishPlanningSceneFrames()
         broadcaster.sendTransform(transform);
 
         const moveit::core::FixedTransformsMap& subframes = attached_body->getSubframeTransforms();
-        publishSubframes(broadcaster, subframes, object_frame, stamp);
+        publishSubframes(broadcaster, subframes, object_frame, attached_body->getAttachedLinkName(), stamp);
       }
     }
 
