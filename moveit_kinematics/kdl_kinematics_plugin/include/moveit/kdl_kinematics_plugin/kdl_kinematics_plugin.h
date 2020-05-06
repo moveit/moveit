@@ -124,8 +124,8 @@ public:
 protected:
   typedef Eigen::Matrix<double, 6, 1> Twist;
 
-  // NOLINTNEXTLINE(readability-identifier-naming)
   /// Solve position IK given initial joint values
+  // NOLINTNEXTLINE(readability-identifier-naming)
   int CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, const KDL::JntArray& q_init, const KDL::Frame& p_in,
                 KDL::JntArray& q_out, const unsigned int max_iter, const Eigen::VectorXd& joint_weights,
                 const Twist& cartesian_weights) const;
