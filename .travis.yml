@@ -16,7 +16,7 @@ env:
     - ROS_DISTRO=melodic
     - ROS_REPO=ros
     - UPSTREAM_WORKSPACE=moveit.rosinstall
-    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
+    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -fsanitize=address"
     - WARNINGS_OK=false
 
 jobs:
