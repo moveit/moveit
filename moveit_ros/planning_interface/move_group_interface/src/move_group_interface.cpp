@@ -716,7 +716,7 @@ public:
 
   MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false)
   {
-    if (!plan_grasps_service_)
+    if (!plan_grasps_service_.waitForExistence(ros::Duration(0.2)))
     {
       ROS_ERROR_STREAM_NAMED("move_group_interface", "Grasp planning service '"
                                                          << GRASP_PLANNING_SERVICE_NAME
