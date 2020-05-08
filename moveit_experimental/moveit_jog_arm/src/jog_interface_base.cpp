@@ -261,6 +261,20 @@ bool JogInterfaceBase::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions:
   return true;
 }
 
+bool JogInterfaceBase::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                                               moveit_msgs::ChangeControlDimensions::Response& res)
+{
+  shared_variables_.control_dimensions[0] = req.control_x_translation;
+  shared_variables_.control_dimensions[1] = req.control_y_translation;
+  shared_variables_.control_dimensions[2] = req.control_z_translation;
+  shared_variables_.control_dimensions[3] = req.control_x_rotation;
+  shared_variables_.control_dimensions[4] = req.control_y_rotation;
+  shared_variables_.control_dimensions[5] = req.control_z_rotation;
+
+  res.success = true;
+  return true;
+}
+
 // A separate thread for the heavy jogging calculations.
 bool JogInterfaceBase::startJogCalcThread()
 {

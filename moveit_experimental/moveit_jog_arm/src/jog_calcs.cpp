@@ -272,14 +272,34 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
+  // Set uncontrolled dimensions to 0 in command frame
+  if (!shared_variables.control_dimensions[0])
+    cmd.twist.linear.x = 0;
+  if (!shared_variables.control_dimensions[1])
+    cmd.twist.linear.y = 0;
+  if (!shared_variables.control_dimensions[2])
+    cmd.twist.linear.z = 0;
+  if (!shared_variables.control_dimensions[3])
+    cmd.twist.angular.x = 0;
+  if (!shared_variables.control_dimensions[4])
+    cmd.twist.angular.y = 0;
+  if (!shared_variables.control_dimensions[5])
+    cmd.twist.angular.z = 0;
+
   // Transform the command to the MoveGroup planning frame
   if (cmd.header.frame_id != parameters_.planning_frame)
   {
     Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
     Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
 
-    translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
-    angular_vector = tf_moveit_to_cmd_frame_.linear() * angular_vector;
+    // We solve (planning_frame -> base -> cmd.header.frame_id)
+    // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
+    const auto tf_planning_to_cmd_frame =
+        kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+        kinematic_state_->getGlobalLinkTransform(cmd.header.frame_id);
+
+    translation_vector = tf_planning_to_cmd_frame.linear() * translation_vector;
+    angular_vector = tf_planning_to_cmd_frame.linear() * angular_vector;
 
     // Put these components back into a TwistStamped
     cmd.header.frame_id = parameters_.planning_frame;
