@@ -94,6 +94,10 @@ JogROSInterface::JogROSInterface()
   ros::ServiceServer drift_dimensions_server =
       nh.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
                           &JogInterfaceBase::changeDriftDimensions, dynamic_cast<JogInterfaceBase*>(this));
+  // ROS Server for changing the control dimensions
+  ros::ServiceServer dims_server =
+      nh.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
+                          &JogInterfaceBase::changeControlDimensions, dynamic_cast<JogInterfaceBase*>(this));
 
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
