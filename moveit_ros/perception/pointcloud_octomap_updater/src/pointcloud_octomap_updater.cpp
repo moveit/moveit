@@ -164,23 +164,11 @@ ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& 
 
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
 {
-  ShapeHandle h = 0;
-  if (shape_mask_)
-    h = shape_mask_->addShape(shape, scale_, padding_);
-  else
-    ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
+  ShapeHandle h = excludeShape(shape);
   // Add to transform cache, or update if it is already in it
-  ShapeTransformCache::iterator it = transform_cache_.find(h);
-  if (it != transform_cache_.end())
-  {
-    it->second = pose;
-    ROS_DEBUG_NAMED(LOGNAME, "Updated shape pose in transform cache");
-  }
-  else
-  {
-    transform_cache_.emplace(h, pose);
-    ROS_DEBUG_NAMED(LOGNAME, "Added shape to transform cache");
-  }
+  transform_cache_[h] = pose;
+  ROS_DEBUG_NAMED(LOGNAME, "Updated shape pose in transform cache");
+
   return h;
 }
 
@@ -208,6 +196,8 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg,
                                             const Eigen::Isometry3d& sensor_pose, UpdateMethod update_method)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
+
   ros::WallTime start = ros::WallTime::now();
 
   /* Mask out points contained in filtered shapes
@@ -377,6 +367,8 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
 bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
+
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
 
@@ -384,7 +376,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   Eigen::Isometry3d sensor_origin_eigen;
 
   if (monitor_->getMapFrame() == cloud_msg->header.frame_id)
-    sensor_origin_eigen = Eigen::Isometry3d::Identity();
+    sensor_origin_eigen.setIdentity();
   else
   {
     if (tf_buffer_)
@@ -417,25 +409,23 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
   ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
-  std::lock_guard<std::mutex> lock(update_mutex_);
   if (max_update_rate_ > 0)
   {
     // ensure we are not updating the octomap representation too often
     if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
       return;
-    last_update_time_ = ros::Time::now();
   }
 
   processCloud(cloud_msg);
+  last_update_time_ = ros::Time::now();
 }
 
 bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
                                                               moveit_msgs::UpdatePointcloudOctomap::Response& res)
 {
-  std::lock_guard<std::mutex> lock(update_mutex_);
   sensor_msgs::PointCloud2::ConstPtr cloud = boost::make_shared<sensor_msgs::PointCloud2>(std::move(req.cloud));
-  last_update_time_ = ros::Time::now();
   res.success = processCloud(cloud);
+  last_update_time_ = ros::Time::now();
   return res.success;
 }
 

@@ -50,8 +50,11 @@
 
 namespace occupancy_map_monitor
 {
-
-enum class UpdateMethod {INCREMENTAL, SNAPSHOT};
+enum class UpdateMethod
+{
+  INCREMENTAL,
+  SNAPSHOT
+};
 
 class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
@@ -130,6 +133,6 @@ private:
   std::vector<int> mask_;
 
   // mutex to ensure that msg callback and service call are not performed simultaniously
-  std::mutex update_mutex_;
+  std::recursive_mutex update_mutex_;
 };
 }  // namespace occupancy_map_monitor
