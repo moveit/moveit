@@ -154,6 +154,7 @@ void PointCloudOctomapUpdater::stop()
 
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   ShapeHandle h = 0;
   if (shape_mask_)
     h = shape_mask_->addShape(shape, scale_, padding_);
@@ -164,6 +165,7 @@ ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& 
 
 ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   ShapeHandle h = excludeShape(shape);
   // Add to transform cache, or update if it is already in it
   transform_cache_[h] = pose;
@@ -174,6 +176,7 @@ ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& 
 
 void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   if (shape_mask_)
     shape_mask_->removeShape(handle);
 }
@@ -408,6 +411,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
   if (max_update_rate_ > 0)
   {
@@ -423,6 +427,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
                                                               moveit_msgs::UpdatePointcloudOctomap::Response& res)
 {
+  std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   sensor_msgs::PointCloud2::ConstPtr cloud = boost::make_shared<sensor_msgs::PointCloud2>(std::move(req.cloud));
   res.success = processCloud(cloud);
   last_update_time_ = ros::Time::now();

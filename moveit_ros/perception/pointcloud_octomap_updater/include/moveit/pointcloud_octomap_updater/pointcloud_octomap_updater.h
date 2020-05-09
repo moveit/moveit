@@ -131,8 +131,5 @@ private:
 
   std::unique_ptr<point_containment_filter::ShapeMask> shape_mask_;
   std::vector<int> mask_;
-
-  // mutex to ensure that msg callback and service call are not performed simultaniously
-  std::recursive_mutex update_mutex_;
 };
 }  // namespace occupancy_map_monitor

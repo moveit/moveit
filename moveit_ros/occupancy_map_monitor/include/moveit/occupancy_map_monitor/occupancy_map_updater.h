@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include <moveit/macros/class_forward.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <geometric_shapes/shapes.h>
@@ -68,6 +70,7 @@ public:
    * manually*/
   void setTree(const OccMapTreePtr& tree)
   {
+    std::lock_guard<std::recursive_mutex> lock(update_mutex_);
     tree_ = tree;
   }
 
@@ -94,6 +97,7 @@ public:
 
   void setTransformCacheCallback(const TransformCacheProvider& transform_callback)
   {
+    std::lock_guard<std::recursive_mutex> lock(update_mutex_);
     transform_provider_callback_ = transform_callback;
   }
 
@@ -109,6 +113,9 @@ protected:
   TransformCacheProvider transform_provider_callback_;
   ShapeTransformCache transform_cache_;
   bool debug_info_;
+
+  // mutex to ensure that different updating APIs are not performed simultaniously
+  std::recursive_mutex update_mutex_;
 
   bool updateTransformCache(const std::string& target_frame, const ros::Time& target_time);
 
