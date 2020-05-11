@@ -831,8 +831,14 @@ public:
 
   MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory, bool wait)
   {
+    if (!execute_action_client_)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "execute action client not found");
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
     if (!execute_action_client_->isServerConnected())
     {
+      ROS_WARN_STREAM_NAMED(LOGNAME, "execute action server not connected");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 
