@@ -82,6 +82,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
       readXmlParam(params, "max_update_rate", &max_update_rate_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
+    if (params.hasMember("clear_map_service_topic"))
+      clear_map_topic_ = static_cast<const std::string&>(params["clear_map_service_topic"]);
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
@@ -100,6 +102,8 @@ bool PointCloudOctomapUpdater::initialize()
   shape_mask_->setTransformCallback(boost::bind(&PointCloudOctomapUpdater::getShapeTransform, this, _1, _2));
   if (!filtered_cloud_topic_.empty())
     filtered_cloud_publisher_ = private_nh_.advertise<sensor_msgs::PointCloud2>(filtered_cloud_topic_, 10, false);
+  if (!clear_map_topic_.empty())
+    clear_map_server_ = private_nh_.advertiseService(clear_map_topic_, &PointCloudOctomapUpdater::clearMap, this);
   return true;
 }
 
@@ -128,6 +132,15 @@ void PointCloudOctomapUpdater::stopHelper()
 {
   delete point_cloud_filter_;
   delete point_cloud_subscriber_;
+}
+
+bool PointCloudOctomapUpdater::clearMap(moveit_msgs::ClearMap::Request& req, moveit_msgs::ClearMap::Response& res)
+{
+  tree_->lockRead();
+  tree_->clear();
+  tree_->unlockRead();
+  res.success = true;
+  return true;
 }
 
 void PointCloudOctomapUpdater::stop()

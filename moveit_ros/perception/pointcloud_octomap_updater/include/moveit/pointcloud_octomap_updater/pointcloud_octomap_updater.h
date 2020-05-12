@@ -47,6 +47,7 @@ DIAGNOSTIC_POP
 #include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
+#include <moveit_msgs/ClearMap.h>
 
 #include <memory>
 
@@ -74,6 +75,7 @@ private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
   void stopHelper();
+  bool clearMap(moveit_msgs::ClearMap::Request& req, moveit_msgs::ClearMap::Response& res);
 
   ros::NodeHandle root_nh_;
   ros::NodeHandle private_nh_;
@@ -91,7 +93,9 @@ private:
   unsigned int point_subsample_;
   double max_update_rate_;
   std::string filtered_cloud_topic_;
+  std::string clear_map_topic_;
   ros::Publisher filtered_cloud_publisher_;
+  ros::ServiceServer clear_map_server_;
 
   message_filters::Subscriber<sensor_msgs::PointCloud2>* point_cloud_subscriber_;
   tf2_ros::MessageFilter<sensor_msgs::PointCloud2>* point_cloud_filter_;
