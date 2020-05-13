@@ -102,15 +102,21 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
       collision_detected = false;
 
       // Do a thread-safe distance-based collision detection
-      collision_result.clear();
-      getLockedPlanningSceneRO()->getCollisionEnv()->checkRobotCollision(collision_request, collision_result,
-                                                                         current_state);
-      scene_collision_distance = collision_result.distance;
-      collision_detected |= collision_result.collision;
+      {  // Lock PlanningScene
+        auto scene_ro = getLockedPlanningSceneRO();
 
-      collision_result.clear();
-      getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request, collision_result,
-                                                                                current_state, acm);
+        collision_result.clear();
+        scene_ro->getCollisionWorld()->checkRobotCollision(collision_request, collision_result,
+                                                           *scene_ro->getCollisionRobot(), current_state, acm);
+
+        scene_collision_distance = collision_result.distance;
+        collision_detected |= collision_result.collision;
+
+        collision_result.clear();
+        scene_ro->getCollisionRobotUnpadded()->checkSelfCollision(collision_request, collision_result, current_state,
+                                                                  acm);
+      }  // Unlock PlanningScene
+
       self_collision_distance = collision_result.distance;
       collision_detected |= collision_result.collision;
 
