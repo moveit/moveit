@@ -35,6 +35,9 @@ jobs:
       env: ROS_REPO=ros-shadow-fixed
   allow_failures:
     - env: TEST=code-coverage
+    - env: TEST=clang-tidy-fix
+           BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
+           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual"
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
