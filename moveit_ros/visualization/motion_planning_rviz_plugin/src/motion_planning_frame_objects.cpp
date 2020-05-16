@@ -67,6 +67,7 @@ QString subframe_poses_to_qstring(const moveit::core::FixedTransformsMap& subfra
   }
   status_text.chop(3);
   status_text += ".";
+  return status_text;
 }
 }  // namespace
 
