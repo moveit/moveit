@@ -938,37 +938,9 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="1">
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="title">
-          <string>Object Status</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
-          <item>
-           <widget class="QLabel" name="object_status">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <property name="text">
-             <string>Status</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::AutoText</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
         <widget class="QGroupBox" name="pose_scale_group_box">
          <property name="title">
-          <string>Manage Pose and Scale</string>
+          <string>Change Object Pose and Scale</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
@@ -1126,6 +1098,40 @@
              </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Object Status</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <widget class="QLabel" name="object_status">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="text">
+             <string>Status</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::AutoText</enum>
+            </property>
+            <property name="WordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="TextInteractionFlags">
+             <enum>Qt::TextBrowserInteraction</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
