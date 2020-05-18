@@ -220,7 +220,7 @@ MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMst
 {
   return new og::LazyPRMstar(data);
 };
-}
+}  // namespace ompl_interface
 #endif
 
 ompl_interface::PlanningContextManager::PlanningContextManager(moveit::core::RobotModelConstPtr robot_model,
@@ -406,16 +406,15 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
 {
   // find the problem representation to use
   auto best = state_space_factories_.end();
-  int prev_priority = -1;
+  int prev_priority = 0;
   for (auto it = state_space_factories_.begin(); it != state_space_factories_.end(); ++it)
   {
     int priority = it->second->canRepresentProblem(group, req, robot_model_);
-    if (priority > 0)
-      if (best == state_space_factories_.end() || priority > prev_priority)
-      {
-        best = it;
-        prev_priority = priority;
-      }
+    if (priority > prev_priority)
+    {
+      best = it;
+      prev_priority = priority;
+    }
   }
 
   if (best == state_space_factories_.end())
