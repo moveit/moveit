@@ -82,6 +82,9 @@ public:
   void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const moveit::core::RobotState& state1,
                            const moveit::core::RobotState& state2) const override;
 
+  bool checkCollisionBetweenObjectGroups(std::vector<std::string> const& object_group1,
+                                       std::vector<std::string> const& object_group2) const override;
+
   void distanceSelf(const DistanceRequest& req, DistanceResult& res,
                     const moveit::core::RobotState& state) const override;
 

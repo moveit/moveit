@@ -156,6 +156,13 @@ public:
                                    const moveit::core::RobotState& state1,
                                    const moveit::core::RobotState& state2) const = 0;
 
+  virtual bool checkCollisionBetweenObjectGroups(std::vector<std::string> const& object_group1,
+                                                 std::vector<std::string> const& object_group2) const
+  {
+    ROS_ERROR_STREAM_NAMED("collision_detection", "checkObjectPairCollision is unimplemented");
+    return false;
+  }
+
   /** \brief The distance to self-collision given the robot is at state \e state.
       @param req A DistanceRequest object that encapsulates the distance request
       @param res A DistanceResult object that encapsulates the distance result

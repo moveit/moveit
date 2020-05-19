@@ -309,6 +309,37 @@ void CollisionEnvFCL::checkRobotCollisionHelper(const CollisionRequest& req, Col
   }
 }
 
+bool CollisionEnvFCL::checkCollisionBetweenObjectGroups(std::vector<std::string> const& object_group1,
+                                                        std::vector<std::string> const& object_group2) const
+{
+  auto manager1 = std::make_unique<fcl::DynamicAABBTreeCollisionManagerd>();
+  auto manager2 = std::make_unique<fcl::DynamicAABBTreeCollisionManagerd>();
+
+  // Populate managers with the FCL objects corresponding entries in object_groups
+  for (auto it = object_group1.begin(); it != object_group1.end(); ++it)
+  {
+    auto const& object_name = *it;
+    auto fcl_obj = fcl_objs_.at(object_name);
+    fcl_obj.registerTo(manager1.get());
+  }
+  for (auto it = object_group2.begin(); it != object_group2.end(); ++it)
+  {
+    auto const& object_name = *it;
+    auto fcl_obj = fcl_objs_.at(object_name);
+    fcl_obj.registerTo(manager2.get());
+  }
+
+  // Perform collision detection
+  CollisionRequest req;
+  CollisionResult res;
+  CollisionData cd;
+  cd.req_ = &req;
+  cd.res_ = &res;
+
+  manager1->collide(manager2.get(), &cd, &collisionCallback);
+  return cd.res_->collision;
+}
+
 void CollisionEnvFCL::distanceSelf(const DistanceRequest& req, DistanceResult& res,
                                    const moveit::core::RobotState& state) const
 {
