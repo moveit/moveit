@@ -78,7 +78,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   num_joints_ = internal_joint_state_.name.size();
   internal_joint_state_.position.resize(num_joints_);
   internal_joint_state_.velocity.resize(num_joints_);
-  internal_joint_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
   for (std::size_t i = 0; i < internal_joint_state_.name.size(); ++i)
   {
@@ -694,6 +693,13 @@ void JogCalcs::suddenHalt(Eigen::ArrayXd& delta_theta)
 // Is handled differently for position vs. velocity control.
 void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 {
+  if (joint_traj.points.empty())
+  {
+    joint_traj.points.push_back(trajectory_msgs::JointTrajectoryPoint());
+    joint_traj.points[0].positions.resize(num_joints_);
+    joint_traj.points[0].velocities.resize(num_joints_);
+  }
+
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
