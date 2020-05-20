@@ -685,7 +685,7 @@ public:
 
   MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, bool plan_only = false)
   {
-    if (!plan_grasps_service_)
+    if (!plan_grasps_service_.exists())
     {
       ROS_ERROR_STREAM_NAMED("move_group_interface", "Grasp planning service '"
                                                          << GRASP_PLANNING_SERVICE_NAME
@@ -796,8 +796,14 @@ public:
 
   MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory, bool wait)
   {
+    if (!execute_action_client_)
+    {
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "execute action client not found");
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
     if (!execute_action_client_->isServerConnected())
     {
+      ROS_WARN_STREAM_NAMED("move_group_interface", "execute action server not connected");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 

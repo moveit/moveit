@@ -237,6 +237,46 @@ void RobotState::markEffort()
   }
 }
 
+void RobotState::zeroVelocities()
+{
+  has_velocity_ = false;
+  markVelocity();
+}
+
+void RobotState::zeroAccelerations()
+{
+  has_acceleration_ = false;
+  markAcceleration();
+}
+
+void RobotState::zeroEffort()
+{
+  has_effort_ = false;
+  markEffort();
+}
+
+void RobotState::dropVelocities()
+{
+  has_velocity_ = false;
+}
+
+void RobotState::dropAccelerations()
+{
+  has_velocity_ = false;
+}
+
+void RobotState::dropEffort()
+{
+  has_velocity_ = false;
+}
+
+void RobotState::dropDynamics()
+{
+  dropVelocities();
+  dropAccelerations();
+  dropEffort();
+}
+
 void RobotState::setToRandomPositions()
 {
   random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();

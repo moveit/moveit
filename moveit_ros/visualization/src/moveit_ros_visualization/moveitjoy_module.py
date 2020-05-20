@@ -322,6 +322,163 @@ class PS3WiredStatus(JoyStatus):
         self.right_analog_y = msg.axes[3]
         self.orig_msg = msg
 
+class PS4Status(JoyStatus):
+    def __init__(self, msg):
+        JoyStatus.__init__(self)
+        #creating from sensor_msg/Joy
+        if msg.buttons[12] == 1:
+            self.center = True
+        else:
+            self.center = False
+        if msg.buttons[8] == 1:
+            self.select = True
+        else:
+            self.select = False
+        if msg.buttons[9] == 1:
+            self.start = True
+        else:
+            self.start = False
+        if msg.buttons[10] == 1:
+            self.L3 = True
+        else:
+            self.L3 = False
+        if msg.buttons[11] == 1:
+            self.R3 = True
+        else:
+            self.R3 = False
+        if msg.buttons[0] == 1:
+            self.square = True
+        else:
+            self.square = False
+        if msg.axes[10] < 0:
+            self.up = True
+        else:
+            self.up = False
+        if msg.axes[10] > 0:
+            self.down = True
+        else:
+            self.down = False
+        if msg.axes[9] < 0:
+            self.left = True
+        else:
+            self.left = False
+        if msg.axes[9] > 0:
+            self.right = True
+        else:
+            self.right = False
+        if msg.buttons[3] == 1:
+            self.triangle = True
+        else:
+            self.triangle = False
+        if msg.buttons[1] == 1:
+            self.cross = True
+        else:
+            self.cross = False
+        if msg.buttons[2] == 1:
+            self.circle = True
+        else:
+            self.circle = False
+        if msg.buttons[4] == 1:
+            self.L1 = True
+        else:
+            self.L1 = False
+        if msg.buttons[5] == 1:
+            self.R1 = True
+        else:
+            self.R1 = False
+        if msg.buttons[6] == 1:
+            self.L2 = True
+        else:
+            self.L2 = False
+        if msg.buttons[7] == 1:
+            self.R2 = True
+        else:
+            self.R2 = False
+        self.left_analog_x = msg.axes[0]
+        self.left_analog_y = msg.axes[1]
+        self.right_analog_x = msg.axes[5]
+        self.right_analog_y = msg.axes[2]
+        self.orig_msg = msg
+
+class PS4WiredStatus(JoyStatus):
+    def __init__(self, msg):
+        JoyStatus.__init__(self)
+        #creating from sensor_msg/Joy
+        if msg.buttons[10] == 1:
+            self.center = True
+        else:
+            self.center = False
+        if msg.buttons[8] == 1:
+            self.select = True
+        else:
+            self.select = False
+        if msg.buttons[9] == 1:
+            self.start = True
+        else:
+            self.start = False
+        if msg.buttons[11] == 1:
+            self.L3 = True
+        else:
+            self.L3 = False
+        if msg.buttons[12] == 1:
+            self.R3 = True
+        else:
+            self.R3 = False
+        if msg.buttons[3] == 1:
+            self.square = True
+        else:
+            self.square = False
+        if msg.axes[7] < 0:
+            self.up = True
+        else:
+            self.up = False
+        if msg.axes[7] > 0:
+            self.down = True
+        else:
+            self.down = False
+        if msg.axes[6] < 0:
+            self.left = True
+        else:
+            self.left = False
+        if msg.axes[6] > 0:
+            self.right = True
+        else:
+            self.right = False
+        if msg.buttons[2] == 1:
+            self.triangle = True
+        else:
+            self.triangle = False
+        if msg.buttons[0] == 1:
+            self.cross = True
+        else:
+            self.cross = False
+        if msg.buttons[1] == 1:
+            self.circle = True
+        else:
+            self.circle = False
+        if msg.buttons[4] == 1:
+            self.L1 = True
+        else:
+            self.L1 = False
+        if msg.buttons[5] == 1:
+            self.R1 = True
+        else:
+            self.R1 = False
+        if msg.buttons[6] == 1:
+            self.L2 = True
+        else:
+            self.L2 = False
+        if msg.buttons[7] == 1:
+            self.R2 = True
+        else:
+            self.R2 = False
+        self.left_analog_x = msg.axes[0]
+        self.left_analog_y = msg.axes[1]
+        self.right_analog_x = msg.axes[3]
+        self.right_analog_y = msg.axes[4]
+        self.orig_msg = msg
+
+
 class StatusHistory():
   def __init__(self, max_length=10):
     self.max_length = max_length
@@ -471,6 +628,10 @@ class MoveitJoy:
             status = XBoxStatus(msg)
         elif len(msg.axes) == 20 and len(msg.buttons) == 17:
             status = PS3Status(msg)
+        elif len(msg.axes) == 14 and len(msg.buttons) == 14:
+            status = PS4Status(msg)
+        elif len(msg.axes) == 8 and len(msg.buttons) == 13:
+            status = PS4WiredStatus(msg)
         else:
             raise Exception("Unknown joystick")
         self.run(status)

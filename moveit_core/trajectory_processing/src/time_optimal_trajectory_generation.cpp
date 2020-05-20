@@ -39,7 +39,6 @@
 #include <limits>
 #include <Eigen/Geometry>
 #include <algorithm>
-#include <angles/angles.h>
 #include <cmath>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <ros/console.h>
@@ -979,8 +978,11 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   // Return trajectory with only the first waypoint if there are not multiple diverse points
   if (points.size() == 1)
   {
-    ROS_WARN_NAMED(LOGNAME, "Trajectory is not being parameterized since it only contains a single distinct waypoint.");
-    robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
+    ROS_DEBUG_NAMED(LOGNAME,
+                    "Trajectory is parameterized with 0.0 dynamics since it only contains a single distinct waypoint.");
+    moveit::core::RobotState waypoint = moveit::core::RobotState(trajectory.getWayPoint(0));
+    waypoint.zeroVelocities();
+    waypoint.zeroAccelerations();
     trajectory.clear();
     trajectory.addSuffixWayPoint(waypoint, 0.0);
     return true;

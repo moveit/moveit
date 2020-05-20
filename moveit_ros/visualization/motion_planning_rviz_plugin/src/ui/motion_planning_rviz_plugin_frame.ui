@@ -603,7 +603,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="planning_attempts">
+             <widget class="QSpinBox" name="planning_attempts">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -611,10 +611,10 @@
                </sizepolicy>
               </property>
               <property name="maximum">
-               <double>1000.000000000000000</double>
+               <number>1000</number>
               </property>
               <property name="value">
-               <double>10.000000000000000</double>
+               <number>10</number>
               </property>
              </widget>
             </item>
