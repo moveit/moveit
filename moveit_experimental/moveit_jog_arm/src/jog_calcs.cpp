@@ -78,7 +78,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   num_joints_ = internal_joint_state_.name.size();
   internal_joint_state_.position.resize(num_joints_);
   internal_joint_state_.velocity.resize(num_joints_);
-  internal_joint_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
   for (std::size_t i = 0; i < internal_joint_state_.name.size(); ++i)
   {
