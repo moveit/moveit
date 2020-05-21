@@ -52,6 +52,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
   common_planning_interface_objects/include
   planning_scene_interface/include
   move_group_interface/include
+  moveit_cpp/include
 )
 
 catkin_python_setup()
@@ -62,6 +63,7 @@ catkin_package(
     moveit_planning_scene_interface
     moveit_move_group_interface
     moveit_py_bindings_tools
+    moveit_cpp
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
@@ -93,3 +95,4 @@ add_subdirectory(planning_scene_interface)
 add_subdirectory(move_group_interface)
 add_subdirectory(robot_interface)
 add_subdirectory(test)
+add_subdirectory(moveit_cpp)
