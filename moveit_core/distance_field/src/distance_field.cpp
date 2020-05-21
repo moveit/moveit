@@ -208,8 +208,10 @@ bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Isom
   }
   else
   {
-    bodies::Body* body = bodies::createBodyFromShape(shape);
-    body->setPose(pose);
+    bodies::Body* body = bodies::createEmptyBodyFromShapeType(shape->type);
+    body->setDimensionsDirty(shape);
+    body->setPoseDirty(pose);
+    body->updateInternalData();
     findInternalPointsConvex(*body, resolution_, *points);
     delete body;
   }
@@ -292,8 +294,10 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Is
     ROS_WARN_NAMED("distance_field", "Move shape not supported for Octree");
     return;
   }
-  bodies::Body* body = bodies::createBodyFromShape(shape);
-  body->setPose(old_pose);
+  bodies::Body* body = bodies::createEmptyBodyFromShapeType(shape->type);
+  body->setDimensionsDirty(shape);
+  body->setPoseDirty(old_pose);
+  body->updateInternalData();
   EigenSTL::vector_Vector3d old_point_vec;
   findInternalPointsConvex(*body, resolution_, old_point_vec);
   body->setPose(new_pose);
@@ -315,8 +319,10 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_
 
 void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Isometry3d& pose)
 {
-  bodies::Body* body = bodies::createBodyFromShape(shape);
-  body->setPose(pose);
+  bodies::Body* body = bodies::createEmptyBodyFromShapeType(shape->type);
+  body->setDimensionsDirty(shape);
+  body->setPoseDirty(pose);
+  body->updateInternalData();
   EigenSTL::vector_Vector3d point_vec;
   findInternalPointsConvex(*body, resolution_, point_vec);
   delete body;

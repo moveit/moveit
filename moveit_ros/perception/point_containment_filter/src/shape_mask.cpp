@@ -69,9 +69,10 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
 {
   boost::mutex::scoped_lock _(shapes_lock_);
   SeeShape ss;
-  ss.body = bodies::createBodyFromShape(shape.get());
+  ss.body = bodies::createEmptyBodyFromShapeType(shape->type);
   if (ss.body)
   {
+    ss.body->setDimensionsDirty(shape.get());
     ss.body->setScaleDirty(scale);
     ss.body->setPaddingDirty(padding);
     ss.body->updateInternalData();
