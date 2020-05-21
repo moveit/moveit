@@ -36,6 +36,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_model/revolute_joint_model.h>
+#include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <limits>
@@ -268,6 +269,7 @@ void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Iso
 
 void RevoluteJointModel::computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const
 {
+  ASSERT_ISOMETRY(transf)  // unsanitized input, could contain a non-isometry
   Eigen::Quaterniond q(transf.linear());
   q.normalize();
   size_t max_idx;

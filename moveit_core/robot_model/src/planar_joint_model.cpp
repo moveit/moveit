@@ -36,6 +36,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_model/planar_joint_model.h>
+#include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <limits>
 #include <cmath>
@@ -224,6 +225,7 @@ void PlanarJointModel::computeVariablePositions(const Eigen::Isometry3d& transf,
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
 
+  ASSERT_ISOMETRY(transf)  // unsanitized input, could contain a non-isometry
   Eigen::Quaterniond q(transf.linear());
   // taken from Bullet
   double s_squared = 1.0 - (q.w() * q.w());

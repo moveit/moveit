@@ -36,6 +36,7 @@
 
 #include <moveit/robot_model/link_model.h>
 #include <moveit/robot_model/joint_model.h>
+#include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
@@ -59,6 +60,7 @@ LinkModel::~LinkModel() = default;
 
 void LinkModel::setJointOriginTransform(const Eigen::Isometry3d& transform)
 {
+  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
   joint_origin_transform_ = transform;
   joint_origin_transform_is_identity_ =
       joint_origin_transform_.linear().isIdentity() &&
@@ -82,6 +84,7 @@ void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes,
 
   for (std::size_t i = 0; i < shapes_.size(); ++i)
   {
+    ASSERT_ISOMETRY(collision_origin_transform_[i])  // unsanitized input, could contain a non-isometry
     collision_origin_transform_is_identity_[i] =
         (collision_origin_transform_[i].linear().isIdentity() &&
          collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ?

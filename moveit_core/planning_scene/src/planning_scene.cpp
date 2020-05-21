@@ -964,6 +964,7 @@ void PlanningScene::saveGeometryToStream(std::ostream& out) const
         for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
         {
           shapes::saveAsText(obj->shapes_[j].get(), out);
+          // shape_poses_ is valid isometry by contract
           out << obj->shape_poses_[j].translation().x() << " " << obj->shape_poses_[j].translation().y() << " "
               << obj->shape_poses_[j].translation().z() << std::endl;
           Eigen::Quaterniond r(obj->shape_poses_[j].linear());

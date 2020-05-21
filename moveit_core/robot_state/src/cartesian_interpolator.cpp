@@ -37,6 +37,7 @@
 /* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats, Dave Coleman */
 
 #include <moveit/robot_state/cartesian_interpolator.h>
+#include <geometric_shapes/check_isometry.h>
 
 namespace moveit
 {
@@ -59,13 +60,14 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
                                                    const kinematics::KinematicsQueryOptions& options)
 {
   // this is the Cartesian pose we start from, and have to move in the direction indicated
+  // getGlobalLinkTransform() returns a valid isometry by contract
   const Eigen::Isometry3d& start_pose = start_state->getGlobalLinkTransform(link);
 
   // the direction can be in the local reference frame (in which case we rotate it)
   const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.linear() * direction;
 
   // The target pose is built by applying a translation to the start pose for the desired direction and distance
-  Eigen::Isometry3d target_pose = start_pose;
+  Eigen::Isometry3d target_pose = start_pose;  // valid isometry
   target_pose.translation() += rotated_direction * distance;
 
   // call computeCartesianPath for the computed target pose in the global reference frame
@@ -86,10 +88,13 @@ double CartesianInterpolator::computeCartesianPath(RobotState* start_state, cons
     start_state->enforceBounds(joint);
 
   // this is the Cartesian pose we start from, and we move in the direction indicated
-  Eigen::Isometry3d start_pose = start_state->getGlobalLinkTransform(link);
+  // getGlobalLinkTransform() returns a valid isometry by contract
+  Eigen::Isometry3d start_pose = start_state->getGlobalLinkTransform(link);  // valid isometry
+
+  ASSERT_ISOMETRY(target)  // unsanitized input, could contain a non-isometry
 
   // the target can be in the local reference frame (in which case we rotate it)
-  Eigen::Isometry3d rotated_target = global_reference_frame ? target : start_pose * target;
+  Eigen::Isometry3d rotated_target = global_reference_frame ? target : start_pose * target;  // valid isometry
 
   Eigen::Quaterniond start_quaternion(start_pose.linear());
   Eigen::Quaterniond target_quaternion(rotated_target.linear());

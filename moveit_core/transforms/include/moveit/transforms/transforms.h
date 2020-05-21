@@ -86,13 +86,14 @@ public:
 
   /**
    * @brief Return all the transforms
-   * @return A map from string names of frames to corresponding Eigen::Isometry3d (w.r.t the planning frame)
+   * @return A map from string names of frames to corresponding Eigen::Isometry3d (w.r.t the planning frame). The
+   * transforms are guaranteed to be valid isometries.
    */
   const FixedTransformsMap& getAllTransforms() const;
 
   /**
    * @brief Get a vector of all the transforms as ROS messages
-   * @param transforms The output transforms
+   * @param transforms The output transforms. They are guaranteed to be valid isometries.
    */
   void copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const;
 
@@ -137,40 +138,44 @@ public:
    */
   void transformVector3(const std::string& from_frame, const Eigen::Vector3d& v_in, Eigen::Vector3d& v_out) const
   {
+    // getTransform() returns a valid isometry by contract
     v_out = getTransform(from_frame).linear() * v_in;
   }
 
   /**
    * @brief Transform a quaternion in from_frame to the target_frame
    * @param from_frame The frame in which the input quaternion is specified
-   * @param v_in The input quaternion (in from_frame)
-   * @param v_out The resultant (transformed) quaternion
+   * @param v_in The input quaternion (in from_frame). Make sure the quaternion is normalized.
+   * @param v_out The resultant (transformed) quaternion. It is guaranteed to be a valid and normalized quaternion.
    */
   void transformQuaternion(const std::string& from_frame, const Eigen::Quaterniond& q_in,
                            Eigen::Quaterniond& q_out) const
   {
+    // getTransform() returns a valid isometry by contract
     q_out = getTransform(from_frame).linear() * q_in;
   }
 
   /**
    * @brief Transform a rotation matrix in from_frame to the target_frame
    * @param from_frame The frame in which the input rotation matrix is specified
-   * @param m_in The input rotation matrix (in from_frame)
-   * @param m_out The resultant (transformed) rotation matrix
+   * @param m_in The input rotation matrix (in from_frame). Make sure the matrix is a valid rotation matrix.
+   * @param m_out The resultant (transformed) rotation matrix. It is guaranteed to be a valid rotation matrix.
    */
   void transformRotationMatrix(const std::string& from_frame, const Eigen::Matrix3d& m_in, Eigen::Matrix3d& m_out) const
   {
+    // getTransform() returns a valid isometry by contract
     m_out = getTransform(from_frame).linear() * m_in;
   }
 
   /**
    * @brief Transform a pose in from_frame to the target_frame
    * @param from_frame The frame in which the input pose is specified
-   * @param t_in The input pose (in from_frame)
-   * @param t_out The resultant (transformed) pose
+   * @param t_in The input pose (in from_frame). Make sure the pose is a valid isometry.
+   * @param t_out The resultant (transformed) pose. It is guaranteed to be a valid isometry.
    */
   void transformPose(const std::string& from_frame, const Eigen::Isometry3d& t_in, Eigen::Isometry3d& t_out) const
   {
+    // getTransform() returns a valid isometry by contract
     t_out = getTransform(from_frame) * t_in;
   }
   /**@}*/
@@ -189,7 +194,7 @@ public:
   /**
    * @brief Get transform for from_frame (w.r.t target frame)
    * @param from_frame The string id of the frame for which the transform is being computed
-   * @return The required transform
+   * @return The required transform. It is guaranteed to be a valid isometry.
    */
   virtual const Eigen::Isometry3d& getTransform(const std::string& from_frame) const;
 

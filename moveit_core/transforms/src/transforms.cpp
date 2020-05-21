@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/transforms/transforms.h>
+#include <geometric_shapes/check_isometry.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <boost/algorithm/string/trim.hpp>
 #include <ros/console.h>
@@ -75,6 +76,10 @@ const FixedTransformsMap& Transforms::getAllTransforms() const
 
 void Transforms::setAllTransforms(const FixedTransformsMap& transforms)
 {
+  for (const auto& t : transforms)
+  {
+    ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
+  }
   transforms_map_ = transforms;
 }
 
@@ -114,6 +119,7 @@ bool Transforms::canTransform(const std::string& from_frame) const
 
 void Transforms::setTransform(const Eigen::Isometry3d& t, const std::string& from_frame)
 {
+  ASSERT_ISOMETRY(t)  // unsanitized input, could contain a non-isometry
   if (from_frame.empty())
     ROS_ERROR_NAMED("transforms", "Cannot record transform with empty name");
   else

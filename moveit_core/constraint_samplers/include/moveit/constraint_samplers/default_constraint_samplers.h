@@ -465,7 +465,7 @@ public:
    * Otherwise, a random quaternion is produced.
    *
    * @param [out] pos The position component of the sample
-   * @param [out] quat The orientation component of the sample
+   * @param [out] quat The orientation component of the sample. It will always be a normalized quaternion.
    * @param [in] ks The reference state used for performing transforms
    * @param [in] max_attempts The maximum attempts to try to sample - applies only to the position constraint
    *

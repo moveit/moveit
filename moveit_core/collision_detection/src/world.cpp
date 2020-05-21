@@ -35,6 +35,7 @@
 /* Author: Acorn Pooley, Ioan Sucan */
 
 #include <moveit/collision_detection/world.h>
+#include <geometric_shapes/check_isometry.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <ros/console.h>
 
@@ -59,6 +60,7 @@ inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::Shape
                                        const Eigen::Isometry3d& pose)
 {
   obj->shapes_.push_back(shape);
+  ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
   obj->shape_poses_.push_back(pose);
 }
 
@@ -208,6 +210,7 @@ bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeC
       if (it->second->shapes_[i] == shape)
       {
         ensureUnique(it->second);
+        ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
         it->second->shape_poses_[i] = pose;
 
         notify(it->second, MOVE_SHAPE);
@@ -227,6 +230,7 @@ bool World::moveObject(const std::string& object_id, const Eigen::Isometry3d& tr
   ensureUnique(it->second);
   for (size_t i = 0, n = it->second->shapes_.size(); i < n; ++i)
   {
+    ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
     it->second->shape_poses_[i] = transform * it->second->shape_poses_[i];
   }
   notify(it->second, MOVE_SHAPE);
@@ -285,6 +289,10 @@ bool World::setSubframesOfObject(const std::string& object_id, const moveit::cor
   if (obj_pair == objects_.end())
   {
     return false;
+  }
+  for (const auto& t : subframe_poses)
+  {
+    ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
   }
   obj_pair->second->subframe_poses_ = subframe_poses;
   return true;

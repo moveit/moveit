@@ -51,6 +51,7 @@ bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::strin
     return false;
   }
 
+  // getGlobalLinkTransform() returns a valid isometry by contract
   const Eigen::Vector3d& robot_visual_position = kinematic_state_->getGlobalLinkTransform(link_model).translation();
   Eigen::Quaterniond robot_visual_orientation(kinematic_state_->getGlobalLinkTransform(link_model).linear());
   visual_position = Ogre::Vector3(robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z());

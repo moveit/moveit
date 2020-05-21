@@ -150,6 +150,7 @@ public:
     const moveit::core::LinkModel* lm = state->getLinkModel(name);
     if (lm)
     {
+      // getGlobalLinkTransform() returns a valid isometry by contract
       const Eigen::Isometry3d& t = state->getGlobalLinkTransform(lm);
       std::vector<double> v(7);
       v[0] = t.translation().x();

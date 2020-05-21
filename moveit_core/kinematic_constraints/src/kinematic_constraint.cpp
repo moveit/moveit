@@ -39,6 +39,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
+#include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <tf2_eigen/tf2_eigen.h>
 #include <boost/bind.hpp>
@@ -318,6 +319,7 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
       tf2::fromMsg(pc.constraint_region.primitive_poses[i], t);
+      ASSERT_ISOMETRY(t)  // unsanitized input, could contain a non-isometry
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
         constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -345,6 +347,7 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
       tf2::fromMsg(pc.constraint_region.mesh_poses[i], t);
+      ASSERT_ISOMETRY(t)  // unsanitized input, could contain a non-isometry
       constraint_region_pose_.push_back(t);
       if (mobile_frame_)
         constraint_region_.back()->setPose(constraint_region_pose_.back());
@@ -390,6 +393,7 @@ bool PositionConstraint::equal(const KinematicConstraint& other, double margin) 
       // need to check against all other regions
       for (std::size_t j = 0; j < o.constraint_region_.size(); ++j)
       {
+        // constraint_region_pose_ contain only valid isometries, so diff is also a valid isometry
         Eigen::Isometry3d diff = constraint_region_pose_[i].inverse() * o.constraint_region_pose_[j];
         if (diff.translation().norm() < margin && diff.linear().isIdentity(margin) &&
             constraint_region_[i]->getType() == o.constraint_region_[j]->getType() &&
@@ -597,13 +601,16 @@ ConstraintEvaluationResult OrientationConstraint::decide(const moveit::core::Rob
   Eigen::Vector3d xyz;
   if (mobile_frame_)
   {
+    // getFrameTransform() returns a valid isometry by contract
     Eigen::Matrix3d tmp = state.getFrameTransform(desired_rotation_frame_id_).linear() * desired_rotation_matrix_;
-    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());
+    // getGlobalLinkTransform() returns a valid isometry by contract
+    Eigen::Isometry3d diff(tmp.transpose() * state.getGlobalLinkTransform(link_model_).linear());  // valid isometry
     xyz = diff.linear().eulerAngles(0, 1, 2);
     // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
   else
   {
+    // diff is valid isometry by construction
     Eigen::Isometry3d diff(desired_rotation_matrix_inv_ * state.getGlobalLinkTransform(link_model_).linear());
     xyz = diff.linear().eulerAngles(0, 1, 2);  // 0,1,2 corresponds to XYZ, the convention used in sampling constraints
   }
@@ -695,6 +702,7 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
   }
 
   tf2::fromMsg(vc.target_pose.pose, target_pose_);
+  ASSERT_ISOMETRY(target_pose_)  // unsanitized input, could contain a non-isometry
 
   if (tf.isFixedFrame(vc.target_pose.header.frame_id))
   {
@@ -712,6 +720,7 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
   }
 
   tf2::fromMsg(vc.sensor_pose.pose, sensor_pose_);
+  ASSERT_ISOMETRY(sensor_pose_)  // unsanitized input, could contain a non-isometry
 
   if (tf.isFixedFrame(vc.sensor_pose.header.frame_id))
   {
@@ -752,12 +761,14 @@ bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin
   {
     if (fabs(max_view_angle_ - o.max_view_angle_) > margin || fabs(target_radius_ - o.target_radius_) > margin)
       return false;
-    Eigen::Isometry3d diff = sensor_pose_.inverse() * o.sensor_pose_;
+    // sensor_pose_ is valid isometry, checked in configure()
+    Eigen::Isometry3d diff = sensor_pose_.inverse() * o.sensor_pose_;  // valid isometry
     if (diff.translation().norm() > margin)
       return false;
     if (!diff.linear().isIdentity(margin))
       return false;
-    diff = target_pose_.inverse() * o.target_pose_;
+    // target_pose_ is valid isometry, checked in configure()
+    diff = target_pose_.inverse() * o.target_pose_;  // valid isometry
     if (diff.translation().norm() > margin)
       return false;
     if (!diff.linear().isIdentity(margin))
@@ -875,8 +886,11 @@ void VisibilityConstraint::getMarkers(const moveit::core::RobotState& state,
 
   markers.markers.push_back(mk);
 
+  // getFrameTransform() returns a valid isometry by contract
+  // sensor_pose_ is valid isometry (checked in configure())
   const Eigen::Isometry3d& sp =
       mobile_sensor_frame_ ? state.getFrameTransform(sensor_frame_id_) * sensor_pose_ : sensor_pose_;
+  // target_pose_ is valid isometry (checked in configure())
   const Eigen::Isometry3d& tp =
       mobile_target_frame_ ? state.getFrameTransform(target_frame_id_) * target_pose_ : target_pose_;
 
@@ -925,8 +939,11 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const moveit::core::Robo
 
   if (max_view_angle_ > 0.0 || max_range_angle_ > 0.0)
   {
+    // getFrameTransform() returns a valid isometry by contract
+    // sensor_pose_ is valid isometry (checked in configure())
     const Eigen::Isometry3d& sp =
         mobile_sensor_frame_ ? state.getFrameTransform(sensor_frame_id_) * sensor_pose_ : sensor_pose_;
+    // target_pose_ is valid isometry (checked in configure())
     const Eigen::Isometry3d& tp =
         mobile_target_frame_ ? state.getFrameTransform(target_frame_id_) * target_pose_ : target_pose_;
 

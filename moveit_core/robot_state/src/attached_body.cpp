@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_state/attached_body.h>
+#include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shapes.h>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -56,6 +57,14 @@ AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string
   , subframe_poses_(subframe_poses)
   , global_subframe_poses_(subframe_poses)
 {
+  for (const auto& t : attach_trans_)
+  {
+    ASSERT_ISOMETRY(t)  // unsanitized input, could contain a non-isometry
+  }
+  for (const auto& t : subframe_poses_)
+  {
+    ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
+  }
   global_collision_body_transforms_.resize(attach_trans.size());
   for (Eigen::Isometry3d& global_collision_body_transform : global_collision_body_transforms_)
     global_collision_body_transform.setIdentity();
@@ -82,15 +91,17 @@ void AttachedBody::setScale(double scale)
 
 void AttachedBody::computeTransform(const Eigen::Isometry3d& parent_link_global_transform)
 {
+  ASSERT_ISOMETRY(parent_link_global_transform)  // unsanitized input, could contain a non-isometry
+
   // update collision body transforms
   for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
-    global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];
+    global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];  // valid isometry
 
   // update subframe transforms
   for (auto global = global_subframe_poses_.begin(), end = global_subframe_poses_.end(),
             local = subframe_poses_.begin();
        global != end; ++global, ++local)
-    global->second = parent_link_global_transform * local->second;
+    global->second = parent_link_global_transform * local->second;  // valid isometry
 }
 
 void AttachedBody::setPadding(double padding)

@@ -38,6 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/cartesian_interpolator.h>
 #include <moveit/transforms/transforms.h>
+#include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/shape_operations.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <moveit/backtrace/backtrace.h>
@@ -1202,13 +1203,15 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
 
   const moveit::core::JointModel* root_joint_model = group->getJointModels()[0];  // group->getJointRoots()[0];
   const moveit::core::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
+  // getGlobalLinkTransform() returns a valid isometry by contract
   Eigen::Isometry3d reference_transform =
       root_link_model ? getGlobalLinkTransform(root_link_model).inverse() : Eigen::Isometry3d::Identity();
   int rows = use_quaternion_representation ? 7 : 6;
   int columns = group->getVariableCount();
   jacobian = Eigen::MatrixXd::Zero(rows, columns);
 
-  Eigen::Isometry3d link_transform = reference_transform * getGlobalLinkTransform(link);
+  // getGlobalLinkTransform() returns a valid isometry by contract
+  Eigen::Isometry3d link_transform = reference_transform * getGlobalLinkTransform(link);  // valid isometry
   Eigen::Vector3d point_transform = link_transform * reference_point_position;
 
   /*
@@ -1239,9 +1242,10 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
         continue;
       }
       unsigned int joint_index = group->getVariableGroupIndex(pjm->getName());
+      // getGlobalLinkTransform() returns a valid isometry by contract
+      joint_transform = reference_transform * getGlobalLinkTransform(link);  // valid isometry
       if (pjm->getType() == moveit::core::JointModel::REVOLUTE)
       {
-        joint_transform = reference_transform * getGlobalLinkTransform(link);
         joint_axis = joint_transform.linear() * static_cast<const moveit::core::RevoluteJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) =
             jacobian.block<3, 1>(0, joint_index) + joint_axis.cross(point_transform - joint_transform.translation());
@@ -1249,13 +1253,11 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
       }
       else if (pjm->getType() == moveit::core::JointModel::PRISMATIC)
       {
-        joint_transform = reference_transform * getGlobalLinkTransform(link);
         joint_axis = joint_transform.linear() * static_cast<const moveit::core::PrismaticJointModel*>(pjm)->getAxis();
         jacobian.block<3, 1>(0, joint_index) = jacobian.block<3, 1>(0, joint_index) + joint_axis;
       }
       else if (pjm->getType() == moveit::core::JointModel::PLANAR)
       {
-        joint_transform = reference_transform * getGlobalLinkTransform(link);
         joint_axis = joint_transform * Eigen::Vector3d(1.0, 0.0, 0.0);
         jacobian.block<3, 1>(0, joint_index) = jacobian.block<3, 1>(0, joint_index) + joint_axis;
         joint_axis = joint_transform * Eigen::Vector3d(0.0, 1.0, 0.0);
@@ -1775,6 +1777,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   // Each each pose's tip frame naming
   for (std::size_t i = 0; i < poses_in.size(); ++i)
   {
+    ASSERT_ISOMETRY(transformed_poses[i])  // unsanitized input, could contain a non-isometry
     Eigen::Isometry3d& pose = transformed_poses[i];
     std::string& pose_frame = pose_frames[i];
 
@@ -1795,26 +1798,27 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
       if (hasAttachedBody(pose_frame))
       {
         const AttachedBody* body = getAttachedBody(pose_frame);
-        const EigenSTL::vector_Isometry3d& ab_trans = body->getFixedTransforms();
+        const EigenSTL::vector_Isometry3d& ab_trans = body->getFixedTransforms();  // valid isometries by contract
         if (ab_trans.size() != 1)
         {
           ROS_ERROR_NAMED(LOGNAME, "Cannot use an attached body with multiple geometries as a reference frame.");
           return false;
         }
         pose_frame = body->getAttachedLinkName();
-        pose = pose * ab_trans[0].inverse();
+        pose = pose * ab_trans[0].inverse();  // valid isometry
       }
       if (pose_frame != solver_tip_frame)
       {
         const moveit::core::LinkModel* link_model = getLinkModel(pose_frame);
         if (!link_model)
           return false;
+        // getAssociatedFixedTransforms() returns valid isometries by contract
         const moveit::core::LinkTransformMap& fixed_links = link_model->getAssociatedFixedTransforms();
         for (const std::pair<const LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
           if (fixed_link.first->getName() == solver_tip_frame)
           {
             pose_frame = solver_tip_frame;
-            pose = pose * fixed_link.second;
+            pose = pose * fixed_link.second;  // valid isometry
             break;
           }
       }
@@ -2101,6 +2105,7 @@ void RobotState::printStateInfo(std::ostream& out) const
 
 void RobotState::printTransform(const Eigen::Isometry3d& transform, std::ostream& out) const
 {
+  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain a non-isometry
   Eigen::Quaterniond q(transform.linear());
   out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", "
       << transform.translation().z() << "], Q.xyzw = [" << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w()

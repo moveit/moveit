@@ -374,7 +374,7 @@ bool IKConstraintSampler::loadIKSolver()
       for (const std::pair<const moveit::core::LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
         if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
-          eef_to_ik_tip_transform_ = fixed_link.second;
+          eef_to_ik_tip_transform_ = fixed_link.second;  // valid isometry by contract
           need_eef_to_ik_tip_transform_ = true;
           wrong_link = false;
           break;
@@ -392,7 +392,7 @@ bool IKConstraintSampler::loadIKSolver()
       for (const std::pair<const moveit::core::LinkModel* const, Eigen::Isometry3d>& fixed_link : fixed_links)
         if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
-          eef_to_ik_tip_transform_ = fixed_link.second;
+          eef_to_ik_tip_transform_ = fixed_link.second;  // valid isometry by contract
           need_eef_to_ik_tip_transform_ = true;
           wrong_link = false;
           break;
@@ -479,16 +479,21 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     Eigen::Isometry3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX()) *
                            Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY()) *
                            Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
+    // diff is isometry by construction
+    // getDesiredRotationMatrix() returns a valid rotation matrix by contract
+    // reqr has thus to be a valid isometry
     Eigen::Isometry3d reqr(sampling_pose_.orientation_constraint_->getDesiredRotationMatrix() * diff.linear());
-    quat = Eigen::Quaterniond(reqr.linear());
+    quat = Eigen::Quaterniond(reqr.linear());  // reqr is isometry, so quat has to be normalized
 
     // if this constraint is with respect a mobile frame, we need to convert this rotation to the root frame of the
     // model
     if (sampling_pose_.orientation_constraint_->mobileReferenceFrame())
     {
+      // getFrameTransform() returns a valid isometry by contract
       const Eigen::Isometry3d& t = ks.getFrameTransform(sampling_pose_.orientation_constraint_->getReferenceFrame());
+      // rt is isometry by construction
       Eigen::Isometry3d rt(t.linear() * quat);
-      quat = Eigen::Quaterniond(rt.linear());
+      quat = Eigen::Quaterniond(rt.linear());  // rt is isometry, so quat has to be normalized
     }
   }
   else
@@ -496,7 +501,7 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     // sample a random orientation
     double q[4];
     random_number_generator_.quaternion(q);
-    quat = Eigen::Quaterniond(q[3], q[0], q[1], q[2]);
+    quat = Eigen::Quaterniond(q[3], q[0], q[1], q[2]);  // quat is normalized by contract
   }
 
   // if there is an offset, we need to undo the induced rotation in the sampled transform origin (point)
@@ -549,7 +554,7 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
   {
     // sample a point in the constraint region
     Eigen::Vector3d point;
-    Eigen::Quaterniond quat;
+    Eigen::Quaterniond quat;  // quat is normalized by contract
     if (!samplePose(point, quat, reference_state, max_attempts))
     {
       if (verbose_)
@@ -562,19 +567,20 @@ bool IKConstraintSampler::sampleHelper(moveit::core::RobotState& state, const mo
     {
       // we need to convert this transform to the frame expected by the IK solver
       // both the planning frame and the frame for the IK are assumed to be robot links
-      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);
-      ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);  // valid isometry by construction
+      // getFrameTransform() returns a valid isometry by contract
+      ikq = reference_state.getFrameTransform(ik_frame_).inverse() * ikq;  // valid isometry * valid isometry
       point = ikq.translation();
-      quat = Eigen::Quaterniond(ikq.linear());
+      quat = Eigen::Quaterniond(ikq.linear());  // ikq is isometry, so quat is normalized
     }
 
     if (need_eef_to_ik_tip_transform_)
     {
       // After sampling the pose needs to be transformed to the ik chain tip
-      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);
-      ikq = ikq * eef_to_ik_tip_transform_;
+      Eigen::Isometry3d ikq(Eigen::Translation3d(point) * quat);  // valid isometry by construction
+      ikq = ikq * eef_to_ik_tip_transform_;  // eef_to_ik_tip_transform_ is valid isometry (checked in loadIKSolver())
       point = ikq.translation();
-      quat = Eigen::Quaterniond(ikq.linear());
+      quat = Eigen::Quaterniond(ikq.linear());  // ikq is isometry, so quat is normalized
     }
 
     geometry_msgs::Pose ik_query;

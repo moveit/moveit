@@ -35,6 +35,7 @@
 /* Author: Martin Pecka */
 
 #include <moveit/robot_model/aabb.h>
+#include <geometric_shapes/check_isometry.h>
 
 void moveit::core::AABB::extendWithTransformedBox(const Eigen::Isometry3d& transform, const Eigen::Vector3d& box)
 {
@@ -44,6 +45,7 @@ void moveit::core::AABB::extendWithTransformedBox(const Eigen::Isometry3d& trans
   //
   // Here's a nice explanation why it works: https://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
 
+  ASSERT_ISOMETRY(transform)  // unsanitized input, could contain non-isometry
   const Eigen::Matrix3d& r = transform.linear();
   const Eigen::Vector3d& t = transform.translation();
 

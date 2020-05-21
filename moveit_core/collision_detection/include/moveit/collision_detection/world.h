@@ -151,12 +151,14 @@ public:
 
   /** \brief Get the transform to an object or subframe with given name.
    * If name does not exist, a std::runtime_error is thrown.
-   * A subframe name needs to be prefixed with the object's name separated by a slash. */
+   * A subframe name needs to be prefixed with the object's name separated by a slash.
+   * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getTransform(const std::string& name) const;
 
   /** \brief Get the transform to an object or subframe with given name.
    * If name does not exist, returns an identity transform and sets frame_found to false.
-   * A subframe name needs to be prefixed with the object's name separated by a slash. */
+   * A subframe name needs to be prefixed with the object's name separated by a slash.
+   * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getTransform(const std::string& name, bool& frame_found) const;
 
   /** \brief Add shapes to an object in the map.
