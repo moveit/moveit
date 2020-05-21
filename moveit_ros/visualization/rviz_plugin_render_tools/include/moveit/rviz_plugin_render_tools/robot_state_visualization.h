@@ -71,6 +71,7 @@ public:
   void update(const moveit::core::RobotStateConstPtr& kinematic_state,
               const std_msgs::ColorRGBA& default_attached_object_color,
               const std::map<std::string, std_msgs::ColorRGBA>& color_map);
+  void updateKinematicState(const robot_state::RobotStateConstPtr& kinematic_state);
   void setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color);
   /// update color of all attached object shapes
   void updateAttachedObjectColors(const std_msgs::ColorRGBA& attached_object_color);

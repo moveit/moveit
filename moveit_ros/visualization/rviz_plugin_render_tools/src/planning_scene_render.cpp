@@ -56,6 +56,16 @@ PlanningSceneRender::~PlanningSceneRender()
   context_->getSceneManager()->destroySceneNode(planning_scene_geometry_node_);
 }
 
+void PlanningSceneRender::updateRobotPosition(const planning_scene::PlanningSceneConstPtr& scene)
+{
+  if (scene_robot_)
+  {
+    robot_state::RobotStatePtr rs = std::make_shared<robot_state::RobotState>(scene->getCurrentState());
+    rs->update();
+    scene_robot_->updateKinematicState(rs);
+  }
+}
+
 void PlanningSceneRender::clear()
 {
   render_shapes_->clear();
