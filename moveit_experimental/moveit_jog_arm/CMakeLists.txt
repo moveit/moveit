@@ -11,6 +11,8 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+find_package(Boost REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
@@ -45,6 +47,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR}
 )
 
 #########################################
@@ -54,14 +57,14 @@ include_directories(
 add_library(${LIBRARY_NAME} SHARED
   src/collision_check_thread.cpp
   src/jog_calcs.cpp
-  src/jog_cpp_interface.cpp
-  src/jog_interface_base.cpp
+  src/jog_arm.cpp
   src/low_pass_filter.cpp
 )
 add_dependencies(${LIBRARY_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${LIBRARY_NAME}
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 # An example of using the C++ library
@@ -72,6 +75,7 @@ add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cpp_interface_example
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${LIBRARY_NAME}
 )
 
@@ -82,13 +86,16 @@ target_link_libraries(cpp_interface_example
 add_executable(jog_server
   src/collision_check_thread.cpp
   src/jog_calcs.cpp
-  src/jog_interface_base.cpp
-  src/jog_ros_interface.cpp
+  src/jog_arm.cpp
   src/jog_server.cpp
   src/low_pass_filter.cpp
 )
 add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+target_link_libraries(jog_server
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 ################################################
 ## An example of converting joystick commands ##
@@ -140,6 +147,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(jog_cpp_interface_test
     ${LIBRARY_NAME}
     ${catkin_LIBRARIES}
+    ${Eigen_LIBRARIES}
     ${Boost_LIBRARIES}
   )
 endif()

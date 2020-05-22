@@ -46,7 +46,7 @@
 #include <gtest/gtest.h>
 
 // Main class
-#include <moveit_jog_arm/jog_cpp_interface.h>
+#include <moveit_jog_arm/jog_arm.h>
 
 static const std::string LOGNAME = "jog_cpp_interface_test";
 
@@ -75,8 +75,10 @@ protected:
 
 TEST_F(TestJogCppInterface, InitTest)
 {
-  moveit_jog_arm::JogCppInterface jog_cpp_interface(planning_scene_monitor_);
+  moveit_jog_arm::JogArm jog_arm(planning_scene_monitor_);
+  jog_arm.start();
   ros::Duration(1).sleep();  // Give the started thread some time to run
+  jog_arm.stop();
 }
 
 // TODO(davetcoleman): due to many blocking checks for ROS messages, and
