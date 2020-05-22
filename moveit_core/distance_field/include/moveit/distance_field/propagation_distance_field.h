@@ -539,16 +539,6 @@ private:
    */
   void print(const EigenSTL::vector_Vector3d& points);
 
-  /**
-   * \brief Computes squared distance between two 3D integer points
-   *
-   * @param point1 Point 1 for distance
-   * @param point2 Point 2 for distance
-   *
-   * @return Distance between points squared
-   */
-  static int eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
-
   bool propagate_negative_; /**< \brief Whether or not to propagate negative distances */
 
   VoxelGrid<PropDistanceFieldVoxel>::Ptr voxel_grid_; /**< \brief Actual container for distance data */
