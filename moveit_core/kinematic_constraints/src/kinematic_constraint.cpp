@@ -315,17 +315,17 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
         ROS_WARN_NAMED("kinematic_constraints", "Constraint region message does not contain enough primitive poses");
         continue;
       }
-      constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
       tf2::fromMsg(pc.constraint_region.primitive_poses[i], t);
       constraint_region_pose_.push_back(t);
-      if (mobile_frame_)
-        constraint_region_.back()->setPose(constraint_region_pose_.back());
-      else
-      {
+      if (!mobile_frame_)
         tf.transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
-        constraint_region_.back()->setPose(constraint_region_pose_.back());
-      }
+
+      const bodies::BodyPtr body(bodies::createEmptyBodyFromShapeType(shape->type));
+      body->setDimensionsDirty(shape.get());
+      body->setPoseDirty(constraint_region_pose_.back());
+      body->updateInternalData();
+      constraint_region_.push_back(body);
     }
     else
       ROS_WARN_NAMED("kinematic_constraints", "Could not construct primitive shape %zu", i);
@@ -342,17 +342,16 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
         ROS_WARN_NAMED("kinematic_constraints", "Constraint region message does not contain enough primitive poses");
         continue;
       }
-      constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
       Eigen::Isometry3d t;
       tf2::fromMsg(pc.constraint_region.mesh_poses[i], t);
       constraint_region_pose_.push_back(t);
-      if (mobile_frame_)
-        constraint_region_.back()->setPose(constraint_region_pose_.back());
-      else
-      {
+      if (!mobile_frame_)
         tf.transformPose(pc.header.frame_id, constraint_region_pose_.back(), constraint_region_pose_.back());
-        constraint_region_.back()->setPose(constraint_region_pose_.back());
-      }
+      const bodies::BodyPtr body(bodies::createEmptyBodyFromShapeType(shape->type));
+      body->setDimensionsDirty(shape.get());
+      body->setPoseDirty(constraint_region_pose_.back());
+      body->updateInternalData();
+      constraint_region_.push_back(body);
     }
     else
     {
