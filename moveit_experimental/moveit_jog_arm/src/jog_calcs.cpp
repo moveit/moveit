@@ -43,12 +43,42 @@ static const std::string LOGNAME = "jog_calcs";
 
 namespace moveit_jog_arm
 {
-// Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
-  : parameters_(parameters), default_sleep_rate_(1000)
+namespace
 {
+// Helper function for detecting zeroed message
+bool isNonZero(const geometry_msgs::TwistStamped& msg)
+{
+  return msg.twist.linear.x != 0.0 || msg.twist.linear.y != 0.0 || msg.twist.linear.z != 0.0 ||
+         msg.twist.angular.x != 0.0 || msg.twist.angular.y != 0.0 || msg.twist.angular.z != 0.0;
+}
+
+// Helper function for detecting zeroed message
+bool isNonZero(const control_msgs::JointJog& msg)
+{
+  bool all_zeros = true;
+  for (double delta : msg.velocities)
+  {
+    all_zeros &= (delta == 0.0);
+  };
+  return !all_zeros;
+}
+}  // namespace
+
+// Constructor for the class that handles jogging calculations
+JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr,
+                   const std::shared_ptr<TwistedStampedQueue>& command_deltas_queue,
+                   const std::shared_ptr<JointJogQueue>& joint_command_deltas_queue,
+                   const std::shared_ptr<JointTrajectoryQueue>& outgoing_command_queue)
+  : command_deltas_queue_(command_deltas_queue)
+  , joint_command_deltas_queue_(joint_command_deltas_queue)
+  , outgoing_command_queue_(outgoing_command_queue)
+  , parameters_(parameters)
+  , default_sleep_rate_(1000)
+{
+  ros::NodeHandle nh;
+
   // Publish jogger status
-  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
+  status_pub_ = nh.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
 
   // MoveIt Setup
   while (ros::ok() && !model_loader_ptr)
@@ -62,9 +92,12 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader:
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
   prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getActiveJointModels().size());
+
+  // subscribe to joints
+  joint_state_sub_ = nh.subscribe(parameters.joint_topic, 1, &JogCalcs::jointStateCB, this);
 }
 
-void JogCalcs::startMainLoop(JogArmShared& shared_variables)
+void JogCalcs::run(JogArmShared& shared_variables)
 {
   // Reset flags
   is_initialized_ = false;
@@ -95,10 +128,6 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   {
     if (shared_variables.stop_requested)
       return;
-
-    shared_variables.lock();
-    incoming_joint_state_ = shared_variables.joints;
-    shared_variables.unlock();
     default_sleep_rate_.sleep();
   }
 
@@ -117,6 +146,11 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
   geometry_msgs::TwistStamped cartesian_deltas;
   control_msgs::JointJog joint_deltas;
 
+  // Nonzero status flags
+  bool have_nonzero_cartesian_command = false;
+  bool have_nonzero_joint_command = false;
+  bool have_nonzero_command = false;
+
   // Do jogging calcs
   while (ros::ok() && !shared_variables.stop_requested)
   {
@@ -131,12 +165,40 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
     // Get the transform from MoveIt planning frame to jogging command frame
     // We solve (planning_frame -> base -> robot_link_command_frame)
     // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-    kinematic_state_->setVariableValues(incoming_joint_state_);
+    {
+      const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+      kinematic_state_->setVariableValues(incoming_joint_state_);
+    }
     tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                               kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
-    shared_variables.lock();
-    shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
-    shared_variables.unlock();
+
+    // Read the latest cartesian commands out of the queues
+    bool have_new_cartesian_command = popLatest(*command_deltas_queue_, cartesian_deltas);
+    bool have_new_joint_command = popLatest(*joint_command_deltas_queue_, joint_deltas);
+
+    if (have_new_cartesian_command)
+    {
+      // Update nonzero flags for updated messages
+      have_nonzero_cartesian_command = isNonZero(cartesian_deltas);
+
+      // Input frame determined by YAML file if not passed with message
+      if (cartesian_deltas.header.frame_id.empty())
+      {
+        cartesian_deltas.header.frame_id = parameters_.robot_link_command_frame;
+      }
+    }
+    if (have_new_joint_command)
+    {
+      // Update nonzero flags for updated messages
+      have_nonzero_joint_command = isNonZero(joint_deltas);
+
+      // Input frame determined by YAML file if not passed with message
+      if (cartesian_deltas.header.frame_id.empty())
+      {
+        joint_deltas.header.frame_id = parameters_.robot_link_command_frame;
+      }
+    }
+    have_nonzero_command = have_nonzero_cartesian_command || have_nonzero_joint_command;
 
     // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
     // joints so a jump doesn't occur when restarting
@@ -145,72 +207,47 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
       for (std::size_t i = 0; i < num_joints_; ++i)
         position_filters_[i].reset(original_joint_state_.position[i]);
 
-      shared_variables.lock();
       // Check if there are any new commands with valid timestamp
-      wait_for_jog_commands = shared_variables.command_deltas.header.stamp == ros::Time(0.) &&
-                              shared_variables.joint_command_deltas.header.stamp == ros::Time(0.);
-      shared_variables.unlock();
+      wait_for_jog_commands =
+          cartesian_deltas.header.stamp == ros::Time(0.) && joint_deltas.header.stamp == ros::Time(0.);
     }
     // If not waiting for initial command, and not paused.
     // Do jogging calculations only if the robot should move, for efficiency
     else
     {
-      // Halt if the command is stale or inputs are all zero, or commands were zero
-      shared_variables.lock();
-      bool have_nonzero_cartesian_cmd = shared_variables.have_nonzero_cartesian_cmd;
-      bool have_nonzero_joint_cmd = shared_variables.have_nonzero_joint_cmd;
-      bool stale_command = shared_variables.command_is_stale;
-      shared_variables.unlock();
-
-      bool valid_nonzero_command = false;
-      if (!stale_command)
+      if (!shared_variables.command_is_stale)
       {
         // Prioritize cartesian jogging above joint jogging
-        if (have_nonzero_cartesian_cmd)
+        if (have_nonzero_cartesian_command)
         {
-          shared_variables.lock();
-          cartesian_deltas = shared_variables.command_deltas;
-          shared_variables.unlock();
-
           if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
             continue;
         }
-        else if (have_nonzero_joint_cmd)
+        else if (have_nonzero_joint_command)
         {
-          shared_variables.lock();
-          joint_deltas = shared_variables.joint_command_deltas;
-          shared_variables.unlock();
-
           if (!jointJogCalcs(joint_deltas, shared_variables))
             continue;
         }
-
-        valid_nonzero_command = have_nonzero_cartesian_cmd || have_nonzero_joint_cmd;
       }
 
       // If we should halt
-      if (!valid_nonzero_command)
+      if (!have_nonzero_command)
       {
         // Keep the joint position filters up-to-date with current joints
         for (std::size_t i = 0; i < num_joints_; ++i)
           position_filters_[i].reset(original_joint_state_.position[i]);
 
         suddenHalt(outgoing_command_);
-        have_nonzero_cartesian_cmd = false;
-        have_nonzero_joint_cmd = false;
-        // Reset the valid command flag so jogging stops until a new command arrives
-        shared_variables.lock();
-        shared_variables.have_nonzero_cartesian_cmd = false;
-        shared_variables.have_nonzero_joint_cmd = false;
-        shared_variables.unlock();
+        have_nonzero_cartesian_command = false;
+        have_nonzero_joint_command = false;
       }
 
       // Send the newest target joints
-      shared_variables.lock();
       // If everything normal, share the new traj to be published
-      if (valid_nonzero_command)
+      if (have_nonzero_command)
       {
-        shared_variables.outgoing_command = outgoing_command_;
+        outgoing_command_queue_->push(outgoing_command_);
+        // shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row.
@@ -223,14 +260,14 @@ void JogCalcs::startMainLoop(JogArmShared& shared_variables)
       // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
       else
       {
-        shared_variables.outgoing_command = outgoing_command_;
+        outgoing_command_queue_->push(outgoing_command_);
+        // shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
       }
-      shared_variables.unlock();
 
       // Store last zero-velocity message flag to prevent superfluous warnings.
       // Cartesian and joint commands must both be zero.
-      if (!have_nonzero_cartesian_cmd && !have_nonzero_joint_cmd)
+      if (!have_nonzero_cartesian_command && !have_nonzero_joint_command)
       {
         // Avoid overflow
         if (zero_velocity_count < std::numeric_limits<int>::max())
@@ -713,9 +750,8 @@ void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 // Parse the incoming joint msg for the joints of our MoveGroup
 bool JogCalcs::updateJoints(JogArmShared& shared_variables)
 {
-  shared_variables.lock();
-  incoming_joint_state_ = shared_variables.joints;
-  shared_variables.unlock();
+  // lock the latest state mutex for the joint states
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
 
   // Check that the msg contains enough joints
   if (incoming_joint_state_.name.size() < num_joints_)
@@ -835,6 +871,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     catch (const std::out_of_range& e)
     {
+      const std::lock_guard<std::mutex> lock(latest_state_mutex_);
       ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
@@ -886,4 +923,20 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
   jacobian.conservativeResize(num_rows, num_cols);
   delta_x.conservativeResize(num_rows);
 }
+
+void JogCalcs::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  incoming_joint_state_ = *msg;
+}
+
+bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  transform = tf_moveit_to_cmd_frame_;
+
+  // All zeros means the transform wasn't initialized, so return false
+  return !transform.matrix().isZero(0);
+}
+
 }  // namespace moveit_jog_arm

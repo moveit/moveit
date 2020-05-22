@@ -51,8 +51,17 @@ CollisionCheckThread::CollisionCheckThread(
     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : parameters_(parameters), planning_scene_monitor_(planning_scene_monitor)
 {
+  ros::NodeHandle nh;
+
   if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
     ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
+
+  // subscribe to joints
+  joint_state_sub_ = nh.subscribe(parameters.joint_topic, 1, &CollisionCheckThread::jointStateCB, this);
+
+  // Wait for incoming topics to appear
+  ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
+  ros::topic::waitForMessage<sensor_msgs::JointState>(parameters.joint_topic);
 }
 
 planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
@@ -60,7 +69,7 @@ planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPla
   return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
-void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
+void CollisionCheckThread::run(JogArmShared& shared_variables)
 {
   // Init collision request
   collision_detection::CollisionRequest collision_request;
@@ -93,19 +102,24 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   double safety_factor = parameters_.collision_distance_safety_factor;
 
   collision_detection::AllowedCollisionMatrix acm = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
+
   /////////////////////////////////////////////////
   // Spin while checking collisions
   /////////////////////////////////////////////////
+  sensor_msgs::JointState joint_state;
+
   while (ros::ok() && !shared_variables.stop_requested)
   {
     if (!shared_variables.paused)
     {
-      shared_variables.lock();
-      sensor_msgs::JointState jts = shared_variables.joints;
-      shared_variables.unlock();
+      {
+        // Copy the latest joint state
+        const std::lock_guard<std::mutex> lock(CollisionCheckThread);
+        joint_state = latest_joint_state_;
+      }
 
-      for (std::size_t i = 0; i < jts.position.size(); ++i)
-        current_state.setJointPositions(jts.name[i], &jts.position[i]);
+      for (std::size_t i = 0; i < joint_state.position.size(); ++i)
+        current_state.setJointPositions(joint_state.name[i], &joint_state.position[i]);
 
       current_state.updateCollisionBodyTransforms();
       collision_detected = false;
@@ -192,5 +206,11 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
     collision_rate.sleep();
   }
+}
+
+void CollisionCheckThread::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(joint_state_mutex_);
+  latest_joint_state_ = *msg;
 }
 }  // namespace moveit_jog_arm

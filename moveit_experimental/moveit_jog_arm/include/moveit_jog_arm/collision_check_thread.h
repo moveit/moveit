@@ -38,11 +38,14 @@
 
 #pragma once
 
-#include <atomic>
-#include "jog_arm_data.h"
-#include "low_pass_filter.h"
+#include <mutex>
+
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <sensor_msgs/JointState.h>
+
+#include "jog_arm_data.h"
+#include "low_pass_filter.h"
 
 namespace moveit_jog_arm
 {
@@ -63,17 +66,25 @@ public:
   CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  // Get thread-safe read-only lock of planning scene
-  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
-
-  void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables);
+  /** \breif run function to be run in a thread */
+  void run(moveit_jog_arm::JogArmShared& shared_variables);
 
 private:
+  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
+  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+
   const moveit_jog_arm::JogArmParameters parameters_;
 
   CollisionCheckType collision_check_type_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  // ROS
+  ros::Subscriber joint_state_sub_;
+
+  // Latest joint state, updated by ROS callback
+  mutable std::mutex joint_state_mutex_;
+  sensor_msgs::JointState latest_joint_state_;
 };
 }  // namespace moveit_jog_arm
