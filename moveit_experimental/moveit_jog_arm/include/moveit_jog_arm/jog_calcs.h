@@ -39,11 +39,12 @@
 #pragma once
 
 // System
-#include <atomic>
+#include <mutex>
 
 // ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/Int8.h>
 
 // moveit_jog_arm
@@ -56,21 +57,29 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr,
+           const std::shared_ptr<TwistedStampedQueue>& command_deltas_queue,
+           const std::shared_ptr<JointJogQueue>& joint_command_deltas_queue,
+           const std::shared_ptr<JointTrajectoryQueue>& outgoing_command_queue);
 
-  void startMainLoop(JogArmShared& shared_variables);
+  /** \breif Thread run method */
+  void run(JogArmShared& shared_variables);
 
   /** \brief Check if the robot state is being updated and the end effector transform is known
    *  @return true if initialized properly
    */
   bool isInitialized();
 
-protected:
-  ros::NodeHandle nh_;
+  /**
+   * Get the MoveIt planning link transform.
+   * The transform from the MoveIt planning frame to robot_link_command_frame
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  // Flag that robot state is up to date, end effector transform is known
-  std::atomic<bool> is_initialized_;
-
+private:
   /** \brief Do jogging calculations for Cartesian twist commands. */
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
@@ -153,21 +162,40 @@ protected:
    */
   void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
+  /* \brief Callback for joint subsription */
+  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  // Flag that robot state is up to date, end effector transform is known
+  bool is_initialized_;
+
   const moveit::core::JointModelGroup* joint_model_group_;
 
   moveit::core::RobotStatePtr kinematic_state_;
 
+  // Queues for message passing between threads
+  std::shared_ptr<TwistedStampedQueue> command_deltas_queue_;
+  std::shared_ptr<JointJogQueue> joint_command_deltas_queue_;
+  std::shared_ptr<JointTrajectoryQueue> outgoing_command_queue_;
+
+  // latest_state_mutex_ is used to protect
+  // incoming_joint_state_ and tf_moveit_to_cmd_frame_
+  mutable std::mutex latest_state_mutex_;
+  sensor_msgs::JointState incoming_joint_state_;
+  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
-  sensor_msgs::JointState incoming_joint_state_, internal_joint_state_, original_joint_state_;
+  sensor_msgs::JointState internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
+
   trajectory_msgs::JointTrajectory outgoing_command_;
 
   std::vector<LowPassFilter> position_filters_;
 
+  // ROS
+  ros::Subscriber joint_state_sub_;
   ros::Publisher status_pub_;
-
   StatusCode status_ = NO_WARNING;
 
   JogArmParameters parameters_;
@@ -175,8 +203,6 @@ protected:
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
   Eigen::ArrayXd prev_joint_velocity_;
-
-  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 
   const int gazebo_redundant_message_count_ = 30;
 

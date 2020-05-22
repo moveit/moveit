@@ -37,15 +37,108 @@
  *      Author    : Andy Zelenak
  */
 
-#include <moveit_jog_arm/jog_ros_interface.h>
+#include <moveit_jog_arm/jog_arm.h>
 
-static const std::string LOGNAME = "jog_server";
+namespace
+{
+constexpr char LOGNAME[] = "jog_server";
+constexpr char ROS_THREADS = 4;
+
+struct JogServerParameters
+{
+  bool read_error = true;
+  std::string cartesian_command_in_topic = "";
+  std::string joint_command_in_topic = "";
+};
+
+JogServerParameters readParameters()
+{
+  ros::NodeHandle nh;
+  JogServerParameters params;
+
+  // Load parameters
+  std::string parameter_ns;
+  ros::param::get("~parameter_ns", parameter_ns);
+
+  if (parameter_ns.empty())
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "A namespace must be specified in the launch file, like:");
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "<param name=\"parameter_ns\" "
+                                    "type=\"string\" "
+                                    "value=\"left_jog_server\" />");
+    params.read_error = true;
+  }
+  else
+  {
+    std::size_t error = 0;
+    error += !rosparam_shortcuts::get("", nh, parameter_ns + "/cartesian_command_in_topic",
+                                      params.cartesian_command_in_topic);
+    error += !rosparam_shortcuts::get("", nh, parameter_ns + "/joint_command_in_topic", params.joint_command_in_topic);
+    params.read_error = (error != 0);
+  }
+  return params;
+}
+
+}  // namespace
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, LOGNAME);
+  ros::AsyncSpinner spinner(ROS_THREADS);
+  spinner.start();
 
-  moveit_jog_arm::JogROSInterface ros_interface;
+  ros::NodeHandle nh;
+
+  const auto params = readParameters();
+  if (params.read_error)
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Error reading parameters.");
+    exit(EXIT_FAILURE);
+  }
+
+  // Load the planning scene monitor
+  auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+  if (!planning_scene_monitor->getPlanningScene())
+  {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+    exit(EXIT_FAILURE);
+  }
+
+  // Start the planning scene monitor
+  planning_scene_monitor->startSceneMonitor();
+  planning_scene_monitor->startWorldGeometryMonitor(
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+      false /* skip octomap monitor */);
+  planning_scene_monitor->startStateMonitor();
+
+  // Create the jog server
+  moveit_jog_arm::JogArm jog_arm(planning_scene_monitor);
+
+  // ROS subscriptions. Share the data with the worker threads
+  auto cmd_sub =
+      nh.subscribe(params.cartesian_command_in_topic, 1, &moveit_jog_arm::JogArm::provideTwistStampedCommand, &jog_arm);
+  auto joint_jog_cmd_sub =
+      nh.subscribe(params.joint_command_in_topic, 1, &moveit_jog_arm::JogArm::provideJointCommand, &jog_arm);
+
+  // ROS Server for allowing drift in some dimensions
+  auto drift_dimensions_server =
+      nh.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
+                          &moveit_jog_arm::JogArm::changeDriftDimensions, &jog_arm);
+
+  // ROS Server for changing the control dimensions
+  auto dims_server =
+      nh.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
+                          &moveit_jog_arm::JogArm::changeControlDimensions, &jog_arm);
+
+  // Start the jog server (runs in the ros spinner)
+  jog_arm.start();
+
+  // Wait for ros to shutdown
+  ros::waitForShutdown();
+
+  // Stop the jog server
+  jog_arm.stop();
 
   return 0;
 }

@@ -36,31 +36,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "collision_check_thread.h"
+#include <memory>
+#include <mutex>
+#include <thread>
+
 #include <Eigen/Eigenvalues>
-#include "jog_arm_data.h"
-#include "jog_calcs.h"
-#include "low_pass_filter.h"
+
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
+#include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Float64MultiArray.h>
+
+#include "collision_check_thread.h"
+#include "jog_arm_data.h"
+#include "jog_calcs.h"
+#include "low_pass_filter.h"
 
 namespace moveit_jog_arm
 {
 /**
- * Class JogInterfaceBase - Base class for C++ interface and ROS node.
+ * Class JogArm - Base class for C++ interface and ROS node.
  * Handles ROS subs & pubs and creates the worker threads.
  */
-class JogInterfaceBase
+class JogArm
 {
 public:
-  JogInterfaceBase();
+  JogArm(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \brief Update the joints of the robot */
-  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+  ~JogArm();
+
+  /** \brief start jog arm threads */
+  void start();
+
+  /** \brief stop jog arm threads */
+  void stop();
+
+  /** \brief Pause or unpause processing jog commands while keeping the threads alive */
+  void setPaused(bool paused);
 
   /**
    * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
@@ -78,20 +93,46 @@ public:
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 
-  // Jogging calculation thread
+  /** \brief Provide a Cartesian velocity command to the jogger.
+   * The units are determined by settings in the yaml file.
+   */
+  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
+  void provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg);
+
+  /** \brief Send joint position(s) commands */
+  void provideJointCommand(const control_msgs::JointJog& joint_command);
+  void provideJointCommand(const control_msgs::JointJogConstPtr& msg);
+
+  /**
+   * Returns the most recent JointState that the jogger has received.
+   * May eliminate the need to create your own joint_state subscriber.
+   *
+   * @return the most recent joints known to the jogger
+   */
+  sensor_msgs::JointState getJointState();
+
+  /**
+   * Get the MoveIt planning link transform.
+   * The transform from the MoveIt planning frame to robot_link_command_frame
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
+   */
+  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+
+  /**
+   * Get the status of the jogger.
+   *
+   * @return 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
+   */
+  StatusCode getJoggerStatus() const;
+
+private:
+  bool readParameters();
+  void run();
   bool startJogCalcThread();
-
-  /** \brief Stop the main calculation thread */
-  bool stopJogCalcThread();
-
-  /** \brief Start collision checking */
   bool startCollisionCheckThread();
-
-  /** \brief Stop collision checking */
-  bool stopCollisionCheckThread();
-
-protected:
-  bool readParameters(ros::NodeHandle& n);
+  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -102,12 +143,30 @@ protected:
   // Share data between threads
   JogArmShared shared_variables_;
 
+  // Queues for message passing between threads
+  std::shared_ptr<TwistedStampedQueue> command_deltas_queue_;
+  std::shared_ptr<JointJogQueue> joint_command_deltas_queue_;
+  std::shared_ptr<JointTrajectoryQueue> outgoing_command_queue_;
+
   // Jog calcs
   std::unique_ptr<JogCalcs> jog_calcs_;
-  std::unique_ptr<std::thread> jog_calc_thread_;
 
   // Collision checks
   std::unique_ptr<CollisionCheckThread> collision_checker_;
-  std::unique_ptr<std::thread> collision_check_thread_;
+
+  // Threads
+  std::thread jog_server_thread_;
+  std::thread jog_calc_thread_;
+  std::thread collision_check_thread_;
+
+  // ROS
+  ros::Subscriber joint_state_sub_;
+  ros::Publisher outgoing_cmd_pub_;
+
+  // Latest state
+  mutable std::mutex latest_state_mutex_;
+  sensor_msgs::JointState latest_joint_state_;
+  ros::Time latest_command_stamp_;
 };
+
 }  // namespace moveit_jog_arm

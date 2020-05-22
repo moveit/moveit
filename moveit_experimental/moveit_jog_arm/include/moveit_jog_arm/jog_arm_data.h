@@ -38,9 +38,8 @@
 
 #pragma once
 
-// System
-#include <mutex>
-#include <thread>
+// Boost
+#include <boost/lockfree/spsc_queue.hpp>
 
 // Eigen
 #include <Eigen/Geometry>
@@ -48,7 +47,6 @@
 // ROS
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
-#include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_jog_arm
@@ -56,21 +54,41 @@
 
 namespace moveit_jog_arm
 {
-// Variables to share between threads
-// Inherit from a mutex so the struct can be locked/unlocked easily
-struct JogArmShared : public std::mutex
+// Types for queues between threads
+constexpr size_t QUEUE_SIZE = 10;
+template <typename T, size_t U>
+using MessageQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<U>>;
+using TwistedStampedQueue = MessageQueue<geometry_msgs::TwistStamped, QUEUE_SIZE>;
+using JointJogQueue = MessageQueue<control_msgs::JointJog, QUEUE_SIZE>;
+using JointTrajectoryQueue = MessageQueue<trajectory_msgs::JointTrajectory, QUEUE_SIZE>;
+
+// Helper function for popping the latest value out of a queue
+template <typename T, size_t U>
+bool popLatest(MessageQueue<T, U>& queue, T& output)
 {
-  geometry_msgs::TwistStamped command_deltas;
+  size_t count = queue.read_available();
+  if (count > 0)
+  {
+    // clear all but the latest from the queue
+    for (size_t i = 0; i < (count - 1); ++i)
+    {
+      queue.pop();
+    }
+    // read the latest value
+    queue.pop(output);
+  }
+  return true;
+}
 
-  control_msgs::JointJog joint_command_deltas;
-
-  sensor_msgs::JointState joints;
-
-  // The collision check thread throttles robot velocity via this variable
-  std::atomic<double> collision_velocity_scale{ 1 };
+// Variables to share between threads
+// Be careful to not read-modify-write any of these because they are not
+// protected by a mutex.
+struct JogArmShared
+{
+  double collision_velocity_scale = 1;
 
   // The jog thread communicates the minimum stopping time to the collision check thread via this variable
-  std::atomic<double> worst_case_stop_time{ std::numeric_limits<double>::max() };
+  double worst_case_stop_time = std::numeric_limits<double>::max();
 
   // Flag a valid incoming Cartesian command having nonzero velocities
   bool have_nonzero_cartesian_cmd = false;
@@ -81,34 +99,23 @@ struct JogArmShared : public std::mutex
   // Indicates that we have not received a new command in some time
   bool command_is_stale = false;
 
-  // The new command which is calculated
-  trajectory_msgs::JointTrajectory outgoing_command;
-
-  // Timestamp of incoming commands
-  ros::Time latest_nonzero_cmd_stamp = ros::Time(0.);
-
   // Indicates no collision, etc, so outgoing commands can be sent
   bool ok_to_publish = false;
 
-  // The transform from the MoveIt planning frame to robot_link_command_frame
-  Eigen::Isometry3d tf_moveit_to_cmd_frame;
-
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::atomic_bool drift_dimensions[6] = { ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false),
-                                           ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false) };
+  bool drift_dimensions[6] = { false, false, false, false, false, false };
 
   // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-  std::atomic<StatusCode> status;
+  StatusCode status = NO_WARNING;
 
   // Pause/unpause jog threads - threads are not paused by default
-  std::atomic<bool> paused{ false };
+  bool paused = false;
 
   // Stop jog loop threads - threads are not stopped by default
-  std::atomic<bool> stop_requested{ false };
+  bool stop_requested = false;
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::atomic_bool control_dimensions[6] = { ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true),
-                                             ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true) };
+  bool control_dimensions[6] = { true, true, true, true, true, true };
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.
@@ -116,12 +123,10 @@ struct JogArmParameters
 {
   std::string move_group_name;
   std::string joint_topic;
-  std::string cartesian_command_in_topic;
   std::string robot_link_command_frame;
   std::string command_out_topic;
   std::string planning_frame;
   std::string status_topic;
-  std::string joint_command_in_topic;
   std::string command_in_type;
   std::string command_out_type;
   double linear_scale;
