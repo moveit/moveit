@@ -523,7 +523,7 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
       (o1->getObjectType() == fcl::OT_OCTREE &&
        std::dynamic_pointer_cast<const fcl::OcTree<double>>(o1->collisionGeometry())->getRoot() == NULL))
   {
-    d = 1e300;
+    d = std::numeric_limits<double>::max();
   }
   else
   {
