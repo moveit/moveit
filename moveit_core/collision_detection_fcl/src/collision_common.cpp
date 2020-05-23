@@ -518,9 +518,9 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
 
   fcl_result.min_distance = dist_threshold;
   if ((o1->getObjectType() == fcl::OT_OCTREE &&
-       !std::static_pointer_cast<const OcTreed>(o1->collisionGeometry())->getRoot()) ||
+       !std::static_pointer_cast<const fcl::OcTreed>(o1->collisionGeometry())->getRoot()) ||
       (o1->getObjectType() == fcl::OT_OCTREE &&
-       !std::static_pointer_cast<const OcTreed>(o1->collisionGeometry())->getRoot()))
+       !std::static_pointer_cast<const fcl::OcTreed>(o1->collisionGeometry())->getRoot()))
   {
     return false;
   }
