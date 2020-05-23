@@ -517,18 +517,14 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   }
 
   fcl_result.min_distance = dist_threshold;
-  double d;
   if ((o1->getObjectType() == fcl::OT_OCTREE &&
-       std::dynamic_pointer_cast<const fcl::OcTree<double>>(o1->collisionGeometry())->getRoot() == NULL) ||
+       !std::static_pointer_cast<const OcTreed>(o1->collisionGeometry())->getRoot()) ||
       (o1->getObjectType() == fcl::OT_OCTREE &&
-       std::dynamic_pointer_cast<const fcl::OcTree<double>>(o1->collisionGeometry())->getRoot() == NULL))
+       !std::static_pointer_cast<const OcTreed>(o1->collisionGeometry())->getRoot()))
   {
-    d = std::numeric_limits<double>::max();
+    return false;
   }
-  else
-  {
-    d = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
-  }
+  double d = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
   // check to see if the new distance is closer. If closer remove the existing
