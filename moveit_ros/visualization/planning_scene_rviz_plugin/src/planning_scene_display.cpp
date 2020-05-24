@@ -115,8 +115,8 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   octree_coloring_property_->addOption("Cell Probability", OCTOMAP_PROBABLILTY_COLOR);
 
   scene_display_time_property_ =
-      new rviz::FloatProperty("Scene Display Time", 0.2f, "The amount of wall-time to wait in between rendering "
-                                                          "updates to the planning scene (if any)",
+      new rviz::FloatProperty("Scene Display Time", 0.01f, "The amount of wall-time to wait in between rendering "
+                                                           "updates to the planning scene (if any)",
                               scene_category_, SLOT(changedSceneDisplayTime()), this);
   scene_display_time_property_->setMin(0.0001);
 
@@ -336,10 +336,17 @@ void PlanningSceneDisplay::renderPlanningScene()
   try
   {
     const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
-    planning_scene_render_->renderPlanningScene(
-        ps, env_color, attached_color, static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
-        static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
-        scene_alpha_property_->getFloat());
+    if (planning_scene_needs_render_)
+    {
+      planning_scene_render_->renderPlanningScene(
+          ps, env_color, attached_color, static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
+          static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
+          scene_alpha_property_->getFloat());
+    }
+    else
+    {
+      planning_scene_render_->updateRobotPosition(ps);
+    }
   }
   catch (std::exception& ex)
   {
@@ -633,12 +640,14 @@ void PlanningSceneDisplay::update(float wall_dt, float ros_dt)
 void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
 {
   current_scene_time_ += wall_dt;
-  if (current_scene_time_ > scene_display_time_property_->getFloat() && planning_scene_render_ &&
+  if ((current_scene_time_ > scene_display_time_property_->getFloat() && planning_scene_render_ &&
+       robot_state_needs_render_) ||
       planning_scene_needs_render_)
   {
     renderPlanningScene();
     calculateOffsetPosition();
     current_scene_time_ = 0.0f;
+    robot_state_needs_render_ = false;
     planning_scene_needs_render_ = false;
   }
 }
