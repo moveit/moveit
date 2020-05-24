@@ -319,12 +319,20 @@ bool CollisionEnvFCL::checkCollisionBetweenObjectGroups(std::vector<std::string>
   for (auto it = object_group1.begin(); it != object_group1.end(); ++it)
   {
     auto const& object_name = *it;
+    if (fcl_objs_.count(object_name) == 0)
+      ROS_ERROR_STREAM_NAMED("collision_detection.fcl",
+                             "FCL object by the name: " << object_name << " does not exist.");
+
     auto fcl_obj = fcl_objs_.at(object_name);
     fcl_obj.registerTo(manager1.get());
   }
   for (auto it = object_group2.begin(); it != object_group2.end(); ++it)
   {
     auto const& object_name = *it;
+    if (fcl_objs_.count(object_name) == 0)
+      ROS_ERROR_STREAM_NAMED("collision_detection.fcl",
+                             "FCL object by the name: " << object_name << " does not exist.");
+
     auto fcl_obj = fcl_objs_.at(object_name);
     fcl_obj.registerTo(manager2.get());
   }

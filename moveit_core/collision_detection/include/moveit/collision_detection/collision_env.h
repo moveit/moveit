@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Jens Petit */
+/* Author: Ioan Sucan, Jens Petit, Pradeep Rajendran*/
 
 #pragma once
 
@@ -156,6 +156,10 @@ public:
                                    const moveit::core::RobotState& state1,
                                    const moveit::core::RobotState& state2) const = 0;
 
+  /** \brief Check whether there is a collision between any object in group 1 and any object in group 2. Only names of
+   *  object is required to be in the group. These names correspond to objects that are already in the world.
+   *  @param object_group1 A vector of string containing the names of objects in group1.
+   *  @param object_group2 A vector of string containing the names of objects in group2. */
   virtual bool checkCollisionBetweenObjectGroups(std::vector<std::string> const& object_group1,
                                                  std::vector<std::string> const& object_group2) const
   {

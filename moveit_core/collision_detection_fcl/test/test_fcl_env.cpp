@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Jens Petit */
+/* Author: Jens Petit, Pradeep Rajendran */
 
 #include <gtest/gtest.h>
 #include <ros/ros.h>
@@ -315,6 +315,68 @@ TEST_F(CollisionDetectionEnvTest, DISABLED_ContinuousCollisionWorld)
   ASSERT_TRUE(res.collision);
   ASSERT_EQ(res.contact_count, 4u);
   res.clear();
+}
+
+/** \brief Tests the correctness of collision between two sets of objects in the world. */
+TEST_F(CollisionDetectionEnvTest, CollisionBetweenTwoObjectSetsTest)
+{
+  // Add a box shape to the world
+  shapes::Shape* shape = new shapes::Box(0.1, 0.1, 0.1);
+  shapes::ShapeConstPtr shape_ptr(shape);
+
+  // case 1) Expected: No collision between group 1 and group 2
+  {
+    Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+    pos.translation().x() = 0;
+    pos.translation().y() = 0;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp1_box_A", shape_ptr, pos);
+    pos.translation().x() = 0.3;
+    pos.translation().y() = 0;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp1_box_B", shape_ptr, pos);
+
+    pos.translation().x() = 0;
+    pos.translation().y() = 0.3;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp2_box_A", shape_ptr, pos);
+    pos.translation().x() = 0.3;
+    pos.translation().y() = 0.3;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp2_box_B", shape_ptr, pos);
+
+    std::vector<std::string> object_group1 = { "grp1_box_A", "grp1_box_B" };
+    std::vector<std::string> object_group2 = { "grp2_box_A", "grp2_box_B" };
+    bool collision_flag = c_env_->checkCollisionBetweenObjectGroups(object_group1, object_group2);
+    ASSERT_FALSE(collision_flag);
+  }
+
+  // case 2) Expected: Collision between group 1 and group 2
+  {
+    Eigen::Isometry3d pos{ Eigen::Isometry3d::Identity() };
+    pos.translation().x() = 0;
+    pos.translation().y() = 0;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp1_box_A", shape_ptr, pos);
+    pos.translation().x() = 0.3;
+    pos.translation().y() = 0;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp1_box_B", shape_ptr, pos);
+
+    pos.translation().x() = 0;
+    pos.translation().y() = 0.0;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp2_box_A", shape_ptr, pos);
+    pos.translation().x() = 0.3;
+    pos.translation().y() = 0.3;
+    pos.translation().z() = 0;
+    c_env_->getWorld()->addToObject("grp2_box_B", shape_ptr, pos);
+
+    std::vector<std::string> object_group1 = { "grp1_box_A", "grp1_box_B" };
+    std::vector<std::string> object_group2 = { "grp2_box_A", "grp2_box_B" };
+    bool collision_flag = c_env_->checkCollisionBetweenObjectGroups(object_group1, object_group2);
+    ASSERT_TRUE(collision_flag);
+  }
 }
 
 int main(int argc, char** argv)
