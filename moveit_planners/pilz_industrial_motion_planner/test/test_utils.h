@@ -423,10 +423,9 @@ bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr& robot
                                    planning_interface::MotionPlanResponse& res_lin_2, double& dis_lin_1,
                                    double& dis_lin_2);
 
-void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
-                                         const BlendTestData& data, const std::string& planner_id,
-                                         const std::string& group_name, const std::string& link_name,
-                                         moveit_msgs::MotionSequenceRequest& req_list);
+void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model, const BlendTestData& data,
+                                         const std::string& planner_id, const std::string& group_name,
+                                         const std::string& link_name, moveit_msgs::MotionSequenceRequest& req_list);
 
 void checkRobotModel(const moveit::core::RobotModelConstPtr& robot_model, const std::string& group_name,
                      const std::string& link_name);

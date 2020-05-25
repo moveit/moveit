@@ -150,7 +150,7 @@ void VelocityProfileATrap::SetProfileDuration(double pos1, double pos2, double d
 }
 
 bool VelocityProfileATrap::setProfileAllDurations(double pos1, double pos2, double duration1, double duration2,
-                                                   double duration3)
+                                                  double duration3)
 {
   // compute the fastest case
   SetProfile(pos1, pos2);

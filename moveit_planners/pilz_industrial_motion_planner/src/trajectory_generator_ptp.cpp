@@ -135,8 +135,8 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
     velocity_profile.insert(std::make_pair(
         joint_name,
         VelocityProfileATrap(velocity_scaling_factor * most_strict_limits_.at(group_name).max_velocity,
-                              acceleration_scaling_factor * most_strict_limits_.at(group_name).max_acceleration,
-                              acceleration_scaling_factor * most_strict_limits_.at(group_name).max_deceleration)));
+                             acceleration_scaling_factor * most_strict_limits_.at(group_name).max_acceleration,
+                             acceleration_scaling_factor * most_strict_limits_.at(group_name).max_deceleration)));
 
     velocity_profile.at(joint_name).SetProfile(start_pos.at(joint_name), goal_pos.at(joint_name));
     if (velocity_profile.at(joint_name).Duration() > max_duration)

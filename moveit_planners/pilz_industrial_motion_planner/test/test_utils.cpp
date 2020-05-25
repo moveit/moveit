@@ -1126,9 +1126,8 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
 }
 
 void testutils::generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
-                                                    const testutils::BlendTestData& data,
-                                                    const std::string& planner_id, const std::string& group_name,
-                                                    const std::string& link_name,
+                                                    const testutils::BlendTestData& data, const std::string& planner_id,
+                                                    const std::string& group_name, const std::string& link_name,
                                                     moveit_msgs::MotionSequenceRequest& req_list)
 {
   // motion plan request of first trajectory
