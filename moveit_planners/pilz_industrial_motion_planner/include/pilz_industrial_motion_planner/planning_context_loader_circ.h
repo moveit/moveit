@@ -48,7 +48,7 @@ class PlanningContextLoaderCIRC : public PlanningContextLoader
 {
 public:
   PlanningContextLoaderCIRC();
-  virtual ~PlanningContextLoaderCIRC();
+  ~PlanningContextLoaderCIRC() override;
 
   /**
    * @brief return a instance of pilz_industrial_motion_planner::PlanningContextCIRC
@@ -57,7 +57,7 @@ public:
    * @param group
    * @return true on success, false otherwise
    */
-  virtual bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
+  bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
                            const std::string& group) const override;
 };
 

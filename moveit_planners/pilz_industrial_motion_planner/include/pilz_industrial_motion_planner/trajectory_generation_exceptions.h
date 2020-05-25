@@ -52,7 +52,7 @@ public:
 protected:
   MoveItErrorCodeException(const MoveItErrorCodeException&) = default;
   MoveItErrorCodeException(MoveItErrorCodeException&&) = default;
-  ~MoveItErrorCodeException() = default;
+  ~MoveItErrorCodeException() override;
 
   MoveItErrorCodeException& operator=(const MoveItErrorCodeException&) = default;
   MoveItErrorCodeException& operator=(MoveItErrorCodeException&&) = default;
@@ -69,7 +69,7 @@ public:
   TemplatedMoveItErrorCodeException(const std::string& msg, const moveit_msgs::MoveItErrorCodes::_val_type& error_code);
 
 public:
-  virtual const moveit_msgs::MoveItErrorCodes::_val_type& getErrorCode() const override;
+  const moveit_msgs::MoveItErrorCodes::_val_type& getErrorCode() const override;
 
 private:
   const moveit_msgs::MoveItErrorCodes::_val_type error_code_{ ERROR_CODE };

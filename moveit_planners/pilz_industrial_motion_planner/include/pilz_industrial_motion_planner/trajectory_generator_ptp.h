@@ -63,10 +63,10 @@ public:
   TrajectoryGeneratorPTP(const robot_model::RobotModelConstPtr& robot_model,
                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
 
-  virtual ~TrajectoryGeneratorPTP() = default;
+  ~TrajectoryGeneratorPTP() override;
 
 private:
-  virtual void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
+  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
                                      MotionPlanInfo& info) const override;
 
   /**
@@ -84,7 +84,7 @@ private:
                const double& velocity_scaling_factor, const double& acceleration_scaling_factor,
                const double& sampling_time);
 
-  virtual void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
+  void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
                     const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
 private:

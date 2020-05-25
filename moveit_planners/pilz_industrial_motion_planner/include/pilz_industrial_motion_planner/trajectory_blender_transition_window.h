@@ -55,7 +55,7 @@ public:
   {
   }
 
-  virtual ~TrajectoryBlenderTransitionWindow()
+  ~TrajectoryBlenderTransitionWindow() override
   {
   }
 
@@ -81,7 +81,7 @@ public:
    * error_code: information of failed blend
    * @return true if succeed
    */
-  virtual bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
+  bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
                      pilz_industrial_motion_planner::TrajectoryBlendResponse& res) override;
 
 private:

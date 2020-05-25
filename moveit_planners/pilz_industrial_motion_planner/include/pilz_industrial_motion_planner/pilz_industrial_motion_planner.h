@@ -58,7 +58,7 @@ namespace pilz_industrial_motion_planner
 class CommandPlanner : public planning_interface::PlannerManager
 {
 public:
-  virtual ~CommandPlanner()
+  ~CommandPlanner() override
   {
   }
 
@@ -70,17 +70,17 @@ public:
    * @param ns The namespace
    * @return true on success, false otherwise
    */
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override;
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override;
 
   /// Description of the planner
-  virtual std::string getDescription() const override;
+  std::string getDescription() const override;
 
   /**
    * @brief Returns the available planning commands
    * @param list with the planning algorithms
    * @note behined each command is a pilz_industrial_motion_planner::PlanningContextLoader loaded as plugin
    */
-  virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
 
   /**
    * @brief Returns a PlanningContext that can be used to solve(calculate) the trajectory that corresponds to command
@@ -90,7 +90,7 @@ public:
    * @param error_code
    * @return
    */
-  virtual planning_interface::PlanningContextPtr
+  planning_interface::PlanningContextPtr
   getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                      const planning_interface::MotionPlanRequest& req,
                      moveit_msgs::MoveItErrorCodes& error_code) const override;
@@ -100,7 +100,7 @@ public:
    * @param motion request containing the planning_id that corresponds to the motion command
    * @return true if the request can be handled
    */
-  virtual bool canServiceRequest(const planning_interface::MotionPlanRequest& req) const override;
+  bool canServiceRequest(const planning_interface::MotionPlanRequest& req) const override;
 
   /**
    * @brief Register a PlanningContextLoader to be used by the CommandPlanner

@@ -50,9 +50,9 @@ class MoveGroupSequenceService : public move_group::MoveGroupCapability
 {
 public:
   MoveGroupSequenceService();
-  ~MoveGroupSequenceService();
+  ~MoveGroupSequenceService() override;
 
-  virtual void initialize() override;
+  void initialize() override;
 
 private:
   bool plan(moveit_msgs::GetMotionSequence::Request& req, moveit_msgs::GetMotionSequence::Response& res);

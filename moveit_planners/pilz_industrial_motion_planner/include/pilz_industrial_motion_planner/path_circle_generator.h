@@ -84,12 +84,12 @@ private:
 class ErrorMotionPlanningCenterPointDifferentRadius : public KDL::Error_MotionPlanning
 {
 public:
-  virtual const char* Description() const
+  const char* Description() const override
   {
     return "Distances between start-center and goal-center are different."
            " A circle cannot be created.";
   }
-  virtual int GetType() const
+  int GetType() const override
   {
     return ERROR_CODE_CENTER_POINT_DIFFERENT_RADIUS;
   }  // LCOV_EXCL_LINE

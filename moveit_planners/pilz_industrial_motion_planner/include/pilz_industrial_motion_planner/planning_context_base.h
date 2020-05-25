@@ -67,7 +67,7 @@ public:
   {
   }
 
-  virtual ~PlanningContextBase()
+  ~PlanningContextBase() override
   {
   }
 
@@ -76,7 +76,7 @@ public:
    * @param res The result containing the respective trajectory, or error_code on failure
    * @return true on success, false otherwise
    */
-  virtual bool solve(planning_interface::MotionPlanResponse& res) override;
+  bool solve(planning_interface::MotionPlanResponse& res) override;
 
   /**
    * @brief Will return the same trajectory as solve(planning_interface::MotionPlanResponse& res)
@@ -85,19 +85,19 @@ public:
    * @param res The detailed response
    * @return true on success, false otherwise
    */
-  virtual bool solve(planning_interface::MotionPlanDetailedResponse& res) override;
+  bool solve(planning_interface::MotionPlanDetailedResponse& res) override;
 
   /**
    * @brief Will terminate solve()
    * @return
    * @note Currently will not stop a runnning solve but
    */
-  virtual bool terminate() override;
+  bool terminate() override;
 
   /**
    * @copydoc planning_interface::PlanningContext::clear()
    */
-  virtual void clear() override;
+  void clear() override;
 
   /// Flag if terminated
   std::atomic_bool terminated_;

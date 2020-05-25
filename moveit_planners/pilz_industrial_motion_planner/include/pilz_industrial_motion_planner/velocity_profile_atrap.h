@@ -71,7 +71,7 @@ public:
    * @param pos1: start position
    * @param pos2: goal position
    */
-  virtual void SetProfile(double pos1, double pos2) override;
+  void SetProfile(double pos1, double pos2) override;
 
   /**
    * @brief Profile scaled by the total duration
@@ -79,7 +79,7 @@ public:
    * @param pos2: goal position
    * @param duration: trajectory duration (must be longer than fastest case, otherwise will be ignored)
    */
-  virtual void SetProfileDuration(double pos1, double pos2, double duration) override;
+  void SetProfileDuration(double pos1, double pos2, double duration) override;
 
   /**
    * @brief Profile with given acceleration/constant/deceleration durations.
@@ -145,39 +145,39 @@ public:
    * @brief Duration
    * @return total duration of the trajectory
    */
-  virtual double Duration() const override;
+  double Duration() const override;
   /**
    * @brief Get position at given time
    * @param time
    * @return
    */
-  virtual double Pos(double time) const override;
+  double Pos(double time) const override;
   /**
    * @brief Get velocity at given time
    * @param time
    * @return
    */
-  virtual double Vel(double time) const override;
+  double Vel(double time) const override;
   /**
    * @brief Get given acceleration/deceleration at given time
    * @param time
    * @return
    */
-  virtual double Acc(double time) const override;
+  double Acc(double time) const override;
   /**
    * @brief Write basic information
    * @param os
    */
-  virtual void Write(std::ostream& os) const override;
+  void Write(std::ostream& os) const override;
   /**
    * @brief returns copy of current VelocityProfile object
    * @return
    */
-  virtual KDL::VelocityProfile* Clone() const override;
+  KDL::VelocityProfile* Clone() const override;
 
   friend std::ostream& operator<<(std::ostream& os, const VelocityProfileATrap& p);  // LCOV_EXCL_LINE
 
-  virtual ~VelocityProfileATrap();
+  ~VelocityProfileATrap() override;
 
 private:
   /// helper functions
