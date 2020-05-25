@@ -81,7 +81,7 @@ private:
 
 }  // namespace pilz_industrial_motion_planner
 
-class Error_MotionPlanning_CenterPointDifferentRadius : public KDL::Error_MotionPlanning
+class ErrorMotionPlanningCenterPointDifferentRadius : public KDL::Error_MotionPlanning
 {
 public:
   virtual const char* Description() const

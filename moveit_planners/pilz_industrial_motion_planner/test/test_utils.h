@@ -103,9 +103,9 @@ inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::
     i++;
     posit++;
   }
-  for (auto vel_ : vel)
+  for (auto one_vel : vel)
   {
-    state.velocity.push_back(vel_);
+    state.velocity.push_back(one_vel);
   }
   return state;
 }
@@ -375,7 +375,7 @@ inline geometry_msgs::Quaternion fromEuler(double a, double b, double c)
 /**
  * @brief Test data for blending, which contains three joint position vectors of three robot state.
  */
-struct blend_test_data
+struct BlendTestData
 {
   std::vector<double> start_position;
   std::vector<double> mid_position;
@@ -388,7 +388,7 @@ struct blend_test_data
  * @return
  */
 bool getBlendTestData(const ros::NodeHandle& nh, const size_t& dataset_num, const std::string& name_prefix,
-                      std::vector<blend_test_data>& datasets);
+                      std::vector<BlendTestData>& datasets);
 
 /**
  * @brief check the blending result of lin-lin
@@ -418,13 +418,13 @@ bool checkBlendResult(const pilz_industrial_motion_planner::TrajectoryBlendReque
 bool generateTrajFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
                                    const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg,
                                    const std::string& group_name, const std::string& link_name,
-                                   const blend_test_data& data, const double& sampling_time_1,
+                                   const BlendTestData& data, const double& sampling_time_1,
                                    const double& sampling_time_2, planning_interface::MotionPlanResponse& res_lin_1,
                                    planning_interface::MotionPlanResponse& res_lin_2, double& dis_lin_1,
                                    double& dis_lin_2);
 
 void generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
-                                         const blend_test_data& data, const std::string& planner_id,
+                                         const BlendTestData& data, const std::string& planner_id,
                                          const std::string& group_name, const std::string& link_name,
                                          moveit_msgs::MotionSequenceRequest& req_list);
 

@@ -965,10 +965,10 @@ void testutils::createFakeCartTraj(const robot_trajectory::RobotTrajectoryPtr& t
 }
 
 bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& dataset_num, const std::string& name_prefix,
-                                 std::vector<testutils::blend_test_data>& datasets)
+                                 std::vector<testutils::BlendTestData>& datasets)
 {
   datasets.clear();
-  testutils::blend_test_data dataset;
+  testutils::BlendTestData dataset;
   for (size_t i = 1; i < dataset_num + 1; ++i)
   {
     std::string data_set_name = "blend_set_" + std::to_string(i);
@@ -989,7 +989,7 @@ bool testutils::getBlendTestData(const ros::NodeHandle& nh, const size_t& datase
 bool testutils::generateTrajFromBlendTestData(
     const robot_model::RobotModelConstPtr& robot_model,
     const std::shared_ptr<pilz_industrial_motion_planner::TrajectoryGenerator>& tg, const std::string& group_name,
-    const std::string& link_name, const testutils::blend_test_data& data, const double& sampling_time_1,
+    const std::string& link_name, const testutils::BlendTestData& data, const double& sampling_time_1,
     const double& sampling_time_2, planning_interface::MotionPlanResponse& res_1,
     planning_interface::MotionPlanResponse& res_2, double& dis_1, double& dis_2)
 {
@@ -1126,7 +1126,7 @@ bool testutils::checkBlendResult(const pilz_industrial_motion_planner::Trajector
 }
 
 void testutils::generateRequestMsgFromBlendTestData(const moveit::core::RobotModelConstPtr& robot_model,
-                                                    const testutils::blend_test_data& data,
+                                                    const testutils::BlendTestData& data,
                                                     const std::string& planner_id, const std::string& group_name,
                                                     const std::string& link_name,
                                                     moveit_msgs::MotionSequenceRequest& req_list)

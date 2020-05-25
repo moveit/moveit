@@ -245,7 +245,7 @@ std::unique_ptr<KDL::Path> TrajectoryGeneratorCIRC::setPathCIRC(const MotionPlan
     os << "Failed to create path object for circle." << e.Description();
     throw CircleToSmall(os.str());
   }
-  catch (Error_MotionPlanning_CenterPointDifferentRadius& e)
+  catch (ErrorMotionPlanningCenterPointDifferentRadius& e)
   {
     std::ostringstream os;
     os << "Failed to create path object for circle." << e.Description();

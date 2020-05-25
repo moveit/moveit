@@ -128,13 +128,13 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
   std::string leading_axis = joint_trajectory.joint_names.front();
   double max_duration = -1.0;
 
-  std::map<std::string, VelocityProfile_ATrap> velocity_profile;
+  std::map<std::string, VelocityProfileATrap> velocity_profile;
   for (const auto& joint_name : joint_trajectory.joint_names)
   {
     // create vecocity profile if necessary
     velocity_profile.insert(std::make_pair(
         joint_name,
-        VelocityProfile_ATrap(velocity_scaling_factor * most_strict_limits_.at(group_name).max_velocity,
+        VelocityProfileATrap(velocity_scaling_factor * most_strict_limits_.at(group_name).max_velocity,
                               acceleration_scaling_factor * most_strict_limits_.at(group_name).max_acceleration,
                               acceleration_scaling_factor * most_strict_limits_.at(group_name).max_deceleration)));
 
@@ -149,9 +149,9 @@ void TrajectoryGeneratorPTP::planPTP(const std::map<std::string, double>& start_
   // Full Synchronization
   // This should only work if all axes have same max_vel, max_acc, max_dec values
   // reset the velocity profile for other joints
-  double acc_time = velocity_profile.at(leading_axis).FirstPhaseDuration();
-  double const_time = velocity_profile.at(leading_axis).SecondPhaseDuration();
-  double dec_time = velocity_profile.at(leading_axis).ThirdPhaseDuration();
+  double acc_time = velocity_profile.at(leading_axis).firstPhaseDuration();
+  double const_time = velocity_profile.at(leading_axis).secondPhaseDuration();
+  double dec_time = velocity_profile.at(leading_axis).thirdPhaseDuration();
 
   for (const auto& joint_name : joint_trajectory.joint_names)
   {

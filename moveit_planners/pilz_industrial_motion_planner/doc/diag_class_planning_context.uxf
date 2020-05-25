@@ -393,7 +393,7 @@ m1=1</panel_attributes>
       <w>147</w>
       <h>63</h>
     </coordinates>
-    <panel_attributes>VelocityProfile_ATrap
+    <panel_attributes>VelocityProfileATrap
 --
 + SetProfile
 + SetProfileDuration

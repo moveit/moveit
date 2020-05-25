@@ -50,7 +50,7 @@ CREATE_MOVEIT_ERROR_CODE_EXCEPTION(PtpNoIkSolutionForGoalPose, moveit_msgs::Move
 
 /**
  * @brief This class implements a point-to-point trajectory generator based on
- * VelocityProfile_ATrap.
+ * VelocityProfileATrap.
  */
 class TrajectoryGeneratorPTP : public TrajectoryGenerator
 {

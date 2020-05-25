@@ -46,7 +46,7 @@ std::unique_ptr<KDL::Path> PathCircleGenerator::circleFromCenter(const KDL::Fram
 
   if (fabs(a - b) > MAX_RADIUS_DIFF)
   {
-    throw Error_MotionPlanning_CenterPointDifferentRadius();
+    throw ErrorMotionPlanningCenterPointDifferentRadius();
   }
 
   // compute the rotation angle

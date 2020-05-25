@@ -47,7 +47,7 @@ namespace pilz_industrial_motion_planner
  *   - Function to generate full synchronized PTP trajectory is provided.
  *   - Function to generate trapezoid shaped velocity profile with start velocity.
  */
-class VelocityProfile_ATrap : public KDL::VelocityProfile
+class VelocityProfileATrap : public KDL::VelocityProfile
 {
 public:
   /**
@@ -56,7 +56,7 @@ public:
    * @param max_acc: maximal acceleration (absolute value, always positive)
    * @param max_dec: maximal deceleration (absolute value, always positive)
    */
-  VelocityProfile_ATrap(double max_vel = 0, double max_acc = 0, double max_dec = 0);
+  VelocityProfileATrap(double max_vel = 0, double max_acc = 0, double max_dec = 0);
 
   /**
    * @brief compute the fastest profile
@@ -113,7 +113,7 @@ public:
    * @brief get the time of first phase
    * @return
    */
-  double FirstPhaseDuration() const
+  double firstPhaseDuration() const
   {
     return t_a_;
   }
@@ -121,7 +121,7 @@ public:
    * @brief get the time of second phase
    * @return
    */
-  double SecondPhaseDuration() const
+  double secondPhaseDuration() const
   {
     return t_b_;
   }
@@ -129,7 +129,7 @@ public:
    * @brief get the time of third phase
    * @return
    */
-  double ThirdPhaseDuration() const
+  double thirdPhaseDuration() const
   {
     return t_c_;
   }
@@ -139,7 +139,7 @@ public:
    *
    * @return True if equal, false otherwise.
    */
-  bool operator==(const VelocityProfile_ATrap& other) const;
+  bool operator==(const VelocityProfileATrap& other) const;
 
   /**
    * @brief Duration
@@ -175,9 +175,9 @@ public:
    */
   virtual KDL::VelocityProfile* Clone() const override;
 
-  friend std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
+  friend std::ostream& operator<<(std::ostream& os, const VelocityProfileATrap& p);  // LCOV_EXCL_LINE
 
-  virtual ~VelocityProfile_ATrap();
+  virtual ~VelocityProfileATrap();
 
 private:
   /// helper functions
@@ -205,6 +205,6 @@ private:
   double t_c_;  /// the duration of third phase
 };
 
-std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p);  // LCOV_EXCL_LINE
+std::ostream& operator<<(std::ostream& os, const VelocityProfileATrap& p);  // LCOV_EXCL_LINE
 
 }  // namespace pilz_industrial_motion_planner

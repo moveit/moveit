@@ -36,7 +36,7 @@
 
 namespace pilz_industrial_motion_planner
 {
-VelocityProfile_ATrap::VelocityProfile_ATrap(double max_vel, double max_acc, double max_dec)
+VelocityProfileATrap::VelocityProfileATrap(double max_vel, double max_acc, double max_dec)
   : max_vel_(fabs(max_vel))
   , max_acc_(fabs(max_acc))
   , max_dec_(fabs(max_dec))
@@ -58,7 +58,7 @@ VelocityProfile_ATrap::VelocityProfile_ATrap(double max_vel, double max_acc, dou
 {
 }
 
-void VelocityProfile_ATrap::SetProfile(double pos1, double pos2)
+void VelocityProfileATrap::SetProfile(double pos1, double pos2)
 {
   start_pos_ = pos1;
   end_pos_ = pos2;
@@ -126,7 +126,7 @@ void VelocityProfile_ATrap::SetProfile(double pos1, double pos2)
   }
 }
 
-void VelocityProfile_ATrap::SetProfileDuration(double pos1, double pos2, double duration)
+void VelocityProfileATrap::SetProfileDuration(double pos1, double pos2, double duration)
 {
   // compute the fastest case
   SetProfile(pos1, pos2);
@@ -149,7 +149,7 @@ void VelocityProfile_ATrap::SetProfileDuration(double pos1, double pos2, double 
   t_c_ /= ratio;
 }
 
-bool VelocityProfile_ATrap::setProfileAllDurations(double pos1, double pos2, double duration1, double duration2,
+bool VelocityProfileATrap::setProfileAllDurations(double pos1, double pos2, double duration1, double duration2,
                                                    double duration3)
 {
   // compute the fastest case
@@ -204,7 +204,7 @@ bool VelocityProfile_ATrap::setProfileAllDurations(double pos1, double pos2, dou
   }
 }
 
-bool VelocityProfile_ATrap::setProfileStartVelocity(double pos1, double pos2, double vel1)
+bool VelocityProfileATrap::setProfileStartVelocity(double pos1, double pos2, double vel1)
 {
   if (vel1 == 0)
   {
@@ -304,12 +304,12 @@ bool VelocityProfile_ATrap::setProfileStartVelocity(double pos1, double pos2, do
   return true;
 }
 
-double VelocityProfile_ATrap::Duration() const
+double VelocityProfileATrap::Duration() const
 {
   return t_a_ + t_b_ + t_c_;
 }
 
-double VelocityProfile_ATrap::Pos(double time) const
+double VelocityProfileATrap::Pos(double time) const
 {
   if (time < 0)
   {
@@ -333,7 +333,7 @@ double VelocityProfile_ATrap::Pos(double time) const
   }
 }
 
-double VelocityProfile_ATrap::Vel(double time) const
+double VelocityProfileATrap::Vel(double time) const
 {
   if (time < 0)
   {
@@ -357,7 +357,7 @@ double VelocityProfile_ATrap::Vel(double time) const
   }
 }
 
-double VelocityProfile_ATrap::Acc(double time) const
+double VelocityProfileATrap::Acc(double time) const
 {
   if (time <= 0)
   {
@@ -381,20 +381,20 @@ double VelocityProfile_ATrap::Acc(double time) const
   }
 }
 
-KDL::VelocityProfile* VelocityProfile_ATrap::Clone() const
+KDL::VelocityProfile* VelocityProfileATrap::Clone() const
 {
-  VelocityProfile_ATrap* trap = new VelocityProfile_ATrap(max_vel_, max_acc_, max_dec_);
+  VelocityProfileATrap* trap = new VelocityProfileATrap(max_vel_, max_acc_, max_dec_);
   trap->setProfileAllDurations(this->start_pos_, this->end_pos_, this->t_a_, this->t_b_, this->t_c_);
   return trap;
 }
 
 // LCOV_EXCL_START // No tests for the print function
-void VelocityProfile_ATrap::Write(std::ostream& os) const
+void VelocityProfileATrap::Write(std::ostream& os) const
 {
   os << *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p)
+std::ostream& operator<<(std::ostream& os, const VelocityProfileATrap& p)
 {
   os << "Asymmetric Trapezoid " << std::endl
      << "maximal velocity: " << p.max_vel_ << std::endl
@@ -412,14 +412,14 @@ std::ostream& operator<<(std::ostream& os, const VelocityProfile_ATrap& p)
      << "c1: " << p.c1_ << std::endl
      << "c2: " << p.c2_ << std::endl
      << "c3: " << p.c3_ << std::endl
-     << "FirstPhaseDuration " << p.FirstPhaseDuration() << std::endl
-     << "SecondPhaseDuration " << p.SecondPhaseDuration() << std::endl
-     << "ThirdPhaseDuration " << p.ThirdPhaseDuration() << std::endl;
+     << "firstPhaseDuration " << p.firstPhaseDuration() << std::endl
+     << "secondPhaseDuration " << p.secondPhaseDuration() << std::endl
+     << "thirdPhaseDuration " << p.thirdPhaseDuration() << std::endl;
   return os;
 }
 // LCOV_EXCL_STOP
 
-bool VelocityProfile_ATrap::operator==(const VelocityProfile_ATrap& other) const
+bool VelocityProfileATrap::operator==(const VelocityProfileATrap& other) const
 {
   return (max_vel_ == other.max_vel_ && max_acc_ == other.max_acc_ && max_dec_ == other.max_dec_ &&
           start_pos_ == other.start_pos_ && end_pos_ == other.end_pos_ && start_vel_ == other.start_vel_ &&
@@ -428,11 +428,11 @@ bool VelocityProfile_ATrap::operator==(const VelocityProfile_ATrap& other) const
           t_b_ == other.t_b_ && t_c_ == other.t_c_);
 }
 
-VelocityProfile_ATrap::~VelocityProfile_ATrap()
+VelocityProfileATrap::~VelocityProfileATrap()
 {
 }
 
-void VelocityProfile_ATrap::setEmptyProfile()
+void VelocityProfileATrap::setEmptyProfile()
 {
   a1_ = end_pos_;
   a2_ = 0;

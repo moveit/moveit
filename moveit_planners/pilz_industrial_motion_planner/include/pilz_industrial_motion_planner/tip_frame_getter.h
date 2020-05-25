@@ -78,12 +78,12 @@ static const std::string& getSolverTipFrame(const JointModelGroup* group)
     throw NoSolverException("No solver for group " + group->getName());
   }
 
-  const std::vector<std::string>& tipFrames{ group->getSolverInstance()->getTipFrames() };
-  if (tipFrames.size() > 1)
+  const std::vector<std::string>& tip_frames{ group->getSolverInstance()->getTipFrames() };
+  if (tip_frames.size() > 1)
   {
     throw MoreThanOneTipFrameException("Solver for group \"" + group->getName() + "\" has more than one tip frame");
   }
-  return tipFrames.front();
+  return tip_frames.front();
 }
 
 }  // namespace pilz_industrial_motion_planner
