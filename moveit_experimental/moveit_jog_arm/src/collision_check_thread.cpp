@@ -40,7 +40,8 @@
 #include <moveit_jog_arm/collision_check_thread.h>
 
 static const std::string LOGNAME = "collision_check_thread";
-static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
+static constexpr double MIN_RECOMMENDED_COLLISION_RATE = 10;
+constexpr double EPSILON = 1e-6;  // For very small numeric comparisons
 
 namespace moveit_jog_arm
 {
@@ -125,15 +126,14 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
       velocity_scale = 1;
 
-      // If threshold distances were specified
-      if (collision_check_type_ == kThresholdDistance)
+      // If we're definitely in collision, stop immediately
+      if (collision_detected)
       {
-        // If we're definitely in collision, stop immediately
-        if (collision_detected)
-        {
-          velocity_scale = 0;
-        }
-
+        velocity_scale = 0;
+      }
+      // If threshold distances were specified
+      else if (collision_check_type_ == kThresholdDistance)
+      {
         // If we are far from a collision, velocity_scale should be 1.
         // If we are very close to a collision, velocity_scale should be ~zero.
         // When scene_collision_proximity_threshold is breached, start decelerating exponentially.
@@ -171,7 +171,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
           velocity_scale = 0;
         }
         // Only bother doing calculations if we are moving toward the nearest collision
-        else if (derivative_of_collision_distance < 0)
+        else if (derivative_of_collision_distance < -EPSILON)
         {
           // At the rate the collision distance is decreasing, how long until we collide?
           est_time_to_collision = fabs(current_collision_distance / derivative_of_collision_distance);

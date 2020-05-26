@@ -757,15 +757,15 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
     {
       if (joint_model->getName() == joint_name)
       {
+        kinematic_bounds = joint_model->getVariableBounds();
         // Some joints do not have acceleration limits
-        try
+        if (kinematic_bounds[0].acceleration_bounded_)
         {
-          kinematic_bounds = joint_model->getVariableBounds();
           // Be conservative when calculating overall acceleration limit from min and max limits
           accel_limit =
               std::min(fabs(kinematic_bounds[0].min_acceleration_), fabs(kinematic_bounds[0].max_acceleration_));
         }
-        catch (const std::exception& ex)
+        else
         {
           ROS_WARN_STREAM_NAMED(LOGNAME, "An acceleration limit is not defined for this joint; minimum stop distance "
                                          "should not be used for collision checking");
