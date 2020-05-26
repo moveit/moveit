@@ -55,8 +55,8 @@ namespace
 {
 bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
                           const collision_detection::AllowedCollisionMatrix* collision_matrix, bool verbose,
-                          const pick_place::ManipulationPlan* manipulation_plan, robot_state::RobotState* state,
-                          const robot_model::JointModelGroup* group, const double* joint_group_variable_values)
+                          const pick_place::ManipulationPlan* manipulation_plan, moveit::core::RobotState* state,
+                          const moveit::core::JointModelGroup* group, const double* joint_group_variable_values)
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
@@ -90,7 +90,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
 }  // namespace
 
 bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr& plan,
-                                                                robot_state::RobotState& token_state) const
+                                                                moveit::core::RobotState& token_state) const
 {
   tf2::fromMsg(plan->goal_pose_.pose, plan->transformed_goal_pose_);
   plan->transformed_goal_pose_ =
@@ -107,14 +107,14 @@ bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const Manipulati
 bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr& plan) const
 {
   // initialize with scene state
-  robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
+  moveit::core::RobotStatePtr token_state(new moveit::core::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
     // update the goal pose message if anything has changed; this is because the name of the frame in the input goal
     // pose
     // can be that of objects in the collision world but most components are unaware of those transforms,
     // so we convert to a frame that is certainly known
-    if (!robot_state::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
+    if (!moveit::core::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
     {
       plan->goal_pose_.pose = tf2::toMsg(plan->transformed_goal_pose_);
       plan->goal_pose_.header.frame_id = planning_scene_->getPlanningFrame();

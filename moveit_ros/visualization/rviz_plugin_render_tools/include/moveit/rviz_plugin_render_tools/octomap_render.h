@@ -44,19 +44,11 @@ SILENT_UNUSED_PARAM
 #include <rviz/ogre_helpers/point_cloud.h>
 DIAGNOSTIC_POP
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <OGRE/OgrePrerequisites.h>
 
 namespace octomap
 {
 class OcTree;
-}
-
-namespace Ogre
-{
-class SceneManager;
-class SceneNode;
-class AxisAlignedBox;
-class Vector3;
-class Quaternion;
 }
 
 namespace moveit_rviz_plugin
@@ -77,8 +69,7 @@ class OcTreeRender
 {
 public:
   OcTreeRender(const std::shared_ptr<const octomap::OcTree>& octree, OctreeVoxelRenderMode octree_voxel_rendering,
-               OctreeVoxelColorMode octree_color_mode, std::size_t max_octree_depth, Ogre::SceneManager* scene_manager,
-               Ogre::SceneNode* parent_node);
+               OctreeVoxelColorMode octree_color_mode, std::size_t max_octree_depth, Ogre::SceneNode* parent_node);
   virtual ~OcTreeRender();
 
   void setPosition(const Ogre::Vector3& position);
@@ -96,7 +87,6 @@ private:
   std::shared_ptr<const octomap::OcTree> octree_;
 
   Ogre::SceneNode* scene_node_;
-  Ogre::SceneManager* scene_manager_;
 
   double colorFactor_;
   std::size_t octree_depth_;

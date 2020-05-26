@@ -61,7 +61,7 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
   std::vector<std::string> group_joint_names_;
   const std::string PLANNING_GROUP = "panda_arm";
   const double GOAL_TOLERANCE = 0.1;
@@ -147,8 +147,10 @@ TEST_F(TrajectoryTest, goalTolerance)
   // Set start state
   // ========================================================================================
   std::vector<double> start_joint_values = { 0.4, 0.3, 0.5, -0.55, 0.88, 1.0, -0.075 };
-  robot_state->setJointGroupPositions(joint_model_group, start_joint_values);
-  robot_state->update();
+
+  moveit::core::RobotStatePtr start_state(new moveit::core::RobotState(robot_model_));
+  start_state->setJointGroupPositions(joint_model_group, start_joint_values);
+  start_state->update();
 
   req.start_state.joint_state.name = joint_names;
   req.start_state.joint_state.position = start_joint_values;

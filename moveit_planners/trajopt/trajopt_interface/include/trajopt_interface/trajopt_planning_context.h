@@ -49,7 +49,7 @@ class TrajOptPlanningContext : public planning_interface::PlanningContext
 {
 public:
   TrajOptPlanningContext(const std::string& name, const std::string& group,
-                         const robot_model::RobotModelConstPtr& model);
+                         const moveit::core::RobotModelConstPtr& model);
   ~TrajOptPlanningContext() override
   {
   }

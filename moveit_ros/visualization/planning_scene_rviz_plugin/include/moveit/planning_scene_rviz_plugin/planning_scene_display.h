@@ -102,7 +102,7 @@ public:
   void clearJobs();
 
   const std::string getMoveGroupNS() const;
-  const robot_model::RobotModelConstPtr& getRobotModel() const;
+  const moveit::core::RobotModelConstPtr& getRobotModel() const;
 
   /// wait for robot state more recent than t
   bool waitForCurrentRobotState(const ros::Time& t = ros::Time::now());
@@ -149,6 +149,8 @@ protected:
 
   /// This is an event called by loadRobotModel() in the MainLoop; do not call directly
   virtual void onRobotModelLoaded();
+  /// This is called upon successful retrieval of the (initial) planning scene state
+  virtual void onNewPlanningSceneState();
 
   /**
    * \brief Set the scene node's position, given the target frame and the planning frame

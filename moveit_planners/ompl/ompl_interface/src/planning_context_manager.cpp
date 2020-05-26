@@ -192,37 +192,38 @@ ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner(const ob::
   return nullptr;
 };
 // TODO: remove when ROS Melodic and older are no longer supported
+// namespace is scoped instead of global because of GCC bug 56480
 #if OMPL_VERSION_VALUE >= 1005000
+namespace ompl_interface
+{
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRM>(const ob::PlannerData& data)
+MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRM>(const ob::PlannerData& data)
 {
   return new og::PRM(data);
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRMstar>(
-    const ob::PlannerData& data)
+MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::PRMstar>(const ob::PlannerData& data)
 {
   return new og::PRMstar(data);
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRM>(
-    const ob::PlannerData& data)
+MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRM>(const ob::PlannerData& data)
 {
   return new og::LazyPRM(data);
 };
 template <>
 inline ompl::base::Planner*
-ompl_interface::MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMstar>(
-    const ob::PlannerData& data)
+MultiQueryPlannerAllocator::allocatePersistentPlanner<ompl::geometric::LazyPRMstar>(const ob::PlannerData& data)
 {
   return new og::LazyPRMstar(data);
 };
+}
 #endif
 
-ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr robot_model,
+ompl_interface::PlanningContextManager::PlanningContextManager(moveit::core::RobotModelConstPtr robot_model,
                                                                constraint_samplers::ConstraintSamplerManagerPtr csm)
   : robot_model_(std::move(robot_model))
   , constraint_sampler_manager_(std::move(csm))
@@ -496,7 +497,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   {
     context->clear();
 
-    robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
+    moveit::core::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
 
     // Setup the context
     context->setPlanningScene(planning_scene);

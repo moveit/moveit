@@ -38,6 +38,7 @@
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit/py_bindings_tools/gil_releaser.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
@@ -56,6 +57,8 @@
 /** @cond IGNORE */
 
 namespace bp = boost::python;
+
+using moveit::py_bindings_tools::GILReleaser;
 
 namespace moveit
 {
@@ -94,21 +97,23 @@ public:
     return setJointValueTarget(v);
   }
 
-  bool setJointValueTargetFromPosePython(const std::string& pose_str, const std::string& eef, bool approx)
+  bool setJointValueTargetFromPosePython(const py_bindings_tools::ByteString& pose_str, const std::string& eef,
+                                         bool approx)
   {
     geometry_msgs::Pose pose_msg;
     py_bindings_tools::deserializeMsg(pose_str, pose_msg);
     return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
   }
 
-  bool setJointValueTargetFromPoseStampedPython(const std::string& pose_str, const std::string& eef, bool approx)
+  bool setJointValueTargetFromPoseStampedPython(const py_bindings_tools::ByteString& pose_str, const std::string& eef,
+                                                bool approx)
   {
     geometry_msgs::PoseStamped pose_msg;
     py_bindings_tools::deserializeMsg(pose_str, pose_msg);
     return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
   }
 
-  bool setJointValueTargetFromJointStatePython(const std::string& js_str)
+  bool setJointValueTargetFromJointStatePython(const py_bindings_tools::ByteString& js_str)
   {
     sensor_msgs::JointState js_msg;
     py_bindings_tools::deserializeMsg(js_str, js_msg);
@@ -125,10 +130,10 @@ public:
     return l;
   }
 
-  std::string getJointValueTarget()
+  py_bindings_tools::ByteString getJointValueTarget()
   {
     moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
+    const moveit::core::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
     moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
@@ -143,7 +148,7 @@ public:
     return getPlanningFrame().c_str();
   }
 
-  std::string getInterfaceDescriptionPython()
+  py_bindings_tools::ByteString getInterfaceDescriptionPython()
   {
     moveit_msgs::PlannerInterfaceDescription msg;
     getInterfaceDescription(msg);
@@ -260,7 +265,8 @@ public:
     return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
-  bool placeLocation(const std::string& object_name, const std::string& location_str, bool plan_only = false)
+  bool placeLocation(const std::string& object_name, const py_bindings_tools::ByteString& location_str,
+                     bool plan_only = false)
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
@@ -303,17 +309,17 @@ public:
 
   bp::dict getCurrentStateBoundedPython()
   {
-    robot_state::RobotStatePtr current = getCurrentState();
+    moveit::core::RobotStatePtr current = getCurrentState();
     current->enforceBounds();
     moveit_msgs::RobotState rsmv;
-    robot_state::robotStateToRobotStateMsg(*current, rsmv);
+    moveit::core::robotStateToRobotStateMsg(*current, rsmv);
     bp::dict output;
     for (size_t x = 0; x < rsmv.joint_state.name.size(); ++x)
       output[rsmv.joint_state.name[x]] = rsmv.joint_state.position[x];
     return output;
   }
 
-  void setStartStatePython(const std::string& msg_str)
+  void setStartStatePython(const py_bindings_tools::ByteString& msg_str)
   {
     moveit_msgs::RobotState msg;
     py_bindings_tools::deserializeMsg(msg_str, msg);
@@ -326,7 +332,7 @@ public:
     convertListToArrayOfPoses(poses, msg);
     return setPoseTargets(msg, end_effector_link);
   }
-  std::string getPoseTargetPython(const std::string& end_effector_link)
+  py_bindings_tools::ByteString getPoseTargetPython(const std::string& end_effector_link)
   {
     geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveGroupInterface::getPoseTarget(end_effector_link);
     return py_bindings_tools::serializeMsg(pose);
@@ -393,6 +399,7 @@ public:
 
   bool movePython()
   {
+    GILReleaser gr;
     return move() == MoveItErrorCode::SUCCESS;
   }
 
@@ -406,14 +413,15 @@ public:
     return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
   }
 
-  bool executePython(const std::string& plan_str)
+  bool executePython(const py_bindings_tools::ByteString& plan_str)
   {
     MoveGroupInterface::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
+    GILReleaser gr;
     return execute(plan) == MoveItErrorCode::SUCCESS;
   }
 
-  bool asyncExecutePython(const std::string& plan_str)
+  bool asyncExecutePython(const py_bindings_tools::ByteString& plan_str)
   {
     MoveGroupInterface::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
@@ -422,8 +430,10 @@ public:
 
   bp::tuple planPython()
   {
+    GILReleaser gr;
     MoveGroupInterface::Plan plan;
     moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
+    gr.reacquire();
     return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
   }
@@ -436,7 +446,8 @@ public:
   }
 
   bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                                  bool avoid_collisions, const std::string& path_constraints_str)
+                                                  bool avoid_collisions,
+                                                  const py_bindings_tools::ByteString& path_constraints_str)
   {
     moveit_msgs::Constraints path_constraints;
     py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
@@ -449,12 +460,14 @@ public:
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
+    GILReleaser gr;
     double fraction =
         computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+    gr.reacquire();
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
-  int pickGrasp(const std::string& object, const std::string& grasp_str, bool plan_only = false)
+  int pickGrasp(const std::string& object, const py_bindings_tools::ByteString& grasp_str, bool plan_only = false)
   {
     moveit_msgs::Grasp grasp;
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
@@ -466,27 +479,27 @@ public:
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l; ++i)
-      py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(grasp_list[i]), grasps[i]);
     return pick(object, std::move(grasps), plan_only).val;
   }
 
-  void setPathConstraintsFromMsg(const std::string& constraints_str)
+  void setPathConstraintsFromMsg(const py_bindings_tools::ByteString& constraints_str)
   {
     moveit_msgs::Constraints constraints_msg;
     py_bindings_tools::deserializeMsg(constraints_str, constraints_msg);
     setPathConstraints(constraints_msg);
   }
 
-  std::string getPathConstraintsPython()
+  py_bindings_tools::ByteString getPathConstraintsPython()
   {
     moveit_msgs::Constraints constraints_msg(getPathConstraints());
-    std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
-    return constraints_str;
+    return py_bindings_tools::serializeMsg(constraints_msg);
   }
 
-  std::string retimeTrajectory(const std::string& ref_state_str, const std::string& traj_str,
-                               double velocity_scaling_factor, double acceleration_scaling_factor,
-                               const std::string& algorithm)
+  py_bindings_tools::ByteString retimeTrajectory(const py_bindings_tools::ByteString& ref_state_str,
+                                                 const py_bindings_tools::ByteString& traj_str,
+                                                 double velocity_scaling_factor, double acceleration_scaling_factor,
+                                                 const std::string& algorithm)
   {
     // Convert reference state message to object
     moveit_msgs::RobotState ref_state_msg;
@@ -497,6 +510,7 @@ public:
       // Convert trajectory message to object
       moveit_msgs::RobotTrajectory traj_msg;
       py_bindings_tools::deserializeMsg(traj_str, traj_msg);
+      GILReleaser gr;
       robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
       traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
 
@@ -519,20 +533,19 @@ public:
       else
       {
         ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
+        gr.reacquire();
         return py_bindings_tools::serializeMsg(moveit_msgs::RobotTrajectory());
       }
 
       // Convert the retimed trajectory back into a message
       traj_obj.getRobotTrajectoryMsg(traj_msg);
-      std::string traj_str = py_bindings_tools::serializeMsg(traj_msg);
-
-      // Return it.
-      return traj_str;
+      gr.reacquire();
+      return py_bindings_tools::serializeMsg(traj_msg);
     }
     else
     {
       ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
-      return "";
+      return py_bindings_tools::ByteString("");
     }
   }
 
@@ -548,7 +561,7 @@ public:
     if (ref.size() != 3)
       throw std::invalid_argument("reference point needs to have 3 elements, got " + std::to_string(ref.size()));
 
-    robot_state::RobotState state(getRobotModel());
+    moveit::core::RobotState state(getRobotModel());
     state.setToDefaultValues();
     auto group = state.getJointModelGroup(getName());
     state.setJointGroupPositions(group, v);

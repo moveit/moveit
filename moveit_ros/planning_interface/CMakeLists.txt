@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_planning_interface)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -31,7 +32,7 @@ find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIR
 find_package(Boost REQUIRED)
 if(Boost_VERSION LESS 106700)
   set(BOOST_PYTHON_COMPONENT python)
-elseif()
+else()
   set(BOOST_PYTHON_COMPONENT python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
 endif()
 

@@ -1,100 +1,111 @@
-/*
-     Title     : jog_calcs.h
-     Project   : moveit_jog_arm
-     Created   : 1/11/2019
-     Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+/*******************************************************************************
+ * BSD 3-Clause License
+ *
+ * Copyright (c) 2019, Los Alamos National Security, LLC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
 
-BSD 3-Clause License
-
-Copyright (c) 2019, Los Alamos National Security, LLC
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-* Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+/*      Title     : jog_calcs.cpp
+ *      Project   : moveit_jog_arm
+ *      Created   : 1/11/2019
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ */
 
 #include <moveit_jog_arm/jog_calcs.h>
+
+static const std::string LOGNAME = "jog_calcs";
 
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables, pthread_mutex_t& mutex,
-                   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
-  : tf_listener_(tf_buffer_), parameters_(parameters)
+JogCalcs::JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr)
+  : parameters_(parameters), default_sleep_rate_(1000)
 {
-  // Publish collision status
-  warning_pub_ = nh_.advertise<std_msgs::Bool>(parameters_.warning_topic, 1);
+  // Publish jogger status
+  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
 
   // MoveIt Setup
   while (ros::ok() && !model_loader_ptr)
   {
     ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    default_sleep_rate_.sleep();
   }
-  const robot_model::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
-  kinematic_state_ = std::make_shared<robot_state::RobotState>(kinematic_model);
+  const moveit::core::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
+  kinematic_state_ = std::make_shared<moveit::core::RobotState>(kinematic_model);
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
+  prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getVariableCount());
+}
+
+void JogCalcs::startMainLoop(JogArmShared& shared_variables)
+{
+  // Reset flags
+  stop_jog_loop_requested_ = false;
+  halt_outgoing_jog_cmds_ = false;
+  is_initialized_ = false;
 
   // Wait for initial messages
-  ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
-  ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
 
-  resetVelocityFilters();
-
-  jt_state_.name = joint_model_group_->getVariableNames();
-  num_joints_ = jt_state_.name.size();
-  jt_state_.position.resize(num_joints_);
-  jt_state_.velocity.resize(num_joints_);
-  jt_state_.effort.resize(num_joints_);
+  internal_joint_state_.name = joint_model_group_->getVariableNames();
+  num_joints_ = internal_joint_state_.name.size();
+  internal_joint_state_.position.resize(num_joints_);
+  internal_joint_state_.velocity.resize(num_joints_);
+  internal_joint_state_.effort.resize(num_joints_);
   // A map for the indices of incoming joint commands
-  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
+  for (std::size_t i = 0; i < internal_joint_state_.name.size(); ++i)
   {
-    jt_state_name_map_[jt_state_.name[i]] = i;
+    joint_state_name_map_[internal_joint_state_.name[i]] = i;
   }
 
   // Low-pass filters for the joint positions & velocities
   for (size_t i = 0; i < num_joints_; ++i)
   {
-    velocity_filters_.emplace_back(parameters_.low_pass_filter_coeff);
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
   }
 
   // Initialize the position filters to initial robot joints
-  while (!updateJoints() && ros::ok())
+  while (!updateJoints(shared_variables) && ros::ok())
   {
-    pthread_mutex_lock(&mutex);
-    incoming_jts_ = shared_variables.joints;
-    pthread_mutex_unlock(&mutex);
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    if (stop_jog_loop_requested_)
+      return;
+
+    shared_variables.lock();
+    incoming_joint_state_ = shared_variables.joints;
+    shared_variables.unlock();
+    default_sleep_rate_.sleep();
   }
-  for (std::size_t i = 0; i < num_joints_; ++i)
-    position_filters_[i].reset(jt_state_.position[i]);
+
+  is_initialized_ = true;
 
   // Wait for the first jogging cmd.
   // Store it in a class member for further calcs, then free up the shared variable again.
@@ -102,12 +113,34 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   control_msgs::JointJog joint_deltas;
   while (ros::ok() && (cartesian_deltas.header.stamp == ros::Time(0.)) && (joint_deltas.header.stamp == ros::Time(0.)))
   {
-    ros::Duration(WHILE_LOOP_WAIT).sleep();
+    if (stop_jog_loop_requested_)
+      return;
 
-    pthread_mutex_lock(&mutex);
+    default_sleep_rate_.sleep();
+
+    // Ensure the low-pass filter matches reality
+    for (std::size_t i = 0; i < num_joints_; ++i)
+      position_filters_[i].reset(internal_joint_state_.position[i]);
+
+    //  Check for a new command
+    shared_variables.lock();
     cartesian_deltas = shared_variables.command_deltas;
     joint_deltas = shared_variables.joint_command_deltas;
-    pthread_mutex_unlock(&mutex);
+    incoming_joint_state_ = shared_variables.joints;
+    shared_variables.unlock();
+
+    kinematic_state_->setVariableValues(internal_joint_state_);
+
+    // Always update the end-effector transform in case the getCommandFrameTransform() method is being used
+    // Get the transform from MoveIt planning frame to jogging command frame
+    // We solve (planning_frame -> base -> robot_link_command_frame)
+    // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+    tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                              kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+
+    shared_variables.lock();
+    shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
+    shared_variables.unlock();
   }
 
   // Track the number of cycles during which motion has not occurred.
@@ -117,75 +150,82 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   ros::Rate loop_rate(1. / parameters_.publish_period);
 
   // Now do jogging calcs
-  while (ros::ok())
+  while (ros::ok() && !stop_jog_loop_requested_)
   {
-    // Flag that incoming commands are all zero. May be used to skip calculations/publication
-    pthread_mutex_lock(&mutex);
-    bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
-    bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
-    pthread_mutex_unlock(&mutex);
-
-    if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
-      // Reset low-pass filters
-      resetVelocityFilters();
-
-    // Pull data from the shared variables.
-    pthread_mutex_lock(&mutex);
-    incoming_jts_ = shared_variables.joints;
-    pthread_mutex_unlock(&mutex);
-
-    // Initialize the position filters to initial robot joints
-    while (!updateJoints() && ros::ok())
+    // Always update the joints and end-effector transform for 2 reasons:
+    // 1) in case the getCommandFrameTransform() method is being used
+    // 2) so the low-pass filters are up to date and don't cause a jump
+    while (!updateJoints(shared_variables) && ros::ok())
     {
-      pthread_mutex_lock(&mutex);
-      incoming_jts_ = shared_variables.joints;
-      pthread_mutex_unlock(&mutex);
-      ros::Duration(WHILE_LOOP_WAIT).sleep();
+      default_sleep_rate_.sleep();
     }
 
-    // Prioritize cartesian jogging above joint jogging
-    if (!zero_cartesian_cmd_flag)
-    {
-      pthread_mutex_lock(&mutex);
-      cartesian_deltas = shared_variables.command_deltas;
-      pthread_mutex_unlock(&mutex);
+    // Get the transform from MoveIt planning frame to jogging command frame
+    // We solve (planning_frame -> base -> robot_link_command_frame)
+    // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+    kinematic_state_->setVariableValues(incoming_joint_state_);
+    tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                              kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+    shared_variables.lock();
+    shared_variables.tf_moveit_to_cmd_frame = tf_moveit_to_cmd_frame_;
+    shared_variables.unlock();
 
-      if (!cartesianJogCalcs(cartesian_deltas, shared_variables, mutex))
-        continue;
-    }
-    else if (!zero_joint_cmd_flag)
+    // If paused, just keep the low-pass filters up to date with current joints so a jump doesn't occur when
+    // restarting
+    if (halt_outgoing_jog_cmds_)
     {
-      pthread_mutex_lock(&mutex);
-      joint_deltas = shared_variables.joint_command_deltas;
-      pthread_mutex_unlock(&mutex);
-
-      if (!jointJogCalcs(joint_deltas, shared_variables))
-        continue;
+      for (std::size_t i = 0; i < num_joints_; ++i)
+        position_filters_[i].reset(internal_joint_state_.position[i]);
     }
+    // Do jogging calculations only if the robot should move, for efficiency
     else
     {
-      original_jt_state_ = jt_state_;
-      outgoing_command_ = composeOutgoingMessage(jt_state_);
-    }
+      // Flag that incoming commands are all zero. May be used to skip calculations/publication
+      shared_variables.lock();
+      bool zero_cartesian_cmd_flag = shared_variables.zero_cartesian_cmd_flag;
+      bool zero_joint_cmd_flag = shared_variables.zero_joint_cmd_flag;
+      shared_variables.unlock();
 
-    // Halt if the command is stale or inputs are all zero, or commands were zero
-    pthread_mutex_lock(&mutex);
-    bool stale_command = shared_variables.command_is_stale;
-    pthread_mutex_unlock(&mutex);
+      // Prioritize cartesian jogging above joint jogging
+      if (!zero_cartesian_cmd_flag)
+      {
+        shared_variables.lock();
+        cartesian_deltas = shared_variables.command_deltas;
+        shared_variables.unlock();
 
-    if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
-    {
-      suddenHalt(outgoing_command_);
-      zero_cartesian_cmd_flag = true;
-      zero_joint_cmd_flag = true;
-    }
+        if (!cartesianJogCalcs(cartesian_deltas, shared_variables))
+          continue;
+      }
+      else if (!zero_joint_cmd_flag)
+      {
+        shared_variables.lock();
+        joint_deltas = shared_variables.joint_command_deltas;
+        shared_variables.unlock();
 
-    bool valid_nonzero_command = !zero_cartesian_cmd_flag || !zero_joint_cmd_flag;
+        if (!jointJogCalcs(joint_deltas, shared_variables))
+          continue;
+      }
+      else
+      {
+        outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
+      }
 
-    // Send the newest target joints
-    if (!outgoing_command_.joint_names.empty())
-    {
-      pthread_mutex_lock(&mutex);
+      // Halt if the command is stale or inputs are all zero, or commands were zero
+      shared_variables.lock();
+      bool stale_command = shared_variables.command_is_stale;
+      shared_variables.unlock();
+
+      if (stale_command || (zero_cartesian_cmd_flag && zero_joint_cmd_flag))
+      {
+        suddenHalt(outgoing_command_);
+        zero_cartesian_cmd_flag = true;
+        zero_joint_cmd_flag = true;
+      }
+
+      bool valid_nonzero_command = !zero_cartesian_cmd_flag || !zero_joint_cmd_flag;
+
+      // Send the newest target joints
+      shared_variables.lock();
       // If everything normal, share the new traj to be published
       if (valid_nonzero_command)
       {
@@ -193,28 +233,26 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
         shared_variables.ok_to_publish = true;
       }
       // Skip the jogging publication if all inputs have been zero for several cycles in a row.
-      // num_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
-      else if ((parameters_.num_halt_msgs_to_publish != 0) &&
-               (zero_velocity_count > parameters_.num_halt_msgs_to_publish))
+      // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
+      else if ((parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
+               (zero_velocity_count > parameters_.num_outgoing_halt_msgs_to_publish))
       {
         shared_variables.ok_to_publish = false;
-        // Reset the velocity filters so robot doesn't jump when commands resume
-        resetVelocityFilters();
       }
-      // The command is invalid but we are publishing num_halt_msgs_to_publish
+      // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
       else
       {
         shared_variables.outgoing_command = outgoing_command_;
         shared_variables.ok_to_publish = true;
       }
-      pthread_mutex_unlock(&mutex);
+      shared_variables.unlock();
 
       // Store last zero-velocity message flag to prevent superfluous warnings.
       // Cartesian and joint commands must both be zero.
       if (zero_cartesian_cmd_flag && zero_joint_cmd_flag)
       {
         // Avoid overflow
-        if (zero_velocity_count < INT_MAX)
+        if (zero_velocity_count < std::numeric_limits<int>::max())
           ++zero_velocity_count;
       }
       else
@@ -225,9 +263,23 @@ JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_vari
   }
 }
 
+void JogCalcs::stopMainLoop()
+{
+  stop_jog_loop_requested_ = true;
+}
+
+void JogCalcs::haltOutgoingJogCmds()
+{
+  halt_outgoing_jog_cmds_ = true;
+}
+
+bool JogCalcs::isInitialized()
+{
+  return is_initialized_;
+}
+
 // Perform the jogging calculations
-bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables,
-                                 pthread_mutex_t& mutex)
+bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -248,98 +300,76 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
     }
   }
 
-  // Transform the command to the MoveGroup planning frame.
-  geometry_msgs::TransformStamped command_frame_to_planning_frame;
-  try
+  // Transform the command to the MoveGroup planning frame
+  if (cmd.header.frame_id != parameters_.planning_frame)
   {
-    command_frame_to_planning_frame =
-        tf_buffer_.lookupTransform(parameters_.planning_frame, cmd.header.frame_id, ros::Time(0), ros::Duration(1.0));
-  }
-  catch (tf2::TransformException& ex)
-  {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, ros::this_node::getName() << ": " << ex.what());
-    return false;
+    Eigen::Vector3d translation_vector(cmd.twist.linear.x, cmd.twist.linear.y, cmd.twist.linear.z);
+    Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
+
+    translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
+    angular_vector = tf_moveit_to_cmd_frame_.linear() * angular_vector;
+
+    // Put these components back into a TwistStamped
+    cmd.header.frame_id = parameters_.planning_frame;
+    cmd.twist.linear.x = translation_vector(0);
+    cmd.twist.linear.y = translation_vector(1);
+    cmd.twist.linear.z = translation_vector(2);
+    cmd.twist.angular.x = angular_vector(0);
+    cmd.twist.angular.y = angular_vector(1);
+    cmd.twist.angular.z = angular_vector(2);
   }
 
-  geometry_msgs::Vector3 lin_vector = cmd.twist.linear;
-  try
-  {
-    tf2::doTransform(lin_vector, lin_vector, command_frame_to_planning_frame);
-  }
-  catch (const tf2::TransformException& ex)
-  {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, ros::this_node::getName() << ": " << ex.what());
-    return false;
-  }
-
-  geometry_msgs::Vector3 rot_vector = cmd.twist.angular;
-  try
-  {
-    tf2::doTransform(rot_vector, rot_vector, command_frame_to_planning_frame);
-  }
-  catch (const tf2::TransformException& ex)
-  {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, ros::this_node::getName() << ": " << ex.what());
-    return false;
-  }
-
-  // Put these components back into a TwistStamped
-  cmd.header.frame_id = parameters_.planning_frame;
-  cmd.twist.linear = lin_vector;
-  cmd.twist.angular = rot_vector;
-
-  const Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
-
-  kinematic_state_->setVariableValues(jt_state_);
-  original_jt_state_ = jt_state_;
+  Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
 
   // Convert from cartesian commands to joint commands
-  jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
-  svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  matrix_s_ = svd_.singularValues().asDiagonal();
-  pseudo_inverse_ = svd_.matrixV() * matrix_s_.inverse() * svd_.matrixU().transpose();
-  delta_theta_ = pseudo_inverse_ * delta_x;
+  Eigen::MatrixXd jacobian = kinematic_state_->getJacobian(joint_model_group_);
 
-  enforceJointVelocityLimits(delta_theta_);
+  // May allow some dimensions to drift, based on shared_variables.drift_dimensions
+  // i.e. take advantage of task redundancy.
+  // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
+  // Work backwards through the 6-vector so indices don't get out of order
+  for (auto dimension = jacobian.rows(); dimension >= 0; --dimension)
+  {
+    if (shared_variables.drift_dimensions[dimension] && jacobian.rows() > 1)
+    {
+      removeDimension(jacobian, delta_x, dimension);
+    }
+  }
 
-  if (!addJointIncrements(jt_state_, delta_theta_))
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd =
+      Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::MatrixXd matrix_s = svd.singularValues().asDiagonal();
+  Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse() * svd.matrixU().transpose();
+
+  delta_theta_ = pseudo_inverse * delta_x;
+
+  enforceSRDFAccelVelLimits(delta_theta_);
+
+  if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 
-  // Include a velocity estimate for velocity-controlled robots
-  Eigen::VectorXd joint_vel(delta_theta_ / parameters_.publish_period);
-
-  lowPassFilterVelocities(joint_vel);
-  lowPassFilterPositions();
-
-  outgoing_command_ = composeOutgoingMessage(jt_state_);
-
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, mutex, outgoing_command_, delta_theta_,
-                       decelerateForSingularity(delta_x, svd_));
-
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!applyVelocityScaling(shared_variables, delta_theta_,
+                            velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse)))
   {
-    suddenHalt(outgoing_command_);
-    publishWarning(true);
-  }
-  else
-    publishWarning(false);
-
-  // If using Gazebo simulator, insert redundant points
-  if (parameters_.use_gazebo)
-  {
-    insertRedundantPointsIntoTrajectory(outgoing_command_, gazebo_redundant_message_count_);
+    suddenHalt(delta_theta_);
   }
 
-  return true;
+  prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
+
+  publishStatus();
+  // Cache the status so it can be retrieved asynchronously
+  updateCachedStatus(shared_variables);
+
+  return convertDeltasToOutgoingCmd();
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*shared_variables*/)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
   {
-    if (std::isnan(velocity) || (fabs(velocity) > 1))
+    if (std::isnan(velocity))
     {
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
       return false;
@@ -347,34 +377,43 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& /*
   }
 
   // Apply user-defined scaling
-  const Eigen::VectorXd delta = scaleJointCommand(cmd);
+  delta_theta_ = scaleJointCommand(cmd);
 
-  kinematic_state_->setVariableValues(jt_state_);
-  original_jt_state_ = jt_state_;
+  enforceSRDFAccelVelLimits(delta_theta_);
 
-  if (!addJointIncrements(jt_state_, delta))
+  kinematic_state_->setVariableValues(internal_joint_state_);
+
+  prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
+
+  publishStatus();
+  // Cache the status so it can be retrieved asynchronously
+  updateCachedStatus(shared_variables);
+
+  return convertDeltasToOutgoingCmd();
+}
+
+void JogCalcs::updateCachedStatus(JogArmShared& shared_variables)
+{
+  shared_variables.status = status_;
+  status_ = NO_WARNING;
+}
+
+bool JogCalcs::convertDeltasToOutgoingCmd()
+{
+  if (!addJointIncrements(internal_joint_state_, delta_theta_))
     return false;
 
-  // Include a velocity estimate for velocity-controlled robots
-  Eigen::VectorXd joint_vel(delta / parameters_.publish_period);
+  lowPassFilterPositions(internal_joint_state_);
 
-  lowPassFilterVelocities(joint_vel);
-  lowPassFilterPositions();
+  // Calculate joint velocities here so that positions are filtered and SRDF bounds still get checked
+  calculateJointVelocities(internal_joint_state_, delta_theta_);
 
-  // update joint state with new values
-  kinematic_state_->setVariableValues(jt_state_);
+  outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
 
-  outgoing_command_ = composeOutgoingMessage(jt_state_);
-
-  // check if new joint state is valid
-  if (!checkIfJointsWithinURDFBounds(outgoing_command_))
+  if (!enforceSRDFPositionLimits(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
-    publishWarning(true);
-  }
-  else
-  {
-    publishWarning(false);
+    status_ = JOINT_BOUND;
   }
 
   // done with calculations
@@ -400,43 +439,28 @@ void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraject
   }
 }
 
-void JogCalcs::lowPassFilterPositions()
+void JogCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
 {
-  for (size_t i = 0; i < num_joints_; ++i)
+  for (size_t i = 0; i < position_filters_.size(); ++i)
   {
-    jt_state_.position[i] = position_filters_[i].filter(jt_state_.position[i]);
-
-    // Check for nan's
-    if (std::isnan(jt_state_.position[i]))
-    {
-      jt_state_.position[i] = original_jt_state_.position[i];
-      jt_state_.velocity[i] = 0.;
-    }
+    joint_state.position[i] = position_filters_[i].filter(joint_state.position[i]);
   }
 }
 
-void JogCalcs::lowPassFilterVelocities(const Eigen::VectorXd& joint_vel)
+void JogCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta)
 {
-  for (size_t i = 0; i < num_joints_; ++i)
+  for (int i = 0; i < delta_theta.size(); ++i)
   {
-    jt_state_.velocity[i] = velocity_filters_[i].filter(joint_vel[static_cast<long>(i)]);
-
-    // Check for nan's
-    if (std::isnan(jt_state_.velocity[static_cast<long>(i)]))
-    {
-      jt_state_.position[i] = original_jt_state_.position[i];
-      jt_state_.velocity[i] = 0.;
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in velocity filter");
-    }
+    joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
   }
 }
 
-trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::JointState& joint_state) const
+trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::JointState& joint_state) const
 {
-  trajectory_msgs::JointTrajectory new_jt_traj;
-  new_jt_traj.header.frame_id = parameters_.planning_frame;
-  new_jt_traj.header.stamp = ros::Time::now();
-  new_jt_traj.joint_names = joint_state.name;
+  trajectory_msgs::JointTrajectory new_joint_traj;
+  new_joint_traj.header.frame_id = parameters_.planning_frame;
+  new_joint_traj.header.stamp = ros::Time::now();
+  new_joint_traj.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
@@ -452,49 +476,46 @@ trajectory_msgs::JointTrajectory JogCalcs::composeOutgoingMessage(sensor_msgs::J
     std::vector<double> acceleration(num_joints_);
     point.accelerations = acceleration;
   }
-  new_jt_traj.points.push_back(point);
+  new_joint_traj.points.push_back(point);
 
-  return new_jt_traj;
+  return new_joint_traj;
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
 // Scale for collisions is read from a shared variable.
-// Key equation: new_velocity = collision_scale*singularity_scale*previous_velocity
-bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, pthread_mutex_t& mutex,
-                                    trajectory_msgs::JointTrajectory& new_jt_traj, const Eigen::VectorXd& delta_theta,
+bool JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta,
                                     double singularity_scale)
 {
-  pthread_mutex_lock(&mutex);
+  shared_variables.lock();
   double collision_scale = shared_variables.collision_velocity_scale;
-  pthread_mutex_unlock(&mutex);
+  shared_variables.unlock();
 
-  for (size_t i = 0; i < num_joints_; ++i)
+  if (collision_scale < 1)
   {
-    if (parameters_.publish_joint_positions)
-    {
-      // If close to a singularity or joint limit, undo any change to the joint angles
-      new_jt_traj.points[0].positions[i] =
-          new_jt_traj.points[0].positions[i] -
-          (1. - singularity_scale * collision_scale) * delta_theta[static_cast<long>(i)];
-    }
-    if (parameters_.publish_joint_velocities)
-      new_jt_traj.points[0].velocities[i] *= singularity_scale * collision_scale;
+    status_ = COLLISION;
+    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
   }
 
-  return true;
+  delta_theta = collision_scale * singularity_scale * delta_theta;
+
+  // Heuristic: flag that we are stuck if velocity scaling is < X%
+  return collision_scale * singularity_scale >= 0.1;
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                          const Eigen::JacobiSVD<Eigen::MatrixXd>& svd)
+double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
+                                                     const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+                                                     const Eigen::MatrixXd& jacobian,
+                                                     const Eigen::MatrixXd& pseudo_inverse)
 {
   double velocity_scale = 1;
+  std::size_t num_dimensions = jacobian.rows();
 
   // Find the direction away from nearest singularity.
   // The last column of U from the SVD of the Jacobian points directly toward or away from the singularity.
   // The sign can flip at any time, so we have to do some extra checking.
   // Look ahead to see if the Jacobian's condition will decrease.
-  Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(5);
+  Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(num_dimensions - 1);
 
   double ini_condition = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
 
@@ -502,29 +523,23 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
   // "Resolving the Sign Ambiguity in the Singular Value Decomposition".
   // Look ahead to see if the Jacobian's condition will decrease in this
   // direction. Start with a scaled version of the singular vector
-  Eigen::VectorXd delta_x(6);
+  Eigen::VectorXd delta_x(num_dimensions);
   double scale = 100;
   delta_x = vector_toward_singularity / scale;
 
   // Calculate a small change in joints
   Eigen::VectorXd new_theta;
   kinematic_state_->copyJointGroupPositions(joint_model_group_, new_theta);
-  new_theta += pseudo_inverse_ * delta_x;
+  new_theta += pseudo_inverse * delta_x;
   kinematic_state_->setJointGroupPositions(joint_model_group_, new_theta);
 
-  jacobian_ = kinematic_state_->getJacobian(joint_model_group_);
-  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_);
+  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(jacobian);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
   // If new_condition < ini_condition, the singular vector does point towards a
   // singularity. Otherwise, flip its direction.
   if (ini_condition >= new_condition)
   {
-    vector_toward_singularity[0] *= -1;
-    vector_toward_singularity[1] *= -1;
-    vector_toward_singularity[2] *= -1;
-    vector_toward_singularity[3] *= -1;
-    vector_toward_singularity[4] *= -1;
-    vector_toward_singularity[5] *= -1;
+    vector_toward_singularity *= -1;
   }
 
   // If this dot product is positive, we're moving toward singularity ==> decelerate
@@ -539,61 +554,100 @@ double JogCalcs::decelerateForSingularity(const Eigen::VectorXd& commanded_veloc
       velocity_scale = 1. -
                        (ini_condition - parameters_.lower_singularity_threshold) /
                            (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
+      status_ = DECELERATE_FOR_SINGULARITY;
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
 
     // Very close to singularity, so halt.
     else if (ini_condition > parameters_.hard_stop_singularity_threshold)
     {
       velocity_scale = 0;
-      ROS_WARN_THROTTLE_NAMED(2, LOGNAME, "Close to a singularity. Halting.");
+      status_ = HALT_FOR_SINGULARITY;
+      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
   }
 
   return velocity_scale;
 }
 
-void JogCalcs::enforceJointVelocityLimits(Eigen::VectorXd& calculated_joint_change)
+void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
 {
-  double maximum_joint_change = calculated_joint_change.cwiseAbs().maxCoeff();
-  if (maximum_joint_change > parameters_.joint_scale * parameters_.publish_period)
+  Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
+
+  std::size_t joint_delta_index = 0;
+  for (auto joint : joint_model_group_->getJointModels())
   {
-    // Scale the entire joint velocity vector so that each joint velocity is below min, and the output movement is
-    // scaled uniformly to match expected motion
-    calculated_joint_change =
-        calculated_joint_change * parameters_.joint_scale * parameters_.publish_period / maximum_joint_change;
+    // Some joints do not have bounds defined
+    if (kinematic_state_->getJointModel(joint->getName())->hasVariable(joint->getName()))
+    {
+      auto bounds = kinematic_state_->getJointModel(joint->getName())->getVariableBounds(joint->getName());
+
+      // Apply acceleration bounds
+      // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
+      // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
+      Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
+      if ((bounds.min_acceleration_ != 0) && (acceleration(joint_delta_index) < bounds.min_acceleration_))
+      {
+        double relative_change =
+            ((bounds.min_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
+             parameters_.publish_period) /
+            delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+          delta_theta = relative_change * delta_theta;
+      }
+      else if ((bounds.max_acceleration_ != 0) && (acceleration(joint_delta_index) > bounds.max_acceleration_))
+      {
+        double relative_change =
+            ((bounds.max_acceleration_ * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
+             parameters_.publish_period) /
+            delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+          delta_theta = relative_change * delta_theta;
+      }
+
+      velocity = delta_theta / parameters_.publish_period;
+      // Apply velocity bounds
+      // delta_theta = joint_velocity * delta_t
+      if ((bounds.min_velocity_ != 0) && (velocity(joint_delta_index) < bounds.min_velocity_))
+      {
+        double relative_change = (bounds.min_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+        {
+          delta_theta = relative_change * delta_theta;
+          velocity = relative_change * velocity;
+        }
+      }
+      else if ((bounds.max_velocity_ != 0) && (velocity(joint_delta_index) > bounds.max_velocity_))
+      {
+        double relative_change = (bounds.max_velocity_ * parameters_.publish_period) / delta_theta(joint_delta_index);
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+        {
+          delta_theta = relative_change * delta_theta;
+          velocity = relative_change * velocity;
+        }
+      }
+      ++joint_delta_index;
+    }
   }
 }
 
-bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& new_jt_traj)
+bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj)
 {
   bool halting = false;
 
   for (auto joint : joint_model_group_->getJointModels())
   {
-    if (!kinematic_state_->satisfiesVelocityBounds(joint))
-    {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName() << " "
-                                                                           << " close to a "
-                                                                              " velocity limit. Enforcing limit.");
-
-      kinematic_state_->enforceVelocityBounds(joint);
-      for (std::size_t c = 0; c < new_jt_traj.joint_names.size(); ++c)
-      {
-        if (new_jt_traj.joint_names[c] == joint->getName())
-        {
-          new_jt_traj.points[0].velocities[c] = kinematic_state_->getJointVelocities(joint)[0];
-          break;
-        }
-      }
-    }
-
     // Halt if we're past a joint margin and joint velocity is moving even farther past
     double joint_angle = 0;
-    for (std::size_t c = 0; c < original_jt_state_.name.size(); ++c)
+    for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
     {
-      if (original_jt_state_.name[c] == joint->getName())
+      if (original_joint_state_.name[c] == joint->getName())
       {
-        joint_angle = original_jt_state_.position.at(c);
+        joint_angle = original_joint_state_.position.at(c);
         break;
       }
     }
@@ -617,63 +671,69 @@ bool JogCalcs::checkIfJointsWithinURDFBounds(trajectory_msgs::JointTrajectory& n
       }
     }
   }
-
   return !halting;
 }
 
-void JogCalcs::publishWarning(bool active) const
+void JogCalcs::publishStatus() const
 {
-  std_msgs::Bool status;
-  status.data = static_cast<std_msgs::Bool::_data_type>(active);
-  warning_pub_.publish(status);
+  std_msgs::Int8 status_msg;
+  status_msg.data = status_;
+  status_pub_.publish(status_msg);
 }
 
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
-void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& jt_traj)
+void JogCalcs::suddenHalt(Eigen::ArrayXd& delta_theta)
+{
+  delta_theta = Eigen::ArrayXd::Zero(delta_theta.rows());
+}
+
+// Suddenly halt for a joint limit or other critical issue.
+// Is handled differently for position vs. velocity control.
+void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 {
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      jt_traj.points[0].positions[i] = original_jt_state_.position[i];
+      joint_traj.points[0].positions[i] = original_joint_state_.position[i];
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      jt_traj.points[0].velocities[i] = 0;
+      joint_traj.points[0].velocities[i] = 0;
   }
 }
 
-// Reset the data stored in filters so the trajectory won't jump when jogging is resumed.
-void JogCalcs::resetVelocityFilters()
-{
-  for (std::size_t i = 0; i < num_joints_; ++i)
-    velocity_filters_[i].reset(0);  // Zero velocity
-}
-
 // Parse the incoming joint msg for the joints of our MoveGroup
-bool JogCalcs::updateJoints()
+bool JogCalcs::updateJoints(JogArmShared& shared_variables)
 {
+  shared_variables.lock();
+  incoming_joint_state_ = shared_variables.joints;
+  shared_variables.unlock();
+
   // Check that the msg contains enough joints
-  if (incoming_jts_.name.size() < num_joints_)
+  if (incoming_joint_state_.name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_jts_.name.size(); ++m)
+  for (std::size_t m = 0; m < incoming_joint_state_.name.size(); ++m)
   {
     std::size_t c;
     try
     {
-      c = jt_state_name_map_.at(incoming_jts_.name[m]);
+      c = joint_state_name_map_.at(incoming_joint_state_.name[m]);
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
 
-    jt_state_.position[c] = incoming_jts_.position[m];
+    internal_joint_state_.position[c] = incoming_joint_state_.position[m];
   }
+
+  // Cache the original joints in case they need to be reset
+  original_joint_state_ = internal_joint_state_;
 
   return true;
 }
@@ -723,11 +783,11 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
   {
     try
     {
-      c = jt_state_name_map_.at(command.joint_names[m]);
+      c = joint_state_name_map_.at(command.joint_names[m]);
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Command joint name unknown.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
@@ -761,5 +821,21 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   }
 
   return true;
+}
+
+void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
+{
+  unsigned int num_rows = jacobian.rows() - 1;
+  unsigned int num_cols = jacobian.cols();
+
+  if (row_to_remove < num_rows)
+  {
+    jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
+        jacobian.block(row_to_remove + 1, 0, num_rows - row_to_remove, num_cols);
+    delta_x.segment(row_to_remove, num_rows - row_to_remove) =
+        delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
+  }
+  jacobian.conservativeResize(num_rows, num_cols);
+  delta_x.conservativeResize(num_rows);
 }
 }  // namespace moveit_jog_arm

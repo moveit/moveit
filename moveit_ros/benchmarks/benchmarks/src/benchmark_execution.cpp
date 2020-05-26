@@ -883,8 +883,8 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData& rundata,
 
 namespace
 {
-bool isIKSolutionCollisionFree(const planning_scene::PlanningScene* scene, robot_state::RobotState* state,
-                               const robot_model::JointModelGroup* group, const double* ik_solution, bool* reachable)
+bool isIKSolutionCollisionFree(const planning_scene::PlanningScene* scene, moveit::core::RobotState* state,
+                               const moveit::core::JointModelGroup* group, const double* ik_solution, bool* reachable)
 {
   state->setJointGroupPositions(group, ik_solution);
   state->update();
@@ -1270,8 +1270,8 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     ik_pose.orientation.z = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.z;
     ik_pose.orientation.w = req.motion_plan_request.goal_constraints[0].orientation_constraints[0].orientation.w;
 
-    robot_state::RobotState robot_state(planning_scene_->getCurrentState());
-    robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
+    moveit::core::RobotState robot_state(planning_scene_->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
 
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
@@ -1358,8 +1358,8 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       ik_pose.orientation.w =
           req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation.w;
 
-      robot_state::RobotState robot_state(planning_scene_->getCurrentState());
-      robot_state::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
+      moveit::core::RobotState robot_state(planning_scene_->getCurrentState());
+      moveit::core::robotStateMsgToRobotState(req.motion_plan_request.start_state, robot_state);
 
       // Compute IK
       ROS_INFO_STREAM("Processing trajectory waypoint "

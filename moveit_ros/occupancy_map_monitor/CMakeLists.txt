@@ -3,6 +3,7 @@ project(moveit_ros_occupancy_map_monitor)
 set(MOVEIT_LIB_NAME ${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -18,7 +19,9 @@ endif(APPLE)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_msgs
+  geometric_shapes
   pluginlib
+  tf2_ros
 )
 
 find_package(Eigen3 REQUIRED)
@@ -32,6 +35,8 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     moveit_msgs
+    geometric_shapes
+    tf2_ros
   DEPENDS
     EIGEN3
     OCTOMAP

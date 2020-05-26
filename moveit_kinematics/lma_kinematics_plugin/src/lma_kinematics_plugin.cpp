@@ -110,7 +110,7 @@ bool LMAKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     return false;
   }
 
-  for (const robot_model::JointModel* jm : joint_model_group_->getJointModels())
+  for (const moveit::core::JointModel* jm : joint_model_group_->getJointModels())
   {
     if (jm->getType() == moveit::core::JointModel::REVOLUTE || jm->getType() == moveit::core::JointModel::PRISMATIC)
     {
@@ -133,7 +133,7 @@ bool LMAKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
     ROS_INFO_NAMED("lma", "Using position only ik");
 
   // Setup the joint state groups that we need
-  state_.reset(new robot_state::RobotState(robot_model_));
+  state_.reset(new moveit::core::RobotState(robot_model_));
 
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 

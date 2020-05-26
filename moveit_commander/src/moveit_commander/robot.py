@@ -261,7 +261,7 @@ class RobotCommander(object):
         @param name str: Name of movegroup
         @rtype: moveit_commander.MoveGroupCommander
         """
-        if not self._groups.has_key(name):
+        if not name in self._groups:
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
             self._groups[name] = MoveGroupCommander(name, self._robot_description, self._ns)
@@ -279,7 +279,7 @@ class RobotCommander(object):
         Get the name of the smallest group (fewest joints) that includes
         the joint name specified as argument.
         """
-        if not self._joint_owner_groups.has_key(joint_name):
+        if not joint_name in self._joint_owner_groups:
             group = None
             for g in self.get_group_names():
                 if joint_name in self.get_joint_names(g):

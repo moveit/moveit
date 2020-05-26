@@ -116,9 +116,9 @@ public:
    */
   bool configure(const std::vector<kinematic_constraints::JointConstraint>& jc);
 
-  bool sample(robot_state::RobotState& state, const robot_state::RobotState& ks, unsigned int max_attempts) override;
+  bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& ks, unsigned int max_attempts) override;
 
-  bool project(robot_state::RobotState& state, unsigned int max_attempts) override;
+  bool project(moveit::core::RobotState& state, unsigned int max_attempts) override;
 
   /**
    * \brief Gets the number of constrained joints - joints that have an
@@ -195,7 +195,7 @@ protected:
   std::vector<JointInfo> bounds_; /**< \brief The bounds for any joint with bounds that are more restrictive than the
                                      joint limits */
 
-  std::vector<const robot_model::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint
+  std::vector<const moveit::core::JointModel*> unbounded_; /**< \brief The joints that are not bounded except by joint
                                                              limits */
   std::vector<unsigned int> uindex_; /**< \brief The index of the unbounded joints in the joint state vector */
   std::vector<double> values_;       /**< \brief Values associated with this group to avoid continuously reallocating */
@@ -445,10 +445,10 @@ public:
    *
    * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false.
    */
-  bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+  bool sample(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
               unsigned int max_attempts) override;
 
-  bool project(robot_state::RobotState& state, unsigned int max_attempts) override;
+  bool project(moveit::core::RobotState& state, unsigned int max_attempts) override;
   /**
    * \brief Returns a pose that falls within the constraint regions.
    *
@@ -471,7 +471,7 @@ public:
    *
    * @return True if a sample was successfully produced, otherwise false
    */
-  bool samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat, const robot_state::RobotState& ks,
+  bool samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat, const moveit::core::RobotState& ks,
                   unsigned int max_attempts);
 
   /**
@@ -508,10 +508,10 @@ protected:
    */
   bool callIK(const geometry_msgs::Pose& ik_query,
               const kinematics::KinematicsBase::IKCallbackFn& adapted_ik_validity_callback, double timeout,
-              robot_state::RobotState& state, bool use_as_seed);
-  bool sampleHelper(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+              moveit::core::RobotState& state, bool use_as_seed);
+  bool sampleHelper(moveit::core::RobotState& state, const moveit::core::RobotState& reference_state,
                     unsigned int max_attempts, bool project);
-  bool validate(robot_state::RobotState& state) const;
+  bool validate(moveit::core::RobotState& state) const;
 
   random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
   IKSamplingPose sampling_pose_;                                  /**< \brief Holder for the pose used for sampling */

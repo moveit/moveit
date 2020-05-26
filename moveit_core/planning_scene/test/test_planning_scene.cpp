@@ -100,32 +100,57 @@ TEST(PlanningScene, LoadRestoreDiff)
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
   collision_detection::World& world = *ps->getWorldNonConst();
+
+  /* add one object to ps's world */
   Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
+  /* ps can be written to and set from message */
   moveit_msgs::PlanningScene ps_msg;
   ps_msg.robot_state.is_diff = true;
   EXPECT_TRUE(moveit::core::isEmpty(ps_msg));
   ps->getPlanningSceneMsg(ps_msg);
   ps->setPlanningSceneMsg(ps_msg);
-  EXPECT_FALSE(moveit::core::isEmpty(ps_msg));
+  EXPECT_EQ(ps_msg.world.collision_objects.size(), 1u);
+  EXPECT_EQ(ps_msg.world.collision_objects[0].id, "sphere");
   EXPECT_TRUE(world.hasObject("sphere"));
 
+  /* test diff scene on top of ps */
   planning_scene::PlanningScenePtr next = ps->diff();
+  /* world is inherited from ps */
   EXPECT_TRUE(next->getWorld()->hasObject("sphere"));
-  next->getWorldNonConst()->addToObject("sphere2", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
+
+  /* object in overlay is only added in overlay */
+  next->getWorldNonConst()->addToObject("sphere_in_next_only", shapes::ShapeConstPtr(new shapes::Sphere(0.5)), id);
   EXPECT_EQ(next->getWorld()->size(), 2u);
   EXPECT_EQ(ps->getWorld()->size(), 1u);
+
+  /* the worlds used for collision detection contain one and two objects, respectively */
+  EXPECT_EQ(ps->getCollisionEnv()->getWorld()->size(), 1u);
+  EXPECT_EQ(ps->getCollisionEnvUnpadded()->getWorld()->size(), 1u);
+
+  EXPECT_EQ(next->getCollisionEnv()->getWorld()->size(), 2u);
+  EXPECT_EQ(next->getCollisionEnvUnpadded()->getWorld()->size(), 2u);
+
+  /* maintained diff contains only overlay object */
   next->getPlanningSceneDiffMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 1u);
+
+  /* copy ps to next and apply diff */
   next->decoupleParent();
   moveit_msgs::PlanningScene ps_msg2;
+
+  /* diff is empty now */
   next->getPlanningSceneDiffMsg(ps_msg2);
   EXPECT_EQ(ps_msg2.world.collision_objects.size(), 0u);
+
+  /* next's world contains both objects */
   next->getPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps_msg.world.collision_objects.size(), 2u);
   ps->setPlanningSceneMsg(ps_msg);
   EXPECT_EQ(ps->getWorld()->size(), 2u);
+  EXPECT_EQ(ps->getCollisionEnv()->getWorld()->size(), 2u);
+  EXPECT_EQ(ps->getCollisionEnvUnpadded()->getWorld()->size(), 2u);
 }
 
 TEST(PlanningScene, MakeAttachedDiff)
@@ -136,21 +161,27 @@ TEST(PlanningScene, MakeAttachedDiff)
 
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
+  /* add a single object to ps's world */
   collision_detection::World& world = *ps->getWorldNonConst();
   Eigen::Isometry3d id = Eigen::Isometry3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
+  /* attach object in diff */
   planning_scene::PlanningScenePtr attached_object_diff_scene = ps->diff();
 
   moveit_msgs::AttachedCollisionObject att_obj;
   att_obj.link_name = "r_wrist_roll_link";
   att_obj.object.operation = moveit_msgs::CollisionObject::ADD;
   att_obj.object.id = "sphere";
+  attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
+
+  /* object is not in world anymore */
+  EXPECT_EQ(attached_object_diff_scene->getWorld()->size(), 0u);
+  /* it became part of the robot state though */
+  EXPECT_TRUE(attached_object_diff_scene->getCurrentState().hasAttachedBody("sphere"));
 
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
-
-  attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
   attached_object_diff_scene->checkCollision(req, res);
   ps->checkCollision(req, res);
 }
@@ -162,7 +193,7 @@ TEST(PlanningScene, isStateValid)
   loadRobotModels(urdf_model, srdf_model);
 
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
-  robot_state::RobotState current_state = ps->getCurrentState();
+  moveit::core::RobotState current_state = ps->getCurrentState();
   if (ps->isStateColliding(current_state, "left_arm"))
   {
     EXPECT_FALSE(ps->isStateValid(current_state, "left_arm"));

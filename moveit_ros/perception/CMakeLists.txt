@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_ros_perception)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(WITH_OPENGL "Build the parts that depend on OpenGL" ON)

@@ -102,7 +102,7 @@ public:
    *  @param opt Parameters needed for defining the cache workspace
    *  @return False if any error occured during initialization
    */
-  bool initialize(kinematics::KinematicsBaseConstPtr& solver, const robot_model::RobotModelConstPtr& kinematic_model,
+  bool initialize(kinematics::KinematicsBaseConstPtr& solver, const moveit::core::RobotModelConstPtr& kinematic_model,
                   const KinematicsCache::Options& opt);
 
   /** @brief Return the instance of the kinematics solver */
@@ -112,7 +112,7 @@ public:
   }
 
   /** @brief Return the instance of the kinematics model */
-  const robot_model::RobotModelConstPtr& getModelInstance() const
+  const moveit::core::RobotModelConstPtr& getModelInstance() const
   {
     return kinematic_model_;
   }
@@ -168,11 +168,11 @@ private:
 
   kinematics::KinematicsBaseConstPtr kinematics_solver_; /** An instance of the kinematics solver */
 
-  robot_model::RobotModelConstPtr kinematic_model_; /** An instance of the kinematic model */
-  robot_state::RobotStatePtr kinematic_state_;      /** An instance of the kinematic state */
+  moveit::core::RobotModelConstPtr kinematic_model_; /** An instance of the kinematic model */
+  moveit::core::RobotStatePtr kinematic_state_;      /** An instance of the kinematic state */
 
-  const robot_model::JointModelGroup* joint_model_group_;           /** Joint model group associated with this cache */
-  std::shared_ptr<robot_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
+  const moveit::core::JointModelGroup* joint_model_group_;           /** Joint model group associated with this cache */
+  std::shared_ptr<moveit::core::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
 
   //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
 

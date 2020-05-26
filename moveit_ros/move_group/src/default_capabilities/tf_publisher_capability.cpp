@@ -98,10 +98,10 @@ void TfPublisher::publishPlanningSceneFrames()
         publishSubframes(broadcaster, subframes, object_frame, stamp);
       }
 
-      const robot_state::RobotState& rs = locked_planning_scene->getCurrentState();
-      std::vector<const robot_state::AttachedBody*> attached_collision_objects;
+      const moveit::core::RobotState& rs = locked_planning_scene->getCurrentState();
+      std::vector<const moveit::core::AttachedBody*> attached_collision_objects;
       rs.getAttachedBodies(attached_collision_objects);
-      for (const robot_state::AttachedBody* attached_body : attached_collision_objects)
+      for (const moveit::core::AttachedBody* attached_body : attached_collision_objects)
       {
         std::string object_frame = prefix_ + attached_body->getName();
         transform = tf2::eigenToTransform(attached_body->getFixedTransforms()[0]);

@@ -256,7 +256,7 @@ TEST(LockedRobotState, URDF_sanity)
 class Super1 : public robot_interaction::LockedRobotState
 {
 public:
-  Super1(const robot_model::RobotModelPtr& model) : LockedRobotState(model), cnt_(0)
+  Super1(const moveit::core::RobotModelPtr& model) : LockedRobotState(model), cnt_(0)
   {
   }
 
@@ -268,7 +268,7 @@ public:
   int cnt_;
 };
 
-static void modify1(robot_state::RobotState* state)
+static void modify1(moveit::core::RobotState* state)
 {
   state->setVariablePosition(JOINT_A, 0.00006);
 }
@@ -281,7 +281,7 @@ TEST(LockedRobotState, robotStateChanged)
 
   EXPECT_EQ(ls1.cnt_, 0);
 
-  robot_state::RobotState cp1(*ls1.getState());
+  moveit::core::RobotState cp1(*ls1.getState());
   cp1.setVariablePosition(JOINT_A, 0.00001);
   cp1.setVariablePosition(JOINT_C, 0.00002);
   cp1.setVariablePosition(JOINT_F, 0.00003);
@@ -319,7 +319,7 @@ public:
 
 private:
   // helper function for modifyThreadFunc
-  void modifyFunc(robot_state::RobotState* state, double val);
+  void modifyFunc(moveit::core::RobotState* state, double val);
 
   // Checks state for validity and self-consistancy.
   void checkState(robot_interaction::LockedRobotState& locked_state);
@@ -335,9 +335,9 @@ private:
 // Check the state.  It should always be valid.
 void MyInfo::checkState(robot_interaction::LockedRobotState& locked_state)
 {
-  robot_state::RobotStateConstPtr s = locked_state.getState();
+  moveit::core::RobotStateConstPtr s = locked_state.getState();
 
-  robot_state::RobotState cp1(*s);
+  moveit::core::RobotState cp1(*s);
 
   // take some time
   cnt_lock_.lock();
@@ -350,7 +350,7 @@ void MyInfo::checkState(robot_interaction::LockedRobotState& locked_state)
   // check mim_f == joint_f
   EXPECT_EQ(s->getVariablePositions()[MIM_F], s->getVariablePositions()[JOINT_F] * 1.5 + 0.1);
 
-  robot_state::RobotState cp2(*s);
+  moveit::core::RobotState cp2(*s);
 
   EXPECT_NE(cp1.getVariablePositions(), cp2.getVariablePositions());
   EXPECT_NE(cp1.getVariablePositions(), s->getVariablePositions());
@@ -394,7 +394,7 @@ void MyInfo::setThreadFunc(robot_interaction::LockedRobotState* locked_state, in
     for (int loops = 0; loops < 100; ++loops)
     {
       val += 0.0001;
-      robot_state::RobotState cp1(*locked_state->getState());
+      moveit::core::RobotState cp1(*locked_state->getState());
 
       cp1.setVariablePosition(JOINT_A, val + 0.00001);
       cp1.setVariablePosition(JOINT_C, val + 0.00002);
@@ -415,7 +415,7 @@ void MyInfo::setThreadFunc(robot_interaction::LockedRobotState* locked_state, in
 }
 
 // modify the state in place.  Used by MyInfo::modifyThreadFunc()
-void MyInfo::modifyFunc(robot_state::RobotState* state, double val)
+void MyInfo::modifyFunc(moveit::core::RobotState* state, double val)
 {
   state->setVariablePosition(JOINT_A, val + 0.00001);
   state->setVariablePosition(JOINT_C, val + 0.00002);

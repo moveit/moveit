@@ -76,7 +76,7 @@ void TrajectoryDisplay::loadRobotModel()
 
   const srdf::ModelSharedPtr& srdf =
       rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-  robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+  robot_model_.reset(new moveit::core::RobotModel(rdf_loader_->getURDF(), srdf));
 
   // Send to child class
   trajectory_visual_->onRobotModelLoaded(robot_model_);

@@ -39,13 +39,13 @@
 
 const std::string collision_detection::CollisionDetectorAllocatorAllValid::NAME("ALL_VALID");
 
-collision_detection::CollisionEnvAllValid::CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model,
+collision_detection::CollisionEnvAllValid::CollisionEnvAllValid(const moveit::core::RobotModelConstPtr& robot_model,
                                                                 double padding, double scale)
   : CollisionEnv(robot_model, padding, scale)
 {
 }
 
-collision_detection::CollisionEnvAllValid::CollisionEnvAllValid(const robot_model::RobotModelConstPtr& robot_model,
+collision_detection::CollisionEnvAllValid::CollisionEnvAllValid(const moveit::core::RobotModelConstPtr& robot_model,
                                                                 const WorldPtr& world, double padding, double scale)
   : CollisionEnv(robot_model, world, padding, scale)
 {
@@ -57,7 +57,7 @@ collision_detection::CollisionEnvAllValid::CollisionEnvAllValid(const CollisionE
 }
 
 void collision_detection::CollisionEnvAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                    const robot_state::RobotState& state) const
+                                                                    const moveit::core::RobotState& state) const
 {
   res.collision = false;
   if (req.verbose)
@@ -65,7 +65,7 @@ void collision_detection::CollisionEnvAllValid::checkRobotCollision(const Collis
 }
 
 void collision_detection::CollisionEnvAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                    const robot_state::RobotState& state,
+                                                                    const moveit::core::RobotState& state,
                                                                     const AllowedCollisionMatrix& acm) const
 {
   res.collision = false;
@@ -74,8 +74,8 @@ void collision_detection::CollisionEnvAllValid::checkRobotCollision(const Collis
 }
 
 void collision_detection::CollisionEnvAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                    const robot_state::RobotState& state1,
-                                                                    const robot_state::RobotState& state2) const
+                                                                    const moveit::core::RobotState& state1,
+                                                                    const moveit::core::RobotState& state2) const
 {
   res.collision = false;
   if (req.verbose)
@@ -83,8 +83,8 @@ void collision_detection::CollisionEnvAllValid::checkRobotCollision(const Collis
 }
 
 void collision_detection::CollisionEnvAllValid::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                    const robot_state::RobotState& state1,
-                                                                    const robot_state::RobotState& state2,
+                                                                    const moveit::core::RobotState& state1,
+                                                                    const moveit::core::RobotState& state2,
                                                                     const AllowedCollisionMatrix& acm) const
 {
   res.collision = false;
@@ -99,19 +99,19 @@ void collision_detection::CollisionEnvAllValid::distanceRobot(const collision_de
   res.collision = false;
 }
 
-double collision_detection::CollisionEnvAllValid::distanceRobot(const robot_state::RobotState& state) const
+double collision_detection::CollisionEnvAllValid::distanceRobot(const moveit::core::RobotState& state) const
 {
   return 0.0;
 }
 
-double collision_detection::CollisionEnvAllValid::distanceRobot(const robot_state::RobotState& state,
+double collision_detection::CollisionEnvAllValid::distanceRobot(const moveit::core::RobotState& state,
                                                                 const AllowedCollisionMatrix& acm) const
 {
   return 0.0;
 }
 
 void collision_detection::CollisionEnvAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                   const robot_state::RobotState& state) const
+                                                                   const moveit::core::RobotState& state) const
 {
   res.collision = false;
   if (req.verbose)
@@ -119,7 +119,7 @@ void collision_detection::CollisionEnvAllValid::checkSelfCollision(const Collisi
 }
 
 void collision_detection::CollisionEnvAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                   const robot_state::RobotState& state,
+                                                                   const moveit::core::RobotState& state,
                                                                    const AllowedCollisionMatrix& acm) const
 {
   res.collision = false;

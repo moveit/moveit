@@ -58,7 +58,8 @@ namespace trajopt_interface
 {
 TrajOptInterface::TrajOptInterface(const ros::NodeHandle& nh) : nh_(nh), name_("TrajOptInterface")
 {
-  trajopt_problem_ = trajopt::TrajOptProblemPtr(new trajopt::TrajOptProblem);
+  ROS_INFO_STREAM_NAMED(name_, "TrajOptInterface is constructed");
+  trajopt_problem_ = trajopt::TrajOptProblemPtr();
   setDefaultTrajOPtParams();
 
   // TODO: callbacks should be defined by the user
@@ -69,7 +70,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
                              const planning_interface::MotionPlanRequest& req,
                              moveit_msgs::MotionPlanDetailedResponse& res)
 {
-  ROS_INFO(" ======================================= From trajopt_interface, solve is called");
+  ROS_INFO_STREAM_NAMED(name_, "solve is called");
   setTrajOptParams(params_);
 
   if (!planning_scene)
@@ -79,16 +80,16 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
     return false;
   }
 
-  ROS_INFO(" ======================================= Extract current state information");
+  ROS_INFO_STREAM_NAMED(name_, "Extract current state information");
   ros::WallTime start_time = ros::WallTime::now();
-  robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
+  moveit::core::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
   bool robot_model_ok = static_cast<bool>(robot_model);
   if (!robot_model_ok)
     ROS_ERROR_STREAM_NAMED(name_, "robot model is not loaded properly");
 
   robot_state::RobotStatePtr current_state(new robot_state::RobotState(robot_model));
   *current_state = planning_scene->getCurrentState();
-  const robot_state::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
+  const moveit::core::JointModelGroup* joint_model_group = current_state->getJointModelGroup(req.group_name);
   if (joint_model_group == nullptr)
     ROS_ERROR_STREAM_NAMED(name_, "joint model group is empty");
 
@@ -335,7 +336,7 @@ bool TrajOptInterface::solve(const planning_scene::PlanningSceneConstPtr& planni
 
   ROS_INFO(" ======================================= check if final state is within goal tolerances");
   kinematic_constraints::JointConstraint joint_cnt(planning_scene->getRobotModel());
-  robot_state::RobotState last_state(*current_state);
+  moveit::core::RobotState last_state(*current_state);
   last_state.setJointGroupPositions(req.group_name, res.trajectory[0].joint_trajectory.points.back().positions);
 
   for (int jn = 0; jn < res.trajectory[0].joint_trajectory.points.back().positions.size(); ++jn)

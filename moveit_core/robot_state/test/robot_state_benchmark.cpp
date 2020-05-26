@@ -95,9 +95,9 @@ public:
 
 TEST_F(Timing, stateUpdate)
 {
-  robot_model::RobotModelPtr model = moveit::core::loadTestingRobotModel("pr2_description");
+  moveit::core::RobotModelPtr model = moveit::core::loadTestingRobotModel("pr2_description");
   ASSERT_TRUE(bool(model));
-  robot_state::RobotState state(model);
+  moveit::core::RobotState state(model);
   ScopedTimer t("RobotState updates: ");
   for (unsigned i = 0; i < 1e5; ++i)
   {

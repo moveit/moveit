@@ -41,6 +41,8 @@
 #include <moveit/robot_state/conversions.h>
 #include <object_recognition_msgs/ObjectRecognitionGoal.h>
 
+#include <tf2_eigen/tf2_eigen.h>
+
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
@@ -68,7 +70,7 @@ void MotionPlanningFrame::processDetectedObjects()
 {
   pick_object_name_.clear();
 
-  std::vector<std::string> objects, object_ids;
+  std::vector<std::string> object_ids;
   double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value() / 2.0;
   double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value() / 2.0;
   double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value() / 2.0;
@@ -80,13 +82,31 @@ void MotionPlanningFrame::processDetectedObjects()
   ros::Time start_time = ros::Time::now();
   while (object_ids.empty() && ros::Time::now() - start_time <= ros::Duration(3.0))
   {
-    object_ids =
-        planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
+    // collect all objects in region of interest
+    {
+      const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+      const collision_detection::WorldConstPtr& world = ps->getWorld();
+      object_ids.clear();
+      for (const auto& object : *world)
+      {
+        if (!object.second->shape_poses_.empty())
+        {
+          const auto& position = object.second->shape_poses_[0].translation();
+          if (position.x() >= min_x && position.x() <= max_x && position.y() >= min_y && position.y() <= max_y &&
+              position.z() >= min_z && position.z() <= max_z)
+          {
+            object_ids.push_back(object.first);
+          }
+        }
+      }
+      if (!object_ids.empty())
+        break;
+    }
     ros::Duration(0.5).sleep();
   }
 
   ROS_DEBUG("Found %d objects", (int)object_ids.size());
-  updateDetectedObjectsList(object_ids, objects);
+  updateDetectedObjectsList(object_ids);
 }
 
 void MotionPlanningFrame::selectedDetectedObjectChanged()
@@ -153,8 +173,7 @@ void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::R
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));
 }
 
-void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string>& object_ids,
-                                                    const std::vector<std::string>& /*objects*/)
+void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string>& object_ids)
 {
   ui_->detected_objects_list->setUpdatesEnabled(false);
   bool old_state = ui_->detected_objects_list->blockSignals(true);
@@ -265,13 +284,12 @@ void MotionPlanningFrame::pickObjectButtonClicked()
   {
     if (semantic_world_)
     {
-      std::vector<std::string> object_names;
-      object_names.push_back(pick_object_name_[group_name]);
-      std::map<std::string, geometry_msgs::Pose> object_poses = planning_scene_interface_->getObjectPoses(object_names);
-      if (object_poses.find(pick_object_name_[group_name]) != object_poses.end())
+      const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+      if (ps->getWorld()->hasObject(pick_object_name_[group_name]))
       {
-        ROS_DEBUG("Finding current table for object: %s", pick_object_name_[group_name].c_str());
-        support_surface_name_ = semantic_world_->findObjectTable(object_poses[pick_object_name_[group_name]]);
+        geometry_msgs::Pose object_pose(tf2::toMsg(ps->getWorld()->getTransform(pick_object_name_[group_name])));
+        ROS_DEBUG_STREAM("Finding current table for object: " << pick_object_name_[group_name]);
+        support_surface_name_ = semantic_world_->findObjectTable(object_pose);
       }
       else
         support_surface_name_.clear();
@@ -301,14 +319,14 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   ui_->pick_button->setEnabled(false);
   ui_->place_button->setEnabled(false);
 
-  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  std::vector<const moveit::core::AttachedBody*> attached_bodies;
   const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
   if (!ps)
   {
     ROS_ERROR("No planning scene");
     return;
   }
-  const robot_model::JointModelGroup* jmg = ps->getCurrentState().getJointModelGroup(group_name);
+  const moveit::core::JointModelGroup* jmg = ps->getCurrentState().getJointModelGroup(group_name);
   if (jmg)
     ps->getCurrentState().getAttachedBodies(attached_bodies, jmg);
 

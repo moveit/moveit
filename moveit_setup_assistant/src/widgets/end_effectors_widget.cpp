@@ -381,10 +381,10 @@ void EndEffectorsWidget::loadParentComboBox()
   parent_name_field_->clear();
 
   // Get all links in robot model
-  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
+  std::vector<const moveit::core::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
 
   // Add all links to combo box
-  for (std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
+  for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it)
   {
     parent_name_field_->addItem((*link_it)->getName().c_str());
@@ -486,13 +486,12 @@ void EndEffectorsWidget::doneEditing()
   }
 
   // Check that the effector name is unique
-  for (std::vector<srdf::Model::EndEffector>::const_iterator data_it = config_data_->srdf_->end_effectors_.begin();
-       data_it != config_data_->srdf_->end_effectors_.end(); ++data_it)
+  for (const auto& eef : config_data_->srdf_->end_effectors_)
   {
-    if (data_it->name_.compare(effector_name) == 0)  // the names are the same
+    if (eef.name_ == effector_name)
     {
       // is this our existing effector? check if effector pointers are same
-      if (&(*data_it) != searched_data)
+      if (&eef != searched_data)
       {
         QMessageBox::warning(
             this, "Error Saving",
@@ -516,7 +515,7 @@ void EndEffectorsWidget::doneEditing()
     return;
   }
 
-  const robot_model::JointModelGroup* jmg =
+  const moveit::core::JointModelGroup* jmg =
       config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   /*
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
@@ -564,6 +563,7 @@ void EndEffectorsWidget::doneEditing()
   if (is_new)
   {
     config_data_->srdf_->end_effectors_.push_back(*searched_data);
+    delete searched_data;
   }
 
   // Finish up ------------------------------------------------------

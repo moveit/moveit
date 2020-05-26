@@ -67,15 +67,15 @@ RobotModelLoader::~RobotModelLoader()
 
 namespace
 {
-bool canSpecifyPosition(const robot_model::JointModel* jmodel, const unsigned int index)
+bool canSpecifyPosition(const moveit::core::JointModel* jmodel, const unsigned int index)
 {
   bool ok = false;
-  if (jmodel->getType() == robot_model::JointModel::PLANAR && index == 2)
+  if (jmodel->getType() == moveit::core::JointModel::PLANAR && index == 2)
     ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
-  else if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
+  else if (jmodel->getType() == moveit::core::JointModel::FLOATING && index > 2)
     ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
-  else if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
-           static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
+  else if (jmodel->getType() == moveit::core::JointModel::REVOLUTE &&
+           static_cast<const moveit::core::RevoluteJointModel*>(jmodel)->isContinuous())
     ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
   else
     ok = true;
@@ -97,7 +97,7 @@ void RobotModelLoader::configure(const Options& opt)
   {
     const srdf::ModelSharedPtr& srdf =
         rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
-    model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+    model_.reset(new moveit::core::RobotModel(rdf_loader_->getURDF(), srdf));
   }
 
   if (model_ && !rdf_loader_->getRobotDescription().empty())
@@ -177,7 +177,8 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     else
       kinematics_loader_.reset(
           new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
-    robot_model::SolverAllocatorFn kinematics_allocator = kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
+    moveit::core::SolverAllocatorFn kinematics_allocator =
+        kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
     const std::vector<std::string>& groups = kinematics_loader_->getKnownGroups();
     std::stringstream ss;
     std::copy(groups.begin(), groups.end(), std::ostream_iterator<std::string>(ss, " "));
@@ -185,14 +186,14 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     if (groups.empty() && !model_->getJointModelGroups().empty())
       ROS_WARN("No kinematics plugins defined. Fill and load kinematics.yaml!");
 
-    std::map<std::string, robot_model::SolverAllocatorFn> imap;
+    std::map<std::string, moveit::core::SolverAllocatorFn> imap;
     for (const std::string& group : groups)
     {
       // Check if a group in kinematics.yaml exists in the srdf
       if (!model_->hasJointModelGroup(group))
         continue;
 
-      const robot_model::JointModelGroup* jmg = model_->getJointModelGroup(group);
+      const moveit::core::JointModelGroup* jmg = model_->getJointModelGroup(group);
 
       kinematics::KinematicsBasePtr solver = kinematics_allocator(jmg);
       if (solver)
@@ -221,7 +222,7 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     {
       if (!model_->hasJointModelGroup(it.first))
         continue;
-      robot_model::JointModelGroup* jmg = model_->getJointModelGroup(it.first);
+      moveit::core::JointModelGroup* jmg = model_->getJointModelGroup(it.first);
       jmg->setDefaultIKTimeout(it.second);
     }
   }

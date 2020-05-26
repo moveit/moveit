@@ -113,7 +113,7 @@ public:
 
     joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
 
-    joint_state_target_.reset(new robot_state::RobotState(getRobotModel()));
+    joint_state_target_.reset(new moveit::core::RobotState(getRobotModel()));
     joint_state_target_->setToDefaultValues();
     active_target_ = JOINT;
     can_look_ = false;
@@ -124,8 +124,10 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
-    max_velocity_scaling_factor_ = 1.0;
-    max_acceleration_scaling_factor_ = 1.0;
+    node_handle_.param<double>("robot_description_planning/joint_limits/default_velocity_scaling_factor",
+                               max_velocity_scaling_factor_, 0.1);
+    node_handle_.param<double>("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
+                               max_acceleration_scaling_factor_, 0.1);
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -248,12 +250,12 @@ public:
     return opt_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
 
-  const robot_model::JointModelGroup* getJointModelGroup() const
+  const moveit::core::JointModelGroup* getJointModelGroup() const
   {
     return joint_model_group_;
   }
@@ -335,29 +337,51 @@ public:
     num_planning_attempts_ = num_planning_attempts;
   }
 
-  void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
+  void setMaxVelocityScalingFactor(double value)
   {
-    max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+    setMaxScalingFactor(max_velocity_scaling_factor_, value, "velocity_scaling_factor", 0.1);
   }
 
-  void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+  void setMaxAccelerationScalingFactor(double value)
   {
-    max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
+    setMaxScalingFactor(max_acceleration_scaling_factor_, value, "acceleration_scaling_factor", 0.1);
   }
 
-  robot_state::RobotState& getTargetRobotState()
+  void setMaxScalingFactor(double& variable, const double target_value, const char* factor_name, double fallback_value)
+  {
+    if (target_value > 1.0)
+    {
+      ROS_WARN_NAMED("move_group_interface", "Limiting max_%s (%.2f) to 1.0.", factor_name, target_value);
+      variable = 1.0;
+    }
+    else if (target_value <= 0.0)
+    {
+      node_handle_.param<double>(std::string("robot_description_planning/default_") + factor_name, variable,
+                                 fallback_value);
+      if (target_value < 0.0)
+      {
+        ROS_WARN_NAMED("move_group_interface", "max_%s < 0.0! Setting to default: %.2f.", factor_name, variable);
+      }
+    }
+    else
+    {
+      variable = target_value;
+    }
+  }
+
+  moveit::core::RobotState& getTargetRobotState()
   {
     return *joint_state_target_;
   }
 
-  const robot_state::RobotState& getTargetRobotState() const
+  const moveit::core::RobotState& getTargetRobotState() const
   {
     return *joint_state_target_;
   }
 
-  void setStartState(const robot_state::RobotState& start_state)
+  void setStartState(const moveit::core::RobotState& start_state)
   {
-    considered_start_state_.reset(new robot_state::RobotState(start_state));
+    considered_start_state_.reset(new moveit::core::RobotState(start_state));
   }
 
   void setStartStateToCurrentState()
@@ -365,13 +389,13 @@ public:
     considered_start_state_.reset();
   }
 
-  robot_state::RobotStatePtr getStartState()
+  moveit::core::RobotStatePtr getStartState()
   {
     if (considered_start_state_)
       return considered_start_state_;
     else
     {
-      robot_state::RobotStatePtr s;
+      moveit::core::RobotStatePtr s;
       getCurrentState(s);
       return s;
     }
@@ -560,7 +584,7 @@ public:
     return true;
   }
 
-  bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds = 1.0)
+  bool getCurrentState(moveit::core::RobotStatePtr& current_state, double wait_seconds = 1.0)
   {
     if (!current_state_monitor_)
     {
@@ -801,7 +825,7 @@ public:
     }
   }
 
-  MoveItErrorCode execute(const Plan& plan, bool wait)
+  MoveItErrorCode execute(const moveit_msgs::RobotTrajectory& trajectory, bool wait)
   {
     if (!execute_action_client_->isServerConnected())
     {
@@ -809,7 +833,7 @@ public:
     }
 
     moveit_msgs::ExecuteTrajectoryGoal goal;
-    goal.trajectory = plan.trajectory_;
+    goal.trajectory = trajectory;
 
     execute_action_client_->sendGoal(goal);
     if (!wait)
@@ -842,7 +866,7 @@ public:
     moveit_msgs::GetCartesianPath::Response res;
 
     if (considered_start_state_)
-      robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
+      moveit::core::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
     else
       req.start_state.is_diff = true;
 
@@ -1009,7 +1033,7 @@ public:
     request.workspace_parameters = workspace_parameters_;
 
     if (considered_start_state_)
-      robot_state::robotStateToRobotStateMsg(*considered_start_state_, request.start_state);
+      moveit::core::robotStateToRobotStateMsg(*considered_start_state_, request.start_state);
     else
       request.start_state.is_diff = true;
 
@@ -1226,7 +1250,7 @@ private:
   Options opt_;
   ros::NodeHandle node_handle_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
@@ -1234,7 +1258,7 @@ private:
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
 
   // general planning params
-  robot_state::RobotStatePtr considered_start_state_;
+  moveit::core::RobotStatePtr considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double allowed_planning_time_;
   std::string planner_id_;
@@ -1249,8 +1273,8 @@ private:
   double replan_delay_;
 
   // joint state goal
-  robot_state::RobotStatePtr joint_state_target_;
-  const robot_model::JointModelGroup* joint_model_group_;
+  moveit::core::RobotStatePtr joint_state_target_;
+  const moveit::core::JointModelGroup* joint_model_group_;
 
   // pose goal;
   // for each link we have a set of possible goal locations;
@@ -1340,7 +1364,7 @@ const std::vector<std::string>& MoveGroupInterface::getNamedTargets() const
   return impl_->getJointModelGroup()->getDefaultStateNames();
 }
 
-robot_model::RobotModelConstPtr MoveGroupInterface::getRobotModel() const
+moveit::core::RobotModelConstPtr MoveGroupInterface::getRobotModel() const
 {
   return impl_->getRobotModel();
 }
@@ -1414,12 +1438,22 @@ MoveItErrorCode MoveGroupInterface::move()
 
 MoveItErrorCode MoveGroupInterface::asyncExecute(const Plan& plan)
 {
-  return impl_->execute(plan, false);
+  return impl_->execute(plan.trajectory_, false);
+}
+
+MoveItErrorCode MoveGroupInterface::asyncExecute(const moveit_msgs::RobotTrajectory& trajectory)
+{
+  return impl_->execute(trajectory, false);
 }
 
 MoveItErrorCode MoveGroupInterface::execute(const Plan& plan)
 {
-  return impl_->execute(plan, true);
+  return impl_->execute(plan.trajectory_, true);
+}
+
+MoveItErrorCode MoveGroupInterface::execute(const moveit_msgs::RobotTrajectory& trajectory)
+{
+  return impl_->execute(trajectory, true);
 }
 
 MoveItErrorCode MoveGroupInterface::plan(Plan& plan)
@@ -1501,13 +1535,13 @@ void MoveGroupInterface::stop()
 
 void MoveGroupInterface::setStartState(const moveit_msgs::RobotState& start_state)
 {
-  robot_state::RobotStatePtr rs;
+  moveit::core::RobotStatePtr rs;
   impl_->getCurrentState(rs);
-  robot_state::robotStateMsgToRobotState(start_state, *rs);
+  moveit::core::robotStateMsgToRobotState(start_state, *rs);
   setStartState(*rs);
 }
 
-void MoveGroupInterface::setStartState(const robot_state::RobotState& start_state)
+void MoveGroupInterface::setStartState(const moveit::core::RobotState& start_state)
 {
   impl_->setStartState(start_state);
 }
@@ -1623,7 +1657,7 @@ bool MoveGroupInterface::setJointValueTarget(const std::vector<std::string>& var
   return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
-bool MoveGroupInterface::setJointValueTarget(const robot_state::RobotState& rstate)
+bool MoveGroupInterface::setJointValueTarget(const moveit::core::RobotState& rstate)
 {
   impl_->setTargetType(JOINT);
   impl_->getTargetRobotState() = rstate;
@@ -1639,7 +1673,7 @@ bool MoveGroupInterface::setJointValueTarget(const std::string& joint_name, doub
 bool MoveGroupInterface::setJointValueTarget(const std::string& joint_name, const std::vector<double>& values)
 {
   impl_->setTargetType(JOINT);
-  const robot_model::JointModel* jm = impl_->getJointModelGroup()->getJointModel(joint_name);
+  const moveit::core::JointModel* jm = impl_->getJointModelGroup()->getJointModel(joint_name);
   if (jm && jm->getVariableCount() == values.size())
   {
     impl_->getTargetRobotState().setJointPositions(jm, values);
@@ -1691,12 +1725,12 @@ bool MoveGroupInterface::setApproximateJointValueTarget(const Eigen::Isometry3d&
   return setApproximateJointValueTarget(msg, end_effector_link);
 }
 
-const robot_state::RobotState& MoveGroupInterface::getJointValueTarget() const
+const moveit::core::RobotState& MoveGroupInterface::getJointValueTarget() const
 {
   return impl_->getTargetRobotState();
 }
 
-const robot_state::RobotState& MoveGroupInterface::getTargetRobotState() const
+const moveit::core::RobotState& MoveGroupInterface::getTargetRobotState() const
 {
   return impl_->getTargetRobotState();
 }
@@ -1722,7 +1756,7 @@ bool MoveGroupInterface::setEndEffectorLink(const std::string& link_name)
 
 bool MoveGroupInterface::setEndEffector(const std::string& eef_name)
 {
-  const robot_model::JointModelGroup* jmg = impl_->getRobotModel()->getEndEffector(eef_name);
+  const moveit::core::JointModelGroup* jmg = impl_->getRobotModel()->getEndEffector(eef_name);
   if (jmg)
     return setEndEffectorLink(jmg->getEndEffectorParentGroup().second);
   return false;
@@ -1965,7 +1999,7 @@ bool MoveGroupInterface::startStateMonitor(double wait)
 
 std::vector<double> MoveGroupInterface::getCurrentJointValues() const
 {
-  robot_state::RobotStatePtr current_state;
+  moveit::core::RobotStatePtr current_state;
   std::vector<double> values;
   if (impl_->getCurrentState(current_state))
     current_state->copyJointGroupPositions(getName(), values);
@@ -1988,11 +2022,11 @@ geometry_msgs::PoseStamped MoveGroupInterface::getRandomPose(const std::string& 
     ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
-    robot_state::RobotStatePtr current_state;
+    moveit::core::RobotStatePtr current_state;
     if (impl_->getCurrentState(current_state))
     {
       current_state->setToRandomPositions(impl_->getJointModelGroup());
-      const robot_model::LinkModel* lm = current_state->getLinkModel(eef);
+      const moveit::core::LinkModel* lm = current_state->getLinkModel(eef);
       if (lm)
         pose = current_state->getGlobalLinkTransform(lm);
     }
@@ -2013,10 +2047,10 @@ geometry_msgs::PoseStamped MoveGroupInterface::getCurrentPose(const std::string&
     ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
-    robot_state::RobotStatePtr current_state;
+    moveit::core::RobotStatePtr current_state;
     if (impl_->getCurrentState(current_state))
     {
-      const robot_model::LinkModel* lm = current_state->getLinkModel(eef);
+      const moveit::core::LinkModel* lm = current_state->getLinkModel(eef);
       if (lm)
         pose = current_state->getGlobalLinkTransform(lm);
     }
@@ -2036,10 +2070,10 @@ std::vector<double> MoveGroupInterface::getCurrentRPY(const std::string& end_eff
     ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
-    robot_state::RobotStatePtr current_state;
+    moveit::core::RobotStatePtr current_state;
     if (impl_->getCurrentState(current_state))
     {
-      const robot_model::LinkModel* lm = current_state->getLinkModel(eef);
+      const moveit::core::LinkModel* lm = current_state->getLinkModel(eef);
       if (lm)
       {
         result.resize(3);
@@ -2070,9 +2104,9 @@ unsigned int MoveGroupInterface::getVariableCount() const
   return impl_->getJointModelGroup()->getVariableCount();
 }
 
-robot_state::RobotStatePtr MoveGroupInterface::getCurrentState(double wait) const
+moveit::core::RobotStatePtr MoveGroupInterface::getCurrentState(double wait) const
 {
-  robot_state::RobotStatePtr current_state;
+  moveit::core::RobotStatePtr current_state;
   impl_->getCurrentState(current_state, wait);
   return current_state;
 }

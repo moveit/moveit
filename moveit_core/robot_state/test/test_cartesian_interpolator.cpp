@@ -241,21 +241,21 @@ protected:
   moveit::core::RobotModelConstPtr robot_model_;
 };
 
-std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+std::size_t generateTestTraj(std::vector<std::shared_ptr<moveit::core::RobotState>>& traj,
                              const moveit::core::RobotModelConstPtr& robot_model_,
                              const moveit::core::JointModelGroup* joint_model_group)
 {
   traj.clear();
 
-  std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model_));
+  std::shared_ptr<moveit::core::RobotState> robot_state(new moveit::core::RobotState(robot_model_));
   robot_state->setToDefaultValues();
   double ja, jc;
 
   // 3 waypoints with default joints
   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
   {
-    // robot_state.reset(new robot_state::RobotState(*robot_state));
-    traj.push_back(robot_state::RobotStatePtr(new robot_state::RobotState(*robot_state)));
+    // robot_state.reset(new moveit::core::RobotState(*robot_state));
+    traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
   }
 
   ja = robot_state->getVariablePosition("panda_joint0");
@@ -266,20 +266,20 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
   robot_state->setVariablePosition("panda_joint0", ja);
   jc = jc - 0.01;
   robot_state->setVariablePosition("panda_joint1", jc);
-  traj.push_back(robot_state::RobotStatePtr(new robot_state::RobotState(*robot_state)));
+  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
 
   // 5th waypoint with a large jump of 1.01 in first revolute joint
   ja = ja + 1.01;
   robot_state->setVariablePosition("panda_joint0", ja);
-  traj.push_back(robot_state::RobotStatePtr(new robot_state::RobotState(*robot_state)));
+  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
 
   // 6th waypoint with a large jump of 1.01 in first prismatic joint
   jc = jc + 1.01;
   robot_state->setVariablePosition("panda_joint1", jc);
-  traj.push_back(robot_state::RobotStatePtr(new robot_state::RobotState(*robot_state)));
+  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
 
   // 7th waypoint with no jump
-  traj.push_back(robot_state::RobotStatePtr(new robot_state::RobotState(*robot_state)));
+  traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*robot_state)));
 
   return traj.size();
 }
@@ -287,7 +287,7 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
 TEST_F(OneRobot, testGenerateTrajectory)
 {
   const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("arm");
-  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
 
   // The full trajectory should be of length 7
   const std::size_t expected_full_traj_len = 7;
@@ -302,7 +302,7 @@ TEST_F(OneRobot, testGenerateTrajectory)
 TEST_F(OneRobot, checkAbsoluteJointSpaceJump)
 {
   const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("arm");
-  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
 
   // A revolute joint jumps 1.01 at the 5th waypoint and a prismatic joint jumps 1.01 at the 6th waypoint
   const std::size_t expected_revolute_jump_traj_len = 4;
@@ -353,7 +353,7 @@ TEST_F(OneRobot, checkAbsoluteJointSpaceJump)
 TEST_F(OneRobot, checkRelativeJointSpaceJump)
 {
   const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("arm");
-  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
 
   // The first large jump of 1.01 occurs at the 5th waypoint so the test should trim the trajectory to length 4
   const std::size_t expected_relative_jump_traj_len = 4;

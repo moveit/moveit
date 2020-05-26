@@ -129,7 +129,7 @@ void TransformProvider::setUpdateInterval(unsigned long usecs)
 void TransformProvider::updateTransforms()
 {
   static tf2::Stamped<Isometry3d> input_transform, output_transform;
-  static robot_state::RobotStatePtr robot_state;
+  static moveit::core::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
   try
   {

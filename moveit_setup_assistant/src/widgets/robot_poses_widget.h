@@ -110,7 +110,7 @@ private Q_SLOTS:
   void editDoubleClicked(int row, int column);
 
   /// Preview whatever element is selected
-  void previewClicked(int row, int column);
+  void previewClicked(int row, int column, int previous_row, int previous_column);
 
   /// Delete currently editing ite
   void deleteSelected();
@@ -156,7 +156,7 @@ private:
   std::map<std::string, double> joint_state_map_;
 
   /// The joints currently in the selected planning group
-  std::vector<const robot_model::JointModel*> joint_models_;
+  std::vector<const moveit::core::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_robot_state_;
@@ -237,7 +237,7 @@ public:
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget(QWidget* parent, const robot_model::JointModel* joint_model, double init_value);
+  SliderWidget(QWidget* parent, const moveit::core::JointModel* joint_model, double init_value);
 
   /**
    * Deconstructor
@@ -279,7 +279,7 @@ private:
   // ******************************************************************************************
 
   // Ptr to the joint's data
-  const robot_model::JointModel* joint_model_;
+  const moveit::core::JointModel* joint_model_;
 
   // Max & min position
   double max_position_;

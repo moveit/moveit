@@ -127,18 +127,18 @@ public:
   ~MoveItCpp();
 
   /** \brief Get the RobotModel object. */
-  robot_model::RobotModelConstPtr getRobotModel() const;
+  moveit::core::RobotModelConstPtr getRobotModel() const;
 
   /** \brief Get the ROS node handle of this instance operates on */
   const ros::NodeHandle& getNodeHandle() const;
 
   /** \brief Get the current state queried from the current state monitor
       \param wait_seconds the time in seconds for the state monitor to wait for a robot state. */
-  bool getCurrentState(robot_state::RobotStatePtr& current_state, double wait_seconds);
+  bool getCurrentState(moveit::core::RobotStatePtr& current_state, double wait_seconds);
 
   /** \brief Get the current state queried from the current state monitor
       \param wait_seconds the time in seconds for the state monitor to wait for a robot state. */
-  robot_state::RobotStatePtr getCurrentState(double wait_seconds = 0.0);
+  moveit::core::RobotStatePtr getCurrentState(double wait_seconds = 0.0);
 
   /** \brief Get all loaded planning pipeline instances mapped to their reference names */
   const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& getPlanningPipelines() const;
@@ -169,7 +169,7 @@ protected:
 private:
   //  Core properties and instances
   ros::NodeHandle node_handle_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Planning

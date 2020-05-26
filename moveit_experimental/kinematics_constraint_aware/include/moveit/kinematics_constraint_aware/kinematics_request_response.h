@@ -68,7 +68,7 @@ public:
 
   std::vector<std::string> ik_link_names_;
 
-  robot_state::RobotStatePtr robot_state_;
+  moveit::core::RobotStatePtr robot_state_;
 
   kinematic_constraints::KinematicConstraintSetPtr constraints_;
 
@@ -78,7 +78,7 @@ public:
 
   bool check_for_collisions_;
 
-  robot_state::StateValidityCallbackFn constraint_callback_;
+  moveit::core::StateValidityCallbackFn constraint_callback_;
 };
 
 /**
@@ -93,7 +93,7 @@ public:
 
   virtual ~KinematicsResponse(){};
 
-  robot_state::RobotStatePtr solution_;
+  moveit::core::RobotStatePtr solution_;
 
   std::vector<kinematic_constraints::ConstraintEvaluationResult> constraint_eval_results_;
 

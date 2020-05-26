@@ -214,7 +214,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
-    const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
+    const moveit::core::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     // first check whether it belongs to the set of active joints in the group
     if (jm->getMimic() == nullptr && jm->getVariableCount() > 0)
@@ -244,7 +244,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   {
     if (!mimic_joint.active)
     {
-      const robot_model::JointModel* joint_model =
+      const moveit::core::JointModel* joint_model =
           joint_model_group_->getJointModel(mimic_joint.joint_name)->getMimic();
       for (JointMimic& mimic_joint_recal : mimic_joints_)
       {
@@ -257,7 +257,7 @@ bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model
   }
 
   // Setup the joint state groups that we need
-  state_.reset(new robot_state::RobotState(robot_model_));
+  state_.reset(new moveit::core::RobotState(robot_model_));
 
   fk_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
@@ -428,8 +428,8 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
   KDL::Frame f;
   KDL::Twist delta_twist;
   KDL::JntArray delta_q(q_out.rows()), q_backup(q_out.rows());
-  Eigen::ArrayXd extra_joint_weights;
-  extra_joint_weights.setOnes(joint_weights.rows());
+  Eigen::ArrayXd extra_joint_weights(joint_weights.rows());
+  extra_joint_weights.setOnes();
 
   q_out = q_init;
   ROS_DEBUG_STREAM_NAMED("kdl", "Input: " << q_init);
@@ -478,12 +478,14 @@ int KDLKinematicsPlugin::CartToJnt(KDL::ChainIkSolverVelMimicSVD& ik_solver, con
                     delta_q_norm);
     if (delta_q_norm < epsilon_)  // stuck in singularity
     {
-      if (step_size < 0.005)  // cannot reach target
+      if (step_size < epsilon_)  // cannot reach target
         break;
       // wiggle joints
       last_delta_twist_norm = DBL_MAX;
       delta_q.data.setRandom();
       delta_q.data *= std::min(0.1, delta_twist_norm);
+      clipToJointLimits(q_out, delta_q, extra_joint_weights);
+      extra_joint_weights.setOnes();
     }
 
     KDL::Add(q_out, delta_q, q_out);

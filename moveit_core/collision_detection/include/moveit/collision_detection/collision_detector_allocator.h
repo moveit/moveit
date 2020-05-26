@@ -56,7 +56,7 @@ public:
 
   /** create a new CollisionWorld for checking collisions with the supplied world. */
   virtual CollisionEnvPtr allocateEnv(const WorldPtr& world,
-                                      const robot_model::RobotModelConstPtr& robot_model) const = 0;
+                                      const moveit::core::RobotModelConstPtr& robot_model) const = 0;
 
   /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
    * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified.
@@ -64,7 +64,7 @@ public:
   virtual CollisionEnvPtr allocateEnv(const CollisionEnvConstPtr& orig, const WorldPtr& world) const = 0;
 
   /** create a new CollisionEnv given a robot_model with a new empty world */
-  virtual CollisionEnvPtr allocateEnv(const robot_model::RobotModelConstPtr& robot_model) const = 0;
+  virtual CollisionEnvPtr allocateEnv(const moveit::core::RobotModelConstPtr& robot_model) const = 0;
 };
 
 /** \brief Template class to make it easy to create an allocator for a specific CollisionWorld/CollisionRobot pair. */
@@ -77,7 +77,7 @@ public:
     return CollisionDetectorAllocatorType::NAME;
   }
 
-  CollisionEnvPtr allocateEnv(const WorldPtr& world, const robot_model::RobotModelConstPtr& robot_model) const override
+  CollisionEnvPtr allocateEnv(const WorldPtr& world, const moveit::core::RobotModelConstPtr& robot_model) const override
   {
     return CollisionEnvPtr(new CollisionEnvType(robot_model, world));
   }
@@ -87,7 +87,7 @@ public:
     return CollisionEnvPtr(new CollisionEnvType(dynamic_cast<const CollisionEnvType&>(*orig), world));
   }
 
-  CollisionEnvPtr allocateEnv(const robot_model::RobotModelConstPtr& robot_model) const override
+  CollisionEnvPtr allocateEnv(const moveit::core::RobotModelConstPtr& robot_model) const override
   {
     return CollisionEnvPtr(new CollisionEnvType(robot_model));
   }

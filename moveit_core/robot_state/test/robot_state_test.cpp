@@ -535,7 +535,7 @@ TEST_F(OneRobot, FK)
 TEST_F(OneRobot, testPrintCurrentPositionWithJointLimits)
 {
   moveit::core::RobotState state(robot_model_);
-  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
+  const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
   ASSERT_TRUE(joint_model_group);
 
   state.setToDefaultValues();

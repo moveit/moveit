@@ -26,7 +26,6 @@ set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_V
 
 target_link_libraries(${MOVEIT_LIB_NAME}
   ${catkin_LIBRARIES}
-  ${OGRE_LIBRARIES}
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )

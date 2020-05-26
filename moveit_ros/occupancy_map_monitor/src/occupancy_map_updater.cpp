@@ -39,6 +39,8 @@
 
 namespace occupancy_map_monitor
 {
+static const std::string LOGNAME = "occupancy_map_monitor";
+
 OccupancyMapUpdater::OccupancyMapUpdater(const std::string& type) : type_(type)
 {
 }
@@ -75,7 +77,7 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string& target_frame, 
     return transform_provider_callback_(target_frame, target_time, transform_cache_);
   else
   {
-    ROS_WARN_THROTTLE(1, "No callback provided for updating the transform cache for octomap updaters");
+    ROS_WARN_THROTTLE_NAMED(1, LOGNAME, "No callback provided for updating the transform cache for octomap updaters");
     return false;
   }
 }

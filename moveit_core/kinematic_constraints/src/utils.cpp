@@ -126,14 +126,14 @@ std::size_t countIndividualConstraints(const moveit_msgs::Constraints& constr)
          constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
-                                                  const robot_model::JointModelGroup* jmg, double tolerance)
+moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState& state,
+                                                  const moveit::core::JointModelGroup* jmg, double tolerance)
 {
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState& state,
-                                                  const robot_model::JointModelGroup* jmg, double tolerance_below,
+moveit_msgs::Constraints constructGoalConstraints(const moveit::core::RobotState& state,
+                                                  const moveit::core::JointModelGroup* jmg, double tolerance_below,
                                                   double tolerance_above)
 {
   moveit_msgs::Constraints goal;
@@ -529,7 +529,7 @@ bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints&
 }
 }  // namespace kinematic_constraints
 
-bool kinematic_constraints::resolveConstraintFrames(const robot_state::RobotState& state,
+bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotState& state,
                                                     moveit_msgs::Constraints& constraints)
 {
   for (auto& c : constraints.position_constraints)

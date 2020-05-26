@@ -45,6 +45,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/collision_plugin_loader/collision_plugin_loader.h>
+#include <moveit_msgs/GetPlanningScene.h>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
@@ -169,7 +170,7 @@ public:
     return rm_loader_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const moveit::core::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
@@ -324,18 +325,28 @@ public:
       return 0.0;
   }
 
-  /** @brief Start the scene monitor
+  /** @brief Start the scene monitor (ROS topic-based)
    *  @param scene_topic The name of the planning scene topic
    */
   void startSceneMonitor(const std::string& scene_topic = DEFAULT_PLANNING_SCENE_TOPIC);
 
-  /** @brief Request planning scene state using a service call
-   *  @param service_name The name of the service to use for requesting the
-   *     planning scene.  This must be a service of type
-   *     moveit_msgs::GetPlanningScene and is usually called
-   *     "/get_planning_scene".
+  /** @brief Request a full planning scene state using a service call
+   *         Be careful not to use this in conjunction with providePlanningSceneService(),
+   *         as it will create a pointless feedback loop.
+   *  @param service_name The name of the service to use for requesting the planning scene.
+   *         This must be a service of type moveit_msgs::GetPlanningScene and is usually called
+   *         "/get_planning_scene".
    */
   bool requestPlanningSceneState(const std::string& service_name = DEFAULT_PLANNING_SCENE_SERVICE);
+
+  /** @brief Create an optional service for getting the complete planning scene
+   *         This is useful for satisfying the Rviz PlanningScene display's need for a service
+   *         without having to use a move_group node.
+   *         Be careful not to use this in conjunction with requestPlanningSceneState(),
+   *         as it will create a pointless feedback loop.
+   *  @param service_name The topic to provide the service
+   */
+  void providePlanningSceneService(const std::string& service_name = DEFAULT_PLANNING_SCENE_SERVICE);
 
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor();
@@ -426,7 +437,7 @@ protected:
   void attachObjectCallback(const moveit_msgs::AttachedCollisionObjectConstPtr& obj);
 
   /** @brief Callback for a change for an attached object of the current state of the planning scene */
-  void currentStateAttachedBodyUpdateCallback(robot_state::AttachedBody* attached_body, bool just_attached);
+  void currentStateAttachedBodyUpdateCallback(moveit::core::AttachedBody* attached_body, bool just_attached);
 
   /** @brief Callback for a change in the world maintained by the planning scene */
   void currentWorldObjectUpdateCallback(const collision_detection::World::ObjectConstPtr& object,
@@ -442,8 +453,8 @@ protected:
 
   void excludeAttachedBodiesFromOctree();
   void includeAttachedBodiesInOctree();
-  void excludeAttachedBodyFromOctree(const robot_state::AttachedBody* attached_body);
-  void includeAttachedBodyInOctree(const robot_state::AttachedBody* attached_body);
+  void excludeAttachedBodyFromOctree(const moveit::core::AttachedBody* attached_body);
+  void includeAttachedBodyInOctree(const moveit::core::AttachedBody* attached_body);
 
   bool getShapeTransformCache(const std::string& target_frame, const ros::Time& target_time,
                               occupancy_map_monitor::ShapeTransformCache& cache) const;
@@ -495,16 +506,20 @@ protected:
   ros::Subscriber attached_collision_object_subscriber_;
   ros::Subscriber collision_object_subscriber_;
 
+  // provide an optional service to get the full planning scene state
+  // this is used by MoveGroup and related application nodes
+  ros::ServiceServer get_scene_service_;
+
   // include a octomap monitor
   std::unique_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
 
   // include a current state monitor
   CurrentStateMonitorPtr current_state_monitor_;
 
-  typedef std::map<const robot_model::LinkModel*,
+  typedef std::map<const moveit::core::LinkModel*,
                    std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > >
       LinkShapeHandles;
-  typedef std::map<const robot_state::AttachedBody*,
+  typedef std::map<const moveit::core::AttachedBody*,
                    std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > >
       AttachedBodyShapeHandles;
   typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, const Eigen::Isometry3d*> > >
@@ -535,6 +550,10 @@ private:
   // Callback for a new planning scene msg
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr& scene);
 
+  // Callback for requesting the full planning scene via service
+  bool getPlanningSceneServiceCallback(moveit_msgs::GetPlanningScene::Request& req,
+                                       moveit_msgs::GetPlanningScene::Response& res);
+
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
 
@@ -561,7 +580,7 @@ private:
   ros::WallTime last_robot_state_update_wall_time_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 
   collision_detection::CollisionPluginLoader collision_loader_;
 
@@ -577,7 +596,7 @@ private:
  * "operator->" functions.  Therefore you will often see code like this:
  * @code
  *   planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor);
- *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ *   moveit::core::RobotModelConstPtr model = ls->getRobotModel();
  * @endcode
 
  * The function "getRobotModel()" is a member of PlanningScene and not
@@ -669,7 +688,7 @@ protected:
  * "operator->" functions.  Therefore you will often see code like this:
  * @code
  *   planning_scene_monitor::LockedPlanningSceneRW ls(planning_scene_monitor);
- *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ *   moveit::core::RobotModelConstPtr model = ls->getRobotModel();
  * @endcode
 
  * The function "getRobotModel()" is a member of PlanningScene and not

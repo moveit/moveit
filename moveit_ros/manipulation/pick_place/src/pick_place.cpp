@@ -125,7 +125,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr& plan) const
       continue;
     if (first)
     {
-      robot_state::robotStateToRobotStateMsg(traj.trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
+      moveit::core::robotStateToRobotStateMsg(traj.trajectory_->getFirstWayPoint(), dtraj.trajectory_start);
       first = false;
     }
     dtraj.trajectory.resize(dtraj.trajectory.size() + 1);
@@ -178,14 +178,14 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) c
   if (plans.empty())
     return;
 
-  robot_state::RobotState state(getRobotModel());
+  moveit::core::RobotState state(getRobotModel());
   state.setToDefaultValues();
 
   static std::vector<std_msgs::ColorRGBA> colors(setupDefaultGraspColors());
   visualization_msgs::MarkerArray ma;
   for (const ManipulationPlanPtr& plan : plans)
   {
-    const robot_model::JointModelGroup* jmg = plan->shared_data_->end_effector_group_;
+    const moveit::core::JointModelGroup* jmg = plan->shared_data_->end_effector_group_;
     if (jmg)
     {
       unsigned int type = std::min(plan->processing_stage_, colors.size() - 1);

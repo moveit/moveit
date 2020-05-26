@@ -230,7 +230,7 @@ ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_m
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count,
 visualization_msgs::MarkerArray &arr) const
 {
-  robot_state::RobotState robot_state(robot_model_);
+  moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToDefaultValues();
 
   ompl::RNG rng;
@@ -459,10 +459,10 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel());
-  robot_state::Transforms no_transforms(pcontext->getRobotModel()->getModelFrame());
+  moveit::core::Transforms no_transforms(pcontext->getRobotModel()->getModelFrame());
   kset.add(constr_hard, no_transforms);
 
-  const robot_state::RobotState& default_state = pcontext->getCompleteInitialRobotState();
+  const moveit::core::RobotState& default_state = pcontext->getCompleteInitialRobotState();
 
   unsigned int attempts = 0;
 
@@ -473,7 +473,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
 
   // construct the constrained states
 
-  robot_state::RobotState robot_state(default_state);
+  moveit::core::RobotState robot_state(default_state);
   const constraint_samplers::ConstraintSamplerManagerPtr& csmng = pcontext->getConstraintSamplerManager();
   ConstrainedSampler* constrained_sampler = nullptr;
   if (csmng)

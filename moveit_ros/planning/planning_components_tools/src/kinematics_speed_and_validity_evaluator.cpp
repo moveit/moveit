@@ -56,14 +56,14 @@ int main(int argc, char** argv)
     std::string group = argv[1];
     ROS_INFO_STREAM("Evaluating IK for " << group);
 
-    const robot_model::JointModelGroup* jmg = rml.getModel()->getJointModelGroup(group);
+    const moveit::core::JointModelGroup* jmg = rml.getModel()->getJointModelGroup(group);
     if (jmg)
     {
       const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
       if (solver)
       {
         const std::string& tip = solver->getTipFrame();
-        robot_state::RobotState state(rml.getModel());
+        moveit::core::RobotState state(rml.getModel());
         state.setToDefaultValues();
 
         ROS_INFO_STREAM("Tip Frame:  " << solver->getTipFrame());

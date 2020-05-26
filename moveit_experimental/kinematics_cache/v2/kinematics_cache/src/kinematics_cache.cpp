@@ -46,15 +46,15 @@ KinematicsCache::KinematicsCache() : min_squared_distance_(1e6), max_squared_dis
 }
 
 bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr& kinematics_solver,
-                                 const robot_model::RobotModelConstPtr& kinematic_model,
+                                 const moveit::core::RobotModelConstPtr& kinematic_model,
                                  const KinematicsCache::Options& opt)
 {
   options_ = opt;
   kinematics_solver_ = kinematics_solver;
   kinematic_model_ = kinematic_model;
   joint_model_group_ = kinematic_model_->getJointModelGroup(kinematics_solver_->getGroupName());
-  kinematic_state_.reset(new robot_state::RobotState(kinematic_model));
-  joint_state_group_.reset(new robot_state::JointStateGroup(kinematic_state_.get(), joint_model_group_));
+  kinematic_state_.reset(new moveit::core::RobotState(kinematic_model));
+  joint_state_group_.reset(new moveit::core::JointStateGroup(kinematic_state_.get(), joint_model_group_));
 
   setup(opt);
   return true;

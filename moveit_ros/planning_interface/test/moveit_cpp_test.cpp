@@ -84,7 +84,7 @@ protected:
   ros::NodeHandle nh_;
   MoveItCppPtr moveit_cpp_ptr;
   PlanningComponentPtr planning_component_ptr;
-  robot_model::RobotModelConstPtr robot_model_ptr;
+  moveit::core::RobotModelConstPtr robot_model_ptr;
   const moveit::core::JointModelGroup* jmg_ptr;
   const std::string PLANNING_GROUP = "panda_arm";
   geometry_msgs::PoseStamped target_pose1;
@@ -97,7 +97,7 @@ TEST_F(MoveItCppTest, GetCurrentStateTest)
 {
   ros::Duration(1.0).sleep();  // Otherwise joint_states will result in an invalid robot state
   auto robot_model = moveit_cpp_ptr->getRobotModel();
-  auto robot_state = std::make_shared<robot_state::RobotState>(robot_model);
+  auto robot_state = std::make_shared<moveit::core::RobotState>(robot_model);
   EXPECT_TRUE(moveit_cpp_ptr->getCurrentState(robot_state, 0.0));
   // Make sure the Panda robot is in "ready" state which is loaded from fake_controller.yaml
   std::vector<double> joints_vals;
@@ -135,7 +135,7 @@ TEST_F(MoveItCppTest, TestSetGoalFromPoseStamped)
   ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
 }
 
-// Test setting the plan start state using robot_state::RobotState
+// Test setting the plan start state using moveit::core::RobotState
 TEST_F(MoveItCppTest, TestSetStartStateFromRobotState)
 {
   auto start_state = *(moveit_cpp_ptr->getCurrentState());
@@ -147,7 +147,7 @@ TEST_F(MoveItCppTest, TestSetStartStateFromRobotState)
   ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
 }
 
-// Test settting the goal of the plan using a robot_state::RobotState
+// Test settting the goal of the plan using a moveit::core::RobotState
 TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
 {
   auto target_state = *(moveit_cpp_ptr->getCurrentState());

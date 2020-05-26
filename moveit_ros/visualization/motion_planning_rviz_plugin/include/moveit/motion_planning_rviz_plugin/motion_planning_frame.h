@@ -43,7 +43,6 @@
 #ifndef Q_MOC_RUN
 #include <moveit/macros/class_forward.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interaction_handler.h>
@@ -129,7 +128,6 @@ protected:
   MotionPlanningFrameJointsWidget* joints_tab_;
 
   moveit::planning_interface::MoveGroupInterfacePtr move_group_;
-  moveit::planning_interface::PlanningSceneInterfacePtr planning_scene_interface_;
   moveit::semantic_world::SemanticWorldPtr semantic_world_;
 
   moveit::planning_interface::MoveGroupInterface::PlanPtr current_plan_;
@@ -166,6 +164,7 @@ private Q_SLOTS:
   void allowLookingToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
+  void onNewPlanningSceneState();
   void startStateTextChanged(const QString& start_state);
   void goalStateTextChanged(const QString& goal_state);
   void planningGroupTextChanged(const QString& planning_group);
@@ -235,7 +234,7 @@ private:
   void populateConstraintsList(const std::vector<std::string>& constr);
   void configureForPlanning();
   void configureWorkspace();
-  void updateQueryStateHelper(robot_state::RobotState& state, const std::string& v);
+  void updateQueryStateHelper(moveit::core::RobotState& state, const std::string& v);
   void fillStateSelectionOptions();
   void fillPlanningGroupOptions();
   void startStateTextChangedExec(const std::string& start_state);
@@ -251,6 +250,8 @@ private:
   void populateCollisionObjectsList();
   void computeImportFromText(const std::string& path);
   void computeExportAsText(const std::string& path);
+  visualization_msgs::InteractiveMarker
+  createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj);
 
   // Stored scenes tab
   void computeSaveSceneButtonClicked();
@@ -264,12 +265,12 @@ private:
   void checkPlanningSceneTreeEnabledButtons();
 
   // States tab
-  void saveRobotStateButtonClicked(const robot_state::RobotState& state);
+  void saveRobotStateButtonClicked(const moveit::core::RobotState& state);
   void populateRobotStatesList();
 
   // Pick and place
   void processDetectedObjects();
-  void updateDetectedObjectsList(const std::vector<std::string>& object_ids, const std::vector<std::string>& objects);
+  void updateDetectedObjectsList(const std::vector<std::string>& object_ids);
   void publishTables();
   void updateSupportSurfacesList();
   ros::Publisher object_recognition_trigger_publisher_;

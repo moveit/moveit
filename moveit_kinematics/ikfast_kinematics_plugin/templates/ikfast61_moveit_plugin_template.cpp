@@ -596,28 +596,26 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
-    case IKP_TranslationXAxisAngle4D:
-    case IKP_TranslationYAxisAngle4D:
-    case IKP_TranslationZAxisAngle4D:
-      // For *TranslationXAxisAngle4D*, *TranslationYAxisAngle4D*, *TranslationZAxisAngle4D* - end effector origin
-      // reaches desired 3D translation, manipulator direction makes a specific angle with x/y/z-axis (defined in the
-      // manipulator base link’s coordinate system)
-      ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
-      return 0;
-
     case IKP_TranslationLocalGlobal6D:
       // For **TranslationLocalGlobal6D**, the diagonal elements ([0],[4],[8]) are the local translation inside the end
       // effector coordinate system.
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
 
+    case IKP_TranslationXY2D:
+      ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
+      return solutions.GetNumSolutions();
+
     case IKP_Rotation3D:
     case IKP_Lookat3D:
-    case IKP_TranslationXY2D:
     case IKP_TranslationXYOrientation3D:
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
 
+    case IKP_TranslationXAxisAngle4D:
+    // For *TranslationXAxisAngle4D*, *TranslationYAxisAngle4D*, *TranslationZAxisAngle4D* - end effector origin
+    // reaches desired 3D translation, manipulator direction makes a specific angle with x/y/z-axis (defined in the
+    // manipulator base link's coordinate system)
     case IKP_TranslationXAxisAngleZNorm4D:
       double roll, pitch, yaw;
       // For **TranslationXAxisAngleZNorm4D** - end effector origin reaches desired 3D translation, manipulator
@@ -627,6 +625,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
+    case IKP_TranslationYAxisAngle4D:
     case IKP_TranslationYAxisAngleXNorm4D:
       // For **TranslationYAxisAngleXNorm4D** - end effector origin reaches desired 3D translation, manipulator
       // direction needs to be orthogonal to x axis and be rotated at a certain angle starting from the y axis (defined
@@ -635,6 +634,7 @@ size_t IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<d
       ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : nullptr, solutions);
       return solutions.GetNumSolutions();
 
+    case IKP_TranslationZAxisAngle4D:
     case IKP_TranslationZAxisAngleYNorm4D:
       // For **TranslationZAxisAngleYNorm4D** - end effector origin reaches desired 3D translation, manipulator
       // direction needs to be orthogonal to y axis and be rotated at a certain angle starting from the z axis (defined

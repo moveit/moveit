@@ -36,13 +36,13 @@
 
 #include <moveit/ompl_interface/detail/threadsafe_state_storage.h>
 
-ompl_interface::TSStateStorage::TSStateStorage(const robot_model::RobotModelPtr& robot_model)
+ompl_interface::TSStateStorage::TSStateStorage(const moveit::core::RobotModelPtr& robot_model)
   : start_state_(robot_model)
 {
   start_state_.setToDefaultValues();
 }
 
-ompl_interface::TSStateStorage::TSStateStorage(const robot_state::RobotState& start_state) : start_state_(start_state)
+ompl_interface::TSStateStorage::TSStateStorage(const moveit::core::RobotState& start_state) : start_state_(start_state)
 {
 }
 
@@ -52,15 +52,15 @@ ompl_interface::TSStateStorage::~TSStateStorage()
     delete thread_state.second;
 }
 
-robot_state::RobotState* ompl_interface::TSStateStorage::getStateStorage() const
+moveit::core::RobotState* ompl_interface::TSStateStorage::getStateStorage() const
 {
-  robot_state::RobotState* st = nullptr;
+  moveit::core::RobotState* st = nullptr;
   std::unique_lock<std::mutex> slock(lock_);  /// \todo use Thread Local Storage?
-  std::map<std::thread::id, robot_state::RobotState*>::const_iterator it =
+  std::map<std::thread::id, moveit::core::RobotState*>::const_iterator it =
       thread_states_.find(std::this_thread::get_id());
   if (it == thread_states_.end())
   {
-    st = new robot_state::RobotState(start_state_);
+    st = new moveit::core::RobotState(start_state_);
     thread_states_[std::this_thread::get_id()] = st;
   }
   else

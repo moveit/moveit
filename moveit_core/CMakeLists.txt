@@ -2,33 +2,54 @@ cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Warnings
-add_compile_options(-Wall -Wextra
-  -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-  -Wno-unused-parameter -Wno-unused-function)
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # Enable warnings
+  add_compile_options(-Wall -Wextra
+    -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
+    -Wno-unused-parameter -Wno-unused-function)
+endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # This too often has false-positives
   add_compile_options(-Wno-maybe-uninitialized)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+# boost::iostreams on Windows depends on boost::zlib
+if(WIN32)
+  set(EXTRA_BOOST_COMPONENTS zlib)
+endif()
+find_package(Boost REQUIRED system filesystem date_time thread iostreams ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+
+# TODO: Move collision detection into separate packages
+find_package(Bullet 2.87)
+
+# TODO(j-petit): Version check can be dropped when Xenial reaches end-of-life
+if(BULLET_FOUND)
+  set(BULLET_ENABLE "BULLET")
+  set(BULLET_LIB "moveit_collision_detection_bullet")
+  set(BULLET_INC "collision_detection_bullet/include")
+  message(STATUS "Compiling with Bullet")
+else()
+  message(STATUS "Version of Bullet too old or not available: disabling Bullet collision detection plugin. Try using Ubuntu 18.04 or later.")
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL_PC REQUIRED fcl)
 # find *absolute* paths to LIBFCL_INCLUDE_DIRS and LIBFCL_LIBRARIES
 find_path(LIBFCL_INCLUDE_DIRS fcl/config.h HINTS ${LIBFCL_PC_INCLUDE_DIR} ${LIBFCL_PC_INCLUDE_DIRS})
 find_library(LIBFCL_LIBRARIES fcl HINTS ${LIBFCL_PC_LIBRARY_DIRS})
+
 
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
@@ -71,6 +92,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     backtrace/include
     collision_detection/include
     collision_detection_fcl/include
+    ${BULLET_INC}
     constraint_samplers/include
     controller_manager/include
     distance_field/include
@@ -107,6 +129,7 @@ catkin_package(
     moveit_planning_interface
     moveit_collision_detection
     moveit_collision_detection_fcl
+    ${BULLET_LIB}
     moveit_kinematic_constraints
     moveit_planning_scene
     moveit_constraint_samplers
@@ -143,10 +166,12 @@ catkin_package(
     OCTOMAP
     urdfdom
     urdfdom_headers
+    ${BULLET_ENABLE}
     )
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
+                           ${BULLET_INCLUDE_DIRS}
                            )
 
 #catkin_lint: ignore_once external_directory  (${VERSION_FILE_PATH})
@@ -196,3 +221,9 @@ add_subdirectory(distance_field)
 add_subdirectory(collision_distance_field)
 add_subdirectory(kinematics_metrics)
 add_subdirectory(dynamics_solver)
+
+if(BULLET_ENABLE)
+  add_subdirectory(collision_detection_bullet)
+else()
+  install(FILES collision_detection_bullet/empty_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} RENAME collision_detector_bullet_description.xml)
+endif()

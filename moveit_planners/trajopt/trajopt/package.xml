@@ -13,6 +13,7 @@
   <depend>trajopt_sco</depend>
   <depend>trajopt_utils</depend>
   <depend>roscpp</depend>
+  <depend>moveit_core</depend>
 
   <test_depend>gtest</test_depend>
   <test_depend>rostest</test_depend>

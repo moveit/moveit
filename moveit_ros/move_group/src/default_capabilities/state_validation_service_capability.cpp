@@ -56,8 +56,8 @@ bool MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidi
                                                      moveit_msgs::GetStateValidity::Response& res)
 {
   planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
-  robot_state::RobotState rs = ls->getCurrentState();
-  robot_state::robotStateMsgToRobotState(req.robot_state, rs);
+  moveit::core::RobotState rs = ls->getCurrentState();
+  moveit::core::robotStateMsgToRobotState(req.robot_state, rs);
 
   res.valid = true;
 

@@ -47,6 +47,7 @@
 
 namespace occupancy_map_monitor
 {
+static const std::string LOGNAME = "occupancy_map_monitor";
 PointCloudOctomapUpdater::PointCloudOctomapUpdater()
   : OccupancyMapUpdater("PointCloudUpdater")
   , private_nh_("~")
@@ -84,7 +85,7 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
   }
   catch (XmlRpc::XmlRpcException& ex)
   {
-    ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "XmlRpc Exception: " << ex.getMessage());
     return false;
   }
 
@@ -113,13 +114,13 @@ void PointCloudOctomapUpdater::start()
     point_cloud_filter_ = new tf2_ros::MessageFilter<sensor_msgs::PointCloud2>(*point_cloud_subscriber_, *tf_buffer_,
                                                                                monitor_->getMapFrame(), 5, root_nh_);
     point_cloud_filter_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
-    ROS_INFO("Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(),
-             point_cloud_filter_->getTargetFramesString().c_str());
+    ROS_INFO_NAMED(LOGNAME, "Listening to '%s' using message filter with target frame '%s'", point_cloud_topic_.c_str(),
+                   point_cloud_filter_->getTargetFramesString().c_str());
   }
   else
   {
     point_cloud_subscriber_->registerCallback(boost::bind(&PointCloudOctomapUpdater::cloudMsgCallback, this, _1));
-    ROS_INFO("Listening to '%s'", point_cloud_topic_.c_str());
+    ROS_INFO_NAMED(LOGNAME, "Listening to '%s'", point_cloud_topic_.c_str());
   }
 }
 
@@ -142,7 +143,7 @@ ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& 
   if (shape_mask_)
     h = shape_mask_->addShape(shape, scale_, padding_);
   else
-    ROS_ERROR("Shape filter not yet initialized!");
+    ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
   return h;
 }
 
@@ -169,7 +170,7 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 
 void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
-  ROS_DEBUG("Received a new point cloud message");
+  ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
 
   if (max_update_rate_ > 0)
@@ -199,7 +200,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       }
       catch (tf2::TransformException& ex)
       {
-        ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << "; quitting callback");
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "Transform error of sensor data: " << ex.what() << "; quitting callback");
         return;
       }
     }
@@ -214,7 +215,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 
   if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
   {
-    ROS_ERROR_THROTTLE(1, "Transform cache was not updated. Self-filtering may fail.");
+    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
     return;
   }
 
@@ -346,10 +347,10 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   }
   catch (...)
   {
-    ROS_ERROR("Internal error while updating octree");
+    ROS_ERROR_NAMED(LOGNAME, "Internal error while updating octree");
   }
   tree_->unlockWrite();
-  ROS_DEBUG("Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  ROS_DEBUG_NAMED(LOGNAME, "Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   tree_->triggerUpdateCallback();
 
   if (filtered_cloud)

@@ -44,13 +44,13 @@ ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory() : Model
 
 int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(
     const std::string& group, const moveit_msgs::MotionPlanRequest& req,
-    const robot_model::RobotModelConstPtr& robot_model) const
+    const moveit::core::RobotModelConstPtr& robot_model) const
 {
-  const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
+  const moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group);
   if (jmg)
   {
-    const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>&
-        slv = jmg->getGroupKinematics();
+    const std::pair<moveit::core::JointModelGroup::KinematicsSolver,
+                    moveit::core::JointModelGroup::KinematicsSolverMap>& slv = jmg->getGroupKinematics();
     bool ik = false;
     // check that we have a direct means to compute IK
     if (slv.first)
@@ -86,5 +86,5 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(
 ompl_interface::ModelBasedStateSpacePtr
 ompl_interface::PoseModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const
 {
-  return ModelBasedStateSpacePtr(new PoseModelStateSpace(space_spec));
+  return std::make_shared<PoseModelStateSpace>(space_spec);
 }

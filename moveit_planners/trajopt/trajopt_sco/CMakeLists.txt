@@ -21,6 +21,9 @@ find_package(GUROBI QUIET)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
 
+if(!${osqp_FOUND})
+	message([FATAL_ERROR] "OSQP was not found. Check trajopt_utils CMakeLists to make sure OSQP is installed in build directory")
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)

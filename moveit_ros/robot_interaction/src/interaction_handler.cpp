@@ -56,7 +56,7 @@
 namespace robot_interaction
 {
 InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
-                                       const robot_state::RobotState& initial_robot_state,
+                                       const moveit::core::RobotState& initial_robot_state,
                                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(initial_robot_state)
   , name_(fixName(name))
@@ -279,7 +279,7 @@ void InteractionHandler::handleJoint(const JointInteraction& vj,
 }
 
 // MUST hold state_lock_ when calling this!
-void InteractionHandler::updateStateGeneric(robot_state::RobotState* state, const GenericInteraction* g,
+void InteractionHandler::updateStateGeneric(moveit::core::RobotState* state, const GenericInteraction* g,
                                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr* feedback,
                                             StateChangeCallbackFn* callback)
 {
@@ -290,7 +290,7 @@ void InteractionHandler::updateStateGeneric(robot_state::RobotState* state, cons
 }
 
 // MUST hold state_lock_ when calling this!
-void InteractionHandler::updateStateEndEffector(robot_state::RobotState* state, const EndEffectorInteraction* eef,
+void InteractionHandler::updateStateEndEffector(moveit::core::RobotState* state, const EndEffectorInteraction* eef,
                                                 const geometry_msgs::Pose* pose, StateChangeCallbackFn* callback)
 {
   // This is called with state_lock_ held, so no additional locking needed to
@@ -304,13 +304,13 @@ void InteractionHandler::updateStateEndEffector(robot_state::RobotState* state, 
 }
 
 // MUST hold state_lock_ when calling this!
-void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj,
+void InteractionHandler::updateStateJoint(moveit::core::RobotState* state, const JointInteraction* vj,
                                           const geometry_msgs::Pose* feedback_pose, StateChangeCallbackFn* callback)
 {
   Eigen::Isometry3d pose;
   tf2::fromMsg(*feedback_pose, pose);
 
-  if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
+  if (!vj->parent_frame.empty() && !moveit::core::Transforms::sameFrame(vj->parent_frame, planning_frame_))
     pose = state->getGlobalLinkTransform(vj->parent_frame).inverse() * pose;
 
   state->setJointPositions(vj->joint_name, pose);

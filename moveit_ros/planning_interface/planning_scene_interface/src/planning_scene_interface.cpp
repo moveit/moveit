@@ -50,7 +50,7 @@ static const std::string LOGNAME = "planning_scene_interface";
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
+  explicit PlanningSceneInterfaceImpl(const std::string& ns = "", bool wait = true)
   {
     node_handle_ = ros::NodeHandle(ns);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
@@ -59,8 +59,18 @@ public:
     apply_planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
 
-    waitForService(planning_scene_service_);
-    waitForService(apply_planning_scene_service_);
+    if (wait)
+    {
+      waitForService(planning_scene_service_);
+      waitForService(apply_planning_scene_service_);
+    }
+    else
+    {
+      if (!planning_scene_service_.exists() || !apply_planning_scene_service_.exists())
+      {
+        throw std::runtime_error("ROS services not available");
+      }
+    }
   }
 
   std::vector<std::string> getKnownObjectNames(bool with_type)
@@ -267,12 +277,12 @@ private:
   ros::ServiceClient planning_scene_service_;
   ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
-  robot_model::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)
+PlanningSceneInterface::PlanningSceneInterface(const std::string& ns, bool wait)
 {
-  impl_ = new PlanningSceneInterfaceImpl(ns);
+  impl_ = new PlanningSceneInterfaceImpl(ns, wait);
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()

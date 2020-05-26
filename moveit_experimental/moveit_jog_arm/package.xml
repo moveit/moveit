@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>moveit_jog_arm</name>
-  <version>0.0.3</version>
+  <version>1.0.1</version>
 
   <description>Provides real-time manipulator Cartesian jogging.</description>
 
@@ -21,11 +21,15 @@
 
   <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
-  <depend>tf2_ros</depend>
 
   <exec_depend>joy_teleop</exec_depend>
+  <exec_depend>spacenav_node</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>ros_pytest</test_depend>
