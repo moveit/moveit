@@ -81,10 +81,19 @@ PlanningComponent::PlanningComponent(const std::string& group_name, const MoveIt
     throw std::runtime_error(error);
   }
   planning_pipeline_names_ = moveit_cpp_->getPlanningPipelineNames(group_name);
+  plan_request_parameters_.load(nh_);
+  ROS_DEBUG_STREAM_NAMED(
+      LOGNAME, "Plan request parameters loaded with --"
+                   << " planning_pipeline: " << plan_request_parameters_.planning_pipeline << ","
+                   << " planner_id: " << plan_request_parameters_.planner_id << ","
+                   << " planning_time: " << plan_request_parameters_.planning_time << ","
+                   << " planning_attempts: " << plan_request_parameters_.planning_attempts << ","
+                   << " max_velocity_scaling_factor: " << plan_request_parameters_.max_velocity_scaling_factor << ","
+                   << " max_acceleration_scaling_factor: " << plan_request_parameters_.max_acceleration_scaling_factor);
 }
 
 PlanningComponent::PlanningComponent(const std::string& group_name, const ros::NodeHandle& nh)
-  : nh_(nh), moveit_cpp_(new MoveItCpp(nh)), group_name_(group_name)
+  : PlanningComponent(group_name, std::make_shared<MoveItCpp>(nh))
 {
 }
 
@@ -138,6 +147,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
   ::planning_interface::MotionPlanRequest req;
   req.group_name = group_name_;
   req.planner_id = parameters.planner_id;
+  req.num_planning_attempts = std::max(1, parameters.planning_attempts);
   req.allowed_planning_time = parameters.planning_time;
   req.max_velocity_scaling_factor = parameters.max_velocity_scaling_factor;
   req.max_acceleration_scaling_factor = parameters.max_acceleration_scaling_factor;
@@ -197,14 +207,7 @@ PlanningComponent::PlanSolution PlanningComponent::plan(const PlanRequestParamet
 
 PlanningComponent::PlanSolution PlanningComponent::plan()
 {
-  PlanRequestParameters default_parameters;
-  default_parameters.planning_attempts = 1;
-  default_parameters.planning_time = 5.0;
-  default_parameters.max_velocity_scaling_factor = 1.0;
-  default_parameters.max_acceleration_scaling_factor = 1.0;
-  if (!planning_pipeline_names_.empty())
-    default_parameters.planning_pipeline = *planning_pipeline_names_.begin();
-  return plan(default_parameters);
+  return plan(plan_request_parameters_);
 }
 
 bool PlanningComponent::setStartState(const moveit::core::RobotState& start_state)
