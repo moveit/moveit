@@ -42,7 +42,7 @@
 namespace
 {
 constexpr char LOGNAME[] = "jog_server";
-constexpr char ROS_THREADS = 4;
+constexpr char ROS_THREADS = 8;
 
 struct JogServerParameters
 {
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Create the jog server
-  moveit_jog_arm::JogArm jog_arm(planning_scene_monitor);
+  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
 
   // ROS subscriptions. Share the data with the worker threads
   auto cmd_sub =

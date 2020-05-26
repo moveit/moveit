@@ -63,28 +63,66 @@ public:
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
+  CollisionCheckThread(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+                       JogArmShared& shared_variables,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \breif run function to be run in a thread */
-  void run(moveit_jog_arm::JogArmShared& shared_variables);
+  /** \breif start and stop the Thread */
+  void start();
+  void stop();
 
 private:
+  void init();
+  void run(const ros::TimerEvent& timer_event);
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
 
+  // ROS node handle
+  ros::NodeHandle nh_;
+
+  // Parameters
   const moveit_jog_arm::JogArmParameters parameters_;
 
-  CollisionCheckType collision_check_type_;
+  // Shared variables from JogArm
+  JogArmShared& shared_variables_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
+  // Robot state and collision matrix from planning scene
+  std::unique_ptr<moveit::core::RobotState> current_state_;
+  collision_detection::AllowedCollisionMatrix acm_;
+
+  // Scale robot velocity according to collision proximity and user-defined thresholds.
+  // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
+  // Proximity decreasing --> decelerate
+  CollisionCheckType collision_check_type_;
+  double velocity_scale_ = 1;
+  double self_collision_distance_ = 0;
+  double scene_collision_distance_ = 0;
+  bool collision_detected_ = false;
+
+  // Variables for stop-distance-based collision checking
+  double current_collision_distance_ = 0;
+  double derivative_of_collision_distance_ = 0;
+  double prev_collision_distance_ = 0;
+  double est_time_to_collision_ = 0;
+  double safety_factor_ = 1000;
+
+  const double self_velocity_scale_coefficient_;
+  const double scene_velocity_scale_coefficient_;
+
+  // collision request
+  collision_detection::CollisionRequest collision_request_;
+  collision_detection::CollisionResult collision_result_;
+
   // ROS
+  ros::Timer timer_;
+  ros::Duration period_;
   ros::Subscriber joint_state_sub_;
 
   // Latest joint state, updated by ROS callback
   mutable std::mutex joint_state_mutex_;
-  sensor_msgs::JointState latest_joint_state_;
+  sensor_msgs::JointStateConstPtr latest_joint_state_;
 };
 }  // namespace moveit_jog_arm

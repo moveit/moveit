@@ -57,13 +57,15 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr,
+  JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogArmShared& shared_variables,
+           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
            const std::shared_ptr<TwistedStampedQueue>& command_deltas_queue,
            const std::shared_ptr<JointJogQueue>& joint_command_deltas_queue,
            const std::shared_ptr<JointTrajectoryQueue>& outgoing_command_queue);
 
-  /** \breif Thread run method */
-  void run(JogArmShared& shared_variables);
+  /** \breif Start and stop the timer (thread) */
+  void start();
+  void stop();
 
   /** \brief Check if the robot state is being updated and the end effector transform is known
    *  @return true if initialized properly
@@ -80,6 +82,12 @@ public:
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
 private:
+  /** \breif Init must be called once before run */
+  void init();
+
+  /** \brief Timer method */
+  void run(const ros::TimerEvent& timer_event);
+
   /** \brief Do jogging calculations for Cartesian twist commands. */
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
@@ -165,8 +173,36 @@ private:
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
 
+  // ROS node handle
+  ros::NodeHandle nh_;
+
+  // Ros parameters from JogArm
+  const JogArmParameters& parameters_;
+
+  // Shared variables from JogArm
+  JogArmShared& shared_variables_;
+
+  // Pointer to the collision environment
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
   // Flag that robot state is up to date, end effector transform is known
-  bool is_initialized_;
+  bool is_initialized_ = false;
+
+  // Track the number of cycles during which motion has not occurred.
+  // Will avoid re-publishing zero velocities endlessly.
+  int zero_velocity_count_ = 0;
+
+  // Flag for staying inactive while there are no incoming commands
+  bool wait_for_jog_commands_ = true;
+
+  // Nonzero status flags
+  bool have_nonzero_cartesian_command_ = false;
+  bool have_nonzero_joint_command_ = false;
+  bool have_nonzero_command_ = false;
+
+  // Incoming command messages
+  geometry_msgs::TwistStamped cartesian_deltas_;
+  control_msgs::JointJog joint_deltas_;
 
   const moveit::core::JointModelGroup* joint_model_group_;
 
@@ -180,10 +216,10 @@ private:
   // latest_state_mutex_ is used to protect
   // incoming_joint_state_ and tf_moveit_to_cmd_frame_
   mutable std::mutex latest_state_mutex_;
+  // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   sensor_msgs::JointState incoming_joint_state_;
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
 
-  // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
   sensor_msgs::JointState internal_joint_state_, original_joint_state_;
@@ -194,11 +230,11 @@ private:
   std::vector<LowPassFilter> position_filters_;
 
   // ROS
+  ros::Timer timer_;
+  ros::Duration period_;
   ros::Subscriber joint_state_sub_;
   ros::Publisher status_pub_;
   StatusCode status_ = NO_WARNING;
-
-  JogArmParameters parameters_;
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
@@ -208,6 +244,7 @@ private:
 
   uint num_joints_;
 
-  ros::Rate default_sleep_rate_;
+  // Amount we sleep when waiting
+  ros::Rate default_sleep_rate_ = 1000;
 };
 }  // namespace moveit_jog_arm
