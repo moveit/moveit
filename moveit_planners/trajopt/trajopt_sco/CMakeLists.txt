@@ -3,19 +3,30 @@ project(trajopt_sco)
 
 add_compile_options(-std=c++11 -Wall -Wextra)
 
+# Download and unpack osqp at configure time
+configure_file(osqp_configure.in
+               ${CMAKE_CURRENT_BINARY_DIR}/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+find_package(osqp CONFIG
+    PATHS "${CMAKE_CURRENT_BINARY_DIR}/osqp/src/osqp-build/osqp-install"
+    NO_DEFAULT_PATH)
+
+if(!${osqp_FOUND})
+  message([FATAL_ERROR] "OSQP was not found. Check trajopt_utils CMakeLists to make sure OSQP is installed in build directory")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 find_package(catkin REQUIRED COMPONENTS trajopt_utils)
 find_package(GUROBI QUIET)
 find_package(qpOASES QUIET)
 find_package(Eigen3 REQUIRED)
 
-find_package(osqp CONFIG 
-    PATHS "${CMAKE_CURRENT_BINARY_DIR}/../trajopt_utils/osqp/src/osqp-build/osqp-install"
-    NO_DEFAULT_PATH)
 
-if(!${osqp_FOUND})
-	message([FATAL_ERROR] "OSQP was not found. Check trajopt_utils CMakeLists to make sure OSQP is installed in build directory")
-endif()
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
