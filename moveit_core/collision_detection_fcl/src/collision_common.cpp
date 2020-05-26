@@ -517,6 +517,14 @@ bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void
   }
 
   fcl_result.min_distance = dist_threshold;
+  // fcl::distance segfaults when given an octree with a null root pointer (using FCL 0.6.1)
+  if ((o1->getObjectType() == fcl::OT_OCTREE &&
+       !std::static_pointer_cast<const fcl::OcTreed>(o1->collisionGeometry())->getRoot()) ||
+      (o2->getObjectType() == fcl::OT_OCTREE &&
+       !std::static_pointer_cast<const fcl::OcTreed>(o2->collisionGeometry())->getRoot()))
+  {
+    return false;
+  }
   double d = fcl::distance(o1, o2, fcl::DistanceRequestd(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
