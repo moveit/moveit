@@ -57,8 +57,6 @@ class TestJogCppInterface : public ::testing::Test
 public:
   void SetUp() override
   {
-    nh_.reset(new ros::NodeHandle("~"));
-
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();
@@ -69,13 +67,17 @@ public:
   }
 
 protected:
-  std::unique_ptr<ros::NodeHandle> nh_;
+  ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 };  // class TestJogCppInterface
 
 TEST_F(TestJogCppInterface, InitTest)
 {
-  moveit_jog_arm::JogArm jog_arm(planning_scene_monitor_);
+  moveit_jog_arm::JogArm jog_arm(nh_, planning_scene_monitor_);
+  jog_arm.start();
+  ros::Duration(1).sleep();  // Give the started thread some time to run
+  jog_arm.stop();
+  ros::Duration(1).sleep();  // Give the started thread some time to run
   jog_arm.start();
   ros::Duration(1).sleep();  // Give the started thread some time to run
   jog_arm.stop();
@@ -92,7 +94,7 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "jog_cpp_interface_test_test");
 
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(8);
   spinner.start();
 
   int result = RUN_ALL_TESTS();
