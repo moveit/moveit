@@ -123,10 +123,12 @@ struct JogArmParameters
 {
   std::string move_group_name;
   std::string joint_topic;
+  std::string cartesian_command_in_topic;
   std::string robot_link_command_frame;
   std::string command_out_topic;
   std::string planning_frame;
   std::string status_topic;
+  std::string joint_command_in_topic;
   std::string command_in_type;
   std::string command_out_type;
   double linear_scale;
@@ -152,4 +154,5 @@ struct JogArmParameters
   double collision_distance_safety_factor;
   double min_allowable_collision_distance;
 };
+
 }  // namespace moveit_jog_arm

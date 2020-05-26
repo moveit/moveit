@@ -38,7 +38,6 @@
 
 #include <memory>
 #include <mutex>
-#include <thread>
 
 #include <Eigen/Eigenvalues>
 
@@ -64,7 +63,7 @@ namespace moveit_jog_arm
 class JogArm
 {
 public:
-  JogArm(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   ~JogArm();
 
@@ -129,16 +128,16 @@ public:
 
 private:
   bool readParameters();
-  void run();
-  bool startJogCalcThread();
-  bool startCollisionCheckThread();
+  void run(const ros::TimerEvent& timer_event);
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  ros::NodeHandle nh_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
-  JogArmParameters ros_parameters_;
+  JogArmParameters parameters_;
 
   // Share data between threads
   JogArmShared shared_variables_;
@@ -154,12 +153,9 @@ private:
   // Collision checks
   std::unique_ptr<CollisionCheckThread> collision_checker_;
 
-  // Threads
-  std::thread jog_server_thread_;
-  std::thread jog_calc_thread_;
-  std::thread collision_check_thread_;
-
   // ROS
+  ros::Timer timer_;
+  ros::Duration period_;
   ros::Subscriber joint_state_sub_;
   ros::Publisher outgoing_cmd_pub_;
 

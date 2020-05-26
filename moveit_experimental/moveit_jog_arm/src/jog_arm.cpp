@@ -43,14 +43,15 @@ static const std::string LOGNAME = "jog_arm";
 
 namespace moveit_jog_arm
 {
-JogArm::JogArm(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : planning_scene_monitor_(planning_scene_monitor)
+JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
-  ros::NodeHandle nh;
-
   // Read ROS parameters, typically from YAML file
   if (!readParameters())
     exit(EXIT_FAILURE);
+
+  // loop period
+  period_ = ros::Duration(parameters_.publish_period);
 
   // Create queues for message passing between threads
   command_deltas_queue_ = std::make_shared<TwistedStampedQueue>();
@@ -59,23 +60,28 @@ JogArm::JogArm(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_s
 
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-  if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    outgoing_cmd_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>(ros_parameters_.command_out_topic, 1);
-  else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    outgoing_cmd_pub_ = nh.advertise<std_msgs::Float64MultiArray>(ros_parameters_.command_out_topic, 1);
+  if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, 1);
+  else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
+    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, 1);
 
   // subscribe to joints
-  joint_state_sub_ = nh.subscribe(ros_parameters_.joint_topic, 1, &JogArm::jointStateCB, this);
+  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, 1, &JogArm::jointStateCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
-  ros::topic::waitForMessage<sensor_msgs::JointState>(ros_parameters_.joint_topic);
+  ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
+
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, shared_variables_, planning_scene_monitor_,
+                                          command_deltas_queue_, joint_command_deltas_queue_, outgoing_command_queue_);
+
+  collision_checker_ =
+      std::make_unique<CollisionCheckThread>(nh_, parameters_, shared_variables_, planning_scene_monitor_);
 }
 
 // Read ROS parameters, typically from YAML file
 bool JogArm::readParameters()
 {
-  ros::NodeHandle nh;
   std::size_t error = 0;
 
   // Specified in the launch file. All other parameters will be read from this namespace.
@@ -90,143 +96,144 @@ bool JogArm::readParameters()
     return false;
   }
 
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/publish_period", ros_parameters_.publish_period);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_period", parameters_.publish_period);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_check_rate", parameters_.collision_check_rate);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/num_outgoing_halt_msgs_to_publish",
+                                    parameters_.num_outgoing_halt_msgs_to_publish);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/linear", parameters_.linear_scale);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/rotational", parameters_.rotational_scale);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/scale/joint", parameters_.joint_scale);
   error +=
-      !rosparam_shortcuts::get("", nh, parameter_ns + "/collision_check_rate", ros_parameters_.collision_check_rate);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/num_outgoing_halt_msgs_to_publish",
-                                    ros_parameters_.num_outgoing_halt_msgs_to_publish);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/scale/linear", ros_parameters_.linear_scale);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/scale/rotational", ros_parameters_.rotational_scale);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/scale/joint", ros_parameters_.joint_scale);
+      !rosparam_shortcuts::get("", nh_, parameter_ns + "/low_pass_filter_coeff", parameters_.low_pass_filter_coeff);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_topic", parameters_.joint_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_in_type", parameters_.command_in_type);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/cartesian_command_in_topic",
+                                    parameters_.cartesian_command_in_topic);
   error +=
-      !rosparam_shortcuts::get("", nh, parameter_ns + "/low_pass_filter_coeff", ros_parameters_.low_pass_filter_coeff);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/joint_topic", ros_parameters_.joint_topic);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/command_in_type", ros_parameters_.command_in_type);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/robot_link_command_frame",
-                                    ros_parameters_.robot_link_command_frame);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/incoming_command_timeout",
-                                    ros_parameters_.incoming_command_timeout);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/lower_singularity_threshold",
-                                    ros_parameters_.lower_singularity_threshold);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/hard_stop_singularity_threshold",
-                                    ros_parameters_.hard_stop_singularity_threshold);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/move_group_name", ros_parameters_.move_group_name);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/planning_frame", ros_parameters_.planning_frame);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/use_gazebo", ros_parameters_.use_gazebo);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/joint_limit_margin", ros_parameters_.joint_limit_margin);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/command_out_topic", ros_parameters_.command_out_topic);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/command_out_type", ros_parameters_.command_out_type);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/publish_joint_positions",
-                                    ros_parameters_.publish_joint_positions);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/publish_joint_velocities",
-                                    ros_parameters_.publish_joint_velocities);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/publish_joint_accelerations",
-                                    ros_parameters_.publish_joint_accelerations);
+      !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_command_in_topic", parameters_.joint_command_in_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/robot_link_command_frame",
+                                    parameters_.robot_link_command_frame);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/incoming_command_timeout",
+                                    parameters_.incoming_command_timeout);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/lower_singularity_threshold",
+                                    parameters_.lower_singularity_threshold);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/hard_stop_singularity_threshold",
+                                    parameters_.hard_stop_singularity_threshold);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/move_group_name", parameters_.move_group_name);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/planning_frame", parameters_.planning_frame);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/use_gazebo", parameters_.use_gazebo);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/joint_limit_margin", parameters_.joint_limit_margin);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_out_topic", parameters_.command_out_topic);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/command_out_type", parameters_.command_out_type);
+  error +=
+      !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_positions", parameters_.publish_joint_positions);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_velocities",
+                                    parameters_.publish_joint_velocities);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/publish_joint_accelerations",
+                                    parameters_.publish_joint_accelerations);
 
   // Parameters for collision checking
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/check_collisions", ros_parameters_.check_collisions);
-  error +=
-      !rosparam_shortcuts::get("", nh, parameter_ns + "/collision_check_type", ros_parameters_.collision_check_type);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/check_collisions", parameters_.check_collisions);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_check_type", parameters_.collision_check_type);
   bool have_self_collision_proximity_threshold = rosparam_shortcuts::get(
-      "", nh, parameter_ns + "/self_collision_proximity_threshold", ros_parameters_.self_collision_proximity_threshold);
-  bool have_scene_collision_proximity_threshold =
-      rosparam_shortcuts::get("", nh, parameter_ns + "/scene_collision_proximity_threshold",
-                              ros_parameters_.scene_collision_proximity_threshold);
+      "", nh_, parameter_ns + "/self_collision_proximity_threshold", parameters_.self_collision_proximity_threshold);
+  bool have_scene_collision_proximity_threshold = rosparam_shortcuts::get(
+      "", nh_, parameter_ns + "/scene_collision_proximity_threshold", parameters_.scene_collision_proximity_threshold);
   double collision_proximity_threshold;
   // 'collision_proximity_threshold' parameter was removed, replaced with separate self- and scene-collision proximity
   // thresholds
   // TODO(JStech): remove this deprecation warning in ROS Noetic; simplify error case handling
-  if (nh.hasParam(parameter_ns + "/collision_proximity_threshold") &&
-      rosparam_shortcuts::get("", nh, parameter_ns + "/collision_proximity_threshold", collision_proximity_threshold))
+  if (nh_.hasParam(parameter_ns + "/collision_proximity_threshold") &&
+      rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_proximity_threshold", collision_proximity_threshold))
   {
     ROS_WARN_NAMED(LOGNAME, "'collision_proximity_threshold' parameter is deprecated, and has been replaced by separate"
                             "'self_collision_proximity_threshold' and 'scene_collision_proximity_threshold' "
                             "parameters. Please update the jogging yaml file.");
     if (!have_self_collision_proximity_threshold)
     {
-      ros_parameters_.self_collision_proximity_threshold = collision_proximity_threshold;
+      parameters_.self_collision_proximity_threshold = collision_proximity_threshold;
       have_self_collision_proximity_threshold = true;
     }
     if (!have_scene_collision_proximity_threshold)
     {
-      ros_parameters_.scene_collision_proximity_threshold = collision_proximity_threshold;
+      parameters_.scene_collision_proximity_threshold = collision_proximity_threshold;
       have_scene_collision_proximity_threshold = true;
     }
   }
   error += !have_self_collision_proximity_threshold;
   error += !have_scene_collision_proximity_threshold;
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/collision_distance_safety_factor",
-                                    ros_parameters_.collision_distance_safety_factor);
-  error += !rosparam_shortcuts::get("", nh, parameter_ns + "/min_allowable_collision_distance",
-                                    ros_parameters_.min_allowable_collision_distance);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/collision_distance_safety_factor",
+                                    parameters_.collision_distance_safety_factor);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/min_allowable_collision_distance",
+                                    parameters_.min_allowable_collision_distance);
 
   // This parameter name was changed recently.
   // Try retrieving from the correct name. If it fails, then try the deprecated name.
   // TODO(andyz): remove this deprecation warning in ROS Noetic
-  if (!rosparam_shortcuts::get("", nh, parameter_ns + "/status_topic", ros_parameters_.status_topic))
+  if (!rosparam_shortcuts::get("", nh_, parameter_ns + "/status_topic", parameters_.status_topic))
   {
     ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "
                             "the jogging yaml file.");
-    error += !rosparam_shortcuts::get("", nh, parameter_ns + "/warning_topic", ros_parameters_.status_topic);
+    error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/warning_topic", parameters_.status_topic);
   }
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Input checking
-  if (ros_parameters_.publish_period <= 0.)
+  if (parameters_.publish_period <= 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'publish_period' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.num_outgoing_halt_msgs_to_publish < 0)
+  if (parameters_.num_outgoing_halt_msgs_to_publish < 0)
   {
     ROS_WARN_NAMED(LOGNAME,
                    "Parameter 'num_outgoing_halt_msgs_to_publish' should be greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.hard_stop_singularity_threshold < ros_parameters_.lower_singularity_threshold)
+  if (parameters_.hard_stop_singularity_threshold < parameters_.lower_singularity_threshold)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'hard_stop_singularity_threshold' "
                             "should be greater than 'lower_singularity_threshold.' "
                             "Check yaml file.");
     return false;
   }
-  if ((ros_parameters_.hard_stop_singularity_threshold < 0.) || (ros_parameters_.lower_singularity_threshold < 0.))
+  if ((parameters_.hard_stop_singularity_threshold < 0.) || (parameters_.lower_singularity_threshold < 0.))
   {
     ROS_WARN_NAMED(LOGNAME, "Parameters 'hard_stop_singularity_threshold' "
                             "and 'lower_singularity_threshold' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.low_pass_filter_coeff < 0.)
+  if (parameters_.low_pass_filter_coeff < 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_coeff' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.joint_limit_margin < 0.)
+  if (parameters_.joint_limit_margin < 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'joint_limit_margin' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.command_in_type != "unitless" && ros_parameters_.command_in_type != "speed_units")
+  if (parameters_.command_in_type != "unitless" && parameters_.command_in_type != "speed_units")
   {
     ROS_WARN_NAMED(LOGNAME, "command_in_type should be 'unitless' or "
                             "'speed_units'. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.command_out_type != "trajectory_msgs/JointTrajectory" &&
-      ros_parameters_.command_out_type != "std_msgs/Float64MultiArray")
+  if (parameters_.command_out_type != "trajectory_msgs/JointTrajectory" &&
+      parameters_.command_out_type != "std_msgs/Float64MultiArray")
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter command_out_type should be "
                             "'trajectory_msgs/JointTrajectory' or "
                             "'std_msgs/Float64MultiArray'. Check yaml file.");
     return false;
   }
-  if (!ros_parameters_.publish_joint_positions && !ros_parameters_.publish_joint_velocities &&
-      !ros_parameters_.publish_joint_accelerations)
+  if (!parameters_.publish_joint_positions && !parameters_.publish_joint_velocities &&
+      !parameters_.publish_joint_accelerations)
   {
     ROS_WARN_NAMED(LOGNAME, "At least one of publish_joint_positions / "
                             "publish_joint_velocities / "
@@ -234,50 +241,49 @@ bool JogArm::readParameters()
                             "yaml file.");
     return false;
   }
-  if ((ros_parameters_.command_out_type == "std_msgs/Float64MultiArray") && ros_parameters_.publish_joint_positions &&
-      ros_parameters_.publish_joint_velocities)
+  if ((parameters_.command_out_type == "std_msgs/Float64MultiArray") && parameters_.publish_joint_positions &&
+      parameters_.publish_joint_velocities)
   {
     ROS_WARN_NAMED(LOGNAME, "When publishing a std_msgs/Float64MultiArray, "
                             "you must select positions OR velocities.");
     return false;
   }
   // Collision checking
-  if (ros_parameters_.collision_check_type != "threshold_distance" &&
-      ros_parameters_.collision_check_type != "stop_distance")
+  if (parameters_.collision_check_type != "threshold_distance" && parameters_.collision_check_type != "stop_distance")
   {
     ROS_WARN_NAMED(LOGNAME, "collision_check_type must be 'threshold_distance' or 'stop_distance'");
     return false;
   }
-  if (ros_parameters_.self_collision_proximity_threshold < 0.)
+  if (parameters_.self_collision_proximity_threshold < 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'self_collision_proximity_threshold' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.scene_collision_proximity_threshold < 0.)
+  if (parameters_.scene_collision_proximity_threshold < 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'scene_collision_proximity_threshold' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.scene_collision_proximity_threshold < ros_parameters_.self_collision_proximity_threshold)
+  if (parameters_.scene_collision_proximity_threshold < parameters_.self_collision_proximity_threshold)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'self_collision_proximity_threshold' should probably be less "
                             "than or equal to 'scene_collision_proximity_threshold'. Check yaml file.");
   }
-  if (ros_parameters_.collision_check_rate < 0)
+  if (parameters_.collision_check_rate < 0)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'collision_check_rate' should be "
                             "greater than zero. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.collision_distance_safety_factor < 1)
+  if (parameters_.collision_distance_safety_factor < 1)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'collision_distance_safety_factor' should be "
                             "greater than or equal to 1. Check yaml file.");
     return false;
   }
-  if (ros_parameters_.min_allowable_collision_distance < 0)
+  if (parameters_.min_allowable_collision_distance < 0)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'min_allowable_collision_distance' should be "
                             "greater than zero. Check yaml file.");
@@ -287,58 +293,60 @@ bool JogArm::readParameters()
   return true;
 }
 
-void JogArm::run()
+void JogArm::run(const ros::TimerEvent& timer_event)
 {
-  ros::Rate main_rate(1. / ros_parameters_.publish_period);
+  // Log last loop duration and warn if it was longer than period
+  if (timer_event.profile.last_duration.toSec() < period_.toSec())
+  {
+    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
+                                                                   << period_.toSec() << ")");
+  }
+  else
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " > "
+                                                                 << period_.toSec());
+  }
+
   trajectory_msgs::JointTrajectory outgoing_command;
 
-  // Wait for low pass filters to stabilize
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Waiting for low-pass filters to stabilize.");
-  ros::Duration(10 * ros_parameters_.publish_period).sleep();
-
-  while (ros::ok() && !shared_variables_.stop_requested)
+  // Check for stale cmds
   {
-    // Check for stale cmds
-    {
-      const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-      shared_variables_.command_is_stale =
-          ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(ros_parameters_.incoming_command_timeout));
-    }
+    const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+    shared_variables_.command_is_stale =
+        ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
+  }
 
-    // Read the latest outgoing command out of the queue
-    popLatest(*outgoing_command_queue_, outgoing_command);
+  // Read the latest outgoing command out of the queue
+  popLatest(*outgoing_command_queue_, outgoing_command);
 
-    // Publish the most recent trajectory, unless the jogging calculation thread tells not to
-    if (shared_variables_.ok_to_publish)
+  // Publish the most recent trajectory, unless the jogging calculation thread tells not to
+  if (shared_variables_.ok_to_publish)
+  {
+    // Put the outgoing msg in the right format
+    // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
+    if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     {
-      // Put the outgoing msg in the right format
-      // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-      if (ros_parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-      {
-        outgoing_command.header.stamp = ros::Time::now();
-        outgoing_cmd_pub_.publish(outgoing_command);
-      }
-      else if (ros_parameters_.command_out_type == "std_msgs/Float64MultiArray")
-      {
-        std_msgs::Float64MultiArray joints;
-        if (ros_parameters_.publish_joint_positions)
-          joints.data = outgoing_command.points[0].positions;
-        else if (ros_parameters_.publish_joint_velocities)
-          joints.data = outgoing_command.points[0].velocities;
-        outgoing_cmd_pub_.publish(joints);
-      }
+      outgoing_command.header.stamp = ros::Time::now();
+      outgoing_cmd_pub_.publish(outgoing_command);
     }
-    else if (shared_variables_.command_is_stale)
+    else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
-                                                  "Try a larger 'incoming_command_timeout' parameter?");
+      std_msgs::Float64MultiArray joints;
+      if (parameters_.publish_joint_positions)
+        joints.data = outgoing_command.points[0].positions;
+      else if (parameters_.publish_joint_velocities)
+        joints.data = outgoing_command.points[0].velocities;
+      outgoing_cmd_pub_.publish(joints);
     }
-    else
-    {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
-    }
-
-    main_rate.sleep();
+  }
+  else if (shared_variables_.command_is_stale)
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
+                                                "Try a larger 'incoming_command_timeout' parameter?");
+  }
+  else
+  {
+    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
   }
 }
 
@@ -347,29 +355,24 @@ void JogArm::start()
   shared_variables_.stop_requested = false;
   shared_variables_.paused = false;
 
-  // Start the jog server main
-  jog_server_thread_ = std::thread([&]() { this->run(); });
-
   // Crunch the numbers in this thread
-  startJogCalcThread();
+  jog_calcs_->start();
 
   // Check collisions in this thread
-  if (ros_parameters_.check_collisions)
-    startCollisionCheckThread();
+  if (parameters_.check_collisions)
+    collision_checker_->start();
+
+  // Start the jog server timer
+  timer_ = nh_.createTimer(period_, &JogArm::run, this);
 }
 
 void JogArm::stop()
 {
   shared_variables_.stop_requested = true;
 
-  if (jog_server_thread_.joinable())
-    jog_server_thread_.join();
-
-  if (jog_calc_thread_.joinable())
-    jog_calc_thread_.join();
-
-  if (collision_check_thread_.joinable())
-    collision_check_thread_.join();
+  timer_.stop();
+  jog_calcs_->stop();
+  collision_checker_->stop();
 }
 
 JogArm::~JogArm()
@@ -409,30 +412,6 @@ bool JogArm::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Reque
   shared_variables_.control_dimensions[5] = req.control_z_rotation;
 
   res.success = true;
-  return true;
-}
-
-// A separate thread for the heavy jogging calculations.
-bool JogArm::startJogCalcThread()
-{
-  if (!jog_calcs_)
-    jog_calcs_ =
-        std::make_unique<JogCalcs>(ros_parameters_, planning_scene_monitor_->getRobotModelLoader(),
-                                   command_deltas_queue_, joint_command_deltas_queue_, outgoing_command_queue_);
-
-  jog_calc_thread_ = std::thread([&]() { jog_calcs_->run(shared_variables_); });
-
-  return true;
-}
-
-// A separate thread for collision checking.
-bool JogArm::startCollisionCheckThread()
-{
-  if (!collision_checker_)
-    collision_checker_ = std::make_unique<CollisionCheckThread>(ros_parameters_, planning_scene_monitor_);
-
-  collision_check_thread_ = std::thread([&]() { collision_checker_->run(shared_variables_); });
-
   return true;
 }
 
@@ -479,7 +458,7 @@ sensor_msgs::JointState JogArm::getJointState()
 
 bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
-  if (!jog_calcs_ || !jog_calcs_->isInitialized())
+  if (!jog_calcs_->isInitialized())
     return false;
   return jog_calcs_->getCommandFrameTransform(transform);
 }

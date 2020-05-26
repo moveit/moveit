@@ -49,6 +49,7 @@ static const std::string LOGNAME = "cpp_interface_example";
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, LOGNAME);
+  ros::NodeHandle nh;
   ros::AsyncSpinner spinner(4);
   spinner.start();
 
@@ -69,7 +70,7 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
-  moveit_jog_arm::JogArm jog_arm(planning_scene_monitor);
+  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
   jog_arm.start();
 
   // Make a Cartesian velocity message
