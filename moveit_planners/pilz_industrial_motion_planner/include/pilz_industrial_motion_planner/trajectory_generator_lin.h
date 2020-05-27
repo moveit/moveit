@@ -69,11 +69,10 @@ public:
                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
 
 private:
-  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
-                                     MotionPlanInfo& info) const final;
+  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const final;
 
   void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
-                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
+            const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
   /**
    * @brief construct a KDL::Path object for a Cartesian straight line

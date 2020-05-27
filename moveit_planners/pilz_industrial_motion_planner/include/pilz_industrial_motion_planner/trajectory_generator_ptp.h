@@ -64,8 +64,7 @@ public:
                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
 
 private:
-  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
-                                     MotionPlanInfo& info) const override;
+  void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req, MotionPlanInfo& info) const override;
 
   /**
    * @brief plan ptp joint trajectory with zero start velocity
@@ -83,7 +82,7 @@ private:
                const double& sampling_time);
 
   void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
-                    const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
+            const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
 
 private:
   const double MIN_MOVEMENT = 0.001;

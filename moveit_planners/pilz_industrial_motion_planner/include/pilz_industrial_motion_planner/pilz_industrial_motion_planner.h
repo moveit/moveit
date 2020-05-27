@@ -90,10 +90,9 @@ public:
    * @param error_code
    * @return
    */
-  planning_interface::PlanningContextPtr
-  getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_interface::MotionPlanRequest& req,
-                     moveit_msgs::MoveItErrorCodes& error_code) const override;
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                            const planning_interface::MotionPlanRequest& req,
+                                                            moveit_msgs::MoveItErrorCodes& error_code) const override;
 
   /**
    * @brief Checks if the request can be handled

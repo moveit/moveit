@@ -82,7 +82,7 @@ public:
    * @return true if succeed
    */
   bool blend(const pilz_industrial_motion_planner::TrajectoryBlendRequest& req,
-                     pilz_industrial_motion_planner::TrajectoryBlendResponse& res) override;
+             pilz_industrial_motion_planner::TrajectoryBlendResponse& res) override;
 
 private:
   /**

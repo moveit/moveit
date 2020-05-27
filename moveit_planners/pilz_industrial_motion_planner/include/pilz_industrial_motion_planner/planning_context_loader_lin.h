@@ -58,7 +58,7 @@ public:
    * @return true on success, false otherwise
    */
   bool loadContext(planning_interface::PlanningContextPtr& planning_context, const std::string& name,
-                           const std::string& group) const override;
+                   const std::string& group) const override;
 };
 
 typedef boost::shared_ptr<PlanningContextLoaderLIN> PlanningContextLoaderLINPtr;
