@@ -1328,6 +1328,8 @@ public:
    *   Checks the cache and if there are any dirty (non-updated) transforms, first updates them as needed.
    *   A related, more comprehensive function is |getFrameTransform|, which additionally to link frames
    *   also searches for attached object frames and their subframes.
+   *
+   *  The returned transformation is always a valid isometry.
    */
   const Eigen::Isometry3d& getGlobalLinkTransform(const std::string& link_name)
   {
@@ -1668,18 +1670,24 @@ public:
 
   /** \brief Get the transformation matrix from the model frame (root of model) to the frame identified by \e frame_id
    *
-   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned.
+   *
+   * The returned transformation is always a valid isometry. */
   const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id, bool* frame_found = nullptr);
 
   /** \brief Get the transformation matrix from the model frame (root of model) to the frame identified by \e frame_id
    *
-   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned.
+   *
+   * The returned transformation is always a valid isometry. */
   const Eigen::Isometry3d& getFrameTransform(const std::string& frame_id, bool* frame_found = nullptr) const;
 
   /** \brief Get the transformation matrix from the model frame (root of model) to the frame identified by \e frame_id
    *
    * If this frame is attached to a robot link, the link pointer is returned in \e robot_link.
-   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned */
+   * If frame_id was not found, \e frame_found is set to false and an identity transform is returned.
+   *
+   * The returned transformation is always a valid isometry. */
   const Eigen::Isometry3d& getFrameInfo(const std::string& frame_id, const LinkModel*& robot_link,
                                         bool& frame_found) const;
 

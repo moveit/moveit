@@ -435,10 +435,13 @@ public:
   /**
    * \brief The rotation target in the reference frame.
    *
-    * @return The target rotation
+    * @return The target rotation.
+    *
+    * The returned matrix is always a valid rotation matrix.
    */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
+    // validity of the rotation matrix is enforced in configure()
     return desired_rotation_matrix_;
   }
 
@@ -477,10 +480,10 @@ public:
 
 protected:
   const moveit::core::LinkModel* link_model_;   /**< \brief The target link model */
-  Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame */
+  Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame. Guaranteed to
+                                                 * be valid rotation matrix. */
   Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
-                                                 * efficiency
-                                                   */
+                                                 * efficiency. Guaranteed to be valid rotation matrix. */
   std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
   bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
@@ -642,10 +645,11 @@ protected:
   Eigen::Vector3d offset_;                         /**< \brief The target offset */
   bool has_offset_;                                /**< \brief Whether the offset is substantially different than 0.0 */
   std::vector<bodies::BodyPtr> constraint_region_; /**< \brief The constraint region vector */
-  EigenSTL::vector_Isometry3d constraint_region_pose_; /**< \brief The constraint region pose vector */
-  bool mobile_frame_;                                  /**< \brief Whether or not a mobile frame is employed*/
-  std::string constraint_frame_id_;                    /**< \brief The constraint frame id */
-  const moveit::core::LinkModel* link_model_;          /**< \brief The link model constraint subject */
+  /** \brief The constraint region pose vector. All isometries are guaranteed to be valid. */
+  EigenSTL::vector_Isometry3d constraint_region_pose_;
+  bool mobile_frame_;                         /**< \brief Whether or not a mobile frame is employed*/
+  std::string constraint_frame_id_;           /**< \brief The constraint frame id */
+  const moveit::core::LinkModel* link_model_; /**< \brief The link model constraint subject */
 };
 
 MOVEIT_CLASS_FORWARD(VisibilityConstraint);

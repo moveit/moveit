@@ -87,14 +87,16 @@ int main(int argc, char** argv)
         for (unsigned int i = 0; i < test_count; ++i)
         {
           state.setToRandomPositions(jmg);
+          // getGlobalLinkTransform() returns a valid isometry by contract
           Eigen::Isometry3d pose = state.getGlobalLinkTransform(tip);
           state.setToRandomPositions(jmg);
           moveit::tools::Profiler::Begin("IK");
           state.setFromIK(jmg, pose);
           moveit::tools::Profiler::End("IK");
+          // getGlobalLinkTransform() returns a valid isometry by contract
           const Eigen::Isometry3d& pose_upd = state.getGlobalLinkTransform(tip);
-          Eigen::Isometry3d diff = pose_upd * pose.inverse();
-          double rot_err = (diff.rotation() - Eigen::Matrix3d::Identity()).norm();
+          Eigen::Isometry3d diff = pose_upd * pose.inverse();  // valid isometry
+          double rot_err = (diff.linear() - Eigen::Matrix3d::Identity()).norm();
           double trans_err = diff.translation().norm();
           moveit::tools::Profiler::Average("Rotation error", rot_err);
           moveit::tools::Profiler::Average("Translation error", trans_err);

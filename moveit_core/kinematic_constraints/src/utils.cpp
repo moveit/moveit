@@ -558,6 +558,7 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
   {
     bool frame_found;
     const moveit::core::LinkModel* robot_link;
+    // getFrameInfo() returns a valid isometry by contract
     const Eigen::Isometry3d& transform = state.getFrameInfo(c.link_name, robot_link, frame_found);
     if (!frame_found)
       return false;
@@ -567,7 +568,7 @@ bool kinematic_constraints::resolveConstraintFrames(const moveit::core::RobotSta
     if (c.link_name != robot_link->getName())
     {
       c.link_name = robot_link->getName();
-      Eigen::Quaterniond link_name_to_robot_link(transform.linear().inverse() *
+      Eigen::Quaterniond link_name_to_robot_link(transform.linear().transpose() *
                                                  state.getGlobalLinkTransform(robot_link).linear());
       Eigen::Quaterniond quat_target;
       tf::quaternionMsgToEigen(c.orientation, quat_target);

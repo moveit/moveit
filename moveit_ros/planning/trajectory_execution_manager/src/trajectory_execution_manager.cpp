@@ -37,6 +37,7 @@
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
+#include <geometric_shapes/check_isometry.h>
 #include <dynamic_reconfigure/server.h>
 #include <tf2_eigen/tf2_eigen.h>
 
@@ -1005,11 +1006,13 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         // compute difference (offset vector and rotation angle) between current transform
         // and start transform in trajectory
         Eigen::Isometry3d cur_transform, start_transform;
+        // computeTransform() computes a valid isometry by contract
         jm->computeTransform(current_state->getJointPositions(jm), cur_transform);
         start_transform = tf2::transformToEigen(transforms[i]);
+        ASSERT_ISOMETRY(start_transform)  // unsanitized input, could contain a non-isometry
         Eigen::Vector3d offset = cur_transform.translation() - start_transform.translation();
         Eigen::AngleAxisd rotation;
-        rotation.fromRotationMatrix(cur_transform.rotation().transpose() * start_transform.rotation());
+        rotation.fromRotationMatrix(cur_transform.linear().transpose() * start_transform.linear());
         if ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_)
         {
           ROS_ERROR_STREAM_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than "

@@ -694,13 +694,13 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 
   // very slight angle, so still ok
   vcm.target_pose.pose.orientation.y = 0.03;
-  vcm.target_pose.pose.orientation.w = .9995;
+  vcm.target_pose.pose.orientation.w = sqrt(1 - pow(vcm.target_pose.pose.orientation.y, 2));
   EXPECT_TRUE(vc.configure(vcm, tf));
   EXPECT_TRUE(vc.decide(robot_state, true).satisfied);
 
   // a little bit more puts it over
   vcm.target_pose.pose.orientation.y = 0.06;
-  vcm.target_pose.pose.orientation.w = .9981;
+  vcm.target_pose.pose.orientation.w = sqrt(1 - pow(vcm.target_pose.pose.orientation.y, 2));
   EXPECT_TRUE(vc.configure(vcm, tf));
   EXPECT_FALSE(vc.decide(robot_state, true).satisfied);
 }

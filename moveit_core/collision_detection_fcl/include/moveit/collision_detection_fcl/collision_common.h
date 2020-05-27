@@ -40,6 +40,7 @@
 #include <moveit/collision_detection/collision_env.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/collision_detection_fcl/fcl_compat.h>
+#include <geometric_shapes/check_isometry.h>
 
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
 #include <fcl/broadphase/broadphase_collision_manager.h>
@@ -316,10 +317,11 @@ void cleanCollisionGeometryCache();
 /** \brief Transforms an Eigen Isometry3d to FCL coordinate transformation */
 inline void transform2fcl(const Eigen::Isometry3d& b, fcl::Transform3d& f)
 {
+  ASSERT_ISOMETRY(b);
 #if (MOVEIT_FCL_VERSION >= FCL_VERSION_CHECK(0, 6, 0))
   f = b.matrix();
 #else
-  Eigen::Quaterniond q(b.rotation());
+  Eigen::Quaterniond q(b.linear());
   f.setTranslation(fcl::Vector3d(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 #endif

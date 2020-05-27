@@ -239,7 +239,8 @@ TYPED_TEST_P(CollisionDetectorTest, ContactPositions)
   }
 
   pos1 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
-  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(0.965, 0.0, 0.258, 0.0));
+  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) *
+                           Eigen::Quaterniond(sqrt(1 - pow(0.258, 2)), 0.0, 0.258, 0.0));
   //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
   //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
   robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);
@@ -259,7 +260,8 @@ TYPED_TEST_P(CollisionDetectorTest, ContactPositions)
   }
 
   pos1 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond::Identity());
-  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) * Eigen::Quaterniond(M_PI / 4.0, 0.0, M_PI / 4.0, 0.0));
+  pos2 = Eigen::Isometry3d(Eigen::Translation3d(3.0, 0.0, 0.0) *
+                           Eigen::Quaterniond(M_PI / 4.0, 0.0, M_PI / 4.0, 0.0).normalized());
   //  robot_state.getLinkState("r_gripper_palm_link")->updateGivenGlobalLinkTransform(pos1);
   //  robot_state.getLinkState("l_gripper_palm_link")->updateGivenGlobalLinkTransform(pos2);
   robot_state.updateStateWithLinkAt("r_gripper_palm_link", pos1);

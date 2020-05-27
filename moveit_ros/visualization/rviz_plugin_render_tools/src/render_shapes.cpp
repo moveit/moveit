@@ -36,6 +36,7 @@
 
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <geometric_shapes/check_isometry.h>
 #include <geometric_shapes/mesh_operations.h>
 
 #include <OgreSceneNode.h>
@@ -82,7 +83,8 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
   rviz::Shape* ogre_shape = nullptr;
   Eigen::Vector3d translation = p.translation();
   Ogre::Vector3 position(translation.x(), translation.y(), translation.z());
-  Eigen::Quaterniond q(p.rotation());
+  ASSERT_ISOMETRY(p)  // unsanitized input, could contain a non-isometry
+  Eigen::Quaterniond q(p.linear());
   Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
 
   // we don't know how to render cones directly, but we can convert them to a mesh

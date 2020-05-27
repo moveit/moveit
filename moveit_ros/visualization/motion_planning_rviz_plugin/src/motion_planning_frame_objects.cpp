@@ -261,8 +261,8 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
 
           if (obj->shapes_.size() == 1)
           {
-            obj_pose = obj->shape_poses_[0];
-            Eigen::Vector3d xyz = obj_pose.rotation().eulerAngles(0, 1, 2);
+            obj_pose = obj->shape_poses_[0];  // valid isometry by contract
+            Eigen::Vector3d xyz = obj_pose.linear().eulerAngles(0, 1, 2);
             update_scene_marker = true;  // do the marker update outside locked scope to avoid deadlock
 
             bool old_state = ui_->object_x->blockSignals(true);
@@ -346,7 +346,8 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
       // Update the interactive marker pose to match the manually introduced one
       if (update_marker_position && scene_marker_)
       {
-        Eigen::Quaterniond eq(p.rotation());
+        // p is isometry by construction
+        Eigen::Quaterniond eq(p.linear());
         scene_marker_->setPose(Ogre::Vector3(ui_->object_x->value(), ui_->object_y->value(), ui_->object_z->value()),
                                Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
       }

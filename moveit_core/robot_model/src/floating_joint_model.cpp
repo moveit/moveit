@@ -36,6 +36,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_model/floating_joint_model.h>
+#include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <ros/console.h>
 #include <limits>
@@ -222,8 +223,9 @@ bool FloatingJointModel::enforcePositionBounds(double* values, const Bounds& bou
 
 void FloatingJointModel::computeTransform(const double* joint_values, Eigen::Isometry3d& transf) const
 {
-  transf = Eigen::Isometry3d(Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2]) *
-                             Eigen::Quaterniond(joint_values[6], joint_values[3], joint_values[4], joint_values[5]));
+  transf = Eigen::Isometry3d(
+      Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2]) *
+      Eigen::Quaterniond(joint_values[6], joint_values[3], joint_values[4], joint_values[5]).normalized());
 }
 
 void FloatingJointModel::computeVariablePositions(const Eigen::Isometry3d& transf, double* joint_values) const
@@ -231,7 +233,8 @@ void FloatingJointModel::computeVariablePositions(const Eigen::Isometry3d& trans
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
   joint_values[2] = transf.translation().z();
-  Eigen::Quaterniond q(transf.rotation());
+  ASSERT_ISOMETRY(transf)  // unsanitized input, could contain non-isometry
+  Eigen::Quaterniond q(transf.linear());
   joint_values[3] = q.x();
   joint_values[4] = q.y();
   joint_values[5] = q.z();

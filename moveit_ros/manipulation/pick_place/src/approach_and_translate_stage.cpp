@@ -215,11 +215,13 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // transform the input vectors in accordance to frame specified in the header;
   if (approach_direction_is_global_frame)
+    // getFrameTransform() returns a valid isometry by contract
     approach_direction =
-        planning_scene_->getFrameTransform(plan->approach_.direction.header.frame_id).rotation() * approach_direction;
+        planning_scene_->getFrameTransform(plan->approach_.direction.header.frame_id).linear() * approach_direction;
   if (retreat_direction_is_global_frame)
+    // getFrameTransform() returns a valid isometry by contract
     retreat_direction =
-        planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).rotation() * retreat_direction;
+        planning_scene_->getFrameTransform(plan->retreat_.direction.header.frame_id).linear() * retreat_direction;
 
   // state validity checking during the approach must ensure that the gripper posture is that for pre-grasping
   moveit::core::GroupStateValidityCallbackFn approach_valid_callback =

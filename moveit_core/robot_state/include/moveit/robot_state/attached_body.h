@@ -38,6 +38,7 @@
 
 #include <moveit/robot_model/link_model.h>
 #include <moveit/transforms/transforms.h>
+#include <geometric_shapes/check_isometry.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <boost/function.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -105,13 +106,15 @@ public:
     return detach_posture_;
   }
 
-  /** \brief Get the fixed transforms (the transforms to the shapes of this body, relative to the link) */
+  /** \brief Get the fixed transforms (the transforms to the shapes of this body, relative to the link). The returned
+   *  transforms are guaranteed to be valid isometries. */
   const EigenSTL::vector_Isometry3d& getFixedTransforms() const
   {
     return attach_trans_;
   }
 
-  /** \brief Get subframes of this object (relative to the link) */
+  /** \brief Get subframes of this object (relative to the link). The returned transforms are guaranteed to be valid
+   *  isometries. */
   const moveit::core::FixedTransformsMap& getSubframeTransforms() const
   {
     return subframe_poses_;
@@ -124,18 +127,24 @@ public:
    */
   void setSubframeTransforms(const moveit::core::FixedTransformsMap& subframe_poses)
   {
+    for (const auto& t : subframe_poses)
+    {
+      ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
+    }
     subframe_poses_ = subframe_poses;
   }
 
   /** \brief Get the fixed transform to a named subframe on this body (relative to the robot link)
    *
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
-   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false). */
+   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false).
+   * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
   /** \brief Get the fixed transform to a named subframe on this body.
    * The frame_name needs to have the object's name prepended (e.g. "screwdriver/tip" returns true if the object's
-   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false). */
+   * name is "screwdriver"). Returns an identity transform if frame_name is unknown (and set found to false).
+   * The returned transform is guaranteed to be a valid isometry. */
   const Eigen::Isometry3d& getGlobalSubframeTransform(const std::string& frame_name, bool* found = nullptr) const;
 
   /** \brief Check whether a subframe of given @frame_name is present in this object.
@@ -144,7 +153,8 @@ public:
    * name is "screwdriver"). */
   bool hasSubframeTransform(const std::string& frame_name) const;
 
-  /** \brief Get the global transforms for the collision bodies */
+  /** \brief Get the global transforms for the collision bodies. The returned transforms are guaranteed to be valid
+   *  isometries. */
   const EigenSTL::vector_Isometry3d& getGlobalCollisionBodyTransforms() const
   {
     return global_collision_body_transforms_;
