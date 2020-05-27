@@ -57,7 +57,7 @@ class TestdataLoader
 public:
   TestdataLoader() = default;
 
-  TestdataLoader(moveit::core::RobotModelConstPtr robot_model) : robot_model_(std:move(robot_model))
+  TestdataLoader(moveit::core::RobotModelConstPtr robot_model) : robot_model_(std::move(robot_model))
   {
   }
 
