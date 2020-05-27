@@ -37,6 +37,7 @@
 #include <string>
 #include <math.h>
 #include <boost/core/demangle.hpp>
+#include <utility>
 #include <ros/console.h>
 #include <moveit_msgs/Constraints.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -69,7 +70,7 @@ inline static constexpr double deg2Rad(double angle)
   return (angle / 180.0) * M_PI;
 }
 
-inline std::string getJointName(size_t joint_number, std::string joint_prefix)
+inline std::string getJointName(size_t joint_number, const std::string& joint_prefix)
 {
   return joint_prefix + std::to_string(joint_number);
 }
@@ -89,7 +90,7 @@ inline std::string demangel(char const* name)
 //********************************************
 
 inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::vector<double> vel,
-                                                  std::string joint_prefix = testutils::JOINT_NAME_PREFIX)
+                                                  const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
   sensor_msgs::JointState state;
   auto posit = pos.begin();
@@ -113,11 +114,11 @@ inline sensor_msgs::JointState generateJointState(std::vector<double> pos, std::
 inline sensor_msgs::JointState generateJointState(std::vector<double> pos,
                                                   std::string joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
-  return generateJointState(pos, std::vector<double>(), joint_prefix);
+  return generateJointState(std::move(pos), std::vector<double>(), std::move(joint_prefix));
 }
 
 inline moveit_msgs::Constraints generateJointConstraint(const std::vector<double>& pos_list,
-                                                        std::string joint_prefix = testutils::JOINT_NAME_PREFIX)
+                                                        const std::string& joint_prefix = testutils::JOINT_NAME_PREFIX)
 {
   moveit_msgs::Constraints gc;
 
