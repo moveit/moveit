@@ -205,10 +205,6 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   {
     twist_stamped_.header.frame_id = parameters_.robot_link_command_frame;
   }
-  if (twist_stamped_.header.frame_id.empty())
-  {
-    joint_jog_.header.frame_id = parameters_.robot_link_command_frame;
-  }
 
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_jog_;
 
