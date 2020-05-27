@@ -55,6 +55,6 @@ std::string Center<ConfigType, BuilderType>::getConstraintName() const
 {
   return "center";
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CENTERAUXILIARY_H

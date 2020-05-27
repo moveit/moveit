@@ -52,7 +52,7 @@ public:
   virtual ~BaseCmd() = default;
 
 public:
-  virtual planning_interface::MotionPlanRequest toRequest() const override;
+  planning_interface::MotionPlanRequest toRequest() const override;
 
   void setStartConfiguration(StartType start);
   void setGoalConfiguration(GoalType goal);
@@ -123,6 +123,6 @@ planning_interface::MotionPlanRequest BaseCmd<StartType, GoalType>::toRequest() 
 
   return req;
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // BASECMD_H

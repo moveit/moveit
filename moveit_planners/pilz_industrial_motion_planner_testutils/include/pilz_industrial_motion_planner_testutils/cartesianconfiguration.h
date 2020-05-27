@@ -69,8 +69,8 @@ public:
                          const moveit::core::RobotModelConstPtr& robot_model);
 
 public:
-  virtual moveit_msgs::Constraints toGoalConstraints() const override;
-  virtual moveit_msgs::RobotState toMoveitMsgsRobotState() const override;
+  moveit_msgs::Constraints toGoalConstraints() const override;
+  moveit_msgs::RobotState toMoveitMsgsRobotState() const override;
 
   void setLinkName(const std::string& link_name);
   const std::string& getLinkName() const;
@@ -110,7 +110,7 @@ private:
   boost::optional<JointConfiguration> seed_{ boost::none };
 };
 
-std::ostream& operator<<(std::ostream&, const CartesianConfiguration&);
+std::ostream& operator<<(std::ostream& /*os*/, const CartesianConfiguration& /*obj*/);
 
 inline void CartesianConfiguration::setLinkName(const std::string& link_name)
 {
@@ -184,6 +184,6 @@ inline const boost::optional<double> CartesianConfiguration::getAngleTolerance()
 {
   return tolerance_angle_;
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CARTESIANCONFIGURATION_H
