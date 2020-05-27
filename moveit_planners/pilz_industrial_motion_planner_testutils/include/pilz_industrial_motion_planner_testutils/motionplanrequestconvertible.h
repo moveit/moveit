@@ -49,6 +49,6 @@ class MotionPlanRequestConvertible
 public:
   virtual planning_interface::MotionPlanRequest toRequest() const = 0;
 };
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // MOTIONPLANREQUESTCONVERTIBLE_H

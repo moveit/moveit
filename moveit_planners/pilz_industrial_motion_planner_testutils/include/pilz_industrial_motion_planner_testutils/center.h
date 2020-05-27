@@ -47,7 +47,7 @@ template <class ConfigType, class BuilderType>
 class Center : public CircAuxiliary<ConfigType, BuilderType>
 {
 private:
-  virtual std::string getConstraintName() const override;
+  std::string getConstraintName() const override;
 };
 
 template <class ConfigType, class BuilderType>

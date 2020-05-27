@@ -64,6 +64,6 @@ typedef Circ<JointConfiguration, CartesianInterim, JointConfiguration> CircJoint
 typedef boost::variant<PtpJoint, PtpJointCart, PtpCart, LinJoint, LinCart, CircCenterCart, CircInterimCart,
                        CircJointCenterCart, CircJointInterimCart, Gripper>
     CmdVariant;
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // COMMAND_TYPES_TYPEDEF_H

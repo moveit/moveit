@@ -36,6 +36,7 @@
 #define JOINTCONFIGURATION_H
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <functional>
 #include <stdexcept>
@@ -51,7 +52,7 @@ namespace pilz_industrial_motion_planner_testutils
 class JointConfigurationException : public std::runtime_error
 {
 public:
-  JointConfigurationException(const std::string error_desc) : std::runtime_error(error_desc)
+  JointConfigurationException(const std::string& error_desc) : std::runtime_error(error_desc)
   {
   }
 };
@@ -103,7 +104,7 @@ private:
   CreateJointNameFunc create_joint_name_func_;
 };
 
-std::ostream& operator<<(std::ostream&, const JointConfiguration&);
+std::ostream& operator<<(std::ostream& /*os*/, const JointConfiguration& /*obj*/);
 
 inline moveit_msgs::Constraints JointConfiguration::toGoalConstraints() const
 {
@@ -137,8 +138,8 @@ inline size_t JointConfiguration::size() const
 
 inline void JointConfiguration::setCreateJointNameFunc(CreateJointNameFunc create_joint_name_func)
 {
-  create_joint_name_func_ = create_joint_name_func;
+  create_joint_name_func_ = std::move(create_joint_name_func);
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // JOINTCONFIGURATION_H

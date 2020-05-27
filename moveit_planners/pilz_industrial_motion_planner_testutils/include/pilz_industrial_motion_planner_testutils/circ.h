@@ -62,7 +62,7 @@ public:
   planning_interface::MotionPlanRequest toRequest() const override;
 
 private:
-  virtual std::string getPlannerId() const override;
+  std::string getPlannerId() const override;
 
 private:
   AuxiliaryType auxiliary_;
@@ -101,6 +101,6 @@ inline const AuxiliaryType& Circ<StartType, AuxiliaryType, GoalType>::getAuxilia
 {
   return auxiliary_;
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CIRC_H

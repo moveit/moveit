@@ -47,7 +47,7 @@ template <class ConfigType, class BuilderType>
 class Interim : public CircAuxiliary<ConfigType, BuilderType>
 {
 private:
-  virtual std::string getConstraintName() const override;
+  std::string getConstraintName() const override;
 };
 
 template <class ConfigType, class BuilderType>
@@ -55,6 +55,6 @@ std::string Interim<ConfigType, BuilderType>::getConstraintName() const
 {
   return "interim";
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // INTERIMAXILIARY_H

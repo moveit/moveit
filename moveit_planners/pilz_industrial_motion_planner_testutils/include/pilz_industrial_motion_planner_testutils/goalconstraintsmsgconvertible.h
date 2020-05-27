@@ -51,6 +51,6 @@ class GoalConstraintMsgConvertible
 public:
   virtual moveit_msgs::Constraints toGoalConstraints() const = 0;
 };
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // GOALCONSTRAINTSMSGCONVERTIBLE_H

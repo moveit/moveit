@@ -36,6 +36,7 @@
 #define ROBOTCONFIGURATION_H
 
 #include <string>
+#include <utility>
 
 #include <moveit/robot_model/robot_model.h>
 
@@ -69,7 +70,7 @@ protected:
 
 inline void RobotConfiguration::setRobotModel(moveit::core::RobotModelConstPtr robot_model)
 {
-  robot_model_ = robot_model;
+  robot_model_ = std::move(robot_model);
 }
 
 inline void RobotConfiguration::setGroupName(const std::string& group_name)
@@ -86,6 +87,6 @@ inline void RobotConfiguration::clearModel()
 {
   robot_model_ = nullptr;
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // ROBOTCONFIGURATION_H

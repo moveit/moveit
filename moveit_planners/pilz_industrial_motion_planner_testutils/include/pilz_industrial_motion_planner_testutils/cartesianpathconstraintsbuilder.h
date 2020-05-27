@@ -85,6 +85,6 @@ inline moveit_msgs::Constraints CartesianPathConstraintsBuilder::toPathConstrain
   path_constraints.position_constraints.push_back(pos_constraint);
   return path_constraints;
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CARTESIANPATHCONSTRAINTSBUILDER_H

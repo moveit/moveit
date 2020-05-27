@@ -86,6 +86,6 @@ inline moveit_msgs::Constraints CircAuxiliary<ConfigType, BuilderType>::toPathCo
 {
   return BuilderType().setConstraintName(getConstraintName()).setConfiguration(getConfiguration()).toPathConstraints();
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // CIRCAUXILIARY_H

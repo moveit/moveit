@@ -122,29 +122,29 @@ class XmlTestdataLoader : public TestdataLoader
 public:
   XmlTestdataLoader(const std::string& path_filename);
   XmlTestdataLoader(const std::string& path_filename, const moveit::core::RobotModelConstPtr& robot_model);
-  ~XmlTestdataLoader();
+  ~XmlTestdataLoader() override;
 
 public:
-  virtual JointConfiguration getJoints(const std::string& pos_name, const std::string& group_name) const override;
+  JointConfiguration getJoints(const std::string& pos_name, const std::string& group_name) const override;
 
-  virtual CartesianConfiguration getPose(const std::string& pos_name, const std::string& group_name) const override;
+  CartesianConfiguration getPose(const std::string& pos_name, const std::string& group_name) const override;
 
-  virtual PtpJoint getPtpJoint(const std::string& cmd_name) const override;
-  virtual PtpCart getPtpCart(const std::string& cmd_name) const override;
-  virtual PtpJointCart getPtpJointCart(const std::string& cmd_name) const override;
+  PtpJoint getPtpJoint(const std::string& cmd_name) const override;
+  PtpCart getPtpCart(const std::string& cmd_name) const override;
+  PtpJointCart getPtpJointCart(const std::string& cmd_name) const override;
 
-  virtual LinJoint getLinJoint(const std::string& cmd_name) const override;
-  virtual LinCart getLinCart(const std::string& cmd_name) const override;
-  virtual LinJointCart getLinJointCart(const std::string& cmd_name) const override;
+  LinJoint getLinJoint(const std::string& cmd_name) const override;
+  LinCart getLinCart(const std::string& cmd_name) const override;
+  LinJointCart getLinJointCart(const std::string& cmd_name) const override;
 
-  virtual CircCenterCart getCircCartCenterCart(const std::string& cmd_name) const override;
-  virtual CircInterimCart getCircCartInterimCart(const std::string& cmd_name) const override;
-  virtual CircJointCenterCart getCircJointCenterCart(const std::string& cmd_name) const override;
-  virtual CircJointInterimCart getCircJointInterimCart(const std::string& cmd_name) const override;
+  CircCenterCart getCircCartCenterCart(const std::string& cmd_name) const override;
+  CircInterimCart getCircCartInterimCart(const std::string& cmd_name) const override;
+  CircJointCenterCart getCircJointCenterCart(const std::string& cmd_name) const override;
+  CircJointInterimCart getCircJointInterimCart(const std::string& cmd_name) const override;
 
-  virtual Sequence getSequence(const std::string& cmd_name) const override;
+  Sequence getSequence(const std::string& cmd_name) const override;
 
-  virtual Gripper getGripper(const std::string& cmd_name) const override;
+  Gripper getGripper(const std::string& cmd_name) const override;
 
 private:
   /**
@@ -218,6 +218,6 @@ std::vector<double> XmlTestdataLoader::strVec2doubleVec(std::vector<std::string>
 }
 
 using XmlTestDataLoaderUPtr = std::unique_ptr<TestdataLoader>;
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // XML_TESTDATA_LOADER_H

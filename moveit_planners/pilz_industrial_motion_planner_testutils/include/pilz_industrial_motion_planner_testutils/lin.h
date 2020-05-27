@@ -53,7 +53,7 @@ public:
   }
 
 private:
-  virtual std::string getPlannerId() const override;
+  std::string getPlannerId() const override;
 };
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -62,6 +62,6 @@ inline std::string Lin<StartType, GoalType>::getPlannerId() const
 {
   return "LIN";
 }
-}
+}  // namespace pilz_industrial_motion_planner_testutils
 
 #endif  // LIN_H

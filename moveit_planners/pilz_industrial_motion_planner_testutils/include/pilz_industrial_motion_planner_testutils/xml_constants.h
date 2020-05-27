@@ -75,6 +75,6 @@ const std::string CMD_TYPE_PATH_STR{ XML_ATTR_STR + ".type" };
 const std::string BLEND_RADIUS_PATH_STR{ XML_ATTR_STR + ".blend_radius" };
 const std::string LINK_NAME_PATH_STR{ XML_ATTR_STR + ".link_name" };
 const std::string GROUP_NAME_PATH_STR{ XML_ATTR_STR + ".group_name" };
-}
+}  // pilz_industrial_motion_planner_testutils
 
 #endif  // XML_CONSTANTS_H
