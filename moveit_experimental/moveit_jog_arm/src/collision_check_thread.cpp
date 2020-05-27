@@ -90,7 +90,6 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   double derivative_of_collision_distance = 0;
   double prev_collision_distance = 0;
   double est_time_to_collision = 0;
-  bool have_updated_derivative = false;
   double safety_factor = parameters_.collision_distance_safety_factor;
 
   collision_detection::AllowedCollisionMatrix acm = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
@@ -185,7 +184,6 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
 
         // Update for the next iteration
         prev_collision_distance = current_collision_distance;
-        have_updated_derivative = true;
       }
 
       // Communicate a velocity-scaling factor back to the other threads
