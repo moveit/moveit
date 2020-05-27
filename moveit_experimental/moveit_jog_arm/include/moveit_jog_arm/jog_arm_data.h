@@ -74,7 +74,7 @@ struct JogArmShared
   bool ok_to_publish = false;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  bool drift_dimensions[6] = { false, false, false, false, false, false };
+  std::array<bool, 6> drift_dimensions = { { false, false, false, false, false, false } };
 
   // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
   StatusCode status = NO_WARNING;
@@ -82,11 +82,8 @@ struct JogArmShared
   // Pause/unpause jog threads - threads are not paused by default
   bool paused = false;
 
-  // Stop jog loop threads - threads are not stopped by default
-  bool stop_requested = false;
-
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-  bool control_dimensions[6] = { true, true, true, true, true, true };
+  std::array<bool, 6> control_dimensions = { { true, true, true, true, true, true } };
 };
 
 // ROS params to be read. See the yaml file in /config for a description of each.

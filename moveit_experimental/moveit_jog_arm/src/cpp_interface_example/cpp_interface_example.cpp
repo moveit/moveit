@@ -109,7 +109,6 @@ int main(int argc, char** argv)
     elbow_joint_command->header.stamp = ros::Time::now();
     elbow_joint_command->joint_names.push_back("elbow_joint");
     elbow_joint_command->velocities.push_back(0.2);
-    elbow_joint_command->header.stamp = ros::Time::now();
 
     // Send the message
     jog_arm.provideJointCommand(elbow_joint_command);
