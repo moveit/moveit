@@ -60,7 +60,7 @@ public:
 class ContextLoaderRegistrationException : public PlanningException
 {
 public:
-  ContextLoaderRegistrationException(const& std::string error_desc) : PlanningException(error_desc)
+  ContextLoaderRegistrationException(const std::string& error_desc) : PlanningException(error_desc)
   {
   }
 };
