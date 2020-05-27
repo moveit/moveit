@@ -48,8 +48,8 @@ namespace moveit_jog_arm
 {
 enum CollisionCheckType
 {
-  kThresholdDistance = 1,
-  kStopDistance = 2
+  K_THRESHOLD_DISTANCE = 1,
+  K_STOP_DISTANCE = 2
 };
 
 class CollisionCheckThread

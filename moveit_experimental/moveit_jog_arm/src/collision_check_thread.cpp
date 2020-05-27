@@ -83,7 +83,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
   double velocity_scale = 1;
 
   collision_check_type_ =
-      (parameters_.collision_check_type == "threshold_distance" ? kThresholdDistance : kStopDistance);
+      (parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
 
   // Variables for stop-distance-based collision checking
   double current_collision_distance = 0;
@@ -131,7 +131,7 @@ void CollisionCheckThread::startMainLoop(JogArmShared& shared_variables)
         velocity_scale = 0;
       }
       // If threshold distances were specified
-      else if (collision_check_type_ == kThresholdDistance)
+      else if (collision_check_type_ == K_THRESHOLD_DISTANCE)
       {
         // If we are far from a collision, velocity_scale should be 1.
         // If we are very close to a collision, velocity_scale should be ~zero.
