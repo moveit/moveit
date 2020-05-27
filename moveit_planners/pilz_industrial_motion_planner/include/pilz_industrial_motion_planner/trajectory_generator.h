@@ -260,7 +260,7 @@ inline bool TrajectoryGenerator::isCartesianGoalGiven(const moveit_msgs::Constra
 
 inline bool TrajectoryGenerator::isJointGoalGiven(const moveit_msgs::Constraints& constraint)
 {
-  return constraint.joint_constraints.size() >= 1;
+  return !constraint.joint_constraints.empty();
 }
 
 inline bool TrajectoryGenerator::isOnlyOneGoalTypeGiven(const moveit_msgs::Constraints& constraint)

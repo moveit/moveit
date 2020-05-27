@@ -118,7 +118,7 @@ bool pilz_industrial_motion_planner::PlanningContextBase<GeneratorT>::solve(plan
   if (!terminated_)
   {
     // Use current state as start state if not set
-    if (request_.start_state.joint_state.name.size() == 0)
+    if (request_.start_state.joint_state.name.empty())
     {
       moveit_msgs::RobotState current_state;
       moveit::core::robotStateToRobotStateMsg(getPlanningScene()->getCurrentState(), current_state);
