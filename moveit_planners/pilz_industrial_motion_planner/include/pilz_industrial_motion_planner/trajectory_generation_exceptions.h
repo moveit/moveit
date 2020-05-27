@@ -52,7 +52,7 @@ public:
 protected:
   MoveItErrorCodeException(const MoveItErrorCodeException&) = default;
   MoveItErrorCodeException(MoveItErrorCodeException&&) = default;
-  ~MoveItErrorCodeException() = default;;
+  ~MoveItErrorCodeException() = default;
 
   MoveItErrorCodeException& operator=(const MoveItErrorCodeException&) = default;
   MoveItErrorCodeException& operator=(MoveItErrorCodeException&&) = default;
