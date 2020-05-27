@@ -73,42 +73,48 @@ int main(int argc, char** argv)
   moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
   jog_arm.start();
 
-  // Make a Cartesian velocity message
-  auto velocity_msg = boost::make_shared<geometry_msgs::TwistStamped>();
-  velocity_msg->header.frame_id = "base_link";
-  velocity_msg->twist.linear.y = 0.01;
-  velocity_msg->twist.linear.z = -0.01;
-
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
 
   // Send a few Cartesian velocity commands
   while (ros::ok() && num_commands < 200)
   {
-    ++num_commands;
+    // Make a Cartesian velocity message
+    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Because this message is not coppied we should not modify it after we send it.
+    auto velocity_msg = boost::make_shared<geometry_msgs::TwistStamped>();
     velocity_msg->header.stamp = ros::Time::now();
+    velocity_msg->header.frame_id = "base_link";
+    velocity_msg->twist.linear.y = 0.01;
+    velocity_msg->twist.linear.z = -0.01;
+
+    // Send the message
     jog_arm.provideTwistStampedCommand(velocity_msg);
     cmd_rate.sleep();
+    ++num_commands;
   }
 
   // Leave plenty of time for the jogger to halt its previous motion.
   // For a faster response, adjust the incoming_command_timeout yaml parameter
   ros::Duration(2).sleep();
 
-  // Make a joint command
-  auto base_joint_command = boost::make_shared<control_msgs::JointJog>();
-  base_joint_command->joint_names.push_back("elbow_joint");
-  base_joint_command->velocities.push_back(0.2);
-  base_joint_command->header.stamp = ros::Time::now();
-
   // Send a few joint commands
   num_commands = 0;
   while (ros::ok() && num_commands < 200)
   {
-    ++num_commands;
-    base_joint_command->header.stamp = ros::Time::now();
-    jog_arm.provideJointCommand(base_joint_command);
+    // Make a joint command
+    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Because this message is not coppied we should not modify it after we send it.
+    auto elbow_joint_command = boost::make_shared<control_msgs::JointJog>();
+    elbow_joint_command->header.stamp = ros::Time::now();
+    elbow_joint_command->joint_names.push_back("elbow_joint");
+    elbow_joint_command->velocities.push_back(0.2);
+    elbow_joint_command->header.stamp = ros::Time::now();
+
+    // Send the message
+    jog_arm.provideJointCommand(elbow_joint_command);
     cmd_rate.sleep();
+    ++num_commands;
   }
 
   // Retrieve the current status of the jogger
