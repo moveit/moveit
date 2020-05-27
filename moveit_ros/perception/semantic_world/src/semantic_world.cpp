@@ -485,7 +485,7 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
     ROS_INFO_STREAM_NAMED(LOGNAME, "Original pose: " << table.pose.position.x << "," << table.pose.position.y << ","
                                                      << table.pose.position.z);
     std::string error_text;
-    const Eigen::Isometry3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
+    const Eigen::Isometry3d& original_transform = planning_scene_->getFrameTransform(original_frame);
     Eigen::Isometry3d original_pose;
     tf2::fromMsg(table.pose, original_pose);
     original_pose = original_transform * original_pose;
