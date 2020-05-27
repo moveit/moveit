@@ -95,11 +95,9 @@ public:
   /** \brief Provide a Cartesian velocity command to the jogger.
    * The units are determined by settings in the yaml file.
    */
-  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
   void provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg);
 
   /** \brief Send joint position(s) commands */
-  void provideJointCommand(const control_msgs::JointJog& joint_command);
   void provideJointCommand(const control_msgs::JointJogConstPtr& msg);
 
   /**
@@ -129,7 +127,7 @@ public:
 private:
   bool readParameters();
   void run(const ros::TimerEvent& timer_event);
-  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+  void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryPtr& msg);
 
   ros::NodeHandle nh_;
 
@@ -142,11 +140,6 @@ private:
   // Share data between threads
   JogArmShared shared_variables_;
 
-  // Queues for message passing between threads
-  std::shared_ptr<TwistedStampedQueue> command_deltas_queue_;
-  std::shared_ptr<JointJogQueue> joint_command_deltas_queue_;
-  std::shared_ptr<JointTrajectoryQueue> outgoing_command_queue_;
-
   // Jog calcs
   std::unique_ptr<JogCalcs> jog_calcs_;
 
@@ -156,13 +149,16 @@ private:
   // ROS
   ros::Timer timer_;
   ros::Duration period_;
-  ros::Subscriber joint_state_sub_;
   ros::Publisher outgoing_cmd_pub_;
+  ros::Publisher twist_stamped_pub_;
+  ros::Publisher joint_jog_pub_;
+  ros::ServiceServer drift_dimensions_server_;
+  ros::ServiceServer dims_server_;
+  ros::Subscriber joint_trajectory_sub_;
 
-  // Latest state
+  // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  sensor_msgs::JointState latest_joint_state_;
-  ros::Time latest_command_stamp_;
+  trajectory_msgs::JointTrajectoryPtr latest_joint_trajectory_;
 };
 
 }  // namespace moveit_jog_arm

@@ -53,11 +53,6 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   // loop period
   period_ = ros::Duration(parameters_.publish_period);
 
-  // Create queues for message passing between threads
-  command_deltas_queue_ = std::make_shared<TwistedStampedQueue>();
-  joint_command_deltas_queue_ = std::make_shared<JointJogQueue>();
-  outgoing_command_queue_ = std::make_shared<JointTrajectoryQueue>();
-
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
   if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
@@ -65,15 +60,29 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, 1);
 
-  // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, 1, &JogArm::jointStateCB, this);
+  // publish commands (for c++ interface)
+  twist_stamped_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(parameters_.cartesian_command_in_topic, 1);
+  joint_jog_pub_ = nh_.advertise<control_msgs::JointJog>(parameters_.joint_command_in_topic, 1);
+
+  // ROS Server for allowing drift in some dimensions
+  drift_dimensions_server_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
+                           &JogArm::changeDriftDimensions, this);
+
+  // ROS Server for changing the control dimensions
+  dims_server_ =
+      nh_.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
+                           &JogArm::changeControlDimensions, this);
+
+  // Subscribe to output commands in internal namespace
+  ros::NodeHandle internal_nh("~internal");
+  joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", 1, &JogArm::jointTrajectoryCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, shared_variables_, planning_scene_monitor_,
-                                          command_deltas_queue_, joint_command_deltas_queue_, outgoing_command_queue_);
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, shared_variables_, planning_scene_monitor_);
 
   collision_checker_ =
       std::make_unique<CollisionCheckThread>(nh_, parameters_, shared_variables_, planning_scene_monitor_);
@@ -307,17 +316,15 @@ void JogArm::run(const ros::TimerEvent& timer_event)
                                                                  << period_.toSec());
   }
 
-  trajectory_msgs::JointTrajectory outgoing_command;
-
-  // Check for stale cmds
+  // Get the latest joint trajectory
+  trajectory_msgs::JointTrajectory joint_trajectory;
   {
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    shared_variables_.command_is_stale =
-        ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
+    if (latest_joint_trajectory_)
+    {
+      joint_trajectory = *latest_joint_trajectory_;
+    }
   }
-
-  // Read the latest outgoing command out of the queue
-  popLatest(*outgoing_command_queue_, outgoing_command);
 
   // Publish the most recent trajectory, unless the jogging calculation thread tells not to
   if (shared_variables_.ok_to_publish)
@@ -326,16 +333,16 @@ void JogArm::run(const ros::TimerEvent& timer_event)
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
     if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
     {
-      outgoing_command.header.stamp = ros::Time::now();
-      outgoing_cmd_pub_.publish(outgoing_command);
+      joint_trajectory.header.stamp = ros::Time::now();
+      outgoing_cmd_pub_.publish(joint_trajectory);
     }
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
       std_msgs::Float64MultiArray joints;
       if (parameters_.publish_joint_positions)
-        joints.data = outgoing_command.points[0].positions;
+        joints.data = joint_trajectory.points[0].positions;
       else if (parameters_.publish_joint_velocities)
-        joints.data = outgoing_command.points[0].velocities;
+        joints.data = joint_trajectory.points[0].velocities;
       outgoing_cmd_pub_.publish(joints);
     }
   }
@@ -380,13 +387,6 @@ JogArm::~JogArm()
   stop();
 }
 
-// Listen to joint angles. Store them in a shared variable.
-void JogArm::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
-{
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  latest_joint_state_ = *msg;
-}
-
 bool JogArm::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
                                    moveit_msgs::ChangeDriftDimensions::Response& res)
 {
@@ -415,45 +415,19 @@ bool JogArm::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Reque
   return true;
 }
 
-void JogArm::provideTwistStampedCommand(const geometry_msgs::TwistStamped& msg)
-{
-  command_deltas_queue_->push(msg);
-  if (msg.header.stamp != ros::Time(0.))
-  {
-    const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    latest_command_stamp_ = msg.header.stamp;
-  }
-};
-
 void JogArm::provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  provideTwistStampedCommand(*msg);
-}
-
-void JogArm::provideJointCommand(const control_msgs::JointJog& msg)
-{
-  joint_command_deltas_queue_->push(msg);
-  if (msg.header.stamp != ros::Time(0.))
-  {
-    const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    latest_command_stamp_ = msg.header.stamp;
-  }
+  twist_stamped_pub_.publish(msg);
 }
 
 void JogArm::provideJointCommand(const control_msgs::JointJogConstPtr& msg)
 {
-  provideJointCommand(*msg);
+  joint_jog_pub_.publish(msg);
 }
 
 void JogArm::setPaused(bool paused)
 {
   shared_variables_.paused = paused;
-}
-
-sensor_msgs::JointState JogArm::getJointState()
-{
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  return latest_joint_state_;
 }
 
 bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
@@ -466,6 +440,12 @@ bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 StatusCode JogArm::getJoggerStatus() const
 {
   return shared_variables_.status;
+}
+
+void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  latest_joint_trajectory_ = msg;
 }
 
 }  // namespace moveit_jog_arm

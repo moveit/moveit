@@ -74,10 +74,10 @@ int main(int argc, char** argv)
   jog_arm.start();
 
   // Make a Cartesian velocity message
-  geometry_msgs::TwistStamped velocity_msg;
-  velocity_msg.header.frame_id = "base_link";
-  velocity_msg.twist.linear.y = 0.01;
-  velocity_msg.twist.linear.z = -0.01;
+  auto velocity_msg = boost::make_shared<geometry_msgs::TwistStamped>();
+  velocity_msg->header.frame_id = "base_link";
+  velocity_msg->twist.linear.y = 0.01;
+  velocity_msg->twist.linear.z = -0.01;
 
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
   while (ros::ok() && num_commands < 200)
   {
     ++num_commands;
-    velocity_msg.header.stamp = ros::Time::now();
+    velocity_msg->header.stamp = ros::Time::now();
     jog_arm.provideTwistStampedCommand(velocity_msg);
     cmd_rate.sleep();
   }
@@ -96,25 +96,20 @@ int main(int argc, char** argv)
   ros::Duration(2).sleep();
 
   // Make a joint command
-  control_msgs::JointJog base_joint_command;
-  base_joint_command.joint_names.push_back("elbow_joint");
-  base_joint_command.velocities.push_back(0.2);
-  base_joint_command.header.stamp = ros::Time::now();
+  auto base_joint_command = boost::make_shared<control_msgs::JointJog>();
+  base_joint_command->joint_names.push_back("elbow_joint");
+  base_joint_command->velocities.push_back(0.2);
+  base_joint_command->header.stamp = ros::Time::now();
 
   // Send a few joint commands
   num_commands = 0;
   while (ros::ok() && num_commands < 200)
   {
     ++num_commands;
-    base_joint_command.header.stamp = ros::Time::now();
+    base_joint_command->header.stamp = ros::Time::now();
     jog_arm.provideJointCommand(base_joint_command);
     cmd_rate.sleep();
   }
-
-  // Retrieve the current joint state from the jogger
-  sensor_msgs::JointState current_joint_state = jog_arm.getJointState();
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Current joint state:");
-  ROS_INFO_STREAM_NAMED(LOGNAME, current_joint_state);
 
   // Retrieve the current status of the jogger
   moveit_jog_arm::StatusCode status = jog_arm.getJoggerStatus();
