@@ -64,16 +64,6 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   twist_stamped_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(parameters_.cartesian_command_in_topic, 1);
   joint_jog_pub_ = nh_.advertise<control_msgs::JointJog>(parameters_.joint_command_in_topic, 1);
 
-  // ROS Server for allowing drift in some dimensions
-  drift_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
-                           &JogArm::changeDriftDimensions, this);
-
-  // ROS Server for changing the control dimensions
-  dims_server_ =
-      nh_.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
-                           &JogArm::changeControlDimensions, this);
-
   // Subscribe to output commands in internal namespace
   ros::NodeHandle internal_nh("~internal");
   joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", 1, &JogArm::jointTrajectoryCB, this);
@@ -359,7 +349,6 @@ void JogArm::run(const ros::TimerEvent& timer_event)
 
 void JogArm::start()
 {
-  shared_variables_.stop_requested = false;
   shared_variables_.paused = false;
 
   // Crunch the numbers in this thread
@@ -375,8 +364,6 @@ void JogArm::start()
 
 void JogArm::stop()
 {
-  shared_variables_.stop_requested = true;
-
   timer_.stop();
   jog_calcs_->stop();
   collision_checker_->stop();
@@ -385,34 +372,6 @@ void JogArm::stop()
 JogArm::~JogArm()
 {
   stop();
-}
-
-bool JogArm::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                                   moveit_msgs::ChangeDriftDimensions::Response& res)
-{
-  shared_variables_.drift_dimensions[0] = req.drift_x_translation;
-  shared_variables_.drift_dimensions[1] = req.drift_y_translation;
-  shared_variables_.drift_dimensions[2] = req.drift_z_translation;
-  shared_variables_.drift_dimensions[3] = req.drift_x_rotation;
-  shared_variables_.drift_dimensions[4] = req.drift_y_rotation;
-  shared_variables_.drift_dimensions[5] = req.drift_z_rotation;
-
-  res.success = true;
-  return true;
-}
-
-bool JogArm::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-                                     moveit_msgs::ChangeControlDimensions::Response& res)
-{
-  shared_variables_.control_dimensions[0] = req.control_x_translation;
-  shared_variables_.control_dimensions[1] = req.control_y_translation;
-  shared_variables_.control_dimensions[2] = req.control_z_translation;
-  shared_variables_.control_dimensions[3] = req.control_x_rotation;
-  shared_variables_.control_dimensions[4] = req.control_y_rotation;
-  shared_variables_.control_dimensions[5] = req.control_z_rotation;
-
-  res.success = true;
-  return true;
 }
 
 void JogArm::provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg)

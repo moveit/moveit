@@ -44,6 +44,8 @@
 // ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit_msgs/ChangeDriftDimensions.h>
+#include <moveit_msgs/ChangeControlDimensions.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Int8.h>
 
@@ -60,7 +62,7 @@ public:
   JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogArmShared& shared_variables,
            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \breif Start and stop the timer (thread) */
+  /** \brief Start and stop the timer (thread) */
   void start();
   void stop();
 
@@ -79,7 +81,7 @@ public:
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
 private:
-  /** \breif Init must be called once before run */
+  /** \brief Init must be called once before run */
   void init();
 
   /** \brief Timer method */
@@ -170,9 +172,25 @@ private:
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
 
-  /* \breif Command callbacks */
+  /* \brief Command callbacks */
   void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
   void jointJogCB(const control_msgs::JointJogConstPtr& msg);
+
+  /**
+   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
+   * This can help avoid singularities.
+   *
+   * @param request the service request
+   * @param response the service response
+   * @return true if the adjustment was made
+   */
+  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                             moveit_msgs::ChangeDriftDimensions::Response& res);
+
+  /** \brief Start the main calculation thread */
+  // Service callback for changing jogging dimensions
+  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                               moveit_msgs::ChangeControlDimensions::Response& res);
 
   // ROS node handle
   ros::NodeHandle nh_;
@@ -228,7 +246,12 @@ private:
   ros::Subscriber joint_jog_sub_;
   ros::Publisher status_pub_;
   ros::Publisher joint_trajectory_pub_;
+  ros::ServiceServer drift_dimensions_server_;
+  ros::ServiceServer control_dimensions_server_;
+
+  // Status
   StatusCode status_ = NO_WARNING;
+  bool stop_requested_ = false;
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;

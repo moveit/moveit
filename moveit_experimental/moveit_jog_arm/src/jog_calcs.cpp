@@ -83,6 +83,16 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogA
   twist_stamped_sub_ = nh_.subscribe(parameters.cartesian_command_in_topic, 1, &JogCalcs::twistStampedCB, this);
   joint_jog_sub_ = nh.subscribe(parameters.joint_command_in_topic, 1, &JogCalcs::jointJogCB, this);
 
+  // ROS Server for allowing drift in some dimensions
+  drift_dimensions_server_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
+                           &JogCalcs::changeDriftDimensions, this);
+
+  // ROS Server for changing the control dimensions
+  control_dimensions_server_ =
+      nh_.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
+                           &JogCalcs::changeControlDimensions, this);
+
   // Publish output commands to internal namespace
   ros::NodeHandle internal_nh("~internal");
   joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
@@ -128,26 +138,17 @@ void JogCalcs::init()
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
   }
 
-  // Initialize the position filters to initial robot joints
-  while (!updateJoints(shared_variables_) && ros::ok())
-  {
-    if (shared_variables_.stop_requested)
-      return;
-    default_sleep_rate_.sleep();
-  }
-
-  // reset flags
+  // initialization is finished
+  is_initialized_ = true;
   wait_for_jog_commands_ = true;
   have_nonzero_twist_stamped_ = false;
   have_nonzero_joint_jog_ = false;
   have_nonzero_command_ = false;
-
-  // initialization is finished
-  is_initialized_ = true;
 }
 
 void JogCalcs::start()
 {
+  stop_requested_ = false;
   init();
 
   timer_ = nh_.createTimer(period_, &JogCalcs::run, this);
@@ -155,6 +156,7 @@ void JogCalcs::start()
 
 void JogCalcs::stop()
 {
+  stop_requested_ = true;
   timer_.stop();
 }
 
@@ -177,6 +179,8 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // 2) so the low-pass filters are up to date and don't cause a jump
   while (!updateJoints(shared_variables_) && ros::ok())
   {
+    if (stop_requested_)
+      return;
     default_sleep_rate_.sleep();
   }
 
@@ -354,9 +358,9 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Convert from cartesian commands to joint commands
   Eigen::MatrixXd jacobian = kinematic_state_->getJacobian(joint_model_group_);
 
-  // May allow some dimensions to drift, based on shared_variables.drift_dimensions
+  // May allow some dimensions to drift, based on drift_dimensions
   // i.e. take advantage of task redundancy.
-  // Remove the Jacobian rows corresponding to True in the vector shared_variables.drift_dimensions
+  // Remove the Jacobian rows corresponding to True in the vector drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
   for (auto dimension = jacobian.rows(); dimension >= 0; --dimension)
   {
@@ -957,6 +961,34 @@ void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
   have_nonzero_joint_jog_ = isNonZero(*latest_joint_jog_);
   if (msg->header.stamp != ros::Time(0.))
     latest_command_stamp_ = msg->header.stamp;
+}
+
+bool JogCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                                     moveit_msgs::ChangeDriftDimensions::Response& res)
+{
+  shared_variables_.drift_dimensions[0] = req.drift_x_translation;
+  shared_variables_.drift_dimensions[1] = req.drift_y_translation;
+  shared_variables_.drift_dimensions[2] = req.drift_z_translation;
+  shared_variables_.drift_dimensions[3] = req.drift_x_rotation;
+  shared_variables_.drift_dimensions[4] = req.drift_y_rotation;
+  shared_variables_.drift_dimensions[5] = req.drift_z_rotation;
+
+  res.success = true;
+  return true;
+}
+
+bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                                       moveit_msgs::ChangeControlDimensions::Response& res)
+{
+  shared_variables_.control_dimensions[0] = req.control_x_translation;
+  shared_variables_.control_dimensions[1] = req.control_y_translation;
+  shared_variables_.control_dimensions[2] = req.control_z_translation;
+  shared_variables_.control_dimensions[3] = req.control_x_rotation;
+  shared_variables_.control_dimensions[4] = req.control_y_rotation;
+  shared_variables_.control_dimensions[5] = req.control_z_rotation;
+
+  res.success = true;
+  return true;
 }
 
 }  // namespace moveit_jog_arm
