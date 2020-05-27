@@ -159,7 +159,7 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
 
   // end position of the first trajectory and start position of second trajectory must be the same
   if (!pilz_industrial_motion_planner::isRobotStateEqual(
-          req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, epsilon))
+          req.first_trajectory->getLastWayPoint(), req.second_trajectory->getFirstWayPoint(), req.group_name, EPSILON))
   {
     ROS_ERROR_STREAM("During blending the last point ("
                      << req.first_trajectory->getLastWayPoint()
@@ -171,7 +171,7 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
 
   // same uniform sampling time
   if (!pilz_industrial_motion_planner::determineAndCheckSamplingTime(req.first_trajectory, req.second_trajectory,
-                                                                     epsilon, sampling_time))
+                                                                     EPSILON, sampling_time))
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
@@ -180,9 +180,9 @@ bool pilz_industrial_motion_planner::TrajectoryBlenderTransitionWindow::validate
   // end position of the first trajectory and start position of second trajectory must have zero
   // velocities/accelerations
   if (!pilz_industrial_motion_planner::isRobotStateStationary(req.first_trajectory->getLastWayPoint(), req.group_name,
-                                                              epsilon) ||
+                                                              EPSILON) ||
       !pilz_industrial_motion_planner::isRobotStateStationary(req.second_trajectory->getFirstWayPoint(), req.group_name,
-                                                              epsilon))
+                                                              EPSILON))
   {
     ROS_ERROR("Intersection point of the blending trajectories has non-zero velocities/accelerations.");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
