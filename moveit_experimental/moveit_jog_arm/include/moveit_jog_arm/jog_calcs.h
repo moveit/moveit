@@ -58,10 +58,7 @@ class JogCalcs
 {
 public:
   JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogArmShared& shared_variables,
-           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-           const std::shared_ptr<TwistedStampedQueue>& command_deltas_queue,
-           const std::shared_ptr<JointJogQueue>& joint_command_deltas_queue,
-           const std::shared_ptr<JointTrajectoryQueue>& outgoing_command_queue);
+           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /** \breif Start and stop the timer (thread) */
   void start();
@@ -173,6 +170,10 @@ private:
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
 
+  /* \breif Command callbacks */
+  void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
+  void jointJogCB(const control_msgs::JointJogConstPtr& msg);
+
   // ROS node handle
   ros::NodeHandle nh_;
 
@@ -196,30 +197,20 @@ private:
   bool wait_for_jog_commands_ = true;
 
   // Nonzero status flags
-  bool have_nonzero_cartesian_command_ = false;
-  bool have_nonzero_joint_command_ = false;
+  bool have_nonzero_twist_stamped_ = false;
+  bool have_nonzero_joint_jog_ = false;
   bool have_nonzero_command_ = false;
 
   // Incoming command messages
-  geometry_msgs::TwistStamped cartesian_deltas_;
-  control_msgs::JointJog joint_deltas_;
+  geometry_msgs::TwistStamped twist_stamped_;
+  control_msgs::JointJog joint_jog_;
 
   const moveit::core::JointModelGroup* joint_model_group_;
 
   moveit::core::RobotStatePtr kinematic_state_;
 
-  // Queues for message passing between threads
-  std::shared_ptr<TwistedStampedQueue> command_deltas_queue_;
-  std::shared_ptr<JointJogQueue> joint_command_deltas_queue_;
-  std::shared_ptr<JointTrajectoryQueue> outgoing_command_queue_;
-
-  // latest_state_mutex_ is used to protect
-  // incoming_joint_state_ and tf_moveit_to_cmd_frame_
-  mutable std::mutex latest_state_mutex_;
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
-  sensor_msgs::JointState incoming_joint_state_;
-  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
-
+  // (mutex protected below)
   // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
   sensor_msgs::JointState internal_joint_state_, original_joint_state_;
@@ -233,7 +224,10 @@ private:
   ros::Timer timer_;
   ros::Duration period_;
   ros::Subscriber joint_state_sub_;
+  ros::Subscriber twist_stamped_sub_;
+  ros::Subscriber joint_jog_sub_;
   ros::Publisher status_pub_;
+  ros::Publisher joint_trajectory_pub_;
   StatusCode status_ = NO_WARNING;
 
   // Use ArrayXd type to enable more coefficient-wise operations
@@ -246,5 +240,13 @@ private:
 
   // Amount we sleep when waiting
   ros::Rate default_sleep_rate_ = 1000;
+
+  // latest_state_mutex_ is used to protect the state below it
+  mutable std::mutex latest_state_mutex_;
+  sensor_msgs::JointState incoming_joint_state_;
+  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+  geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
+  control_msgs::JointJogConstPtr latest_joint_jog_;
+  ros::Time latest_command_stamp_ = ros::Time(0.);
 };
 }  // namespace moveit_jog_arm

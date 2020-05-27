@@ -38,9 +38,6 @@
 
 #pragma once
 
-// Boost
-#include <boost/lockfree/spsc_queue.hpp>
-
 // Eigen
 #include <Eigen/Geometry>
 
@@ -54,32 +51,6 @@
 
 namespace moveit_jog_arm
 {
-// Types for queues between threads
-constexpr size_t QUEUE_SIZE = 10;
-template <typename T, size_t U>
-using MessageQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<U>>;
-using TwistedStampedQueue = MessageQueue<geometry_msgs::TwistStamped, QUEUE_SIZE>;
-using JointJogQueue = MessageQueue<control_msgs::JointJog, QUEUE_SIZE>;
-using JointTrajectoryQueue = MessageQueue<trajectory_msgs::JointTrajectory, QUEUE_SIZE>;
-
-// Helper function for popping the latest value out of a queue
-template <typename T, size_t U>
-bool popLatest(MessageQueue<T, U>& queue, T& output)
-{
-  size_t count = queue.read_available();
-  if (count > 0)
-  {
-    // clear all but the latest from the queue
-    for (size_t i = 0; i < (count - 1); ++i)
-    {
-      queue.pop();
-    }
-    // read the latest value
-    queue.pop(output);
-  }
-  return true;
-}
-
 // Variables to share between threads
 // Be careful to not read-modify-write any of these because they are not
 // protected by a mutex.
@@ -120,10 +91,12 @@ struct JogArmParameters
 {
   std::string move_group_name;
   std::string joint_topic;
+  std::string cartesian_command_in_topic;
   std::string robot_link_command_frame;
   std::string command_out_topic;
   std::string planning_frame;
   std::string status_topic;
+  std::string joint_command_in_topic;
   std::string command_in_type;
   std::string command_out_type;
   double linear_scale;
