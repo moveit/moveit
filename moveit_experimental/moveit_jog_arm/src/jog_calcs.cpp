@@ -66,17 +66,11 @@ bool isNonZero(const control_msgs::JointJog& msg)
 
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogArmShared& shared_variables,
-                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                   const std::shared_ptr<TwistedStampedQueue>& command_deltas_queue,
-                   const std::shared_ptr<JointJogQueue>& joint_command_deltas_queue,
-                   const std::shared_ptr<JointTrajectoryQueue>& outgoing_command_queue)
+                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
   , parameters_(parameters)
   , shared_variables_(shared_variables)
   , planning_scene_monitor_(planning_scene_monitor)
-  , command_deltas_queue_(command_deltas_queue)
-  , joint_command_deltas_queue_(joint_command_deltas_queue)
-  , outgoing_command_queue_(outgoing_command_queue)
   , period_(parameters.publish_period)
 {
   // Publish jogger status
@@ -84,6 +78,14 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogA
 
   // subscribe to joints
   joint_state_sub_ = nh_.subscribe(parameters.joint_topic, 1, &JogCalcs::jointStateCB, this);
+
+  // Subscribe to command topics
+  twist_stamped_sub_ = nh_.subscribe(parameters.cartesian_command_in_topic, 1, &JogCalcs::twistStampedCB, this);
+  joint_jog_sub_ = nh.subscribe(parameters.joint_command_in_topic, 1, &JogCalcs::jointJogCB, this);
+
+  // Publish output commands to internal namespace
+  ros::NodeHandle internal_nh("~internal");
+  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
 }
 
 void JogCalcs::init()
@@ -136,8 +138,8 @@ void JogCalcs::init()
 
   // reset flags
   wait_for_jog_commands_ = true;
-  have_nonzero_cartesian_command_ = false;
-  have_nonzero_joint_command_ = false;
+  have_nonzero_twist_stamped_ = false;
+  have_nonzero_joint_jog_ = false;
   have_nonzero_command_ = false;
 
   // initialization is finished
@@ -178,43 +180,37 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     default_sleep_rate_.sleep();
   }
 
-  // Get the transform from MoveIt planning frame to jogging command frame
-  // We solve (planning_frame -> base -> robot_link_command_frame)
-  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
+  // Update from latest state
   {
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
     kinematic_state_->setVariableValues(incoming_joint_state_);
+    if (latest_twist_stamped_)
+      twist_stamped_ = *latest_twist_stamped_;
+    if (latest_joint_jog_)
+      joint_jog_ = *latest_joint_jog_;
+
+    // Check for stale cmds
+    shared_variables_.command_is_stale =
+        ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
   }
+
+  // Get the transform from MoveIt planning frame to jogging command frame
+  // We solve (planning_frame -> base -> robot_link_command_frame)
+  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
   tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                             kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
 
-  // Read the latest cartesian commands out of the queues
-  bool have_new_cartesian_command = popLatest(*command_deltas_queue_, cartesian_deltas_);
-  bool have_new_joint_command = popLatest(*joint_command_deltas_queue_, joint_deltas_);
-
-  if (have_new_cartesian_command)
+  // Input frame determined by YAML file if not passed with message
+  if (twist_stamped_.header.frame_id.empty())
   {
-    // Update nonzero flags for updated messages
-    have_nonzero_cartesian_command_ = isNonZero(cartesian_deltas_);
-
-    // Input frame determined by YAML file if not passed with message
-    if (cartesian_deltas_.header.frame_id.empty())
-    {
-      cartesian_deltas_.header.frame_id = parameters_.robot_link_command_frame;
-    }
+    twist_stamped_.header.frame_id = parameters_.robot_link_command_frame;
   }
-  if (have_new_joint_command)
+  if (twist_stamped_.header.frame_id.empty())
   {
-    // Update nonzero flags for updated messages
-    have_nonzero_joint_command_ = isNonZero(joint_deltas_);
-
-    // Input frame determined by YAML file if not passed with message
-    if (cartesian_deltas_.header.frame_id.empty())
-    {
-      joint_deltas_.header.frame_id = parameters_.robot_link_command_frame;
-    }
+    joint_jog_.header.frame_id = parameters_.robot_link_command_frame;
   }
-  have_nonzero_command_ = have_nonzero_cartesian_command_ || have_nonzero_joint_command_;
+
+  have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_jog_;
 
   // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
   // joints so a jump doesn't occur when restarting
@@ -224,8 +220,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       position_filters_[i].reset(original_joint_state_.position[i]);
 
     // Check if there are any new commands with valid timestamp
-    wait_for_jog_commands_ =
-        cartesian_deltas_.header.stamp == ros::Time(0.) && joint_deltas_.header.stamp == ros::Time(0.);
+    wait_for_jog_commands_ = twist_stamped_.header.stamp == ros::Time(0.) && joint_jog_.header.stamp == ros::Time(0.);
   }
   // If not waiting for initial command, and not paused.
   // Do jogging calculations only if the robot should move, for efficiency
@@ -234,14 +229,14 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     if (!shared_variables_.command_is_stale)
     {
       // Prioritize cartesian jogging above joint jogging
-      if (have_nonzero_cartesian_command_)
+      if (have_nonzero_twist_stamped_)
       {
-        if (!cartesianJogCalcs(cartesian_deltas_, shared_variables_))
+        if (!cartesianJogCalcs(twist_stamped_, shared_variables_))
           return;
       }
-      else if (have_nonzero_joint_command_)
+      else if (have_nonzero_joint_jog_)
       {
-        if (!jointJogCalcs(joint_deltas_, shared_variables_))
+        if (!jointJogCalcs(joint_jog_, shared_variables_))
           return;
       }
     }
@@ -254,16 +249,15 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
         position_filters_[i].reset(original_joint_state_.position[i]);
 
       suddenHalt(outgoing_command_);
-      have_nonzero_cartesian_command_ = false;
-      have_nonzero_joint_command_ = false;
+      have_nonzero_twist_stamped_ = false;
+      have_nonzero_joint_jog_ = false;
     }
 
     // Send the newest target joints
     // If everything normal, share the new traj to be published
     if (have_nonzero_command_)
     {
-      outgoing_command_queue_->push(outgoing_command_);
-      // shared_variables.outgoing_command = outgoing_command_;
+      joint_trajectory_pub_.publish(outgoing_command_);
       shared_variables_.ok_to_publish = true;
     }
     // Skip the jogging publication if all inputs have been zero for several cycles in a row.
@@ -276,14 +270,13 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
     else
     {
-      outgoing_command_queue_->push(outgoing_command_);
-      // shared_variables.outgoing_command = outgoing_command_;
+      joint_trajectory_pub_.publish(outgoing_command_);
       shared_variables_.ok_to_publish = true;
     }
 
     // Store last zero-velocity message flag to prevent superfluous warnings.
     // Cartesian and joint commands must both be zero.
-    if (!have_nonzero_cartesian_command_ && !have_nonzero_joint_command_)
+    if (!have_nonzero_twist_stamped_ && !have_nonzero_joint_jog_)
     {
       // Avoid overflow
       if (zero_velocity_count_ < std::numeric_limits<int>::max())
@@ -950,6 +943,24 @@ bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
 
   // All zeros means the transform wasn't initialized, so return false
   return !transform.matrix().isZero(0);
+}
+
+void JogCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  latest_twist_stamped_ = msg;
+  have_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
+  if (msg->header.stamp != ros::Time(0.))
+    latest_command_stamp_ = msg->header.stamp;
+}
+
+void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  latest_joint_jog_ = msg;
+  have_nonzero_joint_jog_ = isNonZero(*latest_joint_jog_);
+  if (msg->header.stamp != ros::Time(0.))
+    latest_command_stamp_ = msg->header.stamp;
 }
 
 }  // namespace moveit_jog_arm
