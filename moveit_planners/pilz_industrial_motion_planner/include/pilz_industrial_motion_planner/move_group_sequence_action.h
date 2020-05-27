@@ -54,7 +54,7 @@ class MoveGroupSequenceAction : public move_group::MoveGroupCapability
 public:
   MoveGroupSequenceAction();
 
-  virtual void initialize() override;
+  void initialize() override;
 
 private:
   using ExecutableTrajs = std::vector<plan_execution::ExecutableTrajectory>;
