@@ -100,7 +100,7 @@ private:
 class ValidationException : public std::runtime_error
 {
 public:
-  ValidationException(const std::string error_desc) : std::runtime_error(error_desc)
+  ValidationException(const std::string& error_desc) : std::runtime_error(error_desc)
   {
   }
 };
@@ -113,7 +113,7 @@ public:
 class ValidationJointMissingException : public ValidationException
 {
 public:
-  ValidationJointMissingException(const std::string error_desc) : ValidationException(error_desc)
+  ValidationJointMissingException(const std::string& error_desc) : ValidationException(error_desc)
   {
   }
 };
@@ -126,7 +126,7 @@ public:
 class ValidationDifferentLimitsException : public ValidationException
 {
 public:
-  ValidationDifferentLimitsException(const std::string error_desc) : ValidationException(error_desc)
+  ValidationDifferentLimitsException(const std::string& error_desc) : ValidationException(error_desc)
   {
   }
 };
@@ -139,7 +139,7 @@ public:
 class ValidationBoundsViolationException : public ValidationException
 {
 public:
-  ValidationBoundsViolationException(const std::string error_desc) : ValidationException(error_desc)
+  ValidationBoundsViolationException(const std::string& error_desc) : ValidationException(error_desc)
   {
   }
 };
