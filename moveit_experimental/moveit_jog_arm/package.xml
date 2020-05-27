@@ -16,6 +16,7 @@
   <author email="andyz@utexas.edu">Andy Zelenak</author>
   <author>Blake Anderson</author>
   <author email="alex@machinekoder.com">Alexander Rössler</author>
+  <author email="tyler@picknik.ai">Tyler Weaver</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
