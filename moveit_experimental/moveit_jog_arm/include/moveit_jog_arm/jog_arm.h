@@ -42,8 +42,6 @@
 #include <Eigen/Eigenvalues>
 
 #include <moveit/robot_state/robot_state.h>
-#include <moveit_msgs/ChangeDriftDimensions.h>
-#include <moveit_msgs/ChangeControlDimensions.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
@@ -76,22 +74,6 @@ public:
   /** \brief Pause or unpause processing jog commands while keeping the threads alive */
   void setPaused(bool paused);
 
-  /**
-   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
-   * This can help avoid singularities.
-   *
-   * @param request the service request
-   * @param response the service response
-   * @return true if the adjustment was made
-   */
-  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                             moveit_msgs::ChangeDriftDimensions::Response& res);
-
-  /** \brief Start the main calculation thread */
-  // Service callback for changing jogging dimensions
-  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-                               moveit_msgs::ChangeControlDimensions::Response& res);
-
   /** \brief Provide a Cartesian velocity command to the jogger.
    * The units are determined by settings in the yaml file.
    */
@@ -99,14 +81,6 @@ public:
 
   /** \brief Send joint position(s) commands */
   void provideJointCommand(const control_msgs::JointJogConstPtr& msg);
-
-  /**
-   * Returns the most recent JointState that the jogger has received.
-   * May eliminate the need to create your own joint_state subscriber.
-   *
-   * @return the most recent joints known to the jogger
-   */
-  sensor_msgs::JointState getJointState();
 
   /**
    * Get the MoveIt planning link transform.
@@ -152,8 +126,6 @@ private:
   ros::Publisher outgoing_cmd_pub_;
   ros::Publisher twist_stamped_pub_;
   ros::Publisher joint_jog_pub_;
-  ros::ServiceServer drift_dimensions_server_;
-  ros::ServiceServer dims_server_;
   ros::Subscriber joint_trajectory_sub_;
 
   // latest_state_mutex_ is used to protect the state below it
