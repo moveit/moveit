@@ -82,7 +82,7 @@ private:
   void cmdSpecificRequestValidation(const planning_interface::MotionPlanRequest& req) const override;
 
   void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
-                                     MotionPlanInfo& info) const final override;
+                                     MotionPlanInfo& info) const final;
 
   void plan(const planning_interface::MotionPlanRequest& req, const MotionPlanInfo& plan_info,
                     const double& sampling_time, trajectory_msgs::JointTrajectory& joint_trajectory) override;
