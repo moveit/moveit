@@ -63,8 +63,6 @@ public:
   TrajectoryGeneratorPTP(const robot_model::RobotModelConstPtr& robot_model,
                          const pilz_industrial_motion_planner::LimitsContainer& planner_limits);
 
-  ~TrajectoryGeneratorPTP() override;
-
 private:
   void extractMotionPlanInfo(const planning_interface::MotionPlanRequest& req,
                                      MotionPlanInfo& info) const override;
