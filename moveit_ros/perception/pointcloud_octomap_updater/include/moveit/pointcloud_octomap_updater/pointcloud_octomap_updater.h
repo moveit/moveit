@@ -50,6 +50,14 @@
 
 namespace occupancy_map_monitor
 {
+/* Maintaining the octomap is supported in two ways:
+ * INCREMENTAL: Maintains a an octomap from multiple updates over time.
+                Cells that are marked occupied will remain so even if obscured from the camera view in subsequent
+ updates,
+                and marked free only after they are seen to be free in multiple pointclouds.
+
+   SNAPSHOT:    Create an entirely new octomap from each pointcloud, forgetting previous data with each update.
+ */
 enum class UpdateMethod
 {
   INCREMENTAL,
@@ -69,25 +77,34 @@ public:
   void stop() override;
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape) override;
 
-  /** @brief Exclude a shape from the octomap when processing.  Allows specifying an initial transform to put in the
-     transform cache.
-             For use outside of the perception pipeline
+  /** @brief Exclude a shape from the octomap when processing.
+             Allows specifying an initial transform to put in the transform cache.
+             For use outside of the perception pipeline.
       @param shape The shape to exclude
       @param pose Pose of the shape in the sensor frame */
   ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
 
   void forgetShape(ShapeHandle handle) override;
 
-  /** @brief process a pointcloud message and update the octomap.  Does not update the transform cache.
-             Can be used outside of the perception pipeline
+  /** @brief Process a pointcloud message and update the octomap.
+             Does not update the transform cache.
+
+             This function is intended for users maintaining their own Octree outside of the perception pipeline.
+             The user can directly add shapes to filter by passing a shape together with a pose to `excludeShape`, and
+             then can use Eigen for all poses, skipping any tf lookups.
       @param cloud_msg The pointcloud to process
       @param sensor_pose Eigen pose of the frame in which the pointcloud is given
       @param update_method Whether to update the current octomap probabilities or to forget all previous octomap data */
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
                     UpdateMethod update_method);
 
-  /** @brief process a pointcloud message and update the octomap.  Updates transform cache.
-             Requires setTransformCacheCallback to have been called
+  /** @brief Process a pointcloud message and update the octomap.
+
+             This version of the function is used by PlanningSceneMonitor in the perception pipeline.
+             Uses tf to get the pose of the camera relative to the Octree, and a callback is used to get the poses of
+             all filtered shapes.
+             Thus, this requires setTransformCacheCallback to have been used to set a callback which is used to get the
+     poses of filtered shapes
       @param cloud_msg The pointcloud to process */
   bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
 
