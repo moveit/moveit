@@ -195,16 +195,12 @@ const ros::NodeHandle& MoveItCpp::getNodeHandle() const
 
 bool MoveItCpp::getCurrentState(moveit::core::RobotStatePtr& current_state, double wait_seconds)
 {
-  if (wait_seconds > 0.0 &&
-      !planning_scene_monitor_->getStateMonitor()->waitForCurrentState(ros::Time::now(), wait_seconds))
+  auto csm = planning_scene_monitor_->getStateMonitor();
+  if (!csm->waitForCurrentState(ros::Time::now(), wait_seconds) || !(current_state = csm->getCurrentState()))
   {
-    ROS_ERROR_NAMED(LOGNAME, "Did not receive robot state");
+    ROS_WARN_NAMED(LOGNAME, "Failed to receive current robot state");
     return false;
   }
-  {  // Lock planning scene
-    planning_scene_monitor::LockedPlanningSceneRO scene(planning_scene_monitor_);
-    current_state.reset(new moveit::core::RobotState(scene->getCurrentState()));
-  }  // Unlock planning scene
   return true;
 }
 

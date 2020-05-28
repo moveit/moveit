@@ -138,7 +138,7 @@ public:
 
   /** \brief Get the current state queried from the current state monitor
       \param wait_seconds the time in seconds for the state monitor to wait for a robot state. */
-  moveit::core::RobotStatePtr getCurrentState(double wait_seconds = 0.0);
+  moveit::core::RobotStatePtr getCurrentState(double wait_seconds = 1.0);
 
   /** \brief Get all loaded planning pipeline instances mapped to their reference names */
   const std::map<std::string, planning_pipeline::PlanningPipelinePtr>& getPlanningPipelines() const;
