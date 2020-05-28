@@ -1022,7 +1022,7 @@ private:
   moveit::core::AttachedBodyCallback current_state_attached_body_callback_;
 
   // This variable is not necessarily used by child planning scenes
-  // This Transforms class is actually a SceneTransform class
+  // This Transforms class is actually a SceneTransforms class
   moveit::core::TransformsPtr scene_transforms_;  // if NULL use parent's
 
   collision_detection::WorldPtr world_;             // never NULL, never shared with parent/child
