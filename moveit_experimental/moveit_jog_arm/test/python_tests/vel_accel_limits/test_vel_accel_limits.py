@@ -20,9 +20,6 @@ JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
 
-# Check if jogger is initialized with this service
-SERVICE_NAME = 'jog_server/change_drift_dimensions'
-
 
 @pytest.fixture
 def node():
@@ -44,7 +41,7 @@ class JointJogCmd(object):
 def test_vel_limit(node):
     # Test sending a joint command
 
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     received = []
     sub = rospy.Subscriber(

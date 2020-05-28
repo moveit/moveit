@@ -37,7 +37,10 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
+#include <std_msgs/Float64.h>
+
 #include <moveit_jog_arm/collision_check_thread.h>
+#include <moveit_jog_arm/boost_pool_allocation.h>
 
 static const std::string LOGNAME = "collision_check_thread";
 static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
@@ -46,11 +49,10 @@ namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
 CollisionCheckThread::CollisionCheckThread(
-    ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters, JogArmShared& shared_variables,
+    ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
   , parameters_(parameters)
-  , shared_variables_(shared_variables)
   , planning_scene_monitor_(planning_scene_monitor)
   , self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold)
   , scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold)
@@ -65,15 +67,11 @@ CollisionCheckThread::CollisionCheckThread(
 
   // subscribe to joints
   joint_state_sub_ = nh_.subscribe(parameters.joint_topic, 1, &CollisionCheckThread::jointStateCB, this);
-}
 
-planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
-{
-  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
-}
+  // Publish to internal namespace
+  ros::NodeHandle internal_nh("~internal");
+  collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", 1);
 
-void CollisionCheckThread::init()
-{
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
@@ -82,9 +80,13 @@ void CollisionCheckThread::init()
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 }
 
+planning_scene_monitor::LockedPlanningSceneRO CollisionCheckThread::getLockedPlanningSceneRO() const
+{
+  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
+}
+
 void CollisionCheckThread::start()
 {
-  init();
   timer_ = nh_.createTimer(period_, &CollisionCheckThread::run, this);
 }
 
@@ -107,7 +109,7 @@ void CollisionCheckThread::run(const ros::TimerEvent& timer_event)
                                                                  << period_.toSec());
   }
 
-  if (shared_variables_.paused)
+  if (paused_)
   {
     return;
   }
@@ -163,7 +165,12 @@ void CollisionCheckThread::run(const ros::TimerEvent& timer_event)
                                       (self_collision_distance_ - parameters_.self_collision_proximity_threshold)));
   }
 
-  shared_variables_.collision_velocity_scale = velocity_scale_;
+  // publish message
+  {
+    auto msg = make_shared_from_pool<std_msgs::Float64>();
+    msg->data = velocity_scale_;
+    collision_velocity_scale_pub_.publish(msg);
+  }
 }
 
 void CollisionCheckThread::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
@@ -171,4 +178,10 @@ void CollisionCheckThread::jointStateCB(const sensor_msgs::JointStateConstPtr& m
   const std::lock_guard<std::mutex> lock(joint_state_mutex_);
   latest_joint_state_ = msg;
 }
+
+void CollisionCheckThread::setPaused(bool paused)
+{
+  paused_ = paused;
+}
+
 }  // namespace moveit_jog_arm
