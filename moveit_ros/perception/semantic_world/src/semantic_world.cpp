@@ -486,7 +486,7 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray& tab
                                       << table_array.tables[i].pose.position.y << ","
                                       << table_array.tables[i].pose.position.z);
     std::string error_text;
-    const Eigen::Isometry3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
+    const Eigen::Isometry3d& original_transform = planning_scene_->getFrameTransform(original_frame);
     Eigen::Isometry3d original_pose;
     tf2::fromMsg(table_array.tables[i].pose, original_pose);
     original_pose = original_transform * original_pose;
