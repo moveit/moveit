@@ -22,9 +22,6 @@ CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
 
-# Check if jogger is initialized with this service
-SERVICE_NAME = 'jog_server/change_drift_dimensions'
-
 
 @pytest.fixture
 def node():
@@ -60,7 +57,7 @@ class CartesianJogCmd(object):
 def test_jog_arm_cartesian_command(node):
     # Test sending a cartesian velocity command
 
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     received = []
     sub = rospy.Subscriber(
@@ -70,10 +67,9 @@ def test_jog_arm_cartesian_command(node):
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different thread fills 'received'
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
-    cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
+    for i in range(4):
+        cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
+        rospy.sleep(0.1)
     received = []
     rospy.sleep(1)
     assert len(received) <= 4 # 'num_outgoing_halt_msgs_to_publish' in the config file
@@ -100,7 +96,7 @@ def test_jog_arm_cartesian_command(node):
 def test_jog_arm_joint_command(node):
     # Test sending a joint command
 
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     received = []
     sub = rospy.Subscriber(

@@ -37,7 +37,10 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
+#include <std_msgs/Bool.h>
+
 #include <moveit_jog_arm/jog_calcs.h>
+#include <moveit_jog_arm/boost_pool_allocation.h>
 
 static const std::string LOGNAME = "jog_calcs";
 
@@ -65,44 +68,13 @@ bool isNonZero(const control_msgs::JointJog& msg)
 }  // namespace
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters, JogArmShared& shared_variables,
+JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
                    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
   , parameters_(parameters)
-  , shared_variables_(shared_variables)
   , planning_scene_monitor_(planning_scene_monitor)
   , period_(parameters.publish_period)
 {
-  // Publish jogger status
-  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
-
-  // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters.joint_topic, 1, &JogCalcs::jointStateCB, this);
-
-  // Subscribe to command topics
-  twist_stamped_sub_ = nh_.subscribe(parameters.cartesian_command_in_topic, 1, &JogCalcs::twistStampedCB, this);
-  joint_jog_sub_ = nh.subscribe(parameters.joint_command_in_topic, 1, &JogCalcs::jointJogCB, this);
-
-  // ROS Server for allowing drift in some dimensions
-  drift_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
-                           &JogCalcs::changeDriftDimensions, this);
-
-  // ROS Server for changing the control dimensions
-  control_dimensions_server_ =
-      nh_.advertiseService(nh.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
-                           &JogCalcs::changeControlDimensions, this);
-
-  // Publish output commands to internal namespace
-  ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
-}
-
-void JogCalcs::init()
-{
-  // Reset flags
-  is_initialized_ = false;
-
   // MoveIt Setup
   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr = planning_scene_monitor_->getRobotModelLoader();
   while (ros::ok() && !model_loader_ptr)
@@ -116,6 +88,31 @@ void JogCalcs::init()
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
   prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getActiveJointModels().size());
+
+  // subscribe to joints
+  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, 1, &JogCalcs::jointStateCB, this);
+
+  // Subscribe to command topics
+  twist_stamped_sub_ = nh_.subscribe(parameters_.cartesian_command_in_topic, 100, &JogCalcs::twistStampedCB, this);
+  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, 1, &JogCalcs::jointJogCB, this);
+
+  // ROS Server for allowing drift in some dimensions
+  drift_dimensions_server_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
+                           &JogCalcs::changeDriftDimensions, this);
+
+  // ROS Server for changing the control dimensions
+  control_dimensions_server_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
+                           &JogCalcs::changeControlDimensions, this);
+
+  // Publish and Subscribe to internal namespace topics
+  ros::NodeHandle internal_nh("~internal");
+  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
+  ok_to_publish_pub_ = internal_nh.advertise<std_msgs::Bool>("ok_to_publish", 1);
+  collision_velocity_scale_sub_ =
+      internal_nh.subscribe("collision_velocity_scale", 1, &JogCalcs::collisionVelocityScaleCB, this);
+  worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", 1);
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
@@ -139,7 +136,6 @@ void JogCalcs::init()
   }
 
   // initialization is finished
-  is_initialized_ = true;
   wait_for_jog_commands_ = true;
   have_nonzero_twist_stamped_ = false;
   have_nonzero_joint_jog_ = false;
@@ -149,7 +145,7 @@ void JogCalcs::init()
 void JogCalcs::start()
 {
   stop_requested_ = false;
-  init();
+  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
 
   timer_ = nh_.createTimer(period_, &JogCalcs::run, this);
 }
@@ -174,10 +170,17 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
                                                                  << period_.toSec());
   }
 
+  // Publish status each loop iteration
+  {
+    auto status_msg = make_shared_from_pool<std_msgs::Int8>();
+    status_msg->data = static_cast<int8_t>(status_);
+    status_pub_.publish(status_msg);
+  }
+
   // Always update the joints and end-effector transform for 2 reasons:
   // 1) in case the getCommandFrameTransform() method is being used
   // 2) so the low-pass filters are up to date and don't cause a jump
-  while (!updateJoints(shared_variables_) && ros::ok())
+  while (!updateJoints() && ros::ok())
   {
     if (stop_requested_)
       return;
@@ -194,7 +197,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       joint_jog_ = *latest_joint_jog_;
 
     // Check for stale cmds
-    shared_variables_.command_is_stale =
+    command_is_stale_ =
         ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
   }
 
@@ -214,7 +217,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
 
   // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
   // joints so a jump doesn't occur when restarting
-  if (wait_for_jog_commands_ || shared_variables_.paused)
+  if (wait_for_jog_commands_ || paused_)
   {
     for (std::size_t i = 0; i < num_joints_; ++i)
       position_filters_[i].reset(original_joint_state_.position[i]);
@@ -226,17 +229,17 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Do jogging calculations only if the robot should move, for efficiency
   else
   {
-    if (!shared_variables_.command_is_stale)
+    if (!command_is_stale_)
     {
       // Prioritize cartesian jogging above joint jogging
       if (have_nonzero_twist_stamped_)
       {
-        if (!cartesianJogCalcs(twist_stamped_, shared_variables_))
+        if (!cartesianJogCalcs(twist_stamped_))
           return;
       }
       else if (have_nonzero_joint_jog_)
       {
-        if (!jointJogCalcs(joint_jog_, shared_variables_))
+        if (!jointJogCalcs(joint_jog_))
           return;
       }
     }
@@ -258,20 +261,29 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     if (have_nonzero_command_)
     {
       joint_trajectory_pub_.publish(outgoing_command_);
-      shared_variables_.ok_to_publish = true;
+
+      auto bool_msg = boost::make_shared<std_msgs::Bool>();
+      bool_msg->data = true;
+      ok_to_publish_pub_.publish(bool_msg);
     }
     // Skip the jogging publication if all inputs have been zero for several cycles in a row.
     // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
     else if ((parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
              (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
     {
-      shared_variables_.ok_to_publish = false;
+      auto bool_msg = boost::make_shared<std_msgs::Bool>();
+      bool_msg->data = false;
+      ok_to_publish_pub_.publish(bool_msg);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
     // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
     else
     {
       joint_trajectory_pub_.publish(outgoing_command_);
-      shared_variables_.ok_to_publish = true;
+
+      auto bool_msg = boost::make_shared<std_msgs::Bool>();
+      bool_msg->data = true;
+      ok_to_publish_pub_.publish(bool_msg);
     }
 
     // Store last zero-velocity message flag to prevent superfluous warnings.
@@ -285,15 +297,15 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     else
       zero_velocity_count_ = 0;
   }
-}
 
-bool JogCalcs::isInitialized()
-{
-  return is_initialized_;
+  if (command_is_stale_)
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
+                                                "Try a larger 'incoming_command_timeout' parameter?");
+  }
 }
-
 // Perform the jogging calculations
-bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables)
+bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -315,17 +327,17 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   }
 
   // Set uncontrolled dimensions to 0 in command frame
-  if (!shared_variables.control_dimensions[0])
+  if (!control_dimensions_[0])
     cmd.twist.linear.x = 0;
-  if (!shared_variables.control_dimensions[1])
+  if (!control_dimensions_[1])
     cmd.twist.linear.y = 0;
-  if (!shared_variables.control_dimensions[2])
+  if (!control_dimensions_[2])
     cmd.twist.linear.z = 0;
-  if (!shared_variables.control_dimensions[3])
+  if (!control_dimensions_[3])
     cmd.twist.angular.x = 0;
-  if (!shared_variables.control_dimensions[4])
+  if (!control_dimensions_[4])
     cmd.twist.angular.y = 0;
-  if (!shared_variables.control_dimensions[5])
+  if (!control_dimensions_[5])
     cmd.twist.angular.z = 0;
 
   // Transform the command to the MoveGroup planning frame
@@ -364,7 +376,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   // Work backwards through the 6-vector so indices don't get out of order
   for (auto dimension = jacobian.rows(); dimension >= 0; --dimension)
   {
-    if (shared_variables.drift_dimensions[dimension] && jacobian.rows() > 1)
+    if (drift_dimensions_[dimension] && jacobian.rows() > 1)
     {
       removeDimension(jacobian, delta_x, dimension);
     }
@@ -380,9 +392,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
   enforceSRDFAccelVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(shared_variables, delta_theta_,
-                       velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
-  if (status_ == HALT_FOR_COLLISION)
+  applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
+  if (status_ == StatusCode::HALT_FOR_COLLISION)
   {
     ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
     suddenHalt(delta_theta_);
@@ -390,14 +401,10 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared&
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  publishStatus();
-  // Cache the status so it can be retrieved asynchronously
-  updateCachedStatus(shared_variables);
-
   return convertDeltasToOutgoingCmd();
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
@@ -418,17 +425,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& sh
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  publishStatus();
-  // Cache the status so it can be retrieved asynchronously
-  updateCachedStatus(shared_variables);
-
   return convertDeltasToOutgoingCmd();
-}
-
-void JogCalcs::updateCachedStatus(JogArmShared& shared_variables)
-{
-  shared_variables.status = status_;
-  status_ = NO_WARNING;
 }
 
 bool JogCalcs::convertDeltasToOutgoingCmd()
@@ -447,7 +444,7 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
   if (!enforceSRDFPositionLimits(outgoing_command_))
   {
     suddenHalt(outgoing_command_);
-    status_ = JOINT_BOUND;
+    status_ = StatusCode::JOINT_BOUND;
   }
 
   // done with calculations
@@ -516,20 +513,18 @@ trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
-// Scale for collisions is read from a shared variable.
-void JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta,
-                                    double singularity_scale)
+void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale)
 {
-  double collision_scale = shared_variables.collision_velocity_scale;
+  double collision_scale = collision_velocity_scale_;
 
   if (collision_scale > 0 && collision_scale < 1)
   {
-    status_ = DECELERATE_FOR_COLLISION;
+    status_ = StatusCode::DECELERATE_FOR_COLLISION;
     ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
   }
   else if (collision_scale == 0)
   {
-    status_ = HALT_FOR_COLLISION;
+    status_ = StatusCode::HALT_FOR_COLLISION;
   }
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
@@ -587,7 +582,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
       velocity_scale = 1. -
                        (ini_condition - parameters_.lower_singularity_threshold) /
                            (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
-      status_ = DECELERATE_FOR_SINGULARITY;
+      status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
 
@@ -595,7 +590,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
     else if (ini_condition > parameters_.hard_stop_singularity_threshold)
     {
       velocity_scale = 0;
-      status_ = HALT_FOR_SINGULARITY;
+      status_ = StatusCode::HALT_FOR_SINGULARITY;
       ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
   }
@@ -716,13 +711,6 @@ bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_j
   return !halting;
 }
 
-void JogCalcs::publishStatus() const
-{
-  std_msgs::Int8 status_msg;
-  status_msg.data = status_;
-  status_pub_.publish(status_msg);
-}
-
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
 void JogCalcs::suddenHalt(Eigen::ArrayXd& delta_theta)
@@ -754,7 +742,7 @@ void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
 }
 
 // Parse the incoming joint msg for the joints of our MoveGroup
-bool JogCalcs::updateJoints(JogArmShared& shared_variables)
+bool JogCalcs::updateJoints()
 {
   // lock the latest state mutex for the joint states
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
@@ -785,7 +773,6 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
 
   // Calculate worst case joint stop time, for collision checking
   std::string joint_name = "";
-  shared_variables.worst_case_stop_time = std::numeric_limits<double>::max();
   moveit::core::JointModel::Bounds kinematic_bounds;
   double accel_limit = 0;
   double joint_velocity = 0;
@@ -823,7 +810,13 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
     // Calculate worst case stop time
     worst_case_stop_time = std::max(worst_case_stop_time, fabs(joint_velocity / accel_limit));
   }
-  shared_variables.worst_case_stop_time = worst_case_stop_time;
+
+  // publish message
+  {
+    auto msg = make_shared_from_pool<std_msgs::Float64>();
+    msg->data = worst_case_stop_time;
+    worst_case_stop_time_pub_.publish(msg);
+  }
 
   return true;
 }
@@ -950,6 +943,7 @@ void JogCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_twist_stamped_ = msg;
   have_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
+
   if (msg->header.stamp != ros::Time(0.))
     latest_command_stamp_ = msg->header.stamp;
 }
@@ -959,19 +953,25 @@ void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_joint_jog_ = msg;
   have_nonzero_joint_jog_ = isNonZero(*latest_joint_jog_);
+
   if (msg->header.stamp != ros::Time(0.))
     latest_command_stamp_ = msg->header.stamp;
+}
+
+void JogCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
+{
+  collision_velocity_scale_ = msg->data;
 }
 
 bool JogCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
                                      moveit_msgs::ChangeDriftDimensions::Response& res)
 {
-  shared_variables_.drift_dimensions[0] = req.drift_x_translation;
-  shared_variables_.drift_dimensions[1] = req.drift_y_translation;
-  shared_variables_.drift_dimensions[2] = req.drift_z_translation;
-  shared_variables_.drift_dimensions[3] = req.drift_x_rotation;
-  shared_variables_.drift_dimensions[4] = req.drift_y_rotation;
-  shared_variables_.drift_dimensions[5] = req.drift_z_rotation;
+  drift_dimensions_[0] = req.drift_x_translation;
+  drift_dimensions_[1] = req.drift_y_translation;
+  drift_dimensions_[2] = req.drift_z_translation;
+  drift_dimensions_[3] = req.drift_x_rotation;
+  drift_dimensions_[4] = req.drift_y_rotation;
+  drift_dimensions_[5] = req.drift_z_rotation;
 
   res.success = true;
   return true;
@@ -980,15 +980,20 @@ bool JogCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request
 bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                        moveit_msgs::ChangeControlDimensions::Response& res)
 {
-  shared_variables_.control_dimensions[0] = req.control_x_translation;
-  shared_variables_.control_dimensions[1] = req.control_y_translation;
-  shared_variables_.control_dimensions[2] = req.control_z_translation;
-  shared_variables_.control_dimensions[3] = req.control_x_rotation;
-  shared_variables_.control_dimensions[4] = req.control_y_rotation;
-  shared_variables_.control_dimensions[5] = req.control_z_rotation;
+  control_dimensions_[0] = req.control_x_translation;
+  control_dimensions_[1] = req.control_y_translation;
+  control_dimensions_[2] = req.control_z_translation;
+  control_dimensions_[3] = req.control_x_rotation;
+  control_dimensions_[4] = req.control_y_rotation;
+  control_dimensions_[5] = req.control_z_rotation;
 
   res.success = true;
   return true;
+}
+
+void JogCalcs::setPaused(bool paused)
+{
+  paused_ = paused;
 }
 
 }  // namespace moveit_jog_arm

@@ -32,7 +32,7 @@ def node():
 
 
 def test_drift_dimensions_service(node):
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     # Service to change drift dimensions
     drift_service = rospy.ServiceProxy(SERVICE_NAME, ChangeDriftDimensions)

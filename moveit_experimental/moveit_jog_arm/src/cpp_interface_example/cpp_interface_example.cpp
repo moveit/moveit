@@ -36,15 +36,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "moveit_jog_arm/jog_arm.h"
-#include "moveit_jog_arm/status_codes.h"
+#include <std_msgs/Int8.h>
+
+#include <moveit_jog_arm/jog_arm.h>
+#include <moveit_jog_arm/status_codes.h>
+#include <moveit_jog_arm/boost_pool_allocation.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
+
+// Class for monitoring status of jog_arm
+class StatusMonitor
+{
+public:
+  StatusMonitor(ros::NodeHandle& nh, const std::string& topic)
+  {
+    sub_ = nh.subscribe(topic, 1, &StatusMonitor::statusCB, this);
+  }
+
+private:
+  void statusCB(const std_msgs::Int8ConstPtr& msg)
+  {
+    moveit_jog_arm::StatusCode latest_stats = static_cast<moveit_jog_arm::StatusCode>(msg->data);
+    if (latest_stats != status_)
+    {
+      status_ = latest_stats;
+      const auto& status_str = moveit_jog_arm::JOG_ARM_STATUS_CODE_MAP.at(status_);
+      ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status: " << status_str);
+    }
+  }
+  moveit_jog_arm::StatusCode status_ = moveit_jog_arm::StatusCode::INVALID;
+  ros::Subscriber sub_;
+};
 
 /**
  * Instantiate the C++ jogging interface.
  * Send some Cartesian commands, then some joint commands.
- * Then retrieve the current joint state from the jogger.
  */
 int main(int argc, char** argv)
 {
@@ -73,6 +99,14 @@ int main(int argc, char** argv)
   moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
   jog_arm.start();
 
+  // Subscribe to jog_arm status (and log it when it changes)
+  StatusMonitor status_monitor(nh, jog_arm.getParameters().status_topic);
+
+  // Create publishers to send jog_arm commands
+  auto twist_stamped_pub =
+      nh.advertise<geometry_msgs::TwistStamped>(jog_arm.getParameters().cartesian_command_in_topic, 1);
+  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(jog_arm.getParameters().joint_command_in_topic, 1);
+
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
 
@@ -82,14 +116,14 @@ int main(int argc, char** argv)
     // Make a Cartesian velocity message
     // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not coppied we should not modify it after we send it.
-    auto velocity_msg = boost::make_shared<geometry_msgs::TwistStamped>();
-    velocity_msg->header.stamp = ros::Time::now();
-    velocity_msg->header.frame_id = "base_link";
-    velocity_msg->twist.linear.y = 0.01;
-    velocity_msg->twist.linear.z = -0.01;
+    auto msg = make_shared_from_pool<geometry_msgs::TwistStamped>();
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "base_link";
+    msg->twist.linear.y = 0.01;
+    msg->twist.linear.z = -0.01;
 
     // Send the message
-    jog_arm.provideTwistStampedCommand(velocity_msg);
+    twist_stamped_pub.publish(msg);
     cmd_rate.sleep();
     ++num_commands;
   }
@@ -105,20 +139,16 @@ int main(int argc, char** argv)
     // Make a joint command
     // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not coppied we should not modify it after we send it.
-    auto elbow_joint_command = boost::make_shared<control_msgs::JointJog>();
-    elbow_joint_command->header.stamp = ros::Time::now();
-    elbow_joint_command->joint_names.push_back("elbow_joint");
-    elbow_joint_command->velocities.push_back(0.2);
+    auto msg = make_shared_from_pool<control_msgs::JointJog>();
+    msg->header.stamp = ros::Time::now();
+    msg->joint_names.push_back("elbow_joint");
+    msg->velocities.push_back(0.2);
 
     // Send the message
-    jog_arm.provideJointCommand(elbow_joint_command);
+    joint_jog_pub.publish(msg);
     cmd_rate.sleep();
     ++num_commands;
   }
-
-  // Retrieve the current status of the jogger
-  moveit_jog_arm::StatusCode status = jog_arm.getJoggerStatus();
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status:\n" << status);
 
   jog_arm.stop();
   return 0;
