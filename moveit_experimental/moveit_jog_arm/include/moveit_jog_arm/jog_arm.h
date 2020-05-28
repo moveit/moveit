@@ -45,6 +45,7 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
 #include "collision_check_thread.h"
@@ -74,14 +75,6 @@ public:
   /** \brief Pause or unpause processing jog commands while keeping the threads alive */
   void setPaused(bool paused);
 
-  /** \brief Provide a Cartesian velocity command to the jogger.
-   * The units are determined by settings in the yaml file.
-   */
-  void provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg);
-
-  /** \brief Send joint position(s) commands */
-  void provideJointCommand(const control_msgs::JointJogConstPtr& msg);
-
   /**
    * Get the MoveIt planning link transform.
    * The transform from the MoveIt planning frame to robot_link_command_frame
@@ -91,17 +84,14 @@ public:
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  /**
-   * Get the status of the jogger.
-   *
-   * @return 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-   */
-  StatusCode getJoggerStatus() const;
+  /** \brief Get the parameters used by jog arm. */
+  const JogArmParameters& getParameters() const;
 
 private:
   bool readParameters();
   void run(const ros::TimerEvent& timer_event);
-  void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryPtr& msg);
+  void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg);
+  void okToPublishCB(const std_msgs::BoolConstPtr& msg);
 
   ros::NodeHandle nh_;
 
@@ -110,9 +100,6 @@ private:
 
   // Store the parameters that were read from ROS server
   JogArmParameters parameters_;
-
-  // Share data between threads
-  JogArmShared shared_variables_;
 
   // Jog calcs
   std::unique_ptr<JogCalcs> jog_calcs_;
@@ -124,13 +111,18 @@ private:
   ros::Timer timer_;
   ros::Duration period_;
   ros::Publisher outgoing_cmd_pub_;
-  ros::Publisher twist_stamped_pub_;
-  ros::Publisher joint_jog_pub_;
   ros::Subscriber joint_trajectory_sub_;
+  ros::Subscriber ok_to_publish_sub_;
+
+  bool paused_ = false;
+  bool ok_to_publish_ = false;
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  trajectory_msgs::JointTrajectoryPtr latest_joint_trajectory_;
+  trajectory_msgs::JointTrajectoryConstPtr latest_joint_trajectory_;
 };
+
+// JogArmPtr using alias
+using JogArmPtr = std::shared_ptr<JogArm>;
 
 }  // namespace moveit_jog_arm

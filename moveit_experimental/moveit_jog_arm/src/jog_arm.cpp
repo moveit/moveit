@@ -60,22 +60,18 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, 1);
 
-  // publish commands (for c++ interface)
-  twist_stamped_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(parameters_.cartesian_command_in_topic, 1);
-  joint_jog_pub_ = nh_.advertise<control_msgs::JointJog>(parameters_.joint_command_in_topic, 1);
-
-  // Subscribe to output commands in internal namespace
+  // Subscribe to internal namespace
   ros::NodeHandle internal_nh("~internal");
   joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", 1, &JogArm::jointTrajectoryCB, this);
+  ok_to_publish_sub_ = internal_nh.subscribe("ok_to_publish", 1, &JogArm::okToPublishCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, shared_variables_, planning_scene_monitor_);
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_);
 
-  collision_checker_ =
-      std::make_unique<CollisionCheckThread>(nh_, parameters_, shared_variables_, planning_scene_monitor_);
+  collision_checker_ = std::make_unique<CollisionCheckThread>(nh_, parameters_, planning_scene_monitor_);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -317,7 +313,7 @@ void JogArm::run(const ros::TimerEvent& timer_event)
   }
 
   // Publish the most recent trajectory, unless the jogging calculation thread tells not to
-  if (shared_variables_.ok_to_publish)
+  if (ok_to_publish_ && !paused_)
   {
     // Put the outgoing msg in the right format
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
@@ -336,20 +332,11 @@ void JogArm::run(const ros::TimerEvent& timer_event)
       outgoing_cmd_pub_.publish(joints);
     }
   }
-  else if (shared_variables_.command_is_stale)
-  {
-    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
-                                                "Try a larger 'incoming_command_timeout' parameter?");
-  }
-  else
-  {
-    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
-  }
 }
 
 void JogArm::start()
 {
-  shared_variables_.paused = false;
+  setPaused(false);
 
   // Crunch the numbers in this thread
   jog_calcs_->start();
@@ -374,37 +361,33 @@ JogArm::~JogArm()
   stop();
 }
 
-void JogArm::provideTwistStampedCommand(const geometry_msgs::TwistStampedConstPtr& msg)
-{
-  twist_stamped_pub_.publish(msg);
-}
-
-void JogArm::provideJointCommand(const control_msgs::JointJogConstPtr& msg)
-{
-  joint_jog_pub_.publish(msg);
-}
-
 void JogArm::setPaused(bool paused)
 {
-  shared_variables_.paused = paused;
+  paused_ = paused;
+  jog_calcs_->setPaused(paused);
+  collision_checker_->setPaused(paused);
 }
 
 bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
-  if (!jog_calcs_->isInitialized())
-    return false;
   return jog_calcs_->getCommandFrameTransform(transform);
 }
 
-StatusCode JogArm::getJoggerStatus() const
-{
-  return shared_variables_.status;
-}
-
-void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryPtr& msg)
+void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_joint_trajectory_ = msg;
+}
+
+void JogArm::okToPublishCB(const std_msgs::BoolConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  ok_to_publish_ = msg->data;
+}
+
+const JogArmParameters& JogArm::getParameters() const
+{
+  return parameters_;
 }
 
 }  // namespace moveit_jog_arm

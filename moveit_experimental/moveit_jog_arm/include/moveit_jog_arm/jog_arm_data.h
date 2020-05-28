@@ -38,54 +38,8 @@
 
 #pragma once
 
-// Eigen
-#include <Eigen/Geometry>
-
-// ROS
-#include <control_msgs/JointJog.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <trajectory_msgs/JointTrajectory.h>
-
-// moveit_jog_arm
-#include "status_codes.h"
-
 namespace moveit_jog_arm
 {
-// Variables to share between threads
-// Be careful to not read-modify-write any of these because they are not
-// protected by a mutex.
-struct JogArmShared
-{
-  double collision_velocity_scale = 1;
-
-  // The jog thread communicates the minimum stopping time to the collision check thread via this variable
-  double worst_case_stop_time = std::numeric_limits<double>::max();
-
-  // Flag a valid incoming Cartesian command having nonzero velocities
-  bool have_nonzero_cartesian_cmd = false;
-
-  // Flag a valid incoming joint angle command having nonzero velocities
-  bool have_nonzero_joint_cmd = false;
-
-  // Indicates that we have not received a new command in some time
-  bool command_is_stale = false;
-
-  // Indicates no collision, etc, so outgoing commands can be sent
-  bool ok_to_publish = false;
-
-  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::array<bool, 6> drift_dimensions = { { false, false, false, false, false, false } };
-
-  // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-  StatusCode status = NO_WARNING;
-
-  // Pause/unpause jog threads - threads are not paused by default
-  bool paused = false;
-
-  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::array<bool, 6> control_dimensions = { { true, true, true, true, true, true } };
-};
-
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {

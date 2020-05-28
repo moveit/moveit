@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : status_codes.h
+ *      Title     : boost_pool_allocation.h
  *      Project   : moveit_jog_arm
- *      Created   : 2/25/2019
- *      Author    : Andy Zelenak
+ *      Created   : 1/11/2019
+ *      Author    : Tyler Weaver
  *
  * BSD 3-Clause License
  *
@@ -38,28 +38,12 @@
 
 #pragma once
 
-#include <string>
-#include <unordered_map>
+#include <boost/pool/pool_alloc.hpp>
 
-namespace moveit_jog_arm
+// Useful template for creating messages from a message pool
+template <typename T>
+boost::shared_ptr<T> make_shared_from_pool()
 {
-enum StatusCode : int8_t
-{
-  INVALID = -1,
-  NO_WARNING = 0,
-  DECELERATE_FOR_SINGULARITY = 1,
-  HALT_FOR_SINGULARITY = 2,
-  DECELERATE_FOR_COLLISION = 3,
-  HALT_FOR_COLLISION = 4,
-  JOINT_BOUND = 5
-};
-
-const std::unordered_map<int8_t, std::string>
-    JOG_ARM_STATUS_CODE_MAP({ { INVALID, "Invalid" },
-                              { NO_WARNING, "No warnings" },
-                              { DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
-                              { HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
-                              { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
-                              { HALT_FOR_COLLISION, "Collision detected, emergency stop" },
-                              { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
-}  // namespace moveit_jog_arm
+  using allocator_t = boost::fast_pool_allocator<boost::shared_ptr<T>>;
+  return boost::allocate_shared<T, allocator_t>(allocator_t());
+}

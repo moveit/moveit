@@ -43,6 +43,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64.h>
 
 #include "jog_arm_data.h"
 #include "low_pass_filter.h"
@@ -64,27 +65,26 @@ public:
    *                                 already started when passed into this class
    */
   CollisionCheckThread(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
-                       JogArmShared& shared_variables,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \breif start and stop the Thread */
+  /** \brief start and stop the Thread */
   void start();
   void stop();
 
+  /** \brief Pause or unpause processing jog commands while keeping the threads alive */
+  void setPaused(bool paused);
+
 private:
-  void init();
   void run(const ros::TimerEvent& timer_event);
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+  void worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg);
 
   // ROS node handle
   ros::NodeHandle nh_;
 
   // Parameters
   const moveit_jog_arm::JogArmParameters parameters_;
-
-  // Shared variables from JogArm
-  JogArmShared& shared_variables_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -101,6 +101,7 @@ private:
   double self_collision_distance_ = 0;
   double scene_collision_distance_ = 0;
   bool collision_detected_ = false;
+  bool paused_ = false;
 
   // Variables for stop-distance-based collision checking
   double current_collision_distance_ = 0;
@@ -108,6 +109,7 @@ private:
   double prev_collision_distance_ = 0;
   double est_time_to_collision_ = 0;
   double safety_factor_ = 1000;
+  double worst_case_stop_time_ = std::numeric_limits<double>::max();
 
   const double self_velocity_scale_coefficient_;
   const double scene_velocity_scale_coefficient_;
@@ -120,6 +122,8 @@ private:
   ros::Timer timer_;
   ros::Duration period_;
   ros::Subscriber joint_state_sub_;
+  ros::Publisher collision_velocity_scale_pub_;
+  ros::Subscriber worst_case_stop_time_sub_;
 
   // Latest joint state, updated by ROS callback
   mutable std::mutex joint_state_mutex_;

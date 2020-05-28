@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman
-   Desc:   Stub test for the C++ interface to JogArm
+/* Author: Dave Coleman and Tyler Weaver
+   Desc:   Test for the C++ interface to JogArm
 */
 
 // C++
@@ -45,14 +45,15 @@
 // Testing
 #include <gtest/gtest.h>
 
-// Main class
+// Jog Arm
 #include <moveit_jog_arm/jog_arm.h>
+#include <moveit_jog_arm/boost_pool_allocation.h>
 
 static const std::string LOGNAME = "jog_cpp_interface_test";
 
 namespace moveit_jog_arm
 {
-class TestJogCppInterface : public ::testing::Test
+class JogArmFixture : public ::testing::Test
 {
 public:
   void SetUp() override
@@ -61,45 +62,129 @@ public:
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();
     planning_scene_monitor_->startStateMonitor();
+    planning_scene_monitor_->startWorldGeometryMonitor(
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+        false /* skip octomap monitor */);
+
+    // Create jog_arm
+    jog_arm_ = std::make_shared<JogArm>(nh_, planning_scene_monitor_);
   }
   void TearDown() override
   {
   }
 
+  bool waitForFirstStatus()
+  {
+    auto msg =
+        ros::topic::waitForMessage<std_msgs::Int8>(jog_arm_->getParameters().status_topic, nh_, ros::Duration(15));
+    return static_cast<bool>(msg);
+  }
+
 protected:
   ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-};  // class TestJogCppInterface
+  moveit_jog_arm::JogArmPtr jog_arm_;
+};  // class JogArmFixture
 
-TEST_F(TestJogCppInterface, InitTest)
+TEST_F(JogArmFixture, StartStopTest)
 {
-  moveit_jog_arm::JogArm jog_arm(nh_, planning_scene_monitor_);
-  jog_arm.start();
-  ros::Duration(1).sleep();  // Give the started thread some time to run
-  jog_arm.stop();
-  ros::Duration(1).sleep();  // Give the started thread some time to run
-  jog_arm.start();
-  ros::Duration(1).sleep();  // Give the started thread some time to run
-  jog_arm.stop();
+  // Start and stop jog arm
+  jog_arm_->start();
+  EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
+  jog_arm_->stop();
 }
 
-// TODO(davetcoleman): due to many blocking checks for ROS messages, and
-// an abundance of threads, unit tests are not currently feasible for the
-// cpp interface. This should be addressed in future re-factors
+TEST_F(JogArmFixture, SendTwistStampedTest)
+{
+  jog_arm_->start();
+  EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
+
+  auto parameters = jog_arm_->getParameters();
+
+  // count trajectory messages sent by jog_arm
+  size_t received_count = 0;
+  boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
+  auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
+
+  // Create publisher to send jog_arm commands
+  auto twist_stamped_pub = nh_.advertise<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic, 1);
+
+  constexpr double test_duration = 1.0;
+  const double publish_period = parameters.publish_period;
+  const size_t num_commands = static_cast<size_t>(test_duration / publish_period);
+
+  ros::Rate publish_rate(1. / publish_period);
+
+  // Send a few Cartesian velocity commands
+  for (size_t i = 0; i < num_commands && ros::ok(); ++i)
+  {
+    auto msg = make_shared_from_pool<geometry_msgs::TwistStamped>();
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "panda_link0";
+    msg->twist.angular.y = 1.0;
+
+    // Send the message
+    twist_stamped_pub.publish(msg);
+    publish_rate.sleep();
+  }
+
+  EXPECT_GT(received_count, num_commands - 20);
+  EXPECT_LT(received_count, num_commands + 20);
+  jog_arm_->stop();
+}
+
+TEST_F(JogArmFixture, SendJointJogTest)
+{
+  jog_arm_->start();
+  EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
+
+  auto parameters = jog_arm_->getParameters();
+
+  // count trajectory messages sent by jog_arm
+  size_t received_count = 0;
+  boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
+  auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
+
+  // Create publisher to send jog_arm commands
+  auto joint_jog_pub = nh_.advertise<control_msgs::JointJog>(parameters.joint_command_in_topic, 1);
+
+  constexpr double test_duration = 1.0;
+  const double publish_period = parameters.publish_period;
+  const size_t num_commands = static_cast<size_t>(test_duration / publish_period);
+
+  ros::Rate publish_rate(1. / publish_period);
+
+  // Send a few Cartesian velocity commands
+  for (size_t i = 0; i < num_commands && ros::ok(); ++i)
+  {
+    auto msg = make_shared_from_pool<control_msgs::JointJog>();
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "panda_link3";
+    msg->velocities.push_back(0.1);
+
+    // Send the message
+    joint_jog_pub.publish(msg);
+    publish_rate.sleep();
+  }
+
+  EXPECT_GT(received_count, num_commands - 20);
+  EXPECT_LT(received_count, num_commands + 20);
+  jog_arm_->stop();
+}
 
 }  // namespace moveit_jog_arm
 
 int main(int argc, char** argv)
 {
+  ros::init(argc, argv, LOGNAME);
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "jog_cpp_interface_test_test");
 
   ros::AsyncSpinner spinner(8);
   spinner.start();
 
   int result = RUN_ALL_TESTS();
-
-  spinner.stop();
-  ros::shutdown();
   return result;
 }
