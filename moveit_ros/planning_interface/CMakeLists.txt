@@ -45,7 +45,8 @@ find_package(Boost REQUIRED COMPONENTS
   thread
 )
 find_package(Eigen3 REQUIRED)
-find_package(eigenpy REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(eigenpy eigenpy REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
