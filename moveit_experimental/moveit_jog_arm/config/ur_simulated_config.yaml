@@ -60,6 +60,6 @@ collision_check_type: stop_distance
 # Parameters for "threshold_distance"-type collision checking
 self_collision_proximity_threshold: 0.01 # Start decelerating when a self-collision is this far [m]
 scene_collision_proximity_threshold: 0.05 # Start decelerating when a scene collision is this far [m]
-# Parameters for "minimum_stop_distance"-type collision checking
+# Parameters for "stop_distance"-type collision checking
 collision_distance_safety_factor: 1000 # Must be >= 1. A large safety factor is recommended to account for latency
 min_allowable_collision_distance: 0.01 # Stop if a collision is closer than this [m]
