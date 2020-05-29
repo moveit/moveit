@@ -57,7 +57,6 @@ catkin_package(
     moveit_ros_planning
     moveit_ros_visualization
     roscpp
-    rviz
 )
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
