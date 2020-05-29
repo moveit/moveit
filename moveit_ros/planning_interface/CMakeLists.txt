@@ -86,7 +86,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}
-                    ${eigenpy_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
 
 add_subdirectory(py_bindings_tools)
