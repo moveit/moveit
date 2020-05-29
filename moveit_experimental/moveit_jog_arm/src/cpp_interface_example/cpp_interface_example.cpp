@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, LOGNAME);
   ros::NodeHandle nh;
-  ros::AsyncSpinner spinner(4);
+  ros::AsyncSpinner spinner(8);
   spinner.start();
 
   // Load the planning scene monitor
