@@ -68,7 +68,7 @@ public:
   /**
    * @brief Destructor
    */
-  virtual ~Transforms();
+  ~Transforms();
 
   /** \brief Check if two frames end up being the same once the missing / are added as prefix (if they are missing) */
   static bool sameFrame(const std::string& frame1, const std::string& frame2);
@@ -183,20 +183,20 @@ public:
   /**
    * @brief Check whether data can be transformed from a particular frame
    */
-  virtual bool canTransform(const std::string& from_frame) const;
+  bool canTransform(const std::string& from_frame) const;
 
   /**
    * @brief Check whether a frame stays constant as the state of the robot model changes.
    * This is true for any transform mainatined by this object.
    */
-  virtual bool isFixedFrame(const std::string& frame) const;
+  bool isFixedFrame(const std::string& frame) const;
 
   /**
    * @brief Get transform for from_frame (w.r.t target frame)
    * @param from_frame The string id of the frame for which the transform is being computed
    * @return The required transform. It is guaranteed to be a valid isometry.
    */
-  virtual const Eigen::Isometry3d& getTransform(const std::string& from_frame) const;
+  const Eigen::Isometry3d& getTransform(const std::string& from_frame) const;
 
 protected:
   std::string target_frame_;
