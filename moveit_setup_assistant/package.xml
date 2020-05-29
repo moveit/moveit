@@ -34,6 +34,7 @@
   <depend version_gt="0.3.1">srdfdom</depend>
 
   <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>rosunit</test_depend>
