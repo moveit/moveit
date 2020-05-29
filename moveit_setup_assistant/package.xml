@@ -22,18 +22,19 @@
   <build_depend>qtbase5-dev</build_depend>
   <build_depend>libqt5-opengl-dev</build_depend>
   <build_depend>ompl</build_depend>
+  <build_depend>rviz</build_depend>
 
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_visualization</depend>
   <depend>rosconsole</depend>
   <depend>roscpp</depend>
-  <depend>rviz</depend>
   <depend>urdf</depend>
   <depend>yaml-cpp</depend>
   <depend version_gt="0.3.1">srdfdom</depend>
 
   <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>rosunit</test_depend>
