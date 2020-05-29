@@ -381,7 +381,6 @@ void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& m
 
 void JogArm::okToPublishCB(const std_msgs::BoolConstPtr& msg)
 {
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   ok_to_publish_ = msg->data;
 }
 

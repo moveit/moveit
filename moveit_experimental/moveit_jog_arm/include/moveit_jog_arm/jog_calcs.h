@@ -262,7 +262,7 @@ private:
   std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
 
   // Amount we sleep when waiting
-  ros::Rate default_sleep_rate_ = 1000;
+  ros::Rate default_sleep_rate_ = 100;
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
