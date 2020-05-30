@@ -222,17 +222,21 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Do jogging calculations only if the robot should move, for efficiency
   else
   {
+    // Create new outgoing joint trajectory command message
+    auto joint_trajectory = make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+
+    // If the input command isn't stale, run calculations
     if (!command_is_stale_)
     {
       // Prioritize cartesian jogging above joint jogging
       if (have_nonzero_twist_stamped_)
       {
-        if (!cartesianJogCalcs(twist_stamped_))
+        if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
           return;
       }
       else if (have_nonzero_joint_jog_)
       {
-        if (!jointJogCalcs(joint_jog_))
+        if (!jointJogCalcs(joint_jog_, *joint_trajectory))
           return;
       }
     }
@@ -244,7 +248,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       for (std::size_t i = 0; i < num_joints_; ++i)
         position_filters_[i].reset(original_joint_state_.position[i]);
 
-      suddenHalt(outgoing_command_);
+      suddenHalt(*joint_trajectory);
       have_nonzero_twist_stamped_ = false;
       have_nonzero_joint_jog_ = false;
     }
@@ -253,7 +257,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     // If everything normal, share the new traj to be published
     if (have_nonzero_command_)
     {
-      joint_trajectory_pub_.publish(outgoing_command_);
+      joint_trajectory_pub_.publish(joint_trajectory);
 
       auto bool_msg = boost::make_shared<std_msgs::Bool>();
       bool_msg->data = true;
@@ -272,7 +276,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
     else
     {
-      joint_trajectory_pub_.publish(outgoing_command_);
+      joint_trajectory_pub_.publish(joint_trajectory);
 
       auto bool_msg = boost::make_shared<std_msgs::Bool>();
       bool_msg->data = true;
@@ -298,7 +302,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
 }
 // Perform the jogging calculations
-bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd)
+bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -394,10 +398,10 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd)
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  return convertDeltasToOutgoingCmd();
+  return convertDeltasToOutgoingCmd(joint_trajectory);
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd)
+bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's or |delta|>1 in the incoming command
   for (double velocity : cmd.velocities)
@@ -418,10 +422,10 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd)
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
-  return convertDeltasToOutgoingCmd();
+  return convertDeltasToOutgoingCmd(joint_trajectory);
 }
 
-bool JogCalcs::convertDeltasToOutgoingCmd()
+bool JogCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   internal_joint_state_ = original_joint_state_;
   if (!addJointIncrements(internal_joint_state_, delta_theta_))
@@ -432,18 +436,18 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
   // Calculate joint velocities here so that positions are filtered and SRDF bounds still get checked
   calculateJointVelocities(internal_joint_state_, delta_theta_);
 
-  outgoing_command_ = composeJointTrajMessage(internal_joint_state_);
+  composeJointTrajMessage(internal_joint_state_, joint_trajectory);
 
-  if (!enforceSRDFPositionLimits(outgoing_command_))
+  if (!enforceSRDFPositionLimits())
   {
-    suddenHalt(outgoing_command_);
+    suddenHalt(joint_trajectory);
     status_ = StatusCode::JOINT_BOUND;
   }
 
   // done with calculations
   if (parameters_.use_gazebo)
   {
-    insertRedundantPointsIntoTrajectory(outgoing_command_, gazebo_redundant_message_count_);
+    insertRedundantPointsIntoTrajectory(joint_trajectory, gazebo_redundant_message_count_);
   }
 
   return true;
@@ -452,14 +456,14 @@ bool JogCalcs::convertDeltasToOutgoingCmd()
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
 // Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
-void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const
+void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
-  auto point = trajectory.points[0];
+  auto point = joint_trajectory.points[0];
   // Start from 2 because we already have the first point. End at count+1 so (total #) == count
   for (int i = 2; i < count + 1; ++i)
   {
     point.time_from_start = ros::Duration(i * parameters_.publish_period);
-    trajectory.points.push_back(point);
+    joint_trajectory.points.push_back(point);
   }
 }
 
@@ -479,12 +483,12 @@ void JogCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, co
   }
 }
 
-trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::JointState& joint_state) const
+void JogCalcs::composeJointTrajMessage(sensor_msgs::JointState& joint_state,
+                                       trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
-  trajectory_msgs::JointTrajectory new_joint_traj;
-  new_joint_traj.header.frame_id = parameters_.planning_frame;
-  new_joint_traj.header.stamp = ros::Time::now();
-  new_joint_traj.joint_names = joint_state.name;
+  joint_trajectory.header.frame_id = parameters_.planning_frame;
+  joint_trajectory.header.stamp = ros::Time::now();
+  joint_trajectory.joint_names = joint_state.name;
 
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
@@ -500,9 +504,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::
     std::vector<double> acceleration(num_joints_);
     point.accelerations = acceleration;
   }
-  new_joint_traj.points.push_back(point);
-
-  return new_joint_traj;
+  joint_trajectory.points.push_back(point);
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
@@ -665,7 +667,7 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
   }
 }
 
-bool JogCalcs::enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj)
+bool JogCalcs::enforceSRDFPositionLimits()
 {
   bool halting = false;
 
@@ -713,24 +715,24 @@ void JogCalcs::suddenHalt(Eigen::ArrayXd& delta_theta)
 
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
-void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_traj)
+void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
-  if (joint_traj.points.empty())
+  if (joint_trajectory.points.empty())
   {
-    joint_traj.points.push_back(trajectory_msgs::JointTrajectoryPoint());
-    joint_traj.points[0].positions.resize(num_joints_);
-    joint_traj.points[0].velocities.resize(num_joints_);
+    joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
+    joint_trajectory.points[0].positions.resize(num_joints_);
+    joint_trajectory.points[0].velocities.resize(num_joints_);
   }
 
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
     // For position-controlled robots, can reset the joints to a known, good state
     if (parameters_.publish_joint_positions)
-      joint_traj.points[0].positions[i] = original_joint_state_.position[i];
+      joint_trajectory.points[0].positions[i] = original_joint_state_.position[i];
 
     // For velocity-controlled robots, stop
     if (parameters_.publish_joint_velocities)
-      joint_traj.points[0].velocities[i] = 0;
+      joint_trajectory.points[0].velocities[i] = 0;
   }
 }
 
