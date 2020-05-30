@@ -158,17 +158,10 @@ void JogCalcs::stop()
 
 void JogCalcs::run(const ros::TimerEvent& timer_event)
 {
-  // Log last loop duration and warn if it was longer than period
-  if (timer_event.profile.last_duration.toSec() < period_.toSec())
-  {
-    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
-                                                                   << period_.toSec() << ")");
-  }
-  else
-  {
-    ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " > "
-                                                                 << period_.toSec());
-  }
+  // Log warning when the last loop duration was longer than the period
+  ROS_WARN_STREAM_COND_NAMED(timer_event.profile.last_duration.toSec() > period_.toSec(), LOGNAME,
+                             "last_duration: " << timer_event.profile.last_duration.toSec() << " (" << period_.toSec()
+                                               << ")");
 
   // Publish status each loop iteration
   {
