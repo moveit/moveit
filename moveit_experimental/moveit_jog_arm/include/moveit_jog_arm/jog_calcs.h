@@ -82,6 +82,9 @@ public:
   /** \brief Pause or unpause processing jog commands while keeping the threads alive */
   void setPaused(bool paused);
 
+  /** \brief Accessor for ok_to_publish_ */
+  bool getOkToPublish() const;
+
 private:
   /** \brief Timer method */
   void run(const ros::TimerEvent& timer_event);
@@ -237,13 +240,12 @@ private:
   ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
 
-  ros::Publisher ok_to_publish_pub_;
-
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
   bool stop_requested_ = false;
   bool paused_ = false;
   bool command_is_stale_ = false;
+  bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations

@@ -109,7 +109,6 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
   joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
-  ok_to_publish_pub_ = internal_nh.advertise<std_msgs::Bool>("ok_to_publish", 1);
   collision_velocity_scale_sub_ =
       internal_nh.subscribe("collision_velocity_scale", 1, &JogCalcs::collisionVelocityScaleCB, this);
   worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", 1);
@@ -258,29 +257,21 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     if (have_nonzero_command_)
     {
       joint_trajectory_pub_.publish(joint_trajectory);
-
-      auto bool_msg = boost::make_shared<std_msgs::Bool>();
-      bool_msg->data = true;
-      ok_to_publish_pub_.publish(bool_msg);
+      ok_to_publish_ = true;
     }
     // Skip the jogging publication if all inputs have been zero for several cycles in a row.
     // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
     else if ((parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
              (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
     {
-      auto bool_msg = boost::make_shared<std_msgs::Bool>();
-      bool_msg->data = false;
-      ok_to_publish_pub_.publish(bool_msg);
+      ok_to_publish_ = false;
       ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
     }
     // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
     else
     {
       joint_trajectory_pub_.publish(joint_trajectory);
-
-      auto bool_msg = boost::make_shared<std_msgs::Bool>();
-      bool_msg->data = true;
-      ok_to_publish_pub_.publish(bool_msg);
+      ok_to_publish_ = true;
     }
 
     // Store last zero-velocity message flag to prevent superfluous warnings.
@@ -989,6 +980,11 @@ bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Req
 void JogCalcs::setPaused(bool paused)
 {
   paused_ = paused;
+}
+
+bool JogCalcs::getOkToPublish() const
+{
+  return ok_to_publish_;
 }
 
 }  // namespace moveit_jog_arm

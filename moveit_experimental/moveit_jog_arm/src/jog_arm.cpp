@@ -63,7 +63,6 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   // Subscribe to internal namespace
   ros::NodeHandle internal_nh("~internal");
   joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", 1, &JogArm::jointTrajectoryCB, this);
-  ok_to_publish_sub_ = internal_nh.subscribe("ok_to_publish", 1, &JogArm::okToPublishCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
@@ -306,7 +305,7 @@ void JogArm::run(const ros::TimerEvent& timer_event)
   }
 
   // Publish the most recent trajectory, unless the jogging calculation thread tells not to
-  if (ok_to_publish_ && !paused_)
+  if (jog_calcs_->getOkToPublish() && !paused_)
   {
     // Put the outgoing msg in the right format
     // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
@@ -370,11 +369,6 @@ void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& m
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_joint_trajectory_ = msg;
-}
-
-void JogArm::okToPublishCB(const std_msgs::BoolConstPtr& msg)
-{
-  ok_to_publish_ = msg->data;
 }
 
 const JogArmParameters& JogArm::getParameters() const
