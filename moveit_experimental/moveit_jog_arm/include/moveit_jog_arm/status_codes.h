@@ -51,7 +51,8 @@ enum StatusCode : int8_t
   HALT_FOR_SINGULARITY = 2,
   DECELERATE_FOR_COLLISION = 3,
   HALT_FOR_COLLISION = 4,
-  JOINT_BOUND = 5
+  JOINT_BOUND = 5,
+  PAUSED = 6,
 };
 
 const std::unordered_map<int8_t, std::string>
@@ -61,5 +62,6 @@ const std::unordered_map<int8_t, std::string>
                               { HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
                               { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
                               { HALT_FOR_COLLISION, "Collision detected, emergency stop" },
-                              { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
+                              { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" },
+                              { PAUSED, "Paused" } });
 }  // namespace moveit_jog_arm

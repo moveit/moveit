@@ -41,12 +41,14 @@
 
 #include <Eigen/Eigenvalues>
 
+#include <ros/ros.h>
 #include <moveit/robot_state/robot_state.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_srvs/SetBool.h>
 
 #include "collision_check.h"
 #include "jog_arm_parameters.h"
@@ -62,7 +64,8 @@ namespace moveit_jog_arm
 class JogArm
 {
 public:
-  JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+         ros::NodeHandle private_nh = ros::NodeHandle("~"), std::string node_name = ros::this_node::getName());
 
   ~JogArm();
 
@@ -71,9 +74,6 @@ public:
 
   /** \brief stop jog arm timers */
   void stop();
-
-  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
-  void setPaused(bool paused);
 
   /**
    * Get the MoveIt planning link transform.
@@ -88,9 +88,10 @@ public:
   const JogArmParameters& getParameters() const;
 
 private:
-  bool readParameters();
+  bool readParameters(const ros::NodeHandle& private_nh);
   void run(const ros::TimerEvent& timer_event);
   void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg);
+  bool setPaused(std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res);
 
   ros::NodeHandle nh_;
 
@@ -111,6 +112,7 @@ private:
   ros::Duration period_;
   ros::Publisher outgoing_cmd_pub_;
   ros::Subscriber joint_trajectory_sub_;
+  ros::ServiceServer pause_server_;
 
   bool paused_ = false;
 

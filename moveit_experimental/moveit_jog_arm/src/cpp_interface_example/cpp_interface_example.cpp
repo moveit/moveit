@@ -79,6 +79,9 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(8);
   spinner.start();
 
+  // Topic prefix for subscribing and publishing to jog_arm
+  std::string topic_prefix = ros::this_node::getName() + "/";
+
   // Load the planning scene monitor
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
@@ -100,12 +103,13 @@ int main(int argc, char** argv)
   jog_arm.start();
 
   // Subscribe to jog_arm status (and log it when it changes)
-  StatusMonitor status_monitor(nh, jog_arm.getParameters().status_topic);
+  StatusMonitor status_monitor(nh, topic_prefix + jog_arm.getParameters().status_topic);
 
   // Create publishers to send jog_arm commands
   auto twist_stamped_pub =
-      nh.advertise<geometry_msgs::TwistStamped>(jog_arm.getParameters().cartesian_command_in_topic, 1);
-  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(jog_arm.getParameters().joint_command_in_topic, 1);
+      nh.advertise<geometry_msgs::TwistStamped>(topic_prefix + jog_arm.getParameters().cartesian_command_in_topic, 1);
+  auto joint_jog_pub =
+      nh.advertise<control_msgs::JointJog>(topic_prefix + jog_arm.getParameters().joint_command_in_topic, 1);
 
   ros::Rate cmd_rate(100);
   uint num_commands = 0;

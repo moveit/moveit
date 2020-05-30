@@ -43,11 +43,13 @@ static const std::string LOGNAME = "jog_arm";
 
 namespace moveit_jog_arm
 {
-JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+               ros::NodeHandle private_nh /* = ros::NodeHandle("~") */,
+               std::string node_name /* = ros::this_node::getName() */)
   : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
-  if (!readParameters())
+  if (!readParameters(private_nh))
     exit(EXIT_FAILURE);
 
   // loop period
@@ -56,32 +58,35 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
   if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
+    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(node_name + "/" + parameters_.command_out_topic,
+                                                                        ROS_QUEUE_SIZE);
   else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
+    outgoing_cmd_pub_ =
+        nh_.advertise<std_msgs::Float64MultiArray>(node_name + "/" + parameters_.command_out_topic, ROS_QUEUE_SIZE);
 
-  // Subscribe to internal namespace
-  ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", ROS_QUEUE_SIZE, &JogArm::jointTrajectoryCB, this);
+  // Provide pause server
+  pause_server_ = nh_.advertiseService(node_name + "/pause", &JogArm::setPaused, this);
+
+  // Subscribe to private namespace
+  joint_trajectory_sub_ = private_nh.subscribe("joint_trajectory", ROS_QUEUE_SIZE, &JogArm::jointTrajectoryCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_);
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, private_nh, node_name, parameters_, planning_scene_monitor_);
 
-  collision_checker_ = std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_);
+  collision_checker_ = std::make_unique<CollisionCheck>(nh_, private_nh, parameters_, planning_scene_monitor_);
 }
 
 // Read ROS parameters, typically from YAML file
-bool JogArm::readParameters()
+bool JogArm::readParameters(const ros::NodeHandle& private_nh)
 {
   std::size_t error = 0;
 
   // Specified in the launch file. All other parameters will be read from this namespace.
   std::string parameter_ns;
-  ros::param::get("~parameter_ns", parameter_ns);
-  if (parameter_ns.empty())
+  if (!private_nh.getParam("parameter_ns", parameter_ns))
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "A namespace must be specified in the launch file, like:");
     ROS_ERROR_STREAM_NAMED(LOGNAME, "<param name=\"parameter_ns\" "
@@ -292,9 +297,9 @@ void JogArm::run(const ros::TimerEvent& timer_event)
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
       std_msgs::Float64MultiArray joints;
-      if (parameters_.publish_joint_positions)
+      if (parameters_.publish_joint_positions && !joint_trajectory.points.empty())
         joints.data = joint_trajectory.points[0].positions;
-      else if (parameters_.publish_joint_velocities)
+      else if (parameters_.publish_joint_velocities && !joint_trajectory.points.empty())
         joints.data = joint_trajectory.points[0].velocities;
       outgoing_cmd_pub_.publish(joints);
     }
@@ -303,7 +308,9 @@ void JogArm::run(const ros::TimerEvent& timer_event)
 
 void JogArm::start()
 {
-  setPaused(false);
+  paused_ = false;
+  jog_calcs_->setPaused(paused_);
+  collision_checker_->setPaused(paused_);
 
   // Crunch the numbers in this timer
   jog_calcs_->start();
@@ -328,13 +335,6 @@ JogArm::~JogArm()
   stop();
 }
 
-void JogArm::setPaused(bool paused)
-{
-  paused_ = paused;
-  jog_calcs_->setPaused(paused);
-  collision_checker_->setPaused(paused);
-}
-
 bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   return jog_calcs_->getCommandFrameTransform(transform);
@@ -344,6 +344,16 @@ void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& m
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_joint_trajectory_ = msg;
+}
+
+bool JogArm::setPaused(std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res)
+{
+  paused_ = req.data;
+  jog_calcs_->setPaused(paused_);
+  collision_checker_->setPaused(paused_);
+
+  res.success = true;
+  return true;
 }
 
 const JogArmParameters& JogArm::getParameters() const

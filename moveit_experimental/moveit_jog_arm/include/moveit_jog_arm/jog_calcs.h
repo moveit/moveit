@@ -63,7 +63,8 @@ namespace moveit_jog_arm
 class JogCalcs
 {
 public:
-  JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
+  JogCalcs(ros::NodeHandle& nh, ros::NodeHandle& private_nh, const std::string& node_name,
+           const JogArmParameters& parameters,
            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /** \brief Start and stop the timer */
@@ -189,8 +190,9 @@ private:
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 
-  // ROS node handle
+  // ROS node handle and name
   ros::NodeHandle nh_;
+  std::string node_name_;
 
   // Ros parameters from JogArm
   const JogArmParameters& parameters_;

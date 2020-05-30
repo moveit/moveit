@@ -58,6 +58,9 @@ class JogArmFixture : public ::testing::Test
 public:
   void SetUp() override
   {
+    // Topic prefix for subscribing and publishing to jog_arm
+    topic_prefix_ = ros::this_node::getName() + "/";
+
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();
@@ -76,13 +79,14 @@ public:
 
   bool waitForFirstStatus()
   {
-    auto msg =
-        ros::topic::waitForMessage<std_msgs::Int8>(jog_arm_->getParameters().status_topic, nh_, ros::Duration(15));
+    auto msg = ros::topic::waitForMessage<std_msgs::Int8>(topic_prefix_ + jog_arm_->getParameters().status_topic, nh_,
+                                                          ros::Duration(15));
     return static_cast<bool>(msg);
   }
 
 protected:
   ros::NodeHandle nh_;
+  std::string topic_prefix_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   moveit_jog_arm::JogArmPtr jog_arm_;
 };  // class JogArmFixture
@@ -112,10 +116,11 @@ TEST_F(JogArmFixture, SendTwistStampedTest)
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
       [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
-  auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
+  auto traj_sub = nh_.subscribe(topic_prefix_ + parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send jog_arm commands
-  auto twist_stamped_pub = nh_.advertise<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic, 1);
+  auto twist_stamped_pub =
+      nh_.advertise<geometry_msgs::TwistStamped>(topic_prefix_ + parameters.cartesian_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
   const double publish_period = parameters.publish_period;
@@ -152,10 +157,10 @@ TEST_F(JogArmFixture, SendJointJogTest)
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
       [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
-  auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
+  auto traj_sub = nh_.subscribe(topic_prefix_ + parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send jog_arm commands
-  auto joint_jog_pub = nh_.advertise<control_msgs::JointJog>(parameters.joint_command_in_topic, 1);
+  auto joint_jog_pub = nh_.advertise<control_msgs::JointJog>(topic_prefix_ + parameters.joint_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
   const double publish_period = parameters.publish_period;

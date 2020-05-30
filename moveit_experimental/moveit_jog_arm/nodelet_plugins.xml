@@ -1,0 +1,23 @@
+<library path="lib/libmoveit_jog_arm_nodelet">
+  <class name="moveit/jog_arm" type="moveit_jog_arm::JogArmNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+    MoveIt Jog Arm Nodelet.
+    </description>
+  </class>
+</library>
+
+<library path="lib/libnodelet_example">
+  <class name="moveit/jog_arm/nodelet_example" type="moveit_jog_arm::JogArmNodeletExample" base_class_type="nodelet::Nodelet">
+    <description>
+    MoveIt Jog Arm Nodelet Example.
+    </description>
+  </class>
+</library>
+
+<library path="lib/libspacenav_to_twist">
+  <class name="moveit/jog_arm/spacenav_to_twist" type="moveit_jog_arm::SpaceNavToTwist" base_class_type="nodelet::Nodelet">
+    <description>
+    MoveIt Jog Arm Nodelet Example.
+    </description>
+  </class>
+</library>

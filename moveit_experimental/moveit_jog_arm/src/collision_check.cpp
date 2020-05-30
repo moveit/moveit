@@ -48,7 +48,8 @@ static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
 namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
-CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+CollisionCheck::CollisionCheck(ros::NodeHandle& nh, ros::NodeHandle& private_nh,
+                               const moveit_jog_arm::JogArmParameters& parameters,
                                const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
   , parameters_(parameters)
@@ -67,9 +68,8 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
   // subscribe to joints
   joint_state_sub_ = nh_.subscribe(parameters.joint_topic, ROS_QUEUE_SIZE, &CollisionCheck::jointStateCB, this);
 
-  // Publish to internal namespace
-  ros::NodeHandle internal_nh("~internal");
-  collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", ROS_QUEUE_SIZE);
+  // Publish to private namespace
+  collision_velocity_scale_pub_ = private_nh.advertise<std_msgs::Float64>("collision_velocity_scale", ROS_QUEUE_SIZE);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");

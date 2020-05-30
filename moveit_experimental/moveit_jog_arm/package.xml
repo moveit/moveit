@@ -24,10 +24,12 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>trajectory_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
+  <depend>nodelet</depend>
 
   <exec_depend>joy_teleop</exec_depend>
   <exec_depend>spacenav_node</exec_depend>
@@ -37,6 +39,7 @@
   <test_depend>moveit_resources</test_depend>
 
   <export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
   </export>
 
 </package>

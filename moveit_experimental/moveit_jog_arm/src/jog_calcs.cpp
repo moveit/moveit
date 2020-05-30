@@ -68,9 +68,11 @@ bool isNonZero(const control_msgs::JointJog& msg)
 }  // namespace
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
+JogCalcs::JogCalcs(ros::NodeHandle& nh, ros::NodeHandle& private_nh, const std::string& node_name,
+                   const JogArmParameters& parameters,
                    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh)
+  , node_name_(node_name)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
   , period_(parameters.publish_period)
@@ -93,25 +95,23 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, ROS_QUEUE_SIZE, &JogCalcs::jointStateCB, this);
 
   // Subscribe to command topics
-  twist_stamped_sub_ =
-      nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::twistStampedCB, this);
-  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::jointJogCB, this);
+  twist_stamped_sub_ = nh_.subscribe(node_name_ + "/" + parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
+                                     &JogCalcs::twistStampedCB, this);
+  joint_jog_sub_ =
+      nh_.subscribe(node_name_ + "/" + parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::jointJogCB, this);
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
-                           &JogCalcs::changeDriftDimensions, this);
+      nh_.advertiseService(node_name_ + "/change_drift_dimensions", &JogCalcs::changeDriftDimensions, this);
 
   // ROS Server for changing the control dimensions
   control_dimensions_server_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
-                           &JogCalcs::changeControlDimensions, this);
+      nh_.advertiseService(node_name_ + "/change_control_dimensions", &JogCalcs::changeControlDimensions, this);
 
-  // Publish and Subscribe to internal namespace topics
-  ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", ROS_QUEUE_SIZE);
+  // Publish and Subscribe to private namespace topics
+  joint_trajectory_pub_ = private_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", ROS_QUEUE_SIZE);
   collision_velocity_scale_sub_ =
-      internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &JogCalcs::collisionVelocityScaleCB, this);
+      private_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &JogCalcs::collisionVelocityScaleCB, this);
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
@@ -144,7 +144,7 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 void JogCalcs::start()
 {
   stop_requested_ = false;
-  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, ROS_QUEUE_SIZE);
+  status_pub_ = nh_.advertise<std_msgs::Int8>(node_name_ + "/" + parameters_.status_topic, ROS_QUEUE_SIZE);
 
   timer_ = nh_.createTimer(period_, &JogCalcs::run, this);
 }
@@ -932,6 +932,15 @@ bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Req
 void JogCalcs::setPaused(bool paused)
 {
   paused_ = paused;
+
+  if (paused_)
+  {
+    status_ = StatusCode::PAUSED;
+  }
+  else
+  {
+    status_ = StatusCode::NO_WARNING;
+  }
 }
 
 bool JogCalcs::getOkToPublish() const

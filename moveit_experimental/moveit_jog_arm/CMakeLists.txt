@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(LIBRARY_NAME jog_arm_cpp_api)
+set(LIBRARY_NAME moveit_jog_arm)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -18,9 +18,11 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   moveit_msgs
   moveit_ros_planning_interface
+  nodelet
   rosparam_shortcuts
   sensor_msgs
   std_msgs
+  std_srvs
   trajectory_msgs
 )
 find_package(Eigen3 REQUIRED)
@@ -30,14 +32,17 @@ catkin_package(
     include
   LIBRARIES
     ${LIBRARY_NAME}
+    ${LIBRARY_NAME}_nodelet
   CATKIN_DEPENDS
     control_msgs
     geometry_msgs
     moveit_msgs
     moveit_ros_planning_interface
+    nodelet
     rosparam_shortcuts
     sensor_msgs
     std_msgs
+    std_srvs
     trajectory_msgs
   DEPENDS
     EIGEN3
@@ -67,6 +72,25 @@ target_link_libraries(${LIBRARY_NAME}
   ${Boost_LIBRARIES}
 )
 
+#####################
+## Jog Arm Nodelet ##
+#####################
+
+add_library(${LIBRARY_NAME}_nodelet SHARED
+  src/jog_arm_nodelet.cpp
+)
+add_dependencies(${LIBRARY_NAME}_nodelet ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${LIBRARY_NAME}_nodelet
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${LIBRARY_NAME}
+)
+
+#########################################
+## An example of using the C++ library ##
+#########################################
+
 # An example of using the C++ library
 add_executable(cpp_interface_example
   src/cpp_interface_example/cpp_interface_example.cpp
@@ -79,19 +103,16 @@ target_link_libraries(cpp_interface_example
   ${LIBRARY_NAME}
 )
 
-############################
-## ROS message-based node ##
-############################
+###############################
+## An example of the Nodelet ##
+###############################
 
-add_executable(jog_server
-  src/collision_check.cpp
-  src/jog_calcs.cpp
-  src/jog_arm.cpp
-  src/jog_server.cpp
-  src/low_pass_filter.cpp
+# An example of using the C++ library
+add_library(nodelet_example SHARED
+  src/nodelet_example/nodelet_example.cpp
 )
-add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_server
+add_dependencies(nodelet_example ${catkin_EXPORTED_TARGETS})
+target_link_libraries(nodelet_example
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -101,11 +122,15 @@ target_link_libraries(jog_server
 ## An example of converting joystick commands ##
 ################################################
 
-add_executable(spacenav_to_twist
+add_library(spacenav_to_twist SHARED
   src/teleop_examples/spacenav_to_twist.cpp
 )
 add_dependencies(spacenav_to_twist ${catkin_EXPORTED_TARGETS})
-target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
+target_link_libraries(spacenav_to_twist
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 ##################
 ## INSTALLATION ##
@@ -114,7 +139,9 @@ target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 install(
   TARGETS
     ${LIBRARY_NAME}
-    jog_server
+    ${LIBRARY_NAME}_nodelet
+    cpp_interface_example
+    nodelet_example
     spacenav_to_twist
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -123,6 +150,10 @@ install(
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(FILES nodelet_plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 #############

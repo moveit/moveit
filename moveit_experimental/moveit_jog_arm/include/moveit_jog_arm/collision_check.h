@@ -57,7 +57,7 @@ public:
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+  CollisionCheck(ros::NodeHandle& nh, ros::NodeHandle& private_nh, const moveit_jog_arm::JogArmParameters& parameters,
                  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   /** \brief start and stop the Timer */

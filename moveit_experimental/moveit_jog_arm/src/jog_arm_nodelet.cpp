@@ -31,56 +31,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-/*      Title     : jog_server.cpp
+/*      Title     : jog_arm_nodelet.cpp
  *      Project   : moveit_jog_arm
  *      Created   : 12/31/2018
- *      Author    : Andy Zelenak
+ *      Author    : Tyler Weaver
  */
+
+#include <memory>
+
+#include <pluginlib/class_list_macros.h>
+#include <nodelet/nodelet.h>
 
 #include <moveit_jog_arm/jog_arm.h>
 
-namespace
+namespace moveit_jog_arm
 {
-constexpr char LOGNAME[] = "jog_server";
-constexpr char ROS_THREADS = 8;
-
-}  // namespace
-
-int main(int argc, char** argv)
+class JogArmNodelet : public nodelet::Nodelet
 {
-  ros::init(argc, argv, LOGNAME);
-  ros::AsyncSpinner spinner(ROS_THREADS);
-  spinner.start();
-
-  ros::NodeHandle nh;
-
-  // Load the planning scene monitor
-  auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
-  if (!planning_scene_monitor->getPlanningScene())
+private:
+  void onInit() override
   {
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
-    exit(EXIT_FAILURE);
+    NODELET_DEBUG("Initializing...");
+
+    nh_ = getMTNodeHandle();
+    private_nh_ = getMTPrivateNodeHandle();
+    name_ = getName();
+
+    // Load the planning scene monitor
+    planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+    if (!planning_scene_monitor_->getPlanningScene())
+    {
+      NODELET_ERROR_STREAM("Error in setting up the PlanningSceneMonitor.");
+      exit(EXIT_FAILURE);
+    }
+
+    // Start the planning scene monitor
+    planning_scene_monitor_->startSceneMonitor();
+    planning_scene_monitor_->startWorldGeometryMonitor(
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+        false /* skip octomap monitor */);
+    planning_scene_monitor_->startStateMonitor();
+
+    // Create and start JogArm
+    jog_arm_ = std::make_shared<JogArm>(nh_, planning_scene_monitor_, private_nh_, name_);
+    jog_arm_->start();
   }
 
-  // Start the planning scene monitor
-  planning_scene_monitor->startSceneMonitor();
-  planning_scene_monitor->startWorldGeometryMonitor(
-      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-      planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-      false /* skip octomap monitor */);
-  planning_scene_monitor->startStateMonitor();
+  std::string name_;
+  ros::NodeHandle nh_;
+  ros::NodeHandle private_nh_;
 
-  // Create the jog server
-  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  JogArmPtr jog_arm_;
+};
 
-  // Start the jog server (runs in the ros spinner)
-  jog_arm.start();
+}  // namespace moveit_jog_arm
 
-  // Wait for ros to shutdown
-  ros::waitForShutdown();
-
-  // Stop the jog server
-  jog_arm.stop();
-
-  return 0;
-}
+PLUGINLIB_EXPORT_CLASS(moveit_jog_arm::JogArmNodelet, nodelet::Nodelet)
