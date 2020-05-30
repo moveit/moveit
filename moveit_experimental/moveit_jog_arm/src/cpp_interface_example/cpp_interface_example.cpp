@@ -40,7 +40,7 @@
 
 #include <moveit_jog_arm/jog_arm.h>
 #include <moveit_jog_arm/status_codes.h>
-#include <moveit_jog_arm/boost_pool_allocation.h>
+#include <moveit_jog_arm/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
       false /* skip octomap monitor */);
   planning_scene_monitor->startStateMonitor();
 
-  // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
+  // Run the jogging C++ interface in a new timer to ensure a constant outgoing message rate.
   moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
   jog_arm.start();
 
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
     // Make a Cartesian velocity message
     // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not coppied we should not modify it after we send it.
-    auto msg = make_shared_from_pool<geometry_msgs::TwistStamped>();
+    auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
     msg->header.stamp = ros::Time::now();
     msg->header.frame_id = "base_link";
     msg->twist.linear.y = 0.01;
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
     // Make a joint command
     // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not coppied we should not modify it after we send it.
-    auto msg = make_shared_from_pool<control_msgs::JointJog>();
+    auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
     msg->header.stamp = ros::Time::now();
     msg->joint_names.push_back("elbow_joint");
     msg->velocities.push_back(0.2);

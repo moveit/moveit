@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : jog_arm_data.h
+ *      Title     : make_shared_from_pool.h
  *      Project   : moveit_jog_arm
  *      Created   : 1/11/2019
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ *      Author    : Tyler Weaver
  *
  * BSD 3-Clause License
  *
@@ -38,38 +38,19 @@
 
 #pragma once
 
-namespace moveit_jog_arm
+#include <boost/pool/pool_alloc.hpp>
+
+namespace moveit
 {
-// ROS params to be read. See the yaml file in /config for a description of each.
-struct JogArmParameters
+namespace util
 {
-  std::string move_group_name;
-  std::string joint_topic;
-  std::string cartesian_command_in_topic;
-  std::string robot_link_command_frame;
-  std::string command_out_topic;
-  std::string planning_frame;
-  std::string status_topic;
-  std::string joint_command_in_topic;
-  std::string command_in_type;
-  std::string command_out_type;
-  double linear_scale;
-  double rotational_scale;
-  double joint_scale;
-  double lower_singularity_threshold;
-  double hard_stop_singularity_threshold;
-  double scene_collision_proximity_threshold;
-  double self_collision_proximity_threshold;
-  double low_pass_filter_coeff;
-  double publish_period;
-  double incoming_command_timeout;
-  double joint_limit_margin;
-  double collision_check_rate;
-  int num_outgoing_halt_msgs_to_publish;
-  bool use_gazebo;
-  bool check_collisions;
-  bool publish_joint_positions;
-  bool publish_joint_velocities;
-  bool publish_joint_accelerations;
-};
-}  // namespace moveit_jog_arm
+// Useful template for creating messages from a message pool
+template <typename T>
+boost::shared_ptr<T> make_shared_from_pool()
+{
+  using allocator_t = boost::fast_pool_allocator<boost::shared_ptr<T>>;
+  return boost::allocate_shared<T, allocator_t>(allocator_t());
+}
+
+}  // namespace util
+}  // namespace moveit

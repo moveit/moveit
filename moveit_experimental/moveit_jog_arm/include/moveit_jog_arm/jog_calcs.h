@@ -54,7 +54,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_jog_arm
-#include "jog_arm_data.h"
+#include "jog_arm_parameters.h"
 #include "low_pass_filter.h"
 #include "status_codes.h"
 
@@ -66,7 +66,7 @@ public:
   JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \brief Start and stop the timer (thread) */
+  /** \brief Start and stop the timer */
   void start();
   void stop();
 
@@ -79,7 +79,7 @@ public:
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  /** \brief Pause or unpause processing jog commands while keeping the threads alive */
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
   void setPaused(bool paused);
 
   /** \brief Accessor for ok_to_publish_ */
@@ -184,7 +184,7 @@ private:
   bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
                              moveit_msgs::ChangeDriftDimensions::Response& res);
 
-  /** \brief Start the main calculation thread */
+  /** \brief Start the main calculation timer */
   // Service callback for changing jogging dimensions
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
