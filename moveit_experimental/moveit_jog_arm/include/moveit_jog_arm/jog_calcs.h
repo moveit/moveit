@@ -87,10 +87,10 @@ private:
   void run(const ros::TimerEvent& timer_event);
 
   /** \brief Do jogging calculations for Cartesian twist commands. */
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Do jogging calculations for direct commands to a joint. */
-  bool jointJogCalcs(const control_msgs::JointJog& cmd);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
   bool updateJoints();
@@ -110,14 +110,14 @@ private:
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
    */
-  void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
+  void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
   void suddenHalt(Eigen::ArrayXd& delta_theta);
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj);
+  bool enforceSRDFPositionLimits();
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -134,7 +134,8 @@ private:
   void applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
-  trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
+  void composeJointTrajMessage(sensor_msgs::JointState& joint_state,
+                               trajectory_msgs::JointTrajectory& joint_trajectory) const;
 
   /** \brief Smooth position commands with a lowpass filter */
   void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
@@ -145,12 +146,12 @@ private:
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
     * This happens for joint commands and Cartesian commands.
     */
-  bool convertDeltasToOutgoingCmd();
+  bool convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
    * Satisfy Gazebo by stuffing multiple messages into one.
    */
-  void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
+  void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -220,8 +221,6 @@ private:
   // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
   sensor_msgs::JointState internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
-
-  trajectory_msgs::JointTrajectory outgoing_command_;
 
   std::vector<LowPassFilter> position_filters_;
 
