@@ -163,11 +163,9 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
                                                << ")");
 
   // Publish status each loop iteration
-  {
-    auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
-    status_msg->data = static_cast<int8_t>(status_);
-    status_pub_.publish(status_msg);
-  }
+  auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
+  status_msg->data = static_cast<int8_t>(status_);
+  status_pub_.publish(status_msg);
 
   // Always update the joints and end-effector transform for 2 reasons:
   // 1) in case the getCommandFrameTransform() method is being used
@@ -449,6 +447,12 @@ bool JogCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& join
 // Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
 void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
+  joint_trajectory.points.resize(count);
+  if (joint_trajectory.points.empty())
+  {
+    joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
+  }
+
   auto point = joint_trajectory.points[0];
   // Start from 2 because we already have the first point. End at count+1 so (total #) == count
   for (int i = 2; i < count + 1; ++i)
