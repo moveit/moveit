@@ -91,7 +91,6 @@ private:
   bool readParameters();
   void run(const ros::TimerEvent& timer_event);
   void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg);
-  void okToPublishCB(const std_msgs::BoolConstPtr& msg);
 
   ros::NodeHandle nh_;
 
@@ -112,10 +111,8 @@ private:
   ros::Duration period_;
   ros::Publisher outgoing_cmd_pub_;
   ros::Subscriber joint_trajectory_sub_;
-  ros::Subscriber ok_to_publish_sub_;
 
   bool paused_ = false;
-  bool ok_to_publish_ = false;
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
