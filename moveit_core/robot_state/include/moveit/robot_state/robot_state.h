@@ -978,8 +978,8 @@ as the new values that correspond to the group */
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
-  setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int attempts, double timeout = 0.0,
-            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+  setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int /*attempts*/,
+            double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
     return setFromIK(group, pose, timeout, constraint, options);
@@ -997,7 +997,7 @@ as the new values that correspond to the group */
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
-            unsigned int attempts, double timeout = 0.0,
+            unsigned int /*attempts*/, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
@@ -1014,8 +1014,8 @@ as the new values that correspond to the group */
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
-  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, unsigned int attempts, double timeout = 0.0,
-            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, unsigned int /*attempts*/,
+            double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
     return setFromIK(group, pose, timeout, constraint, options);
@@ -1031,8 +1031,9 @@ as the new values that correspond to the group */
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
-  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip, unsigned int attempts,
-            double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+  setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
+            unsigned int /*attempts*/, double timeout = 0.0,
+            const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
     return setFromIK(group, pose, tip, timeout, constraint, options);
@@ -1052,7 +1053,7 @@ as the new values that correspond to the group */
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const Eigen::Isometry3d& pose, const std::string& tip,
-            const std::vector<double>& consistency_limits, unsigned int attempts, double timeout = 0.0,
+            const std::vector<double>& consistency_limits, unsigned int /*attempts*/, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
@@ -1074,7 +1075,7 @@ as the new values that correspond to the group */
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
-            const std::vector<std::string>& tips, unsigned int attempts, double timeout = 0.0,
+            const std::vector<std::string>& tips, unsigned int /*attempts*/, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
@@ -1098,7 +1099,7 @@ as the new values that correspond to the group */
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIK(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
             const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
-            unsigned int attempts, double timeout = 0.0,
+            unsigned int /*attempts*/, double timeout = 0.0,
             const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
             const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
@@ -1121,7 +1122,7 @@ as the new values that correspond to the group */
   [[deprecated("The attempts argument is not supported anymore.")]] bool
   setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Isometry3d& poses,
                      const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
-                     unsigned int attempts, double timeout = 0.0,
+                     unsigned int /*attempts*/, double timeout = 0.0,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {

@@ -2,6 +2,9 @@
 Changelog for package moveit_fake_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.4 (2020-05-30)
+------------------
+
 1.0.3 (2020-04-26)
 ------------------
 * [fix]   Handle "default" parameter in MoveitControllerManagers

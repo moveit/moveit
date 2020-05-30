@@ -15,6 +15,8 @@ panda=/tmp/resources/panda_description/urdf/panda.urdf
 # Translate environment variable QUIET=[0 | 1] into actual option
 test ${QUIET:-1} -eq 0 && QUIET="" || QUIET="--quiet"
 
+travis_run --retry sudo apt-get -q install python-lxml
+
 # Create ikfast plugins for Fanuc and Panda
 travis_run moveit_kinematics/ikfast_kinematics_plugin/scripts/auto_create_ikfast_moveit_plugin.sh \
 	$QUIET --name fanuc --pkg $PWD/fanuc_ikfast_plugin $fanuc manipulator base_link tool0
