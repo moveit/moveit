@@ -54,7 +54,7 @@ def test_jog_arm_halt_msg(node):
     cartesian_cmd = CartesianJogCmd()
 
     # This nonzero command should produce jogging output
-    # A subscriber in a different thread fills `received`
+    # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
     start_time = rospy.get_rostime()
     received = []

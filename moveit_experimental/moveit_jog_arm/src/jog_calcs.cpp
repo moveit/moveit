@@ -40,7 +40,7 @@
 #include <std_msgs/Bool.h>
 
 #include <moveit_jog_arm/jog_calcs.h>
-#include <moveit_jog_arm/boost_pool_allocation.h>
+#include <moveit_jog_arm/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_calcs";
 
@@ -114,9 +114,9 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", 1);
 
   // Wait for initial messages
-  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Waiting for first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
-  ROS_INFO_NAMED(LOGNAME, "jog_calcs_thread: Received first joint msg.");
+  ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
 
   internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
   num_joints_ = internal_joint_state_.name.size();
@@ -164,7 +164,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
 
   // Publish status each loop iteration
   {
-    auto status_msg = make_shared_from_pool<std_msgs::Int8>();
+    auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
     status_msg->data = static_cast<int8_t>(status_);
     status_pub_.publish(status_msg);
   }
@@ -222,7 +222,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   else
   {
     // Create new outgoing joint trajectory command message
-    auto joint_trajectory = make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+    auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
     // If the input command isn't stale, run calculations
     if (!command_is_stale_)
@@ -799,7 +799,7 @@ bool JogCalcs::updateJoints()
 
   // publish message
   {
-    auto msg = make_shared_from_pool<std_msgs::Float64>();
+    auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
     msg->data = worst_case_stop_time;
     worst_case_stop_time_pub_.publish(msg);
   }

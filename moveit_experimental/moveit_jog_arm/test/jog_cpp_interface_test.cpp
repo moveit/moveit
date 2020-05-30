@@ -47,7 +47,7 @@
 
 // Jog Arm
 #include <moveit_jog_arm/jog_arm.h>
-#include <moveit_jog_arm/boost_pool_allocation.h>
+#include <moveit_jog_arm/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_cpp_interface_test";
 
@@ -120,7 +120,7 @@ TEST_F(JogArmFixture, SendTwistStampedTest)
   // Send a few Cartesian velocity commands
   for (size_t i = 0; i < num_commands && ros::ok(); ++i)
   {
-    auto msg = make_shared_from_pool<geometry_msgs::TwistStamped>();
+    auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
     msg->header.stamp = ros::Time::now();
     msg->header.frame_id = "panda_link0";
     msg->twist.angular.y = 1.0;
@@ -160,7 +160,7 @@ TEST_F(JogArmFixture, SendJointJogTest)
   // Send a few Cartesian velocity commands
   for (size_t i = 0; i < num_commands && ros::ok(); ++i)
   {
-    auto msg = make_shared_from_pool<control_msgs::JointJog>();
+    auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
     msg->header.stamp = ros::Time::now();
     msg->header.frame_id = "panda_link3";
     msg->velocities.push_back(0.1);

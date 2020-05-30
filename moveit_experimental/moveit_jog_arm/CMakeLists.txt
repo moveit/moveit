@@ -55,7 +55,7 @@ include_directories(
 #########################################
 
 add_library(${LIBRARY_NAME} SHARED
-  src/collision_check_thread.cpp
+  src/collision_check.cpp
   src/jog_calcs.cpp
   src/jog_arm.cpp
   src/low_pass_filter.cpp
@@ -84,7 +84,7 @@ target_link_libraries(cpp_interface_example
 ############################
 
 add_executable(jog_server
-  src/collision_check_thread.cpp
+  src/collision_check.cpp
   src/jog_calcs.cpp
   src/jog_arm.cpp
   src/jog_server.cpp

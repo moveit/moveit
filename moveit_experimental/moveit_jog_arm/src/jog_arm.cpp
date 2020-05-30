@@ -70,7 +70,7 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
 
   jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_);
 
-  collision_checker_ = std::make_unique<CollisionCheckThread>(nh_, parameters_, planning_scene_monitor_);
+  collision_checker_ = std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -304,7 +304,7 @@ void JogArm::run(const ros::TimerEvent& timer_event)
     }
   }
 
-  // Publish the most recent trajectory, unless the jogging calculation thread tells not to
+  // Publish the most recent trajectory, unless the jogging calculation timer tells not to
   if (jog_calcs_->getOkToPublish() && !paused_)
   {
     // Put the outgoing msg in the right format
@@ -330,10 +330,10 @@ void JogArm::start()
 {
   setPaused(false);
 
-  // Crunch the numbers in this thread
+  // Crunch the numbers in this timer
   jog_calcs_->start();
 
-  // Check collisions in this thread
+  // Check collisions in this timer
   if (parameters_.check_collisions)
     collision_checker_->start();
 

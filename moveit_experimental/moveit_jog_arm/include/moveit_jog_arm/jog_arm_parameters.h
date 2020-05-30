@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_arm_data.h
+ *      Title     : jog_arm_parameters.h
  *      Project   : moveit_jog_arm
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson

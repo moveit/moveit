@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Title     : collision_check_thread.h
+ * Title     : collision_check.h
  * Project   : moveit_jog_arm
  * Created   : 1/11/2019
  * Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -45,7 +45,7 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include "jog_arm_data.h"
+#include "jog_arm_parameters.h"
 #include "low_pass_filter.h"
 
 namespace moveit_jog_arm
@@ -56,7 +56,7 @@ enum CollisionCheckType
   K_STOP_DISTANCE = 2
 };
 
-class CollisionCheckThread
+class CollisionCheck
 {
 public:
   /** \brief Constructor
@@ -64,14 +64,14 @@ public:
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheckThread(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
-                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+                 const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \brief start and stop the Thread */
+  /** \brief start and stop the Timer */
   void start();
   void stop();
 
-  /** \brief Pause or unpause processing jog commands while keeping the threads alive */
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
   void setPaused(bool paused);
 
 private:
