@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.4 (2020-05-30)
+------------------
+
 1.0.3 (2020-04-26)
 ------------------
 * [feature] `MoveGroupInterface`: Add execution methods for moveit_msgs::RobotTrajectory (`#1955 <https://github.com/ros-planning/moveit/issues/1955>`_)

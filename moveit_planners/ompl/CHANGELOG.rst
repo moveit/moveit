@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.4 (2020-05-30)
+------------------
+
 1.0.3 (2020-04-26)
 ------------------
 * [maint] Cleanup OMPL dynamic reconfigure config (`#1649 <https://github.com/ros-planning/moveit/issues/1649>`_)

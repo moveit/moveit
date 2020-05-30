@@ -2,6 +2,11 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.4 (2020-05-30)
+------------------
+* Fix broken IKFast generator (`#2116 <https://github.com/ros-planning/moveit/issues/2116>`_)
+* Contributors: Robert Haschke
+
 1.0.3 (2020-04-26)
 ------------------
 * [feature] KDL IK: constrain wiggled joints to limits (`#1953 <https://github.com/ros-planning/moveit/issues/1953>`_)
