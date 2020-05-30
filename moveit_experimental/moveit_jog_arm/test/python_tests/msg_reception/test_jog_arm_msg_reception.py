@@ -66,7 +66,7 @@ def test_jog_arm_cartesian_command(node):
     cartesian_cmd = CartesianJogCmd()
 
     # Repeated zero-commands should produce no output, other than a few halt messages
-    # A subscriber in a different thread fills 'received'
+    # A subscriber in a different timer fills 'received'
     for i in range(4):
         cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 0])
         rospy.sleep(0.1)
@@ -75,7 +75,7 @@ def test_jog_arm_cartesian_command(node):
     assert len(received) <= 4 # 'num_outgoing_halt_msgs_to_publish' in the config file
 
     # This nonzero command should produce jogging output
-    # A subscriber in a different thread fills `received`
+    # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
 

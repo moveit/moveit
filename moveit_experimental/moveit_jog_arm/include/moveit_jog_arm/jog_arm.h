@@ -48,8 +48,8 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
-#include "collision_check_thread.h"
-#include "jog_arm_data.h"
+#include "collision_check.h"
+#include "jog_arm_parameters.h"
 #include "jog_calcs.h"
 #include "low_pass_filter.h"
 
@@ -57,7 +57,7 @@ namespace moveit_jog_arm
 {
 /**
  * Class JogArm - Base class for C++ interface and ROS node.
- * Handles ROS subs & pubs and creates the worker threads.
+ * Handles ROS subs & pubs and creates the worker timers.
  */
 class JogArm
 {
@@ -66,13 +66,13 @@ public:
 
   ~JogArm();
 
-  /** \brief start jog arm threads */
+  /** \brief start jog arm timers */
   void start();
 
-  /** \brief stop jog arm threads */
+  /** \brief stop jog arm timers */
   void stop();
 
-  /** \brief Pause or unpause processing jog commands while keeping the threads alive */
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
   void setPaused(bool paused);
 
   /**
@@ -104,7 +104,7 @@ private:
   std::unique_ptr<JogCalcs> jog_calcs_;
 
   // Collision checks
-  std::unique_ptr<CollisionCheckThread> collision_checker_;
+  std::unique_ptr<CollisionCheck> collision_checker_;
 
   // ROS
   ros::Timer timer_;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : boost_pool_allocation.h
+ *      Title     : make_shared_from_pool.h
  *      Project   : moveit_jog_arm
  *      Created   : 1/11/2019
  *      Author    : Tyler Weaver
@@ -40,6 +40,10 @@
 
 #include <boost/pool/pool_alloc.hpp>
 
+namespace moveit
+{
+namespace util
+{
 // Useful template for creating messages from a message pool
 template <typename T>
 boost::shared_ptr<T> make_shared_from_pool()
@@ -47,3 +51,6 @@ boost::shared_ptr<T> make_shared_from_pool()
   using allocator_t = boost::fast_pool_allocator<boost::shared_ptr<T>>;
   return boost::allocate_shared<T, allocator_t>(allocator_t());
 }
+
+}  // namespace util
+}  // namespace moveit
