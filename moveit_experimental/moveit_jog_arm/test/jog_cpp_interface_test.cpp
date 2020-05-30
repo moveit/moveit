@@ -89,7 +89,13 @@ protected:
 
 TEST_F(JogArmFixture, StartStopTest)
 {
-  // Start and stop jog arm
+  jog_arm_->start();
+  EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
+  jog_arm_->stop();
+
+  ros::Duration(1.0).sleep();
+
+  // Start and stop again
   jog_arm_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
   jog_arm_->stop();
