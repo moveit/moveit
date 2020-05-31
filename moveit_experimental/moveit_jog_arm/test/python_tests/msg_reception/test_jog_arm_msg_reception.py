@@ -30,7 +30,7 @@ def node():
 
 class JointJogCmd(object):
     def __init__(self):
-        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=1)
+        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=10)
 
     def send_joint_velocity_cmd(self, joint_pos):
         jj = JointJog()
@@ -43,7 +43,7 @@ class JointJogCmd(object):
 class CartesianJogCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
-            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=1
+            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=10
         )
 
     def send_cmd(self, linear, angular):

@@ -90,11 +90,12 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getActiveJointModels().size());
 
   // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, 1, &JogCalcs::jointStateCB, this);
+  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, ROS_QUEUE_SIZE, &JogCalcs::jointStateCB, this);
 
   // Subscribe to command topics
-  twist_stamped_sub_ = nh_.subscribe(parameters_.cartesian_command_in_topic, 100, &JogCalcs::twistStampedCB, this);
-  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, 1, &JogCalcs::jointJogCB, this);
+  twist_stamped_sub_ =
+      nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::twistStampedCB, this);
+  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::jointJogCB, this);
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
@@ -108,10 +109,10 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", 1);
+  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", ROS_QUEUE_SIZE);
   collision_velocity_scale_sub_ =
-      internal_nh.subscribe("collision_velocity_scale", 1, &JogCalcs::collisionVelocityScaleCB, this);
-  worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", 1);
+      internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &JogCalcs::collisionVelocityScaleCB, this);
+  worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", ROS_QUEUE_SIZE);
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
@@ -144,7 +145,7 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 void JogCalcs::start()
 {
   stop_requested_ = false;
-  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, 1);
+  status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, ROS_QUEUE_SIZE);
 
   timer_ = nh_.createTimer(period_, &JogCalcs::run, this);
 }
@@ -448,11 +449,6 @@ bool JogCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& join
 void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
   joint_trajectory.points.resize(count);
-  if (joint_trajectory.points.empty())
-  {
-    joint_trajectory.points.push_back(trajectory_msgs::JointTrajectoryPoint());
-  }
-
   auto point = joint_trajectory.points[0];
   // Start from 2 because we already have the first point. End at count+1 so (total #) == count
   for (int i = 2; i < count + 1; ++i)
