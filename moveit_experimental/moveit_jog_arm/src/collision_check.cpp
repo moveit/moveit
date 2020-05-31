@@ -66,7 +66,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
     ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
 
   // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters.joint_topic, 1, &CollisionCheck::jointStateCB, this);
+  joint_state_sub_ = nh_.subscribe(parameters.joint_topic, ROS_QUEUE_SIZE, &CollisionCheck::jointStateCB, this);
 
   collision_check_type_ =
       (parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
@@ -74,9 +74,10 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
 
   // Internal namespace
   ros::NodeHandle internal_nh("~internal");
+  collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", ROS_QUEUE_SIZE);
   collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", 1);
   worst_case_stop_time_sub_ =
-      internal_nh.subscribe("worst_case_stop_time", 2, &CollisionCheck::worstCaseStopTimeCB, this);
+      internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
