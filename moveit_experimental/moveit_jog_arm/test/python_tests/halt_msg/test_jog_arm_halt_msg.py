@@ -33,7 +33,7 @@ def node():
 class CartesianJogCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
-            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=1
+            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=10
         )
 
     def send_cmd(self, linear, angular):

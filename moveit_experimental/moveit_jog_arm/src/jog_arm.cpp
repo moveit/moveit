@@ -56,13 +56,13 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
   if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, 1);
+    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
   else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, 1);
+    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
 
   // Subscribe to internal namespace
   ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", 1, &JogArm::jointTrajectoryCB, this);
+  joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", ROS_QUEUE_SIZE, &JogArm::jointTrajectoryCB, this);
 
   // Wait for incoming topics to appear
   ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
