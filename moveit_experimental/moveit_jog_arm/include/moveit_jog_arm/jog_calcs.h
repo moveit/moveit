@@ -83,9 +83,6 @@ public:
   /** \brief Pause or unpause processing jog commands while keeping the timers alive */
   void setPaused(bool paused);
 
-  /** \brief Accessor for ok_to_publish_ */
-  bool getOkToPublish() const;
-
 private:
   /** \brief Timer method */
   void run(const ros::TimerEvent& timer_event);

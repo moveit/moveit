@@ -998,9 +998,4 @@ void JogCalcs::setPaused(bool paused)
   paused_ = paused;
 }
 
-bool JogCalcs::getOkToPublish() const
-{
-  return ok_to_publish_;
-}
-
 }  // namespace moveit_jog_arm
