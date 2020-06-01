@@ -183,7 +183,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Update from latest state
   {
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    kinematic_state_->setVariableValues(incoming_joint_state_);
+    kinematic_state_->setVariableValues(*incoming_joint_state_);
     if (latest_twist_stamped_)
       twist_stamped_ = *latest_twist_stamped_;
     if (latest_joint_jog_)
@@ -750,24 +750,24 @@ bool JogCalcs::updateJoints()
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
 
   // Check that the msg contains enough joints
-  if (incoming_joint_state_.name.size() < num_joints_)
+  if (incoming_joint_state_->name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_joint_state_.name.size(); ++m)
+  for (std::size_t m = 0; m < incoming_joint_state_->name.size(); ++m)
   {
     std::size_t c;
     try
     {
-      c = joint_state_name_map_.at(incoming_joint_state_.name[m]);
+      c = joint_state_name_map_.at(incoming_joint_state_->name[m]);
     }
     catch (const std::out_of_range& e)
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_->name[m]);
       continue;
     }
 
-    internal_joint_state_.position[c] = incoming_joint_state_.position[m];
+    internal_joint_state_.position[c] = incoming_joint_state_->position[m];
   }
 
   // Cache the original joints in case they need to be reset
@@ -873,7 +873,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     catch (const std::out_of_range& e)
     {
       const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_.name[m]);
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_->name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
@@ -928,7 +928,7 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
 void JogCalcs::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  incoming_joint_state_ = *msg;
+  incoming_joint_state_ = msg;
 }
 
 bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
