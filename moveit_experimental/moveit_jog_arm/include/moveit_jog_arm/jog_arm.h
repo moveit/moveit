@@ -37,27 +37,15 @@
 *******************************************************************************/
 
 #include <memory>
-#include <mutex>
 
-#include <Eigen/Eigenvalues>
-
-#include <moveit/robot_state/robot_state.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <sensor_msgs/JointState.h>
-#include <sensor_msgs/Joy.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float64MultiArray.h>
-
-#include "collision_check.h"
-#include "jog_arm_parameters.h"
-#include "jog_calcs.h"
-#include "low_pass_filter.h"
+#include <moveit_jog_arm/collision_check.h>
+#include <moveit_jog_arm/jog_arm_parameters.h>
+#include <moveit_jog_arm/jog_calcs.h>
 
 namespace moveit_jog_arm
 {
 /**
- * Class JogArm - Base class for C++ interface and ROS node.
- * Handles ROS subs & pubs and creates the worker timers.
+ * Class JogArm - Jacobian based robot control with collision avoidance.
  */
 class JogArm
 {
@@ -89,8 +77,6 @@ public:
 
 private:
   bool readParameters();
-  void run(const ros::TimerEvent& timer_event);
-  void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg);
 
   ros::NodeHandle nh_;
 
@@ -105,18 +91,6 @@ private:
 
   // Collision checks
   std::unique_ptr<CollisionCheck> collision_checker_;
-
-  // ROS
-  ros::Timer timer_;
-  ros::Duration period_;
-  ros::Publisher outgoing_cmd_pub_;
-  ros::Subscriber joint_trajectory_sub_;
-
-  bool paused_ = false;
-
-  // latest_state_mutex_ is used to protect the state below it
-  mutable std::mutex latest_state_mutex_;
-  trajectory_msgs::JointTrajectoryConstPtr latest_joint_trajectory_;
 };
 
 // JogArmPtr using alias
