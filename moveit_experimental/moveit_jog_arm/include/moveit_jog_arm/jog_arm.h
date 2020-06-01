@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_interface_base.cpp
+ *      Title     : jog_arm.cpp
  *      Project   : moveit_jog_arm
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
