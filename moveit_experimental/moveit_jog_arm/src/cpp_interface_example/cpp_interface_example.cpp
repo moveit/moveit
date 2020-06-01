@@ -138,7 +138,7 @@ int main(int argc, char** argv)
   {
     // Make a joint command
     // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
-    // Because this message is not coppied we should not modify it after we send it.
+    // Because this message is not copied we should not modify it after we send it.
     auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
     msg->header.stamp = ros::Time::now();
     msg->joint_names.push_back("elbow_joint");
