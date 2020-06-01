@@ -54,10 +54,10 @@ public:
 
   ~JogArm();
 
-  /** \brief start jog arm timers */
+  /** \brief start jog arm */
   void start();
 
-  /** \brief stop jog arm timers */
+  /** \brief stop jog arm */
   void stop();
 
   /** \brief Pause or unpause processing jog commands while keeping the timers alive */

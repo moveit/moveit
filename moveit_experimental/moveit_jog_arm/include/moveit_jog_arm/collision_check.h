@@ -80,11 +80,10 @@ private:
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
   void worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg);
 
-  // ROS node handle
   ros::NodeHandle nh_;
 
-  // Parameters
-  const moveit_jog_arm::JogArmParameters parameters_;
+  // Parameters from yaml
+  const JogArmParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
