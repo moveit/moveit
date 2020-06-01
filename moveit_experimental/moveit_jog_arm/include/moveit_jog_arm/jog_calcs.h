@@ -265,7 +265,7 @@ private:
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  sensor_msgs::JointState incoming_joint_state_;
+  sensor_msgs::JointStateConstPtr incoming_joint_state_;
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_jog_;
