@@ -57,6 +57,7 @@
 #include "jog_arm_parameters.h"
 #include "low_pass_filter.h"
 #include "status_codes.h"
+#include <moveit_jog_arm/low_pass_filter.h>
 
 namespace moveit_jog_arm
 {
@@ -237,6 +238,7 @@ private:
   ros::Publisher status_pub_;
   ros::Publisher joint_trajectory_pub_;
   ros::Publisher worst_case_stop_time_pub_;
+  ros::Publisher outgoing_cmd_pub_;
   ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
 

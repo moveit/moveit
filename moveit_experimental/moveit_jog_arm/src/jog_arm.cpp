@@ -37,6 +37,8 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
+#include <rosparam_shortcuts/rosparam_shortcuts.h>
+
 #include "moveit_jog_arm/jog_arm.h"
 
 static const std::string LOGNAME = "jog_arm";
@@ -49,24 +51,6 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   // Read ROS parameters, typically from YAML file
   if (!readParameters())
     exit(EXIT_FAILURE);
-
-  // loop period
-  period_ = ros::Duration(parameters_.publish_period);
-
-  // Publish freshly-calculated joints to the robot.
-  // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-  if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
-  else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
-
-  // Subscribe to internal namespace
-  ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_sub_ = internal_nh.subscribe("joint_trajectory", ROS_QUEUE_SIZE, &JogArm::jointTrajectoryCB, this);
-
-  // Wait for incoming topics to appear
-  ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
-  ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
 
   jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_);
 
@@ -287,45 +271,6 @@ bool JogArm::readParameters()
   return true;
 }
 
-void JogArm::run(const ros::TimerEvent& timer_event)
-{
-  // Log warning when the last loop duration was longer than the period
-  ROS_WARN_STREAM_COND_NAMED(timer_event.profile.last_duration.toSec() > period_.toSec(), LOGNAME,
-                             "last_duration: " << timer_event.profile.last_duration.toSec() << " (" << period_.toSec()
-                                               << ")");
-
-  // Get the latest joint trajectory
-  trajectory_msgs::JointTrajectory joint_trajectory;
-  {
-    const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    if (latest_joint_trajectory_)
-    {
-      joint_trajectory = *latest_joint_trajectory_;
-    }
-  }
-
-  // Publish the most recent trajectory, unless the jogging calculation timer tells not to
-  if (jog_calcs_->getOkToPublish() && !paused_)
-  {
-    // Put the outgoing msg in the right format
-    // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-    if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    {
-      joint_trajectory.header.stamp = ros::Time::now();
-      outgoing_cmd_pub_.publish(joint_trajectory);
-    }
-    else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
-    {
-      std_msgs::Float64MultiArray joints;
-      if (parameters_.publish_joint_positions)
-        joints.data = joint_trajectory.points[0].positions;
-      else if (parameters_.publish_joint_velocities)
-        joints.data = joint_trajectory.points[0].velocities;
-      outgoing_cmd_pub_.publish(joints);
-    }
-  }
-}
-
 void JogArm::start()
 {
   setPaused(false);
@@ -336,14 +281,10 @@ void JogArm::start()
   // Check collisions in this timer
   if (parameters_.check_collisions)
     collision_checker_->start();
-
-  // Start the jog server timer
-  timer_ = nh_.createTimer(period_, &JogArm::run, this);
 }
 
 void JogArm::stop()
 {
-  timer_.stop();
   jog_calcs_->stop();
   collision_checker_->stop();
 }
@@ -355,7 +296,6 @@ JogArm::~JogArm()
 
 void JogArm::setPaused(bool paused)
 {
-  paused_ = paused;
   jog_calcs_->setPaused(paused);
   collision_checker_->setPaused(paused);
 }
@@ -363,12 +303,6 @@ void JogArm::setPaused(bool paused)
 bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   return jog_calcs_->getCommandFrameTransform(transform);
-}
-
-void JogArm::jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr& msg)
-{
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  latest_joint_trajectory_ = msg;
 }
 
 const JogArmParameters& JogArm::getParameters() const

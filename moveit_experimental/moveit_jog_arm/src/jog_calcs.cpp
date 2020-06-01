@@ -38,6 +38,7 @@
  */
 
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float64MultiArray.h>
 
 #include <moveit_jog_arm/jog_calcs.h>
 #include <moveit_jog_arm/make_shared_from_pool.h>
@@ -109,10 +110,16 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
-  joint_trajectory_pub_ = internal_nh.advertise<trajectory_msgs::JointTrajectory>("joint_trajectory", ROS_QUEUE_SIZE);
   collision_velocity_scale_sub_ =
       internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &JogCalcs::collisionVelocityScaleCB, this);
   worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", ROS_QUEUE_SIZE);
+
+  // Publish freshly-calculated joints to the robot.
+  // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
+  if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+    outgoing_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
+  else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
+    outgoing_cmd_pub_ = nh_.advertise<std_msgs::Float64MultiArray>(parameters_.command_out_topic, ROS_QUEUE_SIZE);
 
   // Wait for initial messages
   ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
@@ -134,12 +141,6 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   {
     position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
   }
-
-  // initialization is finished
-  wait_for_jog_commands_ = true;
-  have_nonzero_twist_stamped_ = false;
-  have_nonzero_joint_jog_ = false;
-  have_nonzero_command_ = false;
 }
 
 void JogCalcs::start()
@@ -215,80 +216,94 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
 
     // Check if there are any new commands with valid timestamp
     wait_for_jog_commands_ = twist_stamped_.header.stamp == ros::Time(0.) && joint_jog_.header.stamp == ros::Time(0.);
+
+    // Early exit
+    return;
   }
+
   // If not waiting for initial command, and not paused.
   // Do jogging calculations only if the robot should move, for efficiency
+  // Create new outgoing joint trajectory command message
+  auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+
+  // If the input command isn't stale, run calculations
+  if (!command_is_stale_)
+  {
+    // Prioritize cartesian jogging above joint jogging
+    if (have_nonzero_twist_stamped_)
+    {
+      if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
+        return;
+    }
+    else if (have_nonzero_joint_jog_)
+    {
+      if (!jointJogCalcs(joint_jog_, *joint_trajectory))
+        return;
+    }
+  }
+
+  // If we should halt
+  if (!have_nonzero_command_)
+  {
+    // Keep the joint position filters up-to-date with current joints
+    for (std::size_t i = 0; i < num_joints_; ++i)
+      position_filters_[i].reset(original_joint_state_.position[i]);
+
+    suddenHalt(*joint_trajectory);
+    have_nonzero_twist_stamped_ = false;
+    have_nonzero_joint_jog_ = false;
+  }
+
+  // Skip the jogging publication if all inputs have been zero for several cycles in a row.
+  // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
+  if (!have_nonzero_command_ && (parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
+      (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
+  {
+    ok_to_publish_ = false;
+    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
+  }
   else
   {
-    // Create new outgoing joint trajectory command message
-    auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+    ok_to_publish_ = true;
+  }
 
-    // If the input command isn't stale, run calculations
-    if (!command_is_stale_)
-    {
-      // Prioritize cartesian jogging above joint jogging
-      if (have_nonzero_twist_stamped_)
-      {
-        if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
-          return;
-      }
-      else if (have_nonzero_joint_jog_)
-      {
-        if (!jointJogCalcs(joint_jog_, *joint_trajectory))
-          return;
-      }
-    }
-
-    // If we should halt
-    if (!have_nonzero_command_)
-    {
-      // Keep the joint position filters up-to-date with current joints
-      for (std::size_t i = 0; i < num_joints_; ++i)
-        position_filters_[i].reset(original_joint_state_.position[i]);
-
-      suddenHalt(*joint_trajectory);
-      have_nonzero_twist_stamped_ = false;
-      have_nonzero_joint_jog_ = false;
-    }
-
-    // Send the newest target joints
-    // If everything normal, share the new traj to be published
-    if (have_nonzero_command_)
-    {
-      joint_trajectory_pub_.publish(joint_trajectory);
-      ok_to_publish_ = true;
-    }
-    // Skip the jogging publication if all inputs have been zero for several cycles in a row.
-    // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
-    else if ((parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
-             (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
-    {
-      ok_to_publish_ = false;
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
-    }
-    // The command is invalid but we are publishing num_outgoing_halt_msgs_to_publish
-    else
-    {
-      joint_trajectory_pub_.publish(joint_trajectory);
-      ok_to_publish_ = true;
-    }
-
-    // Store last zero-velocity message flag to prevent superfluous warnings.
-    // Cartesian and joint commands must both be zero.
-    if (!have_nonzero_twist_stamped_ && !have_nonzero_joint_jog_)
-    {
-      // Avoid overflow
-      if (zero_velocity_count_ < std::numeric_limits<int>::max())
-        ++zero_velocity_count_;
-    }
-    else
-      zero_velocity_count_ = 0;
+  // Store last zero-velocity message flag to prevent superfluous warnings.
+  // Cartesian and joint commands must both be zero.
+  if (!have_nonzero_twist_stamped_ && !have_nonzero_joint_jog_)
+  {
+    // Avoid overflow
+    if (zero_velocity_count_ < std::numeric_limits<int>::max())
+      ++zero_velocity_count_;
+  }
+  else
+  {
+    zero_velocity_count_ = 0;
   }
 
   if (command_is_stale_)
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
                                                 "Try a larger 'incoming_command_timeout' parameter?");
+  }
+
+  if (ok_to_publish_)
+  {
+    // Put the outgoing msg in the right format
+    // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
+    if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+    {
+      joint_trajectory->header.stamp = ros::Time::now();
+      outgoing_cmd_pub_.publish(joint_trajectory);
+    }
+    else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
+    {
+      auto joints = moveit::util::make_shared_from_pool<std_msgs::Float64MultiArray>();
+      if (parameters_.publish_joint_positions)
+        joints->data = joint_trajectory->points[0].positions;
+      else if (parameters_.publish_joint_velocities)
+        joints->data = joint_trajectory->points[0].velocities;
+      outgoing_cmd_pub_.publish(joints);
+    }
   }
 }
 // Perform the jogging calculations
