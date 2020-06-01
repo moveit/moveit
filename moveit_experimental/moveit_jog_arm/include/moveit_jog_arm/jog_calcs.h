@@ -67,7 +67,7 @@ public:
   JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \brief Start and stop the timer */
+  /** \brief Start and stop the timer where we do work and publish outputs */
   void start();
   void stop();
 
@@ -190,10 +190,9 @@ private:
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 
-  // ROS node handle
   ros::NodeHandle nh_;
 
-  // Ros parameters from JogArm
+  // Parameters from yaml
   const JogArmParameters& parameters_;
 
   // Pointer to the collision environment

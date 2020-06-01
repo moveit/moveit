@@ -56,10 +56,10 @@ public:
 private:
   void statusCB(const std_msgs::Int8ConstPtr& msg)
   {
-    moveit_jog_arm::StatusCode latest_stats = static_cast<moveit_jog_arm::StatusCode>(msg->data);
-    if (latest_stats != status_)
+    moveit_jog_arm::StatusCode latest_status = static_cast<moveit_jog_arm::StatusCode>(msg->data);
+    if (latest_status != status_)
     {
-      status_ = latest_stats;
+      status_ = latest_status;
       const auto& status_str = moveit_jog_arm::JOG_ARM_STATUS_CODE_MAP.at(status_);
       ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status: " << status_str);
     }
