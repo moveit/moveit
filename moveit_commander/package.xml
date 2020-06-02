@@ -17,7 +17,8 @@
   <url type="repository">https://github.com/ros-planning/moveit</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>python-catkin-pkg</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">python-catkin-pkg</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-catkin-pkg</buildtool_depend>
 
   <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
   <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
