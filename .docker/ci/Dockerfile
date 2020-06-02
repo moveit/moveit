@@ -1,7 +1,7 @@
 # moveit/moveit:master-ci
 # Sets up a base image to use for running Continuous Integration on Travis
 
-FROM ros:melodic-ros-base
+FROM ros:noetic-ros-base
 MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV TERM xterm
@@ -12,12 +12,6 @@ WORKDIR /root/ws_moveit
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
-    mkdir src && \
-    cd src && \
-    #
-    # Download moveit source, so that we can get necessary dependencies
-    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && \
-    #
     # Update apt package list as previous containers clear the cache
     apt-get -qq update && \
     apt-get -qq dist-upgrade && \
@@ -26,12 +20,26 @@ RUN \
     apt-get -qq install -y \
         # Some source builds require a package.xml be downloaded via wget from an external location
         wget \
+        # Version control
+        git \
         # Required for rosdep command
         sudo \
         # Preferred build tools
-        python-catkin-tools \
-        clang clang-format-3.9 clang-tidy clang-tools \
-        ccache && \
+        clang clang-format-10 clang-tidy clang-tools \
+        ccache \
+        #
+        # June 2020 workaround until catkin_tools fixed https://github.com/catkin/catkin_tools/issues/603
+        # TODO: re-enable this install method python3-catkin-tools \
+        python3-pip && \
+    #
+    # TODO: remove this workaround
+    pip3 install --user git+https://github.com/catkin/catkin_tools.git && \
+    #
+    mkdir src && \
+    cd src && \
+    #
+    # Download moveit source, so that we can get necessary dependencies
+    wstool init --shallow . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit_noetic.rosinstall && \
     #
     # Download all dependencies of MoveIt
     rosdep update && \
