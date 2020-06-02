@@ -128,6 +128,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this,
           SLOT(warehouseItemNameChanged(QTreeWidgetItem*, int)));
   connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
+
+  connect(ui_->add_shape_button, &QPushButton::clicked, this, &MotionPlanningFrame::addPrimitiveShape);
+  connect(ui_->shapes_combo_box, &QComboBox::currentTextChanged, this, &MotionPlanningFrame::shapesComboBoxChanged);
   connect(ui_->export_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(exportGeometryAsTextButtonClicked()));
   connect(ui_->import_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(importGeometryFromTextButtonClicked()));
   connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
@@ -424,6 +427,72 @@ void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonit
 {
   if (update_type & planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY)
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+}
+
+void MotionPlanningFrame::addPrimitiveShape()
+{
+  static const double MIN_VAL = 1e-6;
+
+  if (!planning_display_->getPlanningSceneMonitor())
+  {
+    return;
+  }
+
+  // get size values
+  double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
+  double y_length = ui_->shape_size_y_spin_box->isEnabled() ? ui_->shape_size_y_spin_box->value() : MIN_VAL;
+  double z_length = ui_->shape_size_z_spin_box->isEnabled() ? ui_->shape_size_z_spin_box->value() : MIN_VAL;
+  if (x_length < MIN_VAL || y_length < MIN_VAL || z_length < MIN_VAL)
+  {
+    QMessageBox::warning(this, QString("Side length value is too small"),
+                         QString("Value needs to be  >= '").append(std::to_string(MIN_VAL).c_str()).append("'"));
+    return;
+  }
+
+  // get selected shape
+  std::string selected_shape = ui_->shapes_combo_box->currentText().toStdString();
+  if (SHAPES_MAP.count(selected_shape) == 0)
+  {
+    QMessageBox::warning(this, QString("Unsupported shape"),
+                         QString("The '%1' shape is not supported.").arg(selected_shape.c_str()));
+    return;
+  }
+  shapes::ShapeType shape_type = SHAPES_MAP.at(selected_shape);
+  shapes::ShapeConstPtr shape;
+  switch (shape_type)
+  {
+    case shapes::BOX:
+      shape = std::make_shared<shapes::Box>(x_length, y_length, z_length);
+      break;
+    case shapes::SPHERE:
+      shape = std::make_shared<shapes::Sphere>(0.5 * x_length);
+      break;
+    case shapes::CONE:
+      shape = std::make_shared<shapes::Cone>(0.5 * x_length, z_length);
+      break;
+    case shapes::CYLINDER:
+      shape = std::make_shared<shapes::Cylinder>(0.5 * x_length, z_length);
+      break;
+    default:
+      QMessageBox::warning(this, QString("Unsupported shape"),
+                           QString("The '%1' is not supported.").arg(selected_shape.c_str()));
+  }
+
+  // naming object
+  int idx = 0;
+  std::string shape_name = selected_shape + "_" + std::to_string(idx);
+  while (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(shape_name))
+  {
+    idx++;
+    shape_name = selected_shape + "_" + std::to_string(idx);
+  }
+
+  // adding object
+  Eigen::Isometry3d pose;
+  pose.setIdentity();
+  planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+  if (ps)
+    addObject(ps->getWorldNonConst(), shape_name, shape, pose);
 }
 
 void MotionPlanningFrame::importResource(const std::string& path)
