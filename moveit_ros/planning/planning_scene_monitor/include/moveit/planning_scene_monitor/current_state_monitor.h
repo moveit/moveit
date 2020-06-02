@@ -188,7 +188,7 @@ public:
    *  @return false If the check could not be completed
    */
   bool getIsRobotStopped(const std::string& group, double joint_velocity_tol, double state_wait_time,
-                         double& is_stopped);
+                         bool& is_stopped);
 
   /** @brief Allow the joint_state arrays velocity and effort to be copied into the robot state.
    *  This is useful in some but not all applications

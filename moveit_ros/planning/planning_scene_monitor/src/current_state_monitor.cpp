@@ -137,7 +137,7 @@ void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks()
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::getIsRobotStopped(const std::string& group, double joint_velocity_tol,
-                                                                    double state_wait_time, double& is_stopped)
+                                                                    double state_wait_time, bool& is_stopped)
 {
   // Initially assume the robot is not stopped
   is_stopped = false;
