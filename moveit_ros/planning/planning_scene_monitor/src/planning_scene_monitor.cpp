@@ -533,6 +533,7 @@ void PlanningSceneMonitor::clearOctomap()
 {
   octomap_monitor_->getOcTreePtr()->lockWrite();
   octomap_monitor_->getOcTreePtr()->clear();
+  octomap_monitor_->getOcTreePtr()->triggerUpdateCallback();
   octomap_monitor_->getOcTreePtr()->unlockWrite();
 }
 
@@ -563,6 +564,7 @@ bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningSc
       {
         octomap_monitor_->getOcTreePtr()->lockWrite();
         octomap_monitor_->getOcTreePtr()->clear();
+        octomap_monitor_->getOcTreePtr()->triggerUpdateCallback();
         octomap_monitor_->getOcTreePtr()->unlockWrite();
       }
     }
@@ -632,6 +634,7 @@ void PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::Plan
         {
           octomap_monitor_->getOcTreePtr()->lockWrite();
           octomap_monitor_->getOcTreePtr()->clear();
+          octomap_monitor_->getOcTreePtr()->triggerUpdateCallback();
           octomap_monitor_->getOcTreePtr()->unlockWrite();
         }
       }

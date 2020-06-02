@@ -45,6 +45,7 @@
 // Main class
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/moveit_cpp/planning_component.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 // Msgs
 #include <geometry_msgs/PointStamped.h>
 
@@ -62,6 +63,12 @@ public:
     planning_component_ptr = std::make_shared<PlanningComponent>(PLANNING_GROUP, moveit_cpp_ptr);
     robot_model_ptr = moveit_cpp_ptr->getRobotModel();
     jmg_ptr = robot_model_ptr->getJointModelGroup(PLANNING_GROUP);
+    planning_scene_monitor = moveit_cpp_ptr->getPlanningSceneMonitor();
+    planning_scene_monitor->providePlanningSceneService();
+    planning_scene_monitor->startWorldGeometryMonitor(
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+        true /* load octomap monitor */);
 
     target_pose1.header.frame_id = "panda_link0";
     target_pose1.pose.orientation.w = 1.0;
@@ -84,6 +91,7 @@ protected:
   ros::NodeHandle nh_;
   MoveItCppPtr moveit_cpp_ptr;
   PlanningComponentPtr planning_component_ptr;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   moveit::core::RobotModelConstPtr robot_model_ptr;
   const moveit::core::JointModelGroup* jmg_ptr;
   const std::string PLANNING_GROUP = "panda_arm";
@@ -149,6 +157,18 @@ TEST_F(MoveItCppTest, TestSetStartStateFromRobotState)
 
 // Test settting the goal of the plan using a moveit::core::RobotState
 TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
+{
+  auto target_state = *(moveit_cpp_ptr->getCurrentState());
+
+  target_state.setFromIK(jmg_ptr, target_pose2);
+
+  planning_component_ptr->setGoal(target_state);
+
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+}
+
+// Test settting the goal of the plan using a moveit::core::RobotState
+TEST_F(MoveItCppTest, TestPlanWithOctomap)
 {
   auto target_state = *(moveit_cpp_ptr->getCurrentState());
 

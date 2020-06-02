@@ -22,4 +22,7 @@
 
     <!-- Start robot state publisher -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <!-- Unit Test /-->
+    <test test-name="planning_scene_monitor_test" pkg="moveit_ros_planning_interface" type="planning_scene_monitor_test" />
 </launch>
