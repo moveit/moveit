@@ -1,0 +1,75 @@
+#################################
+# Temporary Noetic ROS Install
+# Remove all the extra source builds once they are released
+#################################
+
+# This file is intended for users who want to build MoveIt from source.
+# Used with wstool, users can download source of all packages of MoveIt.
+- git:
+    local-name: moveit_msgs
+    uri: https://github.com/ros-planning/moveit_msgs.git
+    version: master
+- git:
+    local-name: geometric_shapes
+    uri: https://github.com/ros-planning/geometric_shapes.git
+    version: noetic-devel
+- git:
+    local-name: moveit
+    uri: https://github.com/ros-planning/moveit.git
+    version: master
+- git:
+    local-name: rviz_visual_tools
+    uri: https://github.com/PickNikRobotics/rviz_visual_tools
+    version: master
+- git:
+    local-name: moveit_visual_tools
+    uri: https://github.com/ros-planning/moveit_visual_tools.git
+    version: master
+- git:
+    local-name: moveit_tutorials
+    uri: https://github.com/ros-planning/moveit_tutorials.git
+    version: master
+- git:
+    local-name: panda_moveit_config
+    uri: https://github.com/ros-planning/panda_moveit_config.git
+    version: melodic-devel
+
+####################################
+# Remove the following once released
+####################################
+- git:
+    local-name: rosparam_shortcuts
+    uri: https://github.com/PickNikRobotics/rosparam_shortcuts.git
+    version: melodic-devel
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: melodic-devel
+- git:
+    local-name: ompl
+    uri: https://github.com/ompl/ompl.git
+    version: master
+- git:
+    local-name: ros_pytest
+    uri: https://github.com/machinekoder/ros_pytest.git
+    version: melodic-devel
+- git:
+    local-name: joystick_drivers
+    uri: https://github.com/ros-drivers/joystick_drivers.git
+    version: master
+- git:
+    local-name: teleop_tools
+    uri: https://github.com/ros-teleop/teleop_tools.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_resources
+    uri: https://github.com/ros-planning/moveit_resources.git
+    version: master
+- git:
+    local-name: franka_ros
+    uri: https://github.com/frankaemika/franka_ros.git
+    version: kinetic-devel
+- git:
+    local-name: graph_msgs
+    uri: https://github.com/davetcoleman/graph_msgs.git
+    version: jade-devel
