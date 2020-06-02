@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>692</width>
-    <height>414</height>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -96,6 +96,9 @@
             </item>
             <item>
              <widget class="moveit_rviz_plugin::MotionPlanningParamWidget" name="planner_param_treeview">
+              <property name="autoScroll">
+               <bool>false</bool>
+              </property>
               <property name="indentation">
                <number>0</number>
               </property>
