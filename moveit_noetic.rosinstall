@@ -68,7 +68,7 @@
 - git:
     local-name: franka_ros
     uri: https://github.com/frankaemika/franka_ros.git
-    version: kinetic-devel
+    version: melodic-devel
 - git:
     local-name: graph_msgs
     uri: https://github.com/davetcoleman/graph_msgs.git
