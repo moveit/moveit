@@ -185,7 +185,7 @@ public:
    *  @param joint_velocity_tol Largest allowable joint velocity to be considered stopped [rad/s].
    *  @param double wait_time Wait time for retrieving robot's current state [seconds].
    *  @param is_stopped Set to true if the robot is stopped.
-   *  @return false if the check could not be completed within wait_time
+   *  @return false If the check could not be completed
    */
   bool getIsRobotStopped(const std::string& group, double joint_velocity_tol, double state_wait_time,
                          double& is_stopped);

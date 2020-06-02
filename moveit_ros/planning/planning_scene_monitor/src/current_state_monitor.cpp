@@ -136,10 +136,8 @@ void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks()
   update_callbacks_.clear();
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::getIsRobotStopped(const std::string& group,
-                                                                    double joint_velocity_tol,
-                                                                    double state_wait_time,
-                                                                    double& is_stopped)
+bool planning_scene_monitor::CurrentStateMonitor::getIsRobotStopped(const std::string& group, double joint_velocity_tol,
+                                                                    double state_wait_time, double& is_stopped)
 {
   // Initially assume the robot is not stopped
   is_stopped = false;
@@ -165,11 +163,11 @@ bool planning_scene_monitor::CurrentStateMonitor::getIsRobotStopped(const std::s
         if (current_state->hasVelocities())
         {
           // Iterate all joint velocities and check they are below the velocity threshold
-          const bool joint_velocities_stopped = std::all_of(
-              joint_models.begin(), joint_models.end(),
-              [&current_state, joint_velocity_tol ](const moveit::core::JointModel* joint) {
-                return std::abs(*current_state->getJointVelocities(joint)) < joint_velocity_tol;
-              });
+          const bool joint_velocities_stopped =
+              std::all_of(joint_models.begin(), joint_models.end(),
+                          [&current_state, joint_velocity_tol](const moveit::core::JointModel* joint) {
+                            return std::abs(*current_state->getJointVelocities(joint)) < joint_velocity_tol;
+                          });
 
           // If velocities are stopped the joint distance must be valid as well
           bool joint_positions_stopped = false;
@@ -304,7 +302,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
     else if (it->second < old)
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
+                      joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       result = false;
     }
   }
@@ -333,7 +331,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
     else if (it->second < old)
     {
       ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
+                      joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       missing_states.push_back(joint->getName());
       result = false;
     }
@@ -354,9 +352,10 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
     {
-      ROS_INFO_STREAM_NAMED(LOGNAME, "Didn't received robot state (joint angles) with recent timestamp within "
-                      << wait_time << " seconds.\n"
-                      << "Check clock synchronization if your are running ROS across multiple machines!");
+      ROS_INFO_STREAM_NAMED(LOGNAME,
+                            "Didn't received robot state (joint angles) with recent timestamp within "
+                                << wait_time << " seconds.\n"
+                                << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
     }
   }
@@ -407,8 +406,9 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "State monitor received invalid joint state (number of joint names does not match number of "
-                          "positions)");
+    ROS_ERROR_THROTTLE_NAMED(
+        1, LOGNAME, "State monitor received invalid joint state (number of joint names does not match number of "
+                    "positions)");
     return;
   }
   bool update = false;
@@ -507,8 +507,9 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       catch (tf2::TransformException& ex)
       {
         ROS_WARN_STREAM_ONCE_NAMED(LOGNAME, "Unable to update multi-DOF joint '"
-                             << joint->getName() << "': Failure to lookup transform between '" << parent_frame.c_str()
-                             << "' and '" << child_frame.c_str() << "' with TF exception: " << ex.what());
+                                                << joint->getName() << "': Failure to lookup transform between '"
+                                                << parent_frame.c_str() << "' and '" << child_frame.c_str()
+                                                << "' with TF exception: " << ex.what());
         continue;
       }
 
