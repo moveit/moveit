@@ -1,4 +1,5 @@
-<package format="2">
+<?xml version="1.0"?>
+<package format="3">
   <name>moveit_commander</name>
   <version>1.1.0</version>
   <description>Python interfaces to MoveIt</description>
@@ -18,13 +19,14 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-catkin-pkg</buildtool_depend>
 
-  <build_depend>python</build_depend>
+  <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
+  <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
   <exec_depend>moveit_ros_planning_interface</exec_depend>
-  <exec_depend>python</exec_depend>
-  <exec_depend>python-pyassimp</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-pyassimp</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-pyassimp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>shape_msgs</exec_depend>

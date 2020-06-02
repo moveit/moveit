@@ -1,4 +1,5 @@
-<package format="2">
+<?xml version="1.0"?>
+<package format="3">
   <name>moveit_ros_planning_interface</name>
   <version>1.1.0</version>
   <description>Components of MoveIt that offer simpler interfaces to planning and execution</description>
@@ -16,7 +17,8 @@
   <url type="repository">https://github.com/ros-planning/moveit</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>python-catkin-pkg</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">python-catkin-pkg</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-catkin-pkg</buildtool_depend>
 
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_warehouse</depend>
@@ -32,7 +34,8 @@
   <depend>tf2_eigen</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
-  <depend>python</depend>
+  <depend condition="$ROS_PYTHON_VERSION == 2">python</depend>
+  <depend condition="$ROS_PYTHON_VERSION == 3">python3</depend>
   <depend>eigenpy</depend>
 
   <build_depend>eigen</build_depend>
