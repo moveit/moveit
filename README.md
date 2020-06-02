@@ -5,7 +5,7 @@
 *Easy-to-use open source robotics manipulation platform for developing commercial applications, prototyping designs, and benchmarking algorithms.*
 
 - [Overview of MoveIt](https://moveit.ros.org)
-- [Installation Instructions](http://moveit.ros.org/install/)
+- [Installation Instructions](https://moveit.ros.org/install/)
 - [Documentation](http://moveit.ros.org/documentation/)
 - [Get Involved](https://moveit.ros.org/about/get_involved/)
 
