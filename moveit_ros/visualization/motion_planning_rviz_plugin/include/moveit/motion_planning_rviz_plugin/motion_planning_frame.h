@@ -304,6 +304,7 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
+  void addPrimitiveShape();
   void importResource(const std::string& path);
   void loadStoredStates(const std::string& pattern);
 
