@@ -225,7 +225,7 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
   point_cloud_msg.is_dense = true;
 
   ros::Publisher point_cloud_pub;
-  point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 10);
+  point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/head_mount_kinect/depth_registered/points", 10);
   for (int i = 0; i < 10; i++)
   {
     point_cloud_pub.publish(point_cloud_msg);
@@ -235,6 +235,24 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
   auto target_state = *(moveit_cpp_ptr->getCurrentState());
 
   target_state.setFromIK(jmg_ptr, target_pose2);
+
+  planning_component_ptr->setGoal(target_state);
+
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+
+  // Clearing the octomap and then checking the collision distance has caused a segfault in the past (fixed in #2104)
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
+  collision_request.group_name = "manipulator";
+  collision_request.distance = true;
+
+  planning_scene_monitor->clearOctomap();
+
+  planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor)
+      ->getCollisionEnv()
+      ->checkRobotCollision(collision_request, collision_result, target_state);
+
+  target_state.setFromIK(jmg_ptr, target_pose1.pose);
 
   planning_component_ptr->setGoal(target_state);
 
