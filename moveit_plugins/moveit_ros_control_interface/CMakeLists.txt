@@ -29,11 +29,6 @@ catkin_package(
   DEPENDS Boost
 )
 
-# support indigo's ros_control - This can be removed upon EOL indigo
-if("${controller_manager_msgs_VERSION}" VERSION_LESS "0.10.0")
-  add_definitions(-DMOVEIT_ROS_CONTROL_INTERFACE_OLD_ROS_CONTROL)
-endif()
-
 include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_plugin
