@@ -1,40 +1,41 @@
-<img src="http://moveit.ros.org/assets/images/moveit2_logo_black.png" alt="MoveIt Logo" width="200"/>
+<img src="https://moveit.ros.org/assets/logo/moveit_logo-black.png" alt="MoveIt Logo" width="200"/>
 
-The MoveIt Motion Planning Framework
+**The MoveIt Motion Planning Framework**
 
-Currently we support ROS Kinetic and Melodic for ROS 1.
+*Easy-to-use open source robotics manipulation platform for developing commercial applications, prototyping designs, and benchmarking algorithms.*
 
-- [Overview of MoveIt](http://moveit.ros.org)
-- [Installation Instructions](http://moveit.ros.org/install/)
-- [Documentation](http://moveit.ros.org/documentation/)
-- [Get Involved](http://moveit.ros.org/documentation/contributing/)
+- [Overview of MoveIt](https://moveit.ros.org)
+- [Installation Instructions](https://moveit.ros.org/install/)
+- [Documentation](https://moveit.ros.org/documentation/)
+- [Get Involved](https://moveit.ros.org/about/get_involved/)
 
 ## Branches Policy
 
-We develop all new 1.0 features on ``master``. The ``*-devel`` branches correspond to
-released and stable versions of MoveIt for specific distributions of ROS.
-Bug fixes occationally get backported to these released versions of MoveIt.
-The next version of MoveIt 1.0 will be branched to ``noetic-devel`` around May 2020.
+- We develop latest features on ``master``.
+- The ``*-devel`` branches correspond to released and stable versions of MoveIt for specific distributions of ROS.
+- Bug fixes occationally get backported to these released versions of MoveIt.
+- The next version of MoveIt 1.0 will be branched to ``noetic-devel`` around June 2020.
+- For MoveIt 2 development, see [moveit2](https://github.com/ros-planning/moveit2).
 
-For MoveIt 2.0 development, see [moveit2](https://github.com/ros-planning/moveit2).
+## MoveIt Status
 
-## Continuous Integration Status
+### Continuous Integration
 
 service    | Kinetic | Melodic | Master
 ---------- | ------- | ------- | ------
 Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=master)](https://travis-ci.org/ros-planning/moveit/branches) |
 build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) | N/A |
 
-## Licenses
+### Licenses
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fros-planning%2Fmoveit.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fros-planning%2Fmoveit?ref=badge_shield)
 
-## Docker Containers
+### Docker Containers
 
 [![Docker Build](https://img.shields.io/docker/build/moveit/moveit.svg)](https://hub.docker.com/r/moveit/moveit/builds)
 [![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit/)
 
-## ROS Buildfarm
+### ROS Buildfarm
 
 MoveIt Package | Kinetic Source | Kinetic Debian | Melodic Source | Melodic Debian
 --------------- | -------------- | -------------- | -------------- | --------------
