@@ -61,16 +61,15 @@ protected:
 
   // Helper to create pointclouds for easy testing
   // Takes vector of form {x_0, y_0, z_0, x_1, y_1, z_1, ..., x_{n-1}, y_{n-1}, z_{n-1}}
-  sensor_msgs::PointCloud2::Ptr createPointcloudFromXYZ(std::vector<double> data)
+  sensor_msgs::PointCloud2 createPointcloudFromXYZ(std::vector<double> data)
   {
-    if (data.size() % 3)
-      return nullptr;
+    ROS_ASSERT(data.size() % 3 == 0);
 
-    sensor_msgs::PointCloud2::Ptr cloud(new sensor_msgs::PointCloud2());
-    sensor_msgs::PointCloud2Modifier pcd_modifier(*cloud);
+    sensor_msgs::PointCloud2 cloud;
+    sensor_msgs::PointCloud2Modifier pcd_modifier(cloud);
     pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
     pcd_modifier.resize(data.size() / 3);
-    sensor_msgs::PointCloud2Iterator<float> pt_iter(*cloud, "x");
+    sensor_msgs::PointCloud2Iterator<float> pt_iter(cloud, "x");
     for (std::size_t i = 0; i < data.size(); i += 3)
     {
       pt_iter[0] = data[i];
@@ -95,7 +94,7 @@ TEST_F(PointcloudUpdaterTester, NonIncrementalUpdate)
   EXPECT_FALSE(isOccupied(0.95, 0.0, 0.0));
   EXPECT_FALSE(isOccupied(0.0, 0.95, 0.0));
 
-  sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
+  sensor_msgs::PointCloud2 cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::SNAPSHOT));
   EXPECT_TRUE(isOccupied(0.95, 0.0, 0.0));
   EXPECT_FALSE(isOccupied(0.0, 0.95, 0.0));
@@ -108,7 +107,7 @@ TEST_F(PointcloudUpdaterTester, NonIncrementalUpdate)
 
 TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 {
-  sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
+  sensor_msgs::PointCloud2 cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
   cloud = createPointcloudFromXYZ({ 0.0, 0.95, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
@@ -120,7 +119,7 @@ TEST_F(PointcloudUpdaterTester, IncrementalUpdate)
 
 TEST_F(PointcloudUpdaterTester, IncrementalRayTracing)
 {
-  sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.55, 0.0, 0.0 });
+  sensor_msgs::PointCloud2 cloud = createPointcloudFromXYZ({ 0.55, 0.0, 0.0 });
   ASSERT_TRUE(updater_.processCloud(cloud, Eigen::Isometry3d::Identity(), UpdateMethod::INCREMENTAL));
   EXPECT_TRUE(isOccupied(0.55, 0.0, 0.0));
 
@@ -138,7 +137,7 @@ TEST_F(PointcloudUpdaterTester, UpdateWithExclusion)
 {
   shapes::ShapeConstPtr exclude_shape = std::make_shared<shapes::Box>(0.5, 0.5, 0.5);
   auto exclude_shape_pose = Eigen::Isometry3d(Eigen::Translation3d(1.0, 0.0, 0.0));
-  sensor_msgs::PointCloud2::Ptr cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0, 1.95, 0.0, 0.0 });
+  sensor_msgs::PointCloud2 cloud = createPointcloudFromXYZ({ 0.95, 0.0, 0.0, 1.95, 0.0, 0.0 });
 
   // If we exclude the shape, a point in the shape shouldn't be occupied
   auto shape_handle = updater_.excludeShape(exclude_shape, exclude_shape_pose);

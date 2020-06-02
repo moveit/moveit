@@ -196,7 +196,7 @@ void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& /*clou
 {
 }
 
-bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg,
+bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2& cloud_msg,
                                             const Eigen::Isometry3d& sensor_pose, UpdateMethod update_method)
 {
   std::lock_guard<std::recursive_mutex> lock(update_mutex_);
@@ -209,13 +209,13 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   octomap::point3d sensor_origin(sensor_pose.translation().x(), sensor_pose.translation().y(),
                                  sensor_pose.translation().z());
   if (shape_mask_)
-    shape_mask_->maskContainment(*cloud_msg, sensor_pose.translation(), 0.0, max_range_, mask_);
+    shape_mask_->maskContainment(cloud_msg, sensor_pose.translation(), 0.0, max_range_, mask_);
   else
   {
     ROS_ERROR_NAMED(LOGNAME, "Shape filter not yet initialized!");
     return false;
   }
-  updateMask(*cloud_msg, sensor_pose.translation(), mask_);
+  updateMask(cloud_msg, sensor_pose.translation(), mask_);
 
   octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
   std::unique_ptr<sensor_msgs::PointCloud2> filtered_cloud;
@@ -230,10 +230,10 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   if (!filtered_cloud_topic_.empty())
   {
     filtered_cloud.reset(new sensor_msgs::PointCloud2());
-    filtered_cloud->header = cloud_msg->header;
+    filtered_cloud->header = cloud_msg.header;
     sensor_msgs::PointCloud2Modifier pcd_modifier(*filtered_cloud);
     pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
-    pcd_modifier.resize(cloud_msg->width * cloud_msg->height);
+    pcd_modifier.resize(cloud_msg.width * cloud_msg.height);
 
     // we have created a filtered_out, so we can create the iterators now
     iter_filtered_x.reset(new sensor_msgs::PointCloud2Iterator<float>(*filtered_cloud, "x"));
@@ -246,14 +246,14 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
 
   try
   {
-    for (unsigned int row = 0; row < cloud_msg->height; row += point_subsample_)
+    for (unsigned int row = 0; row < cloud_msg.height; row += point_subsample_)
     {
-      unsigned int row_c = row * cloud_msg->width;
-      sensor_msgs::PointCloud2ConstIterator<float> pt_iter(*cloud_msg, "x");
+      unsigned int row_c = row * cloud_msg.width;
+      sensor_msgs::PointCloud2ConstIterator<float> pt_iter(cloud_msg, "x");
       // set iterator to point at start of the current row
       pt_iter += row_c;
 
-      for (unsigned int col = 0; col < cloud_msg->width; col += point_subsample_, pt_iter += point_subsample_)
+      for (unsigned int col = 0; col < cloud_msg.width; col += point_subsample_, pt_iter += point_subsample_)
       {
         // if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
         //  continue;
@@ -368,17 +368,17 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   return success;
 }
 
-bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2& cloud_msg)
 {
   std::lock_guard<std::recursive_mutex> lock(update_mutex_);
 
   if (monitor_->getMapFrame().empty())
-    monitor_->setMapFrame(cloud_msg->header.frame_id);
+    monitor_->setMapFrame(cloud_msg.header.frame_id);
 
   /* get transform for cloud into map frame */
   Eigen::Isometry3d sensor_origin_eigen;
 
-  if (monitor_->getMapFrame() == cloud_msg->header.frame_id)
+  if (monitor_->getMapFrame() == cloud_msg.header.frame_id)
     sensor_origin_eigen.setIdentity();
   else
   {
@@ -387,7 +387,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
       try
       {
         geometry_msgs::TransformStamped sensor_origin =
-            tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id, cloud_msg->header.stamp);
+            tf_buffer_->lookupTransform(monitor_->getMapFrame(), cloud_msg.header.frame_id, cloud_msg.header.stamp);
         sensor_origin_eigen = tf2::transformToEigen(sensor_origin);
       }
       catch (tf2::TransformException& ex)
@@ -400,7 +400,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
       return false;
   }
 
-  if (!updateTransformCache(cloud_msg->header.frame_id, cloud_msg->header.stamp))
+  if (!updateTransformCache(cloud_msg.header.frame_id, cloud_msg.header.stamp))
   {
     ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "Transform cache was not updated. Self-filtering may fail.");
     return false;
@@ -409,7 +409,7 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2::Cons
   return processCloud(cloud_msg, sensor_origin_eigen, update_method_);
 }
 
-void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
+void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
   std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   ROS_DEBUG_NAMED(LOGNAME, "Received a new point cloud message");
@@ -420,7 +420,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       return;
   }
 
-  processCloud(cloud_msg);
+  processCloud(*cloud_msg);
   last_update_time_ = ros::Time::now();
 }
 
@@ -428,8 +428,7 @@ bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::Updat
                                                               moveit_msgs::UpdatePointcloudOctomap::Response& res)
 {
   std::lock_guard<std::recursive_mutex> lock(update_mutex_);
-  sensor_msgs::PointCloud2::ConstPtr cloud = boost::make_shared<sensor_msgs::PointCloud2>(std::move(req.cloud));
-  res.success = processCloud(cloud);
+  res.success = processCloud(req.cloud);
   last_update_time_ = ros::Time::now();
   return res.success;
 }

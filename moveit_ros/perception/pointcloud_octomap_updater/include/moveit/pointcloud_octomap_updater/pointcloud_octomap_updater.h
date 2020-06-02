@@ -95,7 +95,7 @@ public:
       @param cloud_msg The pointcloud to process
       @param sensor_pose Eigen pose of the frame in which the pointcloud is given
       @param update_method Whether to update the current octomap probabilities or to forget all previous octomap data */
-  bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg, const Eigen::Isometry3d& sensor_pose,
+  bool processCloud(const sensor_msgs::PointCloud2& cloud_msg, const Eigen::Isometry3d& sensor_pose,
                     UpdateMethod update_method);
 
   /** @brief Process a pointcloud message and update the octomap.
@@ -106,7 +106,7 @@ public:
              Thus, this requires setTransformCacheCallback to have been used to set a callback which is used to get the
      poses of filtered shapes
       @param cloud_msg The pointcloud to process */
-  bool processCloud(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
+  bool processCloud(const sensor_msgs::PointCloud2& cloud_msg);
 
 protected:
   virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
@@ -114,7 +114,7 @@ protected:
 
 private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
-  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
+  void cloudMsgCallback(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
   void stopHelper();
   bool updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
                                       moveit_msgs::UpdatePointcloudOctomap::Response& res);
