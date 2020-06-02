@@ -96,6 +96,11 @@ static const std::string TAB_STATUS = "Status";
 
 static const double LARGE_MESH_THRESHOLD = 10.0;
 
+static const std::map<std::string, shapes::ShapeType> SHAPES_MAP = { { "box", shapes::BOX },
+                                                                     { "sphere", shapes::SPHERE },
+                                                                     { "cone", shapes::CONE },
+                                                                     { "cylinder", shapes::CYLINDER } };
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -171,6 +176,7 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
+  void shapesComboBoxChanged(const QString& text);
   void importObjectFromFileButtonClicked();
   void importObjectFromUrlButtonClicked();
   void clearSceneButtonClicked();
@@ -303,6 +309,7 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
+  void addPrimitiveShape();
   void importResource(const std::string& path);
   void loadStoredStates(const std::string& pattern);
 

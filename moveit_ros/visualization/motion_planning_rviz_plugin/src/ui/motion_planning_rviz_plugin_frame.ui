@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>692</width>
-    <height>414</height>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MoveIt! Planning Frame</string>
+   <string>MoveIt Planning Frame</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -938,37 +938,9 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="1">
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="title">
-          <string>Object Status</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
-          <item>
-           <widget class="QLabel" name="object_status">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <property name="text">
-             <string>Status</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::AutoText</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
         <widget class="QGroupBox" name="pose_scale_group_box">
          <property name="title">
-          <string>Manage Pose and Scale</string>
+          <string>Change Object Pose and Scale</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
@@ -1130,6 +1102,65 @@
          </layout>
         </widget>
        </item>
+       <item row="0" column="0" rowspan="5">
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="toolTip">
+          <string>Press Ctrl+C to duplicate an object</string>
+         </property>
+         <property name="title">
+          <string>Current Scene Objects</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="4" column="0">
+           <widget class="QPushButton" name="remove_object_button">
+            <property name="text">
+             <string>Remove</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="clear_scene_button">
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="import_object_file_button">
+            <property name="text">
+             <string>Import &amp;File</string>
+            </property>
+            <property name="toolTip">
+             <string>Import a mesh from file</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QListWidget" name="collision_objects_list">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="import_object_url_button">
+            <property name="text">
+             <string>Import &amp;URL</string>
+            </property>
+            <property name="toolTip">
+             <string>Import a mesh from URL</string>
+            </property>
+            </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="2" column="1">
         <widget class="QGroupBox" name="groupBox3">
          <property name="title">
@@ -1185,60 +1216,7 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0" rowspan="4">
-        <widget class="QGroupBox" name="groupBox_8">
-         <property name="toolTip">
-          <string>Press Ctrl+C to duplicate an object</string>
-         </property>
-         <property name="title">
-          <string>Current Scene Objects</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_8">
-          <item row="1" column="1">
-           <widget class="QPushButton" name="import_object_url_button">
-            <property name="text">
-             <string>From &amp;URL</string>
-            </property>
-            <property name="toolTip">
-             <string>Import a mesh from a URL</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QPushButton" name="clear_scene_button">
-            <property name="text">
-             <string>Clear</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="remove_object_button">
-            <property name="text">
-             <string>Remove</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="import_object_file_button">
-            <property name="text">
-             <string>Import &amp;Mesh</string>
-            </property>
-            <property name="toolTip">
-             <string>Import a mesh from a file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QListWidget" name="collision_objects_list">
-            <property name="editTriggers">
-             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="1">
+       <item row="4" column="1">
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -1250,6 +1228,119 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Object Status</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <widget class="QLabel" name="object_status">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="text">
+             <string>Status</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::AutoText</enum>
+            </property>
+            <property name="WordWrap" stdset="0">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Primitive Shapes</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QComboBox" name="shapes_combo_box">
+            <item>
+             <property name="text">
+              <string>box</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>sphere</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>cone</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>cylinder</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="shape_size_x_spin_box">
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
+            <property name="singleStep">
+             <double>0.050000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.200000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="add_shape_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Add</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

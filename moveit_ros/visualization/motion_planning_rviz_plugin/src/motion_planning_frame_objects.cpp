@@ -58,6 +58,46 @@
 
 namespace moveit_rviz_plugin
 {
+void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
+{
+  const std::string selected_shape = text.toStdString();
+  if (SHAPES_MAP.find(selected_shape) == SHAPES_MAP.end())
+  {
+    return;
+  }
+
+  shapes::ShapeType shape_type = SHAPES_MAP.at(selected_shape);
+  switch (shape_type)
+  {
+    case shapes::BOX:
+      ui_->shape_size_x_spin_box->setEnabled(true);
+      ui_->shape_size_y_spin_box->setEnabled(true);
+      ui_->shape_size_z_spin_box->setEnabled(true);
+      break;
+    case shapes::SPHERE:
+      ui_->shape_size_x_spin_box->setEnabled(true);
+      ui_->shape_size_y_spin_box->setEnabled(false);
+      ui_->shape_size_z_spin_box->setEnabled(false);
+      break;
+    case shapes::CONE:
+      ui_->shape_size_x_spin_box->setEnabled(true);
+      ui_->shape_size_y_spin_box->setEnabled(false);
+      ui_->shape_size_z_spin_box->setEnabled(true);
+      break;
+    case shapes::CYLINDER:
+      ui_->shape_size_x_spin_box->setEnabled(true);
+      ui_->shape_size_y_spin_box->setEnabled(false);
+      ui_->shape_size_z_spin_box->setEnabled(true);
+      break;
+    default:
+      ui_->shape_size_x_spin_box->setEnabled(false);
+      ui_->shape_size_y_spin_box->setEnabled(false);
+      ui_->shape_size_z_spin_box->setEnabled(false);
+      QMessageBox::warning(this, QString("Unsupported shape"),
+                           QString("The '%1' is not supported.").arg(selected_shape.c_str()));
+  }
+}
+
 void MotionPlanningFrame::importObjectFromFileButtonClicked()
 {
   QString path = QFileDialog::getOpenFileName(this, tr("Import Object Mesh"), QString(),
