@@ -179,8 +179,19 @@ public:
     return error_;
   }
 
-  /** @brief Allow the joint_state arrrays velocity and effort to be copied into the robot state
-   *  this is useful in some but not all applications
+  /** @brief Check whether the robot is stopped. Two successive states are checked for position change,
+   *  and velocities are checked.
+   *  @param group The joint group of intereset.
+   *  @param joint_velocity_tol Largest allowable joint velocity to be considered stopped [rad/s].
+   *  @param double wait_time Wait time for retrieving robot's current state [seconds].
+   *  @param is_stopped Set to true if the robot is stopped.
+   *  @return false if the check could not be completed within wait_time
+   */
+  bool getIsRobotStopped(const std::string& group, double joint_velocity_tol, double state_wait_time,
+                         double& is_stopped);
+
+  /** @brief Allow the joint_state arrays velocity and effort to be copied into the robot state.
+   *  This is useful in some but not all applications
    */
   void enableCopyDynamics(bool enabled)
   {

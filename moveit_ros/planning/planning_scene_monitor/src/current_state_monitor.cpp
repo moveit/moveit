@@ -41,6 +41,8 @@
 
 #include <limits>
 
+static const std::string LOGNAME = "current_state_monitor";
+
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const moveit::core::RobotModelConstPtr& robot_model,
                                                                  const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : CurrentStateMonitor(robot_model, tf_buffer, ros::NodeHandle())
@@ -134,13 +136,81 @@ void planning_scene_monitor::CurrentStateMonitor::clearUpdateCallbacks()
   update_callbacks_.clear();
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::getIsRobotStopped(const std::string& group,
+                                                                    double joint_velocity_tol,
+                                                                    double state_wait_time,
+                                                                    double& is_stopped)
+{
+  // Initially assume the robot is not stopped
+  is_stopped = false;
+
+  // Constant joint group variables
+  const auto& joint_models = robot_model_->getActiveJointModels();
+  const std::size_t num_joints = joint_models.size();
+  const auto joint_group = getRobotModel()->getJointModelGroup(group);
+
+  // Track the last joint states and check if the joint distance is valid given the velocity threshold
+  robot_state::RobotStatePtr previous_state = NULL;
+  ros::Time previous_time;
+  while (ros::ok())
+  {
+    if (waitForCompleteState(state_wait_time))
+    {
+      const std::pair<robot_state::RobotStatePtr, ros::Time> state_and_time = getCurrentStateAndTime();
+      const auto& current_state = state_and_time.first;
+      const auto& current_time = state_and_time.second;
+
+      if (previous_state)
+      {
+        if (current_state->hasVelocities())
+        {
+          // Iterate all joint velocities and check they are below the velocity threshold
+          const bool joint_velocities_stopped = std::all_of(
+              joint_models.begin(), joint_models.end(),
+              [&current_state, joint_velocity_tol ](const moveit::core::JointModel* joint) {
+                return std::abs(*current_state->getJointVelocities(joint)) < joint_velocity_tol;
+              });
+
+          // If velocities are stopped the joint distance must be valid as well
+          bool joint_positions_stopped = false;
+
+          if (joint_velocities_stopped)
+          {
+            // Check if joint distance towards previous state satisfies velocity threshold given the elapsed time
+            const double elapsed_seconds = (current_time - previous_time).toSec();
+            const double max_valid_joint_distance = joint_velocity_tol * num_joints * elapsed_seconds;
+            joint_positions_stopped = previous_state->distance(*current_state, joint_group) < max_valid_joint_distance;
+          }
+
+          if (joint_velocities_stopped && joint_positions_stopped)
+          {
+            is_stopped = true;
+            return true;
+          }
+        }
+      }
+
+      // Cache state and time for next loop cycle
+      previous_state = current_state;
+      previous_time = current_time;
+    }
+    else
+    {
+      ROS_WARN_NAMED(LOGNAME, "Unable to verify motion stop. Did not receive new joint state in time");
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topic)
 {
   if (!state_monitor_started_ && robot_model_)
   {
     joint_time_.clear();
     if (joint_states_topic.empty())
-      ROS_ERROR("The joint states topic cannot be an empty string");
+      ROS_ERROR_NAMED(LOGNAME, "The joint states topic cannot be an empty string");
     else
       joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
     if (tf_buffer_ && !robot_model_->getMultiDOFJointModels().empty())
@@ -150,7 +220,7 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
     }
     state_monitor_started_ = true;
     monitor_start_time_ = ros::Time::now();
-    ROS_DEBUG("Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
+    ROS_DEBUG_NAMED(LOGNAME, "Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
   }
 }
 
@@ -169,7 +239,7 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
       tf_buffer_->_removeTransformsChangedListener(*tf_connection_);
       tf_connection_.reset();
     }
-    ROS_DEBUG("No longer listening for joint states");
+    ROS_DEBUG_NAMED(LOGNAME, "No longer listening for joint states");
     state_monitor_started_ = false;
   }
 }
@@ -192,7 +262,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
     {
       if (!joint->isPassive() && !joint->getMimic())
       {
-        ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
+        ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
         result = false;
       }
     }
@@ -228,12 +298,12 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
     std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
                 joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       result = false;
     }
@@ -256,13 +326,13 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
     std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' has never been updated", joint->getName().c_str());
       missing_states.push_back(joint->getName());
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+      ROS_DEBUG_NAMED(LOGNAME, "Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
                 joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       missing_states.push_back(joint->getName());
       result = false;
@@ -284,7 +354,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
     {
-      ROS_INFO_STREAM("Didn't received robot state (joint angles) with recent timestamp within "
+      ROS_INFO_STREAM_NAMED(LOGNAME, "Didn't received robot state (joint angles) with recent timestamp within "
                       << wait_time << " seconds.\n"
                       << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
@@ -337,7 +407,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state (number of joint names does not match number of "
+    ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "State monitor received invalid joint state (number of joint names does not match number of "
                           "positions)");
     return;
   }
@@ -436,7 +506,7 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       }
       catch (tf2::TransformException& ex)
       {
-        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
+        ROS_WARN_STREAM_ONCE_NAMED(LOGNAME, "Unable to update multi-DOF joint '"
                              << joint->getName() << "': Failure to lookup transform between '" << parent_frame.c_str()
                              << "' and '" << child_frame.c_str() << "' with TF exception: " << ex.what());
         continue;
