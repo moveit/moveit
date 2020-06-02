@@ -26,7 +26,8 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
 )
 
-find_package(PCL REQUIRED)
+# PCL only required to generate point cloud message in octomap test
+# find_package(PCL REQUIRED)
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 
@@ -83,8 +84,9 @@ catkin_package(
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS}
-                    ${PCL_INCLUDE_DIRS})
+                    ${catkin_INCLUDE_DIRS})
+# PCL includes only required to generate point cloud message in octomap test
+                    #${PCL_INCLUDE_DIRS})
 
 include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIRS}

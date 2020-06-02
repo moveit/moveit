@@ -50,10 +50,12 @@
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/PointCloud2.h>
 
+/* only needed to generate the PointCloud2 message
 // PCL
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
+*/
 
 namespace moveit
 {
@@ -76,25 +78,6 @@ public:
         planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
         true /* load octomap monitor */);
 
-    point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1);
-    sensor_msgs::PointCloud2 point_cloud_msg;
-
-    // Generate point cloud (cube)
-    pcl::PointCloud<pcl::PointXYZ> point_cloud;
-    point_cloud.width = 8;
-    point_cloud.height = 1;
-    point_cloud.is_dense = true;
-    point_cloud.points.resize(point_cloud.width * point_cloud.height);
-    for (int i = 0; i < 8; i++)
-    {
-      point_cloud.points[i].x = 0.1 * ((i >> 0) & 1);
-      point_cloud.points[i].y = 0.1 * ((i >> 1) & 1);
-      point_cloud.points[i].z = 0.1 * ((i >> 2) & 1);
-    }
-    pcl::toROSMsg(point_cloud, point_cloud_msg);
-
-    point_cloud_pub.publish(point_cloud_msg);
-
     target_pose1.header.frame_id = "panda_link0";
     target_pose1.pose.orientation.w = 1.0;
     target_pose1.pose.position.x = 0.28;
@@ -115,7 +98,6 @@ public:
 protected:
   ros::NodeHandle nh_;
   MoveItCppPtr moveit_cpp_ptr;
-  ros::Publisher point_cloud_pub;
   PlanningComponentPtr planning_component_ptr;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   moveit::core::RobotModelConstPtr robot_model_ptr;
@@ -196,6 +178,60 @@ TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
 // Test settting the goal of the plan using a moveit::core::RobotState
 TEST_F(MoveItCppTest, TestPlanWithOctomap)
 {
+  sensor_msgs::PointCloud2 point_cloud_msg;
+  /*
+  // Generate point cloud (cube)
+  pcl::PointCloud<pcl::PointXYZ> point_cloud;
+  point_cloud.width = 8;
+  point_cloud.height = 1;
+  point_cloud.is_dense = true;
+  point_cloud.points.resize(point_cloud.width * point_cloud.height);
+  for (int i = 0; i < 8; i++)
+  {
+    point_cloud.points[i].x = 0.1 * ((i >> 0) & 1);
+    point_cloud.points[i].y = 0.1 * ((i >> 1) & 1);
+    point_cloud.points[i].z = 0.1 * ((i >> 2) & 1);
+  }
+  pcl::toROSMsg(point_cloud, point_cloud_msg);
+  */
+  point_cloud_msg.header.stamp = ros::Time::now();
+  point_cloud_msg.header.frame_id = "world";
+  point_cloud_msg.height = 1;
+  point_cloud_msg.width = 8;
+  point_cloud_msg.fields.resize(3);
+  point_cloud_msg.fields[0].name = "x";
+  point_cloud_msg.fields[1].name = "y";
+  point_cloud_msg.fields[2].name = "z";
+  for (int i = 0; i < 3; i++)
+  {
+    point_cloud_msg.fields[i].offset = 4 * i;
+    point_cloud_msg.fields[i].datatype = 7;
+    point_cloud_msg.fields[i].count = 1;
+  }
+  point_cloud_msg.is_bigendian = false;
+  point_cloud_msg.point_step = 16;
+  point_cloud_msg.row_step = 128;
+  point_cloud_msg.data.resize(128);
+  uint8_t point_cloud_data[] = { 0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0, 128, 63,
+                                 205, 204, 204, 61, 0,   0,   0,   0,  0,   0,   0,   0,  0, 0, 128, 63,
+                                 0,   0,   0,   0,  205, 204, 204, 61, 0,   0,   0,   0,  0, 0, 128, 63,
+                                 205, 204, 204, 61, 205, 204, 204, 61, 0,   0,   0,   0,  0, 0, 128, 63,
+                                 0,   0,   0,   0,  0,   0,   0,   0,  205, 204, 204, 61, 0, 0, 128, 63,
+                                 205, 204, 204, 61, 0,   0,   0,   0,  205, 204, 204, 61, 0, 0, 128, 63,
+                                 0,   0,   0,   0,  205, 204, 204, 61, 205, 204, 204, 61, 0, 0, 128, 63,
+                                 205, 204, 204, 61, 205, 204, 204, 61, 205, 204, 204, 61, 0, 0, 128, 63 };
+  for (int i = 0; i < 128; i++)
+    point_cloud_msg.data[i] = point_cloud_data[i];
+  point_cloud_msg.is_dense = true;
+
+  ros::Publisher point_cloud_pub;
+  point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 10);
+  for (int i = 0; i < 10; i++)
+  {
+    point_cloud_pub.publish(point_cloud_msg);
+    ros::WallDuration(0.1).sleep();
+  }
+
   auto target_state = *(moveit_cpp_ptr->getCurrentState());
 
   target_state.setFromIK(jmg_ptr, target_pose2);
