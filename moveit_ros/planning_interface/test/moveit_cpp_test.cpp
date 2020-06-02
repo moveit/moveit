@@ -48,6 +48,12 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 // Msgs
 #include <geometry_msgs/PointStamped.h>
+#include <sensor_msgs/PointCloud2.h>
+
+// PCL
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 namespace moveit
 {
@@ -70,6 +76,25 @@ public:
         planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
         true /* load octomap monitor */);
 
+    point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1);
+    sensor_msgs::PointCloud2 point_cloud_msg;
+
+    // Generate point cloud (cube)
+    pcl::PointCloud<pcl::PointXYZ> point_cloud;
+    point_cloud.width = 8;
+    point_cloud.height = 1;
+    point_cloud.is_dense = true;
+    point_cloud.points.resize(point_cloud.width * point_cloud.height);
+    for (int i = 0; i < 8; i++)
+    {
+      point_cloud.points[i].x = 0.1 * ((i >> 0) & 1);
+      point_cloud.points[i].y = 0.1 * ((i >> 1) & 1);
+      point_cloud.points[i].z = 0.1 * ((i >> 2) & 1);
+    }
+    pcl::toROSMsg(point_cloud, point_cloud_msg);
+
+    point_cloud_pub.publish(point_cloud_msg);
+
     target_pose1.header.frame_id = "panda_link0";
     target_pose1.pose.orientation.w = 1.0;
     target_pose1.pose.position.x = 0.28;
@@ -90,6 +115,7 @@ public:
 protected:
   ros::NodeHandle nh_;
   MoveItCppPtr moveit_cpp_ptr;
+  ros::Publisher point_cloud_pub;
   PlanningComponentPtr planning_component_ptr;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   moveit::core::RobotModelConstPtr robot_model_ptr;
