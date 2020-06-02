@@ -32,5 +32,8 @@
     <!-- Unit Test /-->
     <test test-name="moveit_cpp_test" pkg="moveit_ros_planning_interface" type="moveit_cpp_test">
         <rosparam command="load" file="$(find moveit_resources)/panda_moveit_config/config/sensors_kinect_pointcloud.yaml" />
+        <param name="octomap_frame" type="string" value="world" />
+        <param name="octomap_resolution" type="double" value="0.05" />
+        <param name="max_range" type="double" value="10." />
     </test>
 </launch>
