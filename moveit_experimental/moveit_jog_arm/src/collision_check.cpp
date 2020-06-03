@@ -105,9 +105,11 @@ void CollisionCheck::stop()
 void CollisionCheck::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
-  ROS_WARN_STREAM_COND_NAMED(timer_event.profile.last_duration.toSec() > period_.toSec(), LOGNAME,
-                             "last_duration: " << timer_event.profile.last_duration.toSec() << " (" << period_.toSec()
-                                               << ")");
+  if (timer_event.profile.last_duration.toSec() > period_.toSec())
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
+                                                                  << period_.toSec() << ")");
+  }
 
   if (paused_)
   {
