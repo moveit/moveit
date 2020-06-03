@@ -44,6 +44,7 @@ set(TRAJOPT_SOURCE_FILES
     src/kinematic_terms.cpp
     src/problem_description.cpp
     src/utils.cpp
+    src/collision_terms.cpp
 )
 
 add_library(${PROJECT_NAME} ${TRAJOPT_SOURCE_FILES})
