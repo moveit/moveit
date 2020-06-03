@@ -23,7 +23,7 @@
 
 service    | Kinetic | Melodic | Master
 ---------- | ------- | ------- | ------
-Travis     | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.org/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=master)](https://travis-ci.org/ros-planning/moveit/branches) |
+Travis     | [![Build Status](https://travis-ci.com/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.com/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.com/ros-planning/moveit.svg?branch=melodic-devel)](https://travis-ci.com/ros-planning/moveit/branches) | [![Build Status](https://travis-ci.com/ros-planning/moveit.svg?branch=master)](https://travis-ci.com/ros-planning/moveit/branches) |
 build farm | [![Build Status](http://build.ros.org/buildStatus/icon?job=Kdev__moveit__ubuntu_xenial_amd64)](http://build.ros.org/job/Kdev__moveit__ubuntu_xenial_amd64) | [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__moveit__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__moveit__ubuntu_bionic_amd64) | N/A |
 
 ### Licenses
