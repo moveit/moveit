@@ -46,6 +46,12 @@
 
 namespace moveit_jog_arm
 {
+enum CollisionCheckType
+{
+  K_THRESHOLD_DISTANCE = 1,
+  K_STOP_DISTANCE = 2
+};
+
 class CollisionCheckThread
 {
 public:
@@ -64,6 +70,8 @@ public:
 
 private:
   const moveit_jog_arm::JogArmParameters parameters_;
+
+  CollisionCheckType collision_check_type_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;

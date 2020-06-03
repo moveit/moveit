@@ -477,9 +477,7 @@ trajectory_msgs::JointTrajectory JogCalcs::composeJointTrajMessage(sensor_msgs::
 void JogCalcs::applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta,
                                     double singularity_scale)
 {
-  shared_variables.lock();
   double collision_scale = shared_variables.collision_velocity_scale;
-  shared_variables.unlock();
 
   if (collision_scale > 0 && collision_scale < 1)
   {
@@ -742,6 +740,47 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
 
   // Cache the original joints in case they need to be reset
   original_joint_state_ = internal_joint_state_;
+
+  // Calculate worst case joint stop time, for collision checking
+  std::string joint_name = "";
+  shared_variables.worst_case_stop_time = std::numeric_limits<double>::max();
+  moveit::core::JointModel::Bounds kinematic_bounds;
+  double accel_limit = 0;
+  double joint_velocity = 0;
+  double worst_case_stop_time = 0;
+  for (size_t jt_state_idx = 0; jt_state_idx < incoming_joint_state_.velocity.size(); ++jt_state_idx)
+  {
+    joint_name = incoming_joint_state_.name[jt_state_idx];
+
+    // Get acceleration limit for this joint
+    for (auto joint_model : joint_model_group_->getActiveJointModels())
+    {
+      if (joint_model->getName() == joint_name)
+      {
+        kinematic_bounds = joint_model->getVariableBounds();
+        // Some joints do not have acceleration limits
+        if (kinematic_bounds[0].acceleration_bounded_)
+        {
+          // Be conservative when calculating overall acceleration limit from min and max limits
+          accel_limit =
+              std::min(fabs(kinematic_bounds[0].min_acceleration_), fabs(kinematic_bounds[0].max_acceleration_));
+        }
+        else
+        {
+          ROS_WARN_STREAM_NAMED(LOGNAME, "An acceleration limit is not defined for this joint; minimum stop distance "
+                                         "should not be used for collision checking");
+        }
+        break;
+      }
+    }
+
+    // Get the current joint velocity
+    joint_velocity = incoming_joint_state_.velocity[jt_state_idx];
+
+    // Calculate worst case stop time
+    worst_case_stop_time = std::max(worst_case_stop_time, fabs(joint_velocity / accel_limit));
+  }
+  shared_variables.worst_case_stop_time = worst_case_stop_time;
 
   return true;
 }
