@@ -280,7 +280,7 @@ void collision_detection::BodyDecomposition::init(const std::vector<shapes::Shap
   bodies_.clear();
   for (unsigned int i = 0; i < shapes.size(); i++)
   {
-    bodies_.addBody(shapes[i]->clone(), poses[i], padding);
+    bodies_.addBody(shapes[i].get(), poses[i], padding);
   }
 
   // collecting collision spheres
