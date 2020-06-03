@@ -161,9 +161,11 @@ void JogCalcs::stop()
 void JogCalcs::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
-  ROS_WARN_STREAM_COND_NAMED(timer_event.profile.last_duration.toSec() > period_.toSec(), LOGNAME,
-                             "last_duration: " << timer_event.profile.last_duration.toSec() << " (" << period_.toSec()
-                                               << ")");
+  if (timer_event.profile.last_duration.toSec() > period_.toSec())
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
+                                                                  << period_.toSec() << ")");
+  }
 
   // Publish status each loop iteration
   auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
@@ -779,9 +781,9 @@ bool JogCalcs::updateJoints()
   double accel_limit = 0;
   double joint_velocity = 0;
   double worst_case_stop_time = 0;
-  for (size_t jt_state_idx = 0; jt_state_idx < incoming_joint_state_.velocity.size(); ++jt_state_idx)
+  for (size_t jt_state_idx = 0; jt_state_idx < incoming_joint_state_->velocity.size(); ++jt_state_idx)
   {
-    joint_name = incoming_joint_state_.name[jt_state_idx];
+    joint_name = incoming_joint_state_->name[jt_state_idx];
 
     // Get acceleration limit for this joint
     for (auto joint_model : joint_model_group_->getActiveJointModels())
@@ -807,7 +809,7 @@ bool JogCalcs::updateJoints()
     }
 
     // Get the current joint velocity
-    joint_velocity = incoming_joint_state_.velocity[jt_state_idx];
+    joint_velocity = incoming_joint_state_->velocity[jt_state_idx];
 
     // Calculate worst case stop time
     worst_case_stop_time = std::max(worst_case_stop_time, fabs(joint_velocity / accel_limit));
