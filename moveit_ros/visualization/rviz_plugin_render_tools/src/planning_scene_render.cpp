@@ -60,7 +60,7 @@ void PlanningSceneRender::updateRobotPosition(const planning_scene::PlanningScen
 {
   if (scene_robot_)
   {
-    robot_state::RobotStatePtr rs = std::make_shared<robot_state::RobotState>(scene->getCurrentState());
+    auto rs = std::make_shared<moveit::core::RobotState>(scene->getCurrentState());
     rs->update();
     scene_robot_->updateKinematicState(rs);
   }
