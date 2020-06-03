@@ -97,6 +97,11 @@ static const std::string TAB_SCENES = "Stored Scenes";
 static const std::string TAB_STATES = "Stored States";
 static const std::string TAB_STATUS = "Status";
 
+static const std::map<std::string, shapes::ShapeType> SHAPES_MAP = { { "box", shapes::BOX },
+                                                                     { "sphere", shapes::SPHERE },
+                                                                     { "cone", shapes::CONE },
+                                                                     { "cylinder", shapes::CYLINDER } };
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -172,6 +177,7 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
+  void shapesComboBoxChanged(const QString& text);
   void importFileButtonClicked();
   void importUrlButtonClicked();
   void clearSceneButtonClicked();

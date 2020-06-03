@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>692</width>
-    <height>424</height>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1285,9 +1285,29 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="shape_size_spin_box">
+           <widget class="QDoubleSpinBox" name="shape_size_x_spin_box">
             <property name="singleStep">
-             <double>0.500000000000000</double>
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
+            <property name="singleStep">
+             <double>0.100000000000000</double>
             </property>
             <property name="value">
              <double>1.000000000000000</double>
@@ -1296,6 +1316,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="add_shape_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Add</string>
             </property>

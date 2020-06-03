@@ -128,7 +128,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this,
           SLOT(warehouseItemNameChanged(QTreeWidgetItem*, int)));
   connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
-  connect(ui_->add_shape_button, &QPushButton::clicked, [this]() { addPrimitiveShape(); });
+
+  connect(ui_->add_shape_button, &QPushButton::clicked, this, &MotionPlanningFrame::addPrimitiveShape);
+  connect(ui_->shapes_combo_box, &QComboBox::currentTextChanged, this, &MotionPlanningFrame::shapesComboBoxChanged);
   connect(ui_->export_scene_text_button, SIGNAL(clicked()), this, SLOT(exportAsTextButtonClicked()));
   connect(ui_->import_scene_text_button, SIGNAL(clicked()), this, SLOT(importFromTextButtonClicked()));
   connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
@@ -430,18 +432,17 @@ void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonit
 void MotionPlanningFrame::addPrimitiveShape()
 {
   static const double MIN_VAL = 1e-6;
-  static const std::map<std::string, shapes::ShapeType> SHAPES_MAP = {
-    { "box", shapes::BOX }, { "sphere", shapes::SPHERE }, { "cone", shapes::CONE }, { "cylinder", shapes::CYLINDER }
-  };
 
   if (!planning_display_->getPlanningSceneMonitor())
   {
     return;
   }
 
-  // get side length
-  double side_length = ui_->shape_size_spin_box->value();
-  if (side_length < MIN_VAL)
+  // get size values
+  double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
+  double y_length = ui_->shape_size_y_spin_box->isEnabled() ? ui_->shape_size_y_spin_box->value() : MIN_VAL;
+  double z_length = ui_->shape_size_z_spin_box->isEnabled() ? ui_->shape_size_z_spin_box->value() : MIN_VAL;
+  if (x_length < MIN_VAL || y_length < MIN_VAL || z_length < MIN_VAL)
   {
     QMessageBox::warning(this, QString("Side length value is too small"),
                          QString("Value needs to be  >= '").append(std::to_string(MIN_VAL).c_str()).append("'"));
@@ -453,7 +454,7 @@ void MotionPlanningFrame::addPrimitiveShape()
   if (SHAPES_MAP.count(selected_shape) == 0)
   {
     QMessageBox::warning(this, QString("Unsupported shape"),
-                         QString("The '").append(selected_shape.c_str()).append("' is not supported."));
+                         QString("The '%1' shape is not supported.").arg(selected_shape.c_str()));
     return;
   }
   shapes::ShapeType shape_type = SHAPES_MAP.at(selected_shape);
@@ -461,17 +462,20 @@ void MotionPlanningFrame::addPrimitiveShape()
   switch (shape_type)
   {
     case shapes::BOX:
-      shape = std::make_shared<shapes::Box>(side_length, side_length, side_length);
+      shape = std::make_shared<shapes::Box>(x_length, y_length, z_length);
       break;
     case shapes::SPHERE:
-      shape = std::make_shared<shapes::Sphere>(0.5 * side_length);
+      shape = std::make_shared<shapes::Sphere>(0.5 * x_length);
       break;
     case shapes::CONE:
-      shape = std::make_shared<shapes::Cone>(0.5 * side_length, side_length);
+      shape = std::make_shared<shapes::Cone>(0.5 * x_length, z_length);
       break;
     case shapes::CYLINDER:
-      shape = std::make_shared<shapes::Cylinder>(0.5 * side_length, side_length);
+      shape = std::make_shared<shapes::Cylinder>(0.5 * x_length, z_length);
       break;
+    default:
+      QMessageBox::warning(this, QString("Unsupported shape"),
+                           QString("The '%1' is not supported.").arg(selected_shape.c_str()));
   }
 
   // naming object
