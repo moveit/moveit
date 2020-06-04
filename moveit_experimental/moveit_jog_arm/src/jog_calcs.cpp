@@ -80,7 +80,7 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr = planning_scene_monitor_->getRobotModelLoader();
   while (ros::ok() && !model_loader_ptr)
   {
-    ROS_WARN_THROTTLE_NAMED(5, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
+    ROS_WARN_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Waiting for a non-null robot_model_loader pointer");
     default_sleep_rate_.sleep();
   }
   const moveit::core::RobotModelPtr& kinematic_model = model_loader_ptr->getModel();
@@ -163,8 +163,9 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Log warning when the last loop duration was longer than the period
   if (timer_event.profile.last_duration.toSec() > period_.toSec())
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
-                                                                  << period_.toSec() << ")");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
+                                                     << period_.toSec() << ")");
   }
 
   // Publish status each loop iteration
@@ -263,7 +264,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
   {
     ok_to_publish_ = false;
-    ROS_DEBUG_STREAM_THROTTLE_NAMED(10, LOGNAME, "All-zero command. Doing nothing.");
+    ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "All-zero command. Doing nothing.");
   }
   else
   {
@@ -285,8 +286,9 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
 
   if (command_is_stale_)
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
-                                                "Try a larger 'incoming_command_timeout' parameter?");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "Stale command. "
+                                   "Try a larger 'incoming_command_timeout' parameter?");
   }
 
   if (ok_to_publish_)
@@ -316,7 +318,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
       std::isnan(cmd.twist.angular.x) || std::isnan(cmd.twist.angular.y) || std::isnan(cmd.twist.angular.z))
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "nan in incoming command. Skipping this datapoint.");
     return false;
   }
 
@@ -326,7 +329,8 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
     if ((fabs(cmd.twist.linear.x) > 1) || (fabs(cmd.twist.linear.y) > 1) || (fabs(cmd.twist.linear.z) > 1) ||
         (fabs(cmd.twist.angular.x) > 1) || (fabs(cmd.twist.angular.y) > 1) || (fabs(cmd.twist.angular.z) > 1))
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "Component of incoming command is >1. Skipping this datapoint.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                     "Component of incoming command is >1. Skipping this datapoint.");
       return false;
     }
   }
@@ -400,7 +404,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
   applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
   if (status_ == StatusCode::HALT_FOR_COLLISION)
   {
-    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
+    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Halting for collision!");
     suddenHalt(delta_theta_);
   }
 
@@ -416,7 +420,8 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs:
   {
     if (std::isnan(velocity))
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, "nan in incoming command. Skipping this datapoint.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                     "nan in incoming command. Skipping this datapoint.");
       return false;
     }
   }
@@ -524,7 +529,7 @@ void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singular
   if (collision_scale > 0 && collision_scale < 1)
   {
     status_ = StatusCode::DECELERATE_FOR_COLLISION;
-    ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
   }
   else if (collision_scale == 0)
   {
@@ -587,7 +592,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
                        (ini_condition - parameters_.lower_singularity_threshold) /
                            (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
       status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
 
     // Very close to singularity, so halt.
@@ -595,7 +600,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
     {
       velocity_scale = 0;
       status_ = StatusCode::HALT_FOR_SINGULARITY;
-      ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
     }
   }
 
@@ -704,7 +709,8 @@ bool JogCalcs::enforceSRDFPositionLimits()
             (kinematic_state_->getJointVelocities(joint)[0] > 0 &&
              (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
-          ROS_WARN_STREAM_THROTTLE_NAMED(2, LOGNAME, ros::this_node::getName() << " " << joint->getName()
+          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
+                                                                               << " " << joint->getName()
                                                                                << " close to a "
                                                                                   " position limit. Halting.");
           halting = true;
@@ -765,7 +771,8 @@ bool JogCalcs::updateJoints()
     }
     catch (const std::out_of_range& e)
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_->name[m]);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
+                                                                            << incoming_joint_state_->name[m]);
       continue;
     }
 
@@ -851,7 +858,7 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
     result[5] = command.twist.angular.z * parameters_.publish_period;
   }
   else
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type");
+    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Unexpected command_in_type");
 
   return result;
 }
@@ -875,7 +882,8 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     catch (const std::out_of_range& e)
     {
       const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Ignoring joint " << incoming_joint_state_->name[m]);
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
+                                                                           << incoming_joint_state_->name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
@@ -885,7 +893,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     else if (parameters_.command_in_type == "speed_units")
       result[c] = command.velocities[m] * parameters_.publish_period;
     else
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Unexpected command_in_type, check yaml file.");
+      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Unexpected command_in_type, check yaml file.");
   }
 
   return result;
@@ -902,8 +910,9 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, ros::this_node::getName() << " Lengths of output and "
-                                                                   "increments do not match.");
+      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
+                                                                            << " Lengths of output and "
+                                                                               "increments do not match.");
       return false;
     }
   }
