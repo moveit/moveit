@@ -232,7 +232,6 @@ private:
   ros::Subscriber joint_jog_sub_;
   ros::Subscriber collision_velocity_scale_sub_;
   ros::Publisher status_pub_;
-  ros::Publisher joint_trajectory_pub_;
   ros::Publisher worst_case_stop_time_pub_;
   ros::Publisher outgoing_cmd_pub_;
   ros::ServiceServer drift_dimensions_server_;
