@@ -10,6 +10,7 @@ set(SOURCE_FILES
   src/add_iterative_spline_parameterization.cpp
   src/add_time_optimal_parameterization.cpp
   src/resolve_constraint_frames.cpp
+  src/set_max_cartesian_end_effector_speed.cpp
   )
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
