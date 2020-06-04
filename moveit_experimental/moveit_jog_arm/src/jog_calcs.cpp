@@ -801,9 +801,9 @@ bool JogCalcs::updateJoints()
         }
         else
         {
-          ROS_ERROR_STREAM_ONCE_NAMED(LOGNAME, "An acceleration limit is not defined for this joint, '"
-                                                   << joint_model->getName() << "'; minimum stop distance should not "
-                                                                                "be used for collision checking");
+          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                         "An acceleration limit is not defined for this joint; minimum stop distance "
+                                         "should not be used for collision checking");
         }
         break;
       }
