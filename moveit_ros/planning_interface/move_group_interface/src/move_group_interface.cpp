@@ -126,6 +126,7 @@ public:
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
     allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
+    max_cartesian_speed_ = 0.0;
     node_handle_.param<double>("robot_description_planning/joint_limits/default_velocity_scaling_factor",
                                max_velocity_scaling_factor_, 0.1);
     node_handle_.param<double>("robot_description_planning/joint_limits/default_acceleration_scaling_factor",
@@ -368,6 +369,18 @@ public:
     {
       variable = target_value;
     }
+  }
+
+  void setMaxCartesianEndEffectorSpeed(const double speed, const std::string& end_effector_link)
+  {
+    cartesian_end_effector_link_ = end_effector_link;
+    max_cartesian_speed_ = speed;
+  }
+
+  void clearMaxCartesianEndEffectorSpeed()
+  {
+    cartesian_end_effector_link_ = "";
+    max_cartesian_speed_ = 0.0;
   }
 
   moveit::core::RobotState& getTargetRobotState()
@@ -1038,6 +1051,8 @@ public:
     request.num_planning_attempts = num_planning_attempts_;
     request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
+    request.cartesian_speed_end_effector_link = cartesian_end_effector_link_;
+    request.max_cartesian_speed = max_cartesian_speed_;
     request.allowed_planning_time = allowed_planning_time_;
     request.planner_id = planner_id_;
     request.workspace_parameters = workspace_parameters_;
@@ -1275,6 +1290,8 @@ private:
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
   double max_acceleration_scaling_factor_;
+  std::string cartesian_end_effector_link_;
+  double max_cartesian_speed_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1429,6 +1446,16 @@ void MoveGroupInterface::setMaxVelocityScalingFactor(double max_velocity_scaling
 void MoveGroupInterface::setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
 {
   impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
+}
+
+void MoveGroupInterface::setMaxCartesianEndEffectorSpeed(const double speed, const std::string& end_effector_link)
+{
+  impl_->setMaxCartesianEndEffectorSpeed(speed, end_effector_link);
+}
+
+void MoveGroupInterface::clearMaxCartesianEndEffectorSpeed()
+{
+  impl_->clearMaxCartesianEndEffectorSpeed();
 }
 
 MoveItErrorCode MoveGroupInterface::asyncMove()
