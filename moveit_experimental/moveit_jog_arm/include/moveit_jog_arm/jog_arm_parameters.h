@@ -43,6 +43,9 @@ namespace moveit_jog_arm
 // Size of queues used in ros pub/sub/service
 constexpr size_t ROS_QUEUE_SIZE = 2;
 
+// Seconds to throttle logs inside loops
+constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;
+
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
 {

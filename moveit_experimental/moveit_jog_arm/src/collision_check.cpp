@@ -63,7 +63,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
   collision_request_.distance = true;  // enable distance-based collision checking
 
   if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
-    ROS_WARN_STREAM_THROTTLE_NAMED(5, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
+    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
 
   // subscribe to joints
   joint_state_sub_ = nh_.subscribe(parameters.joint_topic, ROS_QUEUE_SIZE, &CollisionCheck::jointStateCB, this);
