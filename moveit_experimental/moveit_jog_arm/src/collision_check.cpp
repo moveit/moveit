@@ -63,7 +63,8 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
   collision_request_.distance = true;  // enable distance-based collision checking
 
   if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
-    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "Collision check rate is low, increase it in yaml file if CPU allows");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "Collision check rate is low, increase it in yaml file if CPU allows");
 
   // subscribe to joints
   joint_state_sub_ = nh_.subscribe(parameters.joint_topic, ROS_QUEUE_SIZE, &CollisionCheck::jointStateCB, this);
@@ -107,8 +108,9 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
   // Log warning when the last loop duration was longer than the period
   if (timer_event.profile.last_duration.toSec() > period_.toSec())
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(30, LOGNAME, "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
-                                                                  << period_.toSec() << ")");
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                   "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
+                                                     << period_.toSec() << ")");
   }
 
   if (paused_)
@@ -118,7 +120,7 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
 
   {
     // Copy the latest joint state
-    const std::lock_guard<std::mutex> lock(CollisionCheck);
+    const std::lock_guard<std::mutex> lock(joint_state_mutex_);
     for (std::size_t i = 0; i < latest_joint_state_->position.size(); ++i)
       current_state_->setJointPositions(latest_joint_state_->name[i], &latest_joint_state_->position[i]);
   }
