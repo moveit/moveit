@@ -47,4 +47,10 @@
     </description>
   </class>
 
+  <class name="default_planner_request_adapters/SetMaxCartesianEndEffectorSpeed" type="default_planner_request_adapters::SetMaxCartesianEndEffectorSpeed" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+      Reparameterize the trajectory to keep a desired speed for the end effector.
+    </description>
+  </class>
+
 </library>
