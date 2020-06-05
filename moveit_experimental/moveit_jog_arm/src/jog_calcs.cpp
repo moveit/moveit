@@ -767,7 +767,8 @@ bool JogCalcs::updateJoints(JogArmShared& shared_variables)
         }
         else
         {
-          ROS_WARN_STREAM_NAMED(LOGNAME, "An acceleration limit is not defined for this joint; minimum stop distance "
+          ROS_WARN_STREAM_THROTTLE_NAMED(1.0, LOGNAME,
+                                         "An acceleration limit is not defined for this joint; minimum stop distance "
                                          "should not be used for collision checking");
         }
         break;
