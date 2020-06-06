@@ -1287,30 +1287,30 @@
           <item>
            <widget class="QDoubleSpinBox" name="shape_size_x_spin_box">
             <property name="singleStep">
-             <double>0.100000000000000</double>
+             <double>0.050000000000000</double>
             </property>
             <property name="value">
-             <double>1.000000000000000</double>
+             <double>0.200000000000000</double>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="shape_size_y_spin_box">
             <property name="singleStep">
-             <double>0.100000000000000</double>
+             <double>0.050000000000000</double>
             </property>
             <property name="value">
-             <double>1.000000000000000</double>
+             <double>0.200000000000000</double>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="shape_size_z_spin_box">
             <property name="singleStep">
-             <double>0.100000000000000</double>
+             <double>0.050000000000000</double>
             </property>
             <property name="value">
-             <double>1.000000000000000</double>
+             <double>0.200000000000000</double>
             </property>
            </widget>
           </item>
