@@ -12,7 +12,6 @@ jobs:
       matrix:
         env:
           - {ROS_DISTRO: melodic,}
-          - {ROS_DISTRO: kinetic,}
     env:
       ROS_REPO: ros
       CCACHE_DIR: /github/home/.ccache
