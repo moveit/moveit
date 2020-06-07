@@ -57,17 +57,17 @@ World::~World()
 }
 
 inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
-                                       const Eigen::Isometry3d& pose)
+                                       const Eigen::Isometry3d& shape_pose)
 {
   obj->shapes_.push_back(shape);
-  ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
-  obj->shape_poses_.push_back(pose);
+  ASSERT_ISOMETRY(shape_pose)  // unsanitized input, could contain a non-isometry
+  obj->shape_poses_.push_back(shape_pose);
 }
 
-void World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                        const EigenSTL::vector_Isometry3d& poses)
+void World::addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                        const EigenSTL::vector_Isometry3d& shape_poses)
 {
-  if (shapes.size() != poses.size())
+  if (shapes.size() != shape_poses.size())
   {
     ROS_ERROR_NAMED("collision_detection", "Number of shapes and number of poses do not match. "
                                            "Not adding this object to collision world.");
@@ -79,44 +79,45 @@ void World::addToObject(const std::string& id, const std::vector<shapes::ShapeCo
 
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
+  ObjectPtr& obj = objects_[object_id];
   if (!obj)
   {
-    obj = std::make_shared<Object>(id);
+    obj = std::make_shared<Object>(object_id);
     action |= CREATE;
   }
 
   ensureUnique(obj);
 
   for (std::size_t i = 0; i < shapes.size(); ++i)
-    addToObjectInternal(obj, shapes[i], poses[i]);
+    addToObjectInternal(obj, shapes[i], shape_poses[i]);
 
   notify(obj, Action(action));
 }
 
-void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
+void World::addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+                        const Eigen::Isometry3d& shape_pose)
 {
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
+  ObjectPtr& obj = objects_[object_id];
   if (!obj)
   {
-    obj = std::make_shared<Object>(id);
+    obj = std::make_shared<Object>(object_id);
     action |= CREATE;
   }
 
   ensureUnique(obj);
-  addToObjectInternal(obj, shape, pose);
+  addToObjectInternal(obj, shape, shape_pose);
 
   notify(obj, Action(action));
 }
 
 std::vector<std::string> World::getObjectIds() const
 {
-  std::vector<std::string> id;
+  std::vector<std::string> ids;
   for (const auto& object : objects_)
-    id.push_back(object.first);
-  return id;
+    ids.push_back(object.first);
+  return ids;
 }
 
 World::ObjectConstPtr World::getObject(const std::string& object_id) const
@@ -200,7 +201,7 @@ const Eigen::Isometry3d& World::getTransform(const std::string& name, bool& fram
 }
 
 bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
-                              const Eigen::Isometry3d& pose)
+                              const Eigen::Isometry3d& shape_pose)
 {
   auto it = objects_.find(object_id);
   if (it != objects_.end())
@@ -210,8 +211,8 @@ bool World::moveShapeInObject(const std::string& object_id, const shapes::ShapeC
       if (it->second->shapes_[i] == shape)
       {
         ensureUnique(it->second);
-        ASSERT_ISOMETRY(pose)  // unsanitized input, could contain a non-isometry
-        it->second->shape_poses_[i] = pose;
+        ASSERT_ISOMETRY(shape_pose)  // unsanitized input, could contain a non-isometry
+        it->second->shape_poses_[i] = shape_pose;
 
         notify(it->second, MOVE_SHAPE);
         return true;

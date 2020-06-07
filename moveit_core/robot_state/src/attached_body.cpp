@@ -45,19 +45,19 @@ namespace core
 {
 AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id,
                            const std::vector<shapes::ShapeConstPtr>& shapes,
-                           const EigenSTL::vector_Isometry3d& attach_trans, const std::set<std::string>& touch_links,
+                           const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                            const trajectory_msgs::JointTrajectory& detach_posture,
                            const FixedTransformsMap& subframe_poses)
   : parent_link_model_(parent_link_model)
   , id_(id)
   , shapes_(shapes)
-  , attach_trans_(attach_trans)
+  , shape_poses_(shape_poses)
   , touch_links_(touch_links)
   , detach_posture_(detach_posture)
   , subframe_poses_(subframe_poses)
   , global_subframe_poses_(subframe_poses)
 {
-  for (const auto& t : attach_trans_)
+  for (const auto& t : shape_poses_)
   {
     ASSERT_ISOMETRY(t)  // unsanitized input, could contain a non-isometry
   }
@@ -65,7 +65,7 @@ AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string
   {
     ASSERT_ISOMETRY(t.second)  // unsanitized input, could contain a non-isometry
   }
-  global_collision_body_transforms_.resize(attach_trans.size());
+  global_collision_body_transforms_.resize(shape_poses.size());
   for (Eigen::Isometry3d& global_collision_body_transform : global_collision_body_transforms_)
     global_collision_body_transform.setIdentity();
 }
@@ -95,7 +95,7 @@ void AttachedBody::computeTransform(const Eigen::Isometry3d& parent_link_global_
 
   // update collision body transforms
   for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
-    global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];  // valid isometry
+    global_collision_body_transforms_[i] = parent_link_global_transform * shape_poses_[i];  // valid isometry
 
   // update subframe transforms
   for (auto global = global_subframe_poses_.begin(), end = global_subframe_poses_.end(), local = subframe_poses_.begin();

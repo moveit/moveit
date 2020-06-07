@@ -60,9 +60,9 @@ public:
   /** \brief Construct an attached body for a specified \e link.
    *
    * The name of this body is \e id and it consists of \e shapes that attach to the link by the transforms
-   * \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
+   * \e shape_poses. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
   AttachedBody(const LinkModel* link, const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-               const EigenSTL::vector_Isometry3d& attach_trans, const std::set<std::string>& touch_links,
+               const EigenSTL::vector_Isometry3d& shape_poses, const std::set<std::string>& touch_links,
                const trajectory_msgs::JointTrajectory& attach_posture,
                const moveit::core::FixedTransformsMap& subframe_poses = moveit::core::FixedTransformsMap());
 
@@ -110,12 +110,12 @@ public:
    *  transforms are guaranteed to be valid isometries. */
   const EigenSTL::vector_Isometry3d& getFixedTransforms() const
   {
-    return attach_trans_;
+    return shape_poses_;
   }
 
   /** \brief Get subframes of this object (relative to the link). The returned transforms are guaranteed to be valid
    *  isometries. */
-  const moveit::core::FixedTransformsMap& getSubframeTransforms() const
+  const moveit::core::FixedTransformsMap& getSubframes() const
   {
     return subframe_poses_;
   }
@@ -186,7 +186,7 @@ private:
   std::vector<shapes::ShapeConstPtr> shapes_;
 
   /** \brief The constant transforms applied to the link (needs to be specified by user) */
-  EigenSTL::vector_Isometry3d attach_trans_;
+  EigenSTL::vector_Isometry3d shape_poses_;
 
   /** \brief The set of links this body is allowed to touch */
   std::set<std::string> touch_links_;

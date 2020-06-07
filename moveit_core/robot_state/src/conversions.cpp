@@ -219,7 +219,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
   }
   aco.object.subframe_names.clear();
   aco.object.subframe_poses.clear();
-  for (const auto& frame_pair : attached_body.getSubframeTransforms())
+  for (const auto& frame_pair : attached_body.getSubframes())
   {
     aco.object.subframe_names.push_back(frame_pair.first);
     geometry_msgs::Pose pose;

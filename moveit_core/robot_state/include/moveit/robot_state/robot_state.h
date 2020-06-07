@@ -1618,7 +1618,7 @@ public:
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
    * @param shapes The shapes that make up the attached body
-   * @param attach_trans The desired transform between this link and the attached body
+   * @param shape_poses The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
    * @param detach_posture The posture of the gripper when placing the object
@@ -1640,7 +1640,7 @@ public:
   /** @brief Add an attached body to a link
    * @param id The string id associated with the attached body
    * @param shapes The shapes that make up the attached body
-   * @param attach_trans The desired transform between this link and the attached body
+   * @param shape_poses The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
    * @param link_name The link to attach to
    * @param detach_posture The posture of the gripper when placing the object

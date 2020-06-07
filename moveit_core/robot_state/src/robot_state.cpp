@@ -173,7 +173,7 @@ void RobotState::copyFrom(const RobotState& other)
   for (const std::pair<const std::string, AttachedBody*>& it : other.attached_body_map_)
     attachBody(it.second->getName(), it.second->getShapes(), it.second->getFixedTransforms(),
                it.second->getTouchLinks(), it.second->getAttachedLinkName(), it.second->getDetachPosture(),
-               it.second->getSubframeTransforms());
+               it.second->getSubframes());
 }
 
 bool RobotState::checkJointTransforms(const JointModel* joint) const

@@ -78,7 +78,7 @@ public:
   /** \brief A representation of an object */
   struct Object
   {
-    Object(const std::string& id) : id_(id)
+    Object(const std::string& object_id) : id_(object_id)
     {
     }
 
@@ -136,9 +136,9 @@ public:
     return objects_.size();
   }
   /** find changes for a named object */
-  const_iterator find(const std::string& id) const
+  const_iterator find(const std::string& object_id) const
   {
-    return objects_.find(id);
+    return objects_.find(object_id);
   }
 
   /** \brief Check if a particular object exists in the collision world*/
@@ -166,18 +166,19 @@ public:
    *  \note This function does NOT call the addToObject() variant that takes
    * a single shape and a single pose as input. */
   void addToObject(const std::string& object_id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                   const EigenSTL::vector_Isometry3d& poses);
+                   const EigenSTL::vector_Isometry3d& shape_poses);
 
   /** \brief Add a shape to an object.
    * If the object already exists, this call will add the shape to the object
    * at the specified pose. Otherwise, the object is created and the
    * specified shape is added. This calls addToObjectInternal(). */
-  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose);
+  void addToObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
+                   const Eigen::Isometry3d& shape_pose);
 
   /** \brief Update the pose of a shape in an object. Shape equality is
    * verified by comparing pointers. Returns true on success. */
   bool moveShapeInObject(const std::string& object_id, const shapes::ShapeConstPtr& shape,
-                         const Eigen::Isometry3d& pose);
+                         const Eigen::Isometry3d& shape_pose);
 
   /** \brief Move all shapes in an object according to the given transform specified in world frame */
   bool moveObject(const std::string& object_id, const Eigen::Isometry3d& transform);
@@ -283,7 +284,7 @@ private:
 
   /* Add a shape with no checking */
   virtual void addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
-                                   const Eigen::Isometry3d& pose);
+                                   const Eigen::Isometry3d& shape_pose);
 
   /** The objects maintained in the world */
   std::map<std::string, ObjectPtr> objects_;

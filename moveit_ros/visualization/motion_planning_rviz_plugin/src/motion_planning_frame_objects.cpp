@@ -255,9 +255,9 @@ static QString decideStatusText(const moveit::core::AttachedBody* attached_body)
 {
   QString status_text = "'" + QString::fromStdString(attached_body->getName()) + "' is attached to '" +
                         QString::fromStdString(attached_body->getAttachedLinkName()) + "'.";
-  if (!attached_body->getSubframeTransforms().empty())
+  if (!attached_body->getSubframes().empty())
   {
-    status_text += subframe_poses_to_qstring(attached_body->getSubframeTransforms());
+    status_text += subframe_poses_to_qstring(attached_body->getSubframes());
   }
   return status_text;
 }
@@ -851,7 +851,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
       moveit::core::AttachedBody* new_ab =
           new moveit::core::AttachedBody(ab->getAttachedLink(), known_collision_objects_[item->type()].first,
                                          ab->getShapes(), ab->getFixedTransforms(), ab->getTouchLinks(),
-                                         ab->getDetachPosture(), ab->getSubframeTransforms());
+                                         ab->getDetachPosture(), ab->getSubframes());
       cs.clearAttachedBody(ab->getName());
       cs.attachBody(new_ab);
     }

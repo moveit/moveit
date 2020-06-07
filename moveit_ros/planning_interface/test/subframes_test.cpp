@@ -95,6 +95,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   moveit_msgs::CollisionObject box;
   box.id = "box";
   box.header.frame_id = "panda_hand";
+  box.pose.orientation.w = 1.0;
   box.primitives.resize(1);
   box.primitive_poses.resize(1);
   box.primitives[0].type = box.primitives[0].BOX;
@@ -118,6 +119,7 @@ void spawnCollisionObjects(moveit::planning_interface::PlanningSceneInterface& p
   moveit_msgs::CollisionObject cylinder;
   cylinder.id = "cylinder";
   cylinder.header.frame_id = "panda_hand";
+  cylinder.pose.orientation.w = 1.0;
   cylinder.primitives.resize(1);
   cylinder.primitive_poses.resize(1);
   cylinder.primitives[0].type = box.primitives[0].CYLINDER;
@@ -160,6 +162,7 @@ TEST(TestPlanUsingSubframes, SubframesTests)
   att_coll_object.object.id = "cylinder";
   att_coll_object.link_name = "panda_hand";
   att_coll_object.object.operation = att_coll_object.object.ADD;
+  att_coll_object.object.pose.orientation.w = 1.0;
   planning_scene_interface.applyAttachedCollisionObject(att_coll_object);
 
   tf2::Quaternion target_orientation;
