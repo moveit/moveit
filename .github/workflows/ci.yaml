@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  industrial_ci:
+    strategy:
+      matrix:
+        env:
+          - {ROS_DISTRO: melodic,}
+          - {ROS_DISTRO: kinetic,}
+    env:
+      ROS_REPO: ros
+      CCACHE_DIR: /github/home/.ccache
+      UPSTREAM_WORKSPACE: moveit.rosinstall
+      CXXFLAGS: "-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.env.ROS_DISTRO }}
+      - uses: 'ros-industrial/industrial_ci@master'
+        env: ${{ matrix.env }}
