@@ -27,19 +27,24 @@ void CollisionsToDistances(const std::vector<collision_detection::Contact>& dist
 }
 
 // directly related to equation 16 in the TrajOpt paper (the version I have)
-void CollisionsToDistanceExpressions(const tesseract::ContactResultVector& dist_results,
-                                     const tesseract::BasicEnvConstPtr env,
-                                     const tesseract::BasicKinConstPtr manip,
+// tesseract::ContactResultVector& dist_results
+void CollisionsToDistanceExpressions(const std::vector<collision_detection::Contact>& dist_results,
+                                     planning_scene::PlanningSceneConstPtr planning_scene,
                                      const sco::VarVector& vars,
                                      const DblVec& x,
                                      sco::AffExprVector& exprs,
                                      bool isTimestep1)
 {
-  // we are trying to fill up exprs which should be the signed distance
+  // we are trying to fill up exprs which should be the signed distance expression ???
+  // typedef std::vector<AffExpr> AffExprVector
+  // AffExpr is struct in solver_interface.h
+
   // typedef std::vector<Var> VarVector
+  // typedef std:vector<double> DblVec
 
   Eigen::VectorXd dofvals = sco::getVec(x, vars);
-  const std::vector<std::string>& link_names = manip->getLinkNames();
+  // const std::vector<std::string>& link_names = manip->getLinkNames();
+  const std::vector<std::string>& link_names = planning_scene->getRobotModel()->getLinkModelNames();
 
   // All collision data is in world corrdinate system. This provides the
   // transfrom for converting data between world frame and manipulator
@@ -53,7 +58,8 @@ void CollisionsToDistanceExpressions(const tesseract::ContactResultVector& dist_
   for (auto i = 0u; i < dist_results.size(); ++i)
   {
     // => for each ContactResult in ContactResultVector
-    const tesseract::ContactResult& res = dist_results[i];
+    // const tesseract::ContactResult& res = dist_results[i];
+    const std::vector<collision_detection::Contact>& res = dist_results[i];
 
     // => get the distance between the bodies (ContactResult.distance)
     sco::AffExpr dist(res.distance);
@@ -171,10 +177,7 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
   // this moveContactResultsMapToContactResultsVector moves the elements of ContactResultVector
   // of each ContactResultMap in contacts to one ContactResultVector called dist_results
 
-  // moveContactResultsMapToContactResultsVector does the following:
-  // it gets the ContactResultVector of contacts and move them to dist_result
-  
-  // tesseract
+  // tesseract:
   // ContactResultMap => AlignedMap<std::pair<std::string, std::string>, ContactResultVector>
   // ContactResultVector: is an array of ContactResult msg
   // ContactResult: 
@@ -195,7 +198,9 @@ void SingleTimestepCollisionEvaluator::CalcCollisions(const DblVec& x, std::vect
   //          body_name_2
   // 
   
-  // Fill dist_result with all the Contacts of all the collision pairs
+  // Fill dist_result with all the Contacts of all the collision pairs. Each pair has a vector of contacts
+  // and we have many pairs. Here we are putting all of these contact to one big vector. Not sure why that is ???
+  // This happens in moveContactResultsMapToContactResultsVector
   for (it = collision_result.contacts.begin(); it != collision_result.contacts.end(); ++it)
   {
       ROS_INFO("Contact between: %s and %s", it->first.first.c_str(), it->first.second.c_str());
