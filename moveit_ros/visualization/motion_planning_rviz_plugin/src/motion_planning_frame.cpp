@@ -105,8 +105,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
-  connect(ui_->import_file_button, SIGNAL(clicked()), this, SLOT(importFileButtonClicked()));
-  connect(ui_->import_url_button, SIGNAL(clicked()), this, SLOT(importUrlButtonClicked()));
+  connect(ui_->import_3d_obj_file_button, SIGNAL(clicked()), this, SLOT(import3DObjectFromFileButtonClicked()));
+  connect(ui_->import_3d_obj_url_button, SIGNAL(clicked()), this, SLOT(import3DObjectFromUrlButtonClicked()));
   connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
@@ -435,9 +435,6 @@ void MotionPlanningFrame::importResource(const std::string& path)
     {
       std::size_t slash = path.find_last_of("/\\");
       std::string name = path.substr(slash + 1);
-      shapes::ShapeConstPtr shape(mesh);
-      Eigen::Isometry3d pose;
-      pose.setIdentity();
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
@@ -447,6 +444,42 @@ void MotionPlanningFrame::importResource(const std::string& path)
                                                                            "attached object before importing."));
         return;
       }
+
+      // If the object is very large, ask the user if the scale should be reduced.
+      bool object_is_very_large = false;
+      for (unsigned int i = 0; i < mesh->vertex_count; i++)
+      {
+        if ((abs(mesh->vertices[i * 3 + 0]) > 10) || (abs(mesh->vertices[i * 3 + 1]) > 10) ||
+            (abs(mesh->vertices[i * 3 + 2]) > 10))
+        {
+          object_is_very_large = true;
+          break;
+        }
+      }
+      if (object_is_very_large)
+      {
+        QMessageBox msg_box;
+        msg_box.setText("The object is very large. The file may be in millimeters instead of meters.");
+        msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
+        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg_box.setDefaultButton(QMessageBox::Yes);
+        int ret = msg_box.exec();
+        switch (ret)
+        {
+          case QMessageBox::Yes:
+            mesh->scaleAndPadd(0.001, 0);
+            // mesh = shapes::createMeshFromResource(path);
+            break;
+          case QMessageBox::No:
+            break;
+          default:
+            return;  // Pressed cancel, do nothing
+        }
+      }
+
+      shapes::ShapeConstPtr shape(mesh);
+      Eigen::Isometry3d pose;
+      pose.setIdentity();
 
       // If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
@@ -515,7 +548,7 @@ void MotionPlanningFrame::importResource(const std::string& path)
     }
     else
     {
-      QMessageBox::warning(this, QString("Import error"), QString("Unable to import scene"));
+      QMessageBox::warning(this, QString("Import error"), QString("Unable to import 3D object"));
       return;
     }
   }

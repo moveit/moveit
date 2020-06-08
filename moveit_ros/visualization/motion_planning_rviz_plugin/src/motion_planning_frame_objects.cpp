@@ -73,17 +73,17 @@ QString subframe_poses_to_qstring(const moveit::core::FixedTransformsMap& subfra
 
 namespace moveit_rviz_plugin
 {
-void MotionPlanningFrame::importFileButtonClicked()
+void MotionPlanningFrame::import3DObjectFromFileButtonClicked()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Import Object"));
+  QString path = QFileDialog::getOpenFileName(this, tr("Import 3D Object (e.g. .stl, "));
   if (!path.isEmpty())
     importResource("file://" + path.toStdString());
 }
 
-void MotionPlanningFrame::importUrlButtonClicked()
+void MotionPlanningFrame::import3DObjectFromUrlButtonClicked()
 {
   bool ok = false;
-  QString url = QInputDialog::getText(this, tr("Import Object"), tr("URL for file to import:"), QLineEdit::Normal,
+  QString url = QInputDialog::getText(this, tr("Import 3D Object"), tr("URL for file to import:"), QLineEdit::Normal,
                                       QString("http://"), &ok);
   if (ok && !url.isEmpty())
     importResource(url.toStdString());
