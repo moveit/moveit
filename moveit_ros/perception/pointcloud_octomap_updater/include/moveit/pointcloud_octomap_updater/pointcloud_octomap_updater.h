@@ -53,8 +53,7 @@ namespace occupancy_map_monitor
 /* Maintaining the octomap is supported in two ways:
  * INCREMENTAL: Maintains a an octomap from multiple updates over time.
                 Cells that are marked occupied will remain so even if obscured from the camera view in subsequent
- updates,
-                and marked free only after they are seen to be free in multiple pointclouds.
+                updates, and marked free only after they are seen to be free in multiple pointclouds.
 
    SNAPSHOT:    Create an entirely new octomap from each pointcloud, forgetting previous data with each update.
  */
