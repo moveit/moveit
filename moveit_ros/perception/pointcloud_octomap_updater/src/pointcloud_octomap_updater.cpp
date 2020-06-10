@@ -365,6 +365,11 @@ bool PointCloudOctomapUpdater::processCloud(const sensor_msgs::PointCloud2& clou
   ROS_DEBUG_NAMED(LOGNAME, "Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
   tree_->triggerUpdateCallback();
 
+  if (success)
+  {
+    last_update_time_ = ros::Time::now();
+  }
+
   return success;
 }
 
@@ -419,9 +424,6 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2Co
     if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
       return;
   }
-
-  processCloud(*cloud_msg);
-  last_update_time_ = ros::Time::now();
 }
 
 bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::UpdatePointcloudOctomap::Request& req,
@@ -429,7 +431,6 @@ bool PointCloudOctomapUpdater::updatePointcloudOctomapService(moveit_msgs::Updat
 {
   std::lock_guard<std::recursive_mutex> lock(update_mutex_);
   res.success = processCloud(req.cloud);
-  last_update_time_ = ros::Time::now();
   return res.success;
 }
 
