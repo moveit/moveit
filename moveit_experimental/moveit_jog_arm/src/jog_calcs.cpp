@@ -357,8 +357,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
     Eigen::Vector3d angular_vector(cmd.twist.angular.x, cmd.twist.angular.y, cmd.twist.angular.z);
 
     // If the incoming frame is empty or is the command frame, we use the previously calculated tf
-    if (twist_stamped_.header.frame_id.empty() ||
-        twist_stamped_.header.frame_id == parameters_.robot_link_command_frame)
+    if (cmd.header.frame_id.empty() || cmd.header.frame_id == parameters_.robot_link_command_frame)
     {
       translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
       angular_vector = tf_moveit_to_cmd_frame_.linear() * angular_vector;
@@ -394,7 +393,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
   // i.e. take advantage of task redundancy.
   // Remove the Jacobian rows corresponding to True in the vector drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
-  for (auto dimension = jacobian.rows(); dimension >= 0; --dimension)
+  for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
   {
     if (drift_dimensions_[dimension] && jacobian.rows() > 1)
     {
@@ -412,7 +411,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
   enforceSRDFAccelVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate
-  applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, jacobian, pseudo_inverse));
+  applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, pseudo_inverse));
   if (status_ == StatusCode::HALT_FOR_COLLISION)
   {
     ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
@@ -563,11 +562,10 @@ void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, const double si
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
 double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
                                                      const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                                     const Eigen::MatrixXd& jacobian,
                                                      const Eigen::MatrixXd& pseudo_inverse)
 {
   double velocity_scale = 1;
-  std::size_t num_dimensions = jacobian.rows();
+  std::size_t num_dimensions = commanded_velocity.size();
 
   // Find the direction away from nearest singularity.
   // The last column of U from the SVD of the Jacobian points directly toward or away from the singularity.
@@ -590,8 +588,9 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
   kinematic_state_->copyJointGroupPositions(joint_model_group_, new_theta);
   new_theta += pseudo_inverse * delta_x;
   kinematic_state_->setJointGroupPositions(joint_model_group_, new_theta);
+  auto new_jacobian = kinematic_state_->getJacobian(joint_model_group_);
 
-  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(jacobian);
+  Eigen::JacobiSVD<Eigen::MatrixXd> new_svd(new_jacobian);
   double new_condition = new_svd.singularValues()(0) / new_svd.singularValues()(new_svd.singularValues().size() - 1);
   // If new_condition < ini_condition, the singular vector does point towards a
   // singularity. Otherwise, flip its direction.

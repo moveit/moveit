@@ -126,7 +126,7 @@ private:
    */
   double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
                                              const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                             const Eigen::MatrixXd& jacobian, const Eigen::MatrixXd& pseudo_inverse);
+                                             const Eigen::MatrixXd& pseudo_inverse);
 
   /**
    * Slow motion down if close to singularity or collision.
