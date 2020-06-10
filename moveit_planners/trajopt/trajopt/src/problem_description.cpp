@@ -547,7 +547,7 @@ void JointVelTermInfo::addObjectiveTerms(TrajOptProblem& prob)
   }
 }
 
-void CollisionTermInfo::hatch(TrajOptProblem& prob)
+void CollisionTermInfo::addObjectiveTerms(TrajOptProblem& prob)
 {
   //int n_dof = static_cast<int>(prob.GetKin()->numJoints());
   unsigned int n_dof = prob.GetNumDOF();

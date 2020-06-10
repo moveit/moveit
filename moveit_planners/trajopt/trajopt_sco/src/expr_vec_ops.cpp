@@ -6,7 +6,7 @@ AffExpr varDot(const Eigen::VectorXd& x, const VarVector& v)
   AffExpr out;
   out.constant = 0;
   out.vars = v;
-  out.coeffs = DblVec(x.data(), x.data() + x.size());
+  out.coeffs = DblVec(x.data(), x.data() + x.size()); // this creates a vector<double>
   return out;
 }
 }
