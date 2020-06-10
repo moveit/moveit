@@ -1,9 +1,9 @@
-# This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
+# This config file for Travis CI utilizes https://github.com/ros-industrial/industrial_ci/tree/master/ package.
 os: linux
 dist: xenial  # distro used by Travis, moveit_ci uses the docker image's distro
 services:
   - docker
-language: cpp
+language: generic
 cache: ccache
 compiler: gcc
 
@@ -12,32 +12,44 @@ notifications:
 
 env:
   global:
-    - MOVEIT_CI_TRAVIS_TIMEOUT=85  # Travis grants us 90 min, but we add a safety margin of 5 min
     - ROS_DISTRO=melodic
     - ROS_REPO=ros
+    - DOCKER_BASE_IMAGE="moveit/moveit:melodic-ci"
+    - IMMEDIATE_TEST_OUTPUT=true
+    - CCACHE_DIR=$HOME/.ccache
+    - BEFORE_INIT=".ci/apt_utils_setup.sh"
     - UPSTREAM_WORKSPACE=moveit.rosinstall
-    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls"
-    - WARNINGS_OK=false
+    - TARGET_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3"'
 
 jobs:
   fast_finish: true
   include:
-    - env: TEST="clang-format catkin_lint"
-    - env: TEST=code-coverage
+    - env:
+      - CLANG_FORMAT_CHECK=file
+      - CLANG_FORMAT_VERSION=3.9
+      - CATKIN_LINT=pedantic
+    - env:
+      - CLANG_TIDY=pedantic
+      - BEFORE_RUN_TARGET_TEST="source moveit_kinematics/test/test_ikfast_plugins.sh"
+      - TARGET_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"'
     - env: ROS_DISTRO=melodic
-    - env: ROS_DISTRO=kinetic
-    - compiler: clang
-      # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter
-      env: TEST=clang-tidy-fix
-           BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
-           CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-overloaded-virtual"
+    - env:
+      - ROS_DISTRO=kinetic
+      - DOCKER_BASE_IMAGE=moveit/moveit:kinetic-ci
+    - env:
+      - AFTER_SCRIPT=".ci/code_coverage.sh"
+      - ADDITIONAL_DEBS="curl lcov"
+      - TARGET_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_C_FLAGS="--coverage" -DCMAKE_BUILD_TYPE=Debug'
     - if: branch =~ /^(.*-devel|master)$/
       env: ROS_REPO=ros-shadow-fixed
   allow_failures:
-    - env: TEST=code-coverage
+    - env:
+      - AFTER_SCRIPT=".ci/code_coverage.sh"
+      - ADDITIONAL_DEBS="curl lcov"
+      - TARGET_CMAKE_ARGS='-DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_C_FLAGS="--coverage" -DCMAKE_BUILD_TYPE=Debug'
 
-before_script:
-  - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
+install:
+  - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
 
 script:
-  - .moveit_ci/travis.sh
+  - .industrial_ci/travis.sh

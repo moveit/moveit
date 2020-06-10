@@ -8,7 +8,7 @@
 # using the script auto_create_ikfast_moveit_plugin.sh
 
 # Clone moveit_resources for URDFs. They are not available before running docker.
-travis_run git clone -q --depth=1 https://github.com/ros-planning/moveit_resources /tmp/resources
+git clone -q --depth=1 https://github.com/ros-planning/moveit_resources /tmp/resources
 fanuc=/tmp/resources/fanuc_description/urdf/fanuc.urdf
 panda=/tmp/resources/panda_description/urdf/panda.urdf
 
@@ -16,10 +16,10 @@ panda=/tmp/resources/panda_description/urdf/panda.urdf
 test ${QUIET:-1} -eq 0 && QUIET="" || QUIET="--quiet"
 
 # Create ikfast plugins for Fanuc and Panda
-travis_run moveit_kinematics/ikfast_kinematics_plugin/scripts/auto_create_ikfast_moveit_plugin.sh \
+moveit_kinematics/ikfast_kinematics_plugin/scripts/auto_create_ikfast_moveit_plugin.sh \
 	$QUIET --name fanuc --pkg $PWD/fanuc_ikfast_plugin $fanuc manipulator base_link tool0
 
-travis_run moveit_kinematics/ikfast_kinematics_plugin/scripts/auto_create_ikfast_moveit_plugin.sh \
+moveit_kinematics/ikfast_kinematics_plugin/scripts/auto_create_ikfast_moveit_plugin.sh \
 	$QUIET --name panda --pkg $PWD/panda_ikfast_plugin $panda panda_arm panda_link0 panda_link8
 
 echo "Done."
