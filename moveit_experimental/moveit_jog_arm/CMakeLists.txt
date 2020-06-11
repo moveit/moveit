@@ -58,6 +58,7 @@ add_library(${LIBRARY_NAME} SHARED
   src/collision_check.cpp
   src/jog_calcs.cpp
   src/jog_arm.cpp
+  src/joint_state_subscriber.cpp
   src/low_pass_filter.cpp
 )
 add_dependencies(${LIBRARY_NAME} ${catkin_EXPORTED_TARGETS})
@@ -84,14 +85,11 @@ target_link_libraries(cpp_interface_example
 ############################
 
 add_executable(jog_server
-  src/collision_check.cpp
-  src/jog_calcs.cpp
-  src/jog_arm.cpp
   src/jog_server.cpp
-  src/low_pass_filter.cpp
 )
 add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
 target_link_libraries(jog_server
+  ${LIBRARY_NAME}
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
   ${Boost_LIBRARIES}

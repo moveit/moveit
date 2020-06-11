@@ -50,10 +50,12 @@ namespace moveit_jog_arm
 {
 // Constructor for the class that handles collision checking
 CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
-                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                               const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
+  , joint_state_subscriber_(joint_state_subscriber)
   , self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold)
   , scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold)
   , period_(1. / parameters_.collision_check_rate)
@@ -66,9 +68,6 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
     ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
                                    "Collision check rate is low, increase it in yaml file if CPU allows");
 
-  // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters.joint_topic, ROS_QUEUE_SIZE, &CollisionCheck::jointStateCB, this);
-
   collision_check_type_ =
       (parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
   safety_factor_ = parameters_.collision_distance_safety_factor;
@@ -79,10 +78,6 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArm
   collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", 1);
   worst_case_stop_time_sub_ =
       internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);
-
-  // Wait for incoming topics to appear
-  ROS_DEBUG_NAMED(LOGNAME, "Waiting for JointState topic");
-  ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
 
   current_state_ = std::make_unique<moveit::core::RobotState>(getLockedPlanningSceneRO()->getCurrentState());
   acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
@@ -118,12 +113,10 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     return;
   }
 
-  {
-    // Copy the latest joint state
-    const std::lock_guard<std::mutex> lock(joint_state_mutex_);
-    for (std::size_t i = 0; i < latest_joint_state_->position.size(); ++i)
-      current_state_->setJointPositions(latest_joint_state_->name[i], &latest_joint_state_->position[i]);
-  }
+  // Copy the latest joint state
+  auto latest_joint_state = joint_state_subscriber_->getLatest();
+  for (std::size_t i = 0; i < latest_joint_state->position.size(); ++i)
+    current_state_->setJointPositions(latest_joint_state->name[i], &latest_joint_state->position[i]);
 
   current_state_->updateCollisionBodyTransforms();
   collision_detected_ = false;
@@ -208,12 +201,6 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     msg->data = velocity_scale_;
     collision_velocity_scale_pub_.publish(msg);
   }
-}
-
-void CollisionCheck::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
-{
-  const std::lock_guard<std::mutex> lock(joint_state_mutex_);
-  latest_joint_state_ = msg;
 }
 
 void CollisionCheck::worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg)

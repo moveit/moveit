@@ -54,10 +54,11 @@
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_jog_arm
-#include "jog_arm_parameters.h"
-#include "low_pass_filter.h"
-#include "status_codes.h"
+#include <moveit_jog_arm/jog_arm_parameters.h>
 #include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/status_codes.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
@@ -65,7 +66,8 @@ class JogCalcs
 {
 public:
   JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
-           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+           const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
   /** \brief Start and stop the timer where we do work and publish outputs */
   void start();
@@ -195,6 +197,9 @@ private:
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
+  // Subscriber to the latest joint states
+  const std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
+
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
   int zero_velocity_count_ = 0;
@@ -264,7 +269,6 @@ private:
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  sensor_msgs::JointStateConstPtr incoming_joint_state_;
   Eigen::Isometry3d tf_moveit_to_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_jog_;

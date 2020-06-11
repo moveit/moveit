@@ -70,10 +70,12 @@ bool isNonZero(const control_msgs::JointJog& msg)
 
 // Constructor for the class that handles jogging calculations
 JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
-                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                   const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
+  , joint_state_subscriber_(joint_state_subscriber)
   , period_(parameters.publish_period)
 {
   // MoveIt Setup
@@ -89,9 +91,6 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 
   joint_model_group_ = kinematic_model->getJointModelGroup(parameters_.move_group_name);
   prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->getActiveJointModels().size());
-
-  // subscribe to joints
-  joint_state_sub_ = nh_.subscribe(parameters_.joint_topic, ROS_QUEUE_SIZE, &JogCalcs::jointStateCB, this);
 
   // Subscribe to command topics
   twist_stamped_sub_ =
@@ -123,11 +122,6 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
 
   // Publish status
   status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic, ROS_QUEUE_SIZE);
-
-  // Wait for initial messages
-  ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
-  ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
-  ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
 
   internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
   num_joints_ = internal_joint_state_.name.size();
@@ -184,9 +178,10 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
 
   // Update from latest state
+  sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
+  kinematic_state_->setVariableValues(*latest_joint_state);
   {
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-    kinematic_state_->setVariableValues(*incoming_joint_state_);
     if (latest_twist_stamped_)
       twist_stamped_ = *latest_twist_stamped_;
     if (latest_joint_jog_)
@@ -754,29 +749,28 @@ void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 // Parse the incoming joint msg for the joints of our MoveGroup
 bool JogCalcs::updateJoints()
 {
-  // lock the latest state mutex for the joint states
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
+  sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
 
   // Check that the msg contains enough joints
-  if (incoming_joint_state_->name.size() < num_joints_)
+  if (latest_joint_state->name.size() < num_joints_)
     return false;
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_joint_state_->name.size(); ++m)
+  for (std::size_t m = 0; m < latest_joint_state->name.size(); ++m)
   {
     std::size_t c;
     try
     {
-      c = joint_state_name_map_.at(incoming_joint_state_->name[m]);
+      c = joint_state_name_map_.at(latest_joint_state->name[m]);
     }
     catch (const std::out_of_range& e)
     {
       ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
-                                                                            << incoming_joint_state_->name[m]);
+                                                                            << latest_joint_state->name[m]);
       continue;
     }
 
-    internal_joint_state_.position[c] = incoming_joint_state_->position[m];
+    internal_joint_state_.position[c] = latest_joint_state->position[m];
   }
 
   // Cache the original joints in case they need to be reset
@@ -788,9 +782,9 @@ bool JogCalcs::updateJoints()
   double accel_limit = 0;
   double joint_velocity = 0;
   double worst_case_stop_time = 0;
-  for (size_t jt_state_idx = 0; jt_state_idx < incoming_joint_state_->velocity.size(); ++jt_state_idx)
+  for (size_t jt_state_idx = 0; jt_state_idx < latest_joint_state->velocity.size(); ++jt_state_idx)
   {
-    joint_name = incoming_joint_state_->name[jt_state_idx];
+    joint_name = latest_joint_state->name[jt_state_idx];
 
     // Get acceleration limit for this joint
     for (auto joint_model : joint_model_group_->getActiveJointModels())
@@ -816,7 +810,7 @@ bool JogCalcs::updateJoints()
     }
 
     // Get the current joint velocity
-    joint_velocity = incoming_joint_state_->velocity[jt_state_idx];
+    joint_velocity = latest_joint_state->velocity[jt_state_idx];
 
     // Calculate worst case stop time
     worst_case_stop_time = std::max(worst_case_stop_time, fabs(joint_velocity / accel_limit));
@@ -881,9 +875,8 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
     }
     catch (const std::out_of_range& e)
     {
-      const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
-                                                                           << incoming_joint_state_->name[m]);
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                     "Ignoring joint " << joint_state_subscriber_->getLatest()->name[m]);
       continue;
     }
     // Apply user-defined scaling if inputs are unitless [-1:1]
@@ -934,12 +927,6 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
   }
   jacobian.conservativeResize(num_rows, num_cols);
   delta_x.conservativeResize(num_rows);
-}
-
-void JogCalcs::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
-{
-  const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  incoming_joint_state_ = msg;
 }
 
 bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)

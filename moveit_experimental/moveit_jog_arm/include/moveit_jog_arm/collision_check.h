@@ -45,8 +45,9 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include "jog_arm_parameters.h"
-#include "low_pass_filter.h"
+#include <moveit_jog_arm/jog_arm_parameters.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
@@ -65,7 +66,8 @@ public:
    *                                 already started when passed into this class
    */
   CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
-                 const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+                 const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                 const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
   /** \brief start and stop the Timer */
   void start();
@@ -77,7 +79,6 @@ public:
 private:
   void run(const ros::TimerEvent& timer_event);
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
-  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
   void worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg);
 
   ros::NodeHandle nh_;
@@ -87,6 +88,9 @@ private:
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  // Subscriber to joint states
+  const std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
 
   // Robot state and collision matrix from planning scene
   std::unique_ptr<moveit::core::RobotState> current_state_;
@@ -123,9 +127,5 @@ private:
   ros::Subscriber joint_state_sub_;
   ros::Publisher collision_velocity_scale_pub_;
   ros::Subscriber worst_case_stop_time_sub_;
-
-  // Latest joint state, updated by ROS callback
-  mutable std::mutex joint_state_mutex_;
-  sensor_msgs::JointStateConstPtr latest_joint_state_;
 };
 }  // namespace moveit_jog_arm
