@@ -198,8 +198,8 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Get the transform from MoveIt planning frame to jogging command frame
   // We solve (planning_frame -> base -> robot_link_command_frame)
   // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-  tf_moveit_to_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
-                            kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
+  tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
+                                  kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
 
   have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_jog_;
 
@@ -254,9 +254,6 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // If we should halt
   if (!have_nonzero_command_)
   {
-    // Keep the joint position filters up-to-date with current joints
-    resetLowPassFilters(original_joint_state_);
-
     suddenHalt(*joint_trajectory);
     have_nonzero_twist_stamped_ = false;
     have_nonzero_joint_jog_ = false;
@@ -359,19 +356,19 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
     // If the incoming frame is empty or is the command frame, we use the previously calculated tf
     if (cmd.header.frame_id.empty() || cmd.header.frame_id == parameters_.robot_link_command_frame)
     {
-      translation_vector = tf_moveit_to_cmd_frame_.linear() * translation_vector;
-      angular_vector = tf_moveit_to_cmd_frame_.linear() * angular_vector;
+      translation_vector = tf_moveit_to_robot_cmd_frame_.linear() * translation_vector;
+      angular_vector = tf_moveit_to_robot_cmd_frame_.linear() * angular_vector;
     }
     else
     {
       // We solve (planning_frame -> base -> cmd.header.frame_id)
       // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
-      const auto tf_planning_to_cmd_frame =
+      const auto tf_moveit_to_incoming_cmd_frame =
           kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
           kinematic_state_->getGlobalLinkTransform(cmd.header.frame_id);
 
-      translation_vector = tf_planning_to_cmd_frame.linear() * translation_vector;
-      angular_vector = tf_planning_to_cmd_frame.linear() * angular_vector;
+      translation_vector = tf_moveit_to_incoming_cmd_frame.linear() * translation_vector;
+      angular_vector = tf_moveit_to_incoming_cmd_frame.linear() * angular_vector;
     }
 
     // Put these components back into a TwistStamped
@@ -542,7 +539,7 @@ void JogCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_stat
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
-void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, const double singularity_scale)
+void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale)
 {
   double collision_scale = collision_velocity_scale_;
 
@@ -933,7 +930,7 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   return true;
 }
 
-void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, const unsigned int row_to_remove)
+void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
 {
   unsigned int num_rows = jacobian.rows() - 1;
   unsigned int num_cols = jacobian.cols();
@@ -952,7 +949,7 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
 bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  transform = tf_moveit_to_cmd_frame_;
+  transform = tf_moveit_to_robot_cmd_frame_;
 
   // All zeros means the transform wasn't initialized, so return false
   return !transform.matrix().isZero(0);
@@ -1011,7 +1008,7 @@ bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Req
   return true;
 }
 
-void JogCalcs::setPaused(const bool paused)
+void JogCalcs::setPaused(bool paused)
 {
   paused_ = paused;
 }

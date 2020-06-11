@@ -83,7 +83,7 @@ public:
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
   /** \brief Pause or unpause processing jog commands while keeping the timers alive */
-  void setPaused(const bool paused);
+  void setPaused(bool paused);
 
 private:
   /** \brief Timer method */
@@ -133,7 +133,7 @@ private:
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    */
-  void applyVelocityScaling(Eigen::ArrayXd& delta_theta, const double singularity_scale);
+  void applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
   void composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
@@ -165,7 +165,7 @@ private:
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, const unsigned int row_to_remove);
+  void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
   /* \brief Callback for joint subsription */
   void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
@@ -274,7 +274,7 @@ private:
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+  Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_jog_;
   ros::Time latest_command_stamp_ = ros::Time(0.);
