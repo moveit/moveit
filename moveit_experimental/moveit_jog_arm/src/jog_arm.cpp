@@ -39,7 +39,8 @@
 
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
-#include "moveit_jog_arm/jog_arm.h"
+#include <moveit_jog_arm/jog_arm.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 static const std::string LOGNAME = "jog_arm";
 
@@ -52,9 +53,12 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   if (!readParameters())
     exit(EXIT_FAILURE);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_);
+  auto joint_state_subscriber = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
 
-  collision_checker_ = std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_);
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber);
+
+  collision_checker_ =
+      std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber);
 }
 
 // Read ROS parameters, typically from YAML file
