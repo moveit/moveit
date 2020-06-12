@@ -41,6 +41,7 @@
 #include <moveit_jog_arm/collision_check.h>
 #include <moveit_jog_arm/jog_arm_parameters.h>
 #include <moveit_jog_arm/jog_calcs.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
@@ -75,6 +76,9 @@ public:
   /** \brief Get the parameters used by jog arm. */
   const JogArmParameters& getParameters() const;
 
+  /** \brief Get the latest joint state. */
+  sensor_msgs::JointStateConstPtr getLatestJointState() const;
+
 private:
   bool readParameters();
 
@@ -86,10 +90,8 @@ private:
   // Store the parameters that were read from ROS server
   JogArmParameters parameters_;
 
-  // Jog calcs
+  std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<JogCalcs> jog_calcs_;
-
-  // Collision checks
   std::unique_ptr<CollisionCheck> collision_checker_;
 };
 
