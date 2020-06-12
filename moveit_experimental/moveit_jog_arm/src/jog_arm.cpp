@@ -40,7 +40,6 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 #include <moveit_jog_arm/jog_arm.h>
-#include <moveit_jog_arm/joint_state_subscriber.h>
 
 static const std::string LOGNAME = "jog_arm";
 
@@ -53,12 +52,12 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
   if (!readParameters())
     exit(EXIT_FAILURE);
 
-  auto joint_state_subscriber = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
+  joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber);
+  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
 
   collision_checker_ =
-      std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber);
+      std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
 }
 
 // Read ROS parameters, typically from YAML file
@@ -312,6 +311,11 @@ bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
 const JogArmParameters& JogArm::getParameters() const
 {
   return parameters_;
+}
+
+sensor_msgs::JointStateConstPtr JogArm::getLatestJointState() const
+{
+  return joint_state_subscriber_->getLatest();
 }
 
 }  // namespace moveit_jog_arm
