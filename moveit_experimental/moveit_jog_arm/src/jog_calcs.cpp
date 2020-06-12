@@ -44,6 +44,7 @@
 #include <moveit_jog_arm/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_calcs";
+constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30; // Seconds to throttle logs inside loops
 
 namespace moveit_jog_arm
 {
