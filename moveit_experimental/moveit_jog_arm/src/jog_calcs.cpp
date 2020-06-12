@@ -629,10 +629,6 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
   const Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
 
-  // We find the joint vel/accel limit that most effects the requested delta_theta
-  // And change requested all of delta_theta by that scaling
-  double most_extreme_relative_change = 1;
-
   std::size_t joint_delta_index = 0;
   for (auto joint : joint_model_group_->getActiveJointModels())
   {
@@ -653,8 +649,8 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
         acceleration_limit = bounds.max_acceleration_;
       }
 
-      // Find relative change
-      if (clip_acceleration && delta_theta(joint_delta_index) != 0)
+      // Apply acceleration bounds
+      if (clip_acceleration)
       {
         // accel = (vel - vel_prev) / delta_t = ((delta_theta / delta_t) - vel_prev) / delta_t
         // --> delta_theta = (accel * delta_t _ + vel_prev) * delta_t
@@ -662,11 +658,9 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
             ((acceleration_limit * parameters_.publish_period + prev_joint_velocity_(joint_delta_index)) *
              parameters_.publish_period) /
             delta_theta(joint_delta_index);
-
-        if (relative_change < most_extreme_relative_change)
-        {
-          most_extreme_relative_change = relative_change;
-        }
+        // Avoid nan
+        if (fabs(relative_change) < 1)
+          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
       }
     }
 
@@ -688,21 +682,20 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
       }
 
       // Apply velocity bounds
-      if (clip_velocity && delta_theta(joint_delta_index) != 0)
+      if (clip_velocity)
       {
         // delta_theta = joint_velocity * delta_t
         const double relative_change = (velocity_limit * parameters_.publish_period) / delta_theta(joint_delta_index);
-        if (relative_change < most_extreme_relative_change)
+        // Avoid nan
+        if (fabs(relative_change) < 1)
         {
-          most_extreme_relative_change = relative_change;
+          delta_theta(joint_delta_index) = relative_change * delta_theta(joint_delta_index);
+          velocity(joint_delta_index) = relative_change * velocity(joint_delta_index);
         }
       }
-      ++joint_delta_index;
     }
+    ++joint_delta_index;
   }
-
-  // Apply the limits
-  delta_theta *= most_extreme_relative_change;
 }
 
 bool JogCalcs::enforceSRDFPositionLimits()
