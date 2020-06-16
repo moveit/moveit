@@ -71,16 +71,16 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Create the jog server
-  moveit_servo::JogArm jog_arm(nh, planning_scene_monitor);
+  moveit_servo::Servo servo(nh, planning_scene_monitor);
 
   // Start the jog server (runs in the ros spinner)
-  jog_arm.start();
+  servo.start();
 
   // Wait for ros to shutdown
   ros::waitForShutdown();
 
   // Stop the jog server
-  jog_arm.stop();
+  servo.stop();
 
   return 0;
 }
