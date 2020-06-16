@@ -43,7 +43,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
-#include <moveit_servo/jog_arm_parameters.h>
+#include <moveit_servo/servo_parameters.h>
 
 namespace moveit_servo
 {

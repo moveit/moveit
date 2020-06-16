@@ -54,7 +54,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_servo
-#include <moveit_servo/jog_arm_parameters.h>
+#include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
 #include <moveit_servo/low_pass_filter.h>
 #include <moveit_servo/joint_state_subscriber.h>
