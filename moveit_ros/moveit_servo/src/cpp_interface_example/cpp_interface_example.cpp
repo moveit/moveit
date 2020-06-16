@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : cpp_interface_example.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 11/20/2019
  *      Author    : Andy Zelenak
  *
@@ -38,13 +38,13 @@
 
 #include <std_msgs/Int8.h>
 
-#include <moveit_jog_arm/jog_arm.h>
-#include <moveit_jog_arm/status_codes.h>
-#include <moveit_jog_arm/make_shared_from_pool.h>
+#include <moveit_servo/jog_arm.h>
+#include <moveit_servo/status_codes.h>
+#include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
 
-// Class for monitoring status of jog_arm
+// Class for monitoring status of moveit_servo
 class StatusMonitor
 {
 public:
@@ -56,15 +56,15 @@ public:
 private:
   void statusCB(const std_msgs::Int8ConstPtr& msg)
   {
-    moveit_jog_arm::StatusCode latest_status = static_cast<moveit_jog_arm::StatusCode>(msg->data);
+    moveit_servo::StatusCode latest_status = static_cast<moveit_servo::StatusCode>(msg->data);
     if (latest_status != status_)
     {
       status_ = latest_status;
-      const auto& status_str = moveit_jog_arm::JOG_ARM_STATUS_CODE_MAP.at(status_);
-      ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status: " << status_str);
+      const auto& status_str = moveit_servo::JOG_ARM_STATUS_CODE_MAP.at(status_);
+      ROS_INFO_STREAM_NAMED(LOGNAME, "Servo status: " << status_str);
     }
   }
-  moveit_jog_arm::StatusCode status_ = moveit_jog_arm::StatusCode::INVALID;
+  moveit_servo::StatusCode status_ = moveit_servo::StatusCode::INVALID;
   ros::Subscriber sub_;
 };
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Run the jogging C++ interface in a new timer to ensure a constant outgoing message rate.
-  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
+  moveit_servo::JogArm jog_arm(nh, planning_scene_monitor);
   jog_arm.start();
 
   // Subscribe to jog_arm status (and log it when it changes)

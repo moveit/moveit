@@ -14,7 +14,7 @@ import util
 
 # Test that commands that are too fast are caught and flagged
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_jog_arm test_vel_accel_limits.py
+# rosrun moveit_servo test_vel_accel_limits.py
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 

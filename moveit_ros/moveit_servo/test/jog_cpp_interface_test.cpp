@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Dave Coleman and Tyler Weaver
-   Desc:   Test for the C++ interface to JogArm
+   Desc:   Test for the C++ interface to moveit_servo
 */
 
 // C++
@@ -45,15 +45,15 @@
 // Testing
 #include <gtest/gtest.h>
 
-// Jog Arm
-#include <moveit_jog_arm/jog_arm.h>
-#include <moveit_jog_arm/make_shared_from_pool.h>
+// Servo
+#include <moveit_servo/servo.h>
+#include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_cpp_interface_test";
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
-class JogArmFixture : public ::testing::Test
+class ServoFixture : public ::testing::Test
 {
 public:
   void SetUp() override
@@ -67,8 +67,8 @@ public:
         planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
         false /* skip octomap monitor */);
 
-    // Create jog_arm
-    jog_arm_ = std::make_shared<JogArm>(nh_, planning_scene_monitor_);
+    // Create moveit_servo
+    servo_ = std::make_shared<Servo>(nh_, planning_scene_monitor_);
   }
   void TearDown() override
   {
@@ -76,45 +76,44 @@ public:
 
   bool waitForFirstStatus()
   {
-    auto msg =
-        ros::topic::waitForMessage<std_msgs::Int8>(jog_arm_->getParameters().status_topic, nh_, ros::Duration(15));
+    auto msg = ros::topic::waitForMessage<std_msgs::Int8>(servo_->getParameters().status_topic, nh_, ros::Duration(15));
     return static_cast<bool>(msg);
   }
 
 protected:
   ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
-  moveit_jog_arm::JogArmPtr jog_arm_;
-};  // class JogArmFixture
+  moveit_servo::ServoPtr servo_;
+};  // class ServoFixture
 
-TEST_F(JogArmFixture, StartStopTest)
+TEST_F(ServoFixture, StartStopTest)
 {
-  jog_arm_->start();
+  servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
-  jog_arm_->stop();
+  servo_->stop();
 
   ros::Duration(1.0).sleep();
 
   // Start and stop again
-  jog_arm_->start();
+  servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
-  jog_arm_->stop();
+  servo_->stop();
 }
 
-TEST_F(JogArmFixture, SendTwistStampedTest)
+TEST_F(ServoFixture, SendTwistStampedTest)
 {
-  jog_arm_->start();
+  servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
 
-  auto parameters = jog_arm_->getParameters();
+  auto parameters = servo_->getParameters();
 
-  // count trajectory messages sent by jog_arm
+  // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
       [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
-  // Create publisher to send jog_arm commands
+  // Create publisher to send servo commands
   auto twist_stamped_pub = nh_.advertise<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
@@ -138,23 +137,23 @@ TEST_F(JogArmFixture, SendTwistStampedTest)
 
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_LT(received_count, num_commands + 20);
-  jog_arm_->stop();
+  servo_->stop();
 }
 
-TEST_F(JogArmFixture, SendJointJogTest)
+TEST_F(ServoFixture, SendJointJogTest)
 {
-  jog_arm_->start();
+  servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
 
-  auto parameters = jog_arm_->getParameters();
+  auto parameters = servo_->getParameters();
 
-  // count trajectory messages sent by jog_arm
+  // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
       [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
-  // Create publisher to send jog_arm commands
+  // Create publisher to send servo commands
   auto joint_jog_pub = nh_.advertise<control_msgs::JointJog>(parameters.joint_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
@@ -178,10 +177,10 @@ TEST_F(JogArmFixture, SendJointJogTest)
 
   EXPECT_GT(received_count, num_commands - 20);
   EXPECT_LT(received_count, num_commands + 20);
-  jog_arm_->stop();
+  servo_->stop();
 }
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo
 
 int main(int argc, char** argv)
 {

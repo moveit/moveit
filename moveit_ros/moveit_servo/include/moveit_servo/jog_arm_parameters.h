@@ -1,6 +1,6 @@
 /*******************************************************************************
- *      Title     : jog_arm_parameters.h
- *      Project   : moveit_jog_arm
+ *      Title     : servo_parameters.h
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -38,13 +38,13 @@
 
 #pragma once
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 // Size of queues used in ros pub/sub/service
 constexpr size_t ROS_QUEUE_SIZE = 2;
 
 // ROS params to be read. See the yaml file in /config for a description of each.
-struct JogArmParameters
+struct ServoParameters
 {
   std::string move_group_name;
   std::string joint_topic;
@@ -80,4 +80,4 @@ struct JogArmParameters
   double min_allowable_collision_distance;
 };
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

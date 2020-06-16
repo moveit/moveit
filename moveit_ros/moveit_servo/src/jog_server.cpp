@@ -32,12 +32,12 @@
 *******************************************************************************/
 
 /*      Title     : jog_server.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 12/31/2018
  *      Author    : Andy Zelenak
  */
 
-#include <moveit_jog_arm/jog_arm.h>
+#include <moveit_servo/jog_arm.h>
 
 namespace
 {
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Create the jog server
-  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
+  moveit_servo::JogArm jog_arm(nh, planning_scene_monitor);
 
   // Start the jog server (runs in the ros spinner)
   jog_arm.start();

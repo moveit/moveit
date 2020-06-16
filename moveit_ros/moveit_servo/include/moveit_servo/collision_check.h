@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Title     : collision_check.h
- * Project   : moveit_jog_arm
+ * Project   : moveit_servo
  * Created   : 1/11/2019
  * Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -45,11 +45,11 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include <moveit_jog_arm/jog_arm_parameters.h>
-#include <moveit_jog_arm/low_pass_filter.h>
-#include <moveit_jog_arm/joint_state_subscriber.h>
+#include <moveit_servo/jog_arm_parameters.h>
+#include <moveit_servo/low_pass_filter.h>
+#include <moveit_servo/joint_state_subscriber.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 enum CollisionCheckType
 {
@@ -61,11 +61,11 @@ class CollisionCheck
 {
 public:
   /** \brief Constructor
-   *  \param parameters: common settings of jog_arm
+   *  \param parameters: common settings of moveit_servo
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+  CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
                  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                  const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
@@ -84,7 +84,7 @@ private:
   ros::NodeHandle nh_;
 
   // Parameters from yaml
-  const JogArmParameters& parameters_;
+  const ServoParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -128,4 +128,4 @@ private:
   ros::Publisher collision_velocity_scale_pub_;
   ros::Subscriber worst_case_stop_time_sub_;
 };
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

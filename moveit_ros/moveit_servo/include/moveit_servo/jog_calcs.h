@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : jog_calcs.h
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -53,19 +53,18 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
-// moveit_jog_arm
-#include <moveit_jog_arm/jog_arm_parameters.h>
-#include <moveit_jog_arm/low_pass_filter.h>
-#include <moveit_jog_arm/status_codes.h>
-#include <moveit_jog_arm/low_pass_filter.h>
-#include <moveit_jog_arm/joint_state_subscriber.h>
+// moveit_servo
+#include <moveit_servo/jog_arm_parameters.h>
+#include <moveit_servo/status_codes.h>
+#include <moveit_servo/low_pass_filter.h>
+#include <moveit_servo/joint_state_subscriber.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 class JogCalcs
 {
 public:
-  JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
+  JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
            const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
@@ -194,7 +193,7 @@ private:
   ros::NodeHandle nh_;
 
   // Parameters from yaml
-  const JogArmParameters& parameters_;
+  const ServoParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
@@ -285,4 +284,4 @@ private:
   bool latest_nonzero_twist_stamped_ = false;
   bool latest_nonzero_joint_jog_ = false;
 };
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

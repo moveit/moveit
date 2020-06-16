@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>moveit_jog_arm</name>
+  <name>moveit_servo</name>
   <version>1.1.0</version>
 
-  <description>Provides real-time manipulator Cartesian jogging.</description>
+  <description>Provides real-time manipulator Cartesian and joint jogging.</description>
 
   <maintainer email="blakeanderson@utexas.edu">Blake Anderson</maintainer>
   <maintainer email="andyz@utexas.edu">Andy Zelenak</maintainer>

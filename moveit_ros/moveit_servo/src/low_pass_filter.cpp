@@ -32,17 +32,17 @@
 *******************************************************************************/
 
 /*      Title     : low_pass_filter.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Andy Zelenak
  */
 
-#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_servo/low_pass_filter.h>
 #include <cmath>
 #include <string>
 #include <ros/ros.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 namespace
 {
@@ -57,7 +57,7 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   , feedback_term_(1. - low_pass_filter_coeff)
 {
   // guarantee this doesn't change because the logic below depends on this length implicity
-  static_assert(LowPassFilter::FILTER_LENGTH == 2, "moveit_jog_arm::LowPassFilter::FILTER_LENGTH should be 2");
+  static_assert(LowPassFilter::FILTER_LENGTH == 2, "moveit_servo::LowPassFilter::FILTER_LENGTH should be 2");
 
   ROS_ASSERT_MSG(!std::isinf(feedback_term_), "%s: outputs from filter will be inf because feedback term is inf",
                  LOGNAME);
@@ -98,4 +98,4 @@ double LowPassFilter::filter(double new_measurement)
 
   return new_filtered_measurement;
 }
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

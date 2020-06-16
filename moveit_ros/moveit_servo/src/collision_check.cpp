@@ -32,25 +32,25 @@
 *******************************************************************************/
 
 /*      Title     : collision_check.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
 #include <std_msgs/Float64.h>
 
-#include <moveit_jog_arm/collision_check.h>
-#include <moveit_jog_arm/make_shared_from_pool.h>
+#include <moveit_servo/collision_check.h>
+#include <moveit_servo/make_shared_from_pool.h>
 
 static const char LOGNAME[] = "collision_check";
 static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
 constexpr double EPSILON = 1e-6;                // For very small numeric comparisons
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 // Constructor for the class that handles collision checking
-CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
                                const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                                const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
   : nh_(nh)
@@ -213,4 +213,4 @@ void CollisionCheck::setPaused(bool paused)
   paused_ = paused;
 }
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

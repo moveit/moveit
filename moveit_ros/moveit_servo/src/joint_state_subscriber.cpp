@@ -32,14 +32,14 @@
 *******************************************************************************/
 
 /*      Title     : joint_state_subscriber.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 06/11/2020
  *      Author    : Tyler Weaver
  */
 
-#include <moveit_jog_arm/joint_state_subscriber.h>
+#include <moveit_servo/joint_state_subscriber.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 constexpr char LOGNAME[] = "joint_state_subscriber";
 
@@ -67,4 +67,4 @@ void JointStateSubscriber::jointStateCB(const sensor_msgs::JointStateConstPtr& m
   latest_joint_state_ = msg;
 }
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

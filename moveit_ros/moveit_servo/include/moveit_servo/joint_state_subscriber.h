@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Title     : joint_state_subscriber.h
- * Project   : moveit_jog_arm
+ * Project   : moveit_servo
  * Created   : 06/11/2020
  * Author    : Tyler Weaver
  *
@@ -43,9 +43,9 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
-#include "jog_arm_parameters.h"
+#include <moveit_servo/jog_arm_parameters.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 class JointStateSubscriber
 {
@@ -66,4 +66,4 @@ private:
   mutable std::mutex joint_state_mutex_;
   sensor_msgs::JointStateConstPtr latest_joint_state_;
 };
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

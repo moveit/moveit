@@ -1,6 +1,6 @@
 /*******************************************************************************
- *      Title     : jog_arm.cpp
- *      Project   : moveit_jog_arm
+ *      Title     : jog_arm.h
+ *      Project   : moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -40,15 +40,15 @@
 
 #include <memory>
 
-#include <moveit_jog_arm/collision_check.h>
-#include <moveit_jog_arm/jog_arm_parameters.h>
-#include <moveit_jog_arm/jog_calcs.h>
-#include <moveit_jog_arm/joint_state_subscriber.h>
+#include <moveit_servo/collision_check.h>
+#include <moveit_servo/jog_arm_parameters.h>
+#include <moveit_servo/jog_calcs.h>
+#include <moveit_servo/joint_state_subscriber.h>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 /**
- * Class JogArm - Jacobian based robot control with collision avoidance.
+ * Class Servo - Jacobian based robot control with collision avoidance.
  */
 class JogArm
 {
@@ -76,7 +76,7 @@ public:
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
   /** \brief Get the parameters used by jog arm. */
-  const JogArmParameters& getParameters() const;
+  const ServoParameters& getParameters() const;
 
   /** \brief Get the latest joint state. */
   sensor_msgs::JointStateConstPtr getLatestJointState() const;
@@ -90,7 +90,7 @@ private:
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
-  JogArmParameters parameters_;
+  ServoParameters parameters_;
 
   std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<JogCalcs> jog_calcs_;
@@ -100,4 +100,4 @@ private:
 // JogArmPtr using alias
 using JogArmPtr = std::shared_ptr<JogArm>;
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo
