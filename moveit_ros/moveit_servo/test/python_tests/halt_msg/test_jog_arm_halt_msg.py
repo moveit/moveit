@@ -19,10 +19,10 @@ import util
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_servo test_jog_arm_halt_msg.py
 
-CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
+CARTESIAN_JOG_COMMAND_TOPIC = 'servo_server/delta_jog_cmds'
 
 # jog_arm should publish a nonzero warning code here
-STATUS_TOPIC = 'jog_server/status'
+STATUS_TOPIC = 'servo_server/status'
 
 
 @pytest.fixture

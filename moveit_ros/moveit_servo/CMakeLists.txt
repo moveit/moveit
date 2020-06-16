@@ -84,11 +84,11 @@ target_link_libraries(cpp_interface_example
 ## ROS message-based node ##
 ############################
 
-add_executable(jog_server
+add_executable(servo_server
   src/jog_server.cpp
 )
-add_dependencies(jog_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_server
+add_dependencies(servo_server ${catkin_EXPORTED_TARGETS})
+target_link_libraries(servo_server
   ${LIBRARY_NAME}
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
@@ -112,7 +112,7 @@ target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 install(
   TARGETS
     ${LIBRARY_NAME}
-    jog_server
+    servo_server
     spacenav_to_twist
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

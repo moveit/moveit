@@ -37,7 +37,7 @@ Launch the servo node. This example uses commands from a SpaceNavigator joystick
 If you dont have a SpaceNavigator, send commands like this:
 
 ```sh
-rostopic pub -r 100 /jog_server/delta_jog_cmds geometry_msgs/TwistStamped "header: auto
+rostopic pub -r 100 /servo_server/delta_jog_cmds geometry_msgs/TwistStamped "header: auto
 twist:
   linear:
     x: 0.0

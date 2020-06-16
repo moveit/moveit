@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-/*      Title     : jog_server.cpp
+/*      Title     : servo_server.cpp
  *      Project   : moveit_servo
  *      Created   : 12/31/2018
  *      Author    : Andy Zelenak
@@ -41,7 +41,7 @@
 
 namespace
 {
-constexpr char LOGNAME[] = "jog_server";
+constexpr char LOGNAME[] = "servo_server";
 constexpr char ROS_THREADS = 8;
 
 }  // namespace
