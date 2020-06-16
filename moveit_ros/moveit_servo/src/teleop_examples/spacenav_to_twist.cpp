@@ -52,8 +52,8 @@ public:
   SpaceNavToTwist() : spinner_(NUM_SPINNERS)
   {
     joy_sub_ = n_.subscribe("spacenav/joy", QUEUE_LENGTH, &SpaceNavToTwist::joyCallback, this);
-    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_server/delta_jog_cmds", QUEUE_LENGTH);
-    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("jog_server/joint_delta_jog_cmds", QUEUE_LENGTH);
+    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("servo_server/delta_jog_cmds", QUEUE_LENGTH);
+    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("servo_server/joint_delta_jog_cmds", QUEUE_LENGTH);
 
     spinner_.start();
     ros::waitForShutdown();

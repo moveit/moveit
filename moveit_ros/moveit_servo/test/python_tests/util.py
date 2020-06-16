@@ -2,7 +2,7 @@ import rospy
 from std_msgs.msg import Int8
 
 # jog_arm should publish a nonzero warning code here
-STATUS_TOPIC = 'jog_server/status'
+STATUS_TOPIC = 'servo_server/status'
 
 def wait_for_jogger_initialization(timeout=15):
     try:

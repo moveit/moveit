@@ -16,9 +16,9 @@ import util
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_servo test_vel_accel_limits.py
 
-JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
+JOINT_JOG_COMMAND_TOPIC = 'servo_server/joint_delta_jog_cmds'
 
-COMMAND_OUT_TOPIC = 'jog_server/command'
+COMMAND_OUT_TOPIC = 'servo_server/command'
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def test_vel_limit(node):
         time.sleep(0.1)
 
     # Period of outgoing commands from the jogger, from yaml
-    JOGGER_COMMAND_PERIOD = rospy.get_param("/jog_server/publish_period")
+    JOGGER_COMMAND_PERIOD = rospy.get_param("/servo_server/publish_period")
 
     # Should be no velocities greater than the limit
     assert len(received) > 2

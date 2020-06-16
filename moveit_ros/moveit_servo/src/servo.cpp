@@ -73,7 +73,7 @@ bool Servo::readParameters()
     ROS_ERROR_STREAM_NAMED(LOGNAME, "A namespace must be specified in the launch file, like:");
     ROS_ERROR_STREAM_NAMED(LOGNAME, "<param name=\"parameter_ns\" "
                                     "type=\"string\" "
-                                    "value=\"left_jog_server\" />");
+                                    "value=\"left_servo_server\" />");
     return false;
   }
 

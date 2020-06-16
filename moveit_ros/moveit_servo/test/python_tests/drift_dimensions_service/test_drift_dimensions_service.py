@@ -19,11 +19,11 @@ import util
 # In other words, only the y-dimension will be controlled exactly.
 # Check that the service returns and the jog node continues to publish commands to the robot.
 
-CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
+CARTESIAN_JOG_COMMAND_TOPIC = 'servo_server/delta_jog_cmds'
 
-COMMAND_OUT_TOPIC = 'jog_server/command'
+COMMAND_OUT_TOPIC = 'servo_server/command'
 
-SERVICE_NAME = 'jog_server/change_drift_dimensions'
+SERVICE_NAME = 'servo_server/change_drift_dimensions'
 
 
 @pytest.fixture
