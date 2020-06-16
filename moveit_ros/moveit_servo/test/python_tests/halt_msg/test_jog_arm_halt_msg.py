@@ -17,7 +17,7 @@ import util
 # The jogger should halt and publish a warning.
 # Listen for a warning message from the jogger.
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_jog_arm test_jog_arm_halt_msg.py
+# rosrun moveit_servo test_jog_arm_halt_msg.py
 
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 

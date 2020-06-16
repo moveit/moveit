@@ -32,7 +32,7 @@
 *******************************************************************************/
 
 /*      Title     : jog_calcs.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
@@ -40,13 +40,13 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
-#include <moveit_jog_arm/jog_calcs.h>
-#include <moveit_jog_arm/make_shared_from_pool.h>
+#include <moveit_servo/jog_calcs.h>
+#include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_calcs";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 namespace
 {
@@ -70,7 +70,7 @@ bool isNonZero(const control_msgs::JointJog& msg)
 }  // namespace
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
+JogCalcs::JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
                    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                    const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
   : nh_(nh)
@@ -1049,4 +1049,4 @@ void JogCalcs::setPaused(bool paused)
   paused_ = paused;
 }
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : low_pass_filter.h
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Andy Zelenak
  *
@@ -40,7 +40,7 @@
 
 #include <cstddef>
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 /**
  * Class LowPassFilter - Filter a signal to soften jerks.
@@ -66,4 +66,4 @@ private:
   const double scale_term_;
   const double feedback_term_;
 };
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

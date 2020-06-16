@@ -15,7 +15,7 @@ import util
 
 # Test that the jogger publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_jog_arm test_jog_arm_integration.py
+# rosrun moveit_servo test_jog_arm_integration.py
 
 JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
@@ -77,7 +77,7 @@ def test_jog_arm_cartesian_command(node):
     # This nonzero command should produce jogging output
     # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
-    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from servo config file
 
     # Send a command to start the jogger
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
@@ -105,7 +105,7 @@ def test_jog_arm_joint_command(node):
     joint_cmd = JointJogCmd()
 
     TEST_DURATION = 1
-    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from servo config file
     velocities = [0.1]
 
     # Send a command to start the jogger
@@ -124,6 +124,6 @@ def test_jog_arm_joint_command(node):
 
 if __name__ == '__main__':
     node = node()
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for jog_arm server to init
+    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for servo server to init
     test_jog_arm_cartesian_command(node)
     test_jog_arm_joint_command(node)

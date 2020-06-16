@@ -32,18 +32,18 @@
 *******************************************************************************/
 
 /*      Title     : jog_arm.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
-#include <moveit_jog_arm/jog_arm.h>
+#include <moveit_servo/jog_arm.h>
 
 static const std::string LOGNAME = "jog_arm";
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
@@ -308,7 +308,7 @@ bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
   return jog_calcs_->getCommandFrameTransform(transform);
 }
 
-const JogArmParameters& JogArm::getParameters() const
+const ServoParameters& JogArm::getParameters() const
 {
   return parameters_;
 }
@@ -318,4 +318,4 @@ sensor_msgs::JointStateConstPtr JogArm::getLatestJointState() const
   return joint_state_subscriber_->getLatest();
 }
 
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo

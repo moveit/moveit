@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : spacenav_to_twist.cpp
- *      Project   : moveit_jog_arm
+ *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -41,7 +41,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 
-namespace moveit_jog_arm
+namespace moveit_servo
 {
 static const int NUM_SPINNERS = 1;
 static const int QUEUE_LENGTH = 1;
@@ -95,13 +95,13 @@ private:
   ros::Publisher twist_pub_, joint_delta_pub_;
   ros::AsyncSpinner spinner_;
 };
-}  // namespace moveit_jog_arm
+}  // namespace moveit_servo
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spacenav_to_twist");
 
-  moveit_jog_arm::SpaceNavToTwist to_twist;
+  moveit_servo::SpaceNavToTwist to_twist;
 
   return 0;
 }

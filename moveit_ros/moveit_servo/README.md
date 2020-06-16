@@ -1,4 +1,4 @@
-## Jog Arm
+## Moveit Servo
 
 #### Quick Start Guide for UR5 example
 
@@ -30,9 +30,9 @@ stop_controllers:
 strictness: 2"
 ```
 
-Launch the jog node. This example uses commands from a SpaceNavigator joystick-like device:
+Launch the servo node. This example uses commands from a SpaceNavigator joystick-like device:
 
-    roslaunch moveit_jog_arm spacenav_cpp.launch
+    roslaunch moveit_servo spacenav_cpp.launch
 
 If you dont have a SpaceNavigator, send commands like this:
 
@@ -53,6 +53,6 @@ If you see a warning about "close to singularity", try changing the direction of
 
 #### Running Tests
 
-Run tests from the jog\_arm folder:
+Run tests from the moveit\_servo folder:
 
     catkin run_tests --no-deps --this
