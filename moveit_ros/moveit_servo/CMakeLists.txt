@@ -85,7 +85,7 @@ target_link_libraries(cpp_interface_example
 ############################
 
 add_executable(servo_server
-  src/jog_server.cpp
+  src/servo_server.cpp
 )
 add_dependencies(servo_server ${catkin_EXPORTED_TARGETS})
 target_link_libraries(servo_server
