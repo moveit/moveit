@@ -57,7 +57,7 @@ include_directories(
 add_library(${LIBRARY_NAME} SHARED
   src/collision_check.cpp
   src/jog_calcs.cpp
-  src/jog_arm.cpp
+  src/servo.cpp
   src/joint_state_subscriber.cpp
   src/low_pass_filter.cpp
 )

@@ -39,7 +39,7 @@
 
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
-#include <moveit_servo/jog_arm.h>
+#include <moveit_servo/servo.h>
 
 static const std::string LOGNAME = "jog_arm";
 
