@@ -588,7 +588,7 @@ void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singular
   if (collision_scale > 0 && collision_scale < 1)
   {
     status_ = StatusCode::DECELERATE_FOR_COLLISION;
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
   }
   else if (collision_scale == 0)
   {
@@ -651,7 +651,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
                        (ini_condition - parameters_.lower_singularity_threshold) /
                            (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
       status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
-      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
     }
 
     // Very close to singularity, so halt.
@@ -659,7 +659,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
     {
       velocity_scale = 0;
       status_ = StatusCode::HALT_FOR_SINGULARITY;
-      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, JOG_ARM_STATUS_CODE_MAP.at(status_));
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
     }
   }
 

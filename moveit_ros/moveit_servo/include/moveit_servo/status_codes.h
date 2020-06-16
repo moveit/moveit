@@ -55,7 +55,7 @@ enum StatusCode : int8_t
 };
 
 const std::unordered_map<int8_t, std::string>
-    JOG_ARM_STATUS_CODE_MAP({ { INVALID, "Invalid" },
+    SERVO_STATUS_CODE_MAP({ { INVALID, "Invalid" },
                             { NO_WARNING, "No warnings" },
                             { DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
                             { HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },

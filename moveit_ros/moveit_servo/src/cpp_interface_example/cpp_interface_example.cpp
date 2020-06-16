@@ -60,7 +60,7 @@ private:
     if (latest_status != status_)
     {
       status_ = latest_status;
-      const auto& status_str = moveit_servo::JOG_ARM_STATUS_CODE_MAP.at(status_);
+      const auto& status_str = moveit_servo::SERVO_STATUS_CODE_MAP.at(status_);
       ROS_INFO_STREAM_NAMED(LOGNAME, "Servo status: " << status_str);
     }
   }
