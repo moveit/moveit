@@ -38,7 +38,7 @@
 
 #include <std_msgs/Int8.h>
 
-#include <moveit_servo/jog_arm.h>
+#include <moveit_servo/servo.h>
 #include <moveit_servo/status_codes.h>
 #include <moveit_servo/make_shared_from_pool.h>
 

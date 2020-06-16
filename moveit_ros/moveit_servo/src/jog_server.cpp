@@ -37,7 +37,7 @@
  *      Author    : Andy Zelenak
  */
 
-#include <moveit_servo/jog_arm.h>
+#include <moveit_servo/servo.h>
 
 namespace
 {
