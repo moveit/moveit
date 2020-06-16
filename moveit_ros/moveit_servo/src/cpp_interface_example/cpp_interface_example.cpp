@@ -96,16 +96,16 @@ int main(int argc, char** argv)
   planning_scene_monitor->startStateMonitor();
 
   // Run the jogging C++ interface in a new timer to ensure a constant outgoing message rate.
-  moveit_servo::JogArm jog_arm(nh, planning_scene_monitor);
-  jog_arm.start();
+  moveit_servo::Servo servo(nh, planning_scene_monitor);
+  servo.start();
 
-  // Subscribe to jog_arm status (and log it when it changes)
-  StatusMonitor status_monitor(nh, jog_arm.getParameters().status_topic);
+  // Subscribe to servo status (and log it when it changes)
+  StatusMonitor status_monitor(nh, servo.getParameters().status_topic);
 
-  // Create publishers to send jog_arm commands
+  // Create publishers to send servo commands
   auto twist_stamped_pub =
-      nh.advertise<geometry_msgs::TwistStamped>(jog_arm.getParameters().cartesian_command_in_topic, 1);
-  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(jog_arm.getParameters().joint_command_in_topic, 1);
+      nh.advertise<geometry_msgs::TwistStamped>(servo.getParameters().cartesian_command_in_topic, 1);
+  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(servo.getParameters().joint_command_in_topic, 1);
 
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
@@ -150,6 +150,6 @@ int main(int argc, char** argv)
     ++num_commands;
   }
 
-  jog_arm.stop();
+  servo.stop();
   return 0;
 }

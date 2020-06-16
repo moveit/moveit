@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-/*      Title     : jog_arm.cpp
+/*      Title     : servo.cpp
  *      Project   : moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -45,7 +45,7 @@ static const std::string LOGNAME = "jog_arm";
 
 namespace moveit_servo
 {
-JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
   : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
@@ -61,7 +61,7 @@ JogArm::JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneM
 }
 
 // Read ROS parameters, typically from YAML file
-bool JogArm::readParameters()
+bool Servo::readParameters()
 {
   std::size_t error = 0;
 
@@ -274,7 +274,7 @@ bool JogArm::readParameters()
   return true;
 }
 
-void JogArm::start()
+void Servo::start()
 {
   setPaused(false);
 
@@ -286,34 +286,34 @@ void JogArm::start()
     collision_checker_->start();
 }
 
-void JogArm::stop()
+void Servo::stop()
 {
   jog_calcs_->stop();
   collision_checker_->stop();
 }
 
-JogArm::~JogArm()
+Servo::~Servo()
 {
   stop();
 }
 
-void JogArm::setPaused(bool paused)
+void Servo::setPaused(bool paused)
 {
   jog_calcs_->setPaused(paused);
   collision_checker_->setPaused(paused);
 }
 
-bool JogArm::getCommandFrameTransform(Eigen::Isometry3d& transform)
+bool Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   return jog_calcs_->getCommandFrameTransform(transform);
 }
 
-const ServoParameters& JogArm::getParameters() const
+const ServoParameters& Servo::getParameters() const
 {
   return parameters_;
 }
 
-sensor_msgs::JointStateConstPtr JogArm::getLatestJointState() const
+sensor_msgs::JointStateConstPtr Servo::getLatestJointState() const
 {
   return joint_state_subscriber_->getLatest();
 }

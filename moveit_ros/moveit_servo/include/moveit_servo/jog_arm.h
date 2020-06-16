@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_arm.h
+ *      Title     : servo.h
  *      Project   : moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -50,12 +50,12 @@ namespace moveit_servo
 /**
  * Class Servo - Jacobian based robot control with collision avoidance.
  */
-class JogArm
+class Servo
 {
 public:
-  JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  ~JogArm();
+  ~Servo();
 
   /** \brief start jog arm */
   void start();
@@ -97,7 +97,7 @@ private:
   std::unique_ptr<CollisionCheck> collision_checker_;
 };
 
-// JogArmPtr using alias
-using JogArmPtr = std::shared_ptr<JogArm>;
+// ServoPtr using alias
+using ServoPtr = std::shared_ptr<Servo>;
 
 }  // namespace moveit_servo
