@@ -22,10 +22,7 @@ import util
 CARTESIAN_JOG_COMMAND_TOPIC = 'jog_server/delta_jog_cmds'
 
 # jog_arm should publish a nonzero warning code here
-HALT_TOPIC = 'jog_server/status'
-
-# Check if jogger is initialized with this service
-SERVICE_NAME = 'jog_server/change_drift_dimensions'
+STATUS_TOPIC = 'jog_server/status'
 
 
 @pytest.fixture
@@ -36,7 +33,7 @@ def node():
 class CartesianJogCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
-            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=1
+            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=10
         )
 
     def send_cmd(self, linear, angular):
@@ -48,16 +45,16 @@ class CartesianJogCmd(object):
 
 
 def test_jog_arm_halt_msg(node):
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     received = []
     sub = rospy.Subscriber(
-        HALT_TOPIC, Int8, lambda msg: received.append(msg)
+        STATUS_TOPIC, Int8, lambda msg: received.append(msg)
     )
     cartesian_cmd = CartesianJogCmd()
 
     # This nonzero command should produce jogging output
-    # A subscriber in a different thread fills `received`
+    # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
     start_time = rospy.get_rostime()
     received = []
@@ -68,8 +65,7 @@ def test_jog_arm_halt_msg(node):
     # Check the received messages
     # A non-zero value signifies a warning
     assert len(received) > 3
-    assert (received[-1].data != 0) or (received[-2].data != 0) or (received[-3].data != 0)
-
+    assert any(i != 0 for i in received[-3:])
 
 if __name__ == '__main__':
    node = node()

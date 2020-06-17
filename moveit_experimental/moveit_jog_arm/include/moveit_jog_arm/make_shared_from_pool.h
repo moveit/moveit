@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : jog_cpp_interface.h
+ *      Title     : make_shared_from_pool.h
  *      Project   : moveit_jog_arm
- *      Created   : 11/20/2019
- *      Author    : Andy Zelenak
+ *      Created   : 1/11/2019
+ *      Author    : Tyler Weaver
  *
  * BSD 3-Clause License
  *
@@ -38,63 +38,19 @@
 
 #pragma once
 
-#include <atomic>
-#include "jog_interface_base.h"
-#include <std_msgs/Int8.h>
+#include <boost/pool/pool_alloc.hpp>
 
-namespace moveit_jog_arm
+namespace moveit
 {
-/**
-* Class JogCppInterface - This class should be instantiated in a new thread
-* See cpp_interface_example.cpp
-*/
-class JogCppInterface : public JogInterfaceBase
+namespace util
 {
-public:
-  JogCppInterface(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+// Useful template for creating messages from a message pool
+template <typename T>
+boost::shared_ptr<T> make_shared_from_pool()
+{
+  using allocator_t = boost::fast_pool_allocator<boost::shared_ptr<T>>;
+  return boost::allocate_shared<T, allocator_t>(allocator_t());
+}
 
-  ~JogCppInterface();
-
-  void startMainLoop();
-
-  void stopMainLoop();
-
-  /** \brief Pause or unpause processing jog commands while keeping the main loop alive */
-  void setPaused(bool paused);
-
-  /** \brief Provide a Cartesian velocity command to the jogger.
-   * The units are determined by settings in the yaml file.
-   */
-  void provideTwistStampedCommand(const geometry_msgs::TwistStamped& velocity_command);
-
-  /** \brief Send joint position(s) commands */
-  void provideJointCommand(const control_msgs::JointJog& joint_command);
-
-  /**
-   * Returns the most recent JointState that the jogger has received.
-   * May eliminate the need to create your own joint_state subscriber.
-   *
-   * @return the most recent joints known to the jogger
-   */
-  sensor_msgs::JointState getJointState();
-
-  /**
-   * Get the MoveIt planning link transform.
-   * The transform from the MoveIt planning frame to robot_link_command_frame
-   *
-   * @param transform the transform that will be calculated
-   * @return true if a valid transform was available
-   */
-  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
-
-  /**
-   * Get the status of the jogger.
-   *
-   * @return 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-   */
-  StatusCode getJoggerStatus();
-
-private:
-  ros::NodeHandle nh_;
-};
-}  // namespace moveit_jog_arm
+}  // namespace util
+}  // namespace moveit

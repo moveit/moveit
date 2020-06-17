@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : status_codes.h
- *      Project   : moveit_jog_arm
- *      Created   : 2/25/2019
- *      Author    : Andy Zelenak
+ * Title     : joint_state_subscriber.h
+ * Project   : moveit_jog_arm
+ * Created   : 06/11/2020
+ * Author    : Tyler Weaver
  *
  * BSD 3-Clause License
  *
@@ -38,28 +38,32 @@
 
 #pragma once
 
-#include <string>
-#include <unordered_map>
+#include <mutex>
+
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
+
+#include "jog_arm_parameters.h"
 
 namespace moveit_jog_arm
 {
-enum StatusCode : int8_t
+class JointStateSubscriber
 {
-  INVALID = -1,
-  NO_WARNING = 0,
-  DECELERATE_FOR_SINGULARITY = 1,
-  HALT_FOR_SINGULARITY = 2,
-  DECELERATE_FOR_COLLISION = 3,
-  HALT_FOR_COLLISION = 4,
-  JOINT_BOUND = 5
-};
+public:
+  /** \brief Constructor
+   */
+  JointStateSubscriber(ros::NodeHandle& nh, const std::string& joint_state_topic_name);
 
-const std::unordered_map<int8_t, std::string>
-    JOG_ARM_STATUS_CODE_MAP({ { INVALID, "Invalid" },
-                              { NO_WARNING, "No warnings" },
-                              { DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
-                              { HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
-                              { DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
-                              { HALT_FOR_COLLISION, "Collision detected, emergency stop" },
-                              { JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
+  /** \brief Get the latest joint state message */
+  sensor_msgs::JointStateConstPtr getLatest() const;
+
+private:
+  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  ros::Subscriber joint_state_sub_;
+
+  // Latest joint state, updated by ROS callback
+  mutable std::mutex joint_state_mutex_;
+  sensor_msgs::JointStateConstPtr latest_joint_state_;
+};
 }  // namespace moveit_jog_arm

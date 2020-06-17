@@ -39,49 +39,64 @@
 #pragma once
 
 // System
-#include <atomic>
+#include <mutex>
 
 // ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit_msgs/ChangeDriftDimensions.h>
+#include <moveit_msgs/ChangeControlDimensions.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Float64.h>
+#include <control_msgs/JointJog.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <trajectory_msgs/JointTrajectory.h>
 
 // moveit_jog_arm
-#include "jog_arm_data.h"
-#include "low_pass_filter.h"
-#include "status_codes.h"
+#include <moveit_jog_arm/jog_arm_parameters.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/status_codes.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
 class JogCalcs
 {
 public:
-  JogCalcs(const JogArmParameters& parameters, const robot_model_loader::RobotModelLoaderPtr& model_loader_ptr);
+  JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
+           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+           const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
-  void startMainLoop(JogArmShared& shared_variables);
+  /** \brief Start and stop the timer where we do work and publish outputs */
+  void start();
+  void stop();
 
-  /** \brief Check if the robot state is being updated and the end effector transform is known
-   *  @return true if initialized properly
+  /**
+   * Get the MoveIt planning link transform.
+   * The transform from the MoveIt planning frame to robot_link_command_frame
+   *
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
    */
-  bool isInitialized();
+  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-protected:
-  ros::NodeHandle nh_;
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  void setPaused(bool paused);
 
-  // Flag that robot state is up to date, end effector transform is known
-  std::atomic<bool> is_initialized_;
+private:
+  /** \brief Timer method */
+  void run(const ros::TimerEvent& timer_event);
 
   /** \brief Do jogging calculations for Cartesian twist commands. */
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
+  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Do jogging calculations for direct commands to a joint. */
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, JogArmShared& shared_variables);
-
-  /** \brief Update the stashed status so it can be retrieved asynchronously */
-  void updateCachedStatus(JogArmShared& shared_variables);
+  bool jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
-  bool updateJoints(JogArmShared& shared_variables);
+  bool updateJoints();
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
@@ -98,17 +113,14 @@ protected:
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
    */
-  void suddenHalt(trajectory_msgs::JointTrajectory& joint_traj);
+  void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
   void suddenHalt(Eigen::ArrayXd& delta_theta);
-
-  /** \brief Publish the status of the jogger to a ROS topic */
-  void publishStatus() const;
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-  bool enforceSRDFPositionLimits(trajectory_msgs::JointTrajectory& new_joint_traj);
+  bool enforceSRDFPositionLimits();
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -119,14 +131,14 @@ protected:
 
   /**
    * Slow motion down if close to singularity or collision.
-   * @param shared_variables data shared between threads, tells how close we are to collision
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    */
-  void applyVelocityScaling(JogArmShared& shared_variables, Eigen::ArrayXd& delta_theta, double singularity_scale);
+  void applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
-  trajectory_msgs::JointTrajectory composeJointTrajMessage(sensor_msgs::JointState& joint_state) const;
+  void composeJointTrajMessage(sensor_msgs::JointState& joint_state,
+                               trajectory_msgs::JointTrajectory& joint_trajectory) const;
 
   /** \brief Smooth position commands with a lowpass filter */
   void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
@@ -137,12 +149,12 @@ protected:
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
     * This happens for joint commands and Cartesian commands.
     */
-  bool convertDeltasToOutgoingCmd();
+  bool convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
    * Satisfy Gazebo by stuffing multiple messages into one.
    */
-  void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& trajectory, int count) const;
+  void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -153,35 +165,113 @@ protected:
    */
   void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x, unsigned int row_to_remove);
 
+  /* \brief Callback for joint subsription */
+  void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  /* \brief Command callbacks */
+  void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
+  void jointJogCB(const control_msgs::JointJogConstPtr& msg);
+  void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
+
+  /**
+   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
+   * This can help avoid singularities.
+   *
+   * @param request the service request
+   * @param response the service response
+   * @return true if the adjustment was made
+   */
+  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                             moveit_msgs::ChangeDriftDimensions::Response& res);
+
+  /** \brief Start the main calculation timer */
+  // Service callback for changing jogging dimensions
+  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                               moveit_msgs::ChangeControlDimensions::Response& res);
+
+  ros::NodeHandle nh_;
+
+  // Parameters from yaml
+  const JogArmParameters& parameters_;
+
+  // Pointer to the collision environment
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  // Subscriber to the latest joint states
+  const std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
+
+  // Track the number of cycles during which motion has not occurred.
+  // Will avoid re-publishing zero velocities endlessly.
+  int zero_velocity_count_ = 0;
+
+  // Flag for staying inactive while there are no incoming commands
+  bool wait_for_jog_commands_ = true;
+
+  // Nonzero status flags
+  bool have_nonzero_twist_stamped_ = false;
+  bool have_nonzero_joint_jog_ = false;
+  bool have_nonzero_command_ = false;
+
+  // Incoming command messages
+  geometry_msgs::TwistStamped twist_stamped_;
+  control_msgs::JointJog joint_jog_;
+
   const moveit::core::JointModelGroup* joint_model_group_;
 
   moveit::core::RobotStatePtr kinematic_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
+  // (mutex protected below)
   // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
-  sensor_msgs::JointState incoming_joint_state_, internal_joint_state_, original_joint_state_;
+  sensor_msgs::JointState internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
-  trajectory_msgs::JointTrajectory outgoing_command_;
 
   std::vector<LowPassFilter> position_filters_;
 
+  // ROS
+  ros::Timer timer_;
+  ros::Duration period_;
+  ros::Subscriber joint_state_sub_;
+  ros::Subscriber twist_stamped_sub_;
+  ros::Subscriber joint_jog_sub_;
+  ros::Subscriber collision_velocity_scale_sub_;
   ros::Publisher status_pub_;
+  ros::Publisher worst_case_stop_time_pub_;
+  ros::Publisher outgoing_cmd_pub_;
+  ros::ServiceServer drift_dimensions_server_;
+  ros::ServiceServer control_dimensions_server_;
 
-  StatusCode status_ = NO_WARNING;
-
-  JogArmParameters parameters_;
+  // Status
+  StatusCode status_ = StatusCode::NO_WARNING;
+  bool stop_requested_ = false;
+  bool paused_ = false;
+  bool command_is_stale_ = false;
+  bool ok_to_publish_ = false;
+  double collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations
   Eigen::ArrayXd delta_theta_;
   Eigen::ArrayXd prev_joint_velocity_;
 
-  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
-
   const int gazebo_redundant_message_count_ = 30;
 
   uint num_joints_;
 
-  ros::Rate default_sleep_rate_;
+  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
+  std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
+
+  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
+  std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
+
+  // Amount we sleep when waiting
+  ros::Rate default_sleep_rate_ = 100;
+
+  // latest_state_mutex_ is used to protect the state below it
+  mutable std::mutex latest_state_mutex_;
+  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+  geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
+  control_msgs::JointJogConstPtr latest_joint_jog_;
+  ros::Time latest_command_stamp_ = ros::Time(0.);
 };
 }  // namespace moveit_jog_arm

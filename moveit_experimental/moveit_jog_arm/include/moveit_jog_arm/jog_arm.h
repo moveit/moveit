@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_interface_base.cpp
+ *      Title     : jog_arm.cpp
  *      Project   : moveit_jog_arm
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -36,78 +36,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "collision_check_thread.h"
-#include <Eigen/Eigenvalues>
-#include "jog_arm_data.h"
-#include "jog_calcs.h"
-#include "low_pass_filter.h"
-#include <moveit/robot_state/robot_state.h>
-#include <moveit_msgs/ChangeDriftDimensions.h>
-#include <moveit_msgs/ChangeControlDimensions.h>
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <sensor_msgs/Joy.h>
-#include <std_msgs/Float64MultiArray.h>
+#include <memory>
+
+#include <moveit_jog_arm/collision_check.h>
+#include <moveit_jog_arm/jog_arm_parameters.h>
+#include <moveit_jog_arm/jog_calcs.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
 /**
- * Class JogInterfaceBase - Base class for C++ interface and ROS node.
- * Handles ROS subs & pubs and creates the worker threads.
+ * Class JogArm - Jacobian based robot control with collision avoidance.
  */
-class JogInterfaceBase
+class JogArm
 {
 public:
-  JogInterfaceBase();
+  JogArm(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-  /** \brief Update the joints of the robot */
-  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+  ~JogArm();
+
+  /** \brief start jog arm */
+  void start();
+
+  /** \brief stop jog arm */
+  void stop();
+
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  void setPaused(bool paused);
 
   /**
-   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
-   * This can help avoid singularities.
+   * Get the MoveIt planning link transform.
+   * The transform from the MoveIt planning frame to robot_link_command_frame
    *
-   * @param request the service request
-   * @param response the service response
-   * @return true if the adjustment was made
+   * @param transform the transform that will be calculated
+   * @return true if a valid transform was available
    */
-  bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                             moveit_msgs::ChangeDriftDimensions::Response& res);
+  bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  /** \brief Start the main calculation thread */
-  // Service callback for changing jogging dimensions
-  bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-                               moveit_msgs::ChangeControlDimensions::Response& res);
+  /** \brief Get the parameters used by jog arm. */
+  const JogArmParameters& getParameters() const;
 
-  // Jogging calculation thread
-  bool startJogCalcThread();
+  /** \brief Get the latest joint state. */
+  sensor_msgs::JointStateConstPtr getLatestJointState() const;
 
-  /** \brief Stop the main calculation thread */
-  bool stopJogCalcThread();
+private:
+  bool readParameters();
 
-  /** \brief Start collision checking */
-  bool startCollisionCheckThread();
-
-  /** \brief Stop collision checking */
-  bool stopCollisionCheckThread();
-
-protected:
-  bool readParameters(ros::NodeHandle& n);
+  ros::NodeHandle nh_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
-  JogArmParameters ros_parameters_;
+  JogArmParameters parameters_;
 
-  // Share data between threads
-  JogArmShared shared_variables_;
-
-  // Jog calcs
+  std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
   std::unique_ptr<JogCalcs> jog_calcs_;
-  std::unique_ptr<std::thread> jog_calc_thread_;
-
-  // Collision checks
-  std::unique_ptr<CollisionCheckThread> collision_checker_;
-  std::unique_ptr<std::thread> collision_check_thread_;
+  std::unique_ptr<CollisionCheck> collision_checker_;
 };
+
+// JogArmPtr using alias
+using JogArmPtr = std::shared_ptr<JogArm>;
+
 }  // namespace moveit_jog_arm

@@ -36,19 +36,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "moveit_jog_arm/jog_cpp_interface.h"
-#include "moveit_jog_arm/status_codes.h"
+#include <std_msgs/Int8.h>
+
+#include <moveit_jog_arm/jog_arm.h>
+#include <moveit_jog_arm/status_codes.h>
+#include <moveit_jog_arm/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
+
+// Class for monitoring status of jog_arm
+class StatusMonitor
+{
+public:
+  StatusMonitor(ros::NodeHandle& nh, const std::string& topic)
+  {
+    sub_ = nh.subscribe(topic, 1, &StatusMonitor::statusCB, this);
+  }
+
+private:
+  void statusCB(const std_msgs::Int8ConstPtr& msg)
+  {
+    moveit_jog_arm::StatusCode latest_status = static_cast<moveit_jog_arm::StatusCode>(msg->data);
+    if (latest_status != status_)
+    {
+      status_ = latest_status;
+      const auto& status_str = moveit_jog_arm::JOG_ARM_STATUS_CODE_MAP.at(status_);
+      ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status: " << status_str);
+    }
+  }
+  moveit_jog_arm::StatusCode status_ = moveit_jog_arm::StatusCode::INVALID;
+  ros::Subscriber sub_;
+};
 
 /**
  * Instantiate the C++ jogging interface.
  * Send some Cartesian commands, then some joint commands.
- * Then retrieve the current joint state from the jogger.
  */
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, LOGNAME);
+  ros::NodeHandle nh;
+  ros::AsyncSpinner spinner(8);
+  spinner.start();
 
   // Load the planning scene monitor
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
@@ -66,15 +95,17 @@ int main(int argc, char** argv)
       false /* skip octomap monitor */);
   planning_scene_monitor->startStateMonitor();
 
-  // Run the jogging C++ interface in a new thread to ensure a constant outgoing message rate.
-  moveit_jog_arm::JogCppInterface jog_interface(planning_scene_monitor);
-  std::thread jogging_thread([&]() { jog_interface.startMainLoop(); });
+  // Run the jogging C++ interface in a new timer to ensure a constant outgoing message rate.
+  moveit_jog_arm::JogArm jog_arm(nh, planning_scene_monitor);
+  jog_arm.start();
 
-  // Make a Cartesian velocity message
-  geometry_msgs::TwistStamped velocity_msg;
-  velocity_msg.header.frame_id = "base_link";
-  velocity_msg.twist.linear.y = 0.01;
-  velocity_msg.twist.linear.z = -0.01;
+  // Subscribe to jog_arm status (and log it when it changes)
+  StatusMonitor status_monitor(nh, jog_arm.getParameters().status_topic);
+
+  // Create publishers to send jog_arm commands
+  auto twist_stamped_pub =
+      nh.advertise<geometry_msgs::TwistStamped>(jog_arm.getParameters().cartesian_command_in_topic, 1);
+  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(jog_arm.getParameters().joint_command_in_topic, 1);
 
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
@@ -82,42 +113,43 @@ int main(int argc, char** argv)
   // Send a few Cartesian velocity commands
   while (ros::ok() && num_commands < 200)
   {
-    ++num_commands;
-    velocity_msg.header.stamp = ros::Time::now();
-    jog_interface.provideTwistStampedCommand(velocity_msg);
+    // Make a Cartesian velocity message
+    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Because this message is not copied we should not modify it after we send it.
+    auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "base_link";
+    msg->twist.linear.y = 0.01;
+    msg->twist.linear.z = -0.01;
+
+    // Send the message
+    twist_stamped_pub.publish(msg);
     cmd_rate.sleep();
+    ++num_commands;
   }
 
   // Leave plenty of time for the jogger to halt its previous motion.
   // For a faster response, adjust the incoming_command_timeout yaml parameter
   ros::Duration(2).sleep();
 
-  // Make a joint command
-  control_msgs::JointJog base_joint_command;
-  base_joint_command.joint_names.push_back("elbow_joint");
-  base_joint_command.velocities.push_back(0.2);
-  base_joint_command.header.stamp = ros::Time::now();
-
   // Send a few joint commands
   num_commands = 0;
   while (ros::ok() && num_commands < 200)
   {
-    ++num_commands;
-    base_joint_command.header.stamp = ros::Time::now();
-    jog_interface.provideJointCommand(base_joint_command);
+    // Make a joint command
+    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Because this message is not copied we should not modify it after we send it.
+    auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
+    msg->header.stamp = ros::Time::now();
+    msg->joint_names.push_back("elbow_joint");
+    msg->velocities.push_back(0.2);
+
+    // Send the message
+    joint_jog_pub.publish(msg);
     cmd_rate.sleep();
+    ++num_commands;
   }
 
-  // Retrieve the current joint state from the jogger
-  sensor_msgs::JointState current_joint_state = jog_interface.getJointState();
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Current joint state:");
-  ROS_INFO_STREAM_NAMED(LOGNAME, current_joint_state);
-
-  // Retrieve the current status of the jogger
-  moveit_jog_arm::StatusCode status = jog_interface.getJoggerStatus();
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Jogger status:\n" << status);
-
-  jog_interface.stopMainLoop();
-  jogging_thread.join();
+  jog_arm.stop();
   return 0;
 }

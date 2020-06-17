@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Title     : collision_check_thread.h
+ * Title     : collision_check.h
  * Project   : moveit_jog_arm
  * Created   : 1/11/2019
  * Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -38,11 +38,16 @@
 
 #pragma once
 
-#include <atomic>
-#include "jog_arm_data.h"
-#include "low_pass_filter.h"
+#include <mutex>
+
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64.h>
+
+#include <moveit_jog_arm/jog_arm_parameters.h>
+#include <moveit_jog_arm/low_pass_filter.h>
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
@@ -52,7 +57,7 @@ enum CollisionCheckType
   K_STOP_DISTANCE = 2
 };
 
-class CollisionCheckThread
+class CollisionCheck
 {
 public:
   /** \brief Constructor
@@ -60,20 +65,67 @@ public:
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheckThread(const moveit_jog_arm::JogArmParameters& parameters,
-                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
+  CollisionCheck(ros::NodeHandle& nh, const moveit_jog_arm::JogArmParameters& parameters,
+                 const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                 const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
-  // Get thread-safe read-only lock of planning scene
-  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
+  /** \brief start and stop the Timer */
+  void start();
+  void stop();
 
-  void startMainLoop(moveit_jog_arm::JogArmShared& shared_variables);
+  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  void setPaused(bool paused);
 
 private:
-  const moveit_jog_arm::JogArmParameters parameters_;
+  void run(const ros::TimerEvent& timer_event);
+  planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
+  void worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg);
 
-  CollisionCheckType collision_check_type_;
+  ros::NodeHandle nh_;
+
+  // Parameters from yaml
+  const JogArmParameters& parameters_;
 
   // Pointer to the collision environment
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+
+  // Subscriber to joint states
+  const std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
+
+  // Robot state and collision matrix from planning scene
+  std::unique_ptr<moveit::core::RobotState> current_state_;
+  collision_detection::AllowedCollisionMatrix acm_;
+
+  // Scale robot velocity according to collision proximity and user-defined thresholds.
+  // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
+  // Proximity decreasing --> decelerate
+  CollisionCheckType collision_check_type_;
+  double velocity_scale_ = 1;
+  double self_collision_distance_ = 0;
+  double scene_collision_distance_ = 0;
+  bool collision_detected_ = false;
+  bool paused_ = false;
+
+  // Variables for stop-distance-based collision checking
+  double current_collision_distance_ = 0;
+  double derivative_of_collision_distance_ = 0;
+  double prev_collision_distance_ = 0;
+  double est_time_to_collision_ = 0;
+  double safety_factor_ = 1000;
+  double worst_case_stop_time_ = std::numeric_limits<double>::max();
+
+  const double self_velocity_scale_coefficient_;
+  const double scene_velocity_scale_coefficient_;
+
+  // collision request
+  collision_detection::CollisionRequest collision_request_;
+  collision_detection::CollisionResult collision_result_;
+
+  // ROS
+  ros::Timer timer_;
+  ros::Duration period_;
+  ros::Subscriber joint_state_sub_;
+  ros::Publisher collision_velocity_scale_pub_;
+  ros::Subscriber worst_case_stop_time_sub_;
 };
 }  // namespace moveit_jog_arm

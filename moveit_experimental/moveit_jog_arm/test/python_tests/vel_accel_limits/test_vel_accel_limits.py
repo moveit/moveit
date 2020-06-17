@@ -20,9 +20,6 @@ JOINT_JOG_COMMAND_TOPIC = 'jog_server/joint_delta_jog_cmds'
 
 COMMAND_OUT_TOPIC = 'jog_server/command'
 
-# Check if jogger is initialized with this service
-SERVICE_NAME = 'jog_server/change_drift_dimensions'
-
 
 @pytest.fixture
 def node():
@@ -31,7 +28,7 @@ def node():
 
 class JointJogCmd(object):
     def __init__(self):
-        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=1)
+        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=10)
 
     def send_joint_velocity_cmd(self, joint_pos):
         jj = JointJog()
@@ -44,7 +41,7 @@ class JointJogCmd(object):
 def test_vel_limit(node):
     # Test sending a joint command
 
-    assert util.wait_for_jogger_initialization(SERVICE_NAME)
+    assert util.wait_for_jogger_initialization()
 
     received = []
     sub = rospy.Subscriber(
@@ -76,9 +73,13 @@ def test_vel_limit(node):
     # Should be no velocities greater than the limit
     assert len(received) > 2
     for msg_idx in range(1, len(received)):
-        velocity = \
-            (received[msg_idx].points[0].positions[0] - received[msg_idx - 1].points[0].positions[0]) / JOGGER_COMMAND_PERIOD
-        assert abs(velocity) <= VELOCITY_LIMIT
+        try:
+            velocity = \
+                (received[msg_idx].points[0].positions[0] - received[msg_idx - 1].points[0].positions[0]) / JOGGER_COMMAND_PERIOD
+            assert abs(velocity) <= VELOCITY_LIMIT
+        except IndexError:
+            # Sometimes a message doesn't have any points
+            pass
 
 if __name__ == '__main__':
     node = node()

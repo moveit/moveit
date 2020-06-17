@@ -1,9 +1,4 @@
 /*******************************************************************************
- *      Title     : jog_ros_interface.h
- *      Project   : moveit_jog_arm
- *      Created   : 3/9/2017
- *      Author    : Brian O'Neil, Blake Anderson, Andy Zelenak
- *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -36,25 +31,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-// Server node for arm jogging with MoveIt.
+/*      Title     : joint_state_subscriber.cpp
+ *      Project   : moveit_jog_arm
+ *      Created   : 06/11/2020
+ *      Author    : Tyler Weaver
+ */
 
-#pragma once
-
-#include "jog_interface_base.h"
+#include <moveit_jog_arm/joint_state_subscriber.h>
 
 namespace moveit_jog_arm
 {
-/**
- * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs and creates the worker threads.
- */
-class JogROSInterface : protected JogInterfaceBase
-{
-public:
-  JogROSInterface();
+constexpr char LOGNAME[] = "joint_state_subscriber";
 
-private:
-  // ROS subscriber callbacks
-  void deltaCartesianCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void deltaJointCmdCB(const control_msgs::JointJogConstPtr& msg);
-};
+// Constructor for the class that handles collision checking
+JointStateSubscriber::JointStateSubscriber(ros::NodeHandle& nh, const std::string& joint_state_topic_name)
+{
+  // subscribe to joints
+  joint_state_sub_ = nh.subscribe(joint_state_topic_name, ROS_QUEUE_SIZE, &JointStateSubscriber::jointStateCB, this);
+
+  // Wait for initial messages
+  ROS_INFO_NAMED(LOGNAME, "Waiting for first joint msg.");
+  ros::topic::waitForMessage<sensor_msgs::JointState>(joint_state_topic_name);
+  ROS_INFO_NAMED(LOGNAME, "Received first joint msg.");
+}
+
+sensor_msgs::JointStateConstPtr JointStateSubscriber::getLatest() const
+{
+  const std::lock_guard<std::mutex> lock(joint_state_mutex_);
+  return latest_joint_state_;
+}
+
+void JointStateSubscriber::jointStateCB(const sensor_msgs::JointStateConstPtr& msg)
+{
+  const std::lock_guard<std::mutex> lock(joint_state_mutex_);
+  latest_joint_state_ = msg;
+}
+
 }  // namespace moveit_jog_arm

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_arm_data.h
+ *      Title     : jog_arm_parameters.h
  *      Project   : moveit_jog_arm
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -38,78 +38,13 @@
 
 #pragma once
 
-// System
-#include <mutex>
-#include <thread>
-
-// Eigen
-#include <Eigen/Geometry>
-
-// ROS
-#include <control_msgs/JointJog.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <sensor_msgs/JointState.h>
-#include <trajectory_msgs/JointTrajectory.h>
-
-// moveit_jog_arm
-#include "status_codes.h"
-
 namespace moveit_jog_arm
 {
-// Variables to share between threads
-// Inherit from a mutex so the struct can be locked/unlocked easily
-struct JogArmShared : public std::mutex
-{
-  geometry_msgs::TwistStamped command_deltas;
+// Size of queues used in ros pub/sub/service
+constexpr size_t ROS_QUEUE_SIZE = 2;
 
-  control_msgs::JointJog joint_command_deltas;
-
-  sensor_msgs::JointState joints;
-
-  // The collision check thread throttles robot velocity via this variable
-  std::atomic<double> collision_velocity_scale{ 1 };
-
-  // The jog thread communicates the minimum stopping time to the collision check thread via this variable
-  std::atomic<double> worst_case_stop_time{ std::numeric_limits<double>::max() };
-
-  // Flag a valid incoming Cartesian command having nonzero velocities
-  bool have_nonzero_cartesian_cmd = false;
-
-  // Flag a valid incoming joint angle command having nonzero velocities
-  bool have_nonzero_joint_cmd = false;
-
-  // Indicates that we have not received a new command in some time
-  bool command_is_stale = false;
-
-  // The new command which is calculated
-  trajectory_msgs::JointTrajectory outgoing_command;
-
-  // Timestamp of incoming commands
-  ros::Time latest_nonzero_cmd_stamp = ros::Time(0.);
-
-  // Indicates no collision, etc, so outgoing commands can be sent
-  bool ok_to_publish = false;
-
-  // The transform from the MoveIt planning frame to robot_link_command_frame
-  Eigen::Isometry3d tf_moveit_to_cmd_frame;
-
-  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::atomic_bool drift_dimensions[6] = { ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false),
-                                           ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false), ATOMIC_VAR_INIT(false) };
-
-  // Status of the jogger. 0 for no warning. The meaning of nonzero values can be seen in status_codes.h
-  std::atomic<StatusCode> status;
-
-  // Pause/unpause jog threads - threads are not paused by default
-  std::atomic<bool> paused{ false };
-
-  // Stop jog loop threads - threads are not stopped by default
-  std::atomic<bool> stop_requested{ false };
-
-  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-  std::atomic_bool control_dimensions[6] = { ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true),
-                                             ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true), ATOMIC_VAR_INIT(true) };
-};
+// Seconds to throttle logs inside loops
+constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;
 
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct JogArmParameters
@@ -147,4 +82,5 @@ struct JogArmParameters
   double collision_distance_safety_factor;
   double min_allowable_collision_distance;
 };
+
 }  // namespace moveit_jog_arm
