@@ -36,6 +36,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
+#pragma once
+
 #include <memory>
 
 #include <moveit_jog_arm/collision_check.h>
