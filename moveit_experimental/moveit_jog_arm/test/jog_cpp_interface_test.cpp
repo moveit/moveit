@@ -163,7 +163,7 @@ TEST_F(JogArmFixture, SendJointJogTest)
 
   ros::Rate publish_rate(1. / publish_period);
 
-  // Send a few Cartesian velocity commands
+  // Send a few joint velocity commands
   for (size_t i = 0; i < num_commands && ros::ok(); ++i)
   {
     auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
