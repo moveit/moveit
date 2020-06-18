@@ -194,7 +194,6 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
   }
   pcl::toROSMsg(point_cloud, point_cloud_msg);
   */
-  point_cloud_msg.header.stamp = ros::Time::now();
   point_cloud_msg.header.frame_id = "world";
   point_cloud_msg.height = 1;
   point_cloud_msg.width = 8;
@@ -228,6 +227,7 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
   point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/head_mount_kinect/depth_registered/points", 10);
   for (int i = 0; i < 10; i++)
   {
+    point_cloud_msg.header.stamp = ros::Time::now();
     point_cloud_pub.publish(point_cloud_msg);
     ros::WallDuration(0.1).sleep();
   }
@@ -248,9 +248,11 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
 
   planning_scene_monitor->clearOctomap();
 
-  planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor)
-      ->getCollisionEnv()
-      ->checkRobotCollision(collision_request, collision_result, target_state);
+  {
+    planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor)
+        ->getCollisionEnv()
+        ->checkRobotCollision(collision_request, collision_result, target_state);
+  }
 
   target_state.setFromIK(jmg_ptr, target_pose1.pose);
 
