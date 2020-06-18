@@ -50,13 +50,6 @@
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/PointCloud2.h>
 
-/* only needed to generate the PointCloud2 message
-// PCL
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
-*/
-
 namespace moveit
 {
 namespace planning_interface
@@ -179,49 +172,28 @@ TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
 TEST_F(MoveItCppTest, TestPlanWithOctomap)
 {
   sensor_msgs::PointCloud2 point_cloud_msg;
-  /*
-  // Generate point cloud (cube)
-  pcl::PointCloud<pcl::PointXYZ> point_cloud;
-  point_cloud.width = 8;
-  point_cloud.height = 1;
-  point_cloud.is_dense = true;
-  point_cloud.points.resize(point_cloud.width * point_cloud.height);
-  for (int i = 0; i < 8; i++)
-  {
-    point_cloud.points[i].x = 0.1 * ((i >> 0) & 1);
-    point_cloud.points[i].y = 0.1 * ((i >> 1) & 1);
-    point_cloud.points[i].z = 0.1 * ((i >> 2) & 1);
-  }
-  pcl::toROSMsg(point_cloud, point_cloud_msg);
-  */
+  sensor_msgs::PointCloud2Modifier point_cloud_mod(point_cloud_msg);
+
   point_cloud_msg.header.frame_id = "world";
   point_cloud_msg.height = 1;
   point_cloud_msg.width = 8;
-  point_cloud_msg.fields.resize(3);
-  point_cloud_msg.fields[0].name = "x";
-  point_cloud_msg.fields[1].name = "y";
-  point_cloud_msg.fields[2].name = "z";
-  for (int i = 0; i < 3; i++)
-  {
-    point_cloud_msg.fields[i].offset = 4 * i;
-    point_cloud_msg.fields[i].datatype = 7;
-    point_cloud_msg.fields[i].count = 1;
-  }
   point_cloud_msg.is_bigendian = false;
-  point_cloud_msg.point_step = 16;
-  point_cloud_msg.row_step = 128;
-  point_cloud_msg.data.resize(128);
-  uint8_t point_cloud_data[] = { 0,   0,   0,   0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0, 128, 63,
-                                 205, 204, 204, 61, 0,   0,   0,   0,  0,   0,   0,   0,  0, 0, 128, 63,
-                                 0,   0,   0,   0,  205, 204, 204, 61, 0,   0,   0,   0,  0, 0, 128, 63,
-                                 205, 204, 204, 61, 205, 204, 204, 61, 0,   0,   0,   0,  0, 0, 128, 63,
-                                 0,   0,   0,   0,  0,   0,   0,   0,  205, 204, 204, 61, 0, 0, 128, 63,
-                                 205, 204, 204, 61, 0,   0,   0,   0,  205, 204, 204, 61, 0, 0, 128, 63,
-                                 0,   0,   0,   0,  205, 204, 204, 61, 205, 204, 204, 61, 0, 0, 128, 63,
-                                 205, 204, 204, 61, 205, 204, 204, 61, 205, 204, 204, 61, 0, 0, 128, 63 };
-  for (int i = 0; i < 128; i++)
-    point_cloud_msg.data[i] = point_cloud_data[i];
   point_cloud_msg.is_dense = true;
+
+  point_cloud_mod.setPointCloud2FieldsByString(3, "x", 1, sensor_msgs::PointField::FLOAT32, "y", 1,
+                                               sensor_msgs::PointField::FLOAT32, "z", 1,
+                                               sensor_msgs::PointField::FLOAT32);
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(point_cloud_msg, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(point_cloud_msg, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(point_cloud_msg, "z");
+
+  for (int i = 0; i < 8; ++i, ++iter_x, ++iter_y, ++iter_z)
+  {
+    *iter_x = 0.1 * ((i >> 0) & 1);
+    *iter_y = 0.1 * ((i >> 1) & 1);
+    *iter_z = 0.1 * ((i >> 2) & 1);
+  }
 
   ros::Publisher point_cloud_pub;
   point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/head_mount_kinect/depth_registered/points", 10);

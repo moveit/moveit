@@ -40,8 +40,4 @@
   <test_depend>moveit_resources</test_depend>
   <test_depend>rostest</test_depend>
   <test_depend>eigen_conversions</test_depend>
-  <!-- PCL only required to generate point cloud message in test
-  <test_depend>pcl</test_depend>
-  <test_depend>pcl_conversions</test_depend>
-  -->
 </package>
