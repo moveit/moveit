@@ -49,6 +49,7 @@
 // Msgs
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace moveit
 {
@@ -180,9 +181,8 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
   point_cloud_msg.is_bigendian = false;
   point_cloud_msg.is_dense = true;
 
-  point_cloud_mod.setPointCloud2FieldsByString(3, "x", 1, sensor_msgs::PointField::FLOAT32, "y", 1,
-                                               sensor_msgs::PointField::FLOAT32, "z", 1,
-                                               sensor_msgs::PointField::FLOAT32);
+  point_cloud_mod.setPointCloud2Fields(3, "x", 1, sensor_msgs::PointField::FLOAT32, "y", 1,
+                                       sensor_msgs::PointField::FLOAT32, "z", 1, sensor_msgs::PointField::FLOAT32);
 
   sensor_msgs::PointCloud2Iterator<float> iter_x(point_cloud_msg, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y(point_cloud_msg, "y");
