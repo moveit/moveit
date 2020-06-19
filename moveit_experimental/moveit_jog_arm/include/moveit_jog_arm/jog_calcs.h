@@ -234,6 +234,8 @@ private:
 
   std::vector<LowPassFilter> position_filters_;
 
+  trajectory_msgs::JointTrajectoryConstPtr last_sent_command_;
+
   // ROS
   ros::Timer timer_;
   ros::Duration period_;

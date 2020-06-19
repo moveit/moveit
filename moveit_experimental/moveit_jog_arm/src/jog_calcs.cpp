@@ -245,6 +245,15 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       return;
     }
   }
+  else
+  {
+    // Joint trajectory is not populated with anything, so set it to the last positions and 0 velocity
+    *joint_trajectory = *last_sent_command_;
+    for (auto point : joint_trajectory->points)
+    {
+      point.velocities.assign(point.velocities.size(), 0);
+    }
+  }
 
   // Print a warning to the user if both are stale
   if (!twist_command_is_stale_ || !joint_command_is_stale_)
@@ -305,6 +314,8 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
         joints->data = joint_trajectory->points[0].velocities;
       outgoing_cmd_pub_.publish(joints);
     }
+
+    last_sent_command_ = joint_trajectory;
   }
 
   // Update the filters if we haven't yet
