@@ -298,9 +298,9 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
       auto joints = moveit::util::make_shared_from_pool<std_msgs::Float64MultiArray>();
-      if (parameters_.publish_joint_positions)
+      if (parameters_.publish_joint_positions && !joint_trajectory->points.empty())
         joints->data = joint_trajectory->points[0].positions;
-      else if (parameters_.publish_joint_velocities)
+      else if (parameters_.publish_joint_velocities && !joint_trajectory->points.empty())
         joints->data = joint_trajectory->points[0].velocities;
       outgoing_cmd_pub_.publish(joints);
     }
