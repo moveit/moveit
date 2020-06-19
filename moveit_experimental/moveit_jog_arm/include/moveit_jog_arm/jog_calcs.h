@@ -251,7 +251,8 @@ private:
   StatusCode status_ = StatusCode::NO_WARNING;
   bool stop_requested_ = false;
   bool paused_ = false;
-  bool command_is_stale_ = false;
+  bool twist_command_is_stale_ = false;
+  bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
 
@@ -277,7 +278,8 @@ private:
   Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_jog_;
-  ros::Time latest_command_stamp_ = ros::Time(0.);
+  ros::Time latest_twist_command_stamp_ = ros::Time(0.);
+  ros::Time latest_joint_command_stamp_ = ros::Time(0.);
   bool latest_nonzero_twist_stamped_ = false;
   bool latest_nonzero_joint_jog_ = false;
 };

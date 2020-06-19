@@ -189,8 +189,10 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
       joint_jog_ = *latest_joint_jog_;
 
     // Check for stale cmds
-    command_is_stale_ =
-        ((ros::Time::now() - latest_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
+    twist_command_is_stale_ =
+        ((ros::Time::now() - latest_twist_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
+    joint_command_is_stale_ =
+        ((ros::Time::now() - latest_joint_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
 
     have_nonzero_twist_stamped_ = latest_nonzero_twist_stamped_;
     have_nonzero_joint_jog_ = latest_nonzero_joint_jog_;
@@ -225,28 +227,27 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Create new outgoing joint trajectory command message
   auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
-  // If the input command isn't stale, run calculations
-  if (!command_is_stale_)
+  // Prioritize cartesian jogging above joint jogging
+  // Only run commands if not stale and nonzero
+  if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
-    // Prioritize cartesian jogging above joint jogging
-    if (have_nonzero_twist_stamped_)
+    if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
     {
-      if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
-      {
-        resetLowPassFilters(original_joint_state_);
-        return;
-      }
-    }
-    else if (have_nonzero_joint_jog_)
-    {
-      if (!jointJogCalcs(joint_jog_, *joint_trajectory))
-      {
-        resetLowPassFilters(original_joint_state_);
-        return;
-      }
+      resetLowPassFilters(original_joint_state_);
+      return;
     }
   }
-  else
+  else if (have_nonzero_joint_jog_ && !joint_command_is_stale_)
+  {
+    if (!jointJogCalcs(joint_jog_, *joint_trajectory))
+    {
+      resetLowPassFilters(original_joint_state_);
+      return;
+    }
+  }
+
+  // Print a warning to the user if both are stale
+  if (!twist_command_is_stale_ || !joint_command_is_stale_)
   {
     ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
                                                 "Try a larger 'incoming_command_timeout' parameter?");
@@ -956,7 +957,7 @@ void JogCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
   latest_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
 
   if (msg->header.stamp != ros::Time(0.))
-    latest_command_stamp_ = msg->header.stamp;
+    latest_twist_command_stamp_ = msg->header.stamp;
 }
 
 void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
@@ -966,7 +967,7 @@ void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
   latest_nonzero_joint_jog_ = isNonZero(*latest_joint_jog_);
 
   if (msg->header.stamp != ros::Time(0.))
-    latest_command_stamp_ = msg->header.stamp;
+    latest_joint_command_stamp_ = msg->header.stamp;
 }
 
 void JogCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
