@@ -492,10 +492,10 @@ void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraject
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
   // Start from 2 because we already have the first point. End at count+1 so (total #) == count
-  for (int i = 2; i < count + 1; ++i)
+  for (int i = 2; i < count; ++i)
   {
     point.time_from_start = ros::Duration(i * parameters_.publish_period);
-    joint_trajectory.points.push_back(point);
+    joint_trajectory.points[i] = point;
   }
 }
 
