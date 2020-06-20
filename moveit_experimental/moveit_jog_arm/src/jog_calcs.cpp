@@ -888,6 +888,7 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
 Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
 {
   Eigen::VectorXd result(num_joints_);
+  result.setZero();
 
   std::size_t c;
   for (std::size_t m = 0; m < command.joint_names.size(); ++m)
