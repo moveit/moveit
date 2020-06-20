@@ -923,7 +923,7 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   {
     try
     {
-      output.position[i] += increments[static_cast<long>(i)];
+      output.position[i] += increments[i];
     }
     catch (const std::out_of_range& e)
     {
