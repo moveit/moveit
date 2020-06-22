@@ -218,8 +218,8 @@ private:
   bool have_nonzero_command_ = false;
 
   // Incoming command messages
-  geometry_msgs::TwistStamped twist_stamped_;
-  control_msgs::JointJog joint_jog_;
+  geometry_msgs::TwistStamped twist_stamped_cmd_;
+  control_msgs::JointJog joint_jog_cmd_;
 
   const moveit::core::JointModelGroup* joint_model_group_;
 

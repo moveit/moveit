@@ -211,9 +211,9 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   {
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
     if (latest_twist_stamped_)
-      twist_stamped_ = *latest_twist_stamped_;
+      twist_stamped_cmd_ = *latest_twist_stamped_;
     if (latest_joint_jog_)
-      joint_jog_ = *latest_joint_jog_;
+      joint_jog_cmd_ = *latest_joint_jog_;
 
     // Check for stale cmds
     twist_command_is_stale_ =
@@ -243,7 +243,8 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     resetLowPassFilters(original_joint_state_);
 
     // Check if there are any new commands with valid timestamp
-    wait_for_jog_commands_ = twist_stamped_.header.stamp == ros::Time(0.) && joint_jog_.header.stamp == ros::Time(0.);
+    wait_for_jog_commands_ =
+        twist_stamped_cmd_.header.stamp == ros::Time(0.) && joint_jog_cmd_.header.stamp == ros::Time(0.);
 
     // Early exit
     return;
@@ -258,7 +259,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
-    if (!cartesianJogCalcs(twist_stamped_, *joint_trajectory))
+    if (!cartesianJogCalcs(twist_stamped_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
       return;
@@ -266,7 +267,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
   else if (have_nonzero_joint_jog_ && !joint_command_is_stale_)
   {
-    if (!jointJogCalcs(joint_jog_, *joint_trajectory))
+    if (!jointJogCalcs(joint_jog_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
       return;
