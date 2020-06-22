@@ -114,7 +114,6 @@ private:
    * Is handled differently for position vs. velocity control.
    */
   void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
-  void suddenHalt(Eigen::ArrayXd& delta_theta);
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
   void enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta);
@@ -127,7 +126,7 @@ private:
    */
   double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
                                              const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                             const Eigen::MatrixXd& jacobian, const Eigen::MatrixXd& pseudo_inverse);
+                                             const Eigen::MatrixXd& pseudo_inverse);
 
   /**
    * Slow motion down if close to singularity or collision.
@@ -137,11 +136,14 @@ private:
   void applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
-  void composeJointTrajMessage(sensor_msgs::JointState& joint_state,
+  void composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
                                trajectory_msgs::JointTrajectory& joint_trajectory) const;
 
   /** \brief Smooth position commands with a lowpass filter */
   void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
+
+  /** \brief Set the filters to the specified values */
+  void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
   /** \brief Convert an incremental position command to joint velocity message */
   void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
@@ -207,14 +209,17 @@ private:
   // Flag for staying inactive while there are no incoming commands
   bool wait_for_jog_commands_ = true;
 
+  // Flag saying if the filters were updated during the timer callback
+  bool updated_filters_ = false;
+
   // Nonzero status flags
   bool have_nonzero_twist_stamped_ = false;
   bool have_nonzero_joint_jog_ = false;
   bool have_nonzero_command_ = false;
 
   // Incoming command messages
-  geometry_msgs::TwistStamped twist_stamped_;
-  control_msgs::JointJog joint_jog_;
+  geometry_msgs::TwistStamped twist_stamped_cmd_;
+  control_msgs::JointJog joint_jog_cmd_;
 
   const moveit::core::JointModelGroup* joint_model_group_;
 
@@ -228,6 +233,8 @@ private:
   std::map<std::string, std::size_t> joint_state_name_map_;
 
   std::vector<LowPassFilter> position_filters_;
+
+  trajectory_msgs::JointTrajectoryConstPtr last_sent_command_;
 
   // ROS
   ros::Timer timer_;
@@ -246,7 +253,8 @@ private:
   StatusCode status_ = StatusCode::NO_WARNING;
   bool stop_requested_ = false;
   bool paused_ = false;
-  bool command_is_stale_ = false;
+  bool twist_command_is_stale_ = false;
+  bool joint_command_is_stale_ = false;
   bool ok_to_publish_ = false;
   double collision_velocity_scale_ = 1.0;
 
@@ -269,9 +277,12 @@ private:
 
   // latest_state_mutex_ is used to protect the state below it
   mutable std::mutex latest_state_mutex_;
-  Eigen::Isometry3d tf_moveit_to_cmd_frame_;
+  Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
   control_msgs::JointJogConstPtr latest_joint_jog_;
-  ros::Time latest_command_stamp_ = ros::Time(0.);
+  ros::Time latest_twist_command_stamp_ = ros::Time(0.);
+  ros::Time latest_joint_command_stamp_ = ros::Time(0.);
+  bool latest_nonzero_twist_stamped_ = false;
+  bool latest_nonzero_joint_jog_ = false;
 };
 }  // namespace moveit_jog_arm
