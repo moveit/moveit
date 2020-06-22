@@ -128,6 +128,33 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const JogArmParameters& parameters,
   num_joints_ = internal_joint_state_.name.size();
   internal_joint_state_.position.resize(num_joints_);
   internal_joint_state_.velocity.resize(num_joints_);
+
+  // Set up the "last" published message, in case we need to send it first
+  auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+  auto latest_joints = joint_state_subscriber_->getLatest();
+  initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
+  initial_joint_trajectory->header.stamp = ros::Time::now();
+  initial_joint_trajectory->joint_names = internal_joint_state_.name;
+  trajectory_msgs::JointTrajectoryPoint point;
+  point.time_from_start = ros::Duration(parameters_.publish_period);
+  if (parameters_.publish_joint_positions)
+    point.positions = latest_joints->position;
+  if (parameters_.publish_joint_velocities)
+  {
+    std::vector<double> velocity(num_joints_);
+    point.velocities = velocity;
+  }
+  if (parameters_.publish_joint_accelerations)
+  {
+    // I do not know of a robot that takes acceleration commands.
+    // However, some controllers check that this data is non-empty.
+    // Send all zeros, for now.
+    std::vector<double> acceleration(num_joints_);
+    point.accelerations = acceleration;
+  }
+  initial_joint_trajectory->points.push_back(point);
+  last_sent_command_ = initial_joint_trajectory;
+
   // A map for the indices of incoming joint commands
   for (std::size_t i = 0; i < num_joints_; ++i)
   {
