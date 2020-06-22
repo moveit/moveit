@@ -226,6 +226,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
 
   // Get the transform from MoveIt planning frame to jogging command frame
+  // Calculate this transform to ensure it is available via C++ API
   // We solve (planning_frame -> base -> robot_link_command_frame)
   // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
   tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
