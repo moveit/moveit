@@ -11,5 +11,5 @@
   </node>
 
   <param name="test_module" value="$(find moveit_servo)/test/python_tests/halt_msg" />
-  <test test-name="jog_arm_halt_msg_test" pkg="ros_pytest" type="ros_pytest_runner" />
+  <test test-name="servo_halt_msg_test" pkg="ros_pytest" type="ros_pytest_runner" />
 </launch>
