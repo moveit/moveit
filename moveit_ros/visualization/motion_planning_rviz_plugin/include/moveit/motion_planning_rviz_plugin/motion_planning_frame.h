@@ -172,8 +172,8 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
-  void import3DObjectFromFileButtonClicked();
-  void import3DObjectFromUrlButtonClicked();
+  void importObjectFromFileButtonClicked();
+  void importObjectFromUrlButtonClicked();
   void clearSceneButtonClicked();
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();

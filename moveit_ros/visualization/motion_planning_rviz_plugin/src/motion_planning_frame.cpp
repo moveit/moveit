@@ -105,8 +105,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
-  connect(ui_->import_3d_obj_file_button, SIGNAL(clicked()), this, SLOT(import3DObjectFromFileButtonClicked()));
-  connect(ui_->import_3d_obj_url_button, SIGNAL(clicked()), this, SLOT(import3DObjectFromUrlButtonClicked()));
+  connect(ui_->import_object_file_button, SIGNAL(clicked()), this, SLOT(importObjectFromFileButtonClicked()));
+  connect(ui_->import_object_url_button, SIGNAL(clicked()), this, SLOT(importObjectFromUrlButtonClicked()));
   connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
@@ -548,7 +548,7 @@ void MotionPlanningFrame::importResource(const std::string& path)
     }
     else
     {
-      QMessageBox::warning(this, QString("Import error"), QString("Unable to import 3D object"));
+      QMessageBox::warning(this, QString("Import error"), QString("Unable to import object"));
       return;
     }
   }
