@@ -61,12 +61,12 @@
 
 namespace moveit_servo
 {
-class JogCalcs
+class ServoCalcs
 {
 public:
-  JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
-           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-           const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
+  ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+             const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+             const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber);
 
   /** \brief Start and stop the timer where we do work and publish outputs */
   void start();
@@ -89,10 +89,10 @@ private:
   void run(const ros::TimerEvent& timer_event);
 
   /** \brief Do servoing calculations for Cartesian twist commands. */
-  bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
+  bool cartesianServoCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Do servoing calculations for direct commands to a joint. */
-  bool jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
+  bool jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
   bool updateJoints();

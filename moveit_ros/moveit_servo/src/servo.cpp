@@ -54,7 +54,7 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
 
   joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
 
-  jog_calcs_ = std::make_unique<JogCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
+  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
 
   collision_checker_ =
       std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
@@ -279,7 +279,7 @@ void Servo::start()
   setPaused(false);
 
   // Crunch the numbers in this timer
-  jog_calcs_->start();
+  servo_calcs_->start();
 
   // Check collisions in this timer
   if (parameters_.check_collisions)
@@ -288,7 +288,7 @@ void Servo::start()
 
 void Servo::stop()
 {
-  jog_calcs_->stop();
+  servo_calcs_->stop();
   collision_checker_->stop();
 }
 
@@ -299,13 +299,13 @@ Servo::~Servo()
 
 void Servo::setPaused(bool paused)
 {
-  jog_calcs_->setPaused(paused);
+  servo_calcs_->setPaused(paused);
   collision_checker_->setPaused(paused);
 }
 
 bool Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
-  return jog_calcs_->getCommandFrameTransform(transform);
+  return servo_calcs_->getCommandFrameTransform(transform);
 }
 
 const ServoParameters& Servo::getParameters() const

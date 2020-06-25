@@ -70,9 +70,9 @@ bool isNonZero(const control_msgs::JointJog& msg)
 }  // namespace
 
 // Constructor for the class that handles servoing calculations
-JogCalcs::JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
-                   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                   const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
+ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
+                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
@@ -95,23 +95,23 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
 
   // Subscribe to command topics
   twist_stamped_sub_ =
-      nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::twistStampedCB, this);
-  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &JogCalcs::jointJogCB, this);
+      nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::twistStampedCB, this);
+  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::jointJogCB, this);
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
       nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_drift_dimensions",
-                           &JogCalcs::changeDriftDimensions, this);
+                           &ServoCalcs::changeDriftDimensions, this);
 
   // ROS Server for changing the control dimensions
   control_dimensions_server_ =
       nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
-                           &JogCalcs::changeControlDimensions, this);
+                           &ServoCalcs::changeControlDimensions, this);
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
   collision_velocity_scale_sub_ =
-      internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &JogCalcs::collisionVelocityScaleCB, this);
+      internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE, &ServoCalcs::collisionVelocityScaleCB, this);
   worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>("worst_case_stop_time", ROS_QUEUE_SIZE);
 
   // Publish freshly-calculated joints to the robot.
@@ -168,19 +168,19 @@ JogCalcs::JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   }
 }
 
-void JogCalcs::start()
+void ServoCalcs::start()
 {
   stop_requested_ = false;
-  timer_ = nh_.createTimer(period_, &JogCalcs::run, this);
+  timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
 }
 
-void JogCalcs::stop()
+void ServoCalcs::stop()
 {
   stop_requested_ = true;
   timer_.stop();
 }
 
-void JogCalcs::run(const ros::TimerEvent& timer_event)
+void ServoCalcs::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
   if (timer_event.profile.last_duration.toSec() > period_.toSec())
@@ -260,7 +260,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
-    if (!cartesianJogCalcs(twist_stamped_cmd_, *joint_trajectory))
+    if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
       return;
@@ -268,7 +268,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
   else if (have_nonzero_joint_jog_ && !joint_command_is_stale_)
   {
-    if (!jointJogCalcs(joint_jog_cmd_, *joint_trajectory))
+    if (!jointServoCalcs(joint_jog_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
       return;
@@ -352,7 +352,8 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     resetLowPassFilters(original_joint_state_);
 }
 // Perform the servoing calculations
-bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
+bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
+                                     trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's in the incoming command
   if (std::isnan(cmd.twist.linear.x) || std::isnan(cmd.twist.linear.y) || std::isnan(cmd.twist.linear.z) ||
@@ -462,7 +463,7 @@ bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_ms
   return convertDeltasToOutgoingCmd(joint_trajectory);
 }
 
-bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
+bool ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's
   for (double velocity : cmd.velocities)
@@ -485,7 +486,7 @@ bool JogCalcs::jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs:
   return convertDeltasToOutgoingCmd(joint_trajectory);
 }
 
-bool JogCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory)
+bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   internal_joint_state_ = original_joint_state_;
   if (!addJointIncrements(internal_joint_state_, delta_theta_))
@@ -516,7 +517,8 @@ bool JogCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& join
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
 // Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
-void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
+void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory,
+                                                     int count) const
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
@@ -528,7 +530,7 @@ void JogCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTraject
   }
 }
 
-void JogCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
+void ServoCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
 {
   for (size_t i = 0; i < position_filters_.size(); ++i)
   {
@@ -538,7 +540,7 @@ void JogCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
   updated_filters_ = true;
 }
 
-void JogCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
+void ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
 {
   for (std::size_t i = 0; i < position_filters_.size(); ++i)
   {
@@ -548,7 +550,7 @@ void JogCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
   updated_filters_ = true;
 }
 
-void JogCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta)
+void ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta)
 {
   for (int i = 0; i < delta_theta.size(); ++i)
   {
@@ -556,8 +558,8 @@ void JogCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state, co
   }
 }
 
-void JogCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
-                                       trajectory_msgs::JointTrajectory& joint_trajectory) const
+void ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
+                                         trajectory_msgs::JointTrajectory& joint_trajectory) const
 {
   joint_trajectory.header.frame_id = parameters_.planning_frame;
   joint_trajectory.header.stamp = ros::Time::now();
@@ -581,7 +583,7 @@ void JogCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_stat
 }
 
 // Apply velocity scaling for proximity of collisions and singularities.
-void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale)
+void ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale)
 {
   double collision_scale = collision_velocity_scale_;
 
@@ -599,9 +601,9 @@ void JogCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singular
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
-double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
-                                                     const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-                                                     const Eigen::MatrixXd& pseudo_inverse)
+double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
+                                                       const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
+                                                       const Eigen::MatrixXd& pseudo_inverse)
 {
   double velocity_scale = 1;
   std::size_t num_dimensions = commanded_velocity.size();
@@ -666,7 +668,7 @@ double JogCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& comm
   return velocity_scale;
 }
 
-void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
+void ServoCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
 {
   Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
   const Eigen::ArrayXd acceleration = (velocity - prev_joint_velocity_) / parameters_.publish_period;
@@ -740,7 +742,7 @@ void JogCalcs::enforceSRDFAccelVelLimits(Eigen::ArrayXd& delta_theta)
   }
 }
 
-bool JogCalcs::enforceSRDFPositionLimits()
+bool ServoCalcs::enforceSRDFPositionLimits()
 {
   bool halting = false;
 
@@ -782,7 +784,7 @@ bool JogCalcs::enforceSRDFPositionLimits()
 
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
-void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
+void ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   if (joint_trajectory.points.empty())
   {
@@ -804,7 +806,7 @@ void JogCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
 }
 
 // Parse the incoming joint msg for the joints of our MoveGroup
-bool JogCalcs::updateJoints()
+bool ServoCalcs::updateJoints()
 {
   sensor_msgs::JointStateConstPtr latest_joint_state = joint_state_subscriber_->getLatest();
 
@@ -884,7 +886,7 @@ bool JogCalcs::updateJoints()
 }
 
 // Scale the incoming jog command
-Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const
+Eigen::VectorXd ServoCalcs::scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const
 {
   Eigen::VectorXd result(6);
 
@@ -914,7 +916,7 @@ Eigen::VectorXd JogCalcs::scaleCartesianCommand(const geometry_msgs::TwistStampe
   return result;
 }
 
-Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
+Eigen::VectorXd ServoCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
 {
   Eigen::VectorXd result(num_joints_);
   result.setZero();
@@ -946,7 +948,7 @@ Eigen::VectorXd JogCalcs::scaleJointCommand(const control_msgs::JointJog& comman
 }
 
 // Add the deltas to each joint
-bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const
+bool ServoCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const
 {
   for (std::size_t i = 0, size = static_cast<std::size_t>(increments.size()); i < size; ++i)
   {
@@ -966,7 +968,7 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   return true;
 }
 
-void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
+void ServoCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta_x, unsigned int row_to_remove)
 {
   unsigned int num_rows = jacobian.rows() - 1;
   unsigned int num_cols = jacobian.cols();
@@ -982,7 +984,7 @@ void JogCalcs::removeDimension(Eigen::MatrixXd& jacobian, Eigen::VectorXd& delta
   delta_x.conservativeResize(num_rows);
 }
 
-bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
+bool ServoCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   transform = tf_moveit_to_robot_cmd_frame_;
@@ -991,7 +993,7 @@ bool JogCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
   return !transform.matrix().isZero(0);
 }
 
-void JogCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
+void ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_twist_stamped_ = msg;
@@ -1001,7 +1003,7 @@ void JogCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
     latest_twist_command_stamp_ = msg->header.stamp;
 }
 
-void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
+void ServoCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
   latest_joint_jog_ = msg;
@@ -1011,13 +1013,13 @@ void JogCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
     latest_joint_command_stamp_ = msg->header.stamp;
 }
 
-void JogCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
+void ServoCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
 {
   collision_velocity_scale_ = msg->data;
 }
 
-bool JogCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-                                     moveit_msgs::ChangeDriftDimensions::Response& res)
+bool ServoCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
+                                       moveit_msgs::ChangeDriftDimensions::Response& res)
 {
   drift_dimensions_[0] = req.drift_x_translation;
   drift_dimensions_[1] = req.drift_y_translation;
@@ -1030,8 +1032,8 @@ bool JogCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request
   return true;
 }
 
-bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-                                       moveit_msgs::ChangeControlDimensions::Response& res)
+bool ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
+                                         moveit_msgs::ChangeControlDimensions::Response& res)
 {
   control_dimensions_[0] = req.control_x_translation;
   control_dimensions_[1] = req.control_y_translation;
@@ -1044,7 +1046,7 @@ bool JogCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Req
   return true;
 }
 
-void JogCalcs::setPaused(bool paused)
+void ServoCalcs::setPaused(bool paused)
 {
   paused_ = paused;
 }

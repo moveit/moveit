@@ -93,7 +93,7 @@ private:
   ServoParameters parameters_;
 
   std::shared_ptr<JointStateSubscriber> joint_state_subscriber_;
-  std::unique_ptr<JogCalcs> jog_calcs_;
+  std::unique_ptr<ServoCalcs> servo_calcs_;
   std::unique_ptr<CollisionCheck> collision_checker_;
 };
 
