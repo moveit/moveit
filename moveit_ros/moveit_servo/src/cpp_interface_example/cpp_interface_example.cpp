@@ -69,7 +69,7 @@ private:
 };
 
 /**
- * Instantiate the C++ jogging interface.
+ * Instantiate the C++ servo node interface.
  * Send some Cartesian commands, then some joint commands.
  */
 int main(int argc, char** argv)
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
       false /* skip octomap monitor */);
   planning_scene_monitor->startStateMonitor();
 
-  // Run the jogging C++ interface in a new timer to ensure a constant outgoing message rate.
+  // Run the servo node C++ interface in a new timer to ensure a constant outgoing message rate.
   moveit_servo::Servo servo(nh, planning_scene_monitor);
   servo.start();
 
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
   // Create publishers to send servo commands
   auto twist_stamped_pub =
       nh.advertise<geometry_msgs::TwistStamped>(servo.getParameters().cartesian_command_in_topic, 1);
-  auto joint_jog_pub = nh.advertise<control_msgs::JointJog>(servo.getParameters().joint_command_in_topic, 1);
+  auto joint_servo_pub = nh.advertise<control_msgs::JointJog>(servo.getParameters().joint_command_in_topic, 1);
 
   ros::Rate cmd_rate(100);
   uint num_commands = 0;
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
   while (ros::ok() && num_commands < 200)
   {
     // Make a Cartesian velocity message
-    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Messages are sent to servo node as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not copied we should not modify it after we send it.
     auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
     msg->header.stamp = ros::Time::now();
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
     ++num_commands;
   }
 
-  // Leave plenty of time for the jogger to halt its previous motion.
+  // Leave plenty of time for the servo node to halt its previous motion.
   // For a faster response, adjust the incoming_command_timeout yaml parameter
   ros::Duration(2).sleep();
 
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
   while (ros::ok() && num_commands < 200)
   {
     // Make a joint command
-    // Messages are sent to jogger as boost::shared_ptr to enable zero-copy message_passing.
+    // Messages are sent to servo node as boost::shared_ptr to enable zero-copy message_passing.
     // Because this message is not copied we should not modify it after we send it.
     auto msg = moveit::util::make_shared_from_pool<control_msgs::JointJog>();
     msg->header.stamp = ros::Time::now();
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
     msg->velocities.push_back(0.2);
 
     // Send the message
-    joint_jog_pub.publish(msg);
+    joint_servo_pub.publish(msg);
     cmd_rate.sleep();
     ++num_commands;
   }

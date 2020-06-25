@@ -3,7 +3,7 @@
   <name>moveit_servo</name>
   <version>1.1.0</version>
 
-  <description>Provides real-time manipulator Cartesian and joint jogging.</description>
+  <description>Provides real-time manipulator Cartesian and joint servoing.</description>
 
   <maintainer email="blakeanderson@utexas.edu">Blake Anderson</maintainer>
   <maintainer email="andyz@utexas.edu">Andy Zelenak</maintainer>

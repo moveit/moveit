@@ -2,7 +2,7 @@ teleop:
   cartesian_twist_command:
     type: topic
     message_type: geometry_msgs/TwistStamped
-    topic_name: servo_server/delta_jog_cmds
+    topic_name: servo_server/delta_twist_cmds
     axis_mappings:
       -
         axis: 0

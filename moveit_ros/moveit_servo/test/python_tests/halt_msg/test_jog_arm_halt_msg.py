@@ -14,14 +14,14 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import util
 
 # The robot starts at a singular position (see config file).
-# The jogger should halt and publish a warning.
-# Listen for a warning message from the jogger.
+# The servo node should halt and publish a warning.
+# Listen for a warning message from the servo node.
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_servo test_jog_arm_halt_msg.py
 
-CARTESIAN_JOG_COMMAND_TOPIC = 'servo_server/delta_jog_cmds'
+CARTESIAN_COMMAND_TOPIC = 'servo_server/delta_twist_cmds'
 
-# jog_arm should publish a nonzero warning code here
+# servo should publish a nonzero warning code here
 STATUS_TOPIC = 'servo_server/status'
 
 
@@ -30,10 +30,10 @@ def node():
     return rospy.init_node('pytest', anonymous=True)
 
 
-class CartesianJogCmd(object):
+class CartesianCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
-            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=10
+            CARTESIAN_COMMAND_TOPIC, TwistStamped, queue_size=10
         )
 
     def send_cmd(self, linear, angular):
@@ -44,16 +44,16 @@ class CartesianJogCmd(object):
         self._pub.publish(ts)
 
 
-def test_jog_arm_halt_msg(node):
-    assert util.wait_for_jogger_initialization()
+def test_servo_halt_msg(node):
+    assert util.wait_for_servo_initialization()
 
     received = []
     sub = rospy.Subscriber(
         STATUS_TOPIC, Int8, lambda msg: received.append(msg)
     )
-    cartesian_cmd = CartesianJogCmd()
+    cartesian_cmd = CartesianCmd()
 
-    # This nonzero command should produce jogging output
+    # This nonzero command should produce servoing output
     # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
     start_time = rospy.get_rostime()
@@ -69,4 +69,4 @@ def test_jog_arm_halt_msg(node):
 
 if __name__ == '__main__':
    node = node()
-   test_jog_arm_halt_msg(node)
+   test_servo_halt_msg(node)

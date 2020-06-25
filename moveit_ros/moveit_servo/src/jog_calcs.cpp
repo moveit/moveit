@@ -69,7 +69,7 @@ bool isNonZero(const control_msgs::JointJog& msg)
 }
 }  // namespace
 
-// Constructor for the class that handles jogging calculations
+// Constructor for the class that handles servoing calculations
 JogCalcs::JogCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
                    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
                    const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber)
@@ -225,7 +225,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     have_nonzero_joint_jog_ = latest_nonzero_joint_jog_;
   }
 
-  // Get the transform from MoveIt planning frame to jogging command frame
+  // Get the transform from MoveIt planning frame to servoing command frame
   // Calculate this transform to ensure it is available via C++ API
   // We solve (planning_frame -> base -> robot_link_command_frame)
   // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
@@ -252,11 +252,11 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   }
 
   // If not waiting for initial command, and not paused.
-  // Do jogging calculations only if the robot should move, for efficiency
+  // Do servoing calculations only if the robot should move, for efficiency
   // Create new outgoing joint trajectory command message
   auto joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
-  // Prioritize cartesian jogging above joint jogging
+  // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
   if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
   {
@@ -299,7 +299,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
     have_nonzero_joint_jog_ = false;
   }
 
-  // Skip the jogging publication if all inputs have been zero for several cycles in a row.
+  // Skip the servoing publication if all inputs have been zero for several cycles in a row.
   // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep republishing forever.
   if (!have_nonzero_command_ && (parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
       (zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
@@ -351,7 +351,7 @@ void JogCalcs::run(const ros::TimerEvent& timer_event)
   if (!updated_filters_)
     resetLowPassFilters(original_joint_state_);
 }
-// Perform the jogging calculations
+// Perform the servoing calculations
 bool JogCalcs::cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's in the incoming command

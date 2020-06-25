@@ -17,9 +17,9 @@ import util
 
 # Send a service call to allow drift in all but the y-dimension.
 # In other words, only the y-dimension will be controlled exactly.
-# Check that the service returns and the jog node continues to publish commands to the robot.
+# Check that the service returns and the servo node continues to publish commands to the robot.
 
-CARTESIAN_JOG_COMMAND_TOPIC = 'servo_server/delta_jog_cmds'
+CARTESIAN_COMMAND_TOPIC = 'servo_server/delta_twist_cmds'
 
 COMMAND_OUT_TOPIC = 'servo_server/command'
 
@@ -32,7 +32,7 @@ def node():
 
 
 def test_drift_dimensions_service(node):
-    assert util.wait_for_jogger_initialization()
+    assert util.wait_for_servo_initialization()
 
     # Service to change drift dimensions
     drift_service = rospy.ServiceProxy(SERVICE_NAME, ChangeDriftDimensions)

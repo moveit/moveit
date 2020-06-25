@@ -73,7 +73,7 @@ public:
   void start();
   void stop();
 
-  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
 
 private:

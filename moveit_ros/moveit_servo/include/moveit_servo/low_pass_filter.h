@@ -51,7 +51,7 @@ namespace moveit_servo
 class LowPassFilter
 {
 public:
-  // Larger filter_coeff-> more smoothing of jog commands, but more lag.
+  // Larger filter_coeff-> more smoothing of servo commands, but more lag.
   // Rough plot, with cutoff frequency on the y-axis:
   // https://www.wolframalpha.com/input/?i=plot+arccot(c)
   explicit LowPassFilter(double low_pass_filter_coeff);

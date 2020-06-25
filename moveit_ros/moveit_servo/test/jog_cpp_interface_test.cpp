@@ -140,7 +140,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   servo_->stop();
 }
 
-TEST_F(ServoFixture, SendJointJogTest)
+TEST_F(ServoFixture, SendJointServoTest)
 {
   servo_->start();
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
@@ -154,7 +154,7 @@ TEST_F(ServoFixture, SendJointJogTest)
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send servo commands
-  auto joint_jog_pub = nh_.advertise<control_msgs::JointJog>(parameters.joint_command_in_topic, 1);
+  auto joint_servo_pub = nh_.advertise<control_msgs::JointJog>(parameters.joint_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
   const double publish_period = parameters.publish_period;
@@ -171,7 +171,7 @@ TEST_F(ServoFixture, SendJointJogTest)
     msg->velocities.push_back(0.1);
 
     // Send the message
-    joint_jog_pub.publish(msg);
+    joint_servo_pub.publish(msg);
     publish_rate.sleep();
   }
 

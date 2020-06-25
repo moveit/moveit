@@ -70,16 +70,16 @@ int main(int argc, char** argv)
       false /* skip octomap monitor */);
   planning_scene_monitor->startStateMonitor();
 
-  // Create the jog server
+  // Create the servo server
   moveit_servo::Servo servo(nh, planning_scene_monitor);
 
-  // Start the jog server (runs in the ros spinner)
+  // Start the servo server (runs in the ros spinner)
   servo.start();
 
   // Wait for ros to shutdown
   ros::waitForShutdown();
 
-  // Stop the jog server
+  // Stop the servo server
   servo.stop();
 
   return 0;
