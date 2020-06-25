@@ -42,7 +42,7 @@
 
 #include <moveit_servo/collision_check.h>
 #include <moveit_servo/servo_parameters.h>
-#include <moveit_servo/jog_calcs.h>
+#include <moveit_servo/servo_calcs.h>
 #include <moveit_servo/joint_state_subscriber.h>
 
 namespace moveit_servo
