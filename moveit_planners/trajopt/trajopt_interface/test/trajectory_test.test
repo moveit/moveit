@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <include file="$(find moveit_planners_trajopt)/test/panda.launch"/>
+
+  <!-- Run Test -->
+  <test pkg="moveit_planners_trajopt" type="trajectory_test" test-name="trajectory_test" time-limit="300" args="" />
+
+</launch>
