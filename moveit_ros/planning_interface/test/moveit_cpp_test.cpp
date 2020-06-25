@@ -225,6 +225,8 @@ TEST_F(MoveItCppTest, TestPlanWithOctomap)
         ->getCollisionEnv()
         ->checkRobotCollision(collision_request, collision_result, target_state);
   }
+  // No collision with empty octomap
+  ASSERT_TRUE(!collision_result.collision);
 
   target_state.setFromIK(jmg_ptr, target_pose1.pose);
 
