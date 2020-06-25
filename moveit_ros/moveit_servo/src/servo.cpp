@@ -41,7 +41,7 @@
 
 #include <moveit_servo/servo.h>
 
-static const std::string LOGNAME = "jog_arm";
+static const std::string LOGNAME = "servo_node";
 
 namespace moveit_servo
 {
@@ -129,7 +129,7 @@ bool Servo::readParameters()
   {
     ROS_WARN_NAMED(LOGNAME, "'collision_proximity_threshold' parameter is deprecated, and has been replaced by separate"
                             "'self_collision_proximity_threshold' and 'scene_collision_proximity_threshold' "
-                            "parameters. Please update the jogging yaml file.");
+                            "parameters. Please update the servoing yaml file.");
     if (!have_self_collision_proximity_threshold)
     {
       parameters_.self_collision_proximity_threshold = collision_proximity_threshold;
@@ -154,7 +154,7 @@ bool Servo::readParameters()
   if (!rosparam_shortcuts::get("", nh_, parameter_ns + "/status_topic", parameters_.status_topic))
   {
     ROS_WARN_NAMED(LOGNAME, "'status_topic' parameter is missing. Recently renamed from 'warning_topic'. Please update "
-                            "the jogging yaml file.");
+                            "the servoing yaml file.");
     error += !rosparam_shortcuts::get("", nh_, parameter_ns + "/warning_topic", parameters_.status_topic);
   }
 

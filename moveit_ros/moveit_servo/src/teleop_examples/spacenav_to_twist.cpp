@@ -52,20 +52,20 @@ public:
   SpaceNavToTwist() : spinner_(NUM_SPINNERS)
   {
     joy_sub_ = n_.subscribe("spacenav/joy", QUEUE_LENGTH, &SpaceNavToTwist::joyCallback, this);
-    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("servo_server/delta_jog_cmds", QUEUE_LENGTH);
-    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("servo_server/joint_delta_jog_cmds", QUEUE_LENGTH);
+    twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("servo_server/delta_twist_cmds", QUEUE_LENGTH);
+    joint_delta_pub_ = n_.advertise<control_msgs::JointJog>("servo_server/delta_joint_cmds", QUEUE_LENGTH);
 
     spinner_.start();
     ros::waitForShutdown();
   };
 
 private:
-  // Convert incoming joy commands to TwistStamped commands for jogging.
-  // The TwistStamped component goes to jogging, while buttons 0 & 1 control
+  // Convert incoming joy commands to TwistStamped commands for servoing.
+  // The TwistStamped component goes to servoing, while buttons 0 & 1 control
   // joints directly.
   void joyCallback(const sensor_msgs::Joy::ConstPtr& msg)
   {
-    // Cartesian jogging with the axes
+    // Cartesian servoing with the axes
     geometry_msgs::TwistStamped twist;
     twist.header.stamp = ros::Time::now();
     twist.twist.linear.x = msg->axes[0];
@@ -76,7 +76,7 @@ private:
     twist.twist.angular.y = msg->axes[4];
     twist.twist.angular.z = msg->axes[5];
 
-    // Joint jogging with the buttons
+    // Joint servoing with the buttons
     control_msgs::JointJog joint_deltas;
     // This example is for a UR5.
     joint_deltas.joint_names.push_back("shoulder_pan_joint");

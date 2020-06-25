@@ -13,12 +13,12 @@ from os import sys, path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 import util
 
-# Test that the jogger publishes controller commands when it receives Cartesian or joint commands.
+# Test that the servo node publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_servo test_jog_arm_integration.py
 
-JOINT_JOG_COMMAND_TOPIC = 'servo_server/joint_delta_jog_cmds'
-CARTESIAN_JOG_COMMAND_TOPIC = 'servo_server/delta_jog_cmds'
+JOINT_COMMAND_TOPIC = 'servo_server/delta_joint_cmds'
+CARTESIAN_COMMAND_TOPIC = 'servo_server/delta_twist_cmds'
 
 COMMAND_OUT_TOPIC = 'servo_server/command'
 
@@ -28,9 +28,9 @@ def node():
     return rospy.init_node('pytest', anonymous=True)
 
 
-class JointJogCmd(object):
+class JointCmd(object):
     def __init__(self):
-        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=10)
+        self._pub = rospy.Publisher(JOINT_COMMAND_TOPIC, JointJog, queue_size=10)
 
     def send_joint_velocity_cmd(self, joint_pos):
         jj = JointJog()
@@ -40,10 +40,10 @@ class JointJogCmd(object):
         self._pub.publish(jj)
 
 
-class CartesianJogCmd(object):
+class CartesianCmd(object):
     def __init__(self):
         self._pub = rospy.Publisher(
-            CARTESIAN_JOG_COMMAND_TOPIC, TwistStamped, queue_size=10
+            CARTESIAN_COMMAND_TOPIC, TwistStamped, queue_size=10
         )
 
     def send_cmd(self, linear, angular):
@@ -54,16 +54,16 @@ class CartesianJogCmd(object):
         self._pub.publish(ts)
 
 
-def test_jog_arm_cartesian_command(node):
+def test_servo_cartesian_command(node):
     # Test sending a cartesian velocity command
 
-    assert util.wait_for_jogger_initialization()
+    assert util.wait_for_servo_initialization()
 
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
-    cartesian_cmd = CartesianJogCmd()
+    cartesian_cmd = CartesianCmd()
 
     # Repeated zero-commands should produce no output, other than a few halt messages
     # A subscriber in a different timer fills 'received'
@@ -74,12 +74,12 @@ def test_jog_arm_cartesian_command(node):
     rospy.sleep(1)
     assert len(received) <= 4 # 'num_outgoing_halt_msgs_to_publish' in the config file
 
-    # This nonzero command should produce jogging output
+    # This nonzero command should produce servoing output
     # A subscriber in a different timer fills `received`
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from servo config file
 
-    # Send a command to start the jogger
+    # Send a command to start the servo node
     cartesian_cmd.send_cmd([0, 0, 0], [0, 0, 1])
 
     start_time = rospy.get_rostime()
@@ -93,22 +93,22 @@ def test_jog_arm_cartesian_command(node):
     assert len(received) <= TEST_DURATION/PUBLISH_PERIOD + 20
 
 
-def test_jog_arm_joint_command(node):
+def test_servo_joint_command(node):
     # Test sending a joint command
 
-    assert util.wait_for_jogger_initialization()
+    assert util.wait_for_servo_initialization()
 
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
-    joint_cmd = JointJogCmd()
+    joint_cmd = JointCmd()
 
     TEST_DURATION = 1
     PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from servo config file
     velocities = [0.1]
 
-    # Send a command to start the jogger
+    # Send a command to start the servo node
     joint_cmd.send_joint_velocity_cmd(velocities)
 
     start_time = rospy.get_rostime()
@@ -124,6 +124,6 @@ def test_jog_arm_joint_command(node):
 
 if __name__ == '__main__':
     node = node()
-    time.sleep(JOG_ARM_SETTLE_TIME_S)  # wait for servo server to init
-    test_jog_arm_cartesian_command(node)
-    test_jog_arm_joint_command(node)
+    time.sleep(SERVO_SETTLE_TIME_S)  # wait for servo server to init
+    test_servo_cartesian_command(node)
+    test_servo_joint_command(node)

@@ -16,7 +16,7 @@ import util
 # This can be run as part of a pytest, or like a normal ROS executable:
 # rosrun moveit_servo test_vel_accel_limits.py
 
-JOINT_JOG_COMMAND_TOPIC = 'servo_server/joint_delta_jog_cmds'
+JOINT_COMMAND_TOPIC = 'servo_server/delta_joint_cmds'
 
 COMMAND_OUT_TOPIC = 'servo_server/command'
 
@@ -26,9 +26,9 @@ def node():
     return rospy.init_node('pytest', anonymous=True)
 
 
-class JointJogCmd(object):
+class JointServoCmd(object):
     def __init__(self):
-        self._pub = rospy.Publisher(JOINT_JOG_COMMAND_TOPIC, JointJog, queue_size=10)
+        self._pub = rospy.Publisher(JOINT_COMMAND_TOPIC, JointJog, queue_size=10)
 
     def send_joint_velocity_cmd(self, joint_pos):
         jj = JointJog()
@@ -41,24 +41,24 @@ class JointJogCmd(object):
 def test_vel_limit(node):
     # Test sending a joint command
 
-    assert util.wait_for_jogger_initialization()
+    assert util.wait_for_servo_initialization()
 
     received = []
     sub = rospy.Subscriber(
         COMMAND_OUT_TOPIC, JointTrajectory, lambda msg: received.append(msg)
     )
 
-    joint_cmd = JointJogCmd()
+    joint_cmd = JointServoCmd()
 
     TEST_DURATION = 1
-    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from jog_arm config file
+    PUBLISH_PERIOD = 0.01 # 'PUBLISH_PERIOD' from servo config file
 
     # Panda arm limit, from joint_limits.yaml
     VELOCITY_LIMIT = rospy.get_param("/robot_description_planning/joint_limits/panda_joint1/max_velocity")
     # Send a velocity command that exceeds the limit
     velocities = [10 * VELOCITY_LIMIT]
 
-    # Send a command to start the jogger
+    # Send a command to start the servo node
     joint_cmd.send_joint_velocity_cmd(velocities)
 
     start_time = rospy.get_rostime()
@@ -67,15 +67,15 @@ def test_vel_limit(node):
         joint_cmd.send_joint_velocity_cmd(velocities)
         time.sleep(0.1)
 
-    # Period of outgoing commands from the jogger, from yaml
-    JOGGER_COMMAND_PERIOD = rospy.get_param("/servo_server/publish_period")
+    # Period of outgoing commands from the servo node, from yaml
+    SERVO_COMMAND_PERIOD = rospy.get_param("/servo_server/publish_period")
 
     # Should be no velocities greater than the limit
     assert len(received) > 2
     for msg_idx in range(1, len(received)):
         try:
             velocity = \
-                (received[msg_idx].points[0].positions[0] - received[msg_idx - 1].points[0].positions[0]) / JOGGER_COMMAND_PERIOD
+                (received[msg_idx].points[0].positions[0] - received[msg_idx - 1].points[0].positions[0]) / SERVO_COMMAND_PERIOD
             assert abs(velocity) <= VELOCITY_LIMIT
         except IndexError:
             # Sometimes a message doesn't have any points

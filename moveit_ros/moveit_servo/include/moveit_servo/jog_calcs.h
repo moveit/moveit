@@ -88,10 +88,10 @@ private:
   /** \brief Timer method */
   void run(const ros::TimerEvent& timer_event);
 
-  /** \brief Do jogging calculations for Cartesian twist commands. */
+  /** \brief Do servoing calculations for Cartesian twist commands. */
   bool cartesianJogCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
-  /** \brief Do jogging calculations for direct commands to a joint. */
+  /** \brief Do servoing calculations for direct commands to a joint. */
   bool jointJogCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
@@ -186,7 +186,7 @@ private:
                              moveit_msgs::ChangeDriftDimensions::Response& res);
 
   /** \brief Start the main calculation timer */
-  // Service callback for changing jogging dimensions
+  // Service callback for changing servoing dimensions
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 

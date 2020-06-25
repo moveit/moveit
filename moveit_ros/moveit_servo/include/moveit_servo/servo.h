@@ -57,13 +57,13 @@ public:
 
   ~Servo();
 
-  /** \brief start jog arm */
+  /** \brief start servo node */
   void start();
 
-  /** \brief stop jog arm */
+  /** \brief stop servo node */
   void stop();
 
-  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
 
   /**
@@ -75,7 +75,7 @@ public:
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  /** \brief Get the parameters used by jog arm. */
+  /** \brief Get the parameters used by servo node. */
   const ServoParameters& getParameters() const;
 
   /** \brief Get the latest joint state. */
