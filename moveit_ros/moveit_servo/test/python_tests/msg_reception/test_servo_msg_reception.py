@@ -15,7 +15,7 @@ import util
 
 # Test that the servo node publishes controller commands when it receives Cartesian or joint commands.
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_servo test_jog_arm_integration.py
+# rosrun moveit_servo test_servo_integration.py
 
 JOINT_COMMAND_TOPIC = 'servo_server/delta_joint_cmds'
 CARTESIAN_COMMAND_TOPIC = 'servo_server/delta_twist_cmds'

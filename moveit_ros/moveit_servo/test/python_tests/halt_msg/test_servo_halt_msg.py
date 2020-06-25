@@ -17,7 +17,7 @@ import util
 # The servo node should halt and publish a warning.
 # Listen for a warning message from the servo node.
 # This can be run as part of a pytest, or like a normal ROS executable:
-# rosrun moveit_servo test_jog_arm_halt_msg.py
+# rosrun moveit_servo test_servo_halt_msg.py
 
 CARTESIAN_COMMAND_TOPIC = 'servo_server/delta_twist_cmds'
 

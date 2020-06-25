@@ -49,7 +49,7 @@
 #include <moveit_servo/servo.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
-static const std::string LOGNAME = "jog_cpp_interface_test";
+static const std::string LOGNAME = "servo_cpp_interface_test";
 
 namespace moveit_servo
 {
