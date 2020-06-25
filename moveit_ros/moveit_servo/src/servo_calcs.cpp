@@ -43,7 +43,7 @@
 #include <moveit_servo/servo_calcs.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
-static const std::string LOGNAME = "jog_calcs";
+static const std::string LOGNAME = "servo_calcs";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace moveit_servo
@@ -96,7 +96,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   // Subscribe to command topics
   twist_stamped_sub_ =
       nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::twistStampedCB, this);
-  joint_jog_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::jointJogCB, this);
+  joint_cmd_sub_ = nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE, &ServoCalcs::jointCmdCB, this);
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
@@ -212,8 +212,8 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
     const std::lock_guard<std::mutex> lock(latest_state_mutex_);
     if (latest_twist_stamped_)
       twist_stamped_cmd_ = *latest_twist_stamped_;
-    if (latest_joint_jog_)
-      joint_jog_cmd_ = *latest_joint_jog_;
+    if (latest_joint_cmd_)
+      joint_servo_cmd_ = *latest_joint_cmd_;
 
     // Check for stale cmds
     twist_command_is_stale_ =
@@ -222,7 +222,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
         ((ros::Time::now() - latest_joint_command_stamp_) >= ros::Duration(parameters_.incoming_command_timeout));
 
     have_nonzero_twist_stamped_ = latest_nonzero_twist_stamped_;
-    have_nonzero_joint_jog_ = latest_nonzero_joint_jog_;
+    have_nonzero_joint_command_ = latest_nonzero_joint_cmd_;
   }
 
   // Get the transform from MoveIt planning frame to servoing command frame
@@ -232,20 +232,20 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   tf_moveit_to_robot_cmd_frame_ = kinematic_state_->getGlobalLinkTransform(parameters_.planning_frame).inverse() *
                                   kinematic_state_->getGlobalLinkTransform(parameters_.robot_link_command_frame);
 
-  have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_jog_;
+  have_nonzero_command_ = have_nonzero_twist_stamped_ || have_nonzero_joint_command_;
 
   // Don't end this function without updating the filters
   updated_filters_ = false;
 
-  // If paused or while waiting for initial jog commands, just keep the low-pass filters up to date with current
+  // If paused or while waiting for initial servo commands, just keep the low-pass filters up to date with current
   // joints so a jump doesn't occur when restarting
-  if (wait_for_jog_commands_ || paused_)
+  if (wait_for_servo_commands_ || paused_)
   {
     resetLowPassFilters(original_joint_state_);
 
     // Check if there are any new commands with valid timestamp
-    wait_for_jog_commands_ =
-        twist_stamped_cmd_.header.stamp == ros::Time(0.) && joint_jog_cmd_.header.stamp == ros::Time(0.);
+    wait_for_servo_commands_ =
+        twist_stamped_cmd_.header.stamp == ros::Time(0.) && joint_servo_cmd_.header.stamp == ros::Time(0.);
 
     // Early exit
     return;
@@ -266,9 +266,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
       return;
     }
   }
-  else if (have_nonzero_joint_jog_ && !joint_command_is_stale_)
+  else if (have_nonzero_joint_command_ && !joint_command_is_stale_)
   {
-    if (!jointServoCalcs(joint_jog_cmd_, *joint_trajectory))
+    if (!jointServoCalcs(joint_servo_cmd_, *joint_trajectory))
     {
       resetLowPassFilters(original_joint_state_);
       return;
@@ -296,7 +296,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   {
     suddenHalt(*joint_trajectory);
     have_nonzero_twist_stamped_ = false;
-    have_nonzero_joint_jog_ = false;
+    have_nonzero_joint_command_ = false;
   }
 
   // Skip the servoing publication if all inputs have been zero for several cycles in a row.
@@ -885,7 +885,7 @@ bool ServoCalcs::updateJoints()
   return true;
 }
 
-// Scale the incoming jog command
+// Scale the incoming servo command
 Eigen::VectorXd ServoCalcs::scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const
 {
   Eigen::VectorXd result(6);
@@ -1003,11 +1003,11 @@ void ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
     latest_twist_command_stamp_ = msg->header.stamp;
 }
 
-void ServoCalcs::jointJogCB(const control_msgs::JointJogConstPtr& msg)
+void ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
   const std::lock_guard<std::mutex> lock(latest_state_mutex_);
-  latest_joint_jog_ = msg;
-  latest_nonzero_joint_jog_ = isNonZero(*latest_joint_jog_);
+  latest_joint_cmd_ = msg;
+  latest_nonzero_joint_cmd_ = isNonZero(*latest_joint_cmd_);
 
   if (msg->header.stamp != ros::Time(0.))
     latest_joint_command_stamp_ = msg->header.stamp;

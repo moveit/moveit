@@ -81,7 +81,7 @@ public:
    */
   bool getCommandFrameTransform(Eigen::Isometry3d& transform);
 
-  /** \brief Pause or unpause processing jog commands while keeping the timers alive */
+  /** \brief Pause or unpause processing servo commands while keeping the timers alive */
   void setPaused(bool paused);
 
 private:
@@ -171,7 +171,7 @@ private:
 
   /* \brief Command callbacks */
   void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
-  void jointJogCB(const control_msgs::JointJogConstPtr& msg);
+  void jointCmdCB(const control_msgs::JointJogConstPtr& msg);
   void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
 
   /**
@@ -206,19 +206,19 @@ private:
   int zero_velocity_count_ = 0;
 
   // Flag for staying inactive while there are no incoming commands
-  bool wait_for_jog_commands_ = true;
+  bool wait_for_servo_commands_ = true;
 
   // Flag saying if the filters were updated during the timer callback
   bool updated_filters_ = false;
 
   // Nonzero status flags
   bool have_nonzero_twist_stamped_ = false;
-  bool have_nonzero_joint_jog_ = false;
+  bool have_nonzero_joint_command_ = false;
   bool have_nonzero_command_ = false;
 
   // Incoming command messages
   geometry_msgs::TwistStamped twist_stamped_cmd_;
-  control_msgs::JointJog joint_jog_cmd_;
+  control_msgs::JointJog joint_servo_cmd_;
 
   const moveit::core::JointModelGroup* joint_model_group_;
 
@@ -226,8 +226,8 @@ private:
 
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   // (mutex protected below)
-  // internal_joint_state_ is used in jog calculations. It shouldn't be relied on to be accurate.
-  // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints jog_arm acts on.
+  // internal_joint_state_ is used in servo calculations. It shouldn't be relied on to be accurate.
+  // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints the servo node acts on.
   sensor_msgs::JointState internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
 
@@ -240,7 +240,7 @@ private:
   ros::Duration period_;
   ros::Subscriber joint_state_sub_;
   ros::Subscriber twist_stamped_sub_;
-  ros::Subscriber joint_jog_sub_;
+  ros::Subscriber joint_cmd_sub_;
   ros::Subscriber collision_velocity_scale_sub_;
   ros::Publisher status_pub_;
   ros::Publisher worst_case_stop_time_pub_;
@@ -278,10 +278,10 @@ private:
   mutable std::mutex latest_state_mutex_;
   Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
   geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
-  control_msgs::JointJogConstPtr latest_joint_jog_;
+  control_msgs::JointJogConstPtr latest_joint_cmd_;
   ros::Time latest_twist_command_stamp_ = ros::Time(0.);
   ros::Time latest_joint_command_stamp_ = ros::Time(0.);
   bool latest_nonzero_twist_stamped_ = false;
-  bool latest_nonzero_joint_jog_ = false;
+  bool latest_nonzero_joint_cmd_ = false;
 };
 }  // namespace moveit_servo
