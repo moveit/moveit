@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-/*      Title     : jog_calcs.cpp
+/*      Title     : servo_calcs.cpp
  *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
@@ -40,7 +40,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
-#include <moveit_servo/jog_calcs.h>
+#include <moveit_servo/servo_calcs.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "jog_calcs";

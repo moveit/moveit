@@ -1,5 +1,5 @@
 /*******************************************************************************
- *      Title     : jog_calcs.h
+ *      Title     : servo_calcs.h
  *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
