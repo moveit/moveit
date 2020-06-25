@@ -227,7 +227,8 @@ private:
   // incoming_joint_state_ is the incoming message. It may contain passive joints or other joints we don't care about.
   // (mutex protected below)
   // internal_joint_state_ is used in servo calculations. It shouldn't be relied on to be accurate.
-  // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints the servo node acts on.
+  // original_joint_state_ is the same as incoming_joint_state_ except it only contains the joints the servo node acts
+  // on.
   sensor_msgs::JointState internal_joint_state_, original_joint_state_;
   std::map<std::string, std::size_t> joint_state_name_map_;
 
