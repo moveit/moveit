@@ -97,6 +97,8 @@ static const std::string TAB_SCENES = "Stored Scenes";
 static const std::string TAB_STATES = "Stored States";
 static const std::string TAB_STATUS = "Status";
 
+static const double LARGE_MESH_THRESHOLD = 10.0;
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;

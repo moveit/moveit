@@ -449,8 +449,9 @@ void MotionPlanningFrame::importResource(const std::string& path)
       bool object_is_very_large = false;
       for (unsigned int i = 0; i < mesh->vertex_count; i++)
       {
-        if ((abs(mesh->vertices[i * 3 + 0]) > 10) || (abs(mesh->vertices[i * 3 + 1]) > 10) ||
-            (abs(mesh->vertices[i * 3 + 2]) > 10))
+        if ((abs(mesh->vertices[i * 3 + 0]) > LARGE_MESH_THRESHOLD) ||
+            (abs(mesh->vertices[i * 3 + 1]) > LARGE_MESH_THRESHOLD) ||
+            (abs(mesh->vertices[i * 3 + 2]) > LARGE_MESH_THRESHOLD))
         {
           object_is_very_large = true;
           break;
@@ -459,7 +460,7 @@ void MotionPlanningFrame::importResource(const std::string& path)
       if (object_is_very_large)
       {
         QMessageBox msg_box;
-        msg_box.setText("The object is very large. The file may be in millimeters instead of meters.");
+        msg_box.setText("The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
         msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
         msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         msg_box.setDefaultButton(QMessageBox::Yes);
