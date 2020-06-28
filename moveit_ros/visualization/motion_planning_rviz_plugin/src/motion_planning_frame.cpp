@@ -460,7 +460,8 @@ void MotionPlanningFrame::importResource(const std::string& path)
       if (object_is_very_large)
       {
         QMessageBox msg_box;
-        msg_box.setText("The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
+        msg_box.setText(
+            "The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
         msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
         msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
         msg_box.setDefaultButton(QMessageBox::Yes);
