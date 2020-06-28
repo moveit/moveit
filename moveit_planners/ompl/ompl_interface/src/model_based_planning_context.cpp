@@ -78,6 +78,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
   , simplify_solutions_(true)
+  , interpolate_(true)
+  , hybridize_(true)
 {
   complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
@@ -572,7 +574,9 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       simplifySolution(request_.allowed_planning_time - ptime);
       ptime += getLastSimplifyTime();
     }
-    interpolateSolution();
+
+    if (interpolate_)
+      interpolateSolution();
 
     // fill the response
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Returning successful solution with %lu states",
@@ -616,13 +620,16 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
       getSolutionPath(*res.trajectory_.back());
     }
 
-    ompl::time::point start_interpolate = ompl::time::now();
-    interpolateSolution();
-    res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
-    res.description_.emplace_back("interpolate");
-    res.trajectory_.resize(res.trajectory_.size() + 1);
-    res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
-    getSolutionPath(*res.trajectory_.back());
+    if (interpolate_)
+    {
+      ompl::time::point start_interpolate = ompl::time::now();
+      interpolateSolution();
+      res.processing_time_.push_back(ompl::time::seconds(ompl::time::now() - start_interpolate));
+      res.description_.emplace_back("interpolate");
+      res.trajectory_.resize(res.trajectory_.size() + 1);
+      res.trajectory_.back().reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
+      getSolutionPath(*res.trajectory_.back());
+    }
 
     // fill the response
     ROS_DEBUG_NAMED("model_based_planning_context", "%s: Returning successful solution with %lu states",
@@ -672,7 +679,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       ob::PlannerTerminationCondition ptc =
           ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
       registerTerminationCondition(ptc);
-      result = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+      result = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);
       unregisterTerminationCondition();
     }
@@ -692,7 +699,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         else
           for (unsigned int i = 0; i < max_planning_threads_; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
-        bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+        bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }
       n = count % max_planning_threads_;
@@ -705,7 +712,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
         else
           for (int i = 0; i < n; ++i)
             ompl_parallel_plan_.addPlanner(ompl::tools::SelfConfig::getDefaultPlanner(ompl_simple_setup_->getGoal()));
-        bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+        bool r = ompl_parallel_plan_.solve(ptc, 1, count, hybridize_) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }
       last_plan_time_ = ompl::time::seconds(ompl::time::now() - start);

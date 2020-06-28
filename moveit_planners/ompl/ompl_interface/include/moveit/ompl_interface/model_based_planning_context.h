@@ -267,6 +267,16 @@ public:
     simplify_solutions_ = flag;
   }
 
+  void setInterpolation(bool flag)
+  {
+    interpolate_ = flag;
+  }
+
+  void setHybridize(bool flag)
+  {
+    hybridize_ = flag;
+  }
+
   /* @brief Solve the planning problem. Return true if the problem is solved
      @param timeout The time to spend on solving
      @param count The number of runs to combine the paths of, in an attempt to generate better quality paths
@@ -375,6 +385,12 @@ protected:
   bool use_state_validity_cache_;
 
   bool simplify_solutions_;
+
+  // if false the final solution is not interpolated
+  bool interpolate_;
+
+  // if false parallel plan returns the first solution found
+  bool hybridize_;
 };
 }  // namespace ompl_interface
 
