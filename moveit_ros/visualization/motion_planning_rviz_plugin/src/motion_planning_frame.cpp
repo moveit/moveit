@@ -445,6 +445,26 @@ void MotionPlanningFrame::importResource(const std::string& path)
         return;
       }
 
+      // Center the mesh so scaling applies correctly
+      double sx = 0.0, sy = 0.0, sz = 0.0;
+      for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+      {
+        unsigned int i3 = i * 3;
+        sx += mesh->vertices[i3];
+        sy += mesh->vertices[i3 + 1];
+        sz += mesh->vertices[i3 + 2];
+      }
+      sx /= (double)mesh->vertex_count;
+      sy /= (double)mesh->vertex_count;
+      sz /= (double)mesh->vertex_count;
+      for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+      {
+        unsigned int i3 = i * 3;
+        mesh->vertices[i3] -= sx;
+        mesh->vertices[i3 + 1] -= sy;
+        mesh->vertices[i3 + 2] -= sz;
+      }
+
       // If the object is very large, ask the user if the scale should be reduced.
       bool object_is_very_large = false;
       for (unsigned int i = 0; i < mesh->vertex_count; i++)
