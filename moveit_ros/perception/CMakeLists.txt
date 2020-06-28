@@ -16,6 +16,10 @@ endif()
 find_package(Boost REQUIRED thread)
 
 if(WITH_OPENGL)
+  # Prefer newer vendor-specific OpenGL library
+  if (POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+  endif()
   find_package(OpenGL REQUIRED)
   find_package(GLEW REQUIRED)
   find_package(GLUT REQUIRED)
