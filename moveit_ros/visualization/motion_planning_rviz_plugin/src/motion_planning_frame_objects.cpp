@@ -75,7 +75,8 @@ namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::importObjectFromFileButtonClicked()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Import Object Mesh (e.g. .stl, .obj)"));
+  QString path = QFileDialog::getOpenFileName(this, tr("Import Object Mesh"), QString(),
+                                              "CAD files (*.stl *.obj *.dae);;All files (*.*)");
   if (!path.isEmpty())
     importResource("file://" + path.toStdString());
 }
