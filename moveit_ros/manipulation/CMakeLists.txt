@@ -48,9 +48,9 @@ catkin_package(
 include_directories(pick_place/include)
 include_directories(move_group_pick_place_capability/include)
 
-include_directories(${catkin_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM
+                    ${catkin_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS})
 
 add_subdirectory(pick_place)

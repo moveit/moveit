@@ -78,13 +78,11 @@ catkin_package(
     EIGEN3
 )
 
-include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
+include_directories(SYSTEM
                     ${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
-)
-include_directories(SYSTEM
-                    ${EIGEN3_INCLUDE_DIRS}
-)
+                    ${EIGEN3_INCLUDE_DIRS})
 
 add_subdirectory(rdf_loader)
 add_subdirectory(collision_plugin_loader)
