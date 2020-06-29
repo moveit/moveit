@@ -38,9 +38,6 @@
 
 #pragma once
 
-// System
-#include <mutex>
-
 // ROS
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -185,8 +182,7 @@ private:
   bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
                              moveit_msgs::ChangeDriftDimensions::Response& res);
 
-  /** \brief Start the main calculation timer */
-  // Service callback for changing servoing dimensions
+  /** \brief Service callback for changing servoing dimensions (e.g. ignore rotation about X) */
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 

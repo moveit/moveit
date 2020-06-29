@@ -38,8 +38,6 @@
 
 #pragma once
 
-#include <mutex>
-
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <sensor_msgs/JointState.h>

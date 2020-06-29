@@ -50,8 +50,7 @@ namespace moveit_servo
 class JointStateSubscriber
 {
 public:
-  /** \brief Constructor
-   */
+  /** \brief Constructor */
   JointStateSubscriber(ros::NodeHandle& nh, const std::string& joint_state_topic_name);
 
   /** \brief Get the latest joint state message */
