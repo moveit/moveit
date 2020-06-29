@@ -1171,7 +1171,7 @@
           <item>
            <widget class="QPushButton" name="export_scene_geometry_text_button">
             <property name="text">
-             <string>&amp;Export Objects</string>
+             <string>&amp;Export</string>
             </property>
             <property name="toolTip">
              <string>Export scene geometry to a .scene file (only geometry information is preserved)</string>
@@ -1181,7 +1181,7 @@
           <item>
            <widget class="QPushButton" name="import_scene_geometry_text_button">
             <property name="text">
-             <string>&amp;Import Objects</string>
+             <string>&amp;Import</string>
             </property>
             <property name="toolTip">
              <string>Import scene geometry from a .scene file (only geometry information is preserved)</string>
