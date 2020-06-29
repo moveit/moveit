@@ -1,7 +1,7 @@
-# moveit/moveit:master-source
+# moveit/moveit:noetic-source
 # Downloads the moveit source code and install remaining debian dependencies
 
-FROM moveit/moveit:master-ci-shadow-fixed
+FROM moveit/moveit:noetic-ci-shadow-fixed
 MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV ROS_UNDERLAY /root/ws_moveit/install
@@ -11,8 +11,10 @@ WORKDIR $ROS_UNDERLAY/../src
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
     # Download moveit source so that we can get necessary dependencies
-    wstool init . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && \
-    #
+    wstool init . https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
+    # We only depend on franka_description, other franka packages require even more dependencies... (TODO: Remove if released)
+	 mv franka_ros/franka_description . && rm -rf franka_ros && \
+	 #
     # Update apt package list as cache is cleared in previous container
     # Usually upgrading involves a few packages only (if container builds became out-of-sync)
     apt-get -qq update && \
