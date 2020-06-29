@@ -316,6 +316,22 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
   ompl_simple_setup_->setOptimizationObjective(objective);
 
+  // check whether the path returned by the planner should be interpolated
+  it = cfg.find("interpolate");
+  if (it != cfg.end())
+  {
+    interpolate_ = boost::lexical_cast<bool>(it->second);
+    cfg.erase(it);
+  }
+
+  // check whether solution paths from parallel planning should be hybridized
+  it = cfg.find("hybridize");
+  if (it != cfg.end())
+  {
+    hybridize_ = boost::lexical_cast<bool>(it->second);
+    cfg.erase(it);
+  }
+
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
   if (it == cfg.end())
