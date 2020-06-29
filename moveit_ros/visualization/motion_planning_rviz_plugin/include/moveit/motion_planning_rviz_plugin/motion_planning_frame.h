@@ -186,8 +186,8 @@ private Q_SLOTS:
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
   void copySelectedCollisionObject();
-  void exportAsTextButtonClicked();
-  void importFromTextButtonClicked();
+  void exportGeometryAsTextButtonClicked();
+  void importGeometryFromTextButtonClicked();
 
   // Stored scenes tab
   void saveSceneButtonClicked();
@@ -251,8 +251,8 @@ private:
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
   void populateCollisionObjectsList();
-  void computeImportFromText(const std::string& path);
-  void computeExportAsText(const std::string& path);
+  void computeImportGeometryFromText(const std::string& path);
+  void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker
   createObjectMarkerMsg(const collision_detection::CollisionEnv::ObjectConstPtr& obj);
 

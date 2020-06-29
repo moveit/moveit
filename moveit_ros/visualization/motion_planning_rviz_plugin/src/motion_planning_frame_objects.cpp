@@ -927,16 +927,16 @@ void MotionPlanningFrame::populateCollisionObjectsList()
   selectedCollisionObjectChanged();
 }
 
-void MotionPlanningFrame::exportAsTextButtonClicked()
+void MotionPlanningFrame::exportGeometryAsTextButtonClicked()
 {
   QString path =
       QFileDialog::getSaveFileName(this, tr("Export Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty())
     planning_display_->addBackgroundJob(
-        boost::bind(&MotionPlanningFrame::computeExportAsText, this, path.toStdString()), "export as text");
+        boost::bind(&MotionPlanningFrame::computeExportGeometryAsText, this, path.toStdString()), "export as text");
 }
 
-void MotionPlanningFrame::computeExportAsText(const std::string& path)
+void MotionPlanningFrame::computeExportGeometryAsText(const std::string& path)
 {
   planning_scene_monitor::LockedPlanningSceneRO ps = planning_display_->getPlanningSceneRO();
   if (ps)
@@ -954,7 +954,7 @@ void MotionPlanningFrame::computeExportAsText(const std::string& path)
   }
 }
 
-void MotionPlanningFrame::computeImportFromText(const std::string& path)
+void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
 {
   planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
   if (ps)
@@ -974,12 +974,12 @@ void MotionPlanningFrame::computeImportFromText(const std::string& path)
   }
 }
 
-void MotionPlanningFrame::importFromTextButtonClicked()
+void MotionPlanningFrame::importGeometryFromTextButtonClicked()
 {
   QString path =
       QFileDialog::getOpenFileName(this, tr("Import Scene Geometry"), tr(""), tr("Scene Geometry (*.scene)"));
   if (!path.isEmpty())
     planning_display_->addBackgroundJob(
-        boost::bind(&MotionPlanningFrame::computeImportFromText, this, path.toStdString()), "import from text");
+        boost::bind(&MotionPlanningFrame::computeImportGeometryFromText, this, path.toStdString()), "import from text");
 }
 }  // namespace moveit_rviz_plugin

@@ -1169,9 +1169,9 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="export_scene_text_button">
+           <widget class="QPushButton" name="export_scene_geometry_text_button">
             <property name="text">
-             <string>&amp;Export Scene Objects</string>
+             <string>&amp;Export Objects</string>
             </property>
             <property name="toolTip">
              <string>Export scene geometry to a .scene file (only geometry information is preserved)</string>
@@ -1179,9 +1179,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="import_scene_text_button">
+           <widget class="QPushButton" name="import_scene_geometry_text_button">
             <property name="text">
-             <string>&amp;Import Scene Objects</string>
+             <string>&amp;Import Objects</string>
             </property>
             <property name="toolTip">
              <string>Import scene geometry from a .scene file (only geometry information is preserved)</string>
@@ -1421,6 +1421,9 @@
              <widget class="QPushButton" name="load_state_button">
               <property name="text">
                <string>Filter</string>
+              </property>
+              <property name="toolTip">
+               <string>Load a robot state</string>
               </property>
              </widget>
             </item>
@@ -1685,8 +1688,8 @@
   <tabstop>object_rz</tabstop>
   <tabstop>scene_scale</tabstop>
   <tabstop>publish_current_scene_button</tabstop>
-  <tabstop>export_scene_text_button</tabstop>
-  <tabstop>import_scene_text_button</tabstop>
+  <tabstop>export_scene_geometry_text_button</tabstop>
+  <tabstop>import_scene_geometry_text_button</tabstop>
   <tabstop>planning_scene_tree</tabstop>
   <tabstop>load_scene_button</tabstop>
   <tabstop>load_query_button</tabstop>
