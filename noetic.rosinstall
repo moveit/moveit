@@ -1,0 +1,33 @@
+# List of MoveIt dependencies not yet released into Noetic
+
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: melodic-devel
+- git:
+    local-name: ros_pytest
+    uri: https://github.com/sfalexrog/ros_pytest.git
+    version: python3_compat
+- git:
+    local-name: joystick_drivers
+    uri: https://github.com/ros-drivers/joystick_drivers.git
+    version: master
+- git:
+    local-name: teleop_tools
+    uri: https://github.com/ros-teleop/teleop_tools.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_resources
+    uri: https://github.com/ros-planning/moveit_resources.git
+    version: master
+- git:
+    local-name: tf2
+    uri: https://github.com/rhaschke/geometry2.git
+    version: noetic-devel
+
+# Note, we only require franka_description!
+# Other packages in this repo have further dependencies.
+- git:
+    local-name: franka_ros
+    uri: https://github.com/frankaemika/franka_ros.git
+    version: 0.6.0
