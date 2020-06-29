@@ -245,8 +245,21 @@ void MotionPlanningFrame::removeStateButtonClicked()
 
 void MotionPlanningFrame::clearStatesButtonClicked()
 {
-  robot_states_.clear();
-  populateRobotStatesList();
+  QMessageBox msg_box;
+  msg_box.setText("Clear all stored robot states (from memory, not from the database)?");
+  msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+  msg_box.setDefaultButton(QMessageBox::Yes);
+  int ret = msg_box.exec();
+  switch (ret)
+  {
+    case QMessageBox::Yes:
+    {
+      robot_states_.clear();
+      populateRobotStatesList();
+    }
+    break;
+  }
+  return;
 }
 
 }  // namespace moveit_rviz_plugin
