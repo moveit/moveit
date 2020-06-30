@@ -24,6 +24,7 @@ jobs:
   include:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
+    - env: ROS_DISTRO=noetic
     - env: ROS_DISTRO=melodic
     - env: ROS_DISTRO=kinetic
     - compiler: clang
