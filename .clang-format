@@ -40,12 +40,12 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DerivePointerBinding: false
 PointerBindsToType: true
 
-PenaltyExcessCharacter: 1000
-PenaltyBreakBeforeFirstCallParameter: 19
-PenaltyBreakComment: 60
-PenaltyBreakFirstLessLess: 1000
+PenaltyExcessCharacter: 50
+PenaltyBreakBeforeFirstCallParameter: 30
+PenaltyBreakComment: 1000
+PenaltyBreakFirstLessLess: 10
 PenaltyBreakString: 100
-PenaltyReturnTypeOnItsOwnLine: 70
+PenaltyReturnTypeOnItsOwnLine: 50
 
 SpacesBeforeTrailingComments: 2
 SpacesInParentheses: false
