@@ -23,9 +23,11 @@ ExperimentalAutoDetectBinPacking: false
 ObjCSpaceBeforeProtocolList: true
 Cpp11BracedListStyle: false
 
+AllowShortBlocksOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
+AllowShortCaseLabelsOnASingleLine: false
 
 AlwaysBreakTemplateDeclarations: true
 AlwaysBreakBeforeMultilineStrings: false
@@ -59,6 +61,7 @@ BreakBeforeBraces: Custom
 
 # Control of individual brace wrapping cases
 BraceWrapping:
+    AfterCaseLabel: true
     AfterClass: true
     AfterControlStatement: true
     AfterEnum: true
