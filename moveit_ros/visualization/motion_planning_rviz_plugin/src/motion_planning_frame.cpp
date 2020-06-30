@@ -463,39 +463,17 @@ void MotionPlanningFrame::importResource(const std::string& path)
         msg_box.setText(
             "The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
         msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
-        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msg_box.setDefaultButton(QMessageBox::Yes);
-        int ret = msg_box.exec();
-        switch (ret)
+        if (msg_box.exec() == QMessageBox::Yes)
         {
-          case QMessageBox::Yes:
-            // Center the mesh so scaling applies correctly
-            {
-              double sx = 0.0, sy = 0.0, sz = 0.0;
-              for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-              {
-                unsigned int i3 = i * 3;
-                sx += mesh->vertices[i3];
-                sy += mesh->vertices[i3 + 1];
-                sz += mesh->vertices[i3 + 2];
-              }
-              sx /= (double)mesh->vertex_count;
-              sy /= (double)mesh->vertex_count;
-              sz /= (double)mesh->vertex_count;
-              for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-              {
-                unsigned int i3 = i * 3;
-                mesh->vertices[i3] -= sx;
-                mesh->vertices[i3 + 1] -= sy;
-                mesh->vertices[i3 + 2] -= sz;
-              }
-              mesh->scaleAndPadd(0.001, 0);
-            }
-            break;
-          case QMessageBox::No:
-            break;
-          default:
-            return;  // Pressed cancel, do nothing
+          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+          {
+            unsigned int i3 = i * 3;
+            mesh->vertices[i3] *= 0.001;
+            mesh->vertices[i3 + 1] *= 0.001;
+            mesh->vertices[i3 + 2] *= 0.001;
+          }
         }
       }
 
