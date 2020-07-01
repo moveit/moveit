@@ -143,7 +143,7 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
           }
           bool global_frame = !moveit::core::Transforms::sameFrame(link_name, req.header.frame_id);
           ROS_INFO_NAMED(getName(), "Attempting to follow %u waypoints for link '%s' using a step of %lf m "
-                                    "and a jump theshold of %lf, and absolute jump thresholds %lf (revolute) and "
+                                    "and a jump threshold of %lf, and absolute jump thresholds %lf (revolute) and "
                                     "%lf (prismatic) (in %s reference frame)",
                          (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
                          req.revolute_jump_threshold, req.prismatic_jump_threshold, global_frame ? "global" : "link");
