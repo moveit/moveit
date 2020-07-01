@@ -143,13 +143,20 @@ bool MoveGroupCartesianPathService::computeService(moveit_msgs::GetCartesianPath
           }
           bool global_frame = !moveit::core::Transforms::sameFrame(link_name, req.header.frame_id);
           ROS_INFO_NAMED(getName(), "Attempting to follow %u waypoints for link '%s' using a step of %lf m "
-                                    "and jump threshold %lf (in %s reference frame)",
+                                    "and a jump theshold of %lf, and absolute jump thresholds %lf (revolute) and "
+                                    "%lf (prismatic) (in %s reference frame)",
                          (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,
-                         global_frame ? "global" : "link");
+                         req.revolute_jump_threshold, req.prismatic_jump_threshold, global_frame ? "global" : "link");
           std::vector<moveit::core::RobotStatePtr> traj;
+
+          moveit::core::JumpThreshold jt;
+          jt.revolute = req.revolute_jump_threshold;
+          jt.prismatic = req.prismatic_jump_threshold;
+          jt.factor = req.jump_threshold;
+
           res.fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
               &start_state, jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame,
-              moveit::core::MaxEEFStep(req.max_step), moveit::core::JumpThreshold(req.jump_threshold), constraint_fn);
+              moveit::core::MaxEEFStep(req.max_step), jt, constraint_fn);
           moveit::core::robotStateToRobotStateMsg(start_state, res.start_state);
 
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
