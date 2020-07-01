@@ -1,9 +1,0 @@
-<launch>
-  <!-- Launch an example that sends commands via C++ API. -->
-
-  <node name="jog_server" pkg="moveit_jog_arm" type="cpp_interface_example" output="screen" >
-    <param name="parameter_ns" type="string" value="jog_server" />
-    <rosparam command="load" file="$(find moveit_jog_arm)/config/ur_simulated_config.yaml" />
-  </node>
-
-</launch>
