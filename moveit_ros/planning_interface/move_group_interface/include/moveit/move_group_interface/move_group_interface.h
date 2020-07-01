@@ -741,9 +741,8 @@ public:
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
       waypoints is that specified by setPoseReferenceFrame(). \e jump_threshold defines a factor off the average
-     configuration
-      space distance between waypoints that is acceptable between any two waypoints (this is to prevent 'jumps' in IK
-      solutions).
+      configuration space distance between waypoints that is acceptable between any two waypoints (this is to prevent
+      'jumps' in IK solutions).
       Collisions are avoided if \e avoid_collisions is set to true. If collisions cannot be avoided, the function fails.
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
       waypoints.
@@ -758,9 +757,8 @@ public:
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
       waypoints is that specified by setPoseReferenceFrame(). \e jump_threshold defines a factor off the average
-     configuration
-      space distance between waypoints that is acceptable between any two waypoints (this is to prevent 'jumps' in IK
-      solutions).
+      configuration space distance between waypoints that is acceptable between any two waypoints (this is to prevent
+      'jumps' in IK solutions).
       Kinematic constraints for the path given by \e path_constraints will be met for every point along the trajectory,
       if they are not met, a partial solution will be returned.
       Constraints are checked (collision and kinematic) if \e avoid_collisions is set to true. If constraints cannot be
@@ -826,7 +824,7 @@ public:
       acceptable between any two waypoints.
       Collisions are avoided if \e avoid_collisions is set to true. If collisions cannot be avoided, the function fails.
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the
-     waypoints.
+      waypoints.
       Return -1.0 in case of error. */
   double computeCartesianPath(const std::vector<geometry_msgs::Pose>& waypoints, double eef_step, double jump_threshold,
                               double revolute_jump_threshold, double prismatic_jump_threshold,
