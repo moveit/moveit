@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [fix]   Fix getTransform() (`#2113 <https://github.com/ros-planning/moveit/issues/2113>`_)
+* [fix]   Fix mesh_filter test (`#2044 <https://github.com/ros-planning/moveit/issues/2044>`_)
+* Contributors: Bjar Ne, Henning Kayser, Robert Haschke
+
 1.0.4 (2020-05-30)
 ------------------
 
