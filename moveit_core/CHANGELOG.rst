@@ -2,6 +2,17 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [fix]     Fix getTransform() (`#2113 <https://github.com/ros-planning/moveit/issues/2113>`_)
+* [fix]     Change FloatingJointModel::getStateSpaceDimension return value to 7 (`#2106 <https://github.com/ros-planning/moveit/issues/2106>`_)
+* [fix]     Check for empty quaternion message (`#2089 <https://github.com/ros-planning/moveit/issues/2089>`_)
+* [feature] TOTG: add zero parameterization for single-waypoint trajectories (`#2054 <https://github.com/ros-planning/moveit/issues/2054>`_)
+  * totg: add a correct time parameterization for 1-waypoint trajectories
+  * RS: add interfaces to zero and remove dynamics
+* [maint]   Remove unused angles.h includes (`#1985 <https://github.com/ros-planning/moveit/issues/1985>`_)
+* Contributors: Felix von Drigalski, Henning Kayser, Michael Görner, Robert Haschke, Tyler Weaver
+
 1.0.4 (2020-05-30)
 ------------------
 * Fix broken IKFast generator (`#2116 <https://github.com/ros-planning/moveit/issues/2116>`_)
