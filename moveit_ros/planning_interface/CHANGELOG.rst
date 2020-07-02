@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [fix]     Fix flaky moveit_cpp test (`#1781 <https://github.com/ros-planning/moveit/issues/1781>`_)
+* [feature] Implement low-level interface moveit_cpp (`#1656 <https://github.com/ros-planning/moveit/issues/1656>`_)
+* [feature] Add tests for move_group interface (`#1995 <https://github.com/ros-planning/moveit/issues/1995>`_)
+* Contributors: Henning Kayser, Jafar Abdi, JafarAbdi, Michael Görner, Robert Haschke, Tyler Weaver, Yeshwanth
+
 1.0.4 (2020-05-30)
 ------------------
 

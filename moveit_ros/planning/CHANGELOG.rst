@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [feature] TEM: fix check for start state position (`#2157 <https://github.com/ros-planning/moveit/issues/2157>`_)
+* [feature] PlanningSceneDisplay speedup (`#2049 <https://github.com/ros-planning/moveit/issues/2049>`_)
+* Contributors: Michael Görner, Robert Haschke, Simon Schmeisser
+
 1.0.4 (2020-05-30)
 ------------------
 
