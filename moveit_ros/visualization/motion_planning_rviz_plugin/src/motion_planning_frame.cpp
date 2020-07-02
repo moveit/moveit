@@ -98,8 +98,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
-  connect(ui_->import_file_button, SIGNAL(clicked()), this, SLOT(importFileButtonClicked()));
-  connect(ui_->import_url_button, SIGNAL(clicked()), this, SLOT(importUrlButtonClicked()));
+  connect(ui_->import_object_file_button, SIGNAL(clicked()), this, SLOT(importObjectFromFileButtonClicked()));
+  connect(ui_->import_object_url_button, SIGNAL(clicked()), this, SLOT(importObjectFromUrlButtonClicked()));
   connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
@@ -121,8 +121,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this,
           SLOT(warehouseItemNameChanged(QTreeWidgetItem*, int)));
   connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
-  connect(ui_->export_scene_text_button, SIGNAL(clicked()), this, SLOT(exportAsTextButtonClicked()));
-  connect(ui_->import_scene_text_button, SIGNAL(clicked()), this, SLOT(importFromTextButtonClicked()));
+  connect(ui_->export_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(exportGeometryAsTextButtonClicked()));
+  connect(ui_->import_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(importGeometryFromTextButtonClicked()));
   connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
   connect(ui_->save_start_state_button, SIGNAL(clicked()), this, SLOT(saveStartStateButtonClicked()));
   connect(ui_->save_goal_state_button, SIGNAL(clicked()), this, SLOT(saveGoalStateButtonClicked()));
@@ -428,9 +428,6 @@ void MotionPlanningFrame::importResource(const std::string& path)
     {
       std::size_t slash = path.find_last_of("/\\");
       std::string name = path.substr(slash + 1);
-      shapes::ShapeConstPtr shape(mesh);
-      Eigen::Isometry3d pose;
-      pose.setIdentity();
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
@@ -440,6 +437,42 @@ void MotionPlanningFrame::importResource(const std::string& path)
                                                                            "attached object before importing."));
         return;
       }
+
+      // If the object is very large, ask the user if the scale should be reduced.
+      bool object_is_very_large = false;
+      for (unsigned int i = 0; i < mesh->vertex_count; i++)
+      {
+        if ((abs(mesh->vertices[i * 3 + 0]) > LARGE_MESH_THRESHOLD) ||
+            (abs(mesh->vertices[i * 3 + 1]) > LARGE_MESH_THRESHOLD) ||
+            (abs(mesh->vertices[i * 3 + 2]) > LARGE_MESH_THRESHOLD))
+        {
+          object_is_very_large = true;
+          break;
+        }
+      }
+      if (object_is_very_large)
+      {
+        QMessageBox msg_box;
+        msg_box.setText(
+            "The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
+        msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
+        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msg_box.setDefaultButton(QMessageBox::Yes);
+        if (msg_box.exec() == QMessageBox::Yes)
+        {
+          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+          {
+            unsigned int i3 = i * 3;
+            mesh->vertices[i3] *= 0.001;
+            mesh->vertices[i3 + 1] *= 0.001;
+            mesh->vertices[i3 + 2] *= 0.001;
+          }
+        }
+      }
+
+      shapes::ShapeConstPtr shape(mesh);
+      Eigen::Isometry3d pose;
+      pose.setIdentity();
 
       // If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
@@ -508,7 +541,7 @@ void MotionPlanningFrame::importResource(const std::string& path)
     }
     else
     {
-      QMessageBox::warning(this, QString("Import error"), QString("Unable to import scene"));
+      QMessageBox::warning(this, QString("Import error"), QString("Unable to import object"));
       return;
     }
   }
