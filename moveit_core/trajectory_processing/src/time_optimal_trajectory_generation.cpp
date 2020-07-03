@@ -863,8 +863,9 @@ Eigen::VectorXd Trajectory::getAcceleration(double time) const
   return path_acc;
 }
 
-TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double path_tolerance, const double resample_dt)
-  : path_tolerance_(path_tolerance), resample_dt_(resample_dt)
+TimeOptimalTrajectoryGeneration::TimeOptimalTrajectoryGeneration(const double path_tolerance, const double resample_dt,
+                                                                 const double min_angle_change)
+  : path_tolerance_(path_tolerance), resample_dt_(resample_dt), min_angle_change_(min_angle_change)
 {
 }
 
@@ -965,7 +966,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     for (size_t j = 0; j < num_joints; j++)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > 0.001)
+      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > min_angle_change_)
         diverse_point = true;
     }
 
