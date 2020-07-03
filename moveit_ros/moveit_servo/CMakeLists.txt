@@ -129,13 +129,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  find_package(ros_pytest REQUIRED)
-
-  # Python integration tests
-  add_rostest(test/launch/servo_halt_msg_test.test)
-  add_rostest(test/launch/servo_msg_reception_test.test)
-  add_rostest(test/launch/servo_vel_accel_limits_test.test)
-  add_rostest(test/launch/servo_drift_dimensions_service_test.test)
 
   # servo_cpp_interface
   add_rostest_gtest(servo_cpp_interface_test
