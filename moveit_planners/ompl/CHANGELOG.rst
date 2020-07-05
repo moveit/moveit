@@ -4,9 +4,8 @@ Changelog for package moveit_planners_ompl
 
 1.0.5 (2020-07-08)
 ------------------
-* [feature] Add support for setting interpolate\ and hybridize\ flags in ModelBasedPlanningContext via ompl_planning.yaml (`#2172 <https://github.com/ros-planning/moveit/issues/2172>`_)
-* [feature] Added hybridize/interpolate_flags (`#2171 <https://github.com/ros-planning/moveit/issues/2171>`_)
-* Contributors: Constantinos, Mark Moll, Robert Haschke
+* [feature] Added support for hybridize/interpolate flags in ModelBasedPlanningContext via ompl_planning.yaml (`#2171 <https://github.com/ros-planning/moveit/issues/2171>`_, `#2172 <https://github.com/ros-planning/moveit/issues/2172>`_)
+* Contributors: Constantinos, Mark Moll
 
 1.0.4 (2020-05-30)
 ------------------
