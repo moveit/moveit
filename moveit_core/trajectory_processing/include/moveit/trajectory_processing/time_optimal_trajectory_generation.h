@@ -163,7 +163,8 @@ private:
 class TimeOptimalTrajectoryGeneration
 {
 public:
-  TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1);
+  TimeOptimalTrajectoryGeneration(const double path_tolerance = 0.1, const double resample_dt = 0.1,
+                                  const double min_angle_change = 0.001);
   ~TimeOptimalTrajectoryGeneration();
 
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
@@ -172,6 +173,7 @@ public:
 private:
   const double path_tolerance_;
   const double resample_dt_;
+  const double min_angle_change_;
 };
 }  // namespace trajectory_processing
 

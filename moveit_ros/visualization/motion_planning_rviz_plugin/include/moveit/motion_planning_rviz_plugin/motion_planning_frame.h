@@ -94,6 +94,8 @@ static const std::string TAB_SCENES = "Stored Scenes";
 static const std::string TAB_STATES = "Stored States";
 static const std::string TAB_STATUS = "Status";
 
+static const double LARGE_MESH_THRESHOLD = 10.0;
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -169,8 +171,8 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
-  void importFileButtonClicked();
-  void importUrlButtonClicked();
+  void importObjectFromFileButtonClicked();
+  void importObjectFromUrlButtonClicked();
   void clearSceneButtonClicked();
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
@@ -181,8 +183,8 @@ private Q_SLOTS:
   void collisionObjectChanged(QListWidgetItem* item);
   void imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
   void copySelectedCollisionObject();
-  void exportAsTextButtonClicked();
-  void importFromTextButtonClicked();
+  void exportGeometryAsTextButtonClicked();
+  void importGeometryFromTextButtonClicked();
 
   // Stored scenes tab
   void saveSceneButtonClicked();
@@ -246,8 +248,8 @@ private:
   void renameCollisionObject(QListWidgetItem* item);
   void attachDetachCollisionObject(QListWidgetItem* item);
   void populateCollisionObjectsList();
-  void computeImportFromText(const std::string& path);
-  void computeExportAsText(const std::string& path);
+  void computeImportGeometryFromText(const std::string& path);
+  void computeExportGeometryAsText(const std::string& path);
   visualization_msgs::InteractiveMarker
   createObjectMarkerMsg(const collision_detection::CollisionWorld::ObjectConstPtr& obj);
 

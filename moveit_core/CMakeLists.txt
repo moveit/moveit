@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_core)
 
-set(CMAKE_CXX_STANDARD 14)
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -28,7 +30,7 @@ endif()
 if(WIN32)
   set(EXTRA_BOOST_COMPONENTS zlib)
 endif()
-find_package(Boost REQUIRED system filesystem date_time thread iostreams ${EXTRA_BOOST_COMPONENTS})
+find_package(Boost REQUIRED system filesystem date_time thread iostreams regex ${EXTRA_BOOST_COMPONENTS})
 find_package(Eigen3 REQUIRED)
 
 find_package(PkgConfig REQUIRED)
