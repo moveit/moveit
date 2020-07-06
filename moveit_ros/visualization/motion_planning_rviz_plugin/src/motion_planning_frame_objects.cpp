@@ -852,6 +852,8 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
       aco.object.operation = moveit_msgs::CollisionObject::REMOVE;
     }
   }
+
+  moveit::core::RobotState rs(planning_display_->getRobotModel());
   {
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
     // we loop through the list in case updates were received since the start of the function
@@ -862,9 +864,11 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
         break;
       }
     ps->processAttachedCollisionObjectMsg(aco);
+    rs = ps->getCurrentState();
   }
 
   selectedCollisionObjectChanged();
+  planning_display_->updateQueryStates(rs);
   planning_display_->queueRenderSceneGeometry();
 }
 
