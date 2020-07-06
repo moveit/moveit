@@ -172,6 +172,9 @@ private Q_SLOTS:
   // Scene Objects tab
   void clearScene();
   void publishScene();
+  void publishSceneIfNeeded();
+  void setLocalSceneEdited(bool dirty = true);
+  bool isLocalSceneDirty() const;
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
   void sceneScaleEndChange();

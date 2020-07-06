@@ -88,6 +88,16 @@ void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
   }
 }
 
+void MotionPlanningFrame::setLocalSceneEdited(bool dirty)
+{
+  ui_->publish_current_scene_button->setEnabled(dirty);
+}
+
+bool MotionPlanningFrame::isLocalSceneDirty() const
+{
+  return ui_->publish_current_scene_button->isEnabled();
+}
+
 void MotionPlanningFrame::publishScene()
 {
   const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
@@ -96,7 +106,17 @@ void MotionPlanningFrame::publishScene()
     moveit_msgs::PlanningScene msg;
     ps->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
+    setLocalSceneEdited(false);
   }
+}
+
+void MotionPlanningFrame::publishSceneIfNeeded()
+{
+  if (isLocalSceneDirty() &&
+      QMessageBox::question(this, "Update PlanningScene", "You have local changes to your planning scene.\n"
+                                                          "Publish them to the move_group node?",
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
+    publishScene();
 }
 
 void MotionPlanningFrame::clearScene()
@@ -109,6 +129,7 @@ void MotionPlanningFrame::clearScene()
     moveit_msgs::PlanningScene msg;
     ps->getPlanningSceneMsg(msg);
     planning_scene_publisher_.publish(msg);
+    setLocalSceneEdited(false);
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
@@ -131,6 +152,7 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
         }
+        setLocalSceneEdited();
         scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
         planning_display_->queueRenderSceneGeometry();
       }
@@ -177,6 +199,7 @@ void MotionPlanningFrame::removeSceneObject()
       else
         ps->getCurrentStateNonConst().clearAttachedBody(sel[i]->text().toStdString());
     scene_marker_.reset();
+    setLocalSceneEdited();
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
@@ -343,6 +366,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
 
       ps->getWorldNonConst()->moveShapeInObject(obj->id_, obj->shapes_[0], p);
       planning_display_->queueRenderSceneGeometry();
+      setLocalSceneEdited();
 
       // Update the interactive marker pose to match the manually introduced one
       if (update_marker_position && scene_marker_)
@@ -435,6 +459,7 @@ void MotionPlanningFrame::copySelectedCollisionObject()
     ps->getWorldNonConst()->addToObject(name, obj->shapes_, obj->shape_poses_);
     ROS_DEBUG("Copied collision object to '%s'", name.c_str());
   }
+  setLocalSceneEdited();
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
@@ -799,6 +824,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
       cs.attachBody(new_ab);
     }
   }
+  setLocalSceneEdited();
 }
 
 void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
@@ -854,6 +880,7 @@ void MotionPlanningFrame::attachDetachCollisionObject(QListWidgetItem* item)
   }
 
   selectedCollisionObjectChanged();
+  setLocalSceneEdited();
   planning_display_->updateQueryStates(rs);
   planning_display_->queueRenderSceneGeometry();
 }
@@ -954,6 +981,7 @@ void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
       ROS_INFO("Loaded scene geometry from '%s'", path.c_str());
       planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
       planning_display_->queueRenderSceneGeometry();
+      setLocalSceneEdited();
     }
     else
     {
