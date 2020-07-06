@@ -99,11 +99,6 @@ static const std::string TAB_STATUS = "Status";
 
 static const double LARGE_MESH_THRESHOLD = 10.0;
 
-static const std::map<std::string, shapes::ShapeType> SHAPES_MAP = { { "box", shapes::BOX },
-                                                                     { "sphere", shapes::SPHERE },
-                                                                     { "cone", shapes::CONE },
-                                                                     { "cylinder", shapes::CYLINDER } };
-
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
@@ -180,8 +175,6 @@ private Q_SLOTS:
 
   // Scene Objects tab
   void shapesComboBoxChanged(const QString& text);
-  void importObjectFromFileButtonClicked();
-  void importObjectFromUrlButtonClicked();
   void clearSceneButtonClicked();
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
@@ -250,8 +243,6 @@ private:
   void goalStateTextChangedExec(const std::string& goal_state);
 
   // Scene objects tab
-  void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
-                 const Eigen::Isometry3d& pose);
   void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
@@ -312,8 +303,8 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
-  void addPrimitiveShape();
-  void importResource(const std::string& path);
+  void addSceneObject();
+  shapes::ShapePtr loadMeshResource(const std::string& url);
   void loadStoredStates(const std::string& pattern);
 
   void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);
