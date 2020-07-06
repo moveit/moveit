@@ -148,7 +148,6 @@ private Q_SLOTS:
 
   // Context tab
   void databaseConnectButtonClicked();
-  void publishSceneButtonClicked();
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
   void approximateIKChanged(int state);
@@ -171,12 +170,14 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
-  void shapesComboBoxChanged(const QString& text);
-  void clearSceneButtonClicked();
+  void clearScene();
+  void publishScene();
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
   void sceneScaleEndChange();
-  void removeObjectButtonClicked();
+  void shapesComboBoxChanged(const QString& text);
+  void addSceneObject();
+  void removeSceneObject();
   void selectedCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
@@ -300,7 +301,6 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
-  void addSceneObject();
   shapes::ShapePtr loadMeshResource(const std::string& url);
   void loadStoredStates(const std::string& pattern);
 
