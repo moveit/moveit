@@ -531,9 +531,16 @@ void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningS
 
 void PlanningSceneMonitor::clearOctomap()
 {
-  octomap_monitor_->getOcTreePtr()->lockWrite();
-  octomap_monitor_->getOcTreePtr()->clear();
-  octomap_monitor_->getOcTreePtr()->unlockWrite();
+  if (octomap_monitor_)
+  {
+    octomap_monitor_->getOcTreePtr()->lockWrite();
+    octomap_monitor_->getOcTreePtr()->clear();
+    octomap_monitor_->getOcTreePtr()->unlockWrite();
+  }
+  else
+  {
+    ROS_WARN_NAMED(LOGNAME, "Unable to clear octomap since no octomap monitor has been initialized");
+  }
 }
 
 bool PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
