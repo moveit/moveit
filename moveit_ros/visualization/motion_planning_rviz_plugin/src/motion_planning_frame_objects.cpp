@@ -103,7 +103,18 @@ void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
   }
 }
 
-void MotionPlanningFrame::clearSceneButtonClicked()
+void MotionPlanningFrame::publishScene()
+{
+  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+  if (ps)
+  {
+    moveit_msgs::PlanningScene msg;
+    ps->getPlanningSceneMsg(msg);
+    planning_scene_publisher_.publish(msg);
+  }
+}
+
+void MotionPlanningFrame::clearScene()
 {
   planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
   if (ps)
@@ -167,7 +178,7 @@ void MotionPlanningFrame::sceneScaleEndChange()
   ui_->scene_scale->setSliderPosition(100);
 }
 
-void MotionPlanningFrame::removeObjectButtonClicked()
+void MotionPlanningFrame::removeSceneObject()
 {
   QList<QListWidgetItem*> sel = ui_->collision_objects_list->selectedItems();
   if (sel.empty())

@@ -114,18 +114,18 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
-  connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
+  connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearScene()));
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
   connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
-  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeObjectButtonClicked()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObject()));
   connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rx, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
-  connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishSceneButtonClicked()));
+  connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishScene()));
   connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
   connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
           SLOT(collisionObjectChanged(QListWidgetItem*)));
