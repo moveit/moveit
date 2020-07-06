@@ -60,14 +60,7 @@ namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
 {
-  const std::string selected_shape = text.toStdString();
-  if (SHAPES_MAP.find(selected_shape) == SHAPES_MAP.end())
-  {
-    return;
-  }
-
-  shapes::ShapeType shape_type = SHAPES_MAP.at(selected_shape);
-  switch (shape_type)
+  switch (ui_->shapes_combo_box->currentData().toInt())  // fetch shape ID from current combobox item
   {
     case shapes::BOX:
       ui_->shape_size_x_spin_box->setEnabled(true);
@@ -79,40 +72,20 @@ void MotionPlanningFrame::shapesComboBoxChanged(const QString& text)
       ui_->shape_size_y_spin_box->setEnabled(false);
       ui_->shape_size_z_spin_box->setEnabled(false);
       break;
+    case shapes::CYLINDER:
     case shapes::CONE:
       ui_->shape_size_x_spin_box->setEnabled(true);
       ui_->shape_size_y_spin_box->setEnabled(false);
       ui_->shape_size_z_spin_box->setEnabled(true);
       break;
-    case shapes::CYLINDER:
-      ui_->shape_size_x_spin_box->setEnabled(true);
-      ui_->shape_size_y_spin_box->setEnabled(false);
-      ui_->shape_size_z_spin_box->setEnabled(true);
-      break;
-    default:
+    case shapes::MESH:
       ui_->shape_size_x_spin_box->setEnabled(false);
       ui_->shape_size_y_spin_box->setEnabled(false);
       ui_->shape_size_z_spin_box->setEnabled(false);
-      QMessageBox::warning(this, QString("Unsupported shape"),
-                           QString("The '%1' is not supported.").arg(selected_shape.c_str()));
+      break;
+    default:
+      break;
   }
-}
-
-void MotionPlanningFrame::importObjectFromFileButtonClicked()
-{
-  QString path = QFileDialog::getOpenFileName(this, tr("Import Object Mesh"), QString(),
-                                              "CAD files (*.stl *.obj *.dae);;All files (*.*)");
-  if (!path.isEmpty())
-    importResource("file://" + path.toStdString());
-}
-
-void MotionPlanningFrame::importObjectFromUrlButtonClicked()
-{
-  bool ok = false;
-  QString url = QInputDialog::getText(this, tr("Import Object"), tr("URL for file to import:"), QLineEdit::Normal,
-                                      QString("http://"), &ok);
-  if (ok && !url.isEmpty())
-    importResource(url.toStdString());
 }
 
 void MotionPlanningFrame::clearSceneButtonClicked()
@@ -706,20 +679,6 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
       }
     }
   }
-}
-
-void MotionPlanningFrame::addObject(const collision_detection::WorldPtr& world, const std::string& id,
-                                    const shapes::ShapeConstPtr& shape, const Eigen::Isometry3d& pose)
-{
-  world->addToObject(id, shape, pose);
-
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
-
-  // Automatically select the inserted object so that its IM is displayed
-  planning_display_->addMainLoopJob(
-      boost::bind(&MotionPlanningFrame::setItemSelectionInList, this, id, true, ui_->collision_objects_list));
-
-  planning_display_->queueRenderSceneGeometry();
 }
 
 visualization_msgs::InteractiveMarker
