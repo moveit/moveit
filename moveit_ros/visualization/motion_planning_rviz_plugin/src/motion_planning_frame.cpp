@@ -75,6 +75,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->shapes_combo_box->addItem("Cone", shapes::CONE);
   ui_->shapes_combo_box->addItem("Mesh from file", shapes::MESH);
   ui_->shapes_combo_box->addItem("Mesh from URL", shapes::MESH);
+  setLocalSceneEdited(false);
 
   // add more tabs
   joints_tab_ = new MotionPlanningFrameJointsWidget(planning_display_, ui_->tabWidget);
@@ -508,6 +509,7 @@ void MotionPlanningFrame::addSceneObject()
     planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
     ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
   }
+  setLocalSceneEdited();
 
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 
