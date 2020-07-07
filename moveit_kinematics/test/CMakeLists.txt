@@ -1,5 +1,4 @@
 if(CATKIN_ENABLE_TESTING)
-  find_package(moveit_resources REQUIRED)
   find_package(rostest REQUIRED)
   find_package(xmlrpcpp REQUIRED)
   find_package(moveit_ros_planning REQUIRED)
