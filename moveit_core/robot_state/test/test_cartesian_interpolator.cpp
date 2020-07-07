@@ -34,7 +34,6 @@
 
 /* Author: Michael Lautman */
 
-#include <moveit_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_state/cartesian_interpolator.h>
