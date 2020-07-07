@@ -25,7 +25,7 @@
   <depend>tf2_ros</depend>
   <depend version_gte="1.11.2">pluginlib</depend>
 
-  <test_depend>moveit_resources</test_depend>
+  <test_depend>moveit_resources_pr2_description</test_depend>
   <test_depend>rosunit</test_depend>
 
   <export>

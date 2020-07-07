@@ -30,7 +30,7 @@
   <exec_depend>moveit_kinematics</exec_depend>
 
   <test_depend>rostest</test_depend>
-  <test_depend>moveit_resources</test_depend>
+  <test_depend>moveit_resources_fanuc_moveit_config</test_depend>
 
   <export>
     <moveit_ros_move_group plugin="${prefix}/default_capabilities_plugin_description.xml"/>
