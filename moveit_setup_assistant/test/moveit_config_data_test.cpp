@@ -43,6 +43,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <ros/package.h>
 
 // This tests writing/parsing of ros_controller.yaml
@@ -51,43 +52,26 @@ class MoveItConfigData : public testing::Test
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(ros::package::getPath("moveit_resources_panda_description"));
-
-    srdf_model.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "urdf/panda.urdf").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model = urdf::parseURDF(xml_string);
-    }
-    res_path = ros::package::getPath("moveit_resources_panda_moveit_config");
-    srdf_model->initFile(*urdf_model, (res_path / "config/panda.srdf").string());
-    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+    std::string robot_name = "panda";
+    urdf_model_ = moveit::core::loadModelInterface(robot_name);
+    srdf_model_ = moveit::core::loadSRDFModel(robot_name);
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
   };
 
 protected:
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  srdf::ModelSharedPtr srdf_model;
-  moveit::core::RobotModelPtr robot_model;
+  urdf::ModelInterfaceSharedPtr urdf_model_;
+  srdf::ModelSharedPtr srdf_model_;
+  moveit::core::RobotModelPtr robot_model_;
 };
 
 TEST_F(MoveItConfigData, ReadingControllers)
 {
-  boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
-
   // Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data;
 
   config_data.reset(new moveit_setup_assistant::MoveItConfigData());
-  config_data->srdf_->srdf_model_ = srdf_model;
-  config_data->setRobotModel(robot_model);
+  config_data->srdf_->srdf_model_ = srdf_model_;
+  config_data->setRobotModel(robot_model_);
 
   // Initially no controllers
   EXPECT_EQ(config_data->getROSControllers().size(), 0u);
