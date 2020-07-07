@@ -38,13 +38,8 @@
 #ifndef MOVEIT_CORE_UTILS_TEST_
 #define MOVEIT_CORE_UTILS_TEST_
 
-#include <urdf_parser/urdf_parser.h>
-#include <urdf_model/model.h>
-#include <urdf_model/joint.h>
 #include <srdfdom/srdf_writer.h>
 #include <urdf/model.h>
-#include <fstream>
-#include <boost/filesystem/path.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <geometry_msgs/Pose.h>
 

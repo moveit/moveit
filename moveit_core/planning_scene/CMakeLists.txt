@@ -24,5 +24,5 @@ install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_planning_scene test/test_planning_scene.cpp)
-  target_link_libraries(test_planning_scene ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_planning_scene ${MOVEIT_LIB_NAME} moveit_test_utils)
 endif()
