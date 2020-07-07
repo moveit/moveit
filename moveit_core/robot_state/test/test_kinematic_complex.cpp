@@ -43,6 +43,7 @@
 #include <boost/filesystem/path.hpp>
 #include <geometric_shapes/shapes.h>
 #include <moveit/profiler/profiler.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <ros/package.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
@@ -50,24 +51,10 @@ class LoadPlanningModelsPr2 : public testing::Test
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
-
-    srdf_model_.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model_ = urdf::parseURDF(xml_string);
-    }
-    srdf_model_->initFile(*urdf_model_, (res_path / "pr2_description/srdf/robot.xml").string());
-    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
+    std::string robot_name = "pr2";
+    urdf_model_ = moveit::core::loadModelInterface(robot_name);
+    srdf_model_ = moveit::core::loadSRDFModel(robot_name);
+    robot_model_ = std::make_shared<moveit::core::RobotModel>(urdf_model_, srdf_model_);
   };
 
   void TearDown() override
@@ -77,7 +64,7 @@ protected:
 protected:
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
-  moveit::core::RobotModelConstPtr robot_model_;
+  moveit::core::RobotModelPtr robot_model_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
