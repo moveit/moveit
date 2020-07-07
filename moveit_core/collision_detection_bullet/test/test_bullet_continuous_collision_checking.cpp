@@ -183,7 +183,7 @@ void addCollisionObjectsMesh(cb::BulletCastBVHManager& checker)
   Eigen::Isometry3d s_pose;
   s_pose.setIdentity();
 
-  std::string kinect = "package://moveit_resources/panda_description/meshes/collision/hand.stl";
+  std::string kinect = "package://moveit_resources_panda_description/meshes/collision/hand.stl";
   shapes::ShapeConstPtr s;
   s.reset(shapes::createMeshFromResource(kinect));
   obj2_shapes.push_back(s);

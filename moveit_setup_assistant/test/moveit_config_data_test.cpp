@@ -51,11 +51,11 @@ class MoveItConfigData : public testing::Test
 protected:
   void SetUp() override
   {
-    boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
+    boost::filesystem::path res_path(ros::package::getPath("moveit_resources_panda_description"));
 
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file((res_path / "panda_description/urdf/panda.urdf").string().c_str(), std::fstream::in);
+    std::fstream xml_file((res_path / "urdf/panda.urdf").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while (xml_file.good())
@@ -67,7 +67,8 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (res_path / "panda_moveit_config/config/panda.srdf").string());
+    res_path = ros::package::getPath("moveit_resources_panda_moveit_config");
+    srdf_model->initFile(*urdf_model, (res_path / "config/panda.srdf").string());
     robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   };
 

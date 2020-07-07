@@ -61,7 +61,7 @@ protected:
   {
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file(ros::package::getPath("moveit_resources") + "/pr2_description/urdf/robot.xml",
+    std::fstream xml_file(ros::package::getPath("moveit_resources_pr2_description") + "/urdf/robot.xml",
                           std::fstream::in);
     if (xml_file.is_open())
     {
@@ -78,7 +78,7 @@ protected:
     else
       urdf_ok_ = false;
     srdf_ok_ = srdf_model_->initFile(*urdf_model_,
-                                     ros::package::getPath("moveit_resources") + "/pr2_description/srdf/robot.xml");
+                                     ros::package::getPath("moveit_resources_pr2_description") + "/srdf/robot.xml");
 
     robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
 
