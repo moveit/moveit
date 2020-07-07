@@ -6,7 +6,6 @@ Changelog for package moveit_setup_assistant
 ------------------
 * [fix]     Fix catkin_lint issues (`#2120 <https://github.com/ros-planning/moveit/issues/2120>`_)
 * [feature] Add use_rviz to demo.launch in setup_assistant (`#2019 <https://github.com/ros-planning/moveit/issues/2019>`_)
-* [fix]     Fix ordering of request adapters (`#2053 <https://github.com/ros-planning/moveit/issues/2053>`_)
 * Contributors: Henning Kayser, Jafar Abdi, Michael Görner, Robert Haschke, Tyler Weaver
 
 1.0.4 (2020-05-30)
