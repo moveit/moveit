@@ -192,7 +192,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->background_job_progress->hide();
   ui_->background_job_progress->setMaximum(0);
 
-  ui_->tabWidget->setCurrentIndex(0);
+  ui_->tabWidget->setCurrentIndex(1);
 
   known_collision_objects_version_ = 0;
 
