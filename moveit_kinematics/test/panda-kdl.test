@@ -6,7 +6,7 @@
 	<arg name="name" value="$(eval 'panda_' + arg('ik_plugin')[0:3])"/>
 
 	<group ns="panda">
-		<include file="$(find moveit_resources)/panda_moveit_config/launch/planning_context.launch">
+		<include file="$(find moveit_resources_panda_moveit_config)/launch/planning_context.launch">
 			<arg name="load_robot_description" value="true"/>
 		</include>
 
