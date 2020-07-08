@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [maint] Fix mesh_filter test (`#2044 <https://github.com/ros-planning/moveit/issues/2044>`_)
+* Contributors: Bjar Ne
+
 1.0.4 (2020-05-30)
 ------------------
 

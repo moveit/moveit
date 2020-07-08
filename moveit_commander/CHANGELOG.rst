@@ -2,6 +2,11 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [fix]   Python 3 fix (`#2030 <https://github.com/ros-planning/moveit/issues/2030>`_)
+* Contributors: Henning Kayser, Michael Görner, Robert Haschke
+
 1.0.4 (2020-05-30)
 ------------------
 

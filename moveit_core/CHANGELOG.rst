@@ -2,6 +2,24 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [fix]     Fix memory leaks related to geometric shapes usage (`#2138 <https://github.com/ros-planning/moveit/issues/2138>`_)
+* [fix]     Prevent collision checking segfault if octomap has NULL root pointer (`#2104 <https://github.com/ros-planning/moveit/issues/2104>`_)
+* [feature] Allow to parameterize input trajectory density of Time Optimal trajectory generation (`#2185 <https://github.com/ros-planning/moveit/issues/2185>`_)
+* [maint]   Optional C++ version setting (`#2166 <https://github.com/ros-planning/moveit/issues/2166>`_)
+* [maint]   Added missing boost::regex dependency (`#2163 <https://github.com/ros-planning/moveit/issues/2163>`_)
+* [maint]   PropagationDistanceField: Replace eucDistSq with squaredNorm (`#2101 <https://github.com/ros-planning/moveit/issues/2101>`_)
+* [fix]     Fix getTransform() (`#2113 <https://github.com/ros-planning/moveit/issues/2113>`_)
+  - PlanningScene::getTransforms().getTransform() -> PlanningScene::getFrameTransform()
+  - PlanningScene::getTransforms().canTransform() -> PlanningScene::knowsFrameTransform()
+* [fix]     Change FloatingJointModel::getStateSpaceDimension return value to 7 (`#2106 <https://github.com/ros-planning/moveit/issues/2106>`_)
+* [fix]     Check for empty quaternion message (`#2089 <https://github.com/ros-planning/moveit/issues/2089>`_)
+* [fix]     TOTG: Fix parameterization for single-waypoint trajectories (`#2054 <https://github.com/ros-planning/moveit/issues/2054>`_)
+  - RobotState: Added interfaces to zero and remove dynamics
+* [maint]   Remove unused angles.h includes (`#1985 <https://github.com/ros-planning/moveit/issues/1985>`_)
+* Contributors: Felix von Drigalski, Henning Kayser, Michael Görner, Jere Liukkonen, John Stechschulte, Patrick Beeson, Robert Haschke, Tyler Weaver, Wolfgang Merkt
+
 1.0.4 (2020-05-30)
 ------------------
 * Fix broken IKFast generator (`#2116 <https://github.com/ros-planning/moveit/issues/2116>`_)

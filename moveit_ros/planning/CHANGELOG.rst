@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [feature] Trajectory Execution: fix check for start state position (`#2157 <https://github.com/ros-planning/moveit/issues/2157>`_)
+* [feature] Improve responsiveness of PlanningSceneDisplay (`#2049 <https://github.com/ros-planning/moveit/issues/2049>`_)
+  - PlanningSceneMonitor: increate update frequency from 10Hz to 30Hz
+  - send RobotState diff if only position changed
+* Contributors: Michael Görner, Robert Haschke, Simon Schmeisser
+
 1.0.4 (2020-05-30)
 ------------------
 

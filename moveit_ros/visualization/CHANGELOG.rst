@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2020-07-08)
+------------------
+* [feature] Improve rviz GUI to add PlanningScene objects. Ask for scaling large meshes. (`#2142 <https://github.com/ros-planning/moveit/issues/2142>`_)
+* [maint]   Replace robot_model and robot_state namespaces with moveit::core (`#2135 <https://github.com/ros-planning/moveit/issues/2135>`_)
+* [maint]   Fix catkin_lint issues (`#2120 <https://github.com/ros-planning/moveit/issues/2120>`_)
+* [feature] PlanningSceneDisplay speedup (`#2049 <https://github.com/ros-planning/moveit/issues/2049>`_)
+* [feature] Added support for PS4 joystick (`#2060 <https://github.com/ros-planning/moveit/issues/2060>`_)
+* [fix]     MP display: planning attempts are natural numbers (`#2076 <https://github.com/ros-planning/moveit/issues/2076>`_, `#2082 <https://github.com/ros-planning/moveit/issues/2082>`_)
+* Contributors: Felix von Drigalski, Henning Kayser, Jafar Abdi, Michael Görner, Robert Haschke, Simon Schmeisser, TrippleBender
+
 1.0.4 (2020-05-30)
 ------------------
 
