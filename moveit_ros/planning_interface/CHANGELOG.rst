@@ -4,8 +4,7 @@ Changelog for package moveit_ros_planning_interface
 
 1.0.5 (2020-07-08)
 ------------------
-* [maint]   Use moveit_resources for moveit_cpp_test (#2197 <https://github.com/ros-planning/moveit/issues/2197>`_)
-* [maint]   Use moveit_resources for move_group_interface_cpp_test (#2194 <https://github.com/ros-planning/moveit/issues/2194>`_)
+* [maint]   Remove dependency on panda_moveit_config (#2194 <https://github.com/ros-planning/moveit/issues/2194>`_, #2197 <https://github.com/ros-planning/moveit/issues/2197>`_)
 * [maint]   Adapt linking to eigenpy (`#2118 <https://github.com/ros-planning/moveit/issues/2118>`_)
 * [maint]   Replace robot_model and robot_state namespaces with moveit::core (`#2135 <https://github.com/ros-planning/moveit/issues/2135>`_)
 * [feature] PlanningComponent: Load plan_request_params (`#2033 <https://github.com/ros-planning/moveit/issues/2033>`_)
