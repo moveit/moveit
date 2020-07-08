@@ -1068,8 +1068,8 @@
                  <string>Add</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="list-add">
-                  <normaloff>.</normaloff>.</iconset>
+                 <iconset>
+                  <normaloff>:/icons/list-add.png</normaloff>:/icons/list-add.png</iconset>
                 </property>
                </widget>
               </item>
@@ -1088,8 +1088,8 @@
                  <string>Del</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="list-remove">
-                  <normaloff>.</normaloff>.</iconset>
+                 <iconset>
+                  <normaloff>:/icons/list-remove.png</normaloff>:/icons/list-remove.png</iconset>
                 </property>
                </widget>
               </item>
@@ -1108,8 +1108,8 @@
                  <string>Clr</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="edit-clear">
-                  <normaloff>.</normaloff>.</iconset>
+                 <iconset>
+                  <normaloff>:/icons/edit-clear.png</normaloff>:/icons/edit-clear.png</iconset>
                 </property>
                </widget>
               </item>
