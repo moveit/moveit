@@ -576,7 +576,7 @@ static void wrap_move_group_interface()
   eigenpy::enableEigenPy();
 
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> move_group_interface_class(
-      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
+      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string, double>>());
 
   move_group_interface_class.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
