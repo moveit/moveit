@@ -481,6 +481,14 @@ bool ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_m
 
   enforceSRDFAccelVelLimits(delta_theta_);
 
+  // If close to a collision, decelerate
+  applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
+  if (status_ == StatusCode::HALT_FOR_COLLISION)
+  {
+    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
+    delta_theta_.setZero();
+  }
+
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
   return convertDeltasToOutgoingCmd(joint_trajectory);

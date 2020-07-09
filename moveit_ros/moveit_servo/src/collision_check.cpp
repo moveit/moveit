@@ -64,6 +64,7 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoPar
   // Init collision request
   collision_request_.group_name = parameters_.move_group_name;
   collision_request_.distance = true;  // enable distance-based collision checking
+  collision_request_.contacts = true;  // Record the names of collision pairs
 
   if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
     ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
@@ -127,12 +128,15 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
                                                                      *current_state_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
+  printCollisionPairs(collision_result_.contacts);
 
   collision_result_.clear();
+  // Self-collisions and scene collisions are checked separately so different thresholds can be used
   getLockedPlanningSceneRO()->getCollisionEnvUnpadded()->checkSelfCollision(collision_request_, collision_result_,
                                                                             *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
+  printCollisionPairs(collision_result_.contacts);
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
@@ -200,6 +204,16 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
     msg->data = velocity_scale_;
     collision_velocity_scale_pub_.publish(msg);
+  }
+}
+
+void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::ContactMap& contact_map)
+{
+  if (!collision_result_.contacts.empty())
+  {
+    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+      "Ojects in collision (among others, possibly): " << collision_result_.contacts.begin()->first.first << ", "
+      << collision_result_.contacts.begin()->first.second);
   }
 }
 
