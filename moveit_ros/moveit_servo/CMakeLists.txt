@@ -7,14 +7,18 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(LIBRARY_NAME moveit_servo_cpp_api)
+set(SERVO_LIB_NAME moveit_servo_cpp_api)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Boost REQUIRED)
+# For library compilation issue. See
+# https://stackoverflow.com/questions/25902519/building-error-cmake-can-not-be-used-when-making-a-shared-object-recompile-wi
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
+find_package(Boost REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
@@ -26,13 +30,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   trajectory_msgs
 )
-find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
-    ${LIBRARY_NAME}
+    pose_tracking
+    ${SERVO_LIB_NAME}
   CATKIN_DEPENDS
     control_msgs
     geometry_msgs
@@ -54,35 +58,49 @@ include_directories(SYSTEM
   ${Boost_INCLUDE_DIR}
 )
 
-#########################################
-## A library providing a C++ interface ##
-#########################################
+#########################################################
+## Library to process realtime twist or joint commands ##
+#########################################################
 
-add_library(${LIBRARY_NAME} SHARED
+# This library provides an interface for sending realtime twist or joint commands to a robot
+add_library(${SERVO_LIB_NAME} STATIC
+  # These files are used to produce differential motion
   src/collision_check.cpp
   src/servo_calcs.cpp
   src/servo.cpp
   src/joint_state_subscriber.cpp
   src/low_pass_filter.cpp
 )
-set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-add_dependencies(${LIBRARY_NAME} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${LIBRARY_NAME}
+set_target_properties(${SERVO_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+add_dependencies(${SERVO_LIB_NAME} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${SERVO_LIB_NAME}
   ${catkin_LIBRARIES}
   ${Eigen_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 
-# An example of using the C++ library
+# An example of streaming realtime Cartesian and joint commands
 add_executable(cpp_interface_example
   src/cpp_interface_example/cpp_interface_example.cpp
 )
 add_dependencies(cpp_interface_example ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cpp_interface_example
   ${catkin_LIBRARIES}
-  ${Eigen_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${LIBRARY_NAME}
+  ${SERVO_LIB_NAME}
+)
+
+########################################
+## Library for servoing toward a pose ##
+########################################
+
+add_library(pose_tracking STATIC
+  src/pose_tracking/pid_controller.cpp
+  src/pose_tracking/pose_tracking.cpp
+)
+add_dependencies(pose_tracking ${catkin_EXPORTED_TARGETS})
+target_link_libraries(pose_tracking
+  ${catkin_LIBRARIES}
+  ${SERVO_LIB_NAME}
 )
 
 ############################
@@ -94,10 +112,8 @@ add_executable(servo_server
 )
 add_dependencies(servo_server ${catkin_EXPORTED_TARGETS})
 target_link_libraries(servo_server
-  ${LIBRARY_NAME}
+  ${SERVO_LIB_NAME}
   ${catkin_LIBRARIES}
-  ${Eigen_LIBRARIES}
-  ${Boost_LIBRARIES}
 )
 
 ################################################
@@ -116,7 +132,8 @@ target_link_libraries(spacenav_to_twist ${catkin_LIBRARIES})
 
 install(
   TARGETS
-    ${LIBRARY_NAME}
+    ${SERVO_LIB_NAME}
+    pose_tracking
     servo_server
     spacenav_to_twist
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -144,9 +161,7 @@ if(CATKIN_ENABLE_TESTING)
     test/servo_cpp_interface_test.cpp
   )
   target_link_libraries(servo_cpp_interface_test
-    ${LIBRARY_NAME}
+    ${SERVO_LIB_NAME}
     ${catkin_LIBRARIES}
-    ${Eigen_LIBRARIES}
-    ${Boost_LIBRARIES}
   )
 endif()
