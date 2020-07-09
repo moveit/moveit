@@ -67,6 +67,14 @@ public:
   virtual double cost(const ompl::base::State* state) const;
   double clearance(const ompl::base::State* state) const override;
 
+  /** \brief Enable / disable checking path constraints in isValid method.
+   * 
+   * (default) Set true for rejection sampling of path constraints.
+   * Set false if the path constraints are handled by OMPL's state space.
+   * 
+   * */
+  void setCheckPathConstraints(bool flag);
+
   void setVerbose(bool flag);
 
 protected:
@@ -85,6 +93,7 @@ protected:
   collision_detection::CollisionRequest collision_request_with_distance_verbose_;
 
   collision_detection::CollisionRequest collision_request_with_cost_;
+  bool check_path_constraints_;
   bool verbose_;
 };
 }  // namespace ompl_interface
