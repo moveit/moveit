@@ -1,0 +1,126 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: moveit/moveit:master-ci
+    environment:
+      CCACHE_MAXSIZE: 500M
+      BUIlD_MAKE_ARGS: "-j 2 -l 2"
+      TZ: utc
+    steps:
+      # Update apt for rosdep
+      - restore_cache:
+          name: Restoring apt-lists-v1
+          keys:
+            - apt-lists-v1-
+      - run:
+          name: apt update
+          command: apt update -q
+      - save_cache:
+          name: Saveing Cache apt-lists-v1
+          key: apt-lists-v1-{{ epoch }}
+          paths:
+            - /var/lib/apt/lists
+
+      # Checkout repo
+      - restore_cache:
+          name: Restoring Cache source-v1
+          keys:
+            - source-v1-{{ .Revision }}
+            - source-v1-
+      - checkout:
+          path: ~/moveit
+      - save_cache:
+          name: Saving Cache source-v1
+          key: source-v1-{{ .Revision }}
+          paths:
+            - ~/moveit/.git
+
+      # Prepare Workspace
+      - restore_cache:
+          name: Restoring Cache source-v1
+          keys:
+            - source-v1-{{ checksum "~/moveit/moveit.rosinstall" }}-{{ epoch }}
+            - source-v1-{{ checksum "~/moveit/moveit.rosinstall" }}-
+      - run:
+          name: Prepare Workspace
+          command: |
+            mkdir -p ~/ws_target/src
+            apt install -qq python-vcstool
+            vcs import ~/ws_target/src --shallow --force --input ~/moveit/moveit.rosinstall
+            cp -r ~/moveit ~/ws_target/src
+            vcs export --exact ~/ws_target/src >> ~/ws_target/checksum.txt
+      - save_cache:
+          name: Saving Cache source-v1
+          key: source-v1-{{ checksum "~/moveit/moveit.rosinstall" }}-{{ epoch }}
+          paths:
+            - ~/ws_target
+
+      # Restore ccace cache
+      - restore_cache:
+          name: Restoring Cache ccache-v1
+          keys:
+            - ccache-v1-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-
+
+      # Print ccache stats
+      - run:
+          name: ccache stats
+          command: ccache -s
+
+      # Build Workspace
+      - restore_cache:
+          name: Restoring Cache build-v1
+          keys:
+            - build-v1-{{ checksum "~/ws_target/checksum.txt" }}
+      - run:
+          name: Install Dependencies
+          command: rosdep install -q -y --from-paths ~/ws_target/src --ignore-src
+      - run:
+          name: Build Workspace
+          working_directory: ~/ws_target
+          command: |
+            . /opt/ros/$ROS_DISTRO/setup.bash
+            if [ ! -d ~/ws_target/build ]; then
+              catkin config --install --extend /opt/ros/$ROS_DISTRO \
+                --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE=-O3 --
+              catkin build --no-status --summarize --make-args $BUIlD_MAKE_ARGS
+              ccache -s
+            fi
+      - save_cache:
+          name: Saving Cache build-v1
+          key: build-v1-{{ checksum "~/ws_target/checksum.txt" }}
+          paths:
+            - ~/ws_target/build
+            - ~/ws_target/devel
+            - ~/ws_target/install
+            - ~/ws_target/logs
+            - ~/ws_target/.catkin_tools
+
+      # Save ccache
+      - save_cache:
+          name: Saving Cache ccache-v1
+          key: ccache-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ~/.ccache
+
+      # Print ccache stats
+      - run:
+          name: ccache stats
+          command: ccache -s
+
+      # Run Target Tests
+      - run:
+          name: Run Target Tests
+          working_directory: ~/ws_target
+          command: |
+            . /opt/ros/$ROS_DISTRO/setup.bash
+            catkin build --catkin-make-args run_tests -- --no-status --summarize
+            catkin_test_results
+            mkdir -p ~/test_results
+            for file in $(catkin_test_results --all | grep "\.xml:" | cut -d ":" -f1); do
+              cp $file ~/test_results
+            done
+      - store_test_results:
+            path: ~/test_results
