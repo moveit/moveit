@@ -209,11 +209,11 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
 
 void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::ContactMap& contact_map)
 {
-  if (!collision_result_.contacts.empty())
+  if (!contact_map.empty())
   {
     ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-      "Ojects in collision (among others, possibly): " << collision_result_.contacts.begin()->first.first << ", "
-      << collision_result_.contacts.begin()->first.second);
+      "Ojects in collision (among others, possibly): " << contact_map.begin()->first.first << ", "
+      << contact_map.begin()->first.second);
   }
 }
 
