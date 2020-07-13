@@ -211,7 +211,7 @@ void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::C
 {
   if (!contact_map.empty())
   {
-    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ojects in collision (among others, possibly): "
+    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision (among others, possibly): "
                                                                           << contact_map.begin()->first.first << ", "
                                                                           << contact_map.begin()->first.second);
   }
