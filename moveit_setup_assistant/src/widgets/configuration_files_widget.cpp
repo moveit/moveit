@@ -1099,7 +1099,6 @@ void ConfigurationFilesWidget::loadTemplateStrings()
   else
   {
     std::stringstream deps;
-    deps << "<build_depend>" << config_data_->urdf_pkg_name_ << "</build_depend>\n";
     deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }
