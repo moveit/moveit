@@ -212,15 +212,15 @@ void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::C
   if (!contact_map.empty())
   {
     // Throttled error message about the first contact in the list
-    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision (among others, possibly): "
-                                                                          << contact_map.begin()->first.first << ", "
-                                                                          << contact_map.begin()->first.second);
+    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision (among others, possibly): "
+                                                                         << contact_map.begin()->first.first << ", "
+                                                                         << contact_map.begin()->first.second);
     // Log all other contacts if in debug mode
     ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision:");
     for (auto contact : contact_map)
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, contact.first.first << ", "
-                                                                                            << contact.first.second);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "\t" << contact.first.first << ", "
+                                                                             << contact.first.second);
     }
   }
 }

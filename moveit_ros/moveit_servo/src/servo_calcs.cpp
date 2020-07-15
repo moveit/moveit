@@ -599,7 +599,7 @@ void ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singul
 
   if (status_ == StatusCode::HALT_FOR_COLLISION)
   {
-    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
+    ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
     delta_theta_.setZero();
   }
 }
