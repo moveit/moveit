@@ -43,10 +43,10 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <utility>
 
-constexpr char LOGNAME[] = "constraints_library";
-
 namespace ompl_interface
 {
+constexpr char LOGNAME[] = "constraints_library";
+
 namespace
 {
 template <typename T>

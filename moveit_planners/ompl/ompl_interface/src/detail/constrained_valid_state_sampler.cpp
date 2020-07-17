@@ -40,7 +40,10 @@
 
 #include <utility>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "constrained_valid_state_sampler";
+}  // namespace ompl_interface
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext* pc,
                                                                  kinematic_constraints::KinematicConstraintSetPtr ks,

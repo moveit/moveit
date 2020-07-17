@@ -75,10 +75,10 @@
 
 using namespace std::placeholders;
 
-constexpr char LOGNAME[] = "planning_context_manager";
-
 namespace ompl_interface
 {
+constexpr char LOGNAME[] = "planning_context_manager";
+
 struct PlanningContextManager::CachedContexts
 {
   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;

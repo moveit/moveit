@@ -72,7 +72,10 @@
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 #include <ompl/geometric/planners/prm/LazyPRM.h>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "model_based_planning_context";
+}  // namespace ompl_interface
 
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string& name,
                                                                      const ModelBasedPlanningContextSpecification& spec)

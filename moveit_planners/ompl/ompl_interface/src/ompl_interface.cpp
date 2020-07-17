@@ -42,7 +42,10 @@
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "ompl_interface";
+}  // namespace ompl_interface
 
 ompl_interface::OMPLInterface::OMPLInterface(const moveit::core::RobotModelConstPtr& robot_model,
                                              const ros::NodeHandle& nh)

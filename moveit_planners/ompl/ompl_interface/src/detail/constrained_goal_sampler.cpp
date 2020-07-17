@@ -41,7 +41,10 @@
 
 #include <utility>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "constrained_goal_sampler";
+}  // namespace ompl_interface
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
                                                                kinematic_constraints::KinematicConstraintSetPtr ks,

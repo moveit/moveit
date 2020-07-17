@@ -37,7 +37,10 @@
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <utility>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "model_based_state_space";
+}  // namespace ompl_interface
 
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec)
   : ompl::base::StateSpace(), spec_(std::move(spec))

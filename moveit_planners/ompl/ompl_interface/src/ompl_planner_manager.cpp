@@ -52,11 +52,11 @@
 #include <thread>
 #include <memory>
 
-constexpr char LOGNAME[] = "ompl_planner_manager";
-
 namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
+
+constexpr char LOGNAME[] = "ompl_planner_manager";
 
 #define OMPL_ROS_LOG(ros_log_level)                                                                                    \
   {                                                                                                                    \

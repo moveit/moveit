@@ -39,7 +39,10 @@
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
+namespace ompl_interface
+{
 constexpr char LOGNAME[] = "state_validity_checker";
+}  // namespace ompl_interface
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext* pc)
   : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup()->getSpaceInformation())
