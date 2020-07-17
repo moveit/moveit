@@ -40,7 +40,7 @@
 
 #include <utility>
 
-static const std::string LOGNAME{ "pose_model_state_space" };
+constexpr char LOGNAME[] = "pose_model_state_space";
 
 const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "PoseModel";
 

@@ -41,7 +41,7 @@
 
 #include <utility>
 
-static const std::string LOGNAME{ "constrained_goal_sampler" };
+constexpr char LOGNAME[] = "constrained_goal_sampler";
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
                                                                kinematic_constraints::KinematicConstraintSetPtr ks,

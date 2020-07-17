@@ -75,7 +75,7 @@
 
 using namespace std::placeholders;
 
-static const std::string LOGNAME{ "planning_context_manager" };
+constexpr char LOGNAME[] = "planning_context_manager";
 
 namespace ompl_interface
 {

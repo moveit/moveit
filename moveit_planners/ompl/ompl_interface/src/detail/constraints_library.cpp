@@ -43,7 +43,7 @@
 #include <ompl/tools/config/SelfConfig.h>
 #include <utility>
 
-static const std::string LOGNAME{ "constraints_library" };
+constexpr char LOGNAME[] = "constraints_library";
 
 namespace ompl_interface
 {

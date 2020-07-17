@@ -40,7 +40,7 @@
 
 #include <utility>
 
-static const std::string LOGNAME{ "constrained_valid_state_sampler" };
+constexpr char LOGNAME[] = "constrained_valid_state_sampler";
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext* pc,
                                                                  kinematic_constraints::KinematicConstraintSetPtr ks,

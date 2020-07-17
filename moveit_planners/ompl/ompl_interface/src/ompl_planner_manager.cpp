@@ -52,7 +52,7 @@
 #include <thread>
 #include <memory>
 
-static const std::string LOGNAME{ "ompl_planner_manager" };
+constexpr char LOGNAME[] = "ompl_planner_manager";
 
 namespace ompl_interface
 {

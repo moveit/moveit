@@ -49,7 +49,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <sstream>
 
-static const std::string LOGNAME = "generate_state_database";
+constexpr char LOGNAME[] = "generate_state_database";
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
