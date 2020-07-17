@@ -158,9 +158,8 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
     if (getRobotModel()->hasLinkModel(link_name))
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
     else
-      ROS_ERROR_NAMED(LOGNAME,
-                      "Attempted to set projection evaluator with respect to position of link '%s', "
-                      "but that link is not known to the kinematic model.",
+      ROS_ERROR_NAMED(LOGNAME, "Attempted to set projection evaluator with respect to position of link '%s', "
+                               "but that link is not known to the kinematic model.",
                       link_name.c_str());
   }
   else if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
@@ -187,9 +186,8 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
                          joint.c_str());
       }
       else
-        ROS_ERROR_NAMED(LOGNAME,
-                        "%s: Attempted to set projection evaluator with respect to value of joint "
-                        "'%s', but that joint is not known to the group '%s'.",
+        ROS_ERROR_NAMED(LOGNAME, "%s: Attempted to set projection evaluator with respect to value of joint "
+                                 "'%s', but that joint is not known to the group '%s'.",
                         name_.c_str(), joint.c_str(), getGroupName().c_str());
     }
     if (j.empty())
@@ -366,9 +364,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     const std::string planner_name = getGroupName() + "/" + name_;
     ompl_simple_setup_->setPlannerAllocator(
         std::bind(spec_.planner_selector_(type), std::placeholders::_1, planner_name, std::cref(spec_)));
-    ROS_INFO_NAMED(LOGNAME,
-                   "Planner configuration '%s' will use planner '%s'. "
-                   "Additional configuration parameters will be set when the planner is constructed.",
+    ROS_INFO_NAMED(LOGNAME, "Planner configuration '%s' will use planner '%s'. "
+                            "Additional configuration parameters will be set when the planner is constructed.",
                    name_.c_str(), type.c_str());
   }
 
@@ -386,9 +383,8 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
       wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
     ROS_WARN_NAMED(LOGNAME, "It looks like the planning volume was not specified.");
 
-  ROS_DEBUG_NAMED(LOGNAME,
-                  "%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = "
-                  "[%f, %f], z = [%f, %f]",
+  ROS_DEBUG_NAMED(LOGNAME, "%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = "
+                           "[%f, %f], z = [%f, %f]",
                   name_.c_str(), wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y,
                   wparams.min_corner.z, wparams.max_corner.z);
 

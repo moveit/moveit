@@ -239,9 +239,8 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     {
       if (config_names.getType() != XmlRpc::XmlRpcValue::TypeArray)
       {
-        ROS_ERROR_NAMED(LOGNAME,
-                        "The planner_configs argument of a group configuration "
-                        "should be an array of strings (for group '%s')",
+        ROS_ERROR_NAMED(LOGNAME, "The planner_configs argument of a group configuration "
+                                 "should be an array of strings (for group '%s')",
                         group_name.c_str());
         continue;
       }
