@@ -39,6 +39,8 @@
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
+static const std::string LOGNAME{ "state_validity_checker" };
+
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext* pc)
   : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup()->getSpaceInformation())
   , planning_context_(pc)
@@ -115,7 +117,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
-      ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
+      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
     return false;
   }
 
@@ -145,7 +147,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
-      ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
+      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
     return false;
   }
 
@@ -187,7 +189,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
-      ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
+      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
@@ -238,7 +240,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
-      ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
+      ROS_INFO_NAMED(LOGNAME, "State outside bounds");
     const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }

@@ -40,6 +40,8 @@
 
 #include <utility>
 
+static const std::string LOGNAME{ "pose_model_state_space" };
+
 const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "PoseModel";
 
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec)
@@ -56,8 +58,8 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
       poses_.emplace_back(it.first, it.second);
   }
   if (poses_.empty())
-    ROS_ERROR_NAMED("pose_model_state_space", "No kinematics solvers specified. Unable to construct a "
-                                              "PoseModelStateSpace");
+    ROS_ERROR_NAMED(LOGNAME, "No kinematics solvers specified. Unable to construct a "
+                             "PoseModelStateSpace");
   else
     std::sort(poses_.begin(), poses_.end());
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
