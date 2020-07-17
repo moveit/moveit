@@ -95,11 +95,11 @@ include_directories(rviz_plugin_render_tools/include
                     robot_state_rviz_plugin/include
                     planning_scene_rviz_plugin/include
                     motion_planning_rviz_plugin/include
-                    trajectory_rviz_plugin/include
-                    ${Boost_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS})
+                    trajectory_rviz_plugin/include)
 
 include_directories(SYSTEM
+                    ${catkin_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${QT_INCLUDE_DIR})
 

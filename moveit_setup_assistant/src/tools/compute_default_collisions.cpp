@@ -667,7 +667,7 @@ DisabledReason disabledReasonFromString(const std::string& reason)
   {
     r = REASONS_FROM_STRING.at(reason);
   }
-  catch (std::out_of_range)
+  catch (const std::out_of_range&)
   {
     r = USER;
   }

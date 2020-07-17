@@ -82,11 +82,11 @@ catkin_package(
     EIGEN3
 )
 
-include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS})
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
 
 include_directories(SYSTEM
+                    ${catkin_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${PYTHON_INCLUDE_DIRS})
 

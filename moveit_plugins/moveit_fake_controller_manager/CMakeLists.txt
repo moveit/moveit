@@ -19,7 +19,7 @@ find_package(catkin COMPONENTS
   roscpp
   REQUIRED)
 
-include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 catkin_package(
   LIBRARIES

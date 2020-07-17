@@ -42,7 +42,7 @@
  *  DIAGNOSTIC_PUSH
  *  SILENT_UNUSED_PARAM
  *  #include <offender.h>
- *  DIAGNOSTIC_PUSH
+ *  DIAGNOSTIC_POP
  *
  *  The push and pop operations ensure that the old status is restored afterwards.
  */

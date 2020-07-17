@@ -34,6 +34,6 @@ catkin_package(
 )
 
 include_directories(warehouse/include)
-include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_subdirectory(warehouse)
