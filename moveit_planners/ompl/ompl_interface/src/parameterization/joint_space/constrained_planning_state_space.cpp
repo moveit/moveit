@@ -48,6 +48,14 @@ ompl_interface::ConstrainedPlanningStateSpace::ConstrainedPlanningStateSpace(
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
 }
 
+double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(ompl::base::State* state,
+                                                                     const unsigned int index) const
+{
+  if (index >= variable_count_)
+    return nullptr;
+  return state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values + index;
+}
+
 void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::core::RobotState& rstate,
                                                                      const ompl::base::State* state) const
 {

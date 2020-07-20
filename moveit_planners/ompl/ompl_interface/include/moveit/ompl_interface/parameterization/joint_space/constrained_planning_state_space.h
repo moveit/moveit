@@ -48,11 +48,11 @@ MOVEIT_CLASS_FORWARD(ConstrainedPlanningStateSpace);
  * The state type of a constrained state space in OMPL is a wrapper around a normal
  * state type. Therefore we need to unwrap it before we can copy the joint values
  * between OMPL and MoveIt.
- * 
+ *
  * The implementation uses the 'getState' method implemented in the WrapperStateSpace
  * in the OMPL source code.
  * https://github.com/ompl/ompl/blob/55bb20a6e078a48ff6b7ca0dcc095f3232688941/src/ompl/base/spaces/WrapperStateSpace.h#L106
- * 
+ *
  * */
 class ConstrainedPlanningStateSpace : public ModelBasedStateSpace
 {
@@ -67,6 +67,7 @@ public:
   }
 
   // override copy operations between OMPL and ROS, because a constrained state has a different internal structure
+  double* getValueAddressAtIndex(ompl::base::State* state, const unsigned int index) const override;
   virtual void copyToRobotState(moveit::core::RobotState& rstate, const ompl::base::State* state) const;
   virtual void copyToOMPLState(ompl::base::State* state, const moveit::core::RobotState& rstate) const;
   virtual void copyJointToOMPLState(ompl::base::State* state, const moveit::core::RobotState& robot_state,
