@@ -8,6 +8,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/parameterization/model_based_state_space_factory.cpp
   src/parameterization/joint_space/joint_model_state_space.cpp
   src/parameterization/joint_space/joint_model_state_space_factory.cpp
+  src/parameterization/joint_space/constrained_planning_state_space.cpp
   src/parameterization/work_space/pose_model_state_space.cpp
   src/parameterization/work_space/pose_model_state_space_factory.cpp
   src/detail/threadsafe_state_storage.cpp
