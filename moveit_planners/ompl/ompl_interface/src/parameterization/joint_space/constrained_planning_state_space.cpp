@@ -49,7 +49,7 @@ ompl_interface::ConstrainedPlanningStateSpace::ConstrainedPlanningStateSpace(
 }
 
 double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(ompl::base::State* state,
-                                                                     const unsigned int index) const
+                                                                              const unsigned int index) const
 {
   if (index >= variable_count_)
     return nullptr;
