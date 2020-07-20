@@ -21,6 +21,7 @@ find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   control_msgs
+  control_toolbox
   geometry_msgs
   moveit_msgs
   moveit_ros_planning_interface
@@ -94,7 +95,6 @@ target_link_libraries(cpp_interface_example
 ########################################
 
 add_library(pose_tracking STATIC
-  src/pose_tracking/pid_controller.cpp
   src/pose_tracking/pose_tracking.cpp
 )
 add_dependencies(pose_tracking ${catkin_EXPORTED_TARGETS})

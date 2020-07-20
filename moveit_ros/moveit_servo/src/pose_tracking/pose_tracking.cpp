@@ -119,11 +119,6 @@ bool PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const
       return false;
     }
 
-    // Update current set points with current target_pose_
-    updateControllerSetpoints();
-    // Update current state measurements with end_effector_transform_
-    updateControllerStateMeasurements();
-
     // Compute servo command from PID controller output
     auto msg = calculateTwistCommand();
 
@@ -205,12 +200,6 @@ void PoseTracking::readROSParams()
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_derivative_gain", x_pid_config_.k_d);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_derivative_gain", y_pid_config_.k_d);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_derivative_gain", z_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_max_vel", x_pid_config_.max);
-  x_pid_config_.min = -x_pid_config_.max;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_max_vel", y_pid_config_.max);
-  y_pid_config_.min = -y_pid_config_.max;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_max_vel", z_pid_config_.max);
-  z_pid_config_.min = -z_pid_config_.max;
 
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qw_proportional_gain", qw_pid_config_.k_p);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qx_proportional_gain", qx_pid_config_.k_p);
@@ -224,22 +213,18 @@ void PoseTracking::readROSParams()
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qx_derivative_gain", qx_pid_config_.k_d);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qy_derivative_gain", qy_pid_config_.k_d);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qz_derivative_gain", qz_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qw_max_vel", qw_pid_config_.max);
-  qw_pid_config_.min = -qw_pid_config_.max;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qx_max_vel", qx_pid_config_.max);
-  qx_pid_config_.min = -qx_pid_config_.max;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qy_max_vel", qy_pid_config_.max);
-  qy_pid_config_.min = -qy_pid_config_.max;
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/qz_max_vel", qz_pid_config_.max);
-  qz_pid_config_.min = -qz_pid_config_.max;
 
   rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
 
-void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<PIDController>& pid_vector)
+void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<control_toolbox::Pid>& pid_vector)
 {
-  PIDController new_pid(pid_config.dt, pid_config.max, pid_config.min, pid_config.k_p, pid_config.k_i, pid_config.k_d,
-                        pid_config.windup_limit);
+  // Windup limits
+  double i_max = pid_config.windup_limit;
+  double i_min = -pid_config.windup_limit;
+
+  control_toolbox::Pid new_pid(pid_config.k_p, pid_config.k_i, pid_config.k_d, i_max, i_min, true /* anti-windup */);
+
   pid_vector.push_back(new_pid);
 }
 
@@ -257,21 +242,18 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
                                           const Eigen::Vector3d& angular_tolerance)
 {
   // TODO(andyz): check orientation too
-  return areCartesianControllersInitialized() &&
-         fabs(cartesian_position_pids_[0].getCurrentStateMeasurement() - cartesian_position_pids_[0].getSetpoint()) <
-             positional_tolerance(0) &&
-         fabs(cartesian_position_pids_[1].getCurrentStateMeasurement() - cartesian_position_pids_[1].getSetpoint()) <
-             positional_tolerance(1) &&
-         fabs(cartesian_position_pids_[2].getCurrentStateMeasurement() - cartesian_position_pids_[2].getSetpoint()) <
-             positional_tolerance(2);
-}
 
-bool PoseTracking::areCartesianControllersInitialized()
-{
-  // TODO(andyz): check orientation controllers, too
-  return cartesian_position_pids_[0].isInitialized() && cartesian_position_pids_[1].isInitialized() &&
-         cartesian_position_pids_[2].isInitialized();
-  ;
+  double error = 0, dummy;
+  cartesian_position_pids_[0].getCurrentPIDErrors(&error, &dummy, &dummy);
+  double x_error = error;
+  cartesian_position_pids_[1].getCurrentPIDErrors(&error, &dummy, &dummy);
+  double y_error = error;
+  cartesian_position_pids_[2].getCurrentPIDErrors(&error, &dummy, &dummy);
+  double z_error = error;
+
+  return (fabs(x_error) < positional_tolerance(0)) &&
+         (fabs(y_error) < positional_tolerance(1)) &&
+         (fabs(z_error) < positional_tolerance(2));
 }
 
 void PoseTracking::targetPoseCallback(geometry_msgs::PoseStamped msg)
@@ -286,25 +268,6 @@ void PoseTracking::targetPoseCallback(geometry_msgs::PoseStamped msg)
   target_pose_ = msg;
 }
 
-void PoseTracking::updateControllerSetpoints()
-{
-  cartesian_position_pids_[0].setSetpoint(target_pose_.pose.position.x);
-  cartesian_position_pids_[1].setSetpoint(target_pose_.pose.position.y);
-  cartesian_position_pids_[2].setSetpoint(target_pose_.pose.position.z);
-  // TODO(andyz): update orientation setpoints
-}
-
-void PoseTracking::updateControllerStateMeasurements()
-{
-  // Position control is simple. Positions come in the MoveIt planning frame and we don't have to do any
-  // transformations
-  cartesian_position_pids_[0].setCurrentStateMeasurement(end_effector_transform_.translation()(0));
-  cartesian_position_pids_[1].setCurrentStateMeasurement(end_effector_transform_.translation()(1));
-  cartesian_position_pids_[2].setCurrentStateMeasurement(end_effector_transform_.translation()(2));
-
-  // TODO(andyz): update orientation setpoints too
-}
-
 geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
 {
   // use the shared pool to create a message more efficiently
@@ -315,9 +278,12 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   geometry_msgs::Twist& jog_twist = msg->twist;
 
   // Position
-  jog_twist.linear.x = cartesian_position_pids_[0].getOutputSignal();
-  jog_twist.linear.y = cartesian_position_pids_[1].getOutputSignal();
-  jog_twist.linear.z = cartesian_position_pids_[2].getOutputSignal();
+  jog_twist.linear.x = cartesian_position_pids_[0].computeCommand(
+    target_pose_.pose.position.x - end_effector_transform_.translation()(0), loop_rate_.cycleTime());
+  jog_twist.linear.y = cartesian_position_pids_[1].computeCommand(
+    target_pose_.pose.position.y - end_effector_transform_.translation()(1), loop_rate_.cycleTime());
+  jog_twist.linear.z = cartesian_position_pids_[2].computeCommand(
+    target_pose_.pose.position.z - end_effector_transform_.translation()(2), loop_rate_.cycleTime());
 
   // Set current timestamp
   msg->header.stamp = ros::Time::now();
@@ -330,12 +296,12 @@ void PoseTracking::doPostMotionReset()
   stop_requested_ = false;
 
   // Reset error integrals and previous errors of PID controllers
-  cartesian_position_pids_[0].resetControllerErrors();
-  cartesian_position_pids_[1].resetControllerErrors();
-  cartesian_position_pids_[2].resetControllerErrors();
-  cartesian_orientation_pids_[0].resetControllerErrors();
-  cartesian_orientation_pids_[1].resetControllerErrors();
-  cartesian_orientation_pids_[2].resetControllerErrors();
-  cartesian_orientation_pids_[3].resetControllerErrors();
+  cartesian_position_pids_[0].reset();
+  cartesian_position_pids_[1].reset();
+  cartesian_position_pids_[2].reset();
+  cartesian_orientation_pids_[0].reset();
+  cartesian_orientation_pids_[1].reset();
+  cartesian_orientation_pids_[2].reset();
+  cartesian_orientation_pids_[3].reset();
 }
 }

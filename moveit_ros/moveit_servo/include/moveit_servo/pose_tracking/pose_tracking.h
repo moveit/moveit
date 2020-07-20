@@ -39,6 +39,7 @@
 #pragma once
 
 #include <moveit_servo/pose_tracking/pid_controller.h>
+#include <control_toolbox/pid.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -65,12 +66,10 @@ struct PIDConfig
 {
   // Default values
   double dt = 0.001;
-  double max = 1;
-  double min = -1;
   double k_p = 1;
   double k_i = 0;
   double k_d = 0;
-  double windup_limit = 10;
+  double windup_limit = 1;
 };
 
 /**
@@ -97,7 +96,7 @@ private:
   void readROSParams();
 
   /** \brief Initialize a PID controller and add it to vector of controllers */
-  void initializePID(const PIDConfig& pid_config, std::vector<PIDController>& pid_vector);
+  void initializePID(const PIDConfig& pid_config, std::vector<control_toolbox::Pid>& pid_vector);
 
   /** \brief Return true if a target pose has been received within timeout [seconds] */
   bool haveRecentTargetPose(const double timeout);
@@ -107,9 +106,6 @@ private:
 
   /** \brief Check if XYZ, roll/pitch/yaw tolerances are satisfied */
   bool satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const Eigen::Vector3d& angular_tolerance);
-
-  /** \brief Return true if all PID controllers are ready to go */
-  bool areCartesianControllersInitialized();
 
   /** \brief Subscribe to the target pose on this topic */
   void targetPoseCallback(const geometry_msgs::PoseStamped msg);
@@ -144,8 +140,8 @@ private:
   // ROS interface to Servo
   ros::Publisher twist_stamped_pub_;
 
-  std::vector<PIDController> cartesian_position_pids_;
-  std::vector<PIDController> cartesian_orientation_pids_;
+  std::vector<control_toolbox::Pid> cartesian_position_pids_;
+  std::vector<control_toolbox::Pid> cartesian_orientation_pids_;
   // Cartesian PID configs
   PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, qw_pid_config_, qx_pid_config_, qy_pid_config_, qz_pid_config_;
 
