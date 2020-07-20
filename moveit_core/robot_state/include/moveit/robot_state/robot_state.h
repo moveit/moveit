@@ -1288,8 +1288,8 @@ as the new values that correspond to the group */
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
-   * \param link_name The name of the link
-   * \param reference_point_position The reference point position (with respect to the link specified in link_name)
+   * \param link The link model to compute the Jacobian for
+   * \param reference_point_position The reference point position (with respect to the link specified in link)
    * \param jacobian The resultant jacobian
    * \param use_quaternion_representation Flag indicating if the Jacobian should use a quaternion representation
    * (default is false)
@@ -1300,8 +1300,8 @@ as the new values that correspond to the group */
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
-   * \param link_name The name of the link
-   * \param reference_point_position The reference point position (with respect to the link specified in link_name)
+   * \param link The link model to compute the Jacobian for
+   * \param reference_point_position The reference point position (with respect to the link specified in link)
    * \param jacobian The resultant jacobian
    * \param use_quaternion_representation Flag indicating if the Jacobian should use a quaternion representation
    * (default is false)
