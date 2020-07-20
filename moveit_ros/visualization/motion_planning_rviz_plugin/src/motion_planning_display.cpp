@@ -1212,11 +1212,8 @@ void MotionPlanningDisplay::updateStateExceptModified(moveit::core::RobotState& 
   dest = src_copy;
 }
 
-void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
-    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+void MotionPlanningDisplay::updateQueryStates(const moveit::core::RobotState& current_state)
 {
-  PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
-  moveit::core::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
   if (query_start_state_ && query_start_state_property_->getBool() && !group.empty())
@@ -1232,7 +1229,13 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
     updateStateExceptModified(goal, current_state);
     setQueryGoalState(goal);
   }
+}
 
+void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
+    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+{
+  PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
+  updateQueryStates(getPlanningSceneRO()->getCurrentState());
   if (frame_)
     frame_->sceneUpdate(update_type);
 }

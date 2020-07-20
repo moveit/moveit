@@ -52,6 +52,7 @@ namespace moveit_rviz_plugin
 {
 void MotionPlanningFrame::planButtonClicked()
 {
+  publishSceneIfNeeded();
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanButtonClicked, this),
                                       "compute plan");
 }
@@ -65,6 +66,7 @@ void MotionPlanningFrame::executeButtonClicked()
 
 void MotionPlanningFrame::planAndExecuteButtonClicked()
 {
+  publishSceneIfNeeded();
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
   // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
