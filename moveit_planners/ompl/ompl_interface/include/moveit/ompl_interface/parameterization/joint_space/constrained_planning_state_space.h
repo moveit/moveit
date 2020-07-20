@@ -36,10 +36,13 @@
 
 #pragma once
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 
 namespace ompl_interface
 {
+MOVEIT_CLASS_FORWARD(ConstrainedPlanningStateSpace);
+
 /** \brief State space that handles states of type ompl::base::ConstrainedStateSpace
  *
  * The state type of a constrained state space in OMPL is a wrapper around a normal
