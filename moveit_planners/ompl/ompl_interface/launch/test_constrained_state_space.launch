@@ -1,0 +1,3 @@
+<launch>
+  <node launch-prefix="valgrind" name="test_constrained_state_space" pkg="moveit_planners_ompl" type="test_constrained_planning_state_space" output="screen"/>
+</launch>
