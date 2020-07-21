@@ -109,8 +109,8 @@ protected:
     base_link_name_ = robot_model_->getRootLinkName();
 
     // create a constrained state space for testing
-    setupOMPLStateSpace();
     setupMoveItStateSpace();
+    setupOMPLStateSpace();
   };
 
   void TearDown() override
@@ -143,23 +143,18 @@ protected:
     return state;
   }
 
-  void setupOMPLStateSpace()
-  {
-    auto rvs = std::make_shared<ompl::base::RealVectorStateSpace>(num_dofs_);
-    // set arbitrary bounds
-    ompl::base::RealVectorBounds bounds(num_dofs_);
-    bounds.setLow(-2);
-    bounds.setHigh(2);
-    rvs->setBounds(bounds);
-    auto con = std::make_shared<DummyConstraint>(num_dofs_);
-
-    constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(rvs, con);
-  }
-
   void setupMoveItStateSpace()
   {
     ompl_interface::ModelBasedStateSpaceSpecification space_spec(robot_model_, group_name_);
     moveit_state_space_ = std::make_shared<ompl_interface::ConstrainedPlanningStateSpace>(space_spec);
+  }
+
+  void setupOMPLStateSpace()
+  {
+    // first call setupMoveItStateSpace()
+    assert(moveit_state_space_ != nullptr);
+    auto con = std::make_shared<DummyConstraint>(num_dofs_);
+    constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(moveit_state_space_, con);
   }
 
   void copyToRobotStateTest()
@@ -167,7 +162,18 @@ protected:
     // create and OMPL state
     Eigen::VectorXd joint_positions = getDeterministicState();
     ompl::base::ScopedState<> ompl_state(constrained_state_space_);
-    ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->copy(joint_positions);
+
+    // set OMPL state using another moveit state
+    moveit::core::RobotState init_moveit_state(robot_model_);
+    init_moveit_state.setToDefaultValues();
+    init_moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
+    moveit_state_space_->copyToOMPLState(ompl_state.get(), init_moveit_state);
+
+    // ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->copy(joint_positions);
+    // ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()
+    //     ->getState()
+    //     ->as<ompl_interface::ConstrainedPlanningStateSpace>()
+    //     ->copyFromReals
 
     // copy into a MoveIt state
     moveit::core::RobotState moveit_state(robot_model_);
