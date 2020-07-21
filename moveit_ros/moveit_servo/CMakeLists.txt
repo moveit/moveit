@@ -13,10 +13,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# For library compilation issue. See
-# https://stackoverflow.com/questions/25902519/building-error-cmake-can-not-be-used-when-making-a-shared-object-recompile-wi
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
@@ -65,7 +61,7 @@ include_directories(SYSTEM
 #########################################################
 
 # This library provides an interface for sending realtime twist or joint commands to a robot
-add_library(${SERVO_LIB_NAME} STATIC
+add_library(${SERVO_LIB_NAME}
   # These files are used to produce differential motion
   src/collision_check.cpp
   src/servo_calcs.cpp
@@ -95,7 +91,7 @@ target_link_libraries(cpp_interface_example
 ## Library for servoing toward a pose ##
 ########################################
 
-add_library(pose_tracking STATIC
+add_library(pose_tracking
   src/pose_tracking/pose_tracking.cpp
 )
 add_dependencies(pose_tracking ${catkin_EXPORTED_TARGETS})
