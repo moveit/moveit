@@ -233,12 +233,15 @@ public:
     return spec_.joint_bounds_;
   }
 
-  /// Copy the data from an OMPL state to a set of joint states.
-  // The joint states \b must be specified in the same order as the joint models in the constructor
+  /** \brief Copy the data from an OMPL state to a set of joint states.
+   *
+   * The joint states \b must be specified in the same order as the joint models in the constructor
+   * */
   virtual void copyToRobotState(moveit::core::RobotState& rstate, const ompl::base::State* state) const;
 
-  /// Copy the data from a set of joint states to an OMPL state.
-  //  The joint states \b must be specified in the same order as the joint models in the constructor
+  /** \brief Copy the data from a set of joint states to an OMPL state.
+   * The joint states \b must be specified in the same order as the joint models in the constructor
+   * */
   virtual void copyToOMPLState(ompl::base::State* state, const moveit::core::RobotState& rstate) const;
 
   /**
