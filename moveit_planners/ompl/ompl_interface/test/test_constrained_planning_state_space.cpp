@@ -178,7 +178,7 @@ protected:
     moveit_state.copyJointGroupPositions(joint_model_group_, out_joint_position);
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
-    for (std::size_t i; i < joint_positions.size(); ++i)
+    for (std::size_t i = 0; i < joint_positions.size(); ++i)
     {
       EXPECT_EQ(joint_positions[i], out_joint_position[i]);
     }
@@ -200,7 +200,7 @@ protected:
     out_joint_position = *ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>();
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
-    for (std::size_t i; i < joint_positions.size(); ++i)
+    for (std::size_t i = 0; i < joint_positions.size(); ++i)
     {
       EXPECT_EQ(joint_positions[i], out_joint_position[i]);
     }
@@ -228,7 +228,7 @@ protected:
     out_joint_position = *ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>();
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
-    for (std::size_t i; i < joint_positions.size(); ++i)
+    for (std::size_t i = 0; i < joint_positions.size(); ++i)
     {
       EXPECT_EQ(joint_positions[i], out_joint_position[i]);
     }
