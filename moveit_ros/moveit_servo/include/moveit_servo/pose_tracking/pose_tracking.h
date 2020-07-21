@@ -68,7 +68,7 @@ struct PIDConfig
   double k_p = 1;
   double k_i = 0;
   double k_d = 0;
-  double windup_limit = 1;
+  double windup_limit = 0.1;
 };
 
 /**
