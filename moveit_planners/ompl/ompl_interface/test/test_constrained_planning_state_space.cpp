@@ -65,7 +65,7 @@ public:
   DummyConstraint(const unsigned int num_dofs) : ompl::base::Constraint(num_dofs, 1)
   {
   }
-  void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const
+  void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override
   {
     out[0] = 0.0;
   }
