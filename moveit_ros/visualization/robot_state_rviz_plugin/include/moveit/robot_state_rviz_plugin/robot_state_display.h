@@ -132,7 +132,7 @@ protected:
   robot_state::RobotStatePtr robot_state_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
-  bool load_robot_model_;  // for delayed robot initialization
+  std::atomic<bool> robot_model_loaded_;
 
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* root_link_name_property_;
