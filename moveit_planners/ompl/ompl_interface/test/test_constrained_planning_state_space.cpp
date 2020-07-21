@@ -171,6 +171,7 @@ protected:
 
     // copy into a MoveIt state
     moveit::core::RobotState moveit_state(robot_model_);
+    moveit_state.setToDefaultValues();
     moveit_state_space_->copyToRobotState(moveit_state, ompl_state.get());
 
     // check if copy worked out as expected
@@ -189,6 +190,7 @@ protected:
     // create a MoveIt state
     Eigen::VectorXd joint_positions = getDeterministicState();
     moveit::core::RobotState moveit_state(robot_model_);
+    moveit_state.setToDefaultValues();
     moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
 
     // copy into an OMPL state
@@ -211,6 +213,7 @@ protected:
     // create a MoveIt state
     Eigen::VectorXd joint_positions = getDeterministicState();
     moveit::core::RobotState moveit_state(robot_model_);
+    moveit_state.setToDefaultValues();
     moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
 
     // copy into an OMPL state, one index at a time

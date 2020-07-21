@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(moveit_planners_ompl)
 
+add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
+
 # At least C++11 required for OMPL
 if(NOT "${CMAKE_CXX_STANDARD}")
   set(CMAKE_CXX_STANDARD 14)
