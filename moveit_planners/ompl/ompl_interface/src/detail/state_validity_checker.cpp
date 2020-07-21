@@ -44,8 +44,8 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
   , planning_context_(pc)
   , group_name_(pc->getGroupName())
   , tss_(pc->getCompleteInitialRobotState())
-  , verbose_(false)
   , check_path_constraints_(true)
+  , verbose_(false)
 {
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
   specs_.hasValidDirectionComputation = false;
