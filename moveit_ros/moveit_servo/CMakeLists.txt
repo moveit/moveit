@@ -40,6 +40,7 @@ catkin_package(
     ${SERVO_LIB_NAME}
   CATKIN_DEPENDS
     control_msgs
+    control_toolbox
     geometry_msgs
     moveit_msgs
     moveit_ros_planning_interface

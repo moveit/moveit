@@ -89,6 +89,10 @@ bool PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const
   {
     ros::Duration(0.001).sleep();
   }
+  if (!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT))
+  {
+    return false;
+  }
 
   while (ros::ok())
   {
@@ -219,13 +223,8 @@ void PoseTracking::readROSParams()
 
 void PoseTracking::initializePID(const PIDConfig& pid_config, std::vector<control_toolbox::Pid>& pid_vector)
 {
-  // Windup limits
-  double i_max = pid_config.windup_limit;
-  double i_min = -pid_config.windup_limit;
-
-  control_toolbox::Pid new_pid(pid_config.k_p, pid_config.k_i, pid_config.k_d, i_max, i_min, true /* anti-windup */);
-
-  pid_vector.push_back(new_pid);
+  bool use_anti_windup = true;
+  pid_vector.push_back(control_toolbox::Pid(pid_config.k_p, pid_config.k_i, pid_config.k_d, -pid_config.windup_limit, pid_config.windup_limit, use_anti_windup));
 }
 
 bool PoseTracking::haveRecentTargetPose(const double timespan)
@@ -243,13 +242,9 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
 {
   // TODO(andyz): check orientation too
 
-  double error = 0, dummy;
-  cartesian_position_pids_[0].getCurrentPIDErrors(&error, &dummy, &dummy);
-  double x_error = error;
-  cartesian_position_pids_[1].getCurrentPIDErrors(&error, &dummy, &dummy);
-  double y_error = error;
-  cartesian_position_pids_[2].getCurrentPIDErrors(&error, &dummy, &dummy);
-  double z_error = error;
+  double x_error = target_pose_.pose.position.x - end_effector_transform_.translation()(0);
+  double y_error = target_pose_.pose.position.y - end_effector_transform_.translation()(1);
+  double z_error = target_pose_.pose.position.z - end_effector_transform_.translation()(2);
 
   return (fabs(x_error) < positional_tolerance(0)) &&
          (fabs(y_error) < positional_tolerance(1)) &&
@@ -266,6 +261,7 @@ void PoseTracking::targetPoseCallback(geometry_msgs::PoseStamped msg)
     tf2::doTransform(msg, msg, target_to_planning_frame);
   }
   target_pose_ = msg;
+  target_pose_.header.stamp = ros::Time::now();
 }
 
 geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
@@ -275,15 +271,15 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   msg->header.frame_id = planning_frame_;
 
   // Get twist components from PID controllers
-  geometry_msgs::Twist& jog_twist = msg->twist;
+  geometry_msgs::Twist& twist = msg->twist;
 
   // Position
-  jog_twist.linear.x = cartesian_position_pids_[0].computeCommand(
-    target_pose_.pose.position.x - end_effector_transform_.translation()(0), loop_rate_.cycleTime());
-  jog_twist.linear.y = cartesian_position_pids_[1].computeCommand(
-    target_pose_.pose.position.y - end_effector_transform_.translation()(1), loop_rate_.cycleTime());
-  jog_twist.linear.z = cartesian_position_pids_[2].computeCommand(
-    target_pose_.pose.position.z - end_effector_transform_.translation()(2), loop_rate_.cycleTime());
+  twist.linear.x = cartesian_position_pids_[0].computeCommand(
+    target_pose_.pose.position.x - end_effector_transform_.translation()(0), loop_rate_.expectedCycleTime());
+  twist.linear.y = cartesian_position_pids_[1].computeCommand(
+    target_pose_.pose.position.y - end_effector_transform_.translation()(1), loop_rate_.expectedCycleTime());
+  twist.linear.z = cartesian_position_pids_[2].computeCommand(
+    target_pose_.pose.position.z - end_effector_transform_.translation()(2), loop_rate_.expectedCycleTime());
 
   // Set current timestamp
   msg->header.stamp = ros::Time::now();

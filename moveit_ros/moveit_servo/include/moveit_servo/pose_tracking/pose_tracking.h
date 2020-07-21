@@ -38,7 +38,6 @@
 
 #pragma once
 
-#include <moveit_servo/pose_tracking/pid_controller.h>
 #include <control_toolbox/pid.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
