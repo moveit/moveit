@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2020, Jeroen De Maeyer
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -48,44 +48,44 @@ ompl_interface::ConstrainedPlanningStateSpace::ConstrainedPlanningStateSpace(
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
 }
 
-double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(ompl::base::State* state,
+double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(ompl::base::State* ompl_state,
                                                                               const unsigned int index) const
 {
   if (index >= variable_count_)
     return nullptr;
-  return state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values + index;
+  return ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values + index;
 }
 
-void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::core::RobotState& rstate,
-                                                                     const ompl::base::State* state) const
+void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::core::RobotState& robot_state,
+                                                                     const ompl::base::State* ompl_state) const
 {
-  rstate.setJointGroupPositions(
+  robot_state.setJointGroupPositions(
       spec_.joint_model_group_,
-      state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
-  rstate.update();
+      ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
+  robot_state.update();
 }
 
-void ompl_interface::ConstrainedPlanningStateSpace::copyToOMPLState(ompl::base::State* state,
-                                                                    const moveit::core::RobotState& rstate) const
+void ompl_interface::ConstrainedPlanningStateSpace::copyToOMPLState(ompl::base::State* ompl_state,
+                                                                    const moveit::core::RobotState& robot_state) const
 {
-  rstate.copyJointGroupPositions(
+  robot_state.copyJointGroupPositions(
       spec_.joint_model_group_,
-      state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
+      ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->values);
   // clear any cached info (such as validity known or not)
-  state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->clearKnownInformation();
+  ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->clearKnownInformation();
 }
 
-void ompl_interface::ConstrainedPlanningStateSpace::copyJointToOMPLState(ompl::base::State* state,
+void ompl_interface::ConstrainedPlanningStateSpace::copyJointToOMPLState(ompl::base::State* ompl_state,
                                                                          const moveit::core::RobotState& robot_state,
                                                                          const moveit::core::JointModel* joint_model,
                                                                          int ompl_state_joint_index) const
 {
   // Copy one joint (multiple variables possibly)
   // no need to cast the state as ConstrainedPlanningStateSpace also implements getValueAddressAtIndex
-  memcpy(getValueAddressAtIndex(state, ompl_state_joint_index),
+  memcpy(getValueAddressAtIndex(ompl_state, ompl_state_joint_index),
          robot_state.getVariablePositions() + joint_model->getFirstVariableIndex() * sizeof(double),
          joint_model->getVariableCount() * sizeof(double));
 
   // clear any cached info (such as validity known or not)
-  state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->clearKnownInformation();
+  ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState()->as<StateType>()->clearKnownInformation();
 }

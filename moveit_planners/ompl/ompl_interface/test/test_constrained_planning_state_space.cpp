@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2020, Jeroen De Maeyer
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -59,10 +59,10 @@
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 
 /** dummy constraint for testing, always satisfied. **/
-class DummyConstriant : public ompl::base::Constraint
+class DummyConstraint : public ompl::base::Constraint
 {
 public:
-  DummyConstriant(const unsigned int num_dofs) : ompl::base::Constraint(num_dofs, 1)
+  DummyConstraint(const unsigned int num_dofs) : ompl::base::Constraint(num_dofs, 1)
   {
   }
   void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const
@@ -151,7 +151,7 @@ protected:
     bounds.setLow(-2);
     bounds.setHigh(2);
     rvs->setBounds(bounds);
-    auto con = std::make_shared<DummyConstriant>(num_dofs_);
+    auto con = std::make_shared<DummyConstraint>(num_dofs_);
 
     constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(rvs, con);
   }
@@ -164,12 +164,10 @@ protected:
 
   void copyToRobotStateTest()
   {
-    namespace ob = ompl::base;
-
     // create and OMPL state
     Eigen::VectorXd joint_positions = getDeterministicState();
-    ob::ScopedState<> ompl_state(constrained_state_space_);
-    ompl_state->as<ob::ConstrainedStateSpace::StateType>()->copy(joint_positions);
+    ompl::base::ScopedState<> ompl_state(constrained_state_space_);
+    ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->copy(joint_positions);
 
     // copy into a MoveIt state
     moveit::core::RobotState moveit_state(robot_model_);
@@ -188,20 +186,18 @@ protected:
 
   void copyToOMPLStateTest()
   {
-    namespace ob = ompl::base;
-
     // create a MoveIt state
     Eigen::VectorXd joint_positions = getDeterministicState();
     moveit::core::RobotState moveit_state(robot_model_);
     moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
 
     // copy into an OMPL state
-    ob::ScopedState<> ompl_state(constrained_state_space_);
+    ompl::base::ScopedState<> ompl_state(constrained_state_space_);
     moveit_state_space_->copyToOMPLState(ompl_state.get(), moveit_state);
 
     // check if copy worked out as expected
     Eigen::VectorXd out_joint_position(num_dofs_);
-    out_joint_position = *ompl_state->as<ob::ConstrainedStateSpace::StateType>();
+    out_joint_position = *ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>();
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
     for (std::size_t i; i < joint_positions.size(); ++i)
@@ -212,15 +208,13 @@ protected:
 
   void copyJointToOMPLStateTest()
   {
-    namespace ob = ompl::base;
-
     // create a MoveIt state
     Eigen::VectorXd joint_positions = getDeterministicState();
     moveit::core::RobotState moveit_state(robot_model_);
     moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
 
     // copy into an OMPL state, one index at a time
-    ob::ScopedState<> ompl_state(constrained_state_space_);
+    ompl::base::ScopedState<> ompl_state(constrained_state_space_);
     auto joint_model_names = joint_model_group_->getActiveJointModelNames();
     for (int joint_index = 0; joint_index < num_dofs_; ++joint_index)
     {
@@ -231,7 +225,7 @@ protected:
 
     // check if copy worked out as expected
     Eigen::VectorXd out_joint_position(num_dofs_);
-    out_joint_position = *ompl_state->as<ob::ConstrainedStateSpace::StateType>();
+    out_joint_position = *ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>();
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
     for (std::size_t i; i < joint_positions.size(); ++i)
