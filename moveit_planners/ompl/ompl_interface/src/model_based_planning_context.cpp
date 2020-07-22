@@ -94,7 +94,6 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_planning_threads_(0)
   , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
-  , use_state_validity_cache_(true)
   , multi_query_planning_enabled_(false)  // maintain "old" behavior by default
   , simplify_solutions_(true)
   , interpolate_(true)
