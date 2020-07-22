@@ -254,16 +254,6 @@ public:
     return constraints_library_;
   }
 
-  bool useStateValidityCache() const
-  {
-    return use_state_validity_cache_;
-  }
-
-  void useStateValidityCache(bool flag)
-  {
-    use_state_validity_cache_ = flag;
-  }
-
   bool simplifySolutions() const
   {
     return simplify_solutions_;
@@ -424,8 +414,6 @@ protected:
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
   /// needed)
   unsigned int minimum_waypoint_count_;
-
-  bool use_state_validity_cache_;
 
   /// when false, clears planners before running solve()
   bool multi_query_planning_enabled_;
