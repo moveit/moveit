@@ -65,7 +65,7 @@ public:
   DummyConstraint(const unsigned int num_dofs) : ompl::base::Constraint(num_dofs, 1)
   {
   }
-  void function(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::VectorXd> out) const override
+  void function(const Eigen::Ref<const Eigen::VectorXd>& /*unused*/, Eigen::Ref<Eigen::VectorXd> out) const override
   {
     out[0] = 0.0;
   }
@@ -92,7 +92,7 @@ class LoadTestRobotBaseClass : public testing::Test
 {
 protected:
   LoadTestRobotBaseClass(const std::string& robot_name, const std::string& group_name)
-    : robot_name_(robot_name), group_name_(group_name)
+    : group_name_(group_name), robot_name_(robot_name)
   {
   }
 
@@ -135,7 +135,7 @@ protected:
   {
     Eigen::VectorXd state(num_dofs_);
     double value = 0.1;
-    for (std::size_t i = 0; i < state.size(); ++i)
+    for (std::size_t i = 0; i < num_dofs_; ++i)
     {
       state[i] = value;
       value += 0.1;
@@ -203,7 +203,7 @@ protected:
     moveit_state.copyJointGroupPositions(joint_model_group_, out_joint_position);
 
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
-    for (std::size_t i = 0; i < joint_positions.size(); ++i)
+    for (std::size_t i = 0; i < num_dofs_; ++i)
     {
       EXPECT_EQ(joint_positions[i], out_joint_position[i]);
     }
@@ -244,7 +244,7 @@ protected:
     // copy into an OMPL state, one index at a time
     ompl::base::ScopedState<> ompl_state(constrained_state_space_);
     auto joint_model_names = joint_model_group_->getActiveJointModelNames();
-    for (int joint_index = 0; joint_index < num_dofs_; ++joint_index)
+    for (std::size_t joint_index = 0; joint_index < num_dofs_; ++joint_index)
     {
       const moveit::core::JointModel* joint_model = joint_model_group_->getJointModel(joint_model_names[joint_index]);
       EXPECT_FALSE(joint_model == nullptr);
