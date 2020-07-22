@@ -199,6 +199,16 @@ protected:
     constraint_->init(constraint_msgs);
   }
 
+  void setPositionAndOrientationConstraint()
+  {
+    moveit_msgs::Constraints constraint_msgs;
+    constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, ee_link_name_));
+    constraint_msgs.orientation_constraints.push_back(createOrientationConstraint(base_link_name_, ee_link_name_));
+
+    constraint_ = std::make_shared<ompl_interface::PoseConstraint>(robot_model_, group_name_, num_dofs_);
+    constraint_->init(constraint_msgs);
+  }
+
   void testJacobian()
   {
     double total_error{ 999.9 };
@@ -310,6 +320,12 @@ TEST_F(PandaConstraintTest, InitAngleAxisConstraint)
 TEST_F(PandaConstraintTest, AngleAxisConstraintOMPLCheck)
 {
   setOrientationConstraints();
+  testOMPLProjectedStateSpaceConstruction();
+}
+
+TEST_F(PandaConstraintTest, InitPositionAndOrientationConstraint)
+{
+  setPositionAndOrientationConstraint();
   testOMPLProjectedStateSpaceConstruction();
 }
 

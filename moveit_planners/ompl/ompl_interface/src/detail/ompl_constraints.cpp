@@ -191,6 +191,63 @@ Eigen::MatrixXd AngleAxisConstraint::calcErrorJacobian(const Eigen::Ref<const Ei
   return -angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3);
 }
 
+/**********************************************
+ * Position and orienation constraints combined
+ * *******************************************/
+void PoseConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
+{
+  bounds_.clear();
+  bounds_ = positionConstraintMsgToBoundVector(constraints.position_constraints.at(0));
+  // ROS_INFO_STREAM("Parsed x constraints" << bounds_[0]);
+  // ROS_INFO_STREAM("Parsed y constraints" << bounds_[1]);
+  // ROS_INFO_STREAM("Parsed z constraints" << bounds_[2]);
+
+  // extract target / nominal value
+  geometry_msgs::Point position =
+      constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
+  target_position_ << position.x, position.y, position.z;
+
+  auto ori_bounds = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
+  bounds_.push_back(ori_bounds[0]);
+  bounds_.push_back(ori_bounds[1]);
+  // IGNORE RZ CONSTRAINT
+  tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_orientation_);
+
+  link_name_ = constraints.position_constraints.at(0).link_name;
+  assert(link_name_ == constraints.orientation_constraints.at(0).link_name);
+}
+
+Eigen::VectorXd PoseConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  Eigen::VectorXd error(getCoDimension());
+  auto fk_pose = forwardKinematics(x);
+  error.topRows(3) = fk_pose.translation() - target_position_;
+
+  Eigen::AngleAxisd aa(fk_pose.rotation().transpose() * target_orientation_);
+  double angle = aa.angle();
+  error[3] = aa.axis()[0] * angle;
+  error[4] = aa.axis()[1] * angle;
+
+  return error;
+}
+
+Eigen::MatrixXd PoseConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  // (jeroendm) this could potentially be a very slow implementation as it constructs an Eigen Matrix,
+  Eigen::MatrixXd jacobian = Eigen::MatrixXd::Zero(getCoDimension(), n_);
+
+  // jacobian of position error
+  jacobian.topRows(3) = target_orientation_.matrix().transpose() * geometricJacobian(x).topRows(3);
+
+  // jacobian of orientation error
+  // drop the last row because error on z-rotation is ignored
+  Eigen::AngleAxisd aa{ forwardKinematics(x).rotation() };
+  jacobian.bottomRows(2) =
+      (-angularVelocityToAngleAxis(aa.angle(), aa.axis()) * geometricJacobian(x).bottomRows(3)).topRows(2);
+
+  return jacobian;
+}
+
 /************************************
  * Message conversion functions
  * **********************************/
@@ -235,8 +292,10 @@ std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr
 
   if (num_pos_con > 0 && num_ori_con > 0)
   {
-    ROS_ERROR_NAMED(LOGNAME, "Combining position and orientation constraints not implemented yet.");
-    return nullptr;
+    ROS_WARN_NAMED(LOGNAME, "Combining position and orientation constraints will ignore the z orientation tolerance.");
+    auto con = std::make_shared<PoseConstraint>(robot_model, group, num_dofs);
+    con->init(constraints);
+    return con;
   }
   else if (num_pos_con > 0)
   {
@@ -287,5 +346,4 @@ Eigen::Matrix3d angularVelocityToAngleAxis(double angle, const Eigen::Vector3d& 
   return Eigen::Matrix3d::Identity() - 0.5 * r_skew +
          r_skew * r_skew / (t * t) * (1 - 0.5 * t * std::sin(t) / (1 - std::cos(t)));
 }
-
 }  // namespace ompl_interface

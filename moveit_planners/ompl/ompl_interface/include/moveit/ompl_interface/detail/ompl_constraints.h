@@ -222,6 +222,30 @@ public:
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
 
+/** \brief Position and orientation constraint
+ *
+ * Combine position constraints modelled as a box with orientation constraints
+ * using exponential coordinates, but ignore the last rotation around the z-axis.
+ * This is a common constraint for grasping, welding, ...
+ * */
+class PoseConstraint : public BaseConstraint
+{
+public:
+  PoseConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group, const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs, 5)
+  {
+  }
+
+  void jacobian(const Eigen::Ref<const Eigen::VectorXd>& x, Eigen::Ref<Eigen::MatrixXd> out) const override
+  {
+    ob::Constraint::jacobian(x, out);
+  }
+
+  virtual void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
+  virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+};
+
 /** \brief Extract position constraints from the MoveIt message.
  *
  * Assumes there is a single primitive of type box.
