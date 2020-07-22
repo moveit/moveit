@@ -157,6 +157,25 @@ protected:
     constrained_state_space_ = std::make_shared<ompl::base::ProjectedStateSpace>(moveit_state_space_, con);
   }
 
+  void getValueAddressAtIndexTest()
+  {
+    Eigen::VectorXd joint_positions = getDeterministicState();
+    ompl::base::ScopedState<> ompl_state(constrained_state_space_);
+    auto state_ptr = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
+    double* out_joint_positions = dynamic_cast<ompl_interface::ModelBasedStateSpace::StateType*>(state_ptr)->values;
+    EXPECT_FALSE(out_joint_positions == nullptr);
+    for (std::size_t i = 0; i < num_dofs_; ++i)
+    {
+      *(out_joint_positions + i) = joint_positions[i];
+    }
+
+    // check getValueAddressAtIndex
+    for (std::size_t i = 0; i < num_dofs_; ++i)
+    {
+      EXPECT_EQ(joint_positions[i], *(moveit_state_space_->getValueAddressAtIndex(ompl_state.get(), i)));
+    }
+  }
+
   void copyToRobotStateTest()
   {
     // create and OMPL state
@@ -168,6 +187,7 @@ protected:
     ompl::base::ScopedState<> ompl_state(constrained_state_space_);
     auto state_ptr = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
     double* out_joint_positions = dynamic_cast<ompl_interface::ModelBasedStateSpace::StateType*>(state_ptr)->values;
+    EXPECT_FALSE(out_joint_positions == nullptr);
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
       *(out_joint_positions + i) = joint_positions[i];
@@ -205,6 +225,7 @@ protected:
     // (Again, support for casting to Eigen::VectorXd would have been nice here.)
     auto state_ptr = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
     double* out_joint_positions = dynamic_cast<ompl_interface::ModelBasedStateSpace::StateType*>(state_ptr)->values;
+    EXPECT_FALSE(out_joint_positions == nullptr);
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
       EXPECT_EQ(joint_positions[i], *(out_joint_positions + i));
@@ -215,31 +236,33 @@ protected:
   {
     EXPECT_TRUE(true);
     // create a MoveIt state
-    // Eigen::VectorXd joint_positions = getDeterministicState();
-    // moveit::core::RobotState moveit_state(robot_model_);
-    // moveit_state.setToDefaultValues();
-    // moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
+    Eigen::VectorXd joint_positions = getDeterministicState();
+    moveit::core::RobotState moveit_state(robot_model_);
+    moveit_state.setToDefaultValues();
+    moveit_state.setJointGroupPositions(joint_model_group_, joint_positions);
 
-    // // copy into an OMPL state, one index at a time
-    // ompl::base::ScopedState<> ompl_state(constrained_state_space_);
-    // auto joint_model_names = joint_model_group_->getActiveJointModelNames();
-    // for (int joint_index = 0; joint_index < num_dofs_; ++joint_index)
-    // {
-    //   const moveit::core::JointModel* joint_model =
-    //   joint_model_group_->getJointModel(joint_model_names[joint_index]);
-    //   EXPECT_TRUE(joint_model != nullptr);
-    //   moveit_state_space_->copyJointToOMPLState(ompl_state.get(), moveit_state, joint_model, joint_index);
-    // }
+    // copy into an OMPL state, one index at a time
+    ompl::base::ScopedState<> ompl_state(constrained_state_space_);
+    auto joint_model_names = joint_model_group_->getActiveJointModelNames();
+    for (int joint_index = 0; joint_index < num_dofs_; ++joint_index)
+    {
+      const moveit::core::JointModel* joint_model = joint_model_group_->getJointModel(joint_model_names[joint_index]);
+      EXPECT_FALSE(joint_model == nullptr);
+      std::cout << "Joint model: " << joint_model->getName() << " index: " << joint_index << std::endl;
+      std::cout << "first index: " << joint_model->getFirstVariableIndex() * sizeof(double) << std::endl;
+      std::cout << "width: " << joint_model->getVariableCount() * sizeof(double) << std::endl;
 
-    // // check if copy worked out as expected
-    // Eigen::VectorXd out_joint_position(num_dofs_);
-    // out_joint_position = *ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>();
+      moveit_state_space_->copyJointToOMPLState(ompl_state.get(), moveit_state, joint_model, joint_index);
+    }
 
-    // EXPECT_EQ(joint_positions.size(), out_joint_position.size());
-    // for (std::size_t i = 0; i < joint_positions.size(); ++i)
-    // {
-    //   EXPECT_EQ(joint_positions[i], out_joint_position[i]);
-    // }
+    // check if copy worked out as expected
+    auto state_ptr = ompl_state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState();
+    double* out_joint_positions = dynamic_cast<ompl_interface::ModelBasedStateSpace::StateType*>(state_ptr)->values;
+    EXPECT_FALSE(out_joint_positions == nullptr);
+    for (std::size_t i = 0; i < num_dofs_; ++i)
+    {
+      EXPECT_EQ(joint_positions[i], *(out_joint_positions + i));
+    }
   }
 
 protected:
@@ -269,6 +292,11 @@ protected:
   }
 };
 
+TEST_F(PandaCopyStateTest, getValueAddressAtIndexTest)
+{
+  getValueAddressAtIndexTest();
+}
+
 TEST_F(PandaCopyStateTest, copyToRobotStateTest)
 {
   copyToRobotStateTest();
@@ -295,6 +323,11 @@ protected:
   }
 };
 
+TEST_F(FanucCopyStateTest, getValueAddressAtIndexTest)
+{
+  getValueAddressAtIndexTest();
+}
+
 TEST_F(FanucCopyStateTest, copyToRobotStateTest)
 {
   copyToRobotStateTest();
@@ -320,6 +353,11 @@ protected:
   {
   }
 };
+
+TEST_F(PR2CopyStateTest, getValueAddressAtIndexTest)
+{
+  getValueAddressAtIndexTest();
+}
 
 TEST_F(PR2CopyStateTest, copyToRobotStateTest)
 {
