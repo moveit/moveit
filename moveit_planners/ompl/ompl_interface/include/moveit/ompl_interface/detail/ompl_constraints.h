@@ -176,6 +176,11 @@ protected:
 
   /** \brief target for equality constraints, nominal value for inequality constraints. */
   Eigen::Quaterniond target_orientation_;
+
+public:
+  // Macro for classes containing fixed size eigen vectors that are dynamically allocated when used.
+  // https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \brief Box shaped position constraints
