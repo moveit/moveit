@@ -464,10 +464,9 @@ bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory
 
 void ompl_interface::ModelBasedPlanningContext::setCheckPathConstraints(bool flag)
 {
-  // TODO(jeroendm) Add function to state validity checker again, it's lost...
-  // if (ompl_simple_setup_->getStateValidityChecker())
-  //   static_cast<StateValidityChecker*>(ompl_simple_setup_->getStateValidityChecker().get())
-  //       ->setCheckPathConstraints(flag);
+  if (ompl_simple_setup_->getStateValidityChecker())
+    static_cast<StateValidityChecker*>(ompl_simple_setup_->getStateValidityChecker().get())
+        ->setCheckPathConstraints(flag);
 }
 
 void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)
