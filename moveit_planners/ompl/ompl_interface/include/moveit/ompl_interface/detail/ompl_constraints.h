@@ -41,6 +41,7 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/Constraints.h>
+#include <moveit/macros/class_forward.h>
 
 namespace ompl_interface
 {
@@ -72,6 +73,7 @@ struct Bounds
   double distance(double value) const;
 };
 
+MOVEIT_CLASS_FORWARD(BaseConstraint);
 /** \brief Abstract base class for differen types of constraints, implementations of ompl::base::Constraint
  *
  * To create a constrained state space in OMPL, we need a model of the constraints.
@@ -183,6 +185,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
+MOVEIT_CLASS_FORWARD(PositionConstraint);
 /** \brief Box shaped position constraints
  *
  * Reads bounds on x, y and z position from a position constraint
@@ -205,6 +208,7 @@ public:
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
 
+MOVEIT_CLASS_FORWARD(AngleAxisConstraint);
 /** \brief orientation constraints based on angle-axis error.
  *
  * (aka exponential coordinates)
@@ -227,6 +231,7 @@ public:
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
 };
 
+MOVEIT_CLASS_FORWARD(PoseConstraint);
 /** \brief Position and orientation constraint
  *
  * Combine position constraints modelled as a box with orientation constraints
@@ -278,8 +283,9 @@ std::vector<Bounds> positionConstraintMsgToBoundVector(const moveit_msgs::Positi
 std::vector<Bounds> orientationConstraintMsgToBoundVector(const moveit_msgs::OrientationConstraint& ori_con);
 
 /** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
-std::shared_ptr<BaseConstraint> createConstraint(robot_model::RobotModelConstPtr robot_model, const std::string& group,
-                                                 const moveit_msgs::Constraints& constraints);
+std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelConstPtr robot_model,
+                                                     const std::string& group,
+                                                     const moveit_msgs::Constraints& constraints);
 
 /** \brief Conversion matrix to go from angular velocity in the world frame to
  * angle axis equivalent.
