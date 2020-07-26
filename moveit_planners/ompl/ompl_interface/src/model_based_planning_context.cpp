@@ -71,6 +71,7 @@
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 #include <ompl/geometric/planners/prm/LazyPRM.h>
+#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
 
 namespace ompl_interface
 {
@@ -105,7 +106,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
 }
 
 void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle& nh,
-                                                          bool use_constraints_approximations)
+                                                          bool use_constraints_approximations,
+                                                          bool use_ompl_constrained_planning)
 {
   loadConstraintApproximations(nh);
   if (!use_constraints_approximations)
@@ -114,16 +116,29 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
   }
   complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
-  ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
-      std::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, std::placeholders::_1));
 
   // convert the input state to the corresponding OMPL state
-  ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
-  spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_simple_setup_->setStartState(ompl_start_state);
+  if (use_ompl_constrained_planning)
+  {
+    ompl::base::ScopedState<> ompl_start_state(spec_.constrained_state_space_);
+    spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+    ompl_simple_setup_->setStartState(ompl_start_state);
+
+    // No SamplerAllocator is set, so the default sampler for the constrained_state_space_ will be used.
+  }
+  else
+  {
+    ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
+    spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+    ompl_simple_setup_->setStartState(ompl_start_state);
+
+    ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
+        std::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, std::placeholders::_1));
+  }
+
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
 
-  if (path_constraints_ && constraints_library_)
+  if (path_constraints_ && constraints_library_ && !use_ompl_constrained_planning)
   {
     const ConstraintApproximationPtr& constraint_approx =
         constraints_library_->getConstraintApproximation(path_constraints_msg_);
@@ -447,6 +462,14 @@ bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory
   return ompl_simple_setup_->haveSolutionPath();
 }
 
+void ompl_interface::ModelBasedPlanningContext::setCheckPathConstraints(bool flag)
+{
+  // TODO(jeroendm) Add function to state validity checker again, it's lost...
+  // if (ompl_simple_setup_->getStateValidityChecker())
+  //   static_cast<StateValidityChecker*>(ompl_simple_setup_->getStateValidityChecker().get())
+  //       ->setCheckPathConstraints(flag);
+}
+
 void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)
 {
   if (ompl_simple_setup_->getStateValidityChecker())
@@ -509,17 +532,17 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   // Only useful for anytime/optimizing planners.
   else if (termination_and_params[0] == "CostConvergence")
   {
-    std::size_t solutionsWindow = 10u;
+    std::size_t solutions_window = 10u;
     double epsilon = 0.1;
     if (termination_and_params.size() > 1)
     {
-      solutionsWindow = std::stoul(termination_and_params[1]);
+      solutions_window = std::stoul(termination_and_params[1]);
       if (termination_and_params.size() > 2)
         epsilon = moveit::core::toDouble(termination_and_params[2]);
     }
     return ob::plannerOrTerminationCondition(
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutionsWindow, epsilon));
+        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
   }
 #endif
   // Terminate as soon as an exact solution is found or a timeout occurs.

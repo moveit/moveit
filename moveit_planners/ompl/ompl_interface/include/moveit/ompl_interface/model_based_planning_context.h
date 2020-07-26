@@ -45,6 +45,7 @@
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/base/StateStorage.h>
+#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
 
 namespace ompl_interface
 {
@@ -68,6 +69,20 @@ struct ModelBasedPlanningContextSpecification
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   ModelBasedStateSpacePtr state_space_;
+
+  /** \brief OMPL constrained state space to handle path constraints.
+   *
+   * When the parameter "use_ompl_constrained_planning" is set to true in ompl_planning.yaml,
+   * the path constraints are handled by this state space.
+   *
+   * **Important**: because code often depents on the attribute `state_space_` to copy states from MoveIt to OMPL, we
+   * must set this state space to have type `ompl_interface::ConstrainedPlanningStateSpace`. The actual planning does
+   * not happen with this `state_space_`, but it is used to create the `constrained_state_space_` of type
+   * `ompl::base::ConstrainedStateSpace`. The latter is the one passed to OMPL simple setup (after creating a
+   * ConstrainedSpaceInfo object from it).
+   * */
+  ob::ConstrainedStateSpacePtr constrained_state_space_;
+  std::vector<ModelBasedStateSpacePtr> subspaces_;
   og::SimpleSetupPtr ompl_simple_setup_;  // pass in the correct simple setup type
 };
 
@@ -227,6 +242,13 @@ public:
     spec_.constraint_sampler_manager_ = csm;
   }
 
+  /** \brief Disable path constraints checking in the state validity checker that was assigned to the OMPL simple setup.
+   *
+   * This can be used when planning in ConstrainedStateSpace, where the path constraints are handled by the state space,
+   * so we don't have to check them in the state validity checker again.
+   * */
+  void setCheckPathConstraints(bool flag);
+
   void setVerboseStateValidityChecks(bool flag);
 
   void setProjectionEvaluator(const std::string& peval);
@@ -320,7 +342,15 @@ public:
    * approximations to */
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
 
-  virtual void configure(const ros::NodeHandle& nh, bool use_constraints_approximations);
+  /** \Brief Configure the OMPL simple setup object with start state, goal region, state validity checker, ...
+   *
+   * \param nh ROS Node handle used to read the parameter "constraint_approximations_path".
+   * \param use_constraints_approximations TODO(jeroen) I don't know what this does specifically.
+   * \param use_ompl_constrained_planning Indicate whether we are planning in an OMPL Constrained State Space, so we can
+   * create a start state with the correct type.
+   * */
+  virtual void configure(const ros::NodeHandle& nh, bool use_constraints_approximations,
+                         bool use_ompl_constrained_planning);
 
 protected:
   void preSolve();
