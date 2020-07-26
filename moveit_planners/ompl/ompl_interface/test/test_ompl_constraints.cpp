@@ -148,7 +148,7 @@ protected:
   {
   }
 
-  const Eigen::Isometry3d fk(const Eigen::VectorXd q) const
+  const Eigen::Isometry3d fk(const Eigen::VectorXd& q) const
   {
     robot_state_->setJointGroupPositions(joint_model_group_, q);
     return robot_state_->getGlobalLinkTransform(ee_link_name_);
@@ -162,7 +162,7 @@ protected:
     return joint_positions;
   }
 
-  Eigen::MatrixXd numericalJacobianPosition(const Eigen::VectorXd q)
+  Eigen::MatrixXd numericalJacobianPosition(const Eigen::VectorXd& q)
   {
     const double h{ 1e-6 }; /* step size for numerical derivation */
 
@@ -242,7 +242,7 @@ protected:
     EXPECT_EQ(joint_limits.size(), num_dofs_);
     for (std::size_t i{ 0 }; i < num_dofs_; ++i)
     {
-      EXPECT_EQ(joint_limits[i]->size(), 1);
+      EXPECT_EQ(joint_limits[i]->size(), (unsigned int)1);
       bounds.setLow(i, joint_limits[i]->at(0).min_position_);
       bounds.setHigh(i, joint_limits[i]->at(0).max_position_);
     }
@@ -270,8 +270,8 @@ protected:
   }
 
 protected:
-  const std::string group_name_;
   const std::string robot_name_;
+  const std::string group_name_;
 
   moveit::core::RobotModelPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
