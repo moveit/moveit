@@ -68,10 +68,14 @@
 #include <ompl/geometric/planners/prm/LazyPRMstar.h>
 #include <ompl/geometric/planners/prm/SPARS.h>
 #include <ompl/geometric/planners/prm/SPARStwo.h>
+#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
+#include <ompl/base/ConstrainedSpaceInformation.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
+#include <moveit/ompl_interface/parameterization/joint_space/constrained_planning_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
+#include <moveit/ompl_interface/detail/ompl_constraints.h>
 
 using namespace std::placeholders;
 
@@ -313,7 +317,7 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
     const planning_interface::PlannerConfigurationSettings& config,
-    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& /*req*/) const
+    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& req) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
 
@@ -346,7 +350,34 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context_spec.state_space_ = factory->getNewStateSpace(space_spec);
 
     // Choose the correct simple setup type to load
-    context_spec.ompl_simple_setup_.reset(new ompl::geometric::SimpleSetup(context_spec.state_space_));
+    auto it = config.config.find("use_ompl_constraint_state_space");
+    if (it != config.config.end() && boost::lexical_cast<bool>(it->second))
+    {
+      ROS_DEBUG_NAMED("planning_context_manager", "Using OMPL's constrained state space for planning.");
+      // Create the correct state space to create a constrained state space from.
+      // Overwrites anything that was set before. With a simplification of the state space selection code,
+      // this could all be done in the same place, instead of overwriting it here.
+      context_spec.state_space_ = std::make_shared<ompl_interface::ConstrainedPlanningStateSpace>(space_spec);
+
+      // Select the correct type of constraints based on the path constraints in the planning request.
+      ompl_interface::BaseConstraintPtr ompl_constraint =
+          ompl_interface::createOMPLConstraint(robot_model_, config.group, req.path_constraints);
+
+      // Create a constrained state space of type "projected state space".
+      // Other types are available, so we probably should add another setting to ompl_planning.yaml
+      // to choose between them.
+      context_spec.constrained_state_space_ =
+          std::make_shared<ob::ProjectedStateSpace>(context_spec.state_space_, ompl_constraint);
+
+      // Pass the constrained state space to ompl simple setup through the creation of a
+      // ConstrainedSpaceInformation object. This makes sure the state space is properly initialized.
+      context_spec.ompl_simple_setup_ = std::make_shared<ompl::geometric::SimpleSetup>(
+          std::make_shared<ob::ConstrainedSpaceInformation>(context_spec.constrained_state_space_));
+    }
+    else
+    {
+      context_spec.ompl_simple_setup_ = std::make_shared<ompl::geometric::SimpleSetup>(context_spec.state_space_);
+    }
 
     ROS_DEBUG_NAMED(LOGNAME, "Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
