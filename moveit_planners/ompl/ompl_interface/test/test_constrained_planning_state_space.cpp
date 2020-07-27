@@ -172,7 +172,7 @@ protected:
     // check getValueAddressAtIndex
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
-      EXPECT_EQ(joint_positions[i], *(moveit_state_space_->getValueAddressAtIndex(ompl_state.get(), i)));
+      EXPECT_DOUBLE_EQ(joint_positions[i], *(moveit_state_space_->getValueAddressAtIndex(ompl_state.get(), i)));
     }
   }
 
@@ -205,7 +205,7 @@ protected:
     EXPECT_EQ(joint_positions.size(), out_joint_position.size());
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
-      EXPECT_EQ(joint_positions[i], out_joint_position[i]);
+      EXPECT_DOUBLE_EQ(joint_positions[i], out_joint_position[i]);
     }
   }
 
@@ -228,7 +228,7 @@ protected:
     EXPECT_FALSE(out_joint_positions == nullptr);
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
-      EXPECT_EQ(joint_positions[i], *(out_joint_positions + i));
+      EXPECT_DOUBLE_EQ(joint_positions[i], *(out_joint_positions + i));
     }
   }
 
@@ -261,7 +261,7 @@ protected:
     EXPECT_FALSE(out_joint_positions == nullptr);
     for (std::size_t i = 0; i < num_dofs_; ++i)
     {
-      EXPECT_EQ(joint_positions[i], *(out_joint_positions + i));
+      EXPECT_DOUBLE_EQ(joint_positions[i], *(out_joint_positions + i));
     }
   }
 
