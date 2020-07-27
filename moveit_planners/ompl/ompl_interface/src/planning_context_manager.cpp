@@ -350,7 +350,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context_spec.state_space_ = factory->getNewStateSpace(space_spec);
 
     // Choose the correct simple setup type to load
-    auto it = config.config.find("use_ompl_constraint_state_space");
+    auto it = config.config.find("use_ompl_constrained_state_space");
     if (it != config.config.end() && boost::lexical_cast<bool>(it->second))
     {
       ROS_DEBUG_NAMED("planning_context_manager", "Using OMPL's constrained state space for planning.");
