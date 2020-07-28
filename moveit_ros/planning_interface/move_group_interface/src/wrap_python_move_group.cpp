@@ -389,6 +389,11 @@ public:
     return getName().c_str();
   }
 
+  const char* getPlannerIdCStr() const
+  {
+    return getPlannerId().c_str();
+  }
+
   bp::dict getNamedTargetValuesPython(const std::string& name)
   {
     bp::dict output;
@@ -583,7 +588,7 @@ static void wrap_move_group_interface()
   eigenpy::enableEigenPy();
 
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> move_group_interface_class(
-      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
+      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string, double>>());
 
   move_group_interface_class.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
@@ -703,6 +708,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("set_max_acceleration_scaling_factor",
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
+  move_group_interface_class.def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr);
   move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   move_group_interface_class.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
