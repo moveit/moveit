@@ -114,6 +114,7 @@ void RobotStateDisplay::onInitialize()
 
 void RobotStateDisplay::reset()
 {
+  robot_model_loaded_ = false;
   robot_->clear();
   rdf_loader_.reset();
   Display::reset();
