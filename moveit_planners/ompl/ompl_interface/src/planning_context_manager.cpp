@@ -502,6 +502,13 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   else
     factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory2, this, std::placeholders::_1, req);
 
+  // Check if a parameter "use_ompl_constrained_state_space" was set in ompl_planning.yaml for the planning group.
+  bool use_ompl_constrained_state_space{ false };
+  auto it2 = pc->second.config.find("use_ompl_constrained_state_space");
+  if (it2 != pc->second.config.end())
+    use_ompl_constrained_state_space = boost::lexical_cast<bool>(it2->second);
+  // pass this to the second getPlanningConstext so we do not load it again.
+
   ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
 
   if (context)
@@ -524,7 +531,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
     try
     {
-      context->configure(nh, use_constraints_approximation, false);
+      context->configure(nh, use_constraints_approximation, use_ompl_constrained_state_space);
       ROS_DEBUG_NAMED(LOGNAME, "%s: New planning context is set.", context->getName().c_str());
       error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }

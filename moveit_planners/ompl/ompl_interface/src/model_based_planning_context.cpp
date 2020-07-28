@@ -125,6 +125,8 @@ void ompl_interface::ModelBasedPlanningContext::configure(const ros::NodeHandle&
     ompl_simple_setup_->setStartState(ompl_start_state);
 
     // No SamplerAllocator is set, so the default sampler for the constrained_state_space_ will be used.
+    // spec_.constrained_state_space_->registerDefaultProjection()
+    // spec_.constrained_state_space_->setup();
   }
   else
   {
