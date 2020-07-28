@@ -381,6 +381,11 @@ public:
     return getName().c_str();
   }
 
+  const char* getPlannerIdCStr() const
+  {
+    return getPlannerId().c_str();
+  }
+
   bp::dict getNamedTargetValuesPython(const std::string& name)
   {
     bp::dict output;
@@ -695,6 +700,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("set_max_acceleration_scaling_factor",
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
+  move_group_interface_class.def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr);
   move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   move_group_interface_class.def("plan", &MoveGroupInterfaceWrapper::planPython);
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
