@@ -322,7 +322,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     moveit_msgs::Constraints msg;
     hexToMsg(serialization, msg);
     auto* cass = new ConstraintApproximationStateStorage(context_->getOMPLSimpleSetup()->getStateSpace());
-    cass->load((path + "/" + filename).c_str());  // NOLINT(performance-inefficient-string-concatenation)
+    cass->load((std::string{ path }.append("/").append(filename)).c_str());
     ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions,
                                                                msg, filename, ompl::base::StateStoragePtr(cass),
                                                                milestones));
