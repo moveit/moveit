@@ -343,6 +343,8 @@ Eigen::Matrix3d angularVelocityToAngleAxis(double angle, const Eigen::Vector3d& 
   double t{ std::abs(angle) };
 
   // calculate to 3x3 conversion matrix to convert an angular velocity into exponential coordinates
+  // https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2016/RD2016script.pdf
+  // On page 25, formula (2.107) with t = || phi ||
   return Eigen::Matrix3d::Identity() - 0.5 * r_skew +
          r_skew * r_skew / (t * t) * (1 - 0.5 * t * std::sin(t) / (1 - std::cos(t)));
 }
