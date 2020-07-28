@@ -183,10 +183,10 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     std::map<std::string, std::string> specific_group_params;
     for (const std::string& k : KNOWN_GROUP_PARAMS)
     {
-      if (nh_.hasParam(group_name + "/" + k))
+      if (nh_.hasParam(group_name + "/" + k))  // NOLINT(performance-inefficient-string-concatenation)
       {
         std::string value;
-        if (nh_.getParam(group_name + "/" + k, value))
+        if (nh_.getParam(group_name + "/" + k, value))  // NOLINT(performance-inefficient-string-concatenation)
         {
           if (!value.empty())
             specific_group_params[k] = value;
@@ -194,7 +194,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         double value_d;
-        if (nh_.getParam(group_name + "/" + k, value_d))
+        if (nh_.getParam(group_name + "/" + k, value_d))  // NOLINT(performance-inefficient-string-concatenation)
         {
           // convert to string using no locale
           specific_group_params[k] = moveit::core::toString(value_d);
@@ -202,14 +202,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         int value_i;
-        if (nh_.getParam(group_name + "/" + k, value_i))
+        if (nh_.getParam(group_name, value_i))  // NOLINT(performance-inefficient-string-concatenation)
         {
           specific_group_params[k] = std::to_string(value_i);
           continue;
         }
 
         bool value_b;
-        if (nh_.getParam(group_name + "/" + k, value_b))
+        if (nh_.getParam(group_name + "/" + k, value_b))  // NOLINT(performance-inefficient-string-concatenation)
         {
           specific_group_params[k] = std::to_string(value_b);
           continue;

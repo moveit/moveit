@@ -509,17 +509,17 @@ ompl::base::PlannerTerminationCondition ompl_interface::ModelBasedPlanningContex
   // Only useful for anytime/optimizing planners.
   else if (termination_and_params[0] == "CostConvergence")
   {
-    std::size_t solutionsWindow = 10u;
+    std::size_t solutions_window = 10u;
     double epsilon = 0.1;
     if (termination_and_params.size() > 1)
     {
-      solutionsWindow = std::stoul(termination_and_params[1]);
+      solutions_window = std::stoul(termination_and_params[1]);
       if (termination_and_params.size() > 2)
         epsilon = moveit::core::toDouble(termination_and_params[2]);
     }
     return ob::plannerOrTerminationCondition(
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start)),
-        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutionsWindow, epsilon));
+        ob::CostConvergenceTerminationCondition(ompl_simple_setup_->getProblemDefinition(), solutions_window, epsilon));
   }
 #endif
   // Terminate as soon as an exact solution is found or a timeout occurs.

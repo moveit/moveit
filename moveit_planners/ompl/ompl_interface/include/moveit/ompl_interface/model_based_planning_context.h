@@ -344,8 +344,8 @@ protected:
 
      * `Iteration[num]`: Terminate after `num` iterations. Here, `num` should be replaced
        with a positive integer.
-     * `CostConvergence[solutionsWindow,epsilon]`: Terminate after the cost (as specified
-       by an optimization objective) has converged. The parameter `solutionsWindow`
+     * `CostConvergence[solutions_window,epsilon]`: Terminate after the cost (as specified
+       by an optimization objective) has converged. The parameter `solutions_window`
        specifies the minimum number of solutions to use in deciding whether a planner has
        converged. The parameter `epsilon`	is the threshold to consider for convergence.
        This should be a positive number close to 0. If the cumulative moving average does
