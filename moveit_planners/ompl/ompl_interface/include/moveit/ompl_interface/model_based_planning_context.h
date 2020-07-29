@@ -320,6 +320,13 @@ public:
    * approximations to */
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
 
+  /** \brief Configure ompl_simple_setup_ and optionally the constraints_library_.
+   *
+   * ompl_simple_setup_ gets a start state, state sampler, and state validity checker.
+   *
+   * \param nh ROS node handle used to load the constraint approximations.
+   * \param use_constraints_approximations Set to true if we want to load the constraint approximation.
+   * */
   virtual void configure(const ros::NodeHandle& nh, bool use_constraints_approximations);
 
 protected:
