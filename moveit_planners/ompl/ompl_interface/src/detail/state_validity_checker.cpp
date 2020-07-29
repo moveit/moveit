@@ -39,6 +39,8 @@
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
+#include <ompl/base/spaces/constraint/ConstrainedStateSpace.h>
+
 namespace ompl_interface
 {
 constexpr char LOGNAME[] = "state_validity_checker";
@@ -81,19 +83,37 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* state, bool verbose) const
 {
+  // find out the type of state that was passed
+  auto model_based_state = dynamic_cast<const ModelBasedStateSpace::StateType*>(state);
+  if (model_based_state == nullptr)
+  {
+    // this means the state of of another type, the only other type that is used in ConstrainedStateSpace::StateType
+    model_based_state = dynamic_cast<const ModelBasedStateSpace::StateType*>(
+        state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState());
+    if (model_based_state == nullptr)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Unkown state type passed to state validity checker!");
+      return false;
+    }
+  }
+
   // Use cached validity if it is available
-  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown())
-    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+  if (model_based_state->isValidityKnown())
+    return model_based_state->isMarkedValid();
+
+  // All uses of casted states below require a non-const state to change validity
+  auto non_const_state = const_cast<ModelBasedStateSpace::StateType*>(model_based_state);
 
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
       ROS_INFO_NAMED(LOGNAME, "State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    non_const_state->markInvalid();
     return false;
   }
 
   moveit::core::RobotState* robot_state = tss_.getStateStorage();
+  // no special state casting below, as this is handled by copyToRobotState.
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints
@@ -102,7 +122,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
     const kinematic_constraints::KinematicConstraintSetPtr& kset = planning_context_->getPathConstraints();
     if (kset && !kset->decide(*robot_state, verbose).satisfied)
     {
-      const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+      non_const_state->markInvalid();
       return false;
     }
   }
@@ -110,7 +130,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*robot_state, verbose))
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    non_const_state->markInvalid();
     return false;
   }
 
@@ -120,34 +140,51 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *robot_state);
   if (!res.collision)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
+    non_const_state->markValid();
   }
   else
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    non_const_state->markInvalid();
   }
   return !res.collision;
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* state, double& dist, bool verbose) const
 {
-  // Use cached validity and distance if they are available
-  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() &&
-      state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
+  // find out the type of state that was passed
+  auto model_based_state = dynamic_cast<const ModelBasedStateSpace::StateType*>(state);
+  if (model_based_state == nullptr)
   {
-    dist = state->as<ModelBasedStateSpace::StateType>()->distance;
-    return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
+    // this means the state of of another type, the only other type that is used in ConstrainedStateSpace::StateType
+    model_based_state = dynamic_cast<const ModelBasedStateSpace::StateType*>(
+        state->as<ompl::base::ConstrainedStateSpace::StateType>()->getState());
+    if (model_based_state == nullptr)
+    {
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "Unkown state type passed to state validity checker!");
+      return false;
+    }
   }
+
+  // Use cached validity and distance if they are available
+  if (model_based_state->isValidityKnown() && model_based_state->isGoalDistanceKnown())
+  {
+    dist = model_based_state->distance;
+    return model_based_state->isMarkedValid();
+  }
+
+  // All uses of casted states below require a non-const state to change validity
+  auto non_const_state = const_cast<ModelBasedStateSpace::StateType*>(model_based_state);
 
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
       ROS_INFO_NAMED(LOGNAME, "State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
+    non_const_state->markInvalid(0.0);
     return false;
   }
 
   moveit::core::RobotState* robot_state = tss_.getStateStorage();
+  // no special state casting below, as this is handled by copyToRobotState.
   planning_context_->getOMPLStateSpace()->copyToRobotState(*robot_state, state);
 
   // check path constraints
@@ -160,7 +197,7 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State* stat
       if (!cer.satisfied)
       {
         dist = cer.distance;
-        const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+        non_const_state->markInvalid(dist);
         return false;
       }
     }
