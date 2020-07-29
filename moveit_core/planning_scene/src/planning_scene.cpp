@@ -1606,7 +1606,13 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
     {
       const moveit::core::AttachedBody* body = robot_state_->getAttachedBody(object.object.id);
       if (body)
+      {
         attached_bodies.push_back(body);
+        if (body->getAttachedLinkName() != object.link_name)
+          ROS_WARN_NAMED(LOGNAME, "The AttachedCollisionObject message stated that the object is attached to ",
+                         object.link_name, ", but it was actually attached to ", body->getAttachedLinkName(),
+                         ". Did something go wrong?");
+      }
     }
 
     // STEP 2+3: Remove the attached object(s) from the RobotState and put them in the world
@@ -1756,7 +1762,7 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
   if (!object.type.key.empty() || !object.type.db.empty())
     setObjectType(object.id, object.type);
 
-  // Add subframes
+  // Add subframes to the newly created (or possibly modified) object
   moveit::core::FixedTransformsMap subframes = world_->getObject(object.id)->subframe_poses_;
   Eigen::Isometry3d frame_pose;
   for (std::size_t i = 0; i < object.subframe_poses.size(); ++i)

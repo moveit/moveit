@@ -120,7 +120,7 @@ public:
     return subframe_poses_;
   }
 
-  /** \brief Get subframes of this object (relative to the link) */
+  /** \brief Get subframes of this object (in the world frame) */
   const moveit::core::FixedTransformsMap& getGlobalSubframeTransforms() const
   {
     return global_subframe_poses_;

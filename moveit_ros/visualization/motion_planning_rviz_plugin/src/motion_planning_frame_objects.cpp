@@ -168,6 +168,7 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
         }
+        // TODO(felixvd): Scale subframes too
         ps->getWorldNonConst()->setSubframesOfObject(scaled_object_->id_, subframes);
         setLocalSceneEdited();
         scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
