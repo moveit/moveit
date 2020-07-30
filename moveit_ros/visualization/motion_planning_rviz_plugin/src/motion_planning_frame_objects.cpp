@@ -827,6 +827,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     {
       known_collision_objects_[item->type()].first = item_text;
       const moveit::core::FixedTransformsMap subframes = obj->subframe_poses_;  // Keep subframes
+      // TODO(felixvd): Scale the subframes with the object
       ps->getWorldNonConst()->removeObject(obj->id_);
       ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_,
                                           obj->shape_poses_);
