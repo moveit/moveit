@@ -46,7 +46,7 @@ static const std::string LOGNAME = "servo_node";
 namespace moveit_servo
 {
 Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-             const std::string parameter_ns)
+             const std::string& parameter_ns)
   : nh_(nh), planning_scene_monitor_(planning_scene_monitor), parameter_ns_(parameter_ns)
 {
   // Read ROS parameters, typically from YAML file
@@ -70,7 +70,7 @@ bool Servo::readParameters()
   std::string yaml_namespace;
   if (ros::param::get("~parameter_ns", yaml_namespace))
   {
-    if (parameter_ns_ != "")
+    if (!parameter_ns_.empty())
       ROS_WARN_STREAM_NAMED(LOGNAME,
                             "A parameter namespace was specified in the launch file AND in the constructor argument.");
 

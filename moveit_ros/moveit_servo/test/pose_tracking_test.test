@@ -11,6 +11,10 @@
     <param name="publish_frequency" type="double" value="50.0"/>
   </node>
 
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="tool_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+  </node>
+
   <test pkg="moveit_servo" type="pose_tracking_test" test-name="pose_tracking_test" time-limit="60
     " args="">
     <param name="parameter_ns" type="string" value="pose_tracking_test" />

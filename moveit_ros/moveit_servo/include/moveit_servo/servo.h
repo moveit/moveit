@@ -54,7 +54,7 @@ class Servo
 {
 public:
   Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-        const std::string parameter_ns = "");
+        const std::string& parameter_ns = "");
 
   ~Servo();
 

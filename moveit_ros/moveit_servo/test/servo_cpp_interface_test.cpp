@@ -51,6 +51,7 @@
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double LARGEST_ALLOWABLE_PANDA_VEL = 2.8710;  // to test joint velocity limit enforcement
+static constexpr double ROS_SETUP_DELAY = 1;  // allow for initial launching
 
 namespace moveit_servo
 {
@@ -59,6 +60,7 @@ class ServoFixture : public ::testing::Test
 public:
   void SetUp() override
   {
+    ros::Duration(ROS_SETUP_DELAY).sleep();
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();

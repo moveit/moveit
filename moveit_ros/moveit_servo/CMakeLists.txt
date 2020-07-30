@@ -92,7 +92,7 @@ target_link_libraries(cpp_interface_example
 ########################################
 
 add_library(pose_tracking
-  src/pose_tracking/pose_tracking.cpp
+  src/pose_tracking.cpp
 )
 add_dependencies(pose_tracking ${catkin_EXPORTED_TARGETS})
 target_link_libraries(pose_tracking

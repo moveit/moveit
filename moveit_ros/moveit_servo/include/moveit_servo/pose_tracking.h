@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <control_toolbox/pid.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
@@ -71,6 +72,20 @@ struct PIDConfig
   double windup_limit = 0.1;
 };
 
+enum PoseTrackingStatusCode : int8_t
+{
+  SUCCESS = 0,
+  NO_RECENT_TARGET_POSE = 1,
+  NO_RECENT_END_EFFECTOR_POSE = 2,
+  STOP_REQUESTED = 3
+};
+
+const std::unordered_map<int8_t, std::string>
+    POSE_TRACKING_STATUS_CODE_MAP({ { SUCCESS, "Success" },
+                                    { NO_RECENT_TARGET_POSE, "No recent target pose" },
+                                    { NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
+                                    { STOP_REQUESTED, "Stop requested" } });
+
 /**
 * Class PoseTracking - subscribe to a target pose.
 * Servo toward the target pose.
@@ -80,9 +95,9 @@ class PoseTracking
 public:
   /** \brief Constructor. Loads ROS parameters under the given namespace. */
   PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-               const std::string parameter_ns = "");
+               const std::string& parameter_ns = "");
 
-  bool moveToPose(const Eigen::Vector3d& positional_tolerance, const Eigen::Vector3d& angular_tolerance);
+  int8_t moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance);
 
   /** \brief A method for a different thread to stop motion and return early from control loop */
   void stopMotion()
@@ -104,7 +119,7 @@ private:
   bool haveRecentEndEffectorPose(const double timeout);
 
   /** \brief Check if XYZ, roll/pitch/yaw tolerances are satisfied */
-  bool satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const Eigen::Vector3d& angular_tolerance);
+  bool satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance);
 
   /** \brief Subscribe to the target pose on this topic */
   void targetPoseCallback(const geometry_msgs::PoseStamped msg);
@@ -131,9 +146,6 @@ private:
 
   ros::Rate loop_rate_;
 
-  // Flag that a different thread has requested a stop.
-  std::atomic<bool> stop_requested_{ false };
-
   // moveit_servo::Servo instance
   std::unique_ptr<moveit_servo::Servo> servo_;
   // ROS interface to Servo
@@ -142,7 +154,7 @@ private:
   std::vector<control_toolbox::Pid> cartesian_position_pids_;
   std::vector<control_toolbox::Pid> cartesian_orientation_pids_;
   // Cartesian PID configs
-  PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, qw_pid_config_, qx_pid_config_, qy_pid_config_, qz_pid_config_;
+  PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, roll_pid_config_, pitch_pid_config_, yaw_pid_config_;
 
   // Transforms w.r.t. planning_frame_
   Eigen::Isometry3d end_effector_transform_;
@@ -158,10 +170,15 @@ private:
   // Expected frame name, for error checking and transforms
   std::string planning_frame_;
 
+  // Flag that a different thread has requested a stop.
+  std::atomic<bool> stop_requested_;
+
   // Read parameters from this namespace
   std::string parameter_ns_;
+
+  double angular_error_;
 };
 
 // using alias
 using PoseTrackingPtr = std::shared_ptr<PoseTracking>;
-}  // namespace pose_tracking
+}  // namespace moveit_servo

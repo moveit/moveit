@@ -38,6 +38,7 @@
 
 // C++
 #include <string>
+#include <thread>
 
 // ROS
 #include <ros/ros.h>
@@ -46,10 +47,14 @@
 #include <gtest/gtest.h>
 
 // Servo
-#include <moveit_servo/pose_tracking/pose_tracking.h>
+#include <moveit_servo/pose_tracking.h>
 #include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
+static constexpr double TRANSLATION_TOLERANCE = 0.01;  // meters
+static constexpr double ROTATION_TOLERANCE = 0.1;      // quaternion
+static constexpr double PUB_SUB_DELAY = 0.1;           // time for a ROS msg to be recieved
+static constexpr double ROS_SETUP_DELAY = 1;           // allow for initial launching
 
 namespace moveit_servo
 {
@@ -58,6 +63,7 @@ class PoseTrackingFixture : public ::testing::Test
 public:
   void SetUp() override
   {
+    ros::Duration(ROS_SETUP_DELAY).sleep();
     // Load the planning scene monitor
     planning_scene_monitor_ = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
     planning_scene_monitor_->startSceneMonitor();
@@ -68,6 +74,11 @@ public:
         false /* skip octomap monitor */);
 
     tracker_ = std::make_shared<moveit_servo::PoseTracking>(planning_scene_monitor_, "");
+
+    target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/pose_tracking_test/target_pose", 1 /* queue */);
+
+    // Tolerance for pose seeking
+    translation_tolerance_ << TRANSLATION_TOLERANCE, TRANSLATION_TOLERANCE, TRANSLATION_TOLERANCE;
   }
   void TearDown() override
   {
@@ -76,12 +87,51 @@ public:
 protected:
   ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+  Eigen::Vector3d translation_tolerance_;
   moveit_servo::PoseTrackingPtr tracker_;
+  ros::Publisher target_pose_pub_;
 };  // class PoseTrackingFixture
 
-TEST_F(PoseTrackingFixture, InitializationTest)
+// Check for commands going out to ros_control
+TEST_F(PoseTrackingFixture, OutgoingMsgTest)
 {
-  // The test passes if SetUp is successful
+  // halt Servoing when first msg to ros_control is received
+  // and test some conditions
+  trajectory_msgs::JointTrajectory last_received_msg;
+  boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
+      [&/* this */](const trajectory_msgs::JointTrajectoryConstPtr& msg) {
+
+        EXPECT_EQ(msg->header.frame_id, "panda_link0");
+        // Check for an expected joint position command
+        // As of now, the robot doesn't actually move because there are no controllers enabled.
+        double angle_tolerance = 0.08;  // rad
+        EXPECT_NEAR(msg->points[0].positions[0], 0, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[1], -0.785, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[2], 0, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[3], -2.360, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[4], 0, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[5], 1.571, angle_tolerance);
+        EXPECT_NEAR(msg->points[0].positions[6], 0.785, angle_tolerance);
+
+        this->tracker_->stopMotion();
+      };
+  auto traj_sub = nh_.subscribe("servo_server/command", 1, traj_callback);
+
+  geometry_msgs::PoseStamped target_pose;
+  target_pose.header.stamp = ros::Time::now();
+  target_pose.pose.position.x = 0.2;
+  target_pose.pose.position.y = 0.2;
+  target_pose.pose.position.z = 0.2;
+  target_pose.pose.orientation.x = 0;
+  target_pose.pose.orientation.y = 0;
+  target_pose.pose.orientation.z = 0;
+  target_pose.pose.orientation.w = 1;
+
+  target_pose.header.frame_id = "panda_link4";
+  target_pose_pub_.publish(target_pose);
+  ros::Duration(PUB_SUB_DELAY).sleep();
+
+  tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE);
 }
 
 }  // namespace moveit_servo
