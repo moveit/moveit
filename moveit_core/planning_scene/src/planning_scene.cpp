@@ -1607,14 +1607,14 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       const moveit::core::AttachedBody* body = robot_state_->getAttachedBody(object.object.id);
       if (body)
       {
-        attached_bodies.push_back(body);
-        if ((body->getAttachedLinkName() != object.link_name) && (!object.link_name.empty()))
+        if (!object.link_name.empty() && (body->getAttachedLinkName() != object.link_name))
         {
-          ROS_ERROR_NAMED(LOGNAME, "The AttachedCollisionObject message stated that the object is attached to ",
-                          object.link_name, ", but it was actually attached to ", body->getAttachedLinkName(),
-                          ". Did something go wrong? Aborting and leaving the body attached.");
+          ROS_ERROR_NAMED(LOGNAME, "The AttachedCollisionObject message states the object is attached to ",
+                          object.link_name, ", but it is actually attached to ", body->getAttachedLinkName(),
+                          ". Leave the link_name empty or specify the correct link.");
           return false;
         }
+        attached_bodies.push_back(body);
       }
     }
 
