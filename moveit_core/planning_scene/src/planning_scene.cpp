@@ -1609,9 +1609,10 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         if (!object.link_name.empty() && (body->getAttachedLinkName() != object.link_name))
         {
-          ROS_ERROR_NAMED(LOGNAME, "The AttachedCollisionObject message states the object is attached to ",
-                          object.link_name, ", but it is actually attached to ", body->getAttachedLinkName(),
-                          ". Leave the link_name empty or specify the correct link.");
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "The AttachedCollisionObject message states the object is attached to "
+                                              << object.link_name << ", but it is actually attached to "
+                                              << body->getAttachedLinkName()
+                                              << ". Leave the link_name empty or specify the correct link.");
           return false;
         }
         attached_bodies.push_back(body);
