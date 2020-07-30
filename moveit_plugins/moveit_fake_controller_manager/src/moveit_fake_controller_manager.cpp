@@ -42,7 +42,6 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <ros/console.h>
 #include <map>
-#include <iterator>
 
 namespace moveit_fake_controller_manager
 {

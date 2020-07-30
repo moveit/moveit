@@ -48,7 +48,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
-#include <limits>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>

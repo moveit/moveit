@@ -57,7 +57,6 @@ DIAGNOSTIC_PUSH
 #include <vector>
 #include <string>
 #include <boost/function.hpp>
-#include <memory>
 
 namespace moveit_ros_benchmarks
 {

@@ -39,7 +39,6 @@
 #include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
-#include <limits>
 #include <cmath>
 
 namespace moveit

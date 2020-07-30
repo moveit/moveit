@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <geometry_msgs/PoseStamped.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/locked_robot_state.h>
 //#include <moveit/robot_interaction/robot_interaction.h>

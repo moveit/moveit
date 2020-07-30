@@ -41,7 +41,6 @@
 #include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <limits>
-#include <queue>
 #include <cmath>
 #include <memory>
 #include "order_robot_model_items.inc"
