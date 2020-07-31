@@ -38,7 +38,6 @@
 #include <moveit/robot_model/revolute_joint_model.h>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
-#include <limits>
 #include <cmath>
 
 namespace moveit

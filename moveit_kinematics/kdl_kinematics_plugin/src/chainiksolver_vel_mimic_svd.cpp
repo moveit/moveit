@@ -24,7 +24,6 @@
 // Copyright  (C)  2013  Sachin Chitta, Willow Garage
 
 #include <moveit/kdl_kinematics_plugin/chainiksolver_vel_mimic_svd.hpp>
-#include <ros/console.h>
 
 namespace
 {

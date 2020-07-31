@@ -37,8 +37,6 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/profiler/profiler.h>
-#include <algorithm>
-#include <set>
 #include <utility>
 
 #include <ompl/geometric/planners/rrt/RRT.h>

@@ -40,7 +40,6 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <geometric_shapes/bodies.h>
 #include <boost/function.hpp>
-#include <string>
 #include <vector>
 #include <set>
 #include <map>

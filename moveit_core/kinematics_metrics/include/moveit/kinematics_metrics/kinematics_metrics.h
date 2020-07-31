@@ -38,7 +38,6 @@
 #define MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
 
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/planning_scene/planning_scene.h>
 
 /** @brief Namespace for kinematics metrics */
 namespace kinematics_metrics

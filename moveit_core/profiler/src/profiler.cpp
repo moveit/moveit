@@ -40,7 +40,6 @@
 #include <ros/console.h>
 #include <vector>
 #include <algorithm>
-#include <sstream>
 
 namespace moveit
 {

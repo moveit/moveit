@@ -39,8 +39,6 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/distance_field/voxel_grid.h>
-#include <vector>
-#include <list>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <Eigen/Core>

@@ -47,7 +47,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include <iostream>
 #include <boost/thread.hpp>
 #include <ros/console.h>
 

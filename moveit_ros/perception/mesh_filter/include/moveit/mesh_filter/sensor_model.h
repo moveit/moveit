@@ -38,7 +38,7 @@
 #define MOVEIT_MESH_FILTER_SENSOR_MODEL_
 
 #include <moveit/macros/class_forward.h>
-#include <Eigen/Eigen>
+#include <Eigen/Core>  // for Vector3f
 
 namespace mesh_filter
 {

@@ -37,7 +37,7 @@
 #ifndef MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
 #define MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
 
-#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/Constraints.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/QuaternionStamped.h>

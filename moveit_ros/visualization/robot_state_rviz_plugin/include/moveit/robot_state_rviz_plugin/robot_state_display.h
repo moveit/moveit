@@ -46,11 +46,6 @@
 #include <ros/ros.h>
 #endif
 
-namespace Ogre
-{
-class SceneNode;
-}
-
 namespace rviz
 {
 class Robot;

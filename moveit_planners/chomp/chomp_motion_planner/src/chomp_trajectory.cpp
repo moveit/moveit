@@ -36,7 +36,6 @@
 
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
-#include <iostream>
 
 namespace chomp
 {

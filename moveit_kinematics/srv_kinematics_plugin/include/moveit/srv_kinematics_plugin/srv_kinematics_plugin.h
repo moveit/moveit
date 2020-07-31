@@ -49,9 +49,7 @@
 #include <memory>
 
 // ROS msgs
-#include <geometry_msgs/PoseStamped.h>
-#include <moveit_msgs/GetPositionFK.h>
-#include <moveit_msgs/GetPositionIK.h>
+#include <geometry_msgs/Pose.h>
 #include <moveit_msgs/KinematicSolverInfo.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 

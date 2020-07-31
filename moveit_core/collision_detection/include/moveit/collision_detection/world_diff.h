@@ -40,8 +40,6 @@
 #include <moveit/collision_detection/world.h>
 #include <moveit/macros/class_forward.h>
 
-#include <memory>
-
 namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(WorldDiff);

@@ -42,7 +42,6 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/macros/class_forward.h>
 
-#include <vector>
 #include <string>
 #include <map>
 

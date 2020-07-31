@@ -43,7 +43,7 @@
 #include <moveit/mesh_filter/sensor_model.h>
 #include <boost/function.hpp>
 #include <boost/thread/mutex.hpp>
-#include <Eigen/Eigen>
+#include <Eigen/Geometry>  // for Isometry3d
 #include <queue>
 
 // forward declarations

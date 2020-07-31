@@ -42,7 +42,7 @@
 #include <random_numbers/random_numbers.h>
 
 // ROS msgs
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
 #include <moveit_msgs/KinematicSolverInfo.h>

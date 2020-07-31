@@ -42,7 +42,6 @@
 #include <sensor_msgs/image_encodings.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_model/robot_model.h>
-#include <eigen3/Eigen/Eigen>
 #include <cv_bridge/cv_bridge.h>
 
 namespace enc = sensor_msgs::image_encodings;
