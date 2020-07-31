@@ -96,6 +96,7 @@ int8_t PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, con
   }
   if (!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT))
   {
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "The target pose was not updated recently. Aborting.");
     return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
   }
 
