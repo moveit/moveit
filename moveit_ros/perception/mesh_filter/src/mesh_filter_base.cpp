@@ -43,7 +43,6 @@
 #include <Eigen/Eigen>
 #include <stdexcept>
 #include <sstream>
-#include <sensor_msgs/image_encodings.h>
 
 #include <ros/console.h>
 

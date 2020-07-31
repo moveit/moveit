@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
 #include <ros/node_handle.h>

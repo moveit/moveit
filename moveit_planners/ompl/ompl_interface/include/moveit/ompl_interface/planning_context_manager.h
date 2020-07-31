@@ -43,7 +43,6 @@
 
 #include <ompl/base/PlannerDataStorage.h>
 
-#include <vector>
 #include <string>
 #include <map>
 

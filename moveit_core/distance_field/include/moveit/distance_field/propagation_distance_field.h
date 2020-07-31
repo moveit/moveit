@@ -39,7 +39,6 @@
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/distance_field.h>
 #include <vector>
-#include <list>
 #include <Eigen/Core>
 #include <set>
 #include <octomap/octomap.h>

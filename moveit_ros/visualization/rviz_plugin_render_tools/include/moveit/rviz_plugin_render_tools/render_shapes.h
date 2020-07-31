@@ -41,7 +41,6 @@
 #include <geometric_shapes/shapes.h>
 #include <rviz/helpers/color.h>
 #include <Eigen/Geometry>
-#include <string>
 #include <memory>
 
 namespace Ogre

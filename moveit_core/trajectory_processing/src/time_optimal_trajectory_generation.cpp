@@ -44,8 +44,6 @@
 #include <ros/console.h>
 #include <vector>
 
-#include <iostream>
-
 namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";

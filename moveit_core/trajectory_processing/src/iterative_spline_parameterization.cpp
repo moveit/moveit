@@ -35,7 +35,6 @@
 /* Author: Ken Anderson */
 
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
-#include <moveit_msgs/JointLimits.h>
 #include <moveit/robot_state/conversions.h>
 #include <vector>
 
