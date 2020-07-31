@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, Jeroen De Maeyer
+ *  Copyright (c) 2020, KU Leuven
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
