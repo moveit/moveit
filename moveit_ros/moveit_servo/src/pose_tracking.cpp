@@ -62,9 +62,7 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
   initializePID(x_pid_config_, cartesian_position_pids_);
   initializePID(y_pid_config_, cartesian_position_pids_);
   initializePID(z_pid_config_, cartesian_position_pids_);
-  initializePID(roll_pid_config_, cartesian_orientation_pids_);
-  initializePID(pitch_pid_config_, cartesian_orientation_pids_);
-  initializePID(yaw_pid_config_, cartesian_orientation_pids_);
+  initializePID(angular_pid_config_, cartesian_orientation_pids_);
 
   // Use the C++ interface that Servo provides
   servo_ = std::make_unique<moveit_servo::Servo>(nh_, planning_scene_monitor_, parameter_ns_);
@@ -180,18 +178,14 @@ void PoseTracking::readROSParams()
   x_pid_config_.dt = publish_period;
   y_pid_config_.dt = publish_period;
   z_pid_config_.dt = publish_period;
-  roll_pid_config_.dt = publish_period;
-  pitch_pid_config_.dt = publish_period;
-  yaw_pid_config_.dt = publish_period;
+  angular_pid_config_.dt = publish_period;
 
   double windup_limit;
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/windup_limit", windup_limit);
   x_pid_config_.windup_limit = windup_limit;
   y_pid_config_.windup_limit = windup_limit;
   z_pid_config_.windup_limit = windup_limit;
-  roll_pid_config_.windup_limit = windup_limit;
-  pitch_pid_config_.windup_limit = windup_limit;
-  yaw_pid_config_.windup_limit = windup_limit;
+  angular_pid_config_.windup_limit = windup_limit;
 
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_proportional_gain", x_pid_config_.k_p);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_proportional_gain", y_pid_config_.k_p);
@@ -203,15 +197,9 @@ void PoseTracking::readROSParams()
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/y_derivative_gain", y_pid_config_.k_d);
   error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/z_derivative_gain", z_pid_config_.k_d);
 
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/roll_proportional_gain", roll_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/pitch_proportional_gain", pitch_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/yaw_proportional_gain", yaw_pid_config_.k_p);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/roll_integral_gain", roll_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/pitch_integral_gain", pitch_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/yaw_integral_gain", yaw_pid_config_.k_i);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/roll_derivative_gain", roll_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/pitch_derivative_gain", pitch_pid_config_.k_d);
-  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/yaw_derivative_gain", yaw_pid_config_.k_d);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_proportional_gain", angular_pid_config_.k_p);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_integral_gain", angular_pid_config_.k_i);
+  error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/angular_derivative_gain", angular_pid_config_.k_d);
 
   rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
@@ -288,13 +276,11 @@ geometry_msgs::TwistStampedConstPtr PoseTracking::calculateTwistCommand()
   Eigen::AngleAxisd axis_angle(q_error);
   // Cache the angular error, for rotation tolerance checking
   angular_error_ = axis_angle.angle();
-  double x_ang_vel = angular_error_ * axis_angle.axis()[0];
-  double y_ang_vel = angular_error_ * axis_angle.axis()[1];
-  double z_ang_vel = angular_error_ * axis_angle.axis()[2];
-
-  twist.angular.x = cartesian_orientation_pids_[0].computeCommand(x_ang_vel, loop_rate_.expectedCycleTime());
-  twist.angular.y = cartesian_orientation_pids_[1].computeCommand(y_ang_vel, loop_rate_.expectedCycleTime());
-  twist.angular.z = cartesian_orientation_pids_[2].computeCommand(z_ang_vel, loop_rate_.expectedCycleTime());
+  double ang_vel_magnitude =
+      cartesian_orientation_pids_[0].computeCommand(angular_error_, loop_rate_.expectedCycleTime());
+  twist.angular.x = ang_vel_magnitude * axis_angle.axis()[0];
+  twist.angular.y = ang_vel_magnitude * axis_angle.axis()[1];
+  twist.angular.z = ang_vel_magnitude * axis_angle.axis()[2];
 
   msg->header.stamp = ros::Time::now();
 
@@ -311,7 +297,5 @@ void PoseTracking::doPostMotionReset()
   cartesian_position_pids_[1].reset();
   cartesian_position_pids_[2].reset();
   cartesian_orientation_pids_[0].reset();
-  cartesian_orientation_pids_[1].reset();
-  cartesian_orientation_pids_[2].reset();
 }
 }  // namespace moveit_servo

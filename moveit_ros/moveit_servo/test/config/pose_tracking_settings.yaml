@@ -16,12 +16,6 @@ x_derivative_gain: 0.0
 y_derivative_gain: 0.0
 z_derivative_gain: 0.0
 
-roll_proportional_gain: 0.5
-pitch_proportional_gain: 0.5
-yaw_proportional_gain: 0.5
-roll_integral_gain: 0.1
-pitch_integral_gain: 0.1
-yaw_integral_gain: 0.1
-roll_derivative_gain: 0.0
-pitch_derivative_gain: 0.0
-yaw_derivative_gain: 0.0
+angular_proportional_gain: 0.5
+angular_integral_gain: 0.1
+angular_derivative_gain: 0.0

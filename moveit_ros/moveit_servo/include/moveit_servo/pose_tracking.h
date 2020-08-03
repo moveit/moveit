@@ -154,7 +154,7 @@ private:
   std::vector<control_toolbox::Pid> cartesian_position_pids_;
   std::vector<control_toolbox::Pid> cartesian_orientation_pids_;
   // Cartesian PID configs
-  PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, roll_pid_config_, pitch_pid_config_, yaw_pid_config_;
+  PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, angular_pid_config_;
 
   // Transforms w.r.t. planning_frame_
   Eigen::Isometry3d end_effector_transform_;
