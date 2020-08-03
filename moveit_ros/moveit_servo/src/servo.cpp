@@ -55,7 +55,8 @@ Servo::Servo(ros::NodeHandle& nh, const planning_scene_monitor::PlanningSceneMon
 
   joint_state_subscriber_ = std::make_shared<JointStateSubscriber>(nh_, parameters_.joint_topic);
 
-  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
+  servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_,
+                                              parameter_ns_);
 
   collision_checker_ =
       std::make_unique<CollisionCheck>(nh_, parameters_, planning_scene_monitor_, joint_state_subscriber_);
