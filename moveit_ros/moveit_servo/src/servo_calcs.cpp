@@ -452,11 +452,6 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, pseudo_inverse));
-  if (status_ == StatusCode::HALT_FOR_COLLISION)
-  {
-    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
-    delta_theta_.setZero();
-  }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
@@ -480,6 +475,9 @@ bool ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_m
   delta_theta_ = scaleJointCommand(cmd);
 
   enforceSRDFAccelVelLimits(delta_theta_);
+
+  // If close to a collision, decelerate
+  applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
@@ -598,6 +596,12 @@ void ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singul
   }
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
+
+  if (status_ == StatusCode::HALT_FOR_COLLISION)
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
+    delta_theta_.setZero();
+  }
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
