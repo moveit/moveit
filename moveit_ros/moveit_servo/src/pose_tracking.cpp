@@ -80,8 +80,11 @@ PoseTracking::PoseTracking(const planning_scene_monitor::PlanningSceneMonitorPtr
 
 int8_t PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
+  // Roll back the target pose timestamp to ensure we wait for a new target pose message
+  target_pose_.header.stamp = ros::Time::now() - ros::Duration(2 * DEFAULT_POSE_TIMEOUT);
+
   // Wait a bit for a target pose message to arrive.
-  // The target pose may get updated by new messages as the robot moves.
+  // The target pose may get updated by new messages as the robot moves (in a callback function).
   ros::Time start_time = ros::Time::now();
   while ((!haveRecentTargetPose(DEFAULT_POSE_TIMEOUT) || !haveRecentEndEffectorPose(DEFAULT_POSE_TIMEOUT)) &&
          ((ros::Time::now() - start_time).toSec() < DEFAULT_POSE_TIMEOUT))
