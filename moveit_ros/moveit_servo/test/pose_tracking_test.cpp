@@ -118,6 +118,7 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   auto traj_sub = nh_.subscribe("servo_server/command", 1, traj_callback);
 
   geometry_msgs::PoseStamped target_pose;
+  target_pose.header.frame_id = "panda_link4";
   target_pose.header.stamp = ros::Time::now();
   target_pose.pose.position.x = 0.2;
   target_pose.pose.position.y = 0.2;
@@ -127,11 +128,22 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   target_pose.pose.orientation.z = 0;
   target_pose.pose.orientation.w = 1;
 
-  target_pose.header.frame_id = "panda_link4";
-  target_pose_pub_.publish(target_pose);
-  ros::Duration(PUB_SUB_DELAY).sleep();
+  // Continually republish the target pose in a new thread, in case the target is moving
+  std::atomic_bool stop_target_pub_thread{false};
+  std::thread target_pub_thread([&]
+  {
+      while (ros::ok() && !stop_target_pub_thread)
+      {
+          target_pose_pub_.publish(target_pose);
+          ros::Duration(0.01).sleep();
+      }
+  }
+  );
 
   tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE);
+
+  stop_target_pub_thread = true;
+  target_pub_thread.join();
 }
 
 }  // namespace moveit_servo
