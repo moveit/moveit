@@ -39,6 +39,8 @@
 #ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
 
+#include <atomic>
+
 #include <rviz/display.h>
 
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
