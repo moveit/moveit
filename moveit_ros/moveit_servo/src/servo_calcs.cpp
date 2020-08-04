@@ -74,8 +74,7 @@ bool isNonZero(const control_msgs::JointJog& msg)
 // Constructor for the class that handles servoing calculations
 ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
-                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber,
-                       std::string& ros_namespace)
+                       const std::shared_ptr<JointStateSubscriber>& joint_state_subscriber, std::string& ros_namespace)
   : nh_(nh)
   , parameters_(parameters)
   , planning_scene_monitor_(planning_scene_monitor)
@@ -103,13 +102,11 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
 
   // ROS Server for allowing drift in some dimensions
   drift_dimensions_server_ =
-      nh_.advertiseService(ros_namespace + "/change_drift_dimensions",
-                           &ServoCalcs::changeDriftDimensions, this);
+      nh_.advertiseService(ros_namespace + "/change_drift_dimensions", &ServoCalcs::changeDriftDimensions, this);
 
   // ROS Server for changing the control dimensions
   control_dimensions_server_ =
-      nh_.advertiseService(ros_namespace + "/change_control_dimensions",
-                           &ServoCalcs::changeControlDimensions, this);
+      nh_.advertiseService(ros_namespace + "/change_control_dimensions", &ServoCalcs::changeControlDimensions, this);
 
   // ROS Server to reset the status, e.g. so the arm can move again after a collision
   reset_servo_status_ =

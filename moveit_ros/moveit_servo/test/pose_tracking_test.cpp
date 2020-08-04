@@ -53,7 +53,6 @@
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double TRANSLATION_TOLERANCE = 0.01;  // meters
 static constexpr double ROTATION_TOLERANCE = 0.1;      // quaternion
-static constexpr double PUB_SUB_DELAY = 0.1;           // time for a ROS msg to be recieved
 static constexpr double ROS_SETUP_DELAY = 1;           // allow for initial launching
 
 namespace moveit_servo
@@ -129,16 +128,14 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   target_pose.pose.orientation.w = 1;
 
   // Continually republish the target pose in a new thread, in case the target is moving
-  std::atomic_bool stop_target_pub_thread{false};
-  std::thread target_pub_thread([&]
-  {
-      while (ros::ok() && !stop_target_pub_thread)
-      {
-          target_pose_pub_.publish(target_pose);
-          ros::Duration(0.01).sleep();
-      }
-  }
-  );
+  std::atomic_bool stop_target_pub_thread{ false };
+  std::thread target_pub_thread([&] {
+    while (ros::ok() && !stop_target_pub_thread)
+    {
+      target_pose_pub_.publish(target_pose);
+      ros::Duration(0.01).sleep();
+    }
+  });
 
   tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE);
 
