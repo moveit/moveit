@@ -120,6 +120,12 @@ public:
     return subframe_poses_;
   }
 
+  /** \brief Get subframes of this object (in the world frame) */
+  const moveit::core::FixedTransformsMap& getGlobalSubframeTransforms() const
+  {
+    return global_subframe_poses_;
+  }
+
   /** \brief Set all subframes of this object.
    *
    * Use these to define points of interest on the object to plan with

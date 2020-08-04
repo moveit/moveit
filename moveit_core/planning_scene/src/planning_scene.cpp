@@ -1593,43 +1593,36 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
   {
     // STEP 1: Get info about the object from the RobotState
     std::vector<const moveit::core::AttachedBody*> attached_bodies;
-    if (object.link_name.empty())
+    if (object.object.id.empty())
     {
-      if (object.object.id.empty())
-        robot_state_->getAttachedBodies(attached_bodies);
+      const moveit::core::LinkModel* link_model =
+          object.link_name.empty() ? nullptr : getRobotModel()->getLinkModel(object.link_name);
+      if (link_model)  // if we have a link model specified, only fetch bodies attached to this link
+        robot_state_->getAttachedBodies(attached_bodies, link_model);
       else
-      {
-        const moveit::core::AttachedBody* body = robot_state_->getAttachedBody(object.object.id);
-        if (body)
-          attached_bodies.push_back(body);
-      }
+        robot_state_->getAttachedBodies(attached_bodies);
     }
-    else
+    else  // A specific object id will be removed.
     {
-      const moveit::core::LinkModel* link_model = getRobotModel()->getLinkModel(object.link_name);
-      if (link_model)
+      const moveit::core::AttachedBody* body = robot_state_->getAttachedBody(object.object.id);
+      if (body)
       {
-        // If no specific object id is given, then we remove all objects attached to the link_name.
-        if (object.object.id.empty())
+        if (!object.link_name.empty() && (body->getAttachedLinkName() != object.link_name))
         {
-          robot_state_->getAttachedBodies(attached_bodies, link_model);
+          ROS_ERROR_STREAM_NAMED(LOGNAME, "The AttachedCollisionObject message states the object is attached to "
+                                              << object.link_name << ", but it is actually attached to "
+                                              << body->getAttachedLinkName()
+                                              << ". Leave the link_name empty or specify the correct link.");
+          return false;
         }
-        else  // A specific object id will be removed.
-        {
-          const moveit::core::AttachedBody* body = robot_state_->getAttachedBody(object.object.id);
-          if (body)
-            attached_bodies.push_back(body);
-        }
+        attached_bodies.push_back(body);
       }
     }
 
     // STEP 2+3: Remove the attached object(s) from the RobotState and put them in the world
     for (const moveit::core::AttachedBody* attached_body : attached_bodies)
     {
-      const std::vector<shapes::ShapeConstPtr>& shapes = attached_body->getShapes();
-      const EigenSTL::vector_Isometry3d& poses = attached_body->getGlobalCollisionBodyTransforms();
       const std::string& name = attached_body->getName();
-
       if (world_->hasObject(name))
         ROS_WARN_NAMED(LOGNAME,
                        "The collision world already has an object with the same name as the body about to be detached. "
@@ -1637,7 +1630,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
                        object.object.id.c_str());
       else
       {
-        world_->addToObject(name, shapes, poses);
+        world_->addToObject(name, attached_body->getShapes(), attached_body->getGlobalCollisionBodyTransforms());
+        world_->setSubframesOfObject(name, attached_body->getSubframeTransforms());
         ROS_DEBUG_NAMED(LOGNAME, "Detached object '%s' from link '%s' and added it back in the collision world",
                         name.c_str(), object.link_name.c_str());
       }
@@ -1772,8 +1766,8 @@ bool PlanningScene::processCollisionObjectAdd(const moveit_msgs::CollisionObject
   if (!object.type.key.empty() || !object.type.db.empty())
     setObjectType(object.id, object.type);
 
-  // Add subframes
-  moveit::core::FixedTransformsMap subframes;
+  // Add subframes to the newly created (or possibly modified) object
+  moveit::core::FixedTransformsMap subframes = world_->getObject(object.id)->subframe_poses_;
   Eigen::Isometry3d frame_pose;
   for (std::size_t i = 0; i < object.subframe_poses.size(); ++i)
   {
@@ -1830,6 +1824,7 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
     }
 
     collision_detection::World::ObjectConstPtr obj = world_->getObject(object.id);
+
     if (obj->shapes_.size() == new_poses.size())
     {
       std::vector<shapes::ShapeConstPtr> shapes = obj->shapes_;

@@ -159,6 +159,7 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
     {
       if (ps->getWorld()->hasObject(scaled_object_->id_))
       {
+        const moveit::core::FixedTransformsMap subframes = scaled_object_->subframe_poses_;  // Keep subframes
         ps->getWorldNonConst()->removeObject(scaled_object_->id_);
         for (std::size_t i = 0; i < scaled_object_->shapes_.size(); ++i)
         {
@@ -167,6 +168,8 @@ void MotionPlanningFrame::sceneScaleChanged(int value)
           ps->getWorldNonConst()->addToObject(scaled_object_->id_, shapes::ShapeConstPtr(s),
                                               scaled_object_->shape_poses_[i]);
         }
+        // TODO(felixvd): Scale subframes too
+        ps->getWorldNonConst()->setSubframesOfObject(scaled_object_->id_, subframes);
         setLocalSceneEdited();
         scene_marker_->processMessage(createObjectMarkerMsg(ps->getWorld()->getObject(scaled_object_->id_)));
         planning_display_->queueRenderSceneGeometry();
@@ -823,9 +826,12 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     if (obj)
     {
       known_collision_objects_[item->type()].first = item_text;
+      const moveit::core::FixedTransformsMap subframes = obj->subframe_poses_;  // Keep subframes
+      // TODO(felixvd): Scale the subframes with the object
       ps->getWorldNonConst()->removeObject(obj->id_);
       ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_,
                                           obj->shape_poses_);
+      ps->getWorldNonConst()->setSubframesOfObject(obj->id_, subframes);
       if (scene_marker_)
       {
         scene_marker_.reset();
