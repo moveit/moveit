@@ -91,6 +91,14 @@ void TrajectoryDisplay::reset()
   trajectory_visual_->reset();
 }
 
+void TrajectoryDisplay::load(const rviz::Config& config)
+{
+  // This property needs to be loaded in onEnable() below, which is triggered
+  // in the beginning of Display::load() before the other property would be available
+  robot_description_property_->load(config.mapGetChild("Robot Description"));
+  Display::load(config);
+}
+
 void TrajectoryDisplay::onEnable()
 {
   Display::onEnable();

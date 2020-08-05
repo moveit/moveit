@@ -68,6 +68,7 @@ public:
 
   void loadRobotModel();
 
+  void load(const rviz::Config& config) override;
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
 
