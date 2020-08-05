@@ -181,8 +181,7 @@ public:
 
     for (const moveit_msgs::CollisionObject& collision_object : response.scene.world.collision_objects)
     {
-      if (object_ids.empty() ||
-          std::find(object_ids.begin(), object_ids.end(), collision_object.id) != object_ids.end())
+      if (object_ids.empty() || std::find(object_ids.begin(), object_ids.end(), collision_object.id) != object_ids.end())
       {
         result[collision_object.id] = collision_object;
       }

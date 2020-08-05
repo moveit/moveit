@@ -530,4 +530,4 @@ inline const OMPLDynamicReconfigureConfigStatics* OMPLDynamicReconfigureConfig::
 
   return statics;
 }
-}
+}  // namespace ompl_interface_ros

@@ -95,8 +95,8 @@ public:
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
-          ROS_ERROR_STREAM_NAMED("MoveItFakeControllerManager", "The list of joints for controller "
-                                                                    << name << " is not specified as an array");
+          ROS_ERROR_STREAM_NAMED("MoveItFakeControllerManager",
+                                 "The list of joints for controller " << name << " is not specified as an array");
           continue;
         }
         std::vector<std::string> joints;

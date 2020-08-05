@@ -145,4 +145,4 @@ int BFS_3D::getDistance(int x, int y, int z)
     ;
   return distance_grid[node];
 }
-}
+}  // namespace sbpl_interface

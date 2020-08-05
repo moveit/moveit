@@ -58,8 +58,7 @@
 
 namespace moveit_rviz_plugin
 {
-MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context,
-                                         QWidget* parent)
+MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent)
   : QWidget(parent)
   , planning_display_(pdisplay)
   , context_(context)

@@ -272,8 +272,9 @@ CollisionObjectWrapper::CollisionObjectWrapper(const std::string& name, const co
   , m_shape_poses(shape_poses)
   , m_collision_object_types(collision_object_types)
 {
-  if (shapes.empty() || shape_poses.empty() || (shapes.size() != shape_poses.size() || collision_object_types.empty() ||
-                                                shapes.size() != collision_object_types.size()))
+  if (shapes.empty() || shape_poses.empty() ||
+      (shapes.size() != shape_poses.size() || collision_object_types.empty() ||
+       shapes.size() != collision_object_types.size()))
   {
     throw std::exception();
   }

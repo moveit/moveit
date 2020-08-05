@@ -201,4 +201,4 @@ public:
 
   std::vector<std::string> motion_primitive_type_names_;
 };
-}
+}  // namespace sbpl_interface

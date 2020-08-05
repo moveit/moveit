@@ -51,8 +51,7 @@ double parseDouble(XmlRpc::XmlRpcValue& v);
  * @param name: if non-empty, print a warning message "name is not an array[size]"
  * @param description: if non-empty, serves as a descriptor for array items
  */
-bool isArray(XmlRpc::XmlRpcValue& v, size_t size = 0, const std::string& name = "",
-             const std::string& description = "");
+bool isArray(XmlRpc::XmlRpcValue& v, size_t size = 0, const std::string& name = "", const std::string& description = "");
 
 /** check that v is a struct with given keys
  *

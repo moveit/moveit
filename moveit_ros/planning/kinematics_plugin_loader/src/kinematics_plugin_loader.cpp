@@ -349,8 +349,9 @@ moveit::core::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const 
           if (nh.searchParam(base_param_name + "/kinematics_solver_attempts", ksolver_attempts_param_name) &&
               nh.hasParam(ksolver_attempts_param_name))
           {
-            ROS_WARN_ONCE_NAMED(LOGNAME, "Kinematics solver doesn't support #attempts anymore, but only a timeout.\n"
-                                         "Please remove the parameter '%s' from your configuration.",
+            ROS_WARN_ONCE_NAMED(LOGNAME,
+                                "Kinematics solver doesn't support #attempts anymore, but only a timeout.\n"
+                                "Please remove the parameter '%s' from your configuration.",
                                 ksolver_attempts_param_name.c_str());
           }
 
@@ -406,8 +407,9 @@ moveit::core::SolverAllocatorFn KinematicsPluginLoader::getLoaderFunction(const 
             {
               if (ksolver_ik_links.getType() != XmlRpc::XmlRpcValue::TypeArray)
               {
-                ROS_WARN_STREAM_NAMED(LOGNAME, "rosparam '" << ksolver_ik_links_param_name << "' should be an XmlRpc "
-                                                                                              "value type 'Array'");
+                ROS_WARN_STREAM_NAMED(LOGNAME, "rosparam '" << ksolver_ik_links_param_name
+                                                            << "' should be an XmlRpc "
+                                                               "value type 'Array'");
               }
               else
               {

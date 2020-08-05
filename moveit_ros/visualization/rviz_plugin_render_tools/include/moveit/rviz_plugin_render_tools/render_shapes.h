@@ -52,7 +52,7 @@ namespace rviz
 {
 class DisplayContext;
 class Shape;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {

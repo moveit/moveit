@@ -308,8 +308,7 @@ public:
     resources_bimap claimed_resources;
 
     // fill bimap with active controllers and their resources
-    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller :
-         active_controllers_)
+    for (std::pair<const std::string, controller_manager_msgs::ControllerState>& active_controller : active_controllers_)
     {
       for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir =
                active_controller.second.claimed_resources.begin();

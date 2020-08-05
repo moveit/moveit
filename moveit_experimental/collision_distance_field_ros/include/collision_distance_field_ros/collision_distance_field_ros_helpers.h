@@ -124,4 +124,4 @@ static inline bool loadLinkBodySphereDecompositions(
   }
   return true;
 }
-}
+}  // namespace collision_detection

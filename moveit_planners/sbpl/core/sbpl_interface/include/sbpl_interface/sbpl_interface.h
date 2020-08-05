@@ -66,4 +66,4 @@ protected:
   // DummyEnvironment* dummy_env_;
   // SBPLPlanner *planner_;
 };
-}
+}  // namespace sbpl_interface

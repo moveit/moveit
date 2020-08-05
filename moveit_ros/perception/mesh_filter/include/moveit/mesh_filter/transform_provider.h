@@ -48,7 +48,7 @@ namespace tf2_ros
 {
 class TransformListener;
 class Buffer;
-}
+}  // namespace tf2_ros
 
 /**
  * \brief Class that caches and updates transformations for given frames.

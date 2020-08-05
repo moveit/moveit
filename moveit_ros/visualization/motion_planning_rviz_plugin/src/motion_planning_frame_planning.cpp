@@ -268,9 +268,9 @@ void MotionPlanningFrame::onNewPlanningSceneState()
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(
-      boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this, start_state.toStdString()),
-      "update start state");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this,
+                                                  start_state.toStdString()),
+                                      "update start state");
 }
 
 void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_state)

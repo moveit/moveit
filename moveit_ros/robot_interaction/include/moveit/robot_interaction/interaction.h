@@ -49,7 +49,7 @@ namespace core
 {
 class RobotState;
 }
-}
+}  // namespace moveit
 
 namespace robot_interaction
 {

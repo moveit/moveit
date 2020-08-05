@@ -43,7 +43,7 @@ namespace collision_detection
 {
 /** \brief An allocator for Bullet collision detectors */
 class CollisionDetectorAllocatorBullet
-    : public CollisionDetectorAllocatorTemplate<CollisionEnvBullet, CollisionDetectorAllocatorBullet>
+  : public CollisionDetectorAllocatorTemplate<CollisionEnvBullet, CollisionDetectorAllocatorBullet>
 {
 public:
   static const std::string NAME;  // defined in collision_env_bullet.cpp
