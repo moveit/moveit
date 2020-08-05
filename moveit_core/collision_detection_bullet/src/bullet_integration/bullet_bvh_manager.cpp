@@ -41,9 +41,9 @@ BulletBVHManager::BulletBVHManager()
 {
   dispatcher_.reset(new btCollisionDispatcher(&coll_config_));
 
-  dispatcher_->registerCollisionCreateFunc(
-      BOX_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE,
-      coll_config_.getCollisionAlgorithmCreateFunc(CONVEX_SHAPE_PROXYTYPE, CONVEX_SHAPE_PROXYTYPE));
+  dispatcher_->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE,
+                                           coll_config_.getCollisionAlgorithmCreateFunc(CONVEX_SHAPE_PROXYTYPE,
+                                                                                        CONVEX_SHAPE_PROXYTYPE));
 
   dispatcher_->setDispatcherFlags(dispatcher_->getDispatcherFlags() &
                                   ~btCollisionDispatcher::CD_USE_RELATIVE_CONTACT_BREAKING_THRESHOLD);

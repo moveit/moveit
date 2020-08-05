@@ -244,8 +244,8 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
-  using QSlider::setMinimum;
   using QSlider::setMaximum;
+  using QSlider::setMinimum;
   using QSlider::setRange;
 
 Q_SIGNALS:

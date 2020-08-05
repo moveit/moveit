@@ -247,9 +247,9 @@ TrajOptProblemPtr ConstructProblem(const ProblemInfo& pci)
       for (int i = 1; i < prob->GetNumSteps(); ++i)
       {
         matrix_traj_vars_temp = prob->GetVars();
-        prob->addLinearConstraint(
-            sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(i, dof_ind)), sco::AffExpr(init_traj(0, dof_ind))),
-            sco::EQ);
+        prob->addLinearConstraint(sco::exprSub(sco::AffExpr(matrix_traj_vars_temp(i, dof_ind)),
+                                               sco::AffExpr(init_traj(0, dof_ind))),
+                                  sco::EQ);
       }
     }
   }
@@ -596,4 +596,4 @@ void generateInitialTrajectory(const ProblemInfo& pci, const std::vector<double>
         Eigen::VectorXd::Constant(init_traj.rows(), init_info.dt);
   }
 }
-}
+}  // namespace trajopt_interface

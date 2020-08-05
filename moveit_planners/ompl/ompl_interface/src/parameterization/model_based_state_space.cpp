@@ -90,8 +90,9 @@ double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment() const
 void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
 {
   if (snap < 0.0 || snap > 1.0)
-    ROS_WARN_NAMED(LOGNAME, "Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. "
-                            "Value remains as previously set (%lf)",
+    ROS_WARN_NAMED(LOGNAME,
+                   "Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. "
+                   "Value remains as previously set (%lf)",
                    tag_snap_to_segment_);
   else
   {
@@ -136,8 +137,7 @@ void ompl_interface::ModelBasedStateSpace::serialize(void* serialization, const 
 void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State* state, const void* serialization) const
 {
   state->as<StateType>()->tag = *reinterpret_cast<const int*>(serialization);
-  memcpy(state->as<StateType>()->values, reinterpret_cast<const char*>(serialization) + sizeof(int),
-         state_values_size_);
+  memcpy(state->as<StateType>()->values, reinterpret_cast<const char*>(serialization) + sizeof(int), state_values_size_);
 }
 
 unsigned int ompl_interface::ModelBasedStateSpace::getDimension() const

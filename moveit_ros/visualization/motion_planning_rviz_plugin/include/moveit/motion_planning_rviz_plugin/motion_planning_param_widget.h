@@ -49,7 +49,7 @@ namespace planning_interface
 {
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);
 }
-}
+}  // namespace moveit
 
 namespace moveit_rviz_plugin
 {

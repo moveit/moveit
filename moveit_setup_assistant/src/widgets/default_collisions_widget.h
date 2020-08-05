@@ -139,8 +139,8 @@ private Q_SLOTS:
   void revertChanges();
 
   /**
-  * \brief Called when current row has changed
-  */
+   * \brief Called when current row has changed
+   */
   void previewSelectedMatrix(const QModelIndex& index);
   void previewSelectedLinear(const QModelIndex& index);
 

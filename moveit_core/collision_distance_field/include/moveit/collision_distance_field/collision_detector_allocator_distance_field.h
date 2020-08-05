@@ -43,9 +43,9 @@ namespace collision_detection
 {
 /** \brief An allocator for Distance Field collision detectors */
 class CollisionDetectorAllocatorDistanceField
-    : public CollisionDetectorAllocatorTemplate<CollisionEnvDistanceField, CollisionDetectorAllocatorDistanceField>
+  : public CollisionDetectorAllocatorTemplate<CollisionEnvDistanceField, CollisionDetectorAllocatorDistanceField>
 {
 public:
   static const std::string NAME;  // defined in collision_env_distance_field.cpp
 };
-}
+}  // namespace collision_detection

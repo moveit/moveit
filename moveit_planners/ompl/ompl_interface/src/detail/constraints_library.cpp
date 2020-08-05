@@ -277,8 +277,9 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
   {
-    ROS_WARN_NAMED(LOGNAME, "Manifest not found in folder '%s'. Not loading "
-                            "constraint approximations.",
+    ROS_WARN_NAMED(LOGNAME,
+                   "Manifest not found in folder '%s'. Not loading "
+                   "constraint approximations.",
                    path.c_str());
     return;
   }
@@ -310,14 +311,16 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     if (context_->getGroupName() != group &&
         context_->getOMPLStateSpace()->getParameterizationType() != state_space_parameterization)
     {
-      ROS_INFO_NAMED(LOGNAME, "Ignoring constraint approximation of type '%s' "
-                              "for group '%s' from '%s'...",
+      ROS_INFO_NAMED(LOGNAME,
+                     "Ignoring constraint approximation of type '%s' "
+                     "for group '%s' from '%s'...",
                      state_space_parameterization.c_str(), group.c_str(), filename.c_str());
       continue;
     }
 
-    ROS_INFO_NAMED(LOGNAME, "Loading constraint approximation of type '%s' for "
-                            "group '%s' from '%s'...",
+    ROS_INFO_NAMED(LOGNAME,
+                   "Loading constraint approximation of type '%s' for "
+                   "group '%s' from '%s'...",
                    state_space_parameterization.c_str(), group.c_str(), filename.c_str());
     moveit_msgs::Constraints msg;
     hexToMsg(serialization, msg);
@@ -332,9 +335,10 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     std::size_t sum = 0;
     for (std::size_t i = 0; i < cass->size(); ++i)
       sum += cass->getMetadata(i).first.size();
-    ROS_INFO_NAMED(LOGNAME, "Loaded %lu states (%lu milestones) and %lu "
-                            "connections (%0.1lf per state) "
-                            "for constraint named '%s'%s",
+    ROS_INFO_NAMED(LOGNAME,
+                   "Loaded %lu states (%lu milestones) and %lu "
+                   "connections (%0.1lf per state) "
+                   "for constraint named '%s'%s",
                    cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
                    msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
   }
@@ -405,18 +409,20 @@ ompl_interface::ConstraintsLibrary::getConstraintApproximation(const moveit_msgs
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
-ompl_interface::ConstraintsLibrary::addConstraintApproximation(
-    const moveit_msgs::Constraints& constr, const std::string& group,
-    const planning_scene::PlanningSceneConstPtr& scene, const ConstraintApproximationConstructionOptions& options)
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints& constr,
+                                                               const std::string& group,
+                                                               const planning_scene::PlanningSceneConstPtr& scene,
+                                                               const ConstraintApproximationConstructionOptions& options)
 {
   return addConstraintApproximation(constr, constr, group, scene, options);
 }
 
 ompl_interface::ConstraintApproximationConstructionResults
-ompl_interface::ConstraintsLibrary::addConstraintApproximation(
-    const moveit_msgs::Constraints& constr_sampling, const moveit_msgs::Constraints& constr_hard,
-    const std::string& group, const planning_scene::PlanningSceneConstPtr& scene,
-    const ConstraintApproximationConstructionOptions& options)
+ompl_interface::ConstraintsLibrary::addConstraintApproximation(const moveit_msgs::Constraints& constr_sampling,
+                                                               const moveit_msgs::Constraints& constr_hard,
+                                                               const std::string& group,
+                                                               const planning_scene::PlanningSceneConstPtr& scene,
+                                                               const ConstraintApproximationConstructionOptions& options)
 {
   ConstraintApproximationConstructionResults res;
   if (context_->getGroupName() != group &&

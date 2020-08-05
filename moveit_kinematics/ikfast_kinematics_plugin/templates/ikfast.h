@@ -304,7 +304,7 @@ public:
 protected:
   std::list<IkSolution<T> > _listsolutions;
 };
-}
+}  // namespace ikfast
 
 #endif  // OPENRAVE_IKFAST_HEADER
 

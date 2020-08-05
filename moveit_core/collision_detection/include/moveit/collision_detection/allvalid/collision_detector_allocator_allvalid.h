@@ -43,9 +43,9 @@ namespace collision_detection
 {
 /** \brief An allocator for AllValid collision detectors */
 class CollisionDetectorAllocatorAllValid
-    : public CollisionDetectorAllocatorTemplate<CollisionEnvAllValid, CollisionDetectorAllocatorAllValid>
+  : public CollisionDetectorAllocatorTemplate<CollisionEnvAllValid, CollisionDetectorAllocatorAllValid>
 {
 public:
   static const std::string NAME;  // defined in collision_env_allvalid.cpp
 };
-}
+}  // namespace collision_detection
