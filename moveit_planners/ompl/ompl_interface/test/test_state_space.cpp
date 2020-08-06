@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#include <limits>
+
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
 
@@ -45,6 +47,8 @@
 #include <fstream>
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
+
+constexpr double EPSILON = std::numeric_limits<double>::epsilon();
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -148,24 +152,24 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 
   moveit::core::RobotState robot_state(robot_model_);
   robot_state.setToRandomPositions();
-  EXPECT_TRUE(robot_state.distance(robot_state) < 1e-12);
+  EXPECT_TRUE(robot_state.distance(robot_state) < EPSILON);
   ompl::base::State* state = joint_model_state_space.allocState();
   for (int i = 0; i < 10; ++i)
   {
     moveit::core::RobotState robot_state2(robot_state);
-    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < EPSILON);
     joint_model_state_space.copyToOMPLState(state, robot_state);
     robot_state.setToRandomPositions(
         robot_state.getRobotModel()->getJointModelGroup(joint_model_state_space.getJointModelGroupName()));
     std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
                   robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(robot_state.distance(robot_state2) > 1e-12);
+    EXPECT_TRUE(robot_state.distance(robot_state2) > EPSILON);
     joint_model_state_space.copyToRobotState(robot_state, state);
     std::cout << (robot_state.getGlobalLinkTransform("r_wrist_roll_link").translation() -
                   robot_state2.getGlobalLinkTransform("r_wrist_roll_link").translation())
               << std::endl;
-    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < EPSILON);
   }
 
   // repeat the above test with a different method to copy the state to OMPL
@@ -173,7 +177,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   {
     // create two equal states
     moveit::core::RobotState robot_state2(robot_state);
-    EXPECT_LT(robot_state.distance(robot_state2), 1e-12);
+    EXPECT_LT(robot_state.distance(robot_state2), EPSILON);
 
     // copy the first state to OMPL as backup (this is where the 'different' method comes into play)
     const moveit::core::JointModelGroup* joint_model_group =
@@ -189,12 +193,12 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     // and change the joint values of the moveit state, so it is different that robot_state2
     robot_state.setToRandomPositions(
         robot_state.getRobotModel()->getJointModelGroup(joint_model_state_space.getJointModelGroupName()));
-    EXPECT_GT(robot_state.distance(robot_state2), 1e-12);
+    EXPECT_GT(robot_state.distance(robot_state2), EPSILON);
 
     // copy the backup values in the OMPL state back to the first state,
     // and check if it is still equal to the second
     joint_model_state_space.copyToRobotState(robot_state, state);
-    EXPECT_LT(robot_state.distance(robot_state2), 1e-12);
+    EXPECT_LT(robot_state.distance(robot_state2), EPSILON);
   }
 
   joint_model_state_space.freeState(state);
