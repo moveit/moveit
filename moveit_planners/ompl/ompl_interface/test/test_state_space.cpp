@@ -167,6 +167,34 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
   }
 
+  // repeat the above test with a different method to copy the state to OMPL
+  for (int i = 0; i < 10; ++i)
+  {
+    // create two equal states
+    moveit::core::RobotState robot_state2(robot_state);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+
+    // copy the first state to OMPL as backup (this is where the 'different' method comes into play)
+    const moveit::core::JointModelGroup* joint_model_group =
+        robot_state.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName());
+    std::vector<std::string> joint_model_names = joint_model_group->getActiveJointModelNames();
+    for (std::size_t joint_index = 0; joint_index < joint_model_group->getVariableCount(); ++joint_index)
+    {
+      const moveit::core::JointModel* joint_model = joint_model_group->getJointModel(joint_model_names[joint_index]);
+      EXPECT_TRUE(joint_model != nullptr);
+      ss.copyJointToOMPLState(state, robot_state, joint_model, joint_index);
+    }
+
+    // and change the joint values of the moveit state, so it is different that robot_state2
+    robot_state.setToRandomPositions(robot_state.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
+    EXPECT_TRUE(robot_state.distance(robot_state2) > 1e-12);
+
+    // copy the backup values in the OMPL state back to the first state,
+    // and check if it is still equal to the second
+    ss.copyToRobotState(robot_state, state);
+    EXPECT_TRUE(robot_state.distance(robot_state2) < 1e-12);
+  }
+
   ss.freeState(state);
 }
 
