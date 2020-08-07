@@ -340,7 +340,7 @@ void ompl_interface::ModelBasedStateSpace::copyJointToOMPLState(ompl::base::Stat
 {
   // Copy one joint (multiple variables possibly)
   memcpy(getValueAddressAtIndex(state, ompl_state_joint_index),
-         robot_state.getVariablePositions() + joint_model->getFirstVariableIndex() * sizeof(double),
+         robot_state.getVariablePositions() + joint_model->getFirstVariableIndex(),
          joint_model->getVariableCount() * sizeof(double));
 
   // clear any cached info (such as validity known or not)
