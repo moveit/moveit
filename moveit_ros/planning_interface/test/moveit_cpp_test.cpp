@@ -45,8 +45,11 @@
 // Main class
 #include <moveit/moveit_cpp/moveit_cpp.h>
 #include <moveit/moveit_cpp/planning_component.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 // Msgs
 #include <geometry_msgs/PointStamped.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace moveit
 {
@@ -62,6 +65,12 @@ public:
     planning_component_ptr = std::make_shared<PlanningComponent>(PLANNING_GROUP, moveit_cpp_ptr);
     robot_model_ptr = moveit_cpp_ptr->getRobotModel();
     jmg_ptr = robot_model_ptr->getJointModelGroup(PLANNING_GROUP);
+    planning_scene_monitor = moveit_cpp_ptr->getPlanningSceneMonitor();
+    planning_scene_monitor->providePlanningSceneService();
+    planning_scene_monitor->startWorldGeometryMonitor(
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+        true /* load octomap monitor */);
 
     target_pose1.header.frame_id = "panda_link0";
     target_pose1.pose.orientation.w = 1.0;
@@ -84,6 +93,7 @@ protected:
   ros::NodeHandle nh_;
   MoveItCppPtr moveit_cpp_ptr;
   PlanningComponentPtr planning_component_ptr;
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
   moveit::core::RobotModelConstPtr robot_model_ptr;
   const moveit::core::JointModelGroup* jmg_ptr;
   const std::string PLANNING_GROUP = "panda_arm";
@@ -153,6 +163,72 @@ TEST_F(MoveItCppTest, TestSetGoalFromRobotState)
   auto target_state = *(moveit_cpp_ptr->getCurrentState());
 
   target_state.setFromIK(jmg_ptr, target_pose2);
+
+  planning_component_ptr->setGoal(target_state);
+
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+}
+
+// Test settting the goal of the plan using a moveit::core::RobotState
+TEST_F(MoveItCppTest, TestPlanWithOctomap)
+{
+  sensor_msgs::PointCloud2 point_cloud_msg;
+  sensor_msgs::PointCloud2Modifier point_cloud_mod(point_cloud_msg);
+
+  point_cloud_msg.header.frame_id = "world";
+  point_cloud_msg.height = 1;
+  point_cloud_msg.width = 8;
+  point_cloud_msg.is_bigendian = false;
+  point_cloud_msg.is_dense = true;
+
+  point_cloud_mod.setPointCloud2Fields(3, "x", 1, sensor_msgs::PointField::FLOAT32, "y", 1,
+                                       sensor_msgs::PointField::FLOAT32, "z", 1, sensor_msgs::PointField::FLOAT32);
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(point_cloud_msg, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(point_cloud_msg, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(point_cloud_msg, "z");
+
+  for (int i = 0; i < 8; ++i, ++iter_x, ++iter_y, ++iter_z)
+  {
+    *iter_x = 0.1 * ((i >> 0) & 1);
+    *iter_y = 0.1 * ((i >> 1) & 1);
+    *iter_z = 0.1 * ((i >> 2) & 1);
+  }
+
+  ros::Publisher point_cloud_pub;
+  point_cloud_pub = nh_.advertise<sensor_msgs::PointCloud2>("/head_mount_kinect/depth_registered/points", 10);
+  for (int i = 0; i < 10; i++)
+  {
+    point_cloud_msg.header.stamp = ros::Time::now();
+    point_cloud_pub.publish(point_cloud_msg);
+    ros::WallDuration(0.1).sleep();
+  }
+
+  auto target_state = *(moveit_cpp_ptr->getCurrentState());
+
+  target_state.setFromIK(jmg_ptr, target_pose2);
+
+  planning_component_ptr->setGoal(target_state);
+
+  ASSERT_TRUE(static_cast<bool>(planning_component_ptr->plan()));
+
+  // Clearing the octomap and then checking the collision distance has caused a segfault in the past (fixed in #2104)
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
+  collision_request.group_name = "manipulator";
+  collision_request.distance = true;
+
+  planning_scene_monitor->clearOctomap();
+
+  {
+    planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor)
+        ->getCollisionEnv()
+        ->checkRobotCollision(collision_request, collision_result, target_state);
+  }
+  // No collision with empty octomap
+  ASSERT_TRUE(!collision_result.collision);
+
+  target_state.setFromIK(jmg_ptr, target_pose1.pose);
 
   planning_component_ptr->setGoal(target_state);
 
