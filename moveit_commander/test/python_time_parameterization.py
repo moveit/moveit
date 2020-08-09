@@ -85,7 +85,7 @@ class PythonTimeParameterizationTest(unittest.TestCase):
         self.assertTrue(len(retimed_plan.joint_trajectory.points) == 0, "Invalid retime algorithm")
 
 if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
+    PKGNAME = 'moveit_commander'
     NODENAME = 'moveit_test_python_time_parameterization'
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonTimeParameterizationTest)

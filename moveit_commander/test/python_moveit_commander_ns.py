@@ -100,7 +100,7 @@ class PythonMoveitCommanderNsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    PKGNAME = 'moveit_ros_planning_interface'
+    PKGNAME = 'moveit_commander'
     NODENAME = 'moveit_test_python_moveit_commander_ns'
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveitCommanderNsTest)
