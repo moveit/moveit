@@ -53,7 +53,8 @@
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double TRANSLATION_TOLERANCE = 0.01;  // meters
 static constexpr double ROTATION_TOLERANCE = 0.1;      // quaternion
-static constexpr double ROS_SETUP_DELAY = 1;           // allow for initial launching
+static constexpr double ROS_SETUP_DELAY = 4;           // allow for initial launching
+static constexpr double ROS_PUB_SUB_DELAY = 4;         // allow for subscribers to initialize
 
 namespace moveit_servo
 {
@@ -74,7 +75,8 @@ public:
 
     tracker_ = std::make_shared<moveit_servo::PoseTracking>(planning_scene_monitor_, "");
 
-    target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/pose_tracking_test/target_pose", 1 /* queue */);
+    target_pose_pub_ =
+        nh_.advertise<geometry_msgs::PoseStamped>("/pose_tracking_test/target_pose", 1 /* queue */, true /* latch */);
 
     // Tolerance for pose seeking
     translation_tolerance_ << TRANSLATION_TOLERANCE, TRANSLATION_TOLERANCE, TRANSLATION_TOLERANCE;
@@ -113,6 +115,7 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
         EXPECT_NEAR(msg->points[0].positions[6], 0.785, angle_tolerance);
 
         this->tracker_->stopMotion();
+        return;
       };
   auto traj_sub = nh_.subscribe("servo_server/command", 1, traj_callback);
 
@@ -127,19 +130,20 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   target_pose.pose.orientation.z = 0;
   target_pose.pose.orientation.w = 1;
 
-  // Continually republish the target pose in a new thread, in case the target is moving
-  std::atomic_bool stop_target_pub_thread{ false };
+  // Republish the target pose in a new thread, as if the target is moving
   std::thread target_pub_thread([&] {
-    while (ros::ok() && !stop_target_pub_thread)
+    size_t msg_count = 0;
+    while (msg_count < 100)
     {
       target_pose_pub_.publish(target_pose);
       ros::Duration(0.01).sleep();
+      ++msg_count;
     }
   });
 
+  ros::Duration(ROS_PUB_SUB_DELAY).sleep();
   tracker_->moveToPose(translation_tolerance_, ROTATION_TOLERANCE);
 
-  stop_target_pub_thread = true;
   target_pub_thread.join();
 }
 
