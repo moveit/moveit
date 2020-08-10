@@ -99,7 +99,8 @@ void TrajectoryDisplay::load(const rviz::Config& config)
 void TrajectoryDisplay::onEnable()
 {
   Display::onEnable();
-  loadRobotModel();
+  if (!rdf_loader_)
+    loadRobotModel();
   trajectory_visual_->onEnable();
 }
 
