@@ -373,8 +373,7 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
-  if (!rdf_loader_)
-    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (rdf_loader_->getURDF())
   {
@@ -410,7 +409,8 @@ void RobotStateDisplay::load(const rviz::Config& config)
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  loadRobotModel();
+  if (!rdf_loader_)
+    loadRobotModel();
   changedRobotStateTopic();
   calculateOffsetPosition();
 }
