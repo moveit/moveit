@@ -37,13 +37,12 @@
 # This test is used to ensure planning with a RobotCommander is
 # possbile if the robot's move_group node is in a different namespace
 
-import unittest
+import moveit_commander
 import numpy as np
+import os
 import rospy
 import rostest
-import os
-
-from moveit_commander import RobotCommander
+import unittest
 
 
 class PythonMoveitCommanderNsTest(unittest.TestCase):
@@ -82,10 +81,8 @@ class PythonMoveitCommanderNsTest(unittest.TestCase):
     def test_validation(self):
         current = np.asarray(self.group.get_current_joint_values())
 
-        success1, plan1, time1, err1 = self.plan(current + 0.2)
-        success2, plan2, time2, err2 = self.plan(current + 0.2)
-        self.assertTrue(success1)
-        self.assertTrue(success2)
+        plan1 = self.plan(current + 0.2)
+        plan2 = self.plan(current + 0.2)
 
         # first plan should execute
         self.assertTrue(self.group.execute(plan1))
@@ -94,8 +91,7 @@ class PythonMoveitCommanderNsTest(unittest.TestCase):
         self.assertFalse(self.group.execute(plan2))
 
         # newly planned trajectory should execute again
-        success3, plan3, time3, err3 = self.plan(current)
-        self.assertTrue(success3)
+        plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
 

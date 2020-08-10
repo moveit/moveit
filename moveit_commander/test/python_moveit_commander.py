@@ -34,13 +34,12 @@
 #
 # Author: William Baker
 
-import unittest
+import moveit_commander
 import numpy as np
+import os
 import rospy
 import rostest
-import os
-
-from moveit_commander import RobotCommander, PlanningSceneInterface
+import unittest
 
 
 class PythonMoveitCommanderTest(unittest.TestCase):
@@ -78,10 +77,8 @@ class PythonMoveitCommanderTest(unittest.TestCase):
     def test_validation(self):
         current = np.asarray(self.group.get_current_joint_values())
 
-        success1, plan1, time1, err1 = self.plan(current + 0.2)
-        success2, plan2, time2, err2 = self.plan(current + 0.2)
-        self.assertTrue(success1)
-        self.assertTrue(success2)
+        plan1 = self.plan(current + 0.2)
+        plan2 = self.plan(current + 0.2)
 
         # first plan should execute
         self.assertTrue(self.group.execute(plan1))
@@ -90,8 +87,7 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         self.assertFalse(self.group.execute(plan2))
 
         # newly planned trajectory should execute again
-        success3, plan3, time3, err3 = self.plan(current)
-        self.assertTrue(success3)
+        plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
     def test_planning_scene_interface(self):
@@ -101,7 +97,7 @@ class PythonMoveitCommanderTest(unittest.TestCase):
 if __name__ == '__main__':
     PKGNAME = 'moveit_commander'
     NODENAME = 'moveit_test_python_moveit_commander'
-    rospy.init_node(NODENAME)
+    rospy.init_node(NODENAME, anonymous=True)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveitCommanderTest)
 
     # suppress cleanup segfault
