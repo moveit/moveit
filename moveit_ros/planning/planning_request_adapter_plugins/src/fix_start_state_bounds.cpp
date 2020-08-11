@@ -192,8 +192,8 @@ public:
     {
       // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to
       // the computed trajectory)
-      res.trajectory_->setWayPointDurationFromPrevious(
-          0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+      res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_,
+                                                                   res.trajectory_->getAverageSegmentDuration()));
       res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
       // we add a prefix point, so we need to bump any previously added index positions
       for (std::size_t& added_index : added_path_index)

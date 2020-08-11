@@ -29,7 +29,7 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 /*      Title     : servo_calcs.cpp
  *      Project   : moveit_servo
@@ -287,8 +287,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Print a warning to the user if both are stale
   if (!twist_command_is_stale_ || !joint_command_is_stale_)
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
-                                                "Try a larger 'incoming_command_timeout' parameter?");
+    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
+                                   "Stale command. "
+                                   "Try a larger 'incoming_command_timeout' parameter?");
   }
 
   // If we should halt
@@ -515,8 +516,7 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
 // Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
-void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory,
-                                                     int count) const
+void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
@@ -653,9 +653,8 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
     if ((ini_condition > parameters_.lower_singularity_threshold) &&
         (ini_condition < parameters_.hard_stop_singularity_threshold))
     {
-      velocity_scale = 1. -
-                       (ini_condition - parameters_.lower_singularity_threshold) /
-                           (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
+      velocity_scale = 1. - (ini_condition - parameters_.lower_singularity_threshold) /
+                                (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
       status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
       ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
     }
@@ -774,10 +773,10 @@ bool ServoCalcs::enforceSRDFPositionLimits()
             (kinematic_state_->getJointVelocities(joint)[0] > 0 &&
              (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
-          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
-                                                                               << " " << joint->getName()
-                                                                               << " close to a "
-                                                                                  " position limit. Halting.");
+          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                         ros::this_node::getName() << " " << joint->getName()
+                                                                   << " close to a "
+                                                                      " position limit. Halting.");
           halting = true;
         }
       }
@@ -828,8 +827,8 @@ bool ServoCalcs::updateJoints()
     }
     catch (const std::out_of_range& e)
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
-                                                                            << latest_joint_state->name[m]);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                      "Ignoring joint " << latest_joint_state->name[m]);
       continue;
     }
 
@@ -962,9 +961,9 @@ bool ServoCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
-                                                                            << " Lengths of output and "
-                                                                               "increments do not match.");
+      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                      ros::this_node::getName() << " Lengths of output and "
+                                                                   "increments do not match.");
       return false;
     }
   }

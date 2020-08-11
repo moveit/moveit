@@ -43,9 +43,9 @@ namespace collision_detection
 {
 /** \brief An allocator for FCL collision detectors */
 class CollisionDetectorAllocatorFCL
-    : public CollisionDetectorAllocatorTemplate<CollisionEnvFCL, CollisionDetectorAllocatorFCL>
+  : public CollisionDetectorAllocatorTemplate<CollisionEnvFCL, CollisionDetectorAllocatorFCL>
 {
 public:
   static const std::string NAME;  // defined in collision_env_fcl.cpp
 };
-}
+}  // namespace collision_detection

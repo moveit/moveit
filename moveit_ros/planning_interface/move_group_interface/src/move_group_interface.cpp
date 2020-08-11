@@ -706,8 +706,8 @@ public:
 
     if (objects.empty())
     {
-      ROS_ERROR_STREAM_NAMED(LOGNAME, "Asked for grasps for the object '" << object
-                                                                          << "', but the object could not be found");
+      ROS_ERROR_STREAM_NAMED(LOGNAME,
+                             "Asked for grasps for the object '" << object << "', but the object could not be found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 

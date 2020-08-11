@@ -65,7 +65,7 @@ public:
                    const collision_detection::AllowedCollisionMatrix* acm, bool self) override;
 
   /**@brief Add a bullet collision object to the manager
-  *  @param cow The bullet collision object */
+   *  @param cow The bullet collision object */
   void addCollisionObject(const CollisionObjectWrapperPtr& cow) override;
 };
 }  // namespace collision_detection_bullet

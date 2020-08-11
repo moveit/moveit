@@ -29,7 +29,7 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 /*      Title     : low_pass_filter.cpp
  *      Project   : moveit_servo
@@ -48,7 +48,7 @@ namespace
 {
 constexpr char LOGNAME[] = "low_pass_filter";
 constexpr double EPSILON = 1e-9;
-}
+}  // namespace
 
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   : previous_measurements_{ 0., 0. }
@@ -67,12 +67,11 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
 
   if (std::abs(feedback_term_) < EPSILON)
   {
-    ROS_WARN_STREAM_NAMED(
-        LOGNAME, "Filter coefficient value of "
-                     << low_pass_filter_coeff
-                     << " resulted in feedback term of 0. "
-                        " This results in a window averaging Finite Impulse Response (FIR) filter with a gain of "
-                     << scale_term_ * LowPassFilter::FILTER_LENGTH);
+    ROS_WARN_STREAM_NAMED(LOGNAME, "Filter coefficient value of " << low_pass_filter_coeff
+                                                                  << " resulted in feedback term of 0. "
+                                                                     " This results in a window averaging Finite "
+                                                                     "Impulse Response (FIR) filter with a gain of "
+                                                                  << scale_term_ * LowPassFilter::FILTER_LENGTH);
   }
 }
 

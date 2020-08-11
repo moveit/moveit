@@ -82,15 +82,15 @@ inline bool acmCheck(const std::string& body_1, const std::string& body_2,
     }
     else
     {
-      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No entry in ACM found, collision check between "
-                                                               << body_1 << " and " << body_2);
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                             "No entry in ACM found, collision check between " << body_1 << " and " << body_2);
       return false;
     }
   }
   else
   {
-    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "No ACM, collision check between " << body_1 << " and "
-                                                                                            << body_2);
+    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                           "No ACM, collision check between " << body_1 << " and " << body_2);
     return false;
   }
 }
@@ -717,8 +717,8 @@ public:
     std::pair<std::string, std::string> pair_names{ cow0->getName(), cow1->getName() };
     if (results_callback_.needsCollision(cow0, cow1))
     {
-      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Processing " << cow0->getName() << " vs "
-                                                                         << cow1->getName());
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                             "Processing " << cow0->getName() << " vs " << cow1->getName());
       btCollisionObjectWrapper obj0_wrap(nullptr, cow0->getCollisionShape(), cow0, cow0->getWorldTransform(), -1, -1);
       btCollisionObjectWrapper obj1_wrap(nullptr, cow1->getCollisionShape(), cow1, cow1->getWorldTransform(), -1, -1);
 
@@ -740,8 +740,8 @@ public:
     }
     else
     {
-      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Not processing " << cow0->getName() << " vs "
-                                                                             << cow1->getName());
+      ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                             "Not processing " << cow0->getName() << " vs " << cow1->getName());
     }
     return false;
   }
@@ -961,8 +961,8 @@ struct BroadphaseFilterCallback : public btOverlapFilterCallback
       if (cow0->m_touch_links == cow1->m_touch_links)
         return false;
 
-    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Broadphase pass " << cow0->getName() << " vs "
-                                                                            << cow1->getName());
+    ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                           "Broadphase pass " << cow0->getName() << " vs " << cow1->getName());
     return true;
   }
 };

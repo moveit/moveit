@@ -88,8 +88,8 @@ void checkHeader(moveit_msgs::Constraints& c, const std::string& header_frame)
       c.orientation_constraints[i].header.stamp = ros::Time::now();
     }
 }
-}
-}
+}  // namespace
+}  // namespace moveit_benchmarks
 
 moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::PlanningScenePtr& scene,
                                                           warehouse_ros::DatabaseConnection::Ptr conn)
@@ -894,7 +894,7 @@ bool isIKSolutionCollisionFree(const planning_scene::PlanningScene* scene, movei
   else
     return true;
 }
-}
+}  // namespace
 
 void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkRequest& req)
 {
@@ -1001,8 +1001,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         ROS_ERROR("Planning interface '%s' has no planners defined", it->first.c_str());
     }
     else
-      ROS_WARN_STREAM("Planning interface '" << it->second->getDescription() << "' is not able to solve the specified "
-                                                                                "benchmark problem.");
+      ROS_WARN_STREAM("Planning interface '" << it->second->getDescription()
+                                             << "' is not able to solve the specified "
+                                                "benchmark problem.");
   }
 
   // error check
@@ -1247,8 +1248,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
   bool reachable = false;
   if (req.motion_plan_request.goal_constraints.size() > 0 &&
       req.motion_plan_request.goal_constraints[0].position_constraints.size() > 0 &&
-      req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() >
-          0 &&
+      req.motion_plan_request.goal_constraints[0].position_constraints[0].constraint_region.primitive_poses.size() > 0 &&
       req.motion_plan_request.goal_constraints[0].orientation_constraints.size() > 0)
   {
     // Compute IK on goal constraints
@@ -1276,10 +1276,11 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     // Compute IK
     ROS_INFO_STREAM("Processing goal " << req.motion_plan_request.goal_constraints[0].name << " ...");
     ros::WallTime startTime = ros::WallTime::now();
-    success = robot_state.setFromIK(
-        robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
-        req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
-        boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
+    success =
+        robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+                              req.motion_plan_request.num_planning_attempts,
+                              req.motion_plan_request.allowed_planning_time,
+                              boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
     if (success)
     {
       ROS_INFO("  Success!");
@@ -1365,10 +1366,11 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
       ROS_INFO_STREAM("Processing trajectory waypoint "
                       << req.motion_plan_request.trajectory_constraints.constraints[tc].name << " ...");
       startTime = ros::WallTime::now();
-      success = robot_state.setFromIK(
-          robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
-          req.motion_plan_request.num_planning_attempts, req.motion_plan_request.allowed_planning_time,
-          boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
+      success =
+          robot_state.setFromIK(robot_state.getJointModelGroup(req.motion_plan_request.group_name), ik_pose,
+                                req.motion_plan_request.num_planning_attempts,
+                                req.motion_plan_request.allowed_planning_time,
+                                boost::bind(&isIKSolutionCollisionFree, planning_scene_.get(), _1, _2, _3, &reachable));
       double duration = (ros::WallTime::now() - startTime).toSec();
 
       if (success)

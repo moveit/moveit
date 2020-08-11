@@ -61,4 +61,4 @@ public:
                max_propogation_distance);
   }
 };
-}
+}  // namespace collision_detection

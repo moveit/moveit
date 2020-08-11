@@ -288,9 +288,10 @@ bool CollisionEnvDistanceField::getSelfCollisions(const collision_detection::Col
     if (req.contacts)
     {
       std::vector<unsigned int> colls;
-      bool coll = getCollisionSphereCollision(
-          gsr->dfce_->distance_field_.get(), *collision_spheres_1, *sphere_centers_1, max_propogation_distance_,
-          collision_tolerance_, std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
+      bool coll =
+          getCollisionSphereCollision(gsr->dfce_->distance_field_.get(), *collision_spheres_1, *sphere_centers_1,
+                                      max_propogation_distance_, collision_tolerance_,
+                                      std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
       if (coll)
       {
         res.collision = true;
@@ -817,8 +818,7 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
           //           << " num " << attached_bodies[j]->getTouchLinks().size()
           //           << std::endl;
           // touch links take priority
-          if (link_attached_bodies[j]->getTouchLinks().find(link_name) !=
-              link_attached_bodies[j]->getTouchLinks().end())
+          if (link_attached_bodies[j]->getTouchLinks().find(link_name) != link_attached_bodies[j]->getTouchLinks().end())
           {
             dfce->intra_group_collision_enabled_[i][att_count + dfce->link_names_.size()] = false;
             // std::cerr << "Setting intra group for " << link_name << " and
@@ -1082,8 +1082,8 @@ void CollisionEnvDistanceField::addLinkBodyDecompositions(
   ROS_DEBUG_STREAM(__FUNCTION__ << " Finished ");
 }
 
-PosedBodySphereDecompositionPtr CollisionEnvDistanceField::getPosedLinkBodySphereDecomposition(
-    const moveit::core::LinkModel* ls, unsigned int ind) const
+PosedBodySphereDecompositionPtr
+CollisionEnvDistanceField::getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls, unsigned int ind) const
 {
   PosedBodySphereDecompositionPtr ret;
   ret.reset(new PosedBodySphereDecomposition(link_body_decomposition_vector_[ind]));
@@ -1566,9 +1566,9 @@ void CollisionEnvDistanceField::getAllCollisions(const CollisionRequest& req, Co
   (const_cast<CollisionEnvDistanceField*>(this))->last_gsr_ = gsr;
 }
 
-bool CollisionEnvDistanceField::getEnvironmentCollisions(
-    const CollisionRequest& req, CollisionResult& res, const distance_field::DistanceFieldConstPtr& env_distance_field,
-    GroupStateRepresentationPtr& gsr) const
+bool CollisionEnvDistanceField::getEnvironmentCollisions(const CollisionRequest& req, CollisionResult& res,
+                                                         const distance_field::DistanceFieldConstPtr& env_distance_field,
+                                                         GroupStateRepresentationPtr& gsr) const
 {
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size() + gsr->dfce_->attached_body_names_.size(); i++)
   {
@@ -1597,9 +1597,10 @@ bool CollisionEnvDistanceField::getEnvironmentCollisions(
     if (req.contacts)
     {
       std::vector<unsigned int> colls;
-      bool coll = getCollisionSphereCollision(
-          env_distance_field.get(), *collision_spheres_1, *sphere_centers_1, max_propogation_distance_,
-          collision_tolerance_, std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
+      bool coll =
+          getCollisionSphereCollision(env_distance_field.get(), *collision_spheres_1, *sphere_centers_1,
+                                      max_propogation_distance_, collision_tolerance_,
+                                      std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
       if (coll)
       {
         res.collision = true;

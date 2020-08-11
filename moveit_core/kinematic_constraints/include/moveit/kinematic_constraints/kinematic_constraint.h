@@ -435,9 +435,9 @@ public:
   /**
    * \brief The rotation target in the reference frame.
    *
-    * @return The target rotation.
-    *
-    * The returned matrix is always a valid rotation matrix.
+   * @return The target rotation.
+   *
+   * The returned matrix is always a valid rotation matrix.
    */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {

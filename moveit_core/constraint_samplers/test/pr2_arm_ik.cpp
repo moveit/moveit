@@ -298,11 +298,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Isometry3f& g_in, const double&
 
       at = sint1 * (shoulder_elbow_offset_ - shoulder_wrist_offset_) * sint2 * sint4;
       bt = (-shoulder_elbow_offset_ + shoulder_wrist_offset_) * cost1 * sint4;
-      ct = y -
-           (shoulder_upperarm_offset_ +
-            cost2 * (-shoulder_upperarm_offset_ + shoulder_elbow_offset_ +
-                     (-shoulder_elbow_offset_ + shoulder_wrist_offset_) * cos(t4))) *
-               sint1;
+      ct = y - (shoulder_upperarm_offset_ + cost2 * (-shoulder_upperarm_offset_ + shoulder_elbow_offset_ +
+                                                     (-shoulder_elbow_offset_ + shoulder_wrist_offset_) * cos(t4))) *
+                   sint1;
       if (!solveCosineEqn(at, bt, ct, theta3[0], theta3[1]))
         continue;
 
@@ -731,8 +729,8 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Isometry3f& g_in, const double
             std::cout << "t5 " << t5 << std::endl;
             std::cout << "t7 " << t7 << std::endl;
 #endif
-//           if(fabs(sin(t6)*sin(t7)-grhs_local(0,1)) > IK_EPS || fabs(cos(t7)*sin(t6)-grhs_local(0,2)) > IK_EPS)
-//  continue;
+            //           if(fabs(sin(t6)*sin(t7)-grhs_local(0,1)) > IK_EPS || fabs(cos(t7)*sin(t6)-grhs_local(0,2)) > IK_EPS)
+            //  continue;
 
 #ifdef DEBUG
             std::cout << "theta1: " << t1 << std::endl;

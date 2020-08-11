@@ -92,8 +92,9 @@ bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string&
   return !planning_scenes.empty();
 }
 
-std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
-    const moveit_msgs::MotionPlanRequest& planning_query, const std::string& scene_name) const
+std::string
+moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(const moveit_msgs::MotionPlanRequest& planning_query,
+                                                                 const std::string& scene_name) const
 {
   // get all existing motion planning requests for this planning scene
   Query::Ptr q = motion_plan_request_collection_->createQuery();

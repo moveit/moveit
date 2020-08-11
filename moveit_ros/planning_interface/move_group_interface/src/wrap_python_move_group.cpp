@@ -554,8 +554,7 @@ public:
     }
   }
 
-  Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values,
-                                          const bp::object& reference_point = bp::object())
+  Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values, const bp::object& reference_point = bp::object())
   {
     const std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
     std::vector<double> ref;
@@ -599,8 +598,7 @@ static void wrap_move_group_interface()
 
   move_group_interface_class.def("get_name", &MoveGroupInterfaceWrapper::getNameCStr);
   move_group_interface_class.def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr);
-  move_group_interface_class.def("get_interface_description",
-                                 &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
+  move_group_interface_class.def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
 
   move_group_interface_class.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   move_group_interface_class.def("get_joints", &MoveGroupInterfaceWrapper::getJointsList);
@@ -657,8 +655,7 @@ static void wrap_move_group_interface()
       &MoveGroupInterfaceWrapper::rememberJointValues;
   move_group_interface_class.def("remember_joint_values", remember_joint_values_2);
 
-  move_group_interface_class.def("remember_joint_values",
-                                 &MoveGroupInterfaceWrapper::rememberJointValuesFromPythonList);
+  move_group_interface_class.def("remember_joint_values", &MoveGroupInterfaceWrapper::rememberJointValuesFromPythonList);
 
   move_group_interface_class.def("start_state_monitor", &MoveGroupInterfaceWrapper::startStateMonitor);
   move_group_interface_class.def("get_current_joint_values", &MoveGroupInterfaceWrapper::getCurrentJointValuesList);
@@ -686,8 +683,7 @@ static void wrap_move_group_interface()
   bool (MoveGroupInterfaceWrapper::*set_path_constraints_1)(const std::string&) =
       &MoveGroupInterfaceWrapper::setPathConstraints;
   move_group_interface_class.def("set_path_constraints", set_path_constraints_1);
-  move_group_interface_class.def("set_path_constraints_from_msg",
-                                 &MoveGroupInterfaceWrapper::setPathConstraintsFromMsg);
+  move_group_interface_class.def("set_path_constraints_from_msg", &MoveGroupInterfaceWrapper::setPathConstraintsFromMsg);
   move_group_interface_class.def("get_path_constraints", &MoveGroupInterfaceWrapper::getPathConstraintsPython);
   move_group_interface_class.def("clear_path_constraints", &MoveGroupInterfaceWrapper::clearPathConstraints);
   move_group_interface_class.def("get_known_constraints", &MoveGroupInterfaceWrapper::getKnownConstraintsList);

@@ -312,9 +312,8 @@ void CollisionEnvBullet::notifyObjectChange(const ObjectConstPtr& obj, World::Ac
   }
 }
 
-void CollisionEnvBullet::addAttachedOjects(
-    const moveit::core::RobotState& state,
-    std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const
+void CollisionEnvBullet::addAttachedOjects(const moveit::core::RobotState& state,
+                                           std::vector<collision_detection_bullet::CollisionObjectWrapperPtr>& cows) const
 {
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
   state.getAttachedBodies(attached_bodies);
@@ -335,8 +334,8 @@ void CollisionEnvBullet::addAttachedOjects(
     }
     catch (std::exception&)
     {
-      ROS_ERROR_STREAM_NAMED("collision_detetction.bullet", "Not adding " << body->getName()
-                                                                          << " due to bad arguments.");
+      ROS_ERROR_STREAM_NAMED("collision_detetction.bullet",
+                             "Not adding " << body->getName() << " due to bad arguments.");
     }
   }
 }

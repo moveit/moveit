@@ -47,8 +47,7 @@ const std::string moveit_warehouse::TrajectoryConstraintsStorage::ROBOT_NAME = "
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
-moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(
-    warehouse_ros::DatabaseConnection::Ptr conn)
+moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(std::move(conn))
 {
   createCollections();

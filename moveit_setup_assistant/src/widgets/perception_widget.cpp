@@ -208,8 +208,7 @@ bool PerceptionWidget::focusLost()
                                                                            "PointCloudOctomapUpdater");
     config_data_->addGenericParameterToSensorPluginConfig("point_cloud_topic",
                                                           point_cloud_topic_field_->text().trimmed().toStdString());
-    config_data_->addGenericParameterToSensorPluginConfig("max_range",
-                                                          max_range_field_->text().trimmed().toStdString());
+    config_data_->addGenericParameterToSensorPluginConfig("max_range", max_range_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("point_subsample",
                                                           point_subsample_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("padding_offset",
