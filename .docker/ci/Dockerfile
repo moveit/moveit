@@ -30,7 +30,7 @@ RUN \
         sudo \
         # Preferred build tools
         python-catkin-tools \
-        clang clang-format-3.9 clang-tidy clang-tools \
+        clang clang-format-10 clang-tidy clang-tools \
         ccache && \
     #
     # Download all dependencies of MoveIt!
