@@ -34,7 +34,7 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 #pragma once
 
@@ -145,8 +145,8 @@ private:
   void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
-    * This happens for joint commands and Cartesian commands.
-    */
+   * This happens for joint commands and Cartesian commands.
+   */
   bool convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.

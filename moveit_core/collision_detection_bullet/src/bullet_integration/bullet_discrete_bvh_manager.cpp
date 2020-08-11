@@ -66,16 +66,16 @@ void BulletDiscreteBVHManager::contactTest(collision_detection::CollisionResult&
   broadphase_->calculateOverlappingPairs(dispatcher_.get());
   btOverlappingPairCache* pair_cache = broadphase_->getOverlappingPairCache();
 
-  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", "Num overlapping candidates "
-                                                           << pair_cache->getNumOverlappingPairs());
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet",
+                         "Num overlapping candidates " << pair_cache->getNumOverlappingPairs());
 
   BroadphaseContactResultCallback cc(cdata, contact_distance_, acm, self);
   TesseractCollisionPairCallback collision_callback(dispatch_info_, dispatcher_.get(), cc);
   pair_cache->processAllOverlappingPairs(&collision_callback, dispatcher_.get());
 
-  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", (collisions.collision ? "In" : "No") << " collision with "
-                                                                                            << collisions.contact_count
-                                                                                            << " collisions");
+  ROS_DEBUG_STREAM_NAMED("collision_detection.bullet", (collisions.collision ? "In" : "No")
+                                                           << " collision with " << collisions.contact_count
+                                                           << " collisions");
 }
 
 void BulletDiscreteBVHManager::addCollisionObject(const CollisionObjectWrapperPtr& cow)

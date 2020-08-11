@@ -46,4 +46,4 @@ class CollisionDetectorBtPluginLoader : public CollisionPlugin
 public:
   bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const override;
 };
-}
+}  // namespace collision_detection

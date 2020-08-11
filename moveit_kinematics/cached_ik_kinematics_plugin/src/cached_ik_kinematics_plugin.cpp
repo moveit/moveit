@@ -42,18 +42,16 @@
 
 #include <pluginlib/class_list_macros.hpp>
 // register CachedIKKinematicsPlugin<KDLKinematicsPlugin> as a KinematicsBase implementation
-PLUGINLIB_EXPORT_CLASS(
-    cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<kdl_kinematics_plugin::KDLKinematicsPlugin>,
-    kinematics::KinematicsBase);
+PLUGINLIB_EXPORT_CLASS(cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<kdl_kinematics_plugin::KDLKinematicsPlugin>,
+                       kinematics::KinematicsBase);
 
 // register CachedIKKinematicsPlugin<SrvKinematicsPlugin> as a KinematicsBase implementation
 // PLUGINLIB_EXPORT_CLASS(cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<lma_kinematics_plugin::LMAKinematicsPlugin>,
 // kinematics::KinematicsBase);
 
 // register CachedIKKinematicsPlugin<SrvKinematicsPlugin> as a KinematicsBase implementation
-PLUGINLIB_EXPORT_CLASS(
-    cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<srv_kinematics_plugin::SrvKinematicsPlugin>,
-    kinematics::KinematicsBase);
+PLUGINLIB_EXPORT_CLASS(cached_ik_kinematics_plugin::CachedIKKinematicsPlugin<srv_kinematics_plugin::SrvKinematicsPlugin>,
+                       kinematics::KinematicsBase);
 
 #ifdef CACHED_IK_KINEMATICS_TRAC_IK
 #include <trac_ik/trac_ik_kinematics_plugin.hpp>

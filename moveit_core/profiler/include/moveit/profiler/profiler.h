@@ -443,7 +443,7 @@ public:
     return false;
   }
 };
-}
-}
+}  // namespace tools
+}  // namespace moveit
 
 #endif

@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Ioan A. Sucan
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Ioan A. Sucan
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Dave Coleman */
 
@@ -327,15 +327,16 @@ void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNum
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
-    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(
-        rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
-        near + active_joint_model_start_index_[i], distance);
+    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
+                                                                    *active_joint_bounds[i],
+                                                                    near + active_joint_model_start_index_[i],
+                                                                    distance);
   updateMimicJoints(values);
 }
 
-void JointModelGroup::getVariableRandomPositionsNearBy(
-    random_numbers::RandomNumberGenerator& rng, double* values, const JointBoundsVector& active_joint_bounds,
-    const double* near, const std::map<JointModel::JointType, double>& distance_map) const
+void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                                       const JointBoundsVector& active_joint_bounds, const double* near,
+                                                       const std::map<JointModel::JointType, double>& distance_map) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -347,9 +348,10 @@ void JointModelGroup::getVariableRandomPositionsNearBy(
       distance = iter->second;
     else
       ROS_WARN_NAMED(LOGNAME, "Did not pass in distance for '%s'", active_joint_model_vector_[i]->getName().c_str());
-    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(
-        rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
-        near + active_joint_model_start_index_[i], distance);
+    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
+                                                                    *active_joint_bounds[i],
+                                                                    near + active_joint_model_start_index_[i],
+                                                                    distance);
   }
   updateMimicJoints(values);
 }
@@ -360,14 +362,14 @@ void JointModelGroup::getVariableRandomPositionsNearBy(random_numbers::RandomNum
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   if (distances.size() != active_joint_model_vector_.size())
-    throw Exception("When sampling random values nearby for group '" + name_ +
-                    "', distances vector should be of size " +
+    throw Exception("When sampling random values nearby for group '" + name_ + "', distances vector should be of size " +
                     boost::lexical_cast<std::string>(active_joint_model_vector_.size()) + ", but it is of size " +
                     boost::lexical_cast<std::string>(distances.size()));
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
-    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(
-        rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
-        near + active_joint_model_start_index_[i], distances[i]);
+    active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i],
+                                                                    *active_joint_bounds[i],
+                                                                    near + active_joint_model_start_index_[i],
+                                                                    distances[i]);
   updateMimicJoints(values);
 }
 
@@ -566,8 +568,9 @@ bool JointModelGroup::computeIKIndexBijection(const std::vector<std::string>& ik
       // skip reported fixed joints
       if (hasJointModel(ik_jname) && getJointModel(ik_jname)->getType() == JointModel::FIXED)
         continue;
-      ROS_ERROR_NAMED(LOGNAME, "IK solver computes joint values for joint '%s' "
-                               "but group '%s' does not contain such a joint.",
+      ROS_ERROR_NAMED(LOGNAME,
+                      "IK solver computes joint values for joint '%s' "
+                      "but group '%s' does not contain such a joint.",
                       ik_jname.c_str(), getName().c_str());
       return false;
     }

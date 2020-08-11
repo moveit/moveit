@@ -160,8 +160,8 @@ void RobotModelLoader::configure(const Options& opt)
   if (model_ && opt.load_kinematics_solvers_)
     loadKinematicsSolvers();
 
-  ROS_DEBUG_STREAM_NAMED("robot_model_loader", "Loaded kinematic model in " << (ros::WallTime::now() - start).toSec()
-                                                                            << " seconds");
+  ROS_DEBUG_STREAM_NAMED("robot_model_loader",
+                         "Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr& kloader)
@@ -175,8 +175,7 @@ void RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::Kin
     if (kloader)
       kinematics_loader_ = kloader;
     else
-      kinematics_loader_.reset(
-          new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
+      kinematics_loader_.reset(new kinematics_plugin_loader::KinematicsPluginLoader(rdf_loader_->getRobotDescription()));
     moveit::core::SolverAllocatorFn kinematics_allocator =
         kinematics_loader_->getLoaderFunction(rdf_loader_->getSRDF());
     const std::vector<std::string>& groups = kinematics_loader_->getKnownGroups();

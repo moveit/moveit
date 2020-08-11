@@ -128,10 +128,10 @@ void KDLKinematicsPlugin::getJointWeights()
     else
       joint_weights_[it - active_names.begin()] = weights[i];
   }
-  ROS_INFO_STREAM_NAMED("kdl", "Joint weights for group '"
-                                   << getGroupName() << "': \n"
-                                   << Eigen::Map<const Eigen::VectorXd>(joint_weights_.data(), joint_weights_.size())
-                                          .transpose());
+  ROS_INFO_STREAM_NAMED(
+      "kdl", "Joint weights for group '"
+                 << getGroupName() << "': \n"
+                 << Eigen::Map<const Eigen::VectorXd>(joint_weights_.data(), joint_weights_.size()).transpose());
 }
 
 bool KDLKinematicsPlugin::initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
@@ -329,8 +329,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   if (ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR_STREAM_NAMED("kdl", "Seed state must have size " << dimension_ << " instead of size "
-                                                               << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED("kdl",
+                           "Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }

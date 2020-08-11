@@ -320,8 +320,7 @@ void RobotModelBuilder::addVirtualJoint(const std::string& parent_frame, const s
   srdf_writer_->virtual_joints_.push_back(new_virtual_joint);
 }
 
-void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link,
-                                      const std::string& name)
+void RobotModelBuilder::addGroupChain(const std::string& base_link, const std::string& tip_link, const std::string& name)
 {
   srdf::Model::Group new_group;
   if (name.empty())

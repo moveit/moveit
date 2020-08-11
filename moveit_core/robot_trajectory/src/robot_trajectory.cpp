@@ -397,8 +397,7 @@ void RobotTrajectory::setRobotTrajectoryMsg(const moveit::core::RobotState& refe
     moveit::core::RobotStatePtr st(new moveit::core::RobotState(copy));
     if (trajectory.joint_trajectory.points.size() > i)
     {
-      st->setVariablePositions(trajectory.joint_trajectory.joint_names,
-                               trajectory.joint_trajectory.points[i].positions);
+      st->setVariablePositions(trajectory.joint_trajectory.joint_names, trajectory.joint_trajectory.points[i].positions);
       if (!trajectory.joint_trajectory.points[i].velocities.empty())
         st->setVariableVelocities(trajectory.joint_trajectory.joint_names,
                                   trajectory.joint_trajectory.points[i].velocities);

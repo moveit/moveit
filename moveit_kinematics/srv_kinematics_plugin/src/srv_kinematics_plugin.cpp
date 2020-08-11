@@ -241,8 +241,8 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
   // Check if seed state correct
   if (ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR_STREAM_NAMED("srv", "Seed state must have size " << dimension_ << " instead of size "
-                                                               << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED("srv",
+                           "Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }

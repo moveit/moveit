@@ -63,8 +63,7 @@ namespace kinematic_constraints
  *
  * @return The merged set of constraints
  */
-moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
-                                          const moveit_msgs::Constraints& second);
+moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first, const moveit_msgs::Constraints& second);
 
 /** \brief Check if any constraints were specified */
 [[deprecated("Use moveit/utils/message_checks.h instead")]] bool isEmpty(const moveit_msgs::Constraints& constr);

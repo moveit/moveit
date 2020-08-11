@@ -74,4 +74,4 @@ protected:
 };
 
 void callBackFunc(sco::OptProb* opt_prob, sco::OptResults& opt_res);
-}
+}  // namespace trajopt_interface

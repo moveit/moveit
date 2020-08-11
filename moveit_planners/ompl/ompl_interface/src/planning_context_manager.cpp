@@ -367,8 +367,9 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(
-    const std::string& /* dummy */, const std::string& factory_type) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr&
+ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string& /* dummy */,
+                                                              const std::string& factory_type) const
 {
   auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
@@ -381,8 +382,9 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(
-    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr&
+ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string& group,
+                                                              const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   auto best = state_space_factories_.end();

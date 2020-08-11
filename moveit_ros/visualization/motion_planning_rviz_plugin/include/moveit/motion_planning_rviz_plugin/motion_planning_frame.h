@@ -80,7 +80,7 @@ namespace moveit_warehouse
 MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
 MOVEIT_CLASS_FORWARD(ConstraintsStorage);
 MOVEIT_CLASS_FORWARD(RobotStateStorage);
-}
+}  // namespace moveit_warehouse
 
 namespace moveit_rviz_plugin
 {

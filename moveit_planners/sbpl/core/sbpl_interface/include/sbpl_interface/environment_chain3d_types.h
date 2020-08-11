@@ -316,4 +316,4 @@ protected:
   unsigned int ind_;
   double delta_;
 };
-}
+}  // namespace sbpl_interface

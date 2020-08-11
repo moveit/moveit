@@ -83,8 +83,7 @@ void OccupancyMapMonitor::initialize()
     if (!nh_.getParam("octomap_resolution", map_resolution_))
     {
       map_resolution_ = 0.1;
-      ROS_WARN_NAMED(LOGNAME, "Resolution not specified for Octomap. Assuming resolution = %g instead",
-                     map_resolution_);
+      ROS_WARN_NAMED(LOGNAME, "Resolution not specified for Octomap. Assuming resolution = %g instead", map_resolution_);
     }
   }
   ROS_DEBUG_NAMED(LOGNAME, "Using resolution = %lf m for building octomap", map_resolution_);

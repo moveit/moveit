@@ -416,11 +416,12 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it,
     // Check if subgroup was found
     if (searched_group == nullptr)  // not found
     {
-      QMessageBox::critical(this, "Error Loading SRDF", QString("Subgroup '")
-                                                            .append(subgroup_it->c_str())
-                                                            .append("' of group '")
-                                                            .append(group_it.name_.c_str())
-                                                            .append("' not found. Your SRDF is invalid"));
+      QMessageBox::critical(this, "Error Loading SRDF",
+                            QString("Subgroup '")
+                                .append(subgroup_it->c_str())
+                                .append("' of group '")
+                                .append(group_it.name_.c_str())
+                                .append("' not found. Your SRDF is invalid"));
       return;  // TODO: something better for error handling?
     }
 
@@ -589,10 +590,11 @@ void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group* this_group)
   // Make sure there isn't more than 1 chain pair
   if (this_group->chains_.size() > 1)
   {
-    QMessageBox::warning(this, "Multiple Kinematic Chains", "Warning: This setup assistant is only designed to handle "
-                                                            "one kinematic chain per group. The loaded SRDF has more "
-                                                            "than one kinematic chain for a group. A possible loss of "
-                                                            "data may occur.");
+    QMessageBox::warning(this, "Multiple Kinematic Chains",
+                         "Warning: This setup assistant is only designed to handle "
+                         "one kinematic chain per group. The loaded SRDF has more "
+                         "than one kinematic chain for a group. A possible loss of "
+                         "data may occur.");
   }
 
   // Set the selected tip and base of chain if one exists
@@ -702,12 +704,12 @@ void PlanningGroupsWidget::deleteGroup()
   srdf::Model::Group* searched_group = config_data_->findGroupByName(group);
 
   // Confirm user wants to delete group
-  if (QMessageBox::question(
-          this, "Confirm Group Deletion",
-          QString("Are you sure you want to delete the planning group '")
-              .append(searched_group->name_.c_str())
-              .append("'? This will also delete all references in subgroups, robot poses and end effectors."),
-          QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+  if (QMessageBox::question(this, "Confirm Group Deletion",
+                            QString("Are you sure you want to delete the planning group '")
+                                .append(searched_group->name_.c_str())
+                                .append("'? This will also delete all references in subgroups, robot poses and end "
+                                        "effectors."),
+                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
   {
     return;
   }
@@ -918,8 +920,9 @@ void PlanningGroupsWidget::saveChainScreen()
   // Check that box the tip and base, or neither, have text
   if ((!tip.empty() && base.empty()) || (tip.empty() && !base.empty()))
   {
-    QMessageBox::warning(this, "Error Saving", "You must specify a link for both the base and tip, or leave both "
-                                               "blank.");
+    QMessageBox::warning(this, "Error Saving",
+                         "You must specify a link for both the base and tip, or leave both "
+                         "blank.");
     return;
   }
 
@@ -1197,8 +1200,8 @@ bool PlanningGroupsWidget::saveGroupScreen()
       // Check if this eef's parent group references old group name. if so, update it
       if (eef_it->parent_group_.compare(old_group_name) == 0)  // same name
       {
-        ROS_DEBUG_STREAM_NAMED("setup_assistant", "Changed eef '" << eef_it->name_ << "' to new parent group name "
-                                                                  << group_name);
+        ROS_DEBUG_STREAM_NAMED("setup_assistant",
+                               "Changed eef '" << eef_it->name_ << "' to new parent group name " << group_name);
         eef_it->parent_group_ = group_name;  // updated
         config_data_->changes |= MoveItConfigData::END_EFFECTORS;
       }
@@ -1206,8 +1209,8 @@ bool PlanningGroupsWidget::saveGroupScreen()
       // Check if this eef's group references old group name. if so, update it
       if (eef_it->component_group_.compare(old_group_name) == 0)  // same name
       {
-        ROS_DEBUG_STREAM_NAMED("setup_assistant", "Changed eef '" << eef_it->name_ << "' to new group name "
-                                                                  << group_name);
+        ROS_DEBUG_STREAM_NAMED("setup_assistant",
+                               "Changed eef '" << eef_it->name_ << "' to new group name " << group_name);
         eef_it->component_group_ = group_name;  // updated
         config_data_->changes |= MoveItConfigData::END_EFFECTORS;
       }

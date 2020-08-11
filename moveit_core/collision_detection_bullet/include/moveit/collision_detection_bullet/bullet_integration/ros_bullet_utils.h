@@ -31,10 +31,10 @@
 namespace collision_detection_bullet
 {
 /** \brief Recursively traverses robot from root to get all active links
-*
-*   \param active_links Stores the active links
-*   \param urdf_link The current urdf link representation
-*   \param active Indicates if link is considered active */
+ *
+ *   \param active_links Stores the active links
+ *   \param urdf_link The current urdf link representation
+ *   \param active Indicates if link is considered active */
 static inline void getActiveLinkNamesRecursive(std::vector<std::string>& active_links,
                                                const urdf::LinkConstSharedPtr& urdf_link, bool active)
 {

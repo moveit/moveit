@@ -44,4 +44,4 @@ namespace planning_interface
 
 typedef moveit_msgs::MotionPlanRequest MotionPlanRequest;
 
-}  // planning_interface
+}  // namespace planning_interface

@@ -70,8 +70,9 @@ void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 
 void MotionPlanningFrame::resetDbButtonClicked()
 {
-  if (QMessageBox::warning(this, "Data about to be deleted", "The following dialog will allow you to drop a MoveIt "
-                                                             "Warehouse database. Are you sure you want to continue?",
+  if (QMessageBox::warning(this, "Data about to be deleted",
+                           "The following dialog will allow you to drop a MoveIt "
+                           "Warehouse database. Are you sure you want to continue?",
                            QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
     return;
 
