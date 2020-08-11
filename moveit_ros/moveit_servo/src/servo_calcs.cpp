@@ -108,6 +108,11 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
       nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
                            &ServoCalcs::changeControlDimensions, this);
 
+  // ROS Server to reset the status, e.g. so the arm can move again after a collision
+  reset_servo_status_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/reset_servo_status",
+                           &ServoCalcs::resetServoStatus, this);
+
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
   collision_velocity_scale_sub_ =
@@ -1046,6 +1051,12 @@ bool ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::R
   control_dimensions_[5] = req.control_z_rotation;
 
   res.success = true;
+  return true;
+}
+
+bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+  status_ = StatusCode::NO_WARNING;
   return true;
 }
 

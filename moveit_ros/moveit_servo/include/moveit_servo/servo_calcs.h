@@ -44,8 +44,9 @@
 #include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
 #include <sensor_msgs/JointState.h>
-#include <std_msgs/Int8.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int8.h>
+#include <std_srvs/Empty.h>
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -186,6 +187,9 @@ private:
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
 
+  /** \brief Service callback to reset Servo status, e.g. so the arm can move again after a collision */
+  bool resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
   ros::NodeHandle nh_;
 
   // Parameters from yaml
@@ -244,6 +248,7 @@ private:
   ros::Publisher outgoing_cmd_pub_;
   ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
+  ros::ServiceServer reset_servo_status_;
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;
