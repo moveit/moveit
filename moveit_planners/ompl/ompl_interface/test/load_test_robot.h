@@ -128,3 +128,4 @@ protected:
   std::string ee_link_name_;
 };
 }  // namespace ompl_interface_testing
+
