@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosparam_shortcuts
   sensor_msgs
   std_msgs
+  std_srvs
   trajectory_msgs
 )
 find_package(Eigen3 REQUIRED)
@@ -40,6 +41,7 @@ catkin_package(
     rosparam_shortcuts
     sensor_msgs
     std_msgs
+    std_srvs
     trajectory_msgs
   DEPENDS
     EIGEN3
