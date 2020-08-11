@@ -22,7 +22,7 @@ env:
 jobs:
   fast_finish: true
   include:
-    - env: TEST="clang-format catkin_lint"
+    - env: TEST="clang-format catkin_lint" ROS_DISTRO=noetic
     - env: TEST=code-coverage
     - env: ROS_DISTRO=noetic
     - env: ROS_DISTRO=melodic
