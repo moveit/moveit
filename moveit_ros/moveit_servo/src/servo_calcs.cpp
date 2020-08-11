@@ -134,14 +134,31 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   internal_joint_state_.position.resize(num_joints_);
   internal_joint_state_.velocity.resize(num_joints_);
 
-  // Set up the "last" published message, in case we need to send it first
+  // A map for the indices of incoming joint commands
+  for (std::size_t i = 0; i < num_joints_; ++i)
+  {
+    joint_state_name_map_[internal_joint_state_.name[i]] = i;
+  }
+
+  // Low-pass filters for the joint positions
+  for (size_t i = 0; i < num_joints_; ++i)
+  {
+    position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
+  }
+}
+
+void ServoCalcs::start()
+{
+  // We will update last_sent_command_ every time we start servo
   auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
-  auto latest_joints = joint_state_subscriber_->getLatest();
+
   initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
   initial_joint_trajectory->header.stamp = ros::Time::now();
   initial_joint_trajectory->joint_names = internal_joint_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
   point.time_from_start = ros::Duration(parameters_.publish_period);
+
+  auto latest_joints = joint_state_subscriber_->getLatest();
   if (parameters_.publish_joint_positions)
     point.positions = latest_joints->position;
   if (parameters_.publish_joint_velocities)
@@ -160,21 +177,6 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   initial_joint_trajectory->points.push_back(point);
   last_sent_command_ = initial_joint_trajectory;
 
-  // A map for the indices of incoming joint commands
-  for (std::size_t i = 0; i < num_joints_; ++i)
-  {
-    joint_state_name_map_[internal_joint_state_.name[i]] = i;
-  }
-
-  // Low-pass filters for the joint positions
-  for (size_t i = 0; i < num_joints_; ++i)
-  {
-    position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
-  }
-}
-
-void ServoCalcs::start()
-{
   stop_requested_ = false;
   timer_ = nh_.createTimer(period_, &ServoCalcs::run, this);
 }
