@@ -55,7 +55,7 @@ collision_check_rate: 50 # [Hz] Collision-checking can easily bog down a CPU if 
 # Two collision check algorithms are available:
 # "threshold_distance" begins slowing down when nearer than a specified distance. Good if you want to tune collision thresholds manually.
 # "stop_distance" stops if a collision is nearer than the worst-case stopping distance and the distance is decreasing. Requires joint acceleration limits
-collision_check_type: stop_distance
+collision_check_type: threshold_distance
 # Parameters for "threshold_distance"-type collision checking
 self_collision_proximity_threshold: 0.01 # Start decelerating when a self-collision is this far [m]
 scene_collision_proximity_threshold: 0.05 # Start decelerating when a scene collision is this far [m]
