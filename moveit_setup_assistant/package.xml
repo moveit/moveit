@@ -36,6 +36,6 @@
   <exec_depend>xacro</exec_depend>
   <exec_depend>rviz</exec_depend>
 
-  <test_depend>moveit_resources</test_depend>
+  <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>rosunit</test_depend>
 </package>

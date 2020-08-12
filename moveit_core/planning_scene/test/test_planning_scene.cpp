@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/utils/message_checks.h>
+#include <moveit/utils/robot_model_test_utils.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <sstream>
@@ -44,42 +45,9 @@
 #include <boost/filesystem/path.hpp>
 #include <ros/package.h>
 
-// This function needs to return void so the gtest FAIL() macro inside
-// it works right.
-void loadModelFile(std::string filename, std::string& file_content)
-{
-  boost::filesystem::path res_path(ros::package::getPath("moveit_resources"));
-  std::string xml_string;
-  std::fstream xml_file((res_path / filename).string().c_str(), std::fstream::in);
-  EXPECT_TRUE(xml_file.is_open());
-  while (xml_file.good())
-  {
-    std::string line;
-    std::getline(xml_file, line);
-    xml_string += (line + "\n");
-  }
-  xml_file.close();
-  file_content = xml_string;
-}
-
-void loadRobotModel(urdf::ModelInterfaceSharedPtr& robot_model_out)
-{
-  std::string xml_string;
-  loadModelFile("pr2_description/urdf/robot.xml", xml_string);
-  robot_model_out = urdf::parseURDF(xml_string);
-}
-void loadRobotModels(urdf::ModelInterfaceSharedPtr& robot_model_out, srdf::ModelSharedPtr& srdf_model_out)
-{
-  loadRobotModel(robot_model_out);
-  std::string xml_string;
-  loadModelFile("pr2_description/srdf/robot.xml", xml_string);
-  srdf_model_out->initString(*robot_model_out, xml_string);
-}
-
 TEST(PlanningScene, LoadRestore)
 {
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModel(urdf_model);
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
@@ -93,11 +61,9 @@ TEST(PlanningScene, LoadRestore)
 
 TEST(PlanningScene, LoadRestoreDiff)
 {
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModel(urdf_model);
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
-
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   collision_detection::World& world = *ps->getWorldNonConst();
 
@@ -155,11 +121,9 @@ TEST(PlanningScene, LoadRestoreDiff)
 
 TEST(PlanningScene, MakeAttachedDiff)
 {
+  urdf::ModelInterfaceSharedPtr urdf_model = moveit::core::loadModelInterface("pr2");
   srdf::ModelSharedPtr srdf_model(new srdf::Model());
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModel(urdf_model);
-
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  auto ps = std::make_shared<planning_scene::PlanningScene>(urdf_model, srdf_model);
 
   /* add a single object to ps's world */
   collision_detection::World& world = *ps->getWorldNonConst();
@@ -188,11 +152,8 @@ TEST(PlanningScene, MakeAttachedDiff)
 
 TEST(PlanningScene, isStateValid)
 {
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModels(urdf_model, srdf_model);
-
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
   moveit::core::RobotState current_state = ps->getCurrentState();
   if (ps->isStateColliding(current_state, "left_arm"))
   {
@@ -202,10 +163,8 @@ TEST(PlanningScene, isStateValid)
 
 TEST(PlanningScene, loadGoodSceneGeometry)
 {
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModels(urdf_model, srdf_model);
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
 
   std::istringstream good_scene_geometry;
   good_scene_geometry.str("foobar_scene\n"
@@ -233,10 +192,8 @@ TEST(PlanningScene, loadGoodSceneGeometry)
 
 TEST(PlanningScene, loadBadSceneGeometry)
 {
-  srdf::ModelSharedPtr srdf_model(new srdf::Model());
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  loadRobotModels(urdf_model, srdf_model);
-  planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
+  moveit::core::RobotModelPtr robot_model = moveit::core::loadTestingRobotModel("pr2");
+  auto ps = std::make_shared<planning_scene::PlanningScene>(robot_model->getURDF(), robot_model->getSRDF());
   std::istringstream empty_scene_geometry;
 
   // This should fail since there is no planning scene name and no end of geometry marker.

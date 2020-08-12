@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 	<group ns="fanuc">
-		<include file="$(find moveit_resources)/fanuc_moveit_config/launch/planning_context.launch">
+		<include file="$(find moveit_resources_fanuc_moveit_config)/launch/planning_context.launch">
 			<arg name="load_robot_description" value="true"/>
 		</include>
 

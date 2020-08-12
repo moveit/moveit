@@ -65,7 +65,7 @@ protected:
     value_.reset(new CollisionAllocatorType);
     robot_model_ = moveit::core::loadTestingRobotModel("pr2");
     robot_model_ok_ = static_cast<bool>(robot_model_);
-    kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
+    kinect_dae_resource_ = "package://moveit_resources_pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 
     acm_.reset(new collision_detection::AllowedCollisionMatrix(robot_model_->getLinkModelNames(), true));
 

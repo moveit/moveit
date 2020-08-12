@@ -3,7 +3,7 @@
 
   <test pkg="moveit_planners_trajopt" type="trajectory_test" test-name="trajectory_test" time-limit="300" args="">
 
-    <rosparam command="load" file="$(find moveit_resources)/panda_moveit_config/config/trajopt_planning.yaml"/>
+    <rosparam command="load" file="$(find moveit_resources_panda_moveit_config)/config/trajopt_planning.yaml"/>
 
   </test>
 

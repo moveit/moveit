@@ -233,7 +233,7 @@ TYPED_TEST_P(CollisionDetectorPandaTest, DistanceSelf)
   collision_detection::CollisionResult res;
   this->cenv_->checkSelfCollision(req, res, *this->robot_state_, *this->acm_);
   ASSERT_FALSE(res.collision);
-  EXPECT_NEAR(res.distance, 0.13, 0.01);
+  EXPECT_NEAR(res.distance, 0.022, 0.001);
 }
 
 TYPED_TEST_P(CollisionDetectorPandaTest, DistanceWorld)
