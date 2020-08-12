@@ -34,17 +34,17 @@
 
 /* Author: Jeroen De Maeyer */
 /**
-*    This test checks the basics of a StateValidityChecker:
-*        - Can we create one?
-*        - States inside and outside joint limits.
-*        - States that are in self-collision.
-*
-*    It does not yet test:
-*        - Collision with objects in the environment.
-*        - Any type of path constraints.
-*
-*    The test do show what is minimally required to create a working StateValidityChecker.
-**/
+ *    This test checks the basics of a StateValidityChecker:
+ *        - Can we create one?
+ *        - States inside and outside joint limits.
+ *        - States that are in self-collision.
+ *
+ *    It does not yet test:
+ *        - Collision with objects in the environment.
+ *        - Any type of path constraints.
+ *
+ *    The test do show what is minimally required to create a working StateValidityChecker.
+ **/
 
 #include "load_test_robot.h"
 
@@ -151,6 +151,60 @@ public:
     EXPECT_TRUE(result_2);
   }
 
+  void testPathConstraints(const std::vector<double>& position_in_joint_limits)
+  {
+    ASSERT_NE(planning_context_, nullptr) << "Initialize planning context before adding path constraints.";
+
+    // set the robot to a known position that is withing the joint limits and collision free
+    robot_state_->setJointGroupPositions(joint_model_group_, position_in_joint_limits);
+
+    // create position constraints around the given robot state
+    moveit_msgs::Constraints path_constraints;
+    Eigen::Isometry3d ee_pose = robot_state_->getGlobalLinkTransform(ee_link_name_);
+    path_constraints.name = "test_position_constraints";
+    path_constraints.position_constraints.push_back(createPositionConstraint(
+        { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() }, { 0.1, 0.1, 0.1 }));
+
+    moveit_msgs::MoveItErrorCodes error_code_not_used;
+    bool succeeded = planning_context_->setPathConstraints(path_constraints, &error_code_not_used);
+    ASSERT_TRUE(succeeded) << "Failed to set path constraints on the planning context";
+
+    auto checker = std::make_shared<ompl_interface::StateValidityChecker>(planning_context_.get());
+    checker->setVerbose(VERBOSE);
+
+    // use a scoped OMPL state so we don't have to call allocState and freeState
+    // (as recommended in the OMPL documantion)
+    ompl::base::ScopedState<> ompl_state(state_space_);
+    state_space_->copyToOMPLState(ompl_state.get(), *robot_state_);
+
+    if (VERBOSE)
+      ROS_INFO_STREAM(ompl_state.reals());
+
+    bool result = checker->isValid(ompl_state.get());
+    EXPECT_TRUE(result);
+
+    // move the position constraints away from the curren end-effector position to make it fail
+    moveit_msgs::Constraints path_constraints_2(path_constraints);
+    path_constraints_2.position_constraints.at(0).constraint_region.primitive_poses.at(0).position.z += 0.2;
+    // path_constraints_2.name = "test_position_constraints";
+    // path_constraints_2.position_constraints.push_back(createPositionConstraint(
+    //     { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() + 0.2 }, { 0.1, 0.1, 0.1
+    //     }));
+
+    succeeded = planning_context_->setPathConstraints(path_constraints_2, &error_code_not_used);
+    ASSERT_TRUE(succeeded) << "Failed to set path constraints on the planning context";
+
+    // checker = std::make_shared<ompl_interface::StateValidityChecker>(planning_context_.get());
+    // checker->setVerbose(VERBOSE);
+
+    // clear the cached validity of the state before checking again,
+    // otherwise the path constraints will not be checked.
+    ompl_state->as<ompl_interface::JointModelStateSpace::StateType>()->clearKnownInformation();
+
+    bool result_2 = checker->isValid(ompl_state.get());
+    EXPECT_FALSE(result_2);
+  }
+
   // /***************************************************************************
   //  * END Test implementation
   //  * ************************************************************************/
@@ -190,6 +244,35 @@ protected:
     planning_context_->setCompleteInitialState(start_state);
   }
 
+  /** \brief Helper function to create a position constraint. **/
+  moveit_msgs::PositionConstraint createPositionConstraint(std::array<double, 3> position,
+                                                           std::array<double, 3> dimensions)
+  {
+    shape_msgs::SolidPrimitive box;
+    box.type = shape_msgs::SolidPrimitive::BOX;
+    box.dimensions.resize(3);
+    box.dimensions[shape_msgs::SolidPrimitive::BOX_X] = dimensions[0];
+    box.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = dimensions[1];
+    box.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = dimensions[2];
+
+    geometry_msgs::Pose box_pose;
+    box_pose.position.x = position[0];
+    box_pose.position.y = position[1];
+    box_pose.position.z = position[2];
+    box_pose.orientation.w = 1.0;
+
+    moveit_msgs::PositionConstraint position_constraint;
+    position_constraint.header.frame_id = base_link_name_;
+    position_constraint.link_name = ee_link_name_;
+    position_constraint.constraint_region.primitives.push_back(box);
+    position_constraint.constraint_region.primitive_poses.push_back(box_pose);
+
+    // set the default weight to avoid warning in test output
+    position_constraint.weight = 1.0;
+
+    return position_constraint;
+  }
+
   ompl_interface::ModelBasedStateSpacePtr state_space_;
   ompl_interface::ModelBasedPlanningContextSpecification planning_context_spec_;
   ompl_interface::ModelBasedPlanningContextPtr planning_context_;
@@ -226,6 +309,13 @@ TEST_F(PandaValidity, testSelfCollision)
   testSelfCollision({ 2.31827, -0.169668, 2.5225, -2.98568, -0.36355, 0.808339, 0.0843406 });
 }
 
+TEST_F(PandaValidity, testPathConstraints)
+{
+  // use the panda "ready" state from the srdf config
+  // we know this state should be within limits and self-collision free
+  testPathConstraints({ 0, -0.785, 0, -2.356, 0, 1.571, 0.785 });
+}
+
 /***************************************************************************
  * Run all tests on the Fanuc robot
  * ************************************************************************/
@@ -253,6 +343,12 @@ TEST_F(FanucTest, testSelfCollision)
   // the given state has self collision between "base_link" and "link_5"
   // (I just tried a couple of random states until I found one that collided.)
   testSelfCollision({ -2.95993, -0.682185, -2.43873, -0.939784, 3.0544, 0.882294 });
+}
+
+TEST_F(FanucTest, testPathConstraints)
+{
+  // I assume the Fanucs's zero state is within limits and self-collision free
+  testPathConstraints({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 });
 }
 
 /***************************************************************************
