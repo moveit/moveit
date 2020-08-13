@@ -6,7 +6,7 @@
 	<arg name="name" value="$(eval 'fanuc_' + arg('ik_plugin')[0:3])"/>
 
 	<group ns="fanuc">
-		<include file="$(find moveit_resources)/fanuc_moveit_config/launch/planning_context.launch">
+		<include file="$(find moveit_resources_fanuc_moveit_config)/launch/planning_context.launch">
 			<arg name="load_robot_description" value="true"/>
 		</include>
 

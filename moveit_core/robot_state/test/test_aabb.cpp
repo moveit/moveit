@@ -278,7 +278,7 @@ TEST_F(TestAABB, TestSimple)
   builder.addChain("base_footprint->base_link", "fixed", { origin });
 
   tf2::toMsg(tf2::Vector3(0, 0, 0), origin.position);
-  builder.addCollisionMesh("base_link", "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl",
+  builder.addCollisionMesh("base_link", "package://moveit_resources_pr2_description/urdf/meshes/base_v0/base_L.stl",
                            origin);
 
   tf2::toMsg(tf2::Vector3(0, 0, 0.071), origin.position);
