@@ -148,7 +148,6 @@ private Q_SLOTS:
 
   // Context tab
   void databaseConnectButtonClicked();
-  void publishSceneButtonClicked();
   void planningAlgorithmIndexChanged(int index);
   void resetDbButtonClicked();
   void approximateIKChanged(int state);
@@ -171,13 +170,17 @@ private Q_SLOTS:
   void onClearOctomapClicked();
 
   // Scene Objects tab
-  void importObjectFromFileButtonClicked();
-  void importObjectFromUrlButtonClicked();
-  void clearSceneButtonClicked();
+  void clearScene();
+  void publishScene();
+  void publishSceneIfNeeded();
+  void setLocalSceneEdited(bool dirty = true);
+  bool isLocalSceneDirty() const;
   void sceneScaleChanged(int value);
   void sceneScaleStartChange();
   void sceneScaleEndChange();
-  void removeObjectButtonClicked();
+  void shapesComboBoxChanged(const QString& text);
+  void addSceneObject();
+  void removeSceneObject();
   void selectedCollisionObjectChanged();
   void objectPoseValueChanged(double value);
   void collisionObjectChanged(QListWidgetItem* item);
@@ -241,8 +244,6 @@ private:
   void goalStateTextChangedExec(const std::string& goal_state);
 
   // Scene objects tab
-  void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
-                 const Eigen::Isometry3d& pose);
   void updateCollisionObjectPose(bool update_marker_position);
   void createSceneInteractiveMarker();
   void renameCollisionObject(QListWidgetItem* item);
@@ -303,7 +304,7 @@ private:
   ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
-  void importResource(const std::string& path);
+  shapes::ShapePtr loadMeshResource(const std::string& url);
   void loadStoredStates(const std::string& pattern);
 
   void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);

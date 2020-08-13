@@ -57,17 +57,6 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
                                       "connect to database");
 }
 
-void MotionPlanningFrame::publishSceneButtonClicked()
-{
-  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
-  if (ps)
-  {
-    moveit_msgs::PlanningScene msg;
-    ps->getPlanningSceneMsg(msg);
-    planning_scene_publisher_.publish(msg);
-  }
-}
-
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
   std::string planner_id = ui_->planning_algorithm_combo_box->itemText(index).toStdString();

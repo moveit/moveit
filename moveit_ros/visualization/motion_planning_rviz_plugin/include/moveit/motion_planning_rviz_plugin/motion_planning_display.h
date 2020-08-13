@@ -136,6 +136,7 @@ public:
   void setQueryStartState(const robot_state::RobotState& start);
   void setQueryGoalState(const robot_state::RobotState& goal);
 
+  void updateQueryStates(const moveit::core::RobotState& current_state);
   void updateQueryStartState();
   void updateQueryGoalState();
   void rememberPreviousStartState();
