@@ -116,6 +116,6 @@ private:
 
 typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
 typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
-}
+}  // namespace occupancy_map_monitor
 
 #endif

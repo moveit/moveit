@@ -24,6 +24,7 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>trajectory_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
@@ -33,7 +34,7 @@
   <exec_depend>spacenav_node</exec_depend>
 
   <test_depend>rostest</test_depend>
-  <test_depend>moveit_resources</test_depend>
+  <test_depend>moveit_resources_panda_moveit_config</test_depend>
 
   <export>
   </export>

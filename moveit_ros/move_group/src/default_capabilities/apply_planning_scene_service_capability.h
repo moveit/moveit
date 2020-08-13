@@ -58,6 +58,6 @@ private:
 
   ros::ServiceServer service_;
 };
-}
+}  // namespace move_group
 
 #endif  // MOVEIT_MOVE_GROUP_APPLY_PLANNING_SCENE_SERVICE_CAPABILITY_

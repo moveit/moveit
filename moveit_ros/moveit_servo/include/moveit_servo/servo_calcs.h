@@ -34,7 +34,7 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 #pragma once
 
@@ -44,8 +44,9 @@
 #include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
 #include <sensor_msgs/JointState.h>
-#include <std_msgs/Int8.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int8.h>
+#include <std_srvs/Empty.h>
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -145,8 +146,8 @@ private:
   void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
-    * This happens for joint commands and Cartesian commands.
-    */
+   * This happens for joint commands and Cartesian commands.
+   */
   bool convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
@@ -185,6 +186,9 @@ private:
   /** \brief Service callback for changing servoing dimensions (e.g. ignore rotation about X) */
   bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
                                moveit_msgs::ChangeControlDimensions::Response& res);
+
+  /** \brief Service callback to reset Servo status, e.g. so the arm can move again after a collision */
+  bool resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   ros::NodeHandle nh_;
 
@@ -244,6 +248,7 @@ private:
   ros::Publisher outgoing_cmd_pub_;
   ros::ServiceServer drift_dimensions_server_;
   ros::ServiceServer control_dimensions_server_;
+  ros::ServiceServer reset_servo_status_;
 
   // Status
   StatusCode status_ = StatusCode::NO_WARNING;

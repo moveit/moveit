@@ -1,37 +1,37 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Ioan A. Sucan
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Ioan A. Sucan
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats, Dave Coleman */
 
@@ -87,8 +87,7 @@ RobotState::~RobotState()
 
 void RobotState::allocMemory()
 {
-  static_assert((sizeof(Eigen::Isometry3d) / EIGEN_MAX_ALIGN_BYTES) * EIGEN_MAX_ALIGN_BYTES ==
-                    sizeof(Eigen::Isometry3d),
+  static_assert((sizeof(Eigen::Isometry3d) / EIGEN_MAX_ALIGN_BYTES) * EIGEN_MAX_ALIGN_BYTES == sizeof(Eigen::Isometry3d),
                 "sizeof(Eigen::Isometry3d) should be a multiple of EIGEN_MAX_ALIGN_BYTES");
 
   constexpr unsigned int extra_alignment_bytes = EIGEN_MAX_ALIGN_BYTES - 1;
@@ -167,7 +166,7 @@ void RobotState::copyFrom(const RobotState& other)
             (robot_model_->getVariableCount() * (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
                                                  ((has_acceleration_ || has_effort_) ? 1 : 0)) +
              nr_doubles_for_dirty_joint_transforms);
-    memcpy(variable_joint_transforms_, other.variable_joint_transforms_, bytes);
+    memcpy((void*)variable_joint_transforms_, (void*)other.variable_joint_transforms_, bytes);
   }
 
   // copy attached bodies
@@ -893,8 +892,7 @@ void RobotState::interpolate(const RobotState& to, double t, RobotState& state) 
   state.dirty_link_transforms_ = state.robot_model_->getRootJoint();
 }
 
-void RobotState::interpolate(const RobotState& to, double t, RobotState& state,
-                             const JointModelGroup* joint_group) const
+void RobotState::interpolate(const RobotState& to, double t, RobotState& state, const JointModelGroup* joint_group) const
 {
   const std::vector<const JointModel*>& jm = joint_group->getActiveJointModels();
   for (std::size_t i = 0; i < jm.size(); ++i)
@@ -959,8 +957,7 @@ void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bo
     attached_bodies.push_back(it->second);
 }
 
-void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies,
-                                   const JointModelGroup* group) const
+void RobotState::getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* group) const
 {
   attached_bodies.clear();
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
@@ -1064,8 +1061,9 @@ const Eigen::Isometry3d& RobotState::getFrameTransform(const std::string& frame_
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(frame_id);
   if (jt == attached_body_map_.end())
   {
-    ROS_ERROR_NAMED(LOGNAME, "Transform from frame '%s' to frame '%s' is not known "
-                             "('%s' should be a link name or an attached body's id).",
+    ROS_ERROR_NAMED(LOGNAME,
+                    "Transform from frame '%s' to frame '%s' is not known "
+                    "('%s' should be a link name or an attached body's id).",
                     frame_id.c_str(), robot_model_->getModelFrame().c_str(), frame_id.c_str());
     return IDENTITY_TRANSFORM;
   }
@@ -1077,8 +1075,9 @@ const Eigen::Isometry3d& RobotState::getFrameTransform(const std::string& frame_
     return IDENTITY_TRANSFORM;
   }
   if (tf.size() > 1)
-    ROS_DEBUG_NAMED(LOGNAME, "There are multiple geometries associated to attached body '%s'. "
-                             "Returning the transform for the first one.",
+    ROS_DEBUG_NAMED(LOGNAME,
+                    "There are multiple geometries associated to attached body '%s'. "
+                    "Returning the transform for the first one.",
                     frame_id.c_str());
   return tf[0];
 }
@@ -1534,8 +1533,9 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Is
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED(LOGNAME, "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
-                             "that is being solved by a single IK solver",
+    ROS_ERROR_NAMED(LOGNAME,
+                    "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
+                    "that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
   }
@@ -2098,8 +2098,9 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
 {
   if (traj.size() < MIN_STEPS_FOR_JUMP_THRESH)
   {
-    ROS_WARN_NAMED(LOGNAME, "The computed trajectory is too short to detect jumps in joint-space "
-                            "Need at least %zu steps, only got %zu. Try a lower max_step.",
+    ROS_WARN_NAMED(LOGNAME,
+                   "The computed trajectory is too short to detect jumps in joint-space "
+                   "Need at least %zu steps, only got %zu. Try a lower max_step.",
                    MIN_STEPS_FOR_JUMP_THRESH, traj.size());
   }
 
@@ -2154,8 +2155,9 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
           type_index = 1;
           break;
         default:
-          ROS_WARN_NAMED(LOGNAME, "Joint %s has not supported type %s. \n"
-                                  "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
+          ROS_WARN_NAMED(LOGNAME,
+                         "Joint %s has not supported type %s. \n"
+                         "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
                          joint->getName().c_str(), joint->getTypeName().c_str());
           continue;
       }

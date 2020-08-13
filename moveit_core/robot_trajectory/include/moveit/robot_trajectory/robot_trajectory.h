@@ -264,6 +264,6 @@ private:
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };
-}
+}  // namespace robot_trajectory
 
 #endif

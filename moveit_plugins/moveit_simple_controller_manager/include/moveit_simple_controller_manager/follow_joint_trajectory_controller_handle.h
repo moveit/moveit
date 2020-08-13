@@ -48,7 +48,7 @@ namespace moveit_simple_controller_manager
  * or anything using a control_mgs/FollowJointTrajectoryAction.
  */
 class FollowJointTrajectoryControllerHandle
-    : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
+  : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
 {
 public:
   FollowJointTrajectoryControllerHandle(const std::string& name, const std::string& action_ns)

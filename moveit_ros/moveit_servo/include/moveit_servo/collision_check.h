@@ -34,10 +34,11 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 #pragma once
 
+#include <moveit/collision_detection/collision_common.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <sensor_msgs/JointState.h>
@@ -75,8 +76,16 @@ public:
   void setPaused(bool paused);
 
 private:
+  /** \brief Run one iteration of collision checking */
   void run(const ros::TimerEvent& timer_event);
+
+  /** \brief Print objects in collision. Useful for debugging.  */
+  void printCollisionPairs(collision_detection::CollisionResult::ContactMap& contact_map);
+
+  /** \brief Get a read-only copy of the planning scene */
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
+
+  /** \brief Callback for stopping time, from the thread that is aware of velocity and acceleration */
   void worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg);
 
   ros::NodeHandle nh_;

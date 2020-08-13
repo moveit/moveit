@@ -39,7 +39,6 @@
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
-#include <geometry_msgs/PoseArray.h>
 #include <interactive_markers/menu_handler.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
@@ -233,6 +232,6 @@ private:
   // options for doing IK
   KinematicOptionsMapPtr kinematic_options_map_;
 };
-}
+}  // namespace robot_interaction
 
 #endif

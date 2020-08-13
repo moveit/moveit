@@ -172,8 +172,8 @@ public:
 
     plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
 
-    ROS_INFO_STREAM_NAMED("move_group_interface", "Ready to take commands for planning group " << opt.group_name_
-                                                                                               << ".");
+    ROS_INFO_STREAM_NAMED("move_group_interface",
+                          "Ready to take commands for planning group " << opt.group_name_ << ".");
   }
 
   template <typename T>
@@ -675,8 +675,8 @@ public:
 
     if (objects.empty())
     {
-      ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
-                                                         << object << "', but the object could not be found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface",
+                             "Asked for grasps for the object '" << object << "', but the object could not be found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
@@ -1320,8 +1320,8 @@ moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(MoveGroupInte
   other.impl_ = nullptr;
 }
 
-moveit::planning_interface::MoveGroupInterface& moveit::planning_interface::MoveGroupInterface::
-operator=(MoveGroupInterface&& other)
+moveit::planning_interface::MoveGroupInterface&
+moveit::planning_interface::MoveGroupInterface::operator=(MoveGroupInterface&& other)
 {
   if (this != &other)
   {
@@ -1370,8 +1370,8 @@ bool moveit::planning_interface::MoveGroupInterface::getInterfaceDescription(
   return impl_->getInterfaceDescription(desc);
 }
 
-std::map<std::string, std::string> moveit::planning_interface::MoveGroupInterface::getPlannerParams(
-    const std::string& planner_id, const std::string& group)
+std::map<std::string, std::string>
+moveit::planning_interface::MoveGroupInterface::getPlannerParams(const std::string& planner_id, const std::string& group)
 {
   return impl_->getPlannerParams(planner_id, group);
 }
@@ -1489,8 +1489,9 @@ moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const std::str
   return impl_->planGraspsAndPick(object, plan_only);
 }
 
-moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(
-    const moveit_msgs::CollisionObject& object, bool plan_only)
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const moveit_msgs::CollisionObject& object,
+                                                                  bool plan_only)
 {
   return impl_->planGraspsAndPick(object, plan_only);
 }
@@ -1676,8 +1677,8 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const E
   return setJointValueTarget(msg, end_effector_link);
 }
 
-bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(
-    const geometry_msgs::Pose& eef_pose, const std::string& end_effector_link)
+bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(const geometry_msgs::Pose& eef_pose,
+                                                                                    const std::string& end_effector_link)
 {
   return impl_->setJointValueTarget(eef_pose, end_effector_link, "", true);
 }
@@ -1688,8 +1689,8 @@ bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTar
   return impl_->setJointValueTarget(eef_pose.pose, end_effector_link, eef_pose.header.frame_id, true);
 }
 
-bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(
-    const Eigen::Isometry3d& eef_pose, const std::string& end_effector_link)
+bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(const Eigen::Isometry3d& eef_pose,
+                                                                                    const std::string& end_effector_link)
 {
   geometry_msgs::Pose msg = tf2::toMsg(eef_pose);
   return setApproximateJointValueTarget(msg, end_effector_link);
@@ -2201,8 +2202,7 @@ bool moveit::planning_interface::MoveGroupInterface::detachObject(const std::str
   return impl_->detachObject(name);
 }
 
-void moveit::planning_interface::MoveGroupInterface::constructMotionPlanRequest(
-    moveit_msgs::MotionPlanRequest& goal_out)
+void moveit::planning_interface::MoveGroupInterface::constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& goal_out)
 {
   impl_->constructMotionPlanRequest(goal_out);
 }

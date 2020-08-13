@@ -38,7 +38,6 @@
 #define MOVEIT_TRANSFORMS_
 
 #include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Pose.h>
 #include <Eigen/Geometry>
 #include <boost/noncopyable.hpp>
 #include <moveit/macros/class_forward.h>
@@ -198,7 +197,7 @@ protected:
   std::string target_frame_;
   FixedTransformsMap transforms_map_;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 #endif

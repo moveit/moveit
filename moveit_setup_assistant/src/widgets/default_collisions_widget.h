@@ -140,8 +140,8 @@ private Q_SLOTS:
   void revertChanges();
 
   /**
-  * \brief Called when current row has changed
-  */
+   * \brief Called when current row has changed
+   */
   void previewSelectedMatrix(const QModelIndex& index);
   void previewSelectedLinear(const QModelIndex& index);
 
@@ -256,6 +256,6 @@ private:
   unsigned int progress_;
   bool canceled_;
 };
-}
+}  // namespace moveit_setup_assistant
 
 #endif

@@ -44,8 +44,6 @@
 #include <ros/console.h>
 #include <vector>
 
-#include <iostream>
-
 namespace trajectory_processing
 {
 const std::string LOGNAME = "trajectory_processing.time_optimal_trajectory_generation";
@@ -439,9 +437,8 @@ bool Trajectory::getNextAccelerationSwitchingPoint(double path_pos, TrajectorySt
       if ((before_path_vel > after_path_vel ||
            getMinMaxPhaseSlope(switching_path_pos - EPS, switching_path_vel, false) >
                getAccelerationMaxPathVelocityDeriv(switching_path_pos - 2.0 * EPS)) &&
-          (before_path_vel < after_path_vel ||
-           getMinMaxPhaseSlope(switching_path_pos + EPS, switching_path_vel, true) <
-               getAccelerationMaxPathVelocityDeriv(switching_path_pos + 2.0 * EPS)))
+          (before_path_vel < after_path_vel || getMinMaxPhaseSlope(switching_path_pos + EPS, switching_path_vel, true) <
+                                                   getAccelerationMaxPathVelocityDeriv(switching_path_pos + 2.0 * EPS)))
       {
         break;
       }
@@ -481,9 +478,8 @@ bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& 
     {
       start = true;
     }
-  } while ((!start ||
-            getMinMaxPhaseSlope(path_pos, getVelocityMaxPathVelocity(path_pos), false) >
-                getVelocityMaxPathVelocityDeriv(path_pos)) &&
+  } while ((!start || getMinMaxPhaseSlope(path_pos, getVelocityMaxPathVelocity(path_pos), false) >
+                          getVelocityMaxPathVelocityDeriv(path_pos)) &&
            path_pos < path_.getLength());
 
   if (path_pos >= path_.getLength())

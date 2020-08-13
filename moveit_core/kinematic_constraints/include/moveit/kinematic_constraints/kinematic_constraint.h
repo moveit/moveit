@@ -435,7 +435,7 @@ public:
   /**
    * \brief The rotation target in the reference frame.
    *
-    * @return The target rotation
+   * @return The target rotation
    */
   const Eigen::Matrix3d& getDesiredRotationMatrix() const
   {
@@ -480,7 +480,7 @@ protected:
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame */
   Eigen::Matrix3d desired_rotation_matrix_inv_; /**< \brief The inverse of the desired rotation matrix, precomputed for
                                                  * efficiency
-                                                   */
+                                                 */
   std::string desired_rotation_frame_id_;       /**< \brief The target frame of the transform tree */
   bool mobile_frame_;                           /**< \brief Whether or not the header frame is mobile or fixed */
   double absolute_x_axis_tolerance_, absolute_y_axis_tolerance_,
@@ -1068,6 +1068,6 @@ protected:
                                                                                internal visibility constraints */
   moveit_msgs::Constraints all_constraints_; /**<  \brief Messages corresponding to all internal constraints */
 };
-}
+}  // namespace kinematic_constraints
 
 #endif

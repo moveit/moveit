@@ -212,6 +212,6 @@ protected:
   PlannerConfigurationMap config_settings_;
 };
 
-}  // planning_interface
+}  // namespace planning_interface
 
 #endif

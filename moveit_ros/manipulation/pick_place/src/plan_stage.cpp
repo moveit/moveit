@@ -65,8 +65,8 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
   req.planner_id = plan->shared_data_->planner_id_;
   req.start_state.is_diff = true;
 
-  req.goal_constraints.resize(
-      1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_, plan->shared_data_->planning_group_));
+  req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_,
+                                                                                 plan->shared_data_->planning_group_));
   unsigned int attempts = 0;
   do  // give the planner two chances
   {
@@ -95,8 +95,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr& plan) const
           ROS_INFO_STREAM("Adding default duration of " << PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
                                                         << " seconds to the grasp closure time. Assign time_from_start "
                                                         << "to your trajectory to avoid this.");
-          pre_approach_traj->addPrefixWayPoint(pre_approach_state,
-                                               PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+          pre_approach_traj->addPrefixWayPoint(pre_approach_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
         }
 
         // Add the open gripper trajectory to the plan

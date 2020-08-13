@@ -46,11 +46,6 @@
 #include <ros/ros.h>
 #endif
 
-namespace Ogre
-{
-class SceneNode;
-}
-
 namespace rviz
 {
 class Robot;
@@ -59,7 +54,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class ColorProperty;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {

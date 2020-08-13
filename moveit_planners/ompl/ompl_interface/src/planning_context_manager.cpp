@@ -37,8 +37,6 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/profiler/profiler.h>
-#include <algorithm>
-#include <set>
 #include <utility>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
@@ -199,8 +197,7 @@ void ompl_interface::PlanningContextManager::registerDefaultPlanners()
       std::bind(&allocatePlanner<og::LazyPRM>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   registerPlannerAllocator(      //
       "geometric::LazyPRMstar",  //
-      std::bind(&allocatePlanner<og::LazyPRMstar>, std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3));
+      std::bind(&allocatePlanner<og::LazyPRMstar>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   registerPlannerAllocator(  //
       "geometric::SPARS",    //
       std::bind(&allocatePlanner<og::SPARS>, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -226,8 +223,9 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
   planner_configs_ = pconfig;
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const std::string& config, const std::string& factory_type) const
+ompl_interface::ModelBasedPlanningContextPtr
+ompl_interface::PlanningContextManager::getPlanningContext(const std::string& config,
+                                                           const std::string& factory_type) const
 {
   auto pc = planner_configs_.find(config);
 
@@ -323,8 +321,9 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(
-    const std::string& /* dummy */, const std::string& factory_type) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr&
+ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string& /* dummy */,
+                                                              const std::string& factory_type) const
 {
   auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
@@ -337,8 +336,9 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(
-    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr&
+ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string& group,
+                                                              const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   auto best = state_space_factories_.end();

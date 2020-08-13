@@ -208,8 +208,7 @@ bool PerceptionWidget::focusLost()
                                                                            "PointCloudOctomapUpdater");
     config_data_->addGenericParameterToSensorPluginConfig("point_cloud_topic",
                                                           point_cloud_topic_field_->text().trimmed().toStdString());
-    config_data_->addGenericParameterToSensorPluginConfig("max_range",
-                                                          max_range_field_->text().trimmed().toStdString());
+    config_data_->addGenericParameterToSensorPluginConfig("max_range", max_range_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("point_subsample",
                                                           point_subsample_field_->text().trimmed().toStdString());
     config_data_->addGenericParameterToSensorPluginConfig("padding_offset",
@@ -324,8 +323,7 @@ void PerceptionWidget::loadSensorPluginsComboBox()
       shadow_threshold_field_->setText(QString(sensors_vec_map[i]["shadow_threshold"].getValue().c_str()));
       depth_padding_scale_field_->setText(QString(sensors_vec_map[i]["padding_scale"].getValue().c_str()));
       depth_padding_offset_field_->setText(QString(sensors_vec_map[i]["padding_offset"].getValue().c_str()));
-      depth_filtered_cloud_topic_field_->setText(
-          QString(sensors_vec_map[i]["filtered_cloud_topic"].getValue().c_str()));
+      depth_filtered_cloud_topic_field_->setText(QString(sensors_vec_map[i]["filtered_cloud_topic"].getValue().c_str()));
       depth_max_update_rate_field_->setText(QString(sensors_vec_map[i]["max_update_rate"].getValue().c_str()));
     }
   }

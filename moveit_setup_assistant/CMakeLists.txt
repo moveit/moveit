@@ -161,9 +161,6 @@ install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 # Unit tests
 if(CATKIN_ENABLE_TESTING)
-  find_package(moveit_resources REQUIRED)
-  include_directories(${moveit_resources_INCLUDE_DIRS})
   catkin_add_gtest(test_reading_writing_config test/moveit_config_data_test.cpp)
-  target_link_libraries(test_reading_writing_config
-    ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${MOVEIT_LIB_NAME})
+  target_link_libraries(test_reading_writing_config ${PROJECT_NAME}_tools)
 endif()

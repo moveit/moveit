@@ -37,7 +37,7 @@
 #ifndef MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
 #define MOVEIT_KINEMATIC_CONSTRAINTS_UTILS_
 
-#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/Constraints.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/QuaternionStamped.h>
@@ -64,8 +64,7 @@ namespace kinematic_constraints
  *
  * @return The merged set of constraints
  */
-moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first,
-                                          const moveit_msgs::Constraints& second);
+moveit_msgs::Constraints mergeConstraints(const moveit_msgs::Constraints& first, const moveit_msgs::Constraints& second);
 
 /** \brief Check if any constraints were specified */
 bool isEmpty(const moveit_msgs::Constraints& constr);
@@ -201,6 +200,6 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string& link_name,
  * @return was the construction successful?
  */
 bool constructConstraints(XmlRpc::XmlRpcValue& params, moveit_msgs::Constraints& constraints);
-}
+}  // namespace kinematic_constraints
 
 #endif

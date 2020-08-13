@@ -93,7 +93,7 @@ public:
   AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg);
 
   /** @brief Copy constructor */
-  AllowedCollisionMatrix(const AllowedCollisionMatrix& acm);
+  AllowedCollisionMatrix(const AllowedCollisionMatrix& acm) = default;
 
   /** @brief Get the type of the allowed collision between two elements. Return true if the entry is included in the
    * collision matrix.
@@ -277,6 +277,6 @@ private:
   std::map<std::string, AllowedCollision::Type> default_entries_;
   std::map<std::string, DecideContactFn> default_allowed_contacts_;
 };
-}
+}  // namespace collision_detection
 
 #endif

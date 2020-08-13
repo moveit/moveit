@@ -38,13 +38,8 @@
 #ifndef MOVEIT_CORE_UTILS_TEST_
 #define MOVEIT_CORE_UTILS_TEST_
 
-#include <urdf_parser/urdf_parser.h>
-#include <urdf_model/model.h>
-#include <urdf_model/joint.h>
 #include <srdfdom/srdf_writer.h>
 #include <urdf/model.h>
-#include <fstream>
-#include <boost/filesystem/path.hpp>
 #include <moveit/robot_model/robot_model.h>
 #include <geometry_msgs/Pose.h>
 
@@ -114,7 +109,7 @@ public:
   /** \brief Adds a collision mesh to a specific link.
    *  \param[in] link_name The name of the link to which the mesh will be added. Must already be in the builder
    *  \param[in] filename The path to the mesh file, e.g.
-   * "package://moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl"
+   * "package://moveit_resources_pr2_description/urdf/meshes/base_v0/base_L.stl"
    *  \param[in] origin The origin pose of this collision mesh relative to the link origin
    */
   void addCollisionMesh(const std::string& link_name, const std::string& filename, geometry_msgs::Pose origin);
@@ -194,7 +189,7 @@ private:
   /// Whether the current builder state is valid. If any 'add' method fails, this becomes false.
   bool is_valid_ = true;
 };
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 #endif

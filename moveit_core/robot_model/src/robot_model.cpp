@@ -41,7 +41,6 @@
 #include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <limits>
-#include <queue>
 #include <cmath>
 #include <memory>
 #include "order_robot_model_items.inc"
@@ -218,8 +217,7 @@ void RobotModel::computeCommonRoots()
     // a node N and one of its descendants have as common root the node N itself:
     const std::vector<const JointModel*>& d = joint_model_vector_[i]->getDescendantJointModels();
     for (std::size_t j = 0; j < d.size(); ++j)
-      common_joint_roots_[d[j]->getJointIndex() * joint_model_vector_.size() +
-                          joint_model_vector_[i]->getJointIndex()] =
+      common_joint_roots_[d[j]->getJointIndex() * joint_model_vector_.size() + joint_model_vector_[i]->getJointIndex()] =
           common_joint_roots_[d[j]->getJointIndex() +
                               joint_model_vector_[i]->getJointIndex() * joint_model_vector_.size()] =
               joint_model_vector_[i]->getJointIndex();
@@ -237,8 +235,7 @@ void RobotModel::computeDescendants()
   for (DescMap::iterator it = descendants.begin(); it != descendants.end(); ++it)
   {
     JointModel* jm = const_cast<JointModel*>(it->first);
-    for (std::set<const JointModel*>::const_iterator jt = it->second.second.begin(); jt != it->second.second.end();
-         ++jt)
+    for (std::set<const JointModel*>::const_iterator jt = it->second.second.begin(); jt != it->second.second.end(); ++jt)
       jm->addDescendantJointModel(*jt);
     for (std::set<const LinkModel*>::const_iterator jt = it->second.first.begin(); jt != it->second.first.end(); ++jt)
       jm->addDescendantLinkModel(*jt);
@@ -345,14 +342,16 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            ROS_ERROR_NAMED(LOGNAME, "The model for joint '%s' requires %d variable values, "
-                                     "but only %d variable values were supplied in default state '%s' for group '%s'",
+            ROS_ERROR_NAMED(LOGNAME,
+                            "The model for joint '%s' requires %d variable values, "
+                            "but only %d variable values were supplied in default state '%s' for group '%s'",
                             jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
                             jmg->getName().c_str());
         }
         else
-          ROS_ERROR_NAMED(LOGNAME, "Group state '%s' specifies value for joint '%s', "
-                                   "but that joint is not part of group '%s'",
+          ROS_ERROR_NAMED(LOGNAME,
+                          "Group state '%s' specifies value for joint '%s', "
+                          "but that joint is not part of group '%s'",
                           ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!remaining_joints.empty())
@@ -622,8 +621,9 @@ void RobotModel::buildGroupsInfoEndEffectors(const srdf::Model& srdf_model)
                                 eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
             else
-              ROS_ERROR_NAMED(LOGNAME, "Group '%s' was specified as parent group for end-effector '%s' "
-                                       "but it does not include the parent link '%s'",
+              ROS_ERROR_NAMED(LOGNAME,
+                              "Group '%s' was specified as parent group for end-effector '%s' "
+                              "but it does not include the parent link '%s'",
                               eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
           }
           else
@@ -916,8 +916,9 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (virtual_joints[i].child_link_ != child_link->name)
       {
-        ROS_WARN_NAMED(LOGNAME, "Skipping virtual joint '%s' because its child frame '%s' "
-                                "does not match the URDF frame '%s'",
+        ROS_WARN_NAMED(LOGNAME,
+                       "Skipping virtual joint '%s' because its child frame '%s' "
+                       "does not match the URDF frame '%s'",
                        virtual_joints[i].name_.c_str(), virtual_joints[i].child_link_.c_str(),
                        child_link->name.c_str());
       }
@@ -977,7 +978,7 @@ static inline Eigen::Isometry3d urdfPose2Isometry3d(const urdf::Pose& pose)
   Eigen::Isometry3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q);
   return af;
 }
-}
+}  // namespace
 
 LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {

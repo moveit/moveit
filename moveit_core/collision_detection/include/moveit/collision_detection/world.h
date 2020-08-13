@@ -42,7 +42,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <memory>
 #include <boost/function.hpp>
 #include <Eigen/Geometry>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
@@ -277,6 +276,6 @@ private:
   /// All registered observers of this world representation
   std::vector<Observer*> observers_;
 };
-}
+}  // namespace collision_detection
 
 #endif

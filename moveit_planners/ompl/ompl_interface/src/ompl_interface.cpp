@@ -95,8 +95,9 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
   context_manager_.setPlannerConfigurations(pconfig2);
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req) const
+ompl_interface::ModelBasedPlanningContextPtr
+ompl_interface::OMPLInterface::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                  const planning_interface::MotionPlanRequest& req) const
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);

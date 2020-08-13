@@ -114,6 +114,6 @@ private:
   std::string default_solver_plugin_;
   double default_solver_timeout_;
 };
-}
+}  // namespace kinematics_plugin_loader
 
 #endif

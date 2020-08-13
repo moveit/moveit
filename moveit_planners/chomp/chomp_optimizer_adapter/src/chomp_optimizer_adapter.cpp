@@ -107,8 +107,7 @@ public:
     if (!nh_.getParam("smoothness_cost_jerk", params_.smoothness_cost_jerk_))
     {
       params_.smoothness_cost_jerk_ = 0.0;
-      ROS_INFO_STREAM(
-          "Param smoothness_cost_jerk_ was not set. Using default value: " << params_.smoothness_cost_jerk_);
+      ROS_INFO_STREAM("Param smoothness_cost_jerk_ was not set. Using default value: " << params_.smoothness_cost_jerk_);
     }
     if (!nh_.getParam("ridge_factor", params_.ridge_factor_))
     {

@@ -154,8 +154,7 @@ void LazyFreeSpaceUpdater::processThread()
 
     tree_->unlockRead();
 
-    for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(),
-                                     end = process_occupied_cells_set_->end();
+    for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(), end = process_occupied_cells_set_->end();
          it != end; ++it)
     {
       free_cells1.erase(it->first);

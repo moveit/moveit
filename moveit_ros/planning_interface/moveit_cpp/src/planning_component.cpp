@@ -46,18 +46,7 @@
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
-#include <moveit_msgs/PickupAction.h>
-#include <moveit_msgs/ExecuteTrajectoryAction.h>
-#include <moveit_msgs/PlaceAction.h>
-#include <moveit_msgs/ExecuteKnownTrajectory.h>
-#include <moveit_msgs/QueryPlannerInterfaces.h>
-#include <moveit_msgs/GetCartesianPath.h>
-#include <moveit_msgs/GraspPlanning.h>
-#include <moveit_msgs/GetPlannerParams.h>
-#include <moveit_msgs/SetPlannerParams.h>
 
-#include <std_msgs/String.h>
-#include <geometry_msgs/TransformStamped.h>
 #include <tf2/utils.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>

@@ -38,7 +38,6 @@
 #define MOVEIT_KINEMATICS_METRICS_KINEMATICS_METRICS_
 
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/planning_scene/planning_scene.h>
 
 /** @brief Namespace for kinematics metrics */
 namespace kinematics_metrics
@@ -141,22 +140,22 @@ protected:
 
 private:
   /**
- * @brief Defines a multiplier for the manipulabilty
- * = 1 - exp ( -penalty_multipler_ * product_{i=1}{n} (distance_to_lower_limit *
- * distance_to_higher_limit/(joint_range*joint_range)))
- * where n is the number of joints in the group. Floating joints are ignored in this computation. Planar joints with
- * finite bounds
- * are considered.
- * Set penalty_multiplier_ to 0 if you don't want this multiplier to have any effect on the manipulability measures.
- * See "Workspace Geometric Characterization and Manipulability of Industrial Robots", Ming-June, Tsia, PhD Thesis,
- * Ohio State University, 1986, for more details.
- * @return multiplier that is multiplied with every manipulability measure computed here
- */
+   * @brief Defines a multiplier for the manipulabilty
+   * = 1 - exp ( -penalty_multipler_ * product_{i=1}{n} (distance_to_lower_limit *
+   * distance_to_higher_limit/(joint_range*joint_range)))
+   * where n is the number of joints in the group. Floating joints are ignored in this computation. Planar joints with
+   * finite bounds
+   * are considered.
+   * Set penalty_multiplier_ to 0 if you don't want this multiplier to have any effect on the manipulability measures.
+   * See "Workspace Geometric Characterization and Manipulability of Industrial Robots", Ming-June, Tsia, PhD Thesis,
+   * Ohio State University, 1986, for more details.
+   * @return multiplier that is multiplied with every manipulability measure computed here
+   */
   double getJointLimitsPenalty(const robot_state::RobotState& state,
                                const robot_model::JointModelGroup* joint_model_group) const;
 
   double penalty_multiplier_;
 };
-}
+}  // namespace kinematics_metrics
 
 #endif

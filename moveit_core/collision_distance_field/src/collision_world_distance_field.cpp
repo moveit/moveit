@@ -87,8 +87,7 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world, 
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other,
-                                                         const WorldPtr& world)
+CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other, const WorldPtr& world)
   : CollisionWorld(other, world)
 {
   size_ = other.size_;
@@ -357,9 +356,10 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
     if (req.contacts)
     {
       std::vector<unsigned int> colls;
-      bool coll = getCollisionSphereCollision(
-          env_distance_field.get(), *collision_spheres_1, *sphere_centers_1, max_propogation_distance_,
-          collision_tolerance_, std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
+      bool coll =
+          getCollisionSphereCollision(env_distance_field.get(), *collision_spheres_1, *sphere_centers_1,
+                                      max_propogation_distance_, collision_tolerance_,
+                                      std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
       if (coll)
       {
         res.collision = true;

@@ -61,6 +61,6 @@ private:
   MOVEIT_CLASS_FORWARD(Helper)
   HelperPtr impl_;
 };
-}
+}  // namespace constraint_sampler_manager_loader
 
 #endif

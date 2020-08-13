@@ -47,9 +47,9 @@ class MoveGroupCommander(object):
     Execution of simple commands for a particular group
     """
 
-    def __init__(self, name, robot_description="robot_description", ns=""):
+    def __init__(self, name, robot_description="robot_description", ns="", wait_for_servers=5.0):
         """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
-        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description, ns)
+        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description, ns, wait_for_servers)
 
     def get_name(self):
         """ Get the name of the group this instance was initialized for """
@@ -447,7 +447,7 @@ class MoveGroupCommander(object):
 
     def get_planner_id(self):
         """ Get the current planner_id """
-        self._g.get_planner_id()
+        return self._g.get_planner_id()
 
     def set_num_planning_attempts(self, num_planning_attempts):
         """ Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1. """

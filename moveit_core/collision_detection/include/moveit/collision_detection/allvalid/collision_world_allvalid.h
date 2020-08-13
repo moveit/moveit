@@ -74,6 +74,6 @@ public:
   virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm) const;
   void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const override;
 };
-}
+}  // namespace collision_detection
 
 #endif

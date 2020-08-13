@@ -537,6 +537,6 @@ private:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 
-}  // namespace
+}  // namespace moveit_setup_assistant
 
 #endif

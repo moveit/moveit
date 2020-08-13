@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 #define MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 
+#include <geometry_msgs/PoseStamped.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/locked_robot_state.h>
 //#include <moveit/robot_interaction/robot_interaction.h>
@@ -310,6 +311,6 @@ private:
   // remove '_' characters from name
   static std::string fixName(std::string name);
 };
-}
+}  // namespace robot_interaction
 
 #endif

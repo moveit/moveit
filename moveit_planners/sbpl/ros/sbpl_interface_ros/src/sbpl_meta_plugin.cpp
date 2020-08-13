@@ -106,6 +106,6 @@ private:
   boost::shared_ptr<sbpl_interface::SBPLMetaInterface> sbpl_meta_interface_;
 };
 
-}  // ompl_interface_ros
+}  // namespace sbpl_interface_ros
 
 PLUGINLIB_EXPORT_CLASS(sbpl_interface_ros::SBPLMetaPlanner, planning_interface::Planner);

@@ -62,11 +62,12 @@ RobotPosesWidget::RobotPosesWidget(QWidget* parent, const MoveItConfigDataPtr& c
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header = new HeaderWidget(
-      "Define Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
-                            "particular planning groups. This is useful for things like <i>home position</i>."
-                            "The first pose for each robot will be its initial pose in simulation.",
-      this);
+  HeaderWidget* header =
+      new HeaderWidget("Define Robot Poses",
+                       "Create poses for the robot. Poses are defined as sets of joint values for "
+                       "particular planning groups. This is useful for things like <i>home position</i>."
+                       "The first pose for each robot will be its initial pose in simulation.",
+                       this);
   layout->addWidget(header);
 
   // Create contents screens ---------------------------------------
@@ -489,9 +490,10 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
   // Check that joint model exist
   if (!config_data_->getRobotModel()->hasJointModelGroup(group_name))
   {
-    QMessageBox::critical(this, "Error Loading", QString("Unable to find joint model group for group: ")
-                                                     .append(group_name.c_str())
-                                                     .append(" Are you sure this group has associated joints/links?"));
+    QMessageBox::critical(this, "Error Loading",
+                          QString("Unable to find joint model group for group: ")
+                              .append(group_name.c_str())
+                              .append(" Are you sure this group has associated joints/links?"));
     return;
   }
 

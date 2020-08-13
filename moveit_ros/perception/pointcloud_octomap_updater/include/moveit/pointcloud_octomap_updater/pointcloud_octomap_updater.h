@@ -100,6 +100,6 @@ private:
   std::unique_ptr<point_containment_filter::ShapeMask> shape_mask_;
   std::vector<int> mask_;
 };
-}
+}  // namespace occupancy_map_monitor
 
 #endif

@@ -50,14 +50,15 @@
 
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QFileDialog>
+#include <QComboBox>
 #include <QShortcut>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
 {
-MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context,
-                                         QWidget* parent)
+MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context, QWidget* parent)
   : QWidget(parent)
   , planning_display_(pdisplay)
   , context_(context)
@@ -67,6 +68,14 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
 {
   // set up the GUI
   ui_->setupUi(this);
+  ui_->shapes_combo_box->addItem("Box", shapes::BOX);
+  ui_->shapes_combo_box->addItem("Sphere", shapes::SPHERE);
+  ui_->shapes_combo_box->addItem("Cylinder", shapes::CYLINDER);
+  ui_->shapes_combo_box->addItem("Cone", shapes::CONE);
+  ui_->shapes_combo_box->addItem("Mesh from file", shapes::MESH);
+  ui_->shapes_combo_box->addItem("Mesh from URL", shapes::MESH);
+  setLocalSceneEdited(false);
+
   // add more tabs
   joints_tab_ = new MotionPlanningFrameJointsWidget(planning_display_, ui_->tabWidget);
   ui_->tabWidget->addTab(joints_tab_, "Joints");
@@ -98,20 +107,18 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
           SLOT(planningAlgorithmIndexChanged(int)));
   connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(planningAlgorithmIndexChanged(int)));
-  connect(ui_->import_object_file_button, SIGNAL(clicked()), this, SLOT(importObjectFromFileButtonClicked()));
-  connect(ui_->import_object_url_button, SIGNAL(clicked()), this, SLOT(importObjectFromUrlButtonClicked()));
-  connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
+  connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearScene()));
   connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
   connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
   connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
-  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeObjectButtonClicked()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeSceneObject()));
   connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rx, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
-  connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishSceneButtonClicked()));
+  connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishScene()));
   connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
   connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
           SLOT(collisionObjectChanged(QListWidgetItem*)));
@@ -121,6 +128,9 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this,
           SLOT(warehouseItemNameChanged(QTreeWidgetItem*, int)));
   connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
+
+  connect(ui_->add_object_button, &QPushButton::clicked, this, &MotionPlanningFrame::addSceneObject);
+  connect(ui_->shapes_combo_box, &QComboBox::currentTextChanged, this, &MotionPlanningFrame::shapesComboBoxChanged);
   connect(ui_->export_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(exportGeometryAsTextButtonClicked()));
   connect(ui_->import_scene_geometry_text_button, SIGNAL(clicked()), this, SLOT(importGeometryFromTextButtonClicked()));
   connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
@@ -174,7 +184,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   ui_->background_job_progress->hide();
   ui_->background_job_progress->setMaximum(0);
 
-  ui_->tabWidget->setCurrentIndex(0);
+  ui_->tabWidget->setCurrentIndex(1);
 
   known_collision_objects_version_ = 0;
 
@@ -419,131 +429,132 @@ void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonit
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
-void MotionPlanningFrame::importResource(const std::string& path)
+void MotionPlanningFrame::addSceneObject()
 {
-  if (planning_display_->getPlanningSceneMonitor())
+  static const double MIN_VAL = 1e-6;
+
+  if (!planning_display_->getPlanningSceneMonitor())
   {
-    shapes::Mesh* mesh = shapes::createMeshFromResource(path);
-    if (mesh)
-    {
-      std::size_t slash = path.find_last_of("/\\");
-      std::string name = path.substr(slash + 1);
+    return;
+  }
 
-      if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
-      {
-        QMessageBox::warning(this, QString("Duplicate names"), QString("An attached object named '")
-                                                                   .append(name.c_str())
-                                                                   .append("' already exists. Please rename the "
-                                                                           "attached object before importing."));
+  // get size values
+  double x_length = ui_->shape_size_x_spin_box->isEnabled() ? ui_->shape_size_x_spin_box->value() : MIN_VAL;
+  double y_length = ui_->shape_size_y_spin_box->isEnabled() ? ui_->shape_size_y_spin_box->value() : MIN_VAL;
+  double z_length = ui_->shape_size_z_spin_box->isEnabled() ? ui_->shape_size_z_spin_box->value() : MIN_VAL;
+  if (x_length < MIN_VAL || y_length < MIN_VAL || z_length < MIN_VAL)
+  {
+    QMessageBox::warning(this, QString("Dimension is too small"), QString("Size values need to be >= %1").arg(MIN_VAL));
+    return;
+  }
+
+  // by default, name object by shape type
+  std::string selected_shape = ui_->shapes_combo_box->currentText().toStdString();
+  shapes::ShapeConstPtr shape;
+  switch (ui_->shapes_combo_box->currentData().toInt())  // fetch shape ID from current combobox item
+  {
+    case shapes::BOX:
+      shape = std::make_shared<shapes::Box>(x_length, y_length, z_length);
+      break;
+    case shapes::SPHERE:
+      shape = std::make_shared<shapes::Sphere>(0.5 * x_length);
+      break;
+    case shapes::CONE:
+      shape = std::make_shared<shapes::Cone>(0.5 * x_length, z_length);
+      break;
+    case shapes::CYLINDER:
+      shape = std::make_shared<shapes::Cylinder>(0.5 * x_length, z_length);
+      break;
+    case shapes::MESH:
+    {
+      QUrl url;
+      if (ui_->shapes_combo_box->currentText().contains("file"))  // open from file
+        url = QFileDialog::getOpenFileUrl(this, tr("Import Object Mesh"), QString(),
+                                          "CAD files (*.stl *.obj *.dae);;All files (*.*)");
+      else  // open from URL
+        url = QInputDialog::getText(this, tr("Import Object Mesh"), tr("URL for file to import from:"),
+                                    QLineEdit::Normal, QString("http://"));
+      if (!url.isEmpty())
+        shape = loadMeshResource(url.toString().toStdString());
+      if (!shape)
         return;
-      }
-
-      // If the object is very large, ask the user if the scale should be reduced.
-      bool object_is_very_large = false;
-      for (unsigned int i = 0; i < mesh->vertex_count; i++)
-      {
-        if ((abs(mesh->vertices[i * 3 + 0]) > LARGE_MESH_THRESHOLD) ||
-            (abs(mesh->vertices[i * 3 + 1]) > LARGE_MESH_THRESHOLD) ||
-            (abs(mesh->vertices[i * 3 + 2]) > LARGE_MESH_THRESHOLD))
-        {
-          object_is_very_large = true;
-          break;
-        }
-      }
-      if (object_is_very_large)
-      {
-        QMessageBox msg_box;
-        msg_box.setText(
-            "The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
-        msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
-        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msg_box.setDefaultButton(QMessageBox::Yes);
-        if (msg_box.exec() == QMessageBox::Yes)
-        {
-          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-          {
-            unsigned int i3 = i * 3;
-            mesh->vertices[i3] *= 0.001;
-            mesh->vertices[i3 + 1] *= 0.001;
-            mesh->vertices[i3 + 2] *= 0.001;
-          }
-        }
-      }
-
-      shapes::ShapeConstPtr shape(mesh);
-      Eigen::Isometry3d pose;
-      pose.setIdentity();
-
-      // If the object already exists, ask the user whether to overwrite or rename
-      if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
-      {
-        QMessageBox msg_box;
-        msg_box.setText("There exists another object with the same name.");
-        msg_box.setInformativeText("Would you like to overwrite it?");
-        msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-        msg_box.setDefaultButton(QMessageBox::No);
-        int ret = msg_box.exec();
-
-        switch (ret)
-        {
-          case QMessageBox::Yes:
-            // Overwrite was clicked
-            {
-              planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-              if (ps)
-              {
-                ps->getWorldNonConst()->removeObject(name);
-                addObject(ps->getWorldNonConst(), name, shape, pose);
-              }
-            }
-            break;
-          case QMessageBox::No:
-          {
-            // Don't overwrite was clicked. Ask for another name
-            bool ok = false;
-            QString text = QInputDialog::getText(
-                this, tr("Choose a new name"), tr("Import the new object under the name:"), QLineEdit::Normal,
-                QString::fromStdString(name + "-" + boost::lexical_cast<std::string>(
-                                                        planning_display_->getPlanningSceneRO()->getWorld()->size())),
-                &ok);
-            if (ok)
-            {
-              if (!text.isEmpty())
-              {
-                name = text.toStdString();
-                planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-                if (ps)
-                {
-                  if (ps->getWorld()->hasObject(name))
-                    QMessageBox::warning(
-                        this, "Name already exists",
-                        QString("The name '").append(name.c_str()).append("' already exists. Not importing object."));
-                  else
-                    addObject(ps->getWorldNonConst(), name, shape, pose);
-                }
-              }
-              else
-                QMessageBox::warning(this, "Object not imported", "Cannot use an empty name for an imported object");
-            }
-            break;
-          }
-          default:
-            // Pressed cancel, do nothing
-            break;
-        }
-      }
-      else
-      {
-        planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
-        if (ps)
-          addObject(ps->getWorldNonConst(), name, shape, pose);
-      }
+      // name mesh objects by their file name
+      selected_shape = url.fileName().toStdString();
+      break;
     }
-    else
+    default:
+      QMessageBox::warning(this, QString("Unsupported shape"),
+                           QString("The '%1' is not supported.").arg(ui_->shapes_combo_box->currentText()));
+  }
+
+  // find available (initial) name of object
+  int idx = 0;
+  std::string shape_name = selected_shape + "_" + std::to_string(idx);
+  while (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(shape_name))
+  {
+    idx++;
+    shape_name = selected_shape + "_" + std::to_string(idx);
+  }
+
+  // Actually add object to the plugin's PlanningScene
+  {
+    planning_scene_monitor::LockedPlanningSceneRW ps = planning_display_->getPlanningSceneRW();
+    ps->getWorldNonConst()->addToObject(shape_name, shape, Eigen::Isometry3d::Identity());
+  }
+  setLocalSceneEdited();
+
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
+
+  // Automatically select the inserted object so that its IM is displayed
+  planning_display_->addMainLoopJob(
+      boost::bind(&MotionPlanningFrame::setItemSelectionInList, this, shape_name, true, ui_->collision_objects_list));
+
+  planning_display_->queueRenderSceneGeometry();
+}
+
+shapes::ShapePtr MotionPlanningFrame::loadMeshResource(const std::string& url)
+{
+  shapes::Mesh* mesh = shapes::createMeshFromResource(url);
+  if (mesh)
+  {
+    // If the object is very large, ask the user if the scale should be reduced.
+    bool object_is_very_large = false;
+    for (unsigned int i = 0; i < mesh->vertex_count; i++)
     {
-      QMessageBox::warning(this, QString("Import error"), QString("Unable to import object"));
-      return;
+      if ((abs(mesh->vertices[i * 3 + 0]) > LARGE_MESH_THRESHOLD) ||
+          (abs(mesh->vertices[i * 3 + 1]) > LARGE_MESH_THRESHOLD) ||
+          (abs(mesh->vertices[i * 3 + 2]) > LARGE_MESH_THRESHOLD))
+      {
+        object_is_very_large = true;
+        break;
+      }
     }
+    if (object_is_very_large)
+    {
+      QMessageBox msg_box;
+      msg_box.setText(
+          "The object is very large (greater than 10 m). The file may be in millimeters instead of meters.");
+      msg_box.setInformativeText("Attempt to fix the size by shrinking the object?");
+      msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      msg_box.setDefaultButton(QMessageBox::Yes);
+      if (msg_box.exec() == QMessageBox::Yes)
+      {
+        for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+        {
+          unsigned int i3 = i * 3;
+          mesh->vertices[i3] *= 0.001;
+          mesh->vertices[i3 + 1] *= 0.001;
+          mesh->vertices[i3 + 2] *= 0.001;
+        }
+      }
+    }
+
+    return shapes::ShapePtr(mesh);
+  }
+  else
+  {
+    QMessageBox::warning(this, QString("Import error"), QString("Unable to import object"));
+    return shapes::ShapePtr();
   }
 }
 

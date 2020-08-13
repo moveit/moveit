@@ -38,7 +38,6 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf2_kdl/tf2_kdl.h>
 #include <algorithm>
-#include <numeric>
 
 #include <moveit/robot_model/robot_model.h>
 #include "pr2_arm_kinematics_plugin.h"

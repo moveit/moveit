@@ -202,8 +202,7 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
       return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
     }
   }
-  ROS_DEBUG_NAMED("model_based_planning_context", "%s: Allocating default state sampler for state space",
-                  name_.c_str());
+  ROS_DEBUG_NAMED("model_based_planning_context", "%s: Allocating default state sampler for state space", name_.c_str());
   return ss->allocDefaultStateSampler();
 }
 

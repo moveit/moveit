@@ -353,8 +353,9 @@ bool PlanningScene::setActiveCollisionDetector(const std::string& collision_dete
   }
   else
   {
-    ROS_ERROR_NAMED(LOGNAME, "Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
-                             "Keeping existing active collision detector '%s'",
+    ROS_ERROR_NAMED(LOGNAME,
+                    "Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
+                    "Keeping existing active collision detector '%s'",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return false;
   }
@@ -402,8 +403,9 @@ PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_n
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
-    ROS_ERROR_NAMED(LOGNAME, "Could not get CollisionRobotUnpadded named '%s'. "
-                             "Returning active CollisionRobotUnpadded '%s' instead",
+    ROS_ERROR_NAMED(LOGNAME,
+                    "Could not get CollisionRobotUnpadded named '%s'. "
+                    "Returning active CollisionRobotUnpadded '%s' instead",
                     collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobotUnpadded();
   }
@@ -1149,8 +1151,9 @@ void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
-      ROS_ERROR_NAMED(LOGNAME, "The specified RobotState is not marked as is_diff. "
-                               "The request to modify the object '%s' is not supported. Object is ignored.",
+      ROS_ERROR_NAMED(LOGNAME,
+                      "The specified RobotState is not marked as is_diff. "
+                      "The request to modify the object '%s' is not supported. Object is ignored.",
                       state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
@@ -1510,8 +1513,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         }
         else
         {
-          ROS_ERROR_NAMED(LOGNAME, "Attempting to attach object '%s' to link '%s' but no geometry specified "
-                                   "and such an object does not exist in the collision world",
+          ROS_ERROR_NAMED(LOGNAME,
+                          "Attempting to attach object '%s' to link '%s' but no geometry specified "
+                          "and such an object does not exist in the collision world",
                           object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
@@ -1590,8 +1594,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         // there should not exist an attached object with this name
         if (robot_state_->clearAttachedBody(object.object.id))
-          ROS_DEBUG_NAMED(LOGNAME, "The robot state already had an object named '%s' attached to link '%s'. "
-                                   "The object was replaced.",
+          ROS_DEBUG_NAMED(LOGNAME,
+                          "The robot state already had an object named '%s' attached to link '%s'. "
+                          "The object was replaced.",
                           object.object.id.c_str(), object.link_name.c_str());
         robot_state_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                                  object.detach_posture);
@@ -1858,8 +1863,9 @@ bool PlanningScene::processCollisionObjectMove(const moveit_msgs::CollisionObjec
     }
     else
     {
-      ROS_ERROR_NAMED(LOGNAME, "Number of supplied poses (%zu) for object '%s' does not match number of shapes (%zu). "
-                               "Not moving.",
+      ROS_ERROR_NAMED(LOGNAME,
+                      "Number of supplied poses (%zu) for object '%s' does not match number of shapes (%zu). "
+                      "Not moving.",
                       new_poses.size(), object.id.c_str(), obj->shapes_.size());
       return false;
     }

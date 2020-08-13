@@ -234,8 +234,7 @@ public:
   /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
    * that are allowed to collide (as specified by \e acm)
    *  @param verbose Output debug information about distance checks */
-  inline double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
-                              bool verbose = false) const
+  inline double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm, bool verbose = false) const
   {
     DistanceRequest req;
     DistanceResult res;
@@ -277,6 +276,6 @@ private:
   WorldPtr world_;             // The world.  Always valid.  Never NULL.
   WorldConstPtr world_const_;  // always same as world_
 };
-}
+}  // namespace collision_detection
 
 #endif

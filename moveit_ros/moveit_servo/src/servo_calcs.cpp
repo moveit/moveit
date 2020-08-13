@@ -29,7 +29,7 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ *******************************************************************************/
 
 /*      Title     : servo_calcs.cpp
  *      Project   : moveit_servo
@@ -107,6 +107,11 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
   control_dimensions_server_ =
       nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/change_control_dimensions",
                            &ServoCalcs::changeControlDimensions, this);
+
+  // ROS Server to reset the status, e.g. so the arm can move again after a collision
+  reset_servo_status_ =
+      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/reset_servo_status",
+                           &ServoCalcs::resetServoStatus, this);
 
   // Publish and Subscribe to internal namespace topics
   ros::NodeHandle internal_nh("~internal");
@@ -287,8 +292,9 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   // Print a warning to the user if both are stale
   if (!twist_command_is_stale_ || !joint_command_is_stale_)
   {
-    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME, "Stale command. "
-                                                "Try a larger 'incoming_command_timeout' parameter?");
+    ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
+                                   "Stale command. "
+                                   "Try a larger 'incoming_command_timeout' parameter?");
   }
 
   // If we should halt
@@ -452,11 +458,6 @@ bool ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
   // If close to a collision or a singularity, decelerate
   applyVelocityScaling(delta_theta_, velocityScalingFactorForSingularity(delta_x, svd, pseudo_inverse));
-  if (status_ == StatusCode::HALT_FOR_COLLISION)
-  {
-    ROS_ERROR_STREAM_THROTTLE_NAMED(5, LOGNAME, "Halting for collision!");
-    delta_theta_.setZero();
-  }
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
@@ -480,6 +481,9 @@ bool ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_m
   delta_theta_ = scaleJointCommand(cmd);
 
   enforceSRDFAccelVelLimits(delta_theta_);
+
+  // If close to a collision, decelerate
+  applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
 
   prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
@@ -517,8 +521,7 @@ bool ServoCalcs::convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& jo
 // Spam several redundant points into the trajectory. The first few may be skipped if the
 // time stamp is in the past when it reaches the client. Needed for gazebo simulation.
 // Start from 2 because the first point's timestamp is already 1*parameters_.publish_period
-void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory,
-                                                     int count) const
+void ServoCalcs::insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
 {
   joint_trajectory.points.resize(count);
   auto point = joint_trajectory.points[0];
@@ -598,6 +601,12 @@ void ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singul
   }
 
   delta_theta = collision_scale * singularity_scale * delta_theta;
+
+  if (status_ == StatusCode::HALT_FOR_COLLISION)
+  {
+    ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
+    delta_theta_.setZero();
+  }
 }
 
 // Possibly calculate a velocity scaling factor, due to proximity of singularity and direction of motion
@@ -649,9 +658,8 @@ double ServoCalcs::velocityScalingFactorForSingularity(const Eigen::VectorXd& co
     if ((ini_condition > parameters_.lower_singularity_threshold) &&
         (ini_condition < parameters_.hard_stop_singularity_threshold))
     {
-      velocity_scale = 1. -
-                       (ini_condition - parameters_.lower_singularity_threshold) /
-                           (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
+      velocity_scale = 1. - (ini_condition - parameters_.lower_singularity_threshold) /
+                                (parameters_.hard_stop_singularity_threshold - parameters_.lower_singularity_threshold);
       status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
       ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, SERVO_STATUS_CODE_MAP.at(status_));
     }
@@ -770,10 +778,10 @@ bool ServoCalcs::enforceSRDFPositionLimits()
             (kinematic_state_->getJointVelocities(joint)[0] > 0 &&
              (joint_angle > (limits[0].max_position - parameters_.joint_limit_margin))))
         {
-          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
-                                                                               << " " << joint->getName()
-                                                                               << " close to a "
-                                                                                  " position limit. Halting.");
+          ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                         ros::this_node::getName() << " " << joint->getName()
+                                                                   << " close to a "
+                                                                      " position limit. Halting.");
           halting = true;
         }
       }
@@ -824,8 +832,8 @@ bool ServoCalcs::updateJoints()
     }
     catch (const std::out_of_range& e)
     {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Ignoring joint "
-                                                                            << latest_joint_state->name[m]);
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                      "Ignoring joint " << latest_joint_state->name[m]);
       continue;
     }
 
@@ -958,9 +966,9 @@ bool ServoCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen
     }
     catch (const std::out_of_range& e)
     {
-      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, ros::this_node::getName()
-                                                                            << " Lengths of output and "
-                                                                               "increments do not match.");
+      ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                      ros::this_node::getName() << " Lengths of output and "
+                                                                   "increments do not match.");
       return false;
     }
   }
@@ -1043,6 +1051,12 @@ bool ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::R
   control_dimensions_[5] = req.control_z_rotation;
 
   res.success = true;
+  return true;
+}
+
+bool ServoCalcs::resetServoStatus(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+  status_ = StatusCode::NO_WARNING;
   return true;
 }
 

@@ -288,8 +288,7 @@ void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult
     manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
 
-void CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res,
-                                      const CollisionWorld& world) const
+void CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
   DistanceData drd(&req, &res);

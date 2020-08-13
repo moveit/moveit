@@ -130,6 +130,6 @@ private:
   // Private Functions
   // ******************************************************************************************
 };
-}
+}  // namespace moveit_setup_assistant
 
 #endif

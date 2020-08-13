@@ -93,9 +93,10 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   path_category_ = new rviz::Property("Planned Path", QVariant(), "", this);
 
   // Metrics category -----------------------------------------------------------------------------------------
-  compute_weight_limit_property_ = new rviz::BoolProperty(
-      "Show Weight Limit", false, "Shows the weight limit at a particular pose for an end-effector", metrics_category_,
-      SLOT(changedShowWeightLimit()), this);
+  compute_weight_limit_property_ =
+      new rviz::BoolProperty("Show Weight Limit", false,
+                             "Shows the weight limit at a particular pose for an end-effector", metrics_category_,
+                             SLOT(changedShowWeightLimit()), this);
 
   show_manipulability_index_property_ =
       new rviz::BoolProperty("Show Manipulability Index", false, "Shows the manipulability index for an end-effector",
@@ -120,11 +121,13 @@ MotionPlanningDisplay::MotionPlanningDisplay()
 
   // Planning request category -----------------------------------------------------------------------------------------
 
-  planning_group_property_ = new rviz::EditableEnumProperty(
-      "Planning Group", "", "The name of the group of links to plan for (from the ones defined in the SRDF)",
-      plan_category_, SLOT(changedPlanningGroup()), this);
-  show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false, "Shows the axis-aligned bounding box for "
-                                                                             "the workspace allowed for planning",
+  planning_group_property_ =
+      new rviz::EditableEnumProperty("Planning Group", "",
+                                     "The name of the group of links to plan for (from the ones defined in the SRDF)",
+                                     plan_category_, SLOT(changedPlanningGroup()), this);
+  show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false,
+                                                    "Shows the axis-aligned bounding box for "
+                                                    "the workspace allowed for planning",
                                                     plan_category_, SLOT(changedWorkspace()), this);
   query_start_state_property_ =
       new rviz::BoolProperty("Query Start State", false, "Set a custom start state for the motion planning query",
@@ -212,8 +215,7 @@ void MotionPlanningDisplay::onInitialize()
   color.a = 1.0f;
   query_robot_start_->setDefaultAttachedObjectColor(color);
 
-  query_robot_goal_.reset(
-      new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
+  query_robot_goal_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Goal", nullptr));
   query_robot_goal_->setCollisionVisible(false);
   query_robot_goal_->setVisualVisible(true);
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
@@ -548,7 +550,7 @@ inline void copyItemIfExists(const std::map<std::string, double>& source, std::m
   if (it != source.end())
     dest[key] = it->second;
 }
-}
+}  // namespace
 
 void MotionPlanningDisplay::displayMetrics(bool start)
 {
@@ -1177,8 +1179,7 @@ void MotionPlanningDisplay::onRobotModelLoaded()
   dynamics_solver_.clear();
   for (std::size_t i = 0; i < groups.size(); ++i)
     if (getRobotModel()->getJointModelGroup(groups[i])->isChain())
-      dynamics_solver_[groups[i]].reset(
-          new dynamics_solver::DynamicsSolver(getRobotModel(), groups[i], gravity_vector));
+      dynamics_solver_[groups[i]].reset(new dynamics_solver::DynamicsSolver(getRobotModel(), groups[i], gravity_vector));
 
   if (frame_)
     frame_->fillPlanningGroupOptions();
@@ -1207,11 +1208,8 @@ void MotionPlanningDisplay::updateStateExceptModified(robot_state::RobotState& d
   dest = src_copy;
 }
 
-void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
-    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+void MotionPlanningDisplay::updateQueryStates(const moveit::core::RobotState& current_state)
 {
-  PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
-  robot_state::RobotState current_state = getPlanningSceneRO()->getCurrentState();
   std::string group = planning_group_property_->getStdString();
 
   if (query_start_state_ && query_start_state_property_->getBool() && !group.empty())
@@ -1227,7 +1225,13 @@ void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
     updateStateExceptModified(goal, current_state);
     setQueryGoalState(goal);
   }
+}
 
+void MotionPlanningDisplay::onSceneMonitorReceivedUpdate(
+    planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
+{
+  PlanningSceneDisplay::onSceneMonitorReceivedUpdate(update_type);
+  updateQueryStates(getPlanningSceneRO()->getCurrentState());
   if (frame_)
     frame_->sceneUpdate(update_type);
 }
@@ -1436,8 +1440,7 @@ void MotionPlanningDisplay::visualizePlaceLocations(const std::vector<geometry_m
   {
     place_locations_display_[i].reset(new rviz::Shape(rviz::Shape::Sphere, context_->getSceneManager()));
     place_locations_display_[i]->setColor(1.0f, 0.0f, 0.0f, 0.3f);
-    Ogre::Vector3 center(place_poses[i].pose.position.x, place_poses[i].pose.position.y,
-                         place_poses[i].pose.position.z);
+    Ogre::Vector3 center(place_poses[i].pose.position.x, place_poses[i].pose.position.y, place_poses[i].pose.position.z);
     Ogre::Vector3 extents(0.02, 0.02, 0.02);
     place_locations_display_[i]->setScale(extents);
     place_locations_display_[i]->setPosition(center);
