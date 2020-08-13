@@ -283,7 +283,7 @@ void ServoCalcs::run(const ros::TimerEvent& timer_event)
   {
     // Joint trajectory is not populated with anything, so set it to the last positions and 0 velocity
     *joint_trajectory = *last_sent_command_;
-    for (auto point : joint_trajectory->points)
+    for (auto& point : joint_trajectory->points)
     {
       point.velocities.assign(point.velocities.size(), 0);
     }
