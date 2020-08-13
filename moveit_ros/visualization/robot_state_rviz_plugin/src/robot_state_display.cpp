@@ -63,7 +63,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_robot_model_(false)
+RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false)
 {
   robot_description_property_ =
       new rviz::StringProperty("Robot Description", "robot_description",
@@ -124,8 +124,8 @@ void RobotStateDisplay::reset()
   robot_->clear();
   rdf_loader_.reset();
   Display::reset();
-
-  loadRobotModel();
+  if (isEnabled())
+    onEnable();
 }
 
 void RobotStateDisplay::changedAllLinks()
@@ -375,9 +375,7 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
-  load_robot_model_ = false;
-  if (!rdf_loader_)
-    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (rdf_loader_->getURDF())
   {
@@ -402,10 +400,20 @@ void RobotStateDisplay::loadRobotModel()
   highlights_.clear();
 }
 
+void RobotStateDisplay::load(const rviz::Config& config)
+{
+  // This property needs to be loaded in onEnable() below, which is triggered
+  // in the beginning of Display::load() before the other property would be available
+  robot_description_property_->load(config.mapGetChild("Robot Description"));
+  Display::load(config);
+}
+
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  load_robot_model_ = true;  // allow loading of robot model in update()
+  if (!rdf_loader_)
+    loadRobotModel();
+  changedRobotStateTopic();
   calculateOffsetPosition();
 }
 
@@ -423,16 +431,6 @@ void RobotStateDisplay::onDisable()
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
-
-  if (load_robot_model_)
-  {
-    loadRobotModel();
-    // The following call to changedRobotStateTopic() should not change visibility
-    bool visible = robot_->isVisible();
-    changedRobotStateTopic();
-    robot_->setVisible(visible);
-  }
-
   calculateOffsetPosition();
   if (robot_ && update_state_ && robot_state_)
   {
