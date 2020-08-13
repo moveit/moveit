@@ -197,8 +197,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN ||
         plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA)
     {
-      if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA &&
-          opt.replan_delay_ > 0.0)
+      if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::UNABLE_TO_AQUIRE_SENSOR_DATA && opt.replan_delay_ > 0.0)
       {
         ros::WallDuration d(opt.replan_delay_);
         d.sleep();
@@ -404,9 +403,9 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(E
     trajectory_monitor_->startTrajectoryMonitor();
 
   // start a trajectory execution thread
-  trajectory_execution_manager_->execute(
-      boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
-      boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan, _1));
+  trajectory_execution_manager_->execute(boost::bind(&PlanExecution::doneWithTrajectoryExecution, this, _1),
+                                         boost::bind(&PlanExecution::successfulTrajectorySegmentExecution, this, &plan,
+                                                     _1));
   // wait for path to be done, while checking that the path does not become invalid
   ros::Rate r(100);
   path_became_invalid_ = false;
@@ -485,8 +484,7 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(
     new_scene_update_ = true;
 }
 
-void plan_execution::PlanExecution::doneWithTrajectoryExecution(
-    const moveit_controller_manager::ExecutionStatus& status)
+void plan_execution::PlanExecution::doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus& status)
 {
   execution_complete_ = true;
 }

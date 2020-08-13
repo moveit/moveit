@@ -268,9 +268,9 @@ void MotionPlanningFrame::onNewPlanningSceneState()
 void MotionPlanningFrame::startStateTextChanged(const QString& start_state)
 {
   // use background job: fetching the current state might take up to a second
-  planning_display_->addBackgroundJob(
-      boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this, start_state.toStdString()),
-      "update start state");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::startStateTextChangedExec, this,
+                                                  start_state.toStdString()),
+                                      "update start state");
 }
 
 void MotionPlanningFrame::startStateTextChangedExec(const std::string& start_state)
@@ -304,8 +304,7 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state,
   if (v == "<random>")
   {
     configureWorkspace();
-    if (const robot_model::JointModelGroup* jmg =
-            state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+    if (const robot_model::JointModelGroup* jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
       state.setToRandomPositions(jmg);
     return;
   }
@@ -314,8 +313,7 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState& state,
   {
     configureWorkspace();
 
-    if (const robot_model::JointModelGroup* jmg =
-            state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+    if (const robot_model::JointModelGroup* jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
     {
       // Loop until a collision free state is found
       static const int MAX_ATTEMPTS = 100;

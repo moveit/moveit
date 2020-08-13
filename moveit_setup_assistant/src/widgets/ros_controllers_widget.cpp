@@ -430,8 +430,7 @@ void ROSControllersWidget::loadControllerScreen(moveit_setup_assistant::ROSContr
   else  // load the controller name into the widget
   {
     current_edit_controller_ = this_controller->name_;
-    controller_edit_widget_->setTitle(
-        QString("Edit Controller '").append(current_edit_controller_.c_str()).append("'"));
+    controller_edit_widget_->setTitle(QString("Edit Controller '").append(current_edit_controller_.c_str()).append("'"));
     controller_edit_widget_->showDelete();
     controller_edit_widget_->hideNewButtonsWidget();  // not necessary for existing controllers
     controller_edit_widget_->showSave();              // this is only for edit mode

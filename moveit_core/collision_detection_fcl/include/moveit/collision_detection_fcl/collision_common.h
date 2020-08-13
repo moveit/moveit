@@ -225,7 +225,7 @@ struct FCLGeometry
   }
 
   /** \brief Updates the \e collision_geometry_data_ with new data while also setting the \e collision_geometry_ to the
-  *   new data. */
+   *   new data. */
   template <typename T>
   void updateCollisionGeometryData(const T* data, int shape_index, bool newType)
   {
@@ -268,21 +268,21 @@ struct FCLManager
 };
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
-*   calculate object contact information.
-*
-*   \param o1 First FCL collision object
-*   \param o2 Second FCL collision object
-*   \data General pointer to arbitrary data which is used during the callback
-*   \return True terminates the distance check, false continues it to the next pair of objects */
+ *   calculate object contact information.
+ *
+ *   \param o1 First FCL collision object
+ *   \param o2 Second FCL collision object
+ *   \data General pointer to arbitrary data which is used during the callback
+ *   \return True terminates the distance check, false continues it to the next pair of objects */
 bool collisionCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data);
 
 /** \brief Callback function used by the FCLManager used for each pair of collision objects to
-*   calculate collisions and distances.
-*
-*   \param o1 First FCL collision object
-*   \param o2 Second FCL collision object
-*   \data General pointer to arbitrary data which is used during the callback
-*   \return True terminates the collision check, false continues it to the next pair of objects */
+ *   calculate collisions and distances.
+ *
+ *   \param o1 First FCL collision object
+ *   \param o2 Second FCL collision object
+ *   \data General pointer to arbitrary data which is used during the callback
+ *   \return True terminates the collision check, false continues it to the next pair of objects */
 bool distanceCallback(fcl::CollisionObjectd* o1, fcl::CollisionObjectd* o2, void* data, double& min_dist);
 
 /** \brief Create new FCLGeometry object out of robot link model. */
@@ -360,6 +360,6 @@ inline void fcl2costsource(const fcl::CostSourced& fcs, CostSource& cs)
 
   cs.cost = fcs.cost_density;
 }
-}
+}  // namespace collision_detection
 
 #endif

@@ -208,6 +208,6 @@ public:
   virtual bool switchControllers(const std::vector<std::string>& activate,
                                  const std::vector<std::string>& deactivate) = 0;
 };
-}
+}  // namespace moveit_controller_manager
 
 #endif

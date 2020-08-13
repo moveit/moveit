@@ -255,8 +255,7 @@ void mesh_filter::MeshFilterBase::getFilteredDepth(float* depth) const
 
 void mesh_filter::MeshFilterBase::getFilteredLabels(LabelType* labels) const
 {
-  JobPtr job(
-      new FilterJob<void>(boost::bind(&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*)labels)));
+  JobPtr job(new FilterJob<void>(boost::bind(&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*)labels)));
   addJob(job);
   job->wait();
 }

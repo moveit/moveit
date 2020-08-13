@@ -15,5 +15,5 @@ class CollisionDetectorFCLPluginLoader : public CollisionPlugin
 public:
   virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
 };
-}
+}  // namespace collision_detection
 #endif  // MOVEIT_COLLISION_DETECTION_FCL_COLLISION_DETECTOR_FCL_PLUGIN_LOADER_H_

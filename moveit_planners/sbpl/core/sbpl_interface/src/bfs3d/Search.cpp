@@ -49,4 +49,4 @@ void BFS_3D::search(int width, int planeSize, int volatile* distance_grid, int* 
   // std::cerr << "Search thread done" << std::endl;
   running = false;
 }
-}
+}  // namespace sbpl_interface

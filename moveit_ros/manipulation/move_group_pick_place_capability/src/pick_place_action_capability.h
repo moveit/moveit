@@ -57,8 +57,7 @@ private:
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal);
   void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal);
 
-  void executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr& goal,
-                                     moveit_msgs::PickupResult& action_res);
+  void executePickupCallbackPlanOnly(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult& action_res);
   void executePickupCallbackPlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal,
                                            moveit_msgs::PickupResult& action_res);
 
@@ -100,6 +99,6 @@ private:
 
   ros::ServiceClient grasp_planning_service_;
 };
-}
+}  // namespace move_group
 
 #endif

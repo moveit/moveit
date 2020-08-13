@@ -54,8 +54,7 @@ void move_group::MoveGroupPickPlaceAction::initialize()
 
   // start the pickup action server
   pickup_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PickupAction>(
-      root_node_handle_, PICKUP_ACTION, boost::bind(&MoveGroupPickPlaceAction::executePickupCallback, this, _1),
-      false));
+      root_node_handle_, PICKUP_ACTION, boost::bind(&MoveGroupPickPlaceAction::executePickupCallback, this, _1), false));
   pickup_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPickupCallback, this));
   pickup_action_server_->start();
 
@@ -283,8 +282,8 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallbackPlanAndExecute(
   action_res.error_code = plan.error_code_;
 }
 
-void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanAndExecute(
-    const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult& action_res)
+void move_group::MoveGroupPickPlaceAction::executePlaceCallbackPlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal,
+                                                                              moveit_msgs::PlaceResult& action_res)
 {
   plan_execution::PlanExecution::Options opt;
 

@@ -308,6 +308,6 @@ protected:
   /** @brief The internally maintained map (from link names to scaling)*/
   std::map<std::string, double> link_scale_;
 };
-}
+}  // namespace collision_detection
 
 #endif

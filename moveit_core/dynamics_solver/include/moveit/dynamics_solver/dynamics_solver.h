@@ -150,5 +150,5 @@ private:
 
   double gravity_;  // Norm of the gravity vector passed in initialize()
 };
-}
+}  // namespace dynamics_solver
 #endif

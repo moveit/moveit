@@ -53,6 +53,6 @@ public:
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
              const ChompParameters& params, moveit_msgs::MotionPlanDetailedResponse& res) const;
 };
-}
+}  // namespace chomp
 
 #endif

@@ -77,7 +77,7 @@ namespace moveit_warehouse
 MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
 MOVEIT_CLASS_FORWARD(ConstraintsStorage);
 MOVEIT_CLASS_FORWARD(RobotStateStorage);
-}
+}  // namespace moveit_warehouse
 
 namespace moveit_rviz_plugin
 {
@@ -371,6 +371,6 @@ void MotionPlanningFrame::waitForAction(const T& action, const ros::NodeHandle& 
   else
     ROS_DEBUG("Connected to '%s'", name.c_str());
 };
-}
+}  // namespace moveit_rviz_plugin
 
 #endif

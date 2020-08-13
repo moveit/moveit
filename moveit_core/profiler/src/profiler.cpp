@@ -120,7 +120,7 @@ inline double to_seconds(const boost::posix_time::time_duration& d)
 {
   return (double)d.total_microseconds() / 1000000.0;
 }
-}
+}  // namespace
 
 void Profiler::status(std::ostream& out, bool merge)
 {

@@ -168,8 +168,7 @@ public:
     return 0.0;
   };
 
-  void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                    const robot_state::RobotState& state) const override
+  void distanceSelf(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state) const override
   {
     ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
   }
@@ -262,6 +261,6 @@ protected:
 
   planning_scene::PlanningScenePtr planning_scene_;
 };
-}
+}  // namespace collision_detection
 
 #endif

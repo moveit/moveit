@@ -54,7 +54,7 @@ class BoolProperty;
 class FloatProperty;
 class RosTopicProperty;
 class ColorProperty;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {

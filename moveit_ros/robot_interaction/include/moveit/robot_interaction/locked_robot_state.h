@@ -108,6 +108,6 @@ private:
   // PROTECTED BY state_lock_
   robot_state::RobotStatePtr state_;
 };
-}
+}  // namespace robot_interaction
 
 #endif

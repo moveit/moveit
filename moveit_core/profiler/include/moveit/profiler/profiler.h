@@ -311,8 +311,8 @@ private:
   bool running_;
   bool printOnDestroy_;
 };
-}
-}
+}  // namespace tools
+}  // namespace moveit
 
 #else
 
@@ -444,8 +444,8 @@ public:
     return false;
   }
 };
-}
-}
+}  // namespace tools
+}  // namespace moveit
 
 #endif
 

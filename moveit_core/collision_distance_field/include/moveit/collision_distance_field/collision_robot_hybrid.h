@@ -96,6 +96,6 @@ public:
 protected:
   CollisionRobotDistanceFieldPtr crobot_distance_;
 };
-}
+}  // namespace collision_detection
 
 #endif

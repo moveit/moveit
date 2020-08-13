@@ -117,4 +117,4 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = stats;
   return true;
 }
-}
+}  // namespace sbpl_interface

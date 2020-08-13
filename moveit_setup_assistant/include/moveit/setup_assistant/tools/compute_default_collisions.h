@@ -109,6 +109,6 @@ const std::string disabledReasonToString(DisabledReason reason);
  * \return reason as struct
  */
 DisabledReason disabledReasonFromString(const std::string& reason);
-}
+}  // namespace moveit_setup_assistant
 
 #endif

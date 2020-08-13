@@ -107,6 +107,6 @@ public:
     return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());
   }
 };
-}
+}  // namespace collision_detection
 
 #endif

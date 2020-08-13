@@ -168,8 +168,7 @@ void intersectCostSources(std::set<CostSource>& cost_sources, const std::set<Cos
       tmp.aabb_max[1] = std::min(source_a.aabb_max[1], source_b.aabb_max[1]);
       tmp.aabb_max[2] = std::min(source_a.aabb_max[2], source_b.aabb_max[2]);
 
-      if (tmp.aabb_min[0] >= tmp.aabb_max[0] || tmp.aabb_min[1] >= tmp.aabb_max[1] ||
-          tmp.aabb_min[2] >= tmp.aabb_max[2])
+      if (tmp.aabb_min[0] >= tmp.aabb_max[0] || tmp.aabb_min[1] >= tmp.aabb_max[1] || tmp.aabb_min[2] >= tmp.aabb_max[2])
         continue;
       tmp.cost = std::max(source_a.cost, source_b.cost);
       cost_sources.insert(tmp);

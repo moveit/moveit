@@ -48,6 +48,6 @@ public:
 
   void initialize() override;
 };
-}
+}  // namespace move_group
 
 #endif

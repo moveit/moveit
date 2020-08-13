@@ -181,16 +181,16 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
       return false;
     }
 
-    ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create",
-                    (ros::WallTime::now() - create_time).toSec());
+    ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
 
     bool optimization_result = optimizer->optimize();
 
     // replan with updated parameters if no solution is found
     if (params_nonconst.enable_failure_recovery_)
     {
-      ROS_INFO_NAMED("chomp_planner", "Planned with Chomp Parameters (learning_rate, ridge_factor, "
-                                      "planning_time_limit, max_iterations), attempt: # %d ",
+      ROS_INFO_NAMED("chomp_planner",
+                     "Planned with Chomp Parameters (learning_rate, ridge_factor, "
+                     "planning_time_limit, max_iterations), attempt: # %d ",
                      (replan_count + 1));
       ROS_INFO_NAMED("chomp_planner", "Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ",
                      params_nonconst.learning_rate_, params_nonconst.ridge_factor_,

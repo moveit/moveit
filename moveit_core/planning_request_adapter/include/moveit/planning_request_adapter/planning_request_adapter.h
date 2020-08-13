@@ -116,6 +116,6 @@ public:
 private:
   std::vector<PlanningRequestAdapterConstPtr> adapters_;
 };
-}
+}  // namespace planning_request_adapter
 
 #endif

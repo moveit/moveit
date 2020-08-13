@@ -428,8 +428,7 @@ public:
       return b;
     if (!b)
       return a;
-    return joint_model_vector_[common_joint_roots_[a->getJointIndex() * joint_model_vector_.size() +
-                                                   b->getJointIndex()]];
+    return joint_model_vector_[common_joint_roots_[a->getJointIndex() * joint_model_vector_.size() + b->getJointIndex()]];
   }
 
   /// A map of known kinematics solvers (associated to their group name)
@@ -614,8 +613,8 @@ protected:
   /** \brief Given a geometry spec from the URDF and a filename (for a mesh), construct the corresponding shape object*/
   shapes::ShapePtr constructShape(const urdf::Geometry* geom);
 };
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 namespace robot_model = moveit::core;
 namespace robot_state = moveit::core;

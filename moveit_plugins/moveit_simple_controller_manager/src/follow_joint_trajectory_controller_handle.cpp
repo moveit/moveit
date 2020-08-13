@@ -179,8 +179,9 @@ void FollowJointTrajectoryControllerHandle::configure(XmlRpc::XmlRpcValue& confi
     ROS_WARN_STREAM_NAMED(LOGNAME, "Invalid " << config_name);
 }
 
-control_msgs::JointTolerance& FollowJointTrajectoryControllerHandle::getTolerance(
-    std::vector<control_msgs::JointTolerance>& tolerances, const std::string& name)
+control_msgs::JointTolerance&
+FollowJointTrajectoryControllerHandle::getTolerance(std::vector<control_msgs::JointTolerance>& tolerances,
+                                                    const std::string& name)
 {
   auto it =
       std::lower_bound(tolerances.begin(), tolerances.end(), name,

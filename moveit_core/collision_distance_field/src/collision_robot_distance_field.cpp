@@ -273,9 +273,10 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
     if (req.contacts)
     {
       std::vector<unsigned int> colls;
-      bool coll = getCollisionSphereCollision(
-          gsr->dfce_->distance_field_.get(), *collision_spheres_1, *sphere_centers_1, max_propogation_distance_,
-          collision_tolerance_, std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
+      bool coll =
+          getCollisionSphereCollision(gsr->dfce_->distance_field_.get(), *collision_spheres_1, *sphere_centers_1,
+                                      max_propogation_distance_, collision_tolerance_,
+                                      std::min(req.max_contacts_per_pair, req.max_contacts - res.contact_count), colls);
       if (coll)
       {
         res.collision = true;
@@ -803,8 +804,7 @@ DistanceFieldCacheEntryPtr CollisionRobotDistanceField::generateDistanceFieldCac
           //           << " num " << attached_bodies[j]->getTouchLinks().size()
           //           << std::endl;
           // touch links take priority
-          if (link_attached_bodies[j]->getTouchLinks().find(link_name) !=
-              link_attached_bodies[j]->getTouchLinks().end())
+          if (link_attached_bodies[j]->getTouchLinks().find(link_name) != link_attached_bodies[j]->getTouchLinks().end())
           {
             dfce->intra_group_collision_enabled_[i][att_count + dfce->link_names_.size()] = false;
             // std::cerr << "Setting intra group for " << link_name << " and
@@ -1068,8 +1068,9 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
   ROS_DEBUG_STREAM(__FUNCTION__ << " Finished ");
 }
 
-PosedBodySphereDecompositionPtr CollisionRobotDistanceField::getPosedLinkBodySphereDecomposition(
-    const moveit::core::LinkModel* ls, unsigned int ind) const
+PosedBodySphereDecompositionPtr
+CollisionRobotDistanceField::getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
+                                                                 unsigned int ind) const
 {
   PosedBodySphereDecompositionPtr ret;
   ret.reset(new PosedBodySphereDecomposition(link_body_decomposition_vector_[ind]));

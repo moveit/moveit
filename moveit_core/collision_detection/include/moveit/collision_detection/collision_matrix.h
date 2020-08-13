@@ -277,6 +277,6 @@ private:
   std::map<std::string, AllowedCollision::Type> default_entries_;
   std::map<std::string, DecideContactFn> default_allowed_contacts_;
 };
-}
+}  // namespace collision_detection
 
 #endif

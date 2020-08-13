@@ -107,6 +107,6 @@ private:
   bool visual_visible_;
   bool collision_visible_;
 };
-}
+}  // namespace moveit_rviz_plugin
 
 #endif
