@@ -115,5 +115,5 @@ private:
   Jacobian jac_;          // full Jacobian
   Jacobian jac_reduced_;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
 };
-}
+}  // namespace KDL
 #endif

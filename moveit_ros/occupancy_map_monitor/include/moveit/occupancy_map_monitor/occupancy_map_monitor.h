@@ -159,6 +159,6 @@ private:
 
   bool active_;
 };
-}
+}  // namespace occupancy_map_monitor
 
 #endif

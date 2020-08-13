@@ -615,8 +615,9 @@ protected:
             distToPivot[i] = gnat.distFun_(data, child->pivot_);
             insertNeighborR(nbh, r, child->pivot_, distToPivot[i]);
             for (unsigned int j = 0; j < children_.size(); ++j)
-              if (permutation[j] >= 0 && i != j && (distToPivot[i] - dist > child->maxRange_[permutation[j]] ||
-                                                    distToPivot[i] + dist < child->minRange_[permutation[j]]))
+              if (permutation[j] >= 0 && i != j &&
+                  (distToPivot[i] - dist > child->maxRange_[permutation[j]] ||
+                   distToPivot[i] + dist < child->minRange_[permutation[j]]))
                 permutation[j] = -1;
           }
 
@@ -719,6 +720,6 @@ protected:
   // \brief Cache of removed elements.
   std::unordered_set<const _T*> removed_;
 };
-}
+}  // namespace cached_ik_kinematics_plugin
 
 #endif

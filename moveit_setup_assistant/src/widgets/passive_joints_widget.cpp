@@ -53,10 +53,10 @@ PassiveJointsWidget::PassiveJointsWidget(QWidget* parent, const MoveItConfigData
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget* header =
-      new HeaderWidget("Define Passive Joints", "Specify the set of passive joints (not actuated). Joint "
-                                                "state is not expected to be published for these joints.",
-                       this);
+  HeaderWidget* header = new HeaderWidget("Define Passive Joints",
+                                          "Specify the set of passive joints (not actuated). Joint "
+                                          "state is not expected to be published for these joints.",
+                                          this);
   layout->addWidget(header);
 
   // Joints edit widget

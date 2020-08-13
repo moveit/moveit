@@ -201,7 +201,7 @@ template <typename KinematicsPlugin>
 struct hasRobotDescAPI<KinematicsPlugin,
                        decltype(std::declval<KinematicsPlugin&>().KinematicsPlugin::initialize(
                            std::string(), std::string(), std::string(), std::vector<std::string>(), 0.0))>
-    : std::true_type
+  : std::true_type
 {
 };
 
@@ -345,7 +345,7 @@ public:
                         const KinematicsQueryOptions& options = KinematicsQueryOptions(),
                         const moveit::core::RobotState* context_state = nullptr) const override;
 };
-}
+}  // namespace cached_ik_kinematics_plugin
 
 #include "cached_ik_kinematics_plugin-inl.h"
 #endif

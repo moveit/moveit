@@ -62,6 +62,6 @@ private:
   ros::ServiceServer get_service_;
   ros::ServiceServer set_service_;
 };
-}
+}  // namespace move_group
 
 #endif

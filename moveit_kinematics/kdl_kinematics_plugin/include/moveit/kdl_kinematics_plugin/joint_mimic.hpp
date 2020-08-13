@@ -70,6 +70,6 @@ public:
     active = false;
   }
 };
-}
+}  // namespace kdl_kinematics_plugin
 
 #endif

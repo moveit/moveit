@@ -123,6 +123,6 @@ private:
   /* used to unregister the notifier */
   WorldWeakPtr world_;
 };
-}
+}  // namespace collision_detection
 
 #endif

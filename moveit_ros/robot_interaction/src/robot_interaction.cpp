@@ -93,8 +93,9 @@ void RobotInteraction::decideActiveComponents(const std::string& group, Interact
   decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
   if (!group.empty() && active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
-    ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. "
-                                        "Make sure that kinematics.yaml is loaded in this node's namespace.",
+    ROS_INFO_NAMED("robot_interaction",
+                   "No active joints or end effectors found for group '%s'. "
+                   "Make sure that kinematics.yaml is loaded in this node's namespace.",
                    group.c_str());
 }
 
@@ -462,8 +463,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
         im.name = getMarkerName(handler, active_generic_[i]);
         shown_markers_[im.name] = i;
         ims.push_back(im);
-        ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", im.name.c_str(),
-                        im.scale);
+        ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", im.name.c_str(), im.scale);
       }
     }
     ros::NodeHandle nh;
@@ -507,8 +507,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
                               active_eef_[i].interaction & InteractionStyle::ORIENTATION_EEF);
       ims.push_back(im);
       registerMoveInteractiveMarkerTopic(marker_name, handler->getName() + "_" + active_eef_[i].parent_link);
-      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(),
-                      mscale);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), mscale);
     }
     for (std::size_t i = 0; i < active_vj_.size(); ++i)
     {
@@ -532,8 +531,7 @@ void RobotInteraction::addInteractiveMarkers(const InteractionHandlerPtr& handle
       }
       ims.push_back(im);
       registerMoveInteractiveMarkerTopic(marker_name, handler->getName() + "_" + active_vj_[i].connecting_link);
-      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(),
-                      mscale);
+      ROS_DEBUG_NAMED("robot_interaction", "Publishing interactive marker %s (size = %lf)", marker_name.c_str(), mscale);
     }
     handlers_[handler->getName()] = handler;
   }

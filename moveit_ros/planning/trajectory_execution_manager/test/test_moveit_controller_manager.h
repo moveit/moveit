@@ -159,5 +159,5 @@ protected:
   std::map<std::string, int> controllers_;
   std::map<std::string, std::vector<std::string> > controller_joints_;
 };
-}
+}  // namespace test_moveit_controller_manager
 #endif

@@ -379,10 +379,9 @@ void DefaultCollisionsWidget::collisionsChanged(const QModelIndex& index)
   // Hm. For some reason, QTableView doesn't change selection if we click a checkbox
   bool linear_mode = (view_mode_buttons_->checkedId() == LinearMode);
   const QItemSelection& selection = selection_model_->selection();
-  if ((linear_mode && !selection.contains(index)) ||  // in linear mode: index not in selection
-      (!linear_mode &&
-       !(selection.contains(index) ||  // in matrix mode: index or symmetric index not in selection
-         selection.contains(model_->index(index.column(), index.row())))))
+  if ((linear_mode && !selection.contains(index)) ||   // in linear mode: index not in selection
+      (!linear_mode && !(selection.contains(index) ||  // in matrix mode: index or symmetric index not in selection
+                         selection.contains(model_->index(index.column(), index.row())))))
   {
     QItemSelectionModel::SelectionFlags flags = QItemSelectionModel::Select | QItemSelectionModel::Current;
     if (linear_mode)

@@ -67,6 +67,6 @@ struct MotionPlanDetailedResponse
   moveit_msgs::MoveItErrorCodes error_code_;
 };
 
-}  // planning_interface
+}  // namespace planning_interface
 
 #endif

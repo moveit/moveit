@@ -324,8 +324,9 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
   catch (pluginlib::PluginlibException& ex)
   {
-    QMessageBox::warning(this, "Missing Kinematic Solvers", "Exception while creating class loader for kinematic "
-                                                            "solver plugins");
+    QMessageBox::warning(this, "Missing Kinematic Solvers",
+                         "Exception while creating class loader for kinematic "
+                         "solver plugins");
     ROS_ERROR_STREAM(ex.what());
     return;
   }
@@ -336,9 +337,10 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   // Warn if no plugins are found
   if (classes.empty())
   {
-    QMessageBox::warning(this, "Missing Kinematic Solvers", "No MoveIt!-compatible kinematics solvers found. Try "
-                                                            "installing moveit_kinematics (sudo apt-get install "
-                                                            "ros-${ROS_DISTRO}-moveit-kinematics)");
+    QMessageBox::warning(this, "Missing Kinematic Solvers",
+                         "No MoveIt!-compatible kinematics solvers found. Try "
+                         "installing moveit_kinematics (sudo apt-get install "
+                         "ros-${ROS_DISTRO}-moveit-kinematics)");
     return;
   }
 

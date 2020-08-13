@@ -340,8 +340,7 @@ private:
   std::vector<TrajectoryExecutionContext*> trajectories_;
   std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
 
-  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> >
-      controller_manager_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;
@@ -362,6 +361,6 @@ private:
   double execution_velocity_scaling_;
   bool wait_for_trajectory_completion_;
 };
-}
+}  // namespace trajectory_execution_manager
 
 #endif

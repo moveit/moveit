@@ -59,8 +59,7 @@ public:
 
   ConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
-  void addConstraints(const moveit_msgs::Constraints& msg, const std::string& robot = "",
-                      const std::string& group = "");
+  void addConstraints(const moveit_msgs::Constraints& msg, const std::string& robot = "", const std::string& group = "");
   bool hasConstraints(const std::string& name, const std::string& robot = "", const std::string& group = "") const;
   void getKnownConstraints(std::vector<std::string>& names, const std::string& robot = "",
                            const std::string& group = "") const;
@@ -83,6 +82,6 @@ private:
 
   ConstraintsCollection constraints_collection_;
 };
-}
+}  // namespace moveit_warehouse
 
 #endif

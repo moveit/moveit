@@ -53,7 +53,7 @@ namespace rviz
 {
 class DisplayContext;
 class Shape;
-}
+}  // namespace rviz
 
 namespace moveit_rviz_plugin
 {
@@ -78,6 +78,6 @@ private:
   std::vector<std::unique_ptr<rviz::Shape> > scene_shapes_;
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
-}
+}  // namespace moveit_rviz_plugin
 
 #endif

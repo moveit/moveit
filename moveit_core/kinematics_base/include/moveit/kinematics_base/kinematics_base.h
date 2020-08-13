@@ -52,8 +52,8 @@ namespace core
 MOVEIT_CLASS_FORWARD(JointModelGroup)
 MOVEIT_CLASS_FORWARD(RobotState)
 MOVEIT_CLASS_FORWARD(RobotModel)
-}
-}
+}  // namespace core
+}  // namespace moveit
 
 /** @brief API for forward and inverse kinematics */
 namespace kinematics
@@ -663,6 +663,6 @@ protected:
 private:
   std::string removeSlash(const std::string& str) const;
 };
-};
+};  // namespace kinematics
 
 #endif

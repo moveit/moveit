@@ -262,9 +262,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       for (int t = 0; t < nt; ++t)
         try
         {
-          tf2::fromMsg(
-              tf_buffer_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp),
-              map_h_sensor);
+          tf2::fromMsg(tf_buffer_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id,
+                                                   depth_msg->header.stamp),
+                       map_h_sensor);
           found = true;
           break;
         }
@@ -289,8 +289,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       {
         failed_tf_++;
         if (failed_tf_ > good_tf_)
-          ROS_WARN_THROTTLE(1, "More than half of the image messages discared due to TF being unavailable (%u%%). "
-                               "Transform error of sensor data: %s; quitting callback.",
+          ROS_WARN_THROTTLE(1,
+                            "More than half of the image messages discared due to TF being unavailable (%u%%). "
+                            "Transform error of sensor data: %s; quitting callback.",
                             (100 * failed_tf_) / (good_tf_ + failed_tf_), err.c_str());
         else
           ROS_DEBUG_THROTTLE(1, "Transform error of sensor data: %s; quitting callback", err.c_str());

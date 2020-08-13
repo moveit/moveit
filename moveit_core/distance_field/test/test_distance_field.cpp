@@ -412,15 +412,15 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
             std::cout << "Grad " << grad.x() << " " << grad.y() << " " << grad.z() << " comp " << comp_x << " "
                       << comp_y << " " << comp_z << std::endl;
           }
-          ASSERT_NEAR(comp_x, POINT1.x(), RESOLUTION) << dist << x << " " << y << " " << z << " " << grad.x() << " "
-                                                      << grad.y() << " " << grad.z() << " " << xscale << " " << yscale
-                                                      << " " << zscale << std::endl;
-          ASSERT_NEAR(comp_y, POINT1.y(), RESOLUTION) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
-                                                      << " " << grad.z() << " " << xscale << " " << yscale << " "
-                                                      << zscale << std::endl;
-          ASSERT_NEAR(comp_z, POINT1.z(), RESOLUTION) << x << " " << y << " " << z << " " << grad.x() << " " << grad.y()
-                                                      << " " << grad.z() << " " << xscale << " " << yscale << " "
-                                                      << zscale << std::endl;
+          ASSERT_NEAR(comp_x, POINT1.x(), RESOLUTION)
+              << dist << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " "
+              << xscale << " " << yscale << " " << zscale << std::endl;
+          ASSERT_NEAR(comp_y, POINT1.y(), RESOLUTION)
+              << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale
+              << " " << yscale << " " << zscale << std::endl;
+          ASSERT_NEAR(comp_z, POINT1.z(), RESOLUTION)
+              << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z() << " " << xscale
+              << " " << yscale << " " << zscale << std::endl;
         }
       }
     }
@@ -588,10 +588,10 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
           EXPECT_EQ(ncell_pos.z(), cell_z);
           EXPECT_EQ(ncell, cell);
 #endif
-          EXPECT_GE(cell->distance_square_, 1) << dist << " " << x << " " << y << " " << z << " " << grad.x() << " "
-                                               << grad.y() << " " << grad.z() << " " << xscale << " " << yscale << " "
-                                               << zscale << " cell " << comp_x << " " << comp_y << " " << comp_z
-                                               << std::endl;
+          EXPECT_GE(cell->distance_square_, 1)
+              << dist << " " << x << " " << y << " " << z << " " << grad.x() << " " << grad.y() << " " << grad.z()
+              << " " << xscale << " " << yscale << " " << zscale << " cell " << comp_x << " " << comp_y << " " << comp_z
+              << std::endl;
         }
       }
     }

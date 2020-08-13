@@ -149,7 +149,7 @@ private:
   class PlanningSceneInterfaceImpl;
   PlanningSceneInterfaceImpl* impl_;
 };
-}
-}
+}  // namespace planning_interface
+}  // namespace moveit
 
 #endif

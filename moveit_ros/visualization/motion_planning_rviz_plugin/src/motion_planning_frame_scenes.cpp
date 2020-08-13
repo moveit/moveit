@@ -86,8 +86,9 @@ void MotionPlanningFrame::saveSceneButtonClicked()
         if (q->clickedButton() == rename.get())
         {
           bool ok = false;
-          QString new_name = QInputDialog::getText(this, "Rename Planning Scene", "New name for the planning scene:",
-                                                   QLineEdit::Normal, QString::fromStdString(name), &ok);
+          QString new_name = QInputDialog::getText(this, "Rename Planning Scene",
+                                                   "New name for the planning scene:", QLineEdit::Normal,
+                                                   QString::fromStdString(name), &ok);
           if (ok)
           {
             planning_display_->getPlanningSceneRW()->setName(new_name.toStdString());
@@ -161,9 +162,9 @@ void MotionPlanningFrame::saveQueryButtonClicked()
             if (q->clickedButton() == rename.get())
             {
               bool ok = false;
-              QString new_name =
-                  QInputDialog::getText(this, "Rename Planning Query", "New name for the planning query:",
-                                        QLineEdit::Normal, QString::fromStdString(query_name), &ok);
+              QString new_name = QInputDialog::getText(this, "Rename Planning Query",
+                                                       "New name for the planning query:", QLineEdit::Normal,
+                                                       QString::fromStdString(query_name), &ok);
               if (ok)
                 query_name = new_name.toStdString();
               else
@@ -237,10 +238,11 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem* item, int co
     if (planning_scene_storage->hasPlanningQuery(scene, new_name))
     {
       planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlanningSceneTreeView, this));
-      QMessageBox::warning(this, "Query not renamed", QString("The query name '")
-                                                          .append(item->text(column))
-                                                          .append("' already exists for scene ")
-                                                          .append(item->parent()->text(0)));
+      QMessageBox::warning(this, "Query not renamed",
+                           QString("The query name '")
+                               .append(item->text(column))
+                               .append("' already exists for scene ")
+                               .append(item->parent()->text(0)));
       return;
     }
     else

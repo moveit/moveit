@@ -81,7 +81,7 @@ namespace details
 struct sse_meta_f4;
 template <typename T>
 struct Vec3Data;
-}
+}  // namespace details
 template <typename T>
 class Vec3fX;
 #if FCL_HAVE_SSE
@@ -96,6 +96,6 @@ class OBBRSS;
 using OBBRSSd = fcl::OBBRSS;
 class DynamicAABBTreeCollisionManager;
 using DynamicAABBTreeCollisionManagerd = fcl::DynamicAABBTreeCollisionManager;
-}
+}  // namespace fcl
 #endif
 #endif

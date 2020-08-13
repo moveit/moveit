@@ -93,7 +93,7 @@ boost::python::list listFromString(const std::vector<std::string>& v)
 {
   return listFromType<std::string>(v);
 }
-}
-}
+}  // namespace py_bindings_tools
+}  // namespace moveit
 
 #endif

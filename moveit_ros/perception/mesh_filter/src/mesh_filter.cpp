@@ -52,8 +52,7 @@ using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
 
-mesh_filter::MeshFilter::MeshFilter(
-    const boost::function<bool(MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
+mesh_filter::MeshFilter::MeshFilter(const boost::function<bool(MeshFilter::MeshHandle, Isometry3d&)>& transform_callback)
   : mesh_renderer_(640, 480, 0.3, 10)  // some default values for buffer sizes and clipping planes
   , depth_filter_(640, 480, 0.3, 10)
   , next_handle_(FirstLabel)  // 0 and 1 are reserved!
@@ -163,7 +162,7 @@ inline bool isAligned16(const void* pointer)
 {
   return (((uintptr_t)pointer & 15) == 0);
 }
-}
+}  // namespace
 
 void mesh_filter::MeshFilter::getModelDepth(float* depth) const
 {

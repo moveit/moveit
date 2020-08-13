@@ -96,6 +96,6 @@ private:
   void notifyObjectChange(const ObjectConstPtr& obj, World::Action action);
   World::ObserverHandle observer_handle_;
 };
-}
+}  // namespace collision_detection
 
 #endif

@@ -237,9 +237,10 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
         static const double MAX_CLOSE_UP_DIST = 1.0;
         robot_state::RobotStatePtr close_up_state(new robot_state::RobotState(*plan->possible_goal_states_[i]));
         std::vector<robot_state::RobotStatePtr> close_up_states;
-        double d_close_up = close_up_state->computeCartesianPath(
-            plan->shared_data_->planning_group_, close_up_states, plan->shared_data_->ik_link_, approach_direction,
-            approach_direction_is_global_frame, MAX_CLOSE_UP_DIST, max_step_, jump_factor_, approach_valid_callback);
+        double d_close_up = close_up_state->computeCartesianPath(plan->shared_data_->planning_group_, close_up_states,
+                                                                 plan->shared_data_->ik_link_, approach_direction,
+                                                                 approach_direction_is_global_frame, MAX_CLOSE_UP_DIST,
+                                                                 max_step_, jump_factor_, approach_valid_callback);
         // if progress towards the object was made, update the desired goal state
         if (d_close_up > 0.0 && close_up_states.size() > 1)
           *plan->possible_goal_states_[i] = *close_up_states[close_up_states.size() - 2];

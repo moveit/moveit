@@ -60,14 +60,16 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_robot_model_(false)
 {
-  robot_description_property_ = new rviz::StringProperty(
-      "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-      this, SLOT(changedRobotDescription()), this);
+  robot_description_property_ =
+      new rviz::StringProperty("Robot Description", "robot_description",
+                               "The name of the ROS parameter where the URDF for the robot is loaded", this,
+                               SLOT(changedRobotDescription()), this);
 
-  robot_state_topic_property_ = new rviz::RosTopicProperty(
-      "Robot State Topic", "display_robot_state", ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
-      "The topic on which the moveit_msgs::DisplayRobotState messages are received", this,
-      SLOT(changedRobotStateTopic()), this);
+  robot_state_topic_property_ =
+      new rviz::RosTopicProperty("Robot State Topic", "display_robot_state",
+                                 ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
+                                 "The topic on which the moveit_msgs::DisplayRobotState messages are received", this,
+                                 SLOT(changedRobotStateTopic()), this);
 
   // Planning scene category -------------------------------------------------------------------------------------------
   root_link_name_property_ =

@@ -141,6 +141,6 @@ private:
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 };
-}
+}  // namespace moveit_setup_assistant
 
 #endif

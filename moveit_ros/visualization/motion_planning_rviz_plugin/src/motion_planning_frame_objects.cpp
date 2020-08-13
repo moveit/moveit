@@ -113,8 +113,9 @@ void MotionPlanningFrame::publishScene()
 void MotionPlanningFrame::publishSceneIfNeeded()
 {
   if (isLocalSceneDirty() &&
-      QMessageBox::question(this, "Update PlanningScene", "You have local changes to your planning scene.\n"
-                                                          "Publish them to the move_group node?",
+      QMessageBox::question(this, "Update PlanningScene",
+                            "You have local changes to your planning scene.\n"
+                            "Publish them to the move_group node?",
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
     publishScene();
 }
@@ -799,8 +800,7 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     {
       known_collision_objects_[item->type()].first = item_text;
       ps->getWorldNonConst()->removeObject(obj->id_);
-      ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_,
-                                          obj->shape_poses_);
+      ps->getWorldNonConst()->addToObject(known_collision_objects_[item->type()].first, obj->shapes_, obj->shape_poses_);
       if (scene_marker_)
       {
         scene_marker_.reset();
@@ -817,9 +817,10 @@ void MotionPlanningFrame::renameCollisionObject(QListWidgetItem* item)
     if (ab)
     {
       known_collision_objects_[item->type()].first = item_text;
-      robot_state::AttachedBody* new_ab = new robot_state::AttachedBody(
-          ab->getAttachedLink(), known_collision_objects_[item->type()].first, ab->getShapes(),
-          ab->getFixedTransforms(), ab->getTouchLinks(), ab->getDetachPosture());
+      robot_state::AttachedBody* new_ab =
+          new robot_state::AttachedBody(ab->getAttachedLink(), known_collision_objects_[item->type()].first,
+                                        ab->getShapes(), ab->getFixedTransforms(), ab->getTouchLinks(),
+                                        ab->getDetachPosture());
       cs.clearAttachedBody(ab->getName());
       cs.attachBody(new_ab);
     }
@@ -985,8 +986,9 @@ void MotionPlanningFrame::computeImportGeometryFromText(const std::string& path)
     }
     else
     {
-      QMessageBox::warning(nullptr, "Loading scene geometry", "Failed to load scene geometry.\n"
-                                                              "See console output for more details.");
+      QMessageBox::warning(nullptr, "Loading scene geometry",
+                           "Failed to load scene geometry.\n"
+                           "See console output for more details.");
     }
   }
 }
