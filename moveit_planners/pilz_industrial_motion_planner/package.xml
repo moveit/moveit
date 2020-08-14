@@ -39,7 +39,7 @@
   <test_depend>rostest</test_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>cmake_modules</test_depend>
-  <test_depend>moveit_resources</test_depend>
+  <test_depend>moveit_resources_panda_moveit_config</test_depend>
   <test_depend>pilz_testutils</test_depend>
   <test_depend>pilz_industrial_motion_planner_testutils</test_depend>
   <test_depend>prbt_moveit_config</test_depend>
