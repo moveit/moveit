@@ -35,6 +35,7 @@
   <depend>liburdfdom-dev</depend>
   <depend>liburdfdom-headers-dev</depend>
   <depend>moveit_msgs</depend>
+  <depend>moveit_resources</depend>
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
   <depend>random_numbers</depend>
