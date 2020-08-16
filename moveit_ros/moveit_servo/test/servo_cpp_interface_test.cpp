@@ -50,6 +50,7 @@
 #include <moveit_servo/make_shared_from_pool.h>
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
+static constexpr double LARGEST_ALLOWABLE_PANDA_VEL = 2.8710;  // to test joint velocity limit enforcement
 
 namespace moveit_servo
 {
@@ -110,7 +111,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
-      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { ++received_count; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send servo commands
@@ -136,6 +137,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   }
 
   EXPECT_GT(received_count, num_commands - 20);
+  EXPECT_GT(received_count, 0);
   EXPECT_LT(received_count, num_commands + 20);
   servo_->stop();
 }
@@ -150,7 +152,7 @@ TEST_F(ServoFixture, SendJointServoTest)
   // count trajectory messages sent by servo
   size_t received_count = 0;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
-      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { received_count++; };
+      [&received_count](const trajectory_msgs::JointTrajectoryConstPtr& msg) { ++received_count; };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
   // Create publisher to send servo commands
@@ -180,6 +182,61 @@ TEST_F(ServoFixture, SendJointServoTest)
   servo_->stop();
 }
 
+TEST_F(ServoFixture, JointVelocityEnforcementTest)
+{
+  servo_->start();
+  EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
+
+  auto parameters = servo_->getParameters();
+
+  // count trajectory messages sent by servo
+  trajectory_msgs::JointTrajectory joint_command_from_servo;
+  trajectory_msgs::JointTrajectory prev_joint_command_from_servo;
+  boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
+      [&joint_command_from_servo, &prev_joint_command_from_servo](const trajectory_msgs::JointTrajectoryConstPtr& msg) {
+        // Store a series of two commands so we can calculate velocities from positions
+        prev_joint_command_from_servo = joint_command_from_servo;
+        joint_command_from_servo = *msg;
+      };
+  auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
+
+  // Create publisher to send servo commands
+  auto twist_stamped_pub = nh_.advertise<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic, 1);
+
+  constexpr double test_duration = 1.0;
+  const double publish_period = parameters.publish_period;
+  const size_t num_commands = static_cast<size_t>(test_duration / publish_period);
+
+  ros::Rate publish_rate(1. / publish_period);
+
+  // Send a few Cartesian commands with very high velocity
+  for (size_t i = 0; i < num_commands && ros::ok(); ++i)
+  {
+    auto msg = moveit::util::make_shared_from_pool<geometry_msgs::TwistStamped>();
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "panda_link0";
+    msg->twist.linear.x = 10.0;
+    msg->twist.angular.y = 10.0;
+
+    // Send the message
+    twist_stamped_pub.publish(msg);
+    publish_rate.sleep();
+  }
+
+  // Need a sequence of two commands to calculate a velocity
+  EXPECT_GT(joint_command_from_servo.points.size(), 0);
+  EXPECT_GT(prev_joint_command_from_servo.points.size(), 0);
+  EXPECT_EQ(prev_joint_command_from_servo.points.size(), joint_command_from_servo.points.size());
+  // No velocities larger than the largest allowable Panda velocity
+  for (size_t joint_index = 0; joint_index < joint_command_from_servo.points[0].positions.size(); ++joint_index)
+  {
+    double joint_velocity = (joint_command_from_servo.points[0].positions[joint_index] -
+                             prev_joint_command_from_servo.points[0].positions[joint_index]) /
+                            publish_period;
+    EXPECT_LE(joint_velocity, LARGEST_ALLOWABLE_PANDA_VEL);
+  }
+  servo_->stop();
+}
 }  // namespace moveit_servo
 
 int main(int argc, char** argv)
