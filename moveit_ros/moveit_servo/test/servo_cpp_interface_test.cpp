@@ -46,8 +46,8 @@
 #include <gtest/gtest.h>
 
 // Servo
-#include <moveit_servo/servo.h>
 #include <moveit_servo/make_shared_from_pool.h>
+#include <moveit_servo/servo.h>
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double LARGEST_ALLOWABLE_PANDA_VEL = 2.8710;  // to test joint velocity limit enforcement
@@ -188,15 +188,36 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
   EXPECT_TRUE(waitForFirstStatus()) << "Timeout waiting for Status message";
 
   auto parameters = servo_->getParameters();
+  double publish_period = parameters.publish_period;
 
   // count trajectory messages sent by servo
+  size_t received_count = 0;
   trajectory_msgs::JointTrajectory joint_command_from_servo;
   trajectory_msgs::JointTrajectory prev_joint_command_from_servo;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
-      [&joint_command_from_servo, &prev_joint_command_from_servo](const trajectory_msgs::JointTrajectoryConstPtr& msg) {
-        // Store a series of two commands so we can calculate velocities from positions
+      [&](const trajectory_msgs::JointTrajectoryConstPtr& msg) {
+        ++received_count;
+        // Store a series of two commands so we can calculate velocities
+        // from positions
         prev_joint_command_from_servo = joint_command_from_servo;
         joint_command_from_servo = *msg;
+
+        // Start running checks when we have at least two datapoints
+        if (received_count > 1)
+        {
+          // Need a sequence of two commands to calculate a velocity
+          EXPECT_GT(joint_command_from_servo.points.size(), 0);
+          EXPECT_GT(prev_joint_command_from_servo.points.size(), 0);
+          EXPECT_EQ(prev_joint_command_from_servo.points.size(), joint_command_from_servo.points.size());
+          // No velocities larger than the largest allowable Panda velocity
+          for (size_t joint_index = 0; joint_index < joint_command_from_servo.points[0].positions.size(); ++joint_index)
+          {
+            double joint_velocity = (joint_command_from_servo.points[0].positions[joint_index] -
+                                     prev_joint_command_from_servo.points[0].positions[joint_index]) /
+                                    publish_period;
+            EXPECT_LE(joint_velocity, LARGEST_ALLOWABLE_PANDA_VEL);
+          }
+        }
       };
   auto traj_sub = nh_.subscribe(parameters.command_out_topic, 1, traj_callback);
 
@@ -204,7 +225,6 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
   auto twist_stamped_pub = nh_.advertise<geometry_msgs::TwistStamped>(parameters.cartesian_command_in_topic, 1);
 
   constexpr double test_duration = 1.0;
-  const double publish_period = parameters.publish_period;
   const size_t num_commands = static_cast<size_t>(test_duration / publish_period);
 
   ros::Rate publish_rate(1. / publish_period);
@@ -223,18 +243,8 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
     publish_rate.sleep();
   }
 
-  // Need a sequence of two commands to calculate a velocity
-  EXPECT_GT(joint_command_from_servo.points.size(), 0);
-  EXPECT_GT(prev_joint_command_from_servo.points.size(), 0);
-  EXPECT_EQ(prev_joint_command_from_servo.points.size(), joint_command_from_servo.points.size());
-  // No velocities larger than the largest allowable Panda velocity
-  for (size_t joint_index = 0; joint_index < joint_command_from_servo.points[0].positions.size(); ++joint_index)
-  {
-    double joint_velocity = (joint_command_from_servo.points[0].positions[joint_index] -
-                             prev_joint_command_from_servo.points[0].positions[joint_index]) /
-                            publish_period;
-    EXPECT_LE(joint_velocity, LARGEST_ALLOWABLE_PANDA_VEL);
-  }
+  EXPECT_GT(received_count, num_commands - 20);
+  EXPECT_LT(received_count, num_commands + 20);
   servo_->stop();
 }
 }  // namespace moveit_servo
