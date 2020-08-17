@@ -685,7 +685,7 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 
   std::size_t joint_delta_index = 0;
   // Track the smallest velocity scaling factor required, across all joints
-  double min_relative_velocity_all_joints = 1;
+  double velocity_limit_scaling_factor = 1;
 
   for (auto joint : joint_model_group_->getActiveJointModels())
   {
@@ -712,25 +712,25 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
       // Apply velocity bounds
       if (clip_velocity)
       {
-        const double relative_change =
+        const double scaling_factor =
             fabs(velocity_limit * parameters_.publish_period) / fabs(delta_theta(joint_delta_index));
 
         // Store the scaling factor if it's the smallest yet
-        if (relative_change < min_relative_velocity_all_joints)
-          min_relative_velocity_all_joints = relative_change;
+        if (scaling_factor < velocity_limit_scaling_factor)
+          velocity_limit_scaling_factor = scaling_factor;
       }
     }
     ++joint_delta_index;
   }
 
   // Apply the velocity scaling to all joints
-  if (min_relative_velocity_all_joints < 1)
+  if (velocity_limit_scaling_factor < 1)
   {
     joint_delta_index = 0;
     for (auto joint : joint_model_group_->getActiveJointModels())
     {
-      delta_theta(joint_delta_index) = min_relative_velocity_all_joints * delta_theta(joint_delta_index);
-      velocity(joint_delta_index) = min_relative_velocity_all_joints * velocity(joint_delta_index);
+      delta_theta(joint_delta_index) = velocity_limit_scaling_factor * delta_theta(joint_delta_index);
+      velocity(joint_delta_index) = velocity_limit_scaling_factor * velocity(joint_delta_index);
 
       ++joint_delta_index;
     }

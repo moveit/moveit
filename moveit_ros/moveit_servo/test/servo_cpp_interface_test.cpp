@@ -236,7 +236,7 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
     msg->header.stamp = ros::Time::now();
     msg->header.frame_id = "panda_link0";
     msg->twist.linear.x = 10.0;
-    msg->twist.angular.y = 10.0;
+    msg->twist.angular.y = 5 * LARGEST_ALLOWABLE_PANDA_VEL;
 
     // Send the message
     twist_stamped_pub.publish(msg);
