@@ -137,7 +137,7 @@ TEST_F(ServoFixture, SendTwistStampedTest)
   }
 
   EXPECT_GT(received_count, num_commands - 20);
-  EXPECT_GT(received_count, 0);
+  EXPECT_GT(received_count, (unsigned)0);
   EXPECT_LT(received_count, num_commands + 20);
   servo_->stop();
 }
@@ -206,8 +206,8 @@ TEST_F(ServoFixture, JointVelocityEnforcementTest)
         if (received_count > 1)
         {
           // Need a sequence of two commands to calculate a velocity
-          EXPECT_GT(joint_command_from_servo.points.size(), 0);
-          EXPECT_GT(prev_joint_command_from_servo.points.size(), 0);
+          EXPECT_GT(joint_command_from_servo.points.size(), (unsigned)0);
+          EXPECT_GT(prev_joint_command_from_servo.points.size(), (unsigned)0);
           EXPECT_EQ(prev_joint_command_from_servo.points.size(), joint_command_from_servo.points.size());
           // No velocities larger than the largest allowable Panda velocity
           for (size_t joint_index = 0; joint_index < joint_command_from_servo.points[0].positions.size(); ++joint_index)

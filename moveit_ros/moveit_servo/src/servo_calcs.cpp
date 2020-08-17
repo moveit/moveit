@@ -726,13 +726,11 @@ void ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
   // Apply the velocity scaling to all joints
   if (velocity_limit_scaling_factor < 1)
   {
-    joint_delta_index = 0;
-    for (auto joint : joint_model_group_->getActiveJointModels())
+    for (joint_delta_index = 0; joint_delta_index < joint_model_group_->getActiveJointModels().size();
+         ++joint_delta_index)
     {
       delta_theta(joint_delta_index) = velocity_limit_scaling_factor * delta_theta(joint_delta_index);
       velocity(joint_delta_index) = velocity_limit_scaling_factor * velocity(joint_delta_index);
-
-      ++joint_delta_index;
     }
   }
 }
