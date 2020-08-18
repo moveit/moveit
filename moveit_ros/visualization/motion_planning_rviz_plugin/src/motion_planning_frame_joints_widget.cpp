@@ -383,8 +383,20 @@ void ProgressBarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
   {
     QVariant joint_type = index.data(JointTypeRole);
     double value = index.data().toDouble();
-    bool is_revolute = joint_type.isValid() && joint_type.toInt() == moveit::core::JointModel::REVOLUTE;
-    style_option.text = option.locale.toString(is_revolute ? value * 180 / M_PI : value, 'f', is_revolute ? 0 : 3);
+    if (joint_type.isValid())
+    {
+      switch (joint_type.toInt())
+      {
+        case moveit::core::JointModel::REVOLUTE:
+          style_option.text = option.locale.toString(value * 180 / M_PI, 'f', 0).append("°");
+          break;
+        case moveit::core::JointModel::PRISMATIC:
+          style_option.text = option.locale.toString(value, 'f', 3).append("m");
+          break;
+        default:
+          break;
+      }
+    }
 
     QVariant vbounds = index.data(VariableBoundsRole);
     if (vbounds.isValid())
