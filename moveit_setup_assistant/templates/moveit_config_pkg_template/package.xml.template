@@ -23,6 +23,7 @@
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>moveit_setup_assistant</run_depend>
   <run_depend>joint_state_publisher</run_depend>
+  <run_depend>joint_state_publisher_gui</run_depend>
   <run_depend>robot_state_publisher</run_depend>
   <run_depend>tf2_ros</run_depend>
   <run_depend>xacro</run_depend>

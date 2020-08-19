@@ -31,8 +31,10 @@
   [VIRTUAL_JOINT_BROADCASTER]
 
   <!-- We do not have a robot connected, so publish fake joint states -->
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="$(arg use_gui)"/>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" unless="$(arg use_gui)">
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>
+  <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_gui)">
     <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
   </node>
 
