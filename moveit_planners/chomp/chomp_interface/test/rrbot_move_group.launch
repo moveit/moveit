@@ -1,6 +1,6 @@
 <launch>
 
-   <arg name="use_gui" default="false" />
+  <arg name="use_gui" default="false" />
 
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="robot_description"/>
