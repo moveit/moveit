@@ -58,7 +58,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_robot_model_(false)
+RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false)
 {
   robot_description_property_ =
       new rviz::StringProperty("Robot Description", "robot_description",
@@ -119,8 +119,8 @@ void RobotStateDisplay::reset()
   robot_->clear();
   rdf_loader_.reset();
   Display::reset();
-
-  loadRobotModel();
+  if (isEnabled())
+    onEnable();
 }
 
 void RobotStateDisplay::changedAllLinks()
@@ -292,6 +292,8 @@ void RobotStateDisplay::changedRobotStateTopic()
   if (static_cast<bool>(robot_state_))
     robot_state_->setToDefaultValues();
   update_state_ = true;
+  robot_->setVisible(false);
+  setStatus(rviz::StatusProperty::Warn, "RobotState", "No msg received");
 
   robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10,
                                                &RobotStateDisplay::newRobotStateCallback, this);
@@ -306,15 +308,17 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   // possibly use TF to construct a robot_state::Transforms object to pass in to the conversion function?
   try
   {
-    robot_state::robotStateMsgToRobotState(state_msg->state, *robot_state_);
+    moveit::core::robotStateMsgToRobotState(state_msg->state, *robot_state_);
     setRobotHighlights(state_msg->highlight_links);
     setStatus(rviz::StatusProperty::Ok, "RobotState", "");
+    robot_->setVisible(true);
   }
   catch (const moveit::Exception& e)
   {
     robot_state_->setToDefaultValues();
     setRobotHighlights(moveit_msgs::DisplayRobotState::_highlight_links_type());
     setStatus(rviz::StatusProperty::Error, "RobotState", e.what());
+    robot_->setVisible(false);
     return;
   }
   update_state_ = true;
@@ -353,9 +357,7 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
-  load_robot_model_ = false;
-  if (!rdf_loader_)
-    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (rdf_loader_->getURDF())
   {
@@ -369,22 +371,31 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(old_state);
     update_state_ = true;
-    setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
+    setStatus(rviz::StatusProperty::Ok, "RobotModel", "Loaded successfully");
 
     changedEnableVisualVisible();
     changedEnableCollisionVisible();
-    robot_->setVisible(true);
   }
   else
-    setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
+    setStatus(rviz::StatusProperty::Error, "RobotModel", "Loading failed");
 
   highlights_.clear();
+}
+
+void RobotStateDisplay::load(const rviz::Config& config)
+{
+  // This property needs to be loaded in onEnable() below, which is triggered
+  // in the beginning of Display::load() before the other property would be available
+  robot_description_property_->load(config.mapGetChild("Robot Description"));
+  Display::load(config);
 }
 
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  load_robot_model_ = true;  // allow loading of robot model in update()
+  if (!rdf_loader_)
+    loadRobotModel();
+  changedRobotStateTopic();
   calculateOffsetPosition();
 }
 
@@ -402,13 +413,6 @@ void RobotStateDisplay::onDisable()
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
-
-  if (load_robot_model_)
-  {
-    loadRobotModel();
-    changedRobotStateTopic();
-  }
-
   calculateOffsetPosition();
   if (robot_ && update_state_ && robot_state_)
   {
