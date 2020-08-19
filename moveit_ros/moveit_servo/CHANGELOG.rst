@@ -2,6 +2,16 @@
 Changelog for package moveit_servo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [feature] A ROS service to reset the Servo status (`#2246 <https://github.com/ros-planning/moveit/issues/2246>`_)
+* [feature] Check collisions during joint motions, too (`#2204 <https://github.com/ros-planning/moveit/issues/2204>`_)
+* [fix]     Correctly set velocities to zero when stale (`#2255 <https://github.com/ros-planning/moveit/issues/2255>`_)
+* [maint]   Remove unused yaml param (`#2232 <https://github.com/ros-planning/moveit/issues/2232>`_)
+* [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [maint]   Migrate to clang-format-10
+* Contributors: AndyZe, Robert Haschke, Ruofan Xu, Michael Görner
+
 1.0.5 (2020-07-08)
 ------------------
 * [maint]   Minor moveit_servo header cleanup (`#2173 <https://github.com/ros-planning/moveit/issues/2173>`_)

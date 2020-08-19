@@ -2,6 +2,14 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [maint] Migrate to clang-format-10, Fix warnings
+* [maint] Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* [maint] Fix docs in robot_state.h (`#2215 <https://github.com/ros-planning/moveit/issues/2215>`_)
+* Contributors: Jeroen, Markus Vieth, Michael Görner, Robert Haschke
+
 1.0.5 (2020-07-08)
 ------------------
 * [fix]     Fix memory leaks related to geometric shapes usage (`#2138 <https://github.com/ros-planning/moveit/issues/2138>`_)

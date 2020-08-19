@@ -2,6 +2,14 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [maint] Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [maint] Migrate to clang-format-10
+* [maint] Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* [fix]   Fix memcpy bug in copyJointToOMPLState in ompl interface (`#2239 <https://github.com/ros-planning/moveit/issues/2239>`_)
+* Contributors: Jeroen, Markus Vieth, Robert Haschke, Michael Görner
+
 1.0.5 (2020-07-08)
 ------------------
 * [feature] Added support for hybridize/interpolate flags in ModelBasedPlanningContext via ompl_planning.yaml (`#2171 <https://github.com/ros-planning/moveit/issues/2171>`_, `#2172 <https://github.com/ros-planning/moveit/issues/2172>`_)

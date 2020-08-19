@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [maint]   Migrate to clang-format-10, Fix warnings
+* [maint]   Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* [feature] Exposed parameter wait_for_servers and getPlannerId() API in MoveGroup's Python API (`#2201 <https://github.com/ros-planning/moveit/issues/2201>`_)
+* Contributors: Gerard Canal, Markus Vieth, Robert Haschke, Michael Görner
+
 1.0.5 (2020-07-08)
 ------------------
 * [maint]   Remove dependency on panda_moveit_config (#2194 <https://github.com/ros-planning/moveit/issues/2194>`_, #2197 <https://github.com/ros-planning/moveit/issues/2197>`_)

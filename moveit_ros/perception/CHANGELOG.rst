@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [maint] Migrate to clang-format-10
+* [maint] Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* [maint] Further increase acceptance threshold for mesh-filter test
+* [maint] Prefer vendor-specific OpenGL library
+* Contributors: Markus Vieth, Robert Haschke
+
 1.0.5 (2020-07-08)
 ------------------
 * [maint] Fix mesh_filter test (`#2044 <https://github.com/ros-planning/moveit/issues/2044>`_)

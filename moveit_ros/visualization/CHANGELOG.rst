@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [feature] MP display: add units to joints tab (`#2264 <https://github.com/ros-planning/moveit/issues/2264>`_)
+* [feature] Allow adding planning scene shapes from rviz panel (`#2198 <https://github.com/ros-planning/moveit/issues/2198>`_)
+* [feature] Default to Planning tab initially (`#2061 <https://github.com/ros-planning/moveit/issues/2061>`_)
+* [fix]     Fix deferred robot model loading (`#2245 <https://github.com/ros-planning/moveit/issues/2245>`_)
+* [maint]   Migrate to clang-format-10
+* [maint]   Optimize includes (`#2229 <https://github.com/ros-planning/moveit/issues/2229>`_)
+* Contributors: Jorge Nicho, Markus Vieth, Michael Görner, Robert Haschke, Michael Görner
+
 1.0.5 (2020-07-08)
 ------------------
 * [feature] Improve rviz GUI to add PlanningScene objects. Ask for scaling large meshes. (`#2142 <https://github.com/ros-planning/moveit/issues/2142>`_)

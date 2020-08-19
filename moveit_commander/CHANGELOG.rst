@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2020-08-19)
+------------------
+* [maint]   Adapt repository for splitted moveit_resources layout (`#2199 <https://github.com/ros-planning/moveit/issues/2199>`_)
+* [feature] Exposed parameter wait_for_servers and getPlannerId() API in MoveGroup's Python API (`#2201 <https://github.com/ros-planning/moveit/issues/2201>`_)
+* Contributors: Gerard Canal, Robert Haschke, Michael Görner
+
 1.0.5 (2020-07-08)
 ------------------
 * [fix]   Python 3 fix (`#2030 <https://github.com/ros-planning/moveit/issues/2030>`_)
