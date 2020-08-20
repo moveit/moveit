@@ -99,6 +99,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , interpolate_(true)
   , hybridize_(true)
 {
+  complete_initial_robot_state_.setToDefaultValues();  // avoid uninitialized memory
   complete_initial_robot_state_.update();
 
   constraints_library_ = std::make_shared<ConstraintsLibrary>(this);
