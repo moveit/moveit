@@ -20,6 +20,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/detail/constrained_sampler.cpp
   src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
+  src/detail/ompl_constraints.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 
@@ -70,4 +71,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_constrained_state_validity_checker test/test_constrained_state_validity_checker.cpp)
   target_link_libraries(test_constrained_state_validity_checker ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
   set_target_properties(test_constrained_state_validity_checker PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+
+  catkin_add_gtest(test_ompl_constraints test/test_ompl_constraints.cpp)
+  target_link_libraries(test_ompl_constraints ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
 endif()
