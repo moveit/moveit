@@ -143,6 +143,19 @@ class PlanningSceneInterface(object):
             aco.touch_links = [link]
         self.__submit(aco, attach=True)
 
+    def attach_cylinder(self, link, name, pose=None, height=1, radius=1, touch_links=[]):
+        aco = AttachedCollisionObject()
+        if pose is not None:
+            aco.object = self.__make_cylinder(name, pose, height, radius)
+        else:
+            aco.object = self.__make_existing(name)
+        aco.link_name = link
+        if len(touch_links) > 0:
+            aco.touch_links = touch_links
+        else:
+            aco.touch_links = [link]
+        self.__submit(aco, attach=True)
+
     def remove_world_object(self, name=None):
         """
         Remove an object from planning scene, or all if no name is provided
