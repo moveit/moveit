@@ -67,12 +67,11 @@ class PlanningSceneInterface(object):
             self._apply_planning_scene_diff = rospy.ServiceProxy(ns + '/apply_planning_scene', ApplyPlanningScene)
             self._apply_planning_scene_diff.wait_for_service(service_timeout)
 
-    def __submit(self, collision_object, attach=False):
+    def __submit(self, collision_object):
         if self.__synchronous:
-            diff_req = self.__make_planning_scene_diff_req(collision_object, attach)
-            self._apply_planning_scene_diff.call(diff_req)
+            self._apply_planning_scene_diff.call(self.__make_planning_scene_diff_req(collision_object))
         else:
-            if attach:
+            if isinstance(collision_object, AttachedCollisionObject):
                 self._pub_aco.publish(collision_object)
             else:
                 self._pub_co.publish(collision_object)
@@ -82,28 +81,28 @@ class PlanningSceneInterface(object):
         Add a sphere to the planning scene
         """
         co = self.__make_sphere(name, pose, radius)
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def add_cylinder(self, name, pose, height, radius):
         """
         Add a cylinder to the planning scene
         """
         co = self.__make_cylinder(name, pose, height, radius)
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
         """
         Add a mesh to the planning scene
         """
         co = self.__make_mesh(name, pose, filename, size)
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def add_box(self, name, pose, size=(1, 1, 1)):
         """
         Add a box to the planning scene
         """
         co = self.__make_box(name, pose, size)
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
         """ Add a plane to the planning scene """
@@ -116,7 +115,7 @@ class PlanningSceneInterface(object):
         p.coef.append(offset)
         co.planes = [p]
         co.plane_poses = [pose.pose]
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def attach_mesh(self, link, name, pose=None, filename='', size=(1, 1, 1), touch_links=[]):
         aco = AttachedCollisionObject()
@@ -128,7 +127,7 @@ class PlanningSceneInterface(object):
         aco.touch_links = [link]
         if len(touch_links) > 0:
             aco.touch_links = touch_links
-        self.__submit(aco, attach=True)
+        self.__submit(aco)
 
     def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
         aco = AttachedCollisionObject()
@@ -141,7 +140,7 @@ class PlanningSceneInterface(object):
             aco.touch_links = touch_links
         else:
             aco.touch_links = [link]
-        self.__submit(aco, attach=True)
+        self.__submit(aco)
 
     def remove_world_object(self, name=None):
         """
@@ -151,7 +150,7 @@ class PlanningSceneInterface(object):
         co.operation = CollisionObject.REMOVE
         if name is not None:
             co.id = name
-        self.__submit(co, attach=False)
+        self.__submit(co)
 
     def remove_attached_object(self, link, name=None):
         """
@@ -162,7 +161,7 @@ class PlanningSceneInterface(object):
         aco.link_name = link
         if name is not None:
             aco.object.id = name
-        self.__submit(aco, attach=True)
+        self.__submit(aco)
 
     def get_known_object_names(self, with_type=False):
         """
@@ -306,11 +305,11 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_planning_scene_diff_req(collision_object, attach=False):
+    def __make_planning_scene_diff_req(collision_object):
         scene = PlanningScene()
         scene.is_diff = True
         scene.robot_state.is_diff = True
-        if attach:
+        if isinstance(collision_object, AttachedCollisionObject):
             scene.robot_state.attached_collision_objects = [collision_object]
         else:
             scene.world.collision_objects = [collision_object]
