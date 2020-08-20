@@ -76,72 +76,6 @@ class PlanningSceneInterface(object):
             else:
                 self._pub_co.publish(collision_object)
 
-    def add_sphere(self, name, pose, radius=1):
-        """
-        Add a sphere to the planning scene
-        """
-        co = self.__make_sphere(name, pose, radius)
-        self.__submit(co)
-
-    def add_cylinder(self, name, pose, height, radius):
-        """
-        Add a cylinder to the planning scene
-        """
-        co = self.__make_cylinder(name, pose, height, radius)
-        self.__submit(co)
-
-    def add_mesh(self, name, pose, filename, size=(1, 1, 1)):
-        """
-        Add a mesh to the planning scene
-        """
-        co = self.__make_mesh(name, pose, filename, size)
-        self.__submit(co)
-
-    def add_box(self, name, pose, size=(1, 1, 1)):
-        """
-        Add a box to the planning scene
-        """
-        co = self.__make_box(name, pose, size)
-        self.__submit(co)
-
-    def add_plane(self, name, pose, normal=(0, 0, 1), offset=0):
-        """ Add a plane to the planning scene """
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        p = Plane()
-        p.coef = list(normal)
-        p.coef.append(offset)
-        co.planes = [p]
-        co.plane_poses = [pose.pose]
-        self.__submit(co)
-
-    def attach_mesh(self, link, name, pose=None, filename='', size=(1, 1, 1), touch_links=[]):
-        aco = AttachedCollisionObject()
-        if (pose is not None) and filename:
-            aco.object = self.__make_mesh(name, pose, filename, size)
-        else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        aco.touch_links = [link]
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
-        self.__submit(aco)
-
-    def attach_box(self, link, name, pose=None, size=(1, 1, 1), touch_links=[]):
-        aco = AttachedCollisionObject()
-        if pose is not None:
-            aco.object = self.__make_box(name, pose, size)
-        else:
-            aco.object = self.__make_existing(name)
-        aco.link_name = link
-        if len(touch_links) > 0:
-            aco.touch_links = touch_links
-        else:
-            aco.touch_links = [link]
-        self.__submit(aco)
-
     def remove_world_object(self, name=None):
         """
         Remove an object from planning scene, or all if no name is provided
@@ -279,7 +213,7 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
-    def __make_sphere(name, pose, radius):
+    def __make_sphere(name, pose, radius=1):
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -305,6 +239,19 @@ class PlanningSceneInterface(object):
         return co
 
     @staticmethod
+    def __make_plane(name, pose, normal=(0, 0, 1), offset=0):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        p = Plane()
+        p.coef = list(normal)
+        p.coef.append(offset)
+        co.planes = [p]
+        co.plane_poses = [pose.pose]
+        return co
+
+    @staticmethod
     def __make_planning_scene_diff_req(collision_object):
         scene = PlanningScene()
         scene.is_diff = True
@@ -316,3 +263,35 @@ class PlanningSceneInterface(object):
         planning_scene_diff_req = ApplyPlanningSceneRequest()
         planning_scene_diff_req.scene = scene
         return planning_scene_diff_req
+
+
+def __create_add_attach_methods(shape):
+    """Add methods add_xxx() and attach_xxx() to class PlanningSceneInterface for a given shape"""
+    make_method = getattr(PlanningSceneInterface, '_PlanningSceneInterface__make_' + shape)
+
+    def add(self, name, pose, *args, **kwargs):
+        co = make_method(name, pose, *args, **kwargs)
+        self._PlanningSceneInterface__submit(co)
+
+    def attach(self, link, name, pose=None, *args, **kwargs):
+        touch_links = kwargs.pop('touch_links', [link])
+        aco = AttachedCollisionObject()
+        if pose is not None:
+            try:
+                aco.object = make_method(name, pose, *args, **kwargs)
+            except TypeError:  # thrown if touch_links was specified as an unnamed last argument
+                args = list(args)  # convert args into a (mutable) list
+                touch_links = args.pop()  # pop last argument as touch_links
+                aco.object = make_method(name, pose, *args, **kwargs)  # retry
+        else:
+            aco.object = self._PlanningSceneInterface__make_existing(name)
+        aco.link_name = link
+        aco.touch_links = touch_links
+        self._PlanningSceneInterface__submit(aco)
+
+    setattr(PlanningSceneInterface, 'add_' + shape, add)
+    setattr(PlanningSceneInterface, 'attach_' + shape, attach)
+
+
+for shape in ['box', 'sphere', 'cylinder', 'mesh', 'plane']:
+    __create_add_attach_methods(shape)
