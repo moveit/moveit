@@ -216,7 +216,7 @@ public:
     pconfig_settings.group = group_name_;
     pconfig_settings.name = group_name_;
     pconfig_settings.config = { { "enforce_joint_model_state_space", "0" },
-                                { "enforce_constrained_planning_state_space", "1" },
+                                { "enforce_constrained_state_space", "1" },
                                 { "projection_evaluator", "joints(joint_1,joint_2)" },
                                 { "longest_valid_segment_fraction", "0.05" } };  //,
     // { "default_planner_config", "RRTConnect" } };
@@ -225,7 +225,7 @@ public:
     rrt_config.group = group_name_;
     rrt_config.name = group_name_ + "[RRTConnect]";
     rrt_config.config = { { "enforce_joint_model_state_space", "0" },
-                          { "enforce_constrained_planning_state_space", "1" },
+                          { "enforce_constrained_state_space", "1" },
                           { "projection_evaluator", "joints(joint_1,joint_2)" },
                           { "longest_valid_segment_fraction", "0.05" },
                           { "type", "geometric::RRTConnect" },
