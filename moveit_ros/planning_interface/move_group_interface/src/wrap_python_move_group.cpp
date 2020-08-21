@@ -270,6 +270,7 @@ public:
     convertListToPose(pose, msg.pose);
     msg.header.frame_id = getPoseReferenceFrame();
     msg.header.stamp = ros::Time::now();
+    GILReleaser gr;
     return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
@@ -279,6 +280,7 @@ public:
     std::vector<geometry_msgs::PoseStamped> poses(l);
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(poses_list[i]), poses[i]);
+    GILReleaser gr;
     return place(object_name, poses, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
@@ -287,6 +289,7 @@ public:
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
+    GILReleaser gr;
     return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
   }
 
@@ -296,11 +299,13 @@ public:
     std::vector<moveit_msgs::PlaceLocation> locations(l);
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(location_list[i]), locations[i]);
+    GILReleaser gr;
     return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
   }
 
   bool placeAnywhere(const std::string& object_name, bool plan_only = false)
   {
+    GILReleaser gr;
     return place(object_name, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
@@ -501,6 +506,7 @@ public:
   {
     moveit_msgs::Grasp grasp;
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
+    GILReleaser gr;
     return pick(object, grasp, plan_only).val;
   }
 
@@ -510,6 +516,7 @@ public:
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l; ++i)
       py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(grasp_list[i]), grasps[i]);
+    GILReleaser gr;
     return pick(object, std::move(grasps), plan_only).val;
   }
 
