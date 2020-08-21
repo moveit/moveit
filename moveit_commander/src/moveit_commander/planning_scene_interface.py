@@ -279,7 +279,10 @@ def __create_add_attach_methods(shape):
         if pose is not None:
             try:
                 aco.object = make_method(name, pose, *args, **kwargs)
-            except TypeError:  # thrown if touch_links was specified as an unnamed last argument
+            except TypeError:
+                # If touch_links was specified as a an unnamed, last argument, the call to make_method
+                # will throw a TypeError (because the additional argument doesn't match its signature).
+                # In this case, grab the last argument as touch_links and retry.
                 args = list(args)  # convert args into a (mutable) list
                 touch_links = args.pop()  # pop last argument as touch_links
                 aco.object = make_method(name, pose, *args, **kwargs)  # retry
@@ -289,8 +292,15 @@ def __create_add_attach_methods(shape):
         aco.touch_links = touch_links
         self._PlanningSceneInterface__submit(aco)
 
-    setattr(PlanningSceneInterface, 'add_' + shape, add)
-    setattr(PlanningSceneInterface, 'attach_' + shape, attach)
+    # Provide the correct name and doc string
+    add.__name__ = 'add_' + shape
+    add.__doc__ = 'Add a {} to the planning scene'.format(shape)
+    attach.__name__ = 'attach_' + shape
+    attach.__doc__ = 'Attach a {} to the given robot link'.format(shape)
+
+    # Set the methods
+    setattr(PlanningSceneInterface, add.__name__, add)
+    setattr(PlanningSceneInterface, attach.__name__, attach)
 
 
 for shape in ['box', 'sphere', 'cylinder', 'mesh', 'plane']:
