@@ -265,11 +265,29 @@ public:
     return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
+  bool placePoses(const std::string& object_name, const bp::list& poses_list, bool plan_only = false)
+  {
+    int l = bp::len(poses_list);
+    std::vector<geometry_msgs::PoseStamped> poses(l);
+    for (int i = 0; i < l; ++i)
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(poses_list[i]), poses[i]);
+    return place(object_name, poses, plan_only) == MoveItErrorCode::SUCCESS;
+  }
+
   bool placeLocation(const std::string& object_name, const py_bindings_tools::ByteString& location_str,
                      bool plan_only = false)
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
+    return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
+  }
+
+  bool placeLocations(const std::string& object_name, const bp::list& location_list, bool plan_only = false)
+  {
+    int l = bp::len(location_list);
+    std::vector<moveit_msgs::PlaceLocation> locations(l);
+    for (int i = 0; i < l; ++i)
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(location_list[i]), locations[i]);
     return place(object_name, std::move(locations), plan_only) == MoveItErrorCode::SUCCESS;
   }
 
@@ -592,7 +610,9 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasp);
   move_group_interface_class.def("pick", &MoveGroupInterfaceWrapper::pickGrasps);
   move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placePose);
+  move_group_interface_class.def("place_poses_list", &MoveGroupInterfaceWrapper::placePoses);
   move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placeLocation);
+  move_group_interface_class.def("place_locations_list", &MoveGroupInterfaceWrapper::placeLocations);
   move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placeAnywhere);
   move_group_interface_class.def("stop", &MoveGroupInterfaceWrapper::stop);
 

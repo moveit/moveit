@@ -571,7 +571,7 @@ class MoveGroupCommander(object):
     def place(self, object_name, location=None, plan_only=False):
         """Place the named object at a particular location in the environment or somewhere safe in the world if location is not provided"""
         result = False
-        if location is None:
+        if not location:
             result = self._g.place(object_name, plan_only)
         elif type(location) is PoseStamped:
             old = self.get_pose_reference_frame()
@@ -582,8 +582,16 @@ class MoveGroupCommander(object):
             result = self._g.place(object_name, conversions.pose_to_list(location), plan_only)
         elif type(location) is PlaceLocation:
             result = self._g.place(object_name, conversions.msg_to_string(location), plan_only)
+        elif type(location) is list:
+            if location:
+                if type(location[0]) is PlaceLocation:
+                    result = self._g.place_locations_list(object_name, [conversions.msg_to_string(x) for x in location], plan_only)
+                elif type(location[0]) is PoseStamped:
+                    result = self._g.place_poses_list(object_name, [conversions.msg_to_string(x) for x in location], plan_only)
+                else:
+                    raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped, PlaceLocation, list of PoseStamped or list of PlaceLocation object")
         else:
-            raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped or PlaceLocation object")
+            raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped, PlaceLocation, list of PoseStamped or list of PlaceLocation object")
         return result
 
     def set_support_surface_name(self, value):
