@@ -493,7 +493,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // State space selection process
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // There are 3 options for the factory_selector
-  // 1) enforce_constrained_planning_state_space = true
+  // 1) enforce_constrained_state_space = true
   //         Overrides all other settings and selects a ConstrainedPlanningStateSpace factory
   // 2) enforce_joint_model_state_space = true
   //         If 1) is false, then this one overrides the remaining settings and returns a JointModelStateSpace factory
@@ -501,10 +501,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   //         See PoseModelStateSpaceFactory::canRepresentProblem for details on the selection process.
   //         In short, it returns a PoseModelStateSpace if there is an IK solver and a path constraint.
   //
-  // enforce_constrained_planning_state_space
+  // enforce_constrained_state_space
   // ****************************************
   // Check if the user wants to use an OMPL ConstrainedStateSpace for planning.
-  // This is done by setting 'enforce_constrained_planning_state_space' to 'true' for the desired group in ompl_planing.yaml.
+  // This is done by setting 'enforce_constrained_state_space' to 'true' for the desired group in ompl_planing.yaml.
   //
   // enforce_joint_model_state_space
   // *******************************
@@ -516,7 +516,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
   // in JointModelStateSpace.
   StateSpaceFactoryTypeSelector factory_selector;
-  auto constrained_planning_iterator = pc->second.config.find("enforce_constrained_planning_state_space");
+  auto constrained_planning_iterator = pc->second.config.find("enforce_constrained_state_space");
   auto joint_space_planning_iterator = pc->second.config.find("enforce_joint_model_state_space");
 
   if (constrained_planning_iterator != pc->second.config.end() &&
