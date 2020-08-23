@@ -45,6 +45,12 @@
 #include <Eigen/Core>
 #include <moveit/robot_model/robot_model.h>
 
+namespace
+{
+static const char LOGNAME[] = "collision_common";
+constexpr double ROS_LOG_THROTTLE_PERIOD = 5;
+}  // namespace
+
 namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
@@ -159,6 +165,31 @@ struct CollisionResult
     contact_count = 0;
     contacts.clear();
     cost_sources.clear();
+  }
+
+  /** \brief Throttled log of the first collision pair, if any */
+  void logFirstCollisionPair()
+  {
+    if (!contacts.empty())
+    {
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                     "Objects in collision (among others, possibly): "
+                                         << contacts.begin()->first.first << ", " << contacts.begin()->first.second);
+    }
+  }
+
+  /** \brief Throttled log of all collision pairs */
+  void logAllCollisionPairs()
+  {
+    if (!contacts.empty())
+    {
+      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision:");
+      for (auto contact : contacts)
+      {
+        ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+                                       "\t" << contact.first.first << ", " << contact.first.second);
+      }
+    }
   }
 
   /** \brief True if collision was found, false otherwise */
