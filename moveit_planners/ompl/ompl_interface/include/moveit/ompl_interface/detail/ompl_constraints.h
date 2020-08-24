@@ -325,6 +325,44 @@ private:
   std::vector<bool> is_dim_constrained_;
 };
 
+/******************************************
+ * Orientation constraints
+ * ****************************************/
+/** \brief Orientation constraints parameterized using exponential coordinates.
+ *
+ * An orientation constraints is modelled as a deviation from a target orientation.
+ * The deviation is represented using exponential coordinates. A three element vector represents the rotation axis
+ * multiplied with the angle in radians around this axis.
+ *
+ *  R_error = R_end_effector ^ (-1) * R_target
+ *  R_error -> rotation angle and axis           (using Eigen3)
+ *  error = angle * axis                         (vector with three elements)
+ *
+ *  And then the constraints can be written as
+ *
+ *     - absolute_x_axis_tolerance / 2 < error[0] < absolute_x_axis_tolerance / 2
+ *     - absolute_y_axis_tolerance / 2 < error[1] < absolute_y_axis_tolerance / 2
+ *     - absolute_z_axis_tolerance / 2 < error[2] < absolute_z_axis_tolerance / 2
+ *
+ * **IMPORTANT** It is NOT how orientation error is handled in the default MoveIt constraint samplers, where XYZ
+ * intrinsic euler angles are used. Using exponential coordinates is analog to how orientation Error is calculated in
+ * the TrajOpt  motion planner.
+ *
+ * */
+class OrientationConstraint : public BaseConstraint
+{
+public:
+  OrientationConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
+                        const unsigned int num_dofs)
+    : BaseConstraint(robot_model, group, num_dofs)
+  {
+  }
+
+  void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
+  Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+  virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
+};
+
 /** \brief Extract position constraints from the MoveIt message.
  *
  * Assumes there is a single primitive of type `shape_msgs/SolidPrimitive.BOX`.
@@ -333,9 +371,41 @@ private:
  * */
 Bounds positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint& pos_con);
 
+/** \brief Extract orientation constraints from the MoveIt message
+ *
+ * These bounds are assumed to be centered around the target orientation / desired orientation
+ * given in the "orientation" field in the message.
+ * These bounds represent orientation error between the desired orientation and the current orientation of the
+ * end-effector.
+ *
+ * The "absolute_x_axis_tolerance", "absolute_y_axis_tolerance" and "absolute_z_axis_tolerance" are interpreted as
+ * the width of the tolerance regions around the target orientation, represented using exponential coordinates.
+ *
+ * */
+std::vector<Bounds> orientationConstraintMsgToBoundVector(const moveit_msgs::OrientationConstraint& ori_con);
+
 /** \brief Factory to create constraints based on what is in the MoveIt constraint message. **/
 std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotModelConstPtr& robot_model,
                                                      const std::string& group,
                                                      const moveit_msgs::Constraints& constraints);
+
+/** Convert anglular velocity to angle-axis velocity, base on:
+ * https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2016/RD2016script.pdf
+ * */
+inline Eigen::Matrix3d angularVelocityToAngleAxis(double angle, const Eigen::Ref<const Eigen::Vector3d> axis)
+{
+  // Eigen::Matrix3d E;
+
+  double t{ std::abs(angle) };
+  Eigen::Matrix3d r_skew;
+  r_skew << 0, -axis[2], axis[1], axis[2], 0, -axis[0], -axis[1], axis[0], 0;
+  r_skew *= angle;
+
+  double C;
+  C = (1 - 0.5 * t * std::sin(t) / (1 - std::cos(t)));
+
+  return Eigen::Matrix3d::Identity() - 0.5 * r_skew + r_skew * r_skew / (t * t) * C;
+  // return E;
+}
 
 }  // namespace ompl_interface

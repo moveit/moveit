@@ -266,6 +266,37 @@ void EqualityPositionConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd
   }
 }
 
+/******************************************
+ * Orientation constraints
+ * ****************************************/
+void OrientationConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
+{
+  bounds_.clear();
+  bounds_ = orientationConstraintMsgToBoundVector(constraints.orientation_constraints.at(0));
+  ROS_INFO_STREAM("Parsing orientation constraints");
+  ROS_INFO_STREAM("Parsed rx / roll constraints" << bounds_[0]);
+  ROS_INFO_STREAM("Parsed ry / pitch constraints" << bounds_[1]);
+  ROS_INFO_STREAM("Parsed rz / yaw constraints" << bounds_[2]);
+
+  tf::quaternionMsgToEigen(constraints.orientation_constraints.at(0).orientation, target_orientation_);
+
+  link_name_ = constraints.orientation_constraints.at(0).link_name;
+}
+
+Eigen::VectorXd OrientationConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  Eigen::Matrix3d orientation_difference = forwardKinematics(x).linear().transpose() * target_orientation_;
+  Eigen::AngleAxisd aa(orientation_difference);
+  return aa.axis() * aa.angle();
+}
+
+Eigen::MatrixXd OrientationConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+{
+  Eigen::Matrix3d orientation_difference = forwardKinematics(x).linear().transpose() * target_orientation_;
+  Eigen::AngleAxisd aa{ orientation_difference };
+  return -angularVelocityToAngleAxis(aa.angle(), aa.axis()) * robotGeometricJacobian(x).bottomRows(3);
+}
+
 /************************************
  * MoveIt constraint message parsing
  * **********************************/
@@ -281,6 +312,20 @@ Bounds positionConstraintMsgToBoundVector(const moveit_msgs::PositionConstraint&
   }
 
   return { { -dims[0] / 2, -dims[1] / 2, -dims[2] / 2 }, { dims[0] / 2, dims[1] / 2, dims[2] / 2 } };
+}
+
+std::vector<Bounds> orientationConstraintMsgToBoundVector(const moveit_msgs::OrientationConstraint& ori_con)
+{
+  std::vector<double> dims{ ori_con.absolute_x_axis_tolerance, ori_con.absolute_y_axis_tolerance,
+                            ori_con.absolute_z_axis_tolerance };
+
+  // dimension of -1 signifies unconstrained parameter, so set to infinity
+  for (auto& dim : dims)
+  {
+    if (dim == -1)
+      dim = std::numeric_limits<double>::infinity();
+  }
+  return { { -dims[0], dims[0] }, { -dims[1], dims[1] }, { -dims[2], dims[2] } };
 }
 
 /******************************************
@@ -332,7 +377,9 @@ std::shared_ptr<BaseConstraint> createOMPLConstraint(const robot_model::RobotMod
   else if (num_ori_con > 0)
   {
     ROS_ERROR_NAMED(LOGNAME, "Orientation constraints are not yet supported.");
-    return nullptr;
+    auto ori_con = std::make_shared<OrientationConstraint>(robot_model, group, num_dofs);
+    ori_con->init(constraints);
+    return ori_con;
   }
   else
   {
