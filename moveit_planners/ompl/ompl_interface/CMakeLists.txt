@@ -76,7 +76,7 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(test_ompl_constraints ${MOVEIT_LIB_NAME} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
 
   # Unfortunatly it is not possible to test the planning constext manager without introducing a ROS dependency.
-  find_package(catkin REQUIRED COMPONENTS rostest)
+  find_package(rostest REQUIRED)
   add_rostest_gtest(test_planning_context_manager
     test/test_planning_context_manager.test
     test/test_planning_context_manager.cpp)
