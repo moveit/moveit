@@ -493,7 +493,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // State space selection process
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // There are 3 options for the factory_selector
-  // 1) enforce_constrained_state_space = true
+  // 1) enforce_constrained_state_space = true AND there are path constraints in the planning request
   //         Overrides all other settings and selects a ConstrainedPlanningStateSpace factory
   // 2) enforce_joint_model_state_space = true
   //         If 1) is false, then this one overrides the remaining settings and returns a JointModelStateSpace factory
@@ -505,6 +505,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // ****************************************
   // Check if the user wants to use an OMPL ConstrainedStateSpace for planning.
   // This is done by setting 'enforce_constrained_state_space' to 'true' for the desired group in ompl_planing.yaml.
+  // If there are no path constraints in the planning request, this option is ignored, as the constrained state space is
+  // only usefull for paths constraints. (And at the moment only a single position constraint is supported, hence:
+  //     req.path_constraints.position_constraints.size() == 1
+  // is used in the selection process below.)
   //
   // enforce_joint_model_state_space
   // *******************************
@@ -520,7 +524,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   auto joint_space_planning_iterator = pc->second.config.find("enforce_joint_model_state_space");
 
   if (constrained_planning_iterator != pc->second.config.end() &&
-      boost::lexical_cast<bool>(constrained_planning_iterator->second))
+      boost::lexical_cast<bool>(constrained_planning_iterator->second) &&
+      req.path_constraints.position_constraints.size() == 1)
   {
     factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1,
                                  ConstrainedPlanningStateSpace::PARAMETERIZATION_TYPE);
