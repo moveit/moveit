@@ -128,7 +128,7 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
                                                                      *current_state_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  collision_result_.logFirstCollisionPair();
+  collision_result_.print();
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
@@ -136,7 +136,7 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
                                                                             *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  collision_result_.logFirstCollisionPair();
+  collision_result_.print();
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately

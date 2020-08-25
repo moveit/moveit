@@ -45,12 +45,6 @@
 #include <Eigen/Core>
 #include <moveit/robot_model/robot_model.h>
 
-namespace
-{
-static const char LOGNAME[] = "collision_common";
-constexpr double ROS_LOG_THROTTLE_PERIOD = 5;
-}  // namespace
-
 namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
@@ -150,7 +144,12 @@ struct CostSource
 /** \brief Representation of a collision checking result */
 struct CollisionResult
 {
-  CollisionResult() : collision(false), distance(std::numeric_limits<double>::max()), contact_count(0)
+  CollisionResult()
+    : collision(false)
+    , distance(std::numeric_limits<double>::max())
+    , contact_count(0)
+    , collision_log_period(5)
+    , collision_log_name("collision_common")
   {
   }
   typedef std::map<std::pair<std::string, std::string>, std::vector<Contact> > ContactMap;
@@ -167,27 +166,22 @@ struct CollisionResult
     cost_sources.clear();
   }
 
-  /** \brief Throttled log of the first collision pair, if any */
-  void logFirstCollisionPair()
+  /** \brief Throttled warning of the first collision pair, if any. Other collisions are logged at the DEBUG level */
+  void print()
   {
     if (!contacts.empty())
     {
-      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                     "Objects in collision (among others, possibly): "
-                                         << contacts.begin()->first.first << ", " << contacts.begin()->first.second);
-    }
-  }
+      ROS_WARN_STREAM_THROTTLE_NAMED(collision_log_period, collision_log_name,
+                                     "Objects in collision (printing first collision pair of "
+                                         << contacts.size() << "): " << contacts.begin()->first.first << ", "
+                                         << contacts.begin()->first.second);
 
-  /** \brief Throttled log of all collision pairs */
-  void logAllCollisionPairs()
-  {
-    if (!contacts.empty())
-    {
-      ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision:");
+      // Log all collisions at the debug level
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(collision_log_period, collision_log_name, "Objects in collision:");
       for (auto contact : contacts)
       {
-        ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                       "\t" << contact.first.first << ", " << contact.first.second);
+        ROS_DEBUG_STREAM_THROTTLE_NAMED(collision_log_period, collision_log_name,
+                                        "\t" << contact.first.first << ", " << contact.first.second);
       }
     }
   }
@@ -206,6 +200,12 @@ struct CollisionResult
 
   /** \brief These are the individual cost sources when costs are computed */
   std::set<CostSource> cost_sources;
+
+  /** \brief Period for logging collisions */
+  double collision_log_period;
+
+  /** Log name, for printed messages */
+  std::string collision_log_name;
 };
 
 /** \brief Representation of a collision checking request */
