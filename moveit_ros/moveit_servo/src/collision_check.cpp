@@ -128,7 +128,7 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
                                                                      *current_state_);
   scene_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  printCollisionPairs(collision_result_.contacts);
+  collision_result_.print();
 
   collision_result_.clear();
   // Self-collisions and scene collisions are checked separately so different thresholds can be used
@@ -136,7 +136,7 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
                                                                             *current_state_, acm_);
   self_collision_distance_ = collision_result_.distance;
   collision_detected_ |= collision_result_.collision;
-  printCollisionPairs(collision_result_.contacts);
+  collision_result_.print();
 
   velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
@@ -204,25 +204,6 @@ void CollisionCheck::run(const ros::TimerEvent& timer_event)
     auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
     msg->data = velocity_scale_;
     collision_velocity_scale_pub_.publish(msg);
-  }
-}
-
-void CollisionCheck::printCollisionPairs(collision_detection::CollisionResult::ContactMap& contact_map)
-{
-  if (!contact_map.empty())
-  {
-    // Throttled error message about the first contact in the list
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                   "Objects in collision (among others, possibly): "
-                                       << contact_map.begin()->first.first << ", "
-                                       << contact_map.begin()->first.second);
-    // Log all other contacts if in debug mode
-    ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME, "Objects in collision:");
-    for (auto contact : contact_map)
-    {
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                      "\t" << contact.first.first << ", " << contact.first.second);
-    }
   }
 }
 
