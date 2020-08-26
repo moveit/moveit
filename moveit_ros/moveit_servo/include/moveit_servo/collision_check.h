@@ -79,9 +79,6 @@ private:
   /** \brief Run one iteration of collision checking */
   void run(const ros::TimerEvent& timer_event);
 
-  /** \brief Print objects in collision. Useful for debugging.  */
-  void printCollisionPairs(collision_detection::CollisionResult::ContactMap& contact_map);
-
   /** \brief Get a read-only copy of the planning scene */
   planning_scene_monitor::LockedPlanningSceneRO getLockedPlanningSceneRO() const;
 
