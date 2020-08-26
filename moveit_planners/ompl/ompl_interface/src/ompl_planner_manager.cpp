@@ -56,6 +56,8 @@ namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
 
+constexpr char LOGNAME[] = "ompl_planner_manager";
+
 #define OMPL_ROS_LOG(ros_log_level)                                                                                    \
   {                                                                                                                    \
     ROSCONSOLE_DEFINE_LOCATION(true, ros_log_level, ROSCONSOLE_NAME_PREFIX ".ompl");                                   \
@@ -265,13 +267,13 @@ private:
     {
       pub_markers_.shutdown();
       planner_data_link_name_.clear();
-      ROS_INFO("Not displaying OMPL exploration data structures.");
+      ROS_INFO_NAMED(LOGNAME, "Not displaying OMPL exploration data structures.");
     }
     else if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
     {
       pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
       planner_data_link_name_ = config.link_for_exploration_tree;
-      ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+      ROS_INFO_NAMED(LOGNAME, "Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
     }
 
     ompl_interface_->simplifySolutions(config.simplify_solutions);

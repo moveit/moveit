@@ -37,6 +37,11 @@
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <utility>
 
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "model_based_state_space";
+}  // namespace ompl_interface
+
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec)
   : ompl::base::StateSpace(), spec_(std::move(spec))
 {
@@ -49,8 +54,7 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(ModelBasedStateSpaceS
   // make sure we have bounds for every joint stored within the spec (use default bounds if not specified)
   if (!spec_.joint_bounds_.empty() && spec_.joint_bounds_.size() != joint_model_vector_.size())
   {
-    ROS_ERROR_NAMED("model_based_state_space",
-                    "Joint group '%s' has incorrect bounds specified. Using the default bounds instead.",
+    ROS_ERROR_NAMED(LOGNAME, "Joint group '%s' has incorrect bounds specified. Using the default bounds instead.",
                     spec_.joint_model_group_->getName().c_str());
     spec_.joint_bounds_.clear();
   }
@@ -86,7 +90,7 @@ double ompl_interface::ModelBasedStateSpace::getTagSnapToSegment() const
 void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
 {
   if (snap < 0.0 || snap > 1.0)
-    ROS_WARN_NAMED("model_based_state_space",
+    ROS_WARN_NAMED(LOGNAME,
                    "Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. "
                    "Value remains as previously set (%lf)",
                    tag_snap_to_segment_);

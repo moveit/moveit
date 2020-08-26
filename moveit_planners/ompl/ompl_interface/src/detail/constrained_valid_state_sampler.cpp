@@ -40,6 +40,11 @@
 
 #include <utility>
 
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "constrained_valid_state_sampler";
+}  // namespace ompl_interface
+
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext* pc,
                                                                  kinematic_constraints::KinematicConstraintSetPtr ks,
                                                                  constraint_samplers::ConstraintSamplerPtr cs)
@@ -52,8 +57,7 @@ ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBase
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
   inv_dim_ = si_->getStateSpace()->getDimension() > 0 ? 1.0 / (double)si_->getStateSpace()->getDimension() : 1.0;
-  ROS_DEBUG_NAMED("constrained_valid_state_sampler", "Constructed a ValidConstrainedSampler instance at address %p",
-                  this);
+  ROS_DEBUG_NAMED(LOGNAME, "Constructed a ValidConstrainedSampler instance at address %p", this);
 }
 
 bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State* state)
