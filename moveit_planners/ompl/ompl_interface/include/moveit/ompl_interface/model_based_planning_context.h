@@ -305,6 +305,10 @@ public:
 
   void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
+  /** \brief Configure ompl_simple_setup_ and optionally the constraints_library_.
+   *
+   * ompl_simple_setup_ gets a start state and state validity checker.
+   * */
   virtual void configure();
 
 protected:
