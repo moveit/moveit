@@ -196,7 +196,7 @@ bool Servo::readParameters()
   if (parameters_.joint_limit_margin < 0.)
   {
     ROS_WARN_NAMED(LOGNAME, "Parameter 'joint_limit_margin' should be "
-                            "greater than zero. Check yaml file.");
+                            "greater than or equal to zero. Check yaml file.");
     return false;
   }
   if (parameters_.command_in_type != "unitless" && parameters_.command_in_type != "speed_units")
