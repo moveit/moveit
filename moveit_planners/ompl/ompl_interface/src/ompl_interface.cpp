@@ -236,10 +236,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     std::map<std::string, std::string> specific_group_params;
     for (const std::string& k : KNOWN_GROUP_PARAMS)
     {
-      if (nh_.hasParam(group_name + "/" + k))
+      std::string param_name{ group_name };
+      param_name += "/";
+      param_name += k;
+
+      if (nh_.hasParam(param_name))
       {
         std::string value;
-        if (nh_.getParam(group_name + "/" + k, value))
+        if (nh_.getParam(param_name, value))
         {
           if (!value.empty())
             specific_group_params[k] = value;
@@ -247,7 +251,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         double value_d;
-        if (nh_.getParam(group_name + "/" + k, value_d))
+        if (nh_.getParam(param_name, value_d))
         {
           // convert to string using no locale
           specific_group_params[k] = moveit::core::toString(value_d);
@@ -255,14 +259,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         int value_i;
-        if (nh_.getParam(group_name + "/" + k, value_i))
+        if (nh_.getParam(param_name, value_i))
         {
           specific_group_params[k] = std::to_string(value_i);
           continue;
         }
 
         bool value_b;
-        if (nh_.getParam(group_name + "/" + k, value_b))
+        if (nh_.getParam(param_name, value_b))
         {
           specific_group_params[k] = std::to_string(value_b);
           continue;
