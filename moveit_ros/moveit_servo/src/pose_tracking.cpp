@@ -40,7 +40,7 @@ constexpr char LOGNAME[] = "pose_tracking";
 constexpr double DEFAULT_LOOP_RATE = 100;     // Hz
 constexpr double ROS_STARTUP_WAIT = 10;       // sec
 constexpr double DEFAULT_POSE_TIMEOUT = 0.1;  // sec
-}
+}  // namespace
 
 namespace moveit_servo
 {
@@ -300,5 +300,36 @@ void PoseTracking::doPostMotionReset()
   cartesian_position_pids_[1].reset();
   cartesian_position_pids_[2].reset();
   cartesian_orientation_pids_[0].reset();
+}
+
+void PoseTracking::updatePIDConfig(const double x_proportional_gain, const double x_integral_gain,
+                                   const double x_derivative_gain, const double y_proportional_gain,
+                                   const double y_integral_gain, const double y_derivative_gain,
+                                   const double z_proportional_gain, const double z_integral_gain,
+                                   const double z_derivative_gain, const double angular_proportional_gain,
+                                   const double angular_integral_gain, const double angular_derivative_gain)
+{
+  stopMotion();
+
+  // error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_proportional_gain", x_pid_config_.k_p);
+
+  x_pid_config_.k_p = x_proportional_gain;
+  x_pid_config_.k_i = x_integral_gain;
+  x_pid_config_.k_d = x_derivative_gain;
+  y_pid_config_.k_p = y_proportional_gain;
+  y_pid_config_.k_i = y_integral_gain;
+  y_pid_config_.k_d = y_derivative_gain;
+  z_pid_config_.k_p = z_proportional_gain;
+  z_pid_config_.k_i = z_integral_gain;
+  z_pid_config_.k_d = z_derivative_gain;
+
+  cartesian_position_pids_.clear();
+  cartesian_orientation_pids_.clear();
+  initializePID(x_pid_config_, cartesian_position_pids_);
+  initializePID(y_pid_config_, cartesian_position_pids_);
+  initializePID(z_pid_config_, cartesian_position_pids_);
+  initializePID(angular_pid_config_, cartesian_orientation_pids_);
+
+  doPostMotionReset();
 }
 }  // namespace moveit_servo

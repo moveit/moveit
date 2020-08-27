@@ -87,9 +87,9 @@ const std::unordered_map<int8_t, std::string>
                                     { STOP_REQUESTED, "Stop requested" } });
 
 /**
-* Class PoseTracking - subscribe to a target pose.
-* Servo toward the target pose.
-*/
+ * Class PoseTracking - subscribe to a target pose.
+ * Servo toward the target pose.
+ */
 class PoseTracking
 {
 public:
@@ -135,6 +135,13 @@ private:
 
   /** \brief Reset flags and PID controllers after a motion completes */
   void doPostMotionReset();
+
+  /** \brief Change PID parameters. Motion is stopped before the udpate */
+  void updatePIDConfig(const double x_proportional_gain, const double x_integral_gain, const double x_derivative_gain,
+                       const double y_proportional_gain, const double y_integral_gain, const double y_derivative_gain,
+                       const double z_proportional_gain, const double z_integral_gain, const double z_derivative_gain,
+                       const double angular_proportional_gain, const double angular_integral_gain,
+                       const double angular_derivative_gain);
 
   ros::NodeHandle nh_;
 

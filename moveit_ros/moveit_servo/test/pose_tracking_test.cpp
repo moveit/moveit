@@ -101,7 +101,6 @@ TEST_F(PoseTrackingFixture, OutgoingMsgTest)
   trajectory_msgs::JointTrajectory last_received_msg;
   boost::function<void(const trajectory_msgs::JointTrajectoryConstPtr&)> traj_callback =
       [&/* this */](const trajectory_msgs::JointTrajectoryConstPtr& msg) {
-
         EXPECT_EQ(msg->header.frame_id, "panda_link0");
         // Check for an expected joint position command
         // As of now, the robot doesn't actually move because there are no controllers enabled.

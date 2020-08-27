@@ -51,7 +51,7 @@
 
 static const std::string LOGNAME = "servo_cpp_interface_test";
 static constexpr double LARGEST_ALLOWABLE_PANDA_VEL = 2.8710;  // to test joint velocity limit enforcement
-static constexpr double ROS_SETUP_DELAY = 1;  // allow for initial launching
+static constexpr double ROS_SETUP_DELAY = 1;                   // allow for initial launching
 
 namespace moveit_servo
 {
