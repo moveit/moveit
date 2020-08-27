@@ -59,7 +59,7 @@ public:
 private:
   bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples* gls, ompl::base::State* new_goal);
   bool stateValidityCallback(ompl::base::State* new_goal, robot_state::RobotState const* state,
-                             const robot_model::JointModelGroup*, const double*, bool verbose = false) const;
+                             const robot_model::JointModelGroup* jmg, const double* jpos, bool verbose = false) const;
   bool checkStateValidity(ompl::base::State* new_goal, const robot_state::RobotState& state, bool verbose = false) const;
 
   const ModelBasedPlanningContext* planning_context_;

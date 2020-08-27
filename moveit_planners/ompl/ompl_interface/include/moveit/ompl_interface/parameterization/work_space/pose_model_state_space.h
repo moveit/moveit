@@ -56,7 +56,7 @@ public:
       POSE_COMPUTED = 512
     };
 
-    StateType() : ModelBasedStateSpace::StateType(), poses(NULL)
+    StateType() : ModelBasedStateSpace::StateType(), poses(nullptr)
     {
       flags |= JOINTS_COMPUTED;
     }
