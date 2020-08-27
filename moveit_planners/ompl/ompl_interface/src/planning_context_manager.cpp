@@ -528,7 +528,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   if (constrained_planning_iterator != pc->second.config.end() &&
       boost::lexical_cast<bool>(constrained_planning_iterator->second) &&
-      req.path_constraints.position_constraints.size() == 1)
+      (req.path_constraints.position_constraints.size() == 1 ||
+       req.path_constraints.orientation_constraints.size() == 1))
   {
     factory_selector = std::bind(&PlanningContextManager::getStateSpaceFactory1, this, std::placeholders::_1,
                                  ConstrainedPlanningStateSpace::PARAMETERIZATION_TYPE);
