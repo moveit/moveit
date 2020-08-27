@@ -2,6 +2,7 @@ set(MOVEIT_LIB_NAME moveit_collision_detection)
 
 add_library(${MOVEIT_LIB_NAME}
   src/allvalid/collision_env_allvalid.cpp
+  src/collision_common.cpp
   src/collision_matrix.cpp
   src/collision_octomap_filter.cpp
   src/collision_tools.cpp
