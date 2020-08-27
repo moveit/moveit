@@ -311,8 +311,6 @@ void PoseTracking::updatePIDConfig(const double x_proportional_gain, const doubl
 {
   stopMotion();
 
-  // error += !rosparam_shortcuts::get("", nh_, parameter_ns_ + "/x_proportional_gain", x_pid_config_.k_p);
-
   x_pid_config_.k_p = x_proportional_gain;
   x_pid_config_.k_i = x_integral_gain;
   x_pid_config_.k_d = x_derivative_gain;
@@ -331,5 +329,14 @@ void PoseTracking::updatePIDConfig(const double x_proportional_gain, const doubl
   initializePID(angular_pid_config_, cartesian_orientation_pids_);
 
   doPostMotionReset();
+}
+
+void PoseTracking::getPIDErrors(double& x_error, double& y_error, double& z_error, double& orientation_error)
+{
+  double dummy1, dummy2;
+  cartesian_position_pids_.at(0).getCurrentPIDErrors(&x_error, &dummy1, &dummy2);
+  cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error, &dummy1, &dummy2);
+  cartesian_position_pids_.at(2).getCurrentPIDErrors(&z_error, &dummy1, &dummy2);
+  cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error, &dummy1, &dummy2);
 }
 }  // namespace moveit_servo

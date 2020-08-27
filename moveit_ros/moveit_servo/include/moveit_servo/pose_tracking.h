@@ -105,6 +105,15 @@ public:
     stop_requested_ = true;
   }
 
+  /** \brief Change PID parameters. Motion is stopped before the udpate */
+  void updatePIDConfig(const double x_proportional_gain, const double x_integral_gain, const double x_derivative_gain,
+                       const double y_proportional_gain, const double y_integral_gain, const double y_derivative_gain,
+                       const double z_proportional_gain, const double z_integral_gain, const double z_derivative_gain,
+                       const double angular_proportional_gain, const double angular_integral_gain,
+                       const double angular_derivative_gain);
+
+  void getPIDErrors(double& x_error, double& y_error, double& z_error, double& orientation_error);
+
 private:
   /** \brief Load ROS parameters for controller settings. */
   void readROSParams();
@@ -135,13 +144,6 @@ private:
 
   /** \brief Reset flags and PID controllers after a motion completes */
   void doPostMotionReset();
-
-  /** \brief Change PID parameters. Motion is stopped before the udpate */
-  void updatePIDConfig(const double x_proportional_gain, const double x_integral_gain, const double x_derivative_gain,
-                       const double y_proportional_gain, const double y_integral_gain, const double y_derivative_gain,
-                       const double z_proportional_gain, const double z_integral_gain, const double z_derivative_gain,
-                       const double angular_proportional_gain, const double angular_integral_gain,
-                       const double angular_derivative_gain);
 
   ros::NodeHandle nh_;
 
