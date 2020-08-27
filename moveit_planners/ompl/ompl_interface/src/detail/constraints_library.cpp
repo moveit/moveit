@@ -550,7 +550,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   {
     ROS_INFO_NAMED(LOGNAME, "Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
 
-    // construct connexions
+    // construct connections
     const ob::StateSpacePtr& space = pcontext->getOMPLSimpleSetup()->getStateSpace();
     unsigned int milestones = state_storage->size();
     std::vector<ob::State*> int_states(options.max_explicit_points, nullptr);
@@ -622,7 +622,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
 
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
-    ROS_INFO_NAMED(LOGNAME, "Computed possible connexions in %lf seconds. Added %d connexions",
+    ROS_INFO_NAMED(LOGNAME, "Computed possible connections in %lf seconds. Added %d connections",
                    result.state_connection_time, good);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->freeStates(int_states);
 
