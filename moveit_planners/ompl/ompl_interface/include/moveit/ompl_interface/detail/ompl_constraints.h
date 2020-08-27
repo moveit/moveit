@@ -108,7 +108,7 @@ std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound);
  *
  * into an equation of the form f(x) = 0.
  *
- * The 'scalar value' can be error on the position or orientation of a link relative to a desired reference position, or
+ * The 'scalar value' can be the difference between the position or orientation of a link and a target position or orientation, or
  * any other error metric that can be calculated using the `moveit::core::RobotModel` and
  * `moveit::core::JointModelGroup`.
  * */
@@ -118,7 +118,7 @@ public:
   BaseConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
                  const unsigned int num_dofs, const unsigned int num_cons_ = 3);
 
-  /** \brief initialize constraint based on message content.
+  /** \brief Initialize constraint based on message content.
    *
    * This is necessary because we cannot call the pure virtual
    * parseConstraintsMsg method from the constructor of this class.
@@ -160,7 +160,7 @@ public:
    * */
   virtual void parseConstraintMsg(const moveit_msgs::Constraints& constraints) = 0;
 
-  /** \brief For inequality constraints: calculate the value of the parameter that is being constraint by the bounds.
+  /** \brief For inequality constraints: calculate the value of the parameter that is being constrained by the bounds.
    *
    * In this Position constraints case, it calculates the x, y and z position
    * of the end-effector. This error is then converted in generic equality constraints in the implementation of
@@ -175,7 +175,7 @@ public:
     return Eigen::VectorXd::Zero(getCoDimension());
   }
 
-  /** \brief For inequality constraints: calculate the Jacobian for the current parameters that are being constraints.
+  /** \brief For inequality constraints: calculate the Jacobian for the current parameters that are being constrained.
    *   *
    * This error jacobian, as the name suggests, is only the jacobian of the position / orientation / ... error.
    * It does not take into account the derivative of the penalty functions defined in the Bounds class.
@@ -211,7 +211,7 @@ public:
   }
 
 protected:
-  /** \brief Thread save storage of the robot state.
+  /** \brief Thread-safe storage of the robot state.
    *
    * The robot state is modified for kinematic calculations. As an instance of this class is possibly used in multiple
    * threads due to OMPL's LazeGoalSampler, we need a separate robot state in every thread.
