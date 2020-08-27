@@ -53,8 +53,7 @@ MOVEIT_CLASS_FORWARD(OrientationConstraint);
 
 /** \brief Represents upper and lower bound on a scalar value (double).
  *
- * This is necessary because an OMPL ConstrainedStateSpace requires a model of the constriants given as a generic
- * equalities
+ * OMPL ConstrainedStateSpace requires a model of the constraints given as:
  *  f1(joint_values) = 0
  *  f2(joint_values) = 0
  *  f3(joint_values) = 0
@@ -134,7 +133,7 @@ public:
 
   /** \brief Jacobian of the constraint function.
    *
-   * Optionally you can also provide dF(q)/dq, the Jacobian of  the constriants.
+   * Optionally you can also provide dF(q)/dq, the Jacobian of  the constraint.
    *
    * */
   virtual void jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_values, Eigen::Ref<Eigen::MatrixXd> out) const;
@@ -149,7 +148,7 @@ public:
 
   /** \brief Calculate the robot's geometric Jacobian using MoveIt's Robot State.
    *
-   * Ideally I would pass the output agrument from OMPL's jacobian function directly,
+   * Ideally I would pass the output argument from OMPL's jacobian function directly,
    * but I cannot pass an object of type , Eigen::Ref<Eigen::MatrixXd> to MoveIt's
    * Jacobian method.
    * */
@@ -185,7 +184,7 @@ public:
    * This method can be bypassed if you want to override `ompl_interface::BaseConstraint::jacobian directly and ignore
    * the bounds calculation.
    *
-   * TODO(jeroendm), Maybe also use an output agrument as in `ompl::base::Constraint::jacobian(x, out)` for better
+   * TODO(jeroendm), Maybe also use an output argument as in `ompl::base::Constraint::jacobian(x, out)` for better
    * performance?
    * */
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
@@ -215,14 +214,14 @@ protected:
   /** \brief Thread save storage of the robot state.
    *
    * The robot state is modified for kinematic calculations. As an instance of this class is possibly used in multiple
-   * threads due to OMPL's LazeGoalSampler, we need a seperate robot state in every thread.
+   * threads due to OMPL's LazeGoalSampler, we need a separate robot state in every thread.
    * */
   TSStateStorage state_storage_;
   const robot_state::JointModelGroup* joint_model_group_;
 
   // all attributes below can be considered const as soon as the constraint message is parsed
   // but I (jeroendm) do not know how to elegantly express this in C++
-  // parsing the constraints message and passing all this data members separatly to the constructor
+  // parsing the constraints message and passing all this data members separately to the constructor
   // is a solution, but it adds complexity outside this class, which is also not ideal.
 
   /** \brief Robot link the constraints are applied to. */
@@ -306,7 +305,7 @@ private:
    * **/
   double equality_constraint_threshold_{ 0.001 };
 
-  /** \brief Bool vector indicating wich dimensions are constrained. **/
+  /** \brief Bool vector indicating which dimensions are constrained. **/
   std::vector<bool> is_dim_constrained_;
 };
 
