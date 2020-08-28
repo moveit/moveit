@@ -96,7 +96,7 @@ ompl_interface::MultiQueryPlannerAllocator::~MultiQueryPlannerAllocator()
   // Store all planner data
   for (const auto& entry : planner_data_storage_paths_)
   {
-    ROS_INFO("Storing planner data");
+    ROS_INFO_NAMED(LOGNAME, "Storing planner data");
     ob::PlannerData data(planners_[entry.first]->getSpaceInformation());
     planners_[entry.first]->getPlannerData(data);
     storage_.store(data, entry.second.c_str());
@@ -170,7 +170,7 @@ ompl::base::PlannerPtr ompl_interface::MultiQueryPlannerAllocator::allocatePlann
   // Try to initialize planner with loaded planner data
   if (load_planner_data)
   {
-    ROS_INFO("Loading planner data");
+    ROS_INFO_NAMED(LOGNAME, "Loading planner data");
     ob::PlannerData data(si);
     storage_.load(file_path.c_str(), data);
     planner.reset(allocatePersistentPlanner<T>(data));
@@ -408,7 +408,10 @@ ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string&
 {
   auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
+  {
+    ROS_DEBUG_NAMED(LOGNAME, "Using '%s' parameterization for solving problem", factory_type.c_str());
     return f->second;
+  }
   else
   {
     ROS_ERROR_NAMED(LOGNAME, "Factory of type '%s' was not found", factory_type.c_str());
