@@ -60,8 +60,9 @@
 
 #include <ompl/geometric/SimpleSetup.h>
 
-/** \brief Use this flag to turn on extra output on std::cout for debugging. **/
+/** \brief This flag sets the verbosity level for the state validity checker. **/
 constexpr bool VERBOSE{ false };
+
 constexpr char LOGNAME[] = "test_state_validity_checker";
 
 /** \brief Pretty print std:vectors **/
@@ -183,16 +184,9 @@ public:
     // move the position constraints away from the curren end-effector position to make it fail
     moveit_msgs::Constraints path_constraints_2(path_constraints);
     path_constraints_2.position_constraints.at(0).constraint_region.primitive_poses.at(0).position.z += 0.2;
-    // path_constraints_2.name = "test_position_constraints";
-    // path_constraints_2.position_constraints.push_back(createPositionConstraint(
-    //     { ee_pose.translation().x(), ee_pose.translation().y(), ee_pose.translation().z() + 0.2 }, { 0.1, 0.1, 0.1
-    //     }));
 
     succeeded = planning_context_->setPathConstraints(path_constraints_2, &error_code_not_used);
     ASSERT_TRUE(succeeded) << "Failed to set path constraints on the planning context";
-
-    // checker = std::make_shared<ompl_interface::StateValidityChecker>(planning_context_.get());
-    // checker->setVerbose(VERBOSE);
 
     // clear the cached validity of the state before checking again,
     // otherwise the path constraints will not be checked.
