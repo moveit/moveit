@@ -157,7 +157,7 @@ protected:
     moveit_msgs::Constraints constraint_msgs;
     constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, ee_link_name_));
 
-    constraint_ = std::make_shared<ompl_interface::PositionConstraint>(robot_model_, group_name_, num_dofs_);
+    constraint_ = std::make_shared<ompl_interface::BoxConstraint>(robot_model_, group_name_, num_dofs_);
     constraint_->init(constraint_msgs);
   }
 
@@ -172,7 +172,7 @@ protected:
     moveit_msgs::Constraints constraint_msgs;
     constraint_msgs.position_constraints.push_back(createPositionConstraint(base_link_name_, different_link));
 
-    constraint_ = std::make_shared<ompl_interface::PositionConstraint>(robot_model_, group_name_, num_dofs_);
+    constraint_ = std::make_shared<ompl_interface::BoxConstraint>(robot_model_, group_name_, num_dofs_);
     constraint_->init(constraint_msgs);
   }
 
