@@ -131,15 +131,15 @@ void BaseConstraint::jacobian(const Eigen::Ref<const Eigen::VectorXd>& joint_val
 /******************************************
  * Position constraints
  * ****************************************/
-PositionConstraint::PositionConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
-                                       const unsigned int num_dofs)
+BoxConstraint::BoxConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
+                             const unsigned int num_dofs)
   : BaseConstraint(robot_model, group, num_dofs)
 {
 }
 
-void PositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
+void BoxConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
-  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing position constraint for OMPL constrained state space.");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing box position constraint for OMPL constrained state space.");
   bounds_.clear();
   bounds_ = positionConstraintMsgToBoundVector(constraints.position_constraints.at(0));
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed x constraints" << bounds_[0]);
@@ -157,12 +157,12 @@ void PositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& cons
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
 }
 
-Eigen::VectorXd PositionConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::VectorXd BoxConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
   return target_orientation_.matrix().transpose() * (forwardKinematics(x).translation() - target_position_);
 }
 
-Eigen::MatrixXd PositionConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
+Eigen::MatrixXd BoxConstraint::calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const
 {
   return target_orientation_.matrix().transpose() * robotGeometricJacobian(x).topRows(3);
 }
@@ -299,7 +299,7 @@ std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelCons
     else
     {
       ROS_INFO_STREAM_NAMED(LOGNAME, "OMPL is using box position constraints.");
-      pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
+      pos_con = std::make_shared<BoxConstraint>(robot_model, group, num_dofs);
     }
     pos_con->init(constraints);
     return pos_con;

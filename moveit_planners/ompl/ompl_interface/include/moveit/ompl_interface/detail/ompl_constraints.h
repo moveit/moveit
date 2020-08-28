@@ -48,7 +48,7 @@
 namespace ompl_interface
 {
 MOVEIT_CLASS_FORWARD(BaseConstraint);
-MOVEIT_CLASS_FORWARD(PositionConstraint);
+MOVEIT_CLASS_FORWARD(BoxConstraint);
 MOVEIT_CLASS_FORWARD(OrientationConstraint);
 
 /** \brief Represents upper and lower bound on a scalar value (double).
@@ -108,8 +108,8 @@ std::ostream& operator<<(std::ostream& os, const ompl_interface::Bounds& bound);
  *
  * into an equation of the form f(x) = 0.
  *
- * The 'scalar value' can be the difference between the position or orientation of a link and a target position or orientation, or
- * any other error metric that can be calculated using the `moveit::core::RobotModel` and
+ * The 'scalar value' can be the difference between the position or orientation of a link and a target position or
+ * orientation, or any other error metric that can be calculated using the `moveit::core::RobotModel` and
  * `moveit::core::JointModelGroup`.
  * */
 class BaseConstraint : public ompl::base::Constraint
@@ -243,7 +243,7 @@ public:
 };
 
 /******************************************
- * Position constraints
+ * Box constraint
  * ****************************************/
 /** \brief Box shaped position constraints
  *
@@ -254,11 +254,11 @@ public:
  * These bounds are applied around the nominal position and orientation
  * of the box.
  * */
-class PositionConstraint : public BaseConstraint
+class BoxConstraint : public BaseConstraint
 {
 public:
-  PositionConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
-                     const unsigned int num_dofs);
+  BoxConstraint(const robot_model::RobotModelConstPtr& robot_model, const std::string& group,
+                const unsigned int num_dofs);
   virtual void parseConstraintMsg(const moveit_msgs::Constraints& constraints) override;
   virtual Eigen::VectorXd calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
   virtual Eigen::MatrixXd calcErrorJacobian(const Eigen::Ref<const Eigen::VectorXd>& x) const override;
