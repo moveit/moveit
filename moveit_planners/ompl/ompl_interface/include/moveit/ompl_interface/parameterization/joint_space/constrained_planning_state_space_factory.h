@@ -53,7 +53,8 @@ public:
    * It returns a low priority so it will never be choosen when others are available.
    * (The second lowest priority is -1 in the PoseModelStateSpaceFactory.)
    *
-   * TODO(jeroendm) Ideally it should only be selected if there are path constraints in the planning request.
+   * For more details on this state space selection process, see:
+   * https://github.com/JeroenDM/moveit/pull/2
    * **/
   int canRepresentProblem(const std::string& group, const moveit_msgs::MotionPlanRequest& req,
                           const moveit::core::RobotModelConstPtr& robot_model) const override;
