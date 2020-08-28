@@ -139,12 +139,12 @@ PositionConstraint::PositionConstraint(const robot_model::RobotModelConstPtr& ro
 
 void PositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsing position constraint for OMPL constrained state space.");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing position constraint for OMPL constrained state space.");
   bounds_.clear();
   bounds_ = positionConstraintMsgToBoundVector(constraints.position_constraints.at(0));
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsed x constraints" << bounds_[0]);
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsed y constraints" << bounds_[1]);
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsed z constraints" << bounds_[2]);
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed x constraints" << bounds_[0]);
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed y constraints" << bounds_[1]);
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsed z constraints" << bounds_[2]);
 
   // extract target position and orientation
   geometry_msgs::Point position =
@@ -154,7 +154,7 @@ void PositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& cons
                            target_orientation_);
 
   link_name_ = constraints.position_constraints.at(0).link_name;
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
 }
 
 Eigen::VectorXd PositionConstraint::calcError(const Eigen::Ref<const Eigen::VectorXd>& x) const
@@ -178,7 +178,7 @@ EqualityPositionConstraint::EqualityPositionConstraint(const robot_model::RobotM
 
 void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constraints& constraints)
 {
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Parsing equality position constraint for OMPL constrained state space.");
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parsing equality position constraint for OMPL constrained state space.");
   bounds_.clear();
 
   std::vector<double> dims = constraints.position_constraints.at(0).constraint_region.primitives.at(0).dimensions;
@@ -200,10 +200,6 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
     }
   }
 
-  ROS_INFO_STREAM_NAMED(LOGNAME, "X dimension constraint? " << is_dim_constrained_[0]);
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Y dimension constraint? " << is_dim_constrained_[1]);
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Z dimension constraint? " << is_dim_constrained_[2]);
-
   // extract target position and orientation
   geometry_msgs::Point position =
       constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).position;
@@ -211,8 +207,12 @@ void EqualityPositionConstraint::parseConstraintMsg(const moveit_msgs::Constrain
   tf::quaternionMsgToEigen(constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0).orientation,
                            target_orientation_);
 
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Equality constraint on x-position? " << (is_dim_constrained_[0] ? "yes" : "no"));
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Equality constraint on y-position? " << (is_dim_constrained_[1] ? "yes" : "no"));
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Equality constraint on z-position? " << (is_dim_constrained_[2] ? "yes" : "no"));
+
   link_name_ = constraints.position_constraints.at(0).link_name;
-  ROS_INFO_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "Position constraints applied to link: " << link_name_);
 }
 
 void EqualityPositionConstraint::function(const Eigen::Ref<const Eigen::VectorXd>& joint_values,
@@ -289,16 +289,16 @@ std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelCons
   }
   else if (num_pos_con > 0)
   {
-    ROS_INFO_STREAM("Constraint name: " << constraints.name);
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Constraint name: " << constraints.name);
     BaseConstraintPtr pos_con;
     if (constraints.name == "use_equality_constraints")
     {
-      ROS_INFO_STREAM("Using equality position constraints.");
+      ROS_INFO_STREAM_NAMED(LOGNAME, "OMPL is using equality position constraints.");
       pos_con = std::make_shared<EqualityPositionConstraint>(robot_model, group, num_dofs);
     }
     else
     {
-      ROS_INFO_STREAM("Using bounded position constraints.");
+      ROS_INFO_STREAM_NAMED(LOGNAME, "OMPL is using box position constraints.");
       pos_con = std::make_shared<PositionConstraint>(robot_model, group, num_dofs);
     }
     pos_con->init(constraints);
