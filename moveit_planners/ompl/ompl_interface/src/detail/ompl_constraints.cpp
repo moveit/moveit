@@ -269,8 +269,8 @@ std::shared_ptr<BaseConstraint> createOMPLConstraint(robot_model::RobotModelCons
   std::size_t num_pos_con = constraints.position_constraints.size();
   std::size_t num_ori_con = constraints.orientation_constraints.size();
 
-  // Only positions constraints are actually created below.
-  // All the other code is just given feedback to the user.
+  // This factory method contains template code to support different constraints, but only position constraints are
+  // currently supported. The other options return a nullptr for now and should not be used.
 
   if (num_pos_con > 1)
   {
