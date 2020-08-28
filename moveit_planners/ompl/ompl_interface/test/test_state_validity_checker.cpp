@@ -62,6 +62,7 @@
 
 /** \brief Use this flag to turn on extra output on std::cout for debugging. **/
 constexpr bool VERBOSE{ false };
+constexpr char LOGNAME[] = "test_state_validity_checker";
 
 /** \brief Pretty print std:vectors **/
 std::ostream& operator<<(std::ostream& os, const std::vector<double>& v)
@@ -82,9 +83,9 @@ public:
   {
   }
 
-  // /***************************************************************************
-  //  * START Test implementations
-  //  * ************************************************************************/
+  /***************************************************************************
+   * START Test implementations
+   * ************************************************************************/
 
   void testConstructor()
   {
@@ -106,8 +107,7 @@ public:
     ompl::base::ScopedState<> ompl_state(state_space_);
     state_space_->copyToOMPLState(ompl_state.get(), *robot_state_);
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(ompl_state.reals());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
     // assume the given position is not in self-collision
     // and there are no collision objects or path constraints so this state should be valid
@@ -118,8 +118,7 @@ public:
     ompl_state->as<ompl_interface::JointModelStateSpace::StateType>()->values[0] = std::numeric_limits<double>::max();
     ompl_state->as<ompl_interface::JointModelStateSpace::StateType>()->clearKnownInformation();
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(ompl_state.reals());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
     bool result_2 = checker->isValid(ompl_state.get());
     EXPECT_FALSE(result_2);
@@ -139,8 +138,7 @@ public:
     ompl::base::ScopedState<> ompl_state(state_space_);
     state_space_->copyToOMPLState(ompl_state.get(), *robot_state_);
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(ompl_state.reals());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
     // the given state is known to be in self-collision, we check it here
     bool result = checker->isValid(ompl_state.get());
@@ -177,8 +175,7 @@ public:
     ompl::base::ScopedState<> ompl_state(state_space_);
     state_space_->copyToOMPLState(ompl_state.get(), *robot_state_);
 
-    if (VERBOSE)
-      ROS_INFO_STREAM(ompl_state.reals());
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, ompl_state.reals());
 
     bool result = checker->isValid(ompl_state.get());
     EXPECT_TRUE(result);
@@ -205,9 +202,9 @@ public:
     EXPECT_FALSE(result_2);
   }
 
-  // /***************************************************************************
-  //  * END Test implementation
-  //  * ************************************************************************/
+  /***************************************************************************
+   * END Test implementation
+   * ************************************************************************/
 
 protected:
   void SetUp() override
@@ -216,10 +213,6 @@ protected:
     setupStateSpace();
     setupPlanningContext();
   };
-
-  void TearDown() override
-  {
-  }
 
   void setupStateSpace()
   {
