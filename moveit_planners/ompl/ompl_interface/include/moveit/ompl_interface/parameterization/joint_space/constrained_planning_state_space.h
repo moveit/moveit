@@ -46,9 +46,9 @@ MOVEIT_CLASS_FORWARD(ConstrainedPlanningStateSpace);
 /** \brief State space to be used in combination with OMPL's constrained planning functionality.
  *
  * The state space is called ConstrainedPlanningStateSpace, as in "use this state space for constrained planning".
- * Not to be confused with the `ompl::Base::ConstrainedStateSpace`, which is constrained in the sense that it generates
- * states that satisfy the constraints. This state space does not! OMPL's ConstrainedStateSpace will wrap around
- * ConstrainedPlanningStateSpace.
+ * Not to be confused with the `ompl::base::ConstrainedStateSpace`, which is constrained in the sense that it generates
+ * states that satisfy the constraints. This state space does not! OMPL's `ompl::base::ConstrainedStateSpace` will wrap
+ *around ConstrainedPlanningStateSpace.
  *
  * This class overrides the virtual methods to copy states from OMPL to MoveIt and vice-versa. It is used as state space
  * in the `ModelBasedPlanningContextSpecification` and can handle general `ompl::base::State*` pointers that need to be

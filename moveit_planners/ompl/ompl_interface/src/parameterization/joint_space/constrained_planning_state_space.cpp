@@ -54,23 +54,8 @@ double* ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex(om
   if (index >= variable_count_)
     return nullptr;
 
+  // Developer tip: replace this with a dynamic_cast for debugging
   return ompl_state->as<ompl_interface::ConstrainedPlanningStateSpace::StateType>()->values + index;
-
-  // (jeroendm) left in the debug code, because it is not unlikely that issues will arise here when adding new things in
-  // the future. Use dynamic casting to make our debugging live easier.
-  // --------------------------------------------------------------------------
-  // auto casted_state = dynamic_cast<ompl_interface::ConstrainedPlanningStateSpace::StateType*>(ompl_state);
-  // if (casted_state)
-  // {
-  //   return casted_state->values + index;
-  // }
-  // else
-  // {
-  //   ROS_ERROR_STREAM("ompl_interface::ConstrainedPlanningStateSpace::getValueAddressAtIndex:"
-  //                    " got unexpected state type!!.");
-  // }
-  // return nullptr;
-  // --------------------------------------------------------------------------
 }
 
 void ompl_interface::ConstrainedPlanningStateSpace::copyToRobotState(moveit::core::RobotState& robot_state,
