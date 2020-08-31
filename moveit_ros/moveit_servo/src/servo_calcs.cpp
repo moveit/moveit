@@ -110,7 +110,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, const ServoParameters& parameters,
 
   // ROS Server to reset the status, e.g. so the arm can move again after a collision
   reset_servo_status_ =
-      nh_.advertiseService(nh_.getNamespace() + "/" + ros::this_node::getName() + "/reset_servo_status",
+      nh_.advertiseService(ros_namespace + "/reset_servo_status",
                            &ServoCalcs::resetServoStatus, this);
 
   // Publish and Subscribe to internal namespace topics
