@@ -160,7 +160,8 @@ void PoseTracking::readROSParams()
 
   // Wait for ROS parameters to load
   ros::Time begin = ros::Time::now();
-  while (!ros::param::has(parameter_ns_ + "/planning_frame") && ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
+  while (ros::ok() && !ros::param::has(parameter_ns_ + "/planning_frame") &&
+         ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
   {
     ROS_WARN_STREAM_NAMED(LOGNAME, "Waiting for parameter: " << parameter_ns_ + "/planning_frame");
     ros::Duration(0.1).sleep();
@@ -226,8 +227,6 @@ bool PoseTracking::haveRecentEndEffectorPose(const double timespan)
 
 bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tolerance, const double angular_tolerance)
 {
-  // TODO(andyz): check orientation too
-
   double x_error = target_pose_.pose.position.x - end_effector_transform_.translation()(0);
   double y_error = target_pose_.pose.position.y - end_effector_transform_.translation()(1);
   double z_error = target_pose_.pose.position.z - end_effector_transform_.translation()(2);
@@ -236,16 +235,16 @@ bool PoseTracking::satisfiesPoseTolerance(const Eigen::Vector3d& positional_tole
          (fabs(z_error) < positional_tolerance(2) && fabs(angular_error_) < angular_tolerance);
 }
 
-void PoseTracking::targetPoseCallback(geometry_msgs::PoseStamped msg)
+void PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
   // Transform to MoveIt planning frame
-  if (msg.header.frame_id != planning_frame_)
+  target_pose_ = *msg;
+  if (target_pose_.header.frame_id != planning_frame_)
   {
     auto target_to_planning_frame =
-        transform_buffer_.lookupTransform(planning_frame_, msg.header.frame_id, ros::Time(0), ros::Duration(0.1));
-    tf2::doTransform(msg, msg, target_to_planning_frame);
+        transform_buffer_.lookupTransform(planning_frame_, target_pose_.header.frame_id, ros::Time(0), ros::Duration(0.1));
+    tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
   }
-  target_pose_ = msg;
   target_pose_.header.stamp = ros::Time::now();
 }
 
