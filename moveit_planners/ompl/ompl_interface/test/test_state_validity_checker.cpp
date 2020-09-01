@@ -38,10 +38,12 @@
  *        - Can we create one?
  *        - States inside and outside joint limits.
  *        - States that are in self-collision.
+ *        - Position constraints on the robot's end-effector link.
  *
  *    It does not yet test:
  *        - Collision with objects in the environment.
- *        - Any type of path constraints.
+ *        - Orientation constraints, visibility constraints, ...
+ *        - A user-specified feasibility function in the planning scene.
  *
  *    The test do show what is minimally required to create a working StateValidityChecker.
  **/
