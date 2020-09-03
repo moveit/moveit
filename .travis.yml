@@ -25,7 +25,6 @@ jobs:
     - env: TEST="clang-format catkin_lint"
     - env: TEST=code-coverage
     - env: ROS_DISTRO=melodic
-    - env: ROS_DISTRO=kinetic
     - env: BEFORE_DOCKER_SCRIPT="source moveit_kinematics/test/test_ikfast_plugins.sh"
     - if: branch =~ /^(.*-devel|master)$/
       env: ROS_REPO=ros-shadow-fixed
