@@ -242,7 +242,8 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << group.name_;
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
-    emitter << YAML::Key << "default_planner_config" << YAML::Value << group_meta_data_[group.name_].default_planner_;
+    if (!group_meta_data_[group.name_].default_planner_.empty())
+      emitter << YAML::Key << "default_planner_config" << YAML::Value << group_meta_data_[group.name_].default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (const std::string& pconfig : pconfigs)
@@ -272,7 +273,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     return false;
   }
 
-  output_stream << emitter.c_str();
+  output_stream << emitter.c_str() << std::endl;
   output_stream.close();
 
   return true;  // file created successfully
