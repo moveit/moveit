@@ -26,7 +26,6 @@ jobs:
     - env: TEST=code-coverage
     - env: ROS_DISTRO=noetic
     - env: ROS_DISTRO=melodic
-    - env: ROS_DISTRO=kinetic
     - compiler: clang
       # test_ikfast_plugins takes ~10 minutes: include here to keep the main jobs shorter
       env: TEST=clang-tidy-fix
