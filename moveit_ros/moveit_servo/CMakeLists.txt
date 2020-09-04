@@ -87,6 +87,17 @@ target_link_libraries(cpp_interface_example
   ${SERVO_LIB_NAME}
 )
 
+# An example of pose tracking
+add_executable(pose_tracking_example
+  src/cpp_interface_example/pose_tracking_example.cpp
+)
+add_dependencies(pose_tracking_example ${catkin_EXPORTED_TARGETS})
+target_link_libraries(pose_tracking_example
+  ${catkin_LIBRARIES}
+  ${SERVO_LIB_NAME}
+  pose_tracking
+)
+
 ########################################
 ## Library for servoing toward a pose ##
 ########################################
