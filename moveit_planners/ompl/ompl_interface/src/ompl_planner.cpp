@@ -48,6 +48,7 @@ static const std::string PLANNER_SERVICE_NAME =
     "plan_kinematic_path";  // name of the advertised service (within the ~ namespace)
 static const std::string ROBOT_DESCRIPTION =
     "robot_description";  // name of the robot description (a param name, so it can be changed externally)
+static const std::string LOGNAME = "ompl_planner";  // name to indicate that log statements come from this file
 
 class OMPLPlannerService
 {
@@ -65,7 +66,7 @@ public:
 
   bool computePlan(moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res)
   {
-    ROS_INFO("Received new planning request...");
+    ROS_INFO_NAMED(LOGNAME, "Received new planning request...");
     if (debug_)
       pub_request_.publish(req.motion_plan_request);
     planning_interface::MotionPlanResponse response;
@@ -74,7 +75,7 @@ public:
         ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
     if (!context)
     {
-      ROS_ERROR_STREAM_NAMED("computePlan", "No planning context found");
+      ROS_ERROR_STREAM_NAMED(LOGNAME, "No planning context found");
       return false;
     }
     context->clear();
@@ -86,7 +87,7 @@ public:
       if (result)
         displaySolution(res.motion_plan_response);
       std::stringstream ss;
-      ROS_INFO("%s", ss.str().c_str());
+      ROS_INFO_NAMED(LOGNAME, "%s", ss.str().c_str());
     }
     return result;
   }
@@ -103,9 +104,9 @@ public:
   void status()
   {
     ompl_interface_.printStatus();
-    ROS_INFO("Responding to planning and bechmark requests");
+    ROS_INFO_NAMED(LOGNAME, "Responding to planning and bechmark requests");
     if (debug_)
-      ROS_INFO("Publishing debug information");
+      ROS_INFO_NAMED(LOGNAME, "Publishing debug information");
   }
 
 private:
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
     ros::waitForShutdown();
   }
   else
-    ROS_ERROR("Planning scene not configured");
+    ROS_ERROR_NAMED(LOGNAME, "Planning scene not configured");
 
   return 0;
 }

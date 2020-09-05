@@ -42,6 +42,11 @@
 #include <moveit/utils/lexical_casts.h>
 #include <fstream>
 
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "ompl_interface";
+}  // namespace ompl_interface
+
 ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& robot_model,
                                              const ros::NodeHandle& nh)
   : nh_(nh)
@@ -52,7 +57,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
-  ROS_INFO("Initializing OMPL interface using ROS parameters");
+  ROS_INFO_NAMED(LOGNAME, "Initializing OMPL interface using ROS parameters");
   loadPlannerConfigurations();
   loadConstraintApproximations();
   loadConstraintSamplers();
@@ -69,7 +74,7 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   , use_constraints_approximations_(true)
   , simplify_solutions_(true)
 {
-  ROS_INFO("Initializing OMPL interface using specified configuration");
+  ROS_INFO_NAMED(LOGNAME, "Initializing OMPL interface using specified configuration");
   setPlannerConfigurations(pconfig);
   loadConstraintApproximations();
   loadConstraintSamplers();
@@ -137,7 +142,7 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
   constraints_library_->loadConstraintApproximations(path);
   std::stringstream ss;
   constraints_library_->printConstraintApproximations(ss);
-  ROS_INFO_STREAM(ss.str());
+  ROS_INFO_STREAM_NAMED(LOGNAME, ss.str());
 }
 
 void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::string& path)
@@ -153,7 +158,7 @@ bool ompl_interface::OMPLInterface::saveConstraintApproximations()
     saveConstraintApproximations(cpath);
     return true;
   }
-  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  ROS_WARN_NAMED(LOGNAME, "ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
   return false;
 }
 
@@ -182,14 +187,14 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
   XmlRpc::XmlRpcValue xml_config;
   if (!nh_.getParam("planner_configs/" + planner_id, xml_config))
   {
-    ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_id.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "Could not find the planner configuration '%s' on the param server", planner_id.c_str());
     return false;
   }
 
   if (xml_config.getType() != XmlRpc::XmlRpcValue::TypeStruct)
   {
-    ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')",
-              planner_id.c_str());
+    ROS_ERROR_NAMED(LOGNAME, "A planning configuration should be of type XmlRpc Struct type (for configuration '%s')",
+                    planner_id.c_str());
     return false;
   }
 
@@ -231,10 +236,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     std::map<std::string, std::string> specific_group_params;
     for (const std::string& k : KNOWN_GROUP_PARAMS)
     {
-      if (nh_.hasParam(group_name + "/" + k))
+      std::string param_name{ group_name };
+      param_name += "/";
+      param_name += k;
+
+      if (nh_.hasParam(param_name))
       {
         std::string value;
-        if (nh_.getParam(group_name + "/" + k, value))
+        if (nh_.getParam(param_name, value))
         {
           if (!value.empty())
             specific_group_params[k] = value;
@@ -242,7 +251,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         double value_d;
-        if (nh_.getParam(group_name + "/" + k, value_d))
+        if (nh_.getParam(param_name, value_d))
         {
           // convert to string using no locale
           specific_group_params[k] = moveit::core::toString(value_d);
@@ -250,14 +259,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         }
 
         int value_i;
-        if (nh_.getParam(group_name + "/" + k, value_i))
+        if (nh_.getParam(param_name, value_i))
         {
           specific_group_params[k] = std::to_string(value_i);
           continue;
         }
 
         bool value_b;
-        if (nh_.getParam(group_name + "/" + k, value_b))
+        if (nh_.getParam(param_name, value_b))
         {
           specific_group_params[k] = std::to_string(value_b);
           continue;
@@ -290,9 +299,10 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     {
       if (config_names.getType() != XmlRpc::XmlRpcValue::TypeArray)
       {
-        ROS_ERROR("The planner_configs argument of a group configuration "
-                  "should be an array of strings (for group '%s')",
-                  group_name.c_str());
+        ROS_ERROR_NAMED(LOGNAME,
+                        "The planner_configs argument of a group configuration "
+                        "should be an array of strings (for group '%s')",
+                        group_name.c_str());
         continue;
       }
 
@@ -300,7 +310,8 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
       {
         if (config_names[j].getType() != XmlRpc::XmlRpcValue::TypeString)
         {
-          ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_name.c_str());
+          ROS_ERROR_NAMED(LOGNAME, "Planner configuration names must be of type string (for group '%s')",
+                          group_name.c_str());
           continue;
         }
 
@@ -313,12 +324,12 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     }
   }
 
-  for (const std::pair<std::string, planning_interface::PlannerConfigurationSettings>& config : pconfig)
+  for (const std::pair<const std::string, planning_interface::PlannerConfigurationSettings>& config : pconfig)
   {
-    ROS_DEBUG_STREAM_NAMED("parameters", "Parameters for configuration '" << config.first << "'");
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "Parameters for configuration '" << config.first << "'");
 
-    for (const std::pair<std::string, std::string>& parameters : config.second.config)
-      ROS_DEBUG_STREAM_NAMED("parameters", " - " << parameters.first << " = " << parameters.second);
+    for (const std::pair<const std::string, std::string>& parameters : config.second.config)
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, " - " << parameters.first << " = " << parameters.second);
   }
 
   setPlannerConfigurations(pconfig);
@@ -326,5 +337,5 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 
 void ompl_interface::OMPLInterface::printStatus()
 {
-  ROS_INFO("OMPL ROS interface is running.");
+  ROS_INFO_NAMED(LOGNAME, "OMPL ROS interface is running.");
 }

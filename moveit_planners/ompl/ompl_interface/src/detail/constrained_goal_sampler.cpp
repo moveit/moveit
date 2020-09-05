@@ -41,6 +41,11 @@
 
 #include <utility>
 
+namespace ompl_interface
+{
+constexpr char LOGNAME[] = "constrained_goal_sampler";
+}  // namespace ompl_interface
+
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
                                                                kinematic_constraints::KinematicConstraintSetPtr ks,
                                                                constraint_samplers::ConstraintSamplerPtr cs)
@@ -58,7 +63,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
 {
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
-  ROS_DEBUG_NAMED("constrained_goal_sampler", "Constructed a ConstrainedGoalSampler instance at address %p", this);
+  ROS_DEBUG_NAMED(LOGNAME, "Constructed a ConstrainedGoalSampler instance at address %p", this);
   startSampling();
 }
 
@@ -138,9 +143,9 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
           {
             warned_invalid_samples_ = true;
-            ROS_WARN_NAMED("constrained_goal_sampler", "More than 80%% of the sampled goal states "
-                                                       "fail to satisfy the constraints imposed on the goal sampler. "
-                                                       "Is the constrained sampler working correctly?");
+            ROS_WARN_NAMED(LOGNAME, "More than 80%% of the sampled goal states "
+                                    "fail to satisfy the constraints imposed on the goal sampler. "
+                                    "Is the constrained sampler working correctly?");
           }
         }
       }

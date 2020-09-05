@@ -247,16 +247,6 @@ public:
     spec_.constraints_library_ = constraints_library;
   }
 
-  bool useStateValidityCache() const
-  {
-    return use_state_validity_cache_;
-  }
-
-  void useStateValidityCache(bool flag)
-  {
-    use_state_validity_cache_ = flag;
-  }
-
   bool simplifySolutions() const
   {
     return simplify_solutions_;
@@ -283,7 +273,7 @@ public:
   */
   bool solve(double timeout, unsigned int count);
 
-  /* @brief Benchmark the planning problem. Return true on succesful saving of benchmark results
+  /* @brief Benchmark the planning problem. Return true on successful saving of benchmark results
      @param timeout The time to spend on solving
      @param count The number of runs to average in the computation of the benchmark
      @param filename The name of the file to which the benchmark results are to be saved (automatic names can be
@@ -315,6 +305,10 @@ public:
 
   void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
+  /** \brief Configure ompl_simple_setup_ and optionally the constraints_library_.
+   *
+   * ompl_simple_setup_ gets a start state and state validity checker.
+   * */
   virtual void configure();
 
 protected:
@@ -381,8 +375,6 @@ protected:
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
   /// needed)
   unsigned int minimum_waypoint_count_;
-
-  bool use_state_validity_cache_;
 
   bool simplify_solutions_;
 
